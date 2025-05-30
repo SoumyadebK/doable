@@ -27,6 +27,7 @@ $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_
 
 $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
 $API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 $message = '';
 

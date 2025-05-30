@@ -34,6 +34,10 @@ $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5p
 $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
 $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
 if ($PAYMENT_GATEWAY == "Stripe") {
     $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
     if ($SECRET_KEY != '' && $customer_payment_info->RecordCount() > 0) {

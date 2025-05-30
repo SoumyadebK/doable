@@ -62,6 +62,7 @@ if (empty($_GET['id'])) {
     $AUTHORIZE_CLIENT_KEY   = '';
     $MERCHANT_ID            = '';
     $API_KEY                = '';
+    $PUBLIC_API_KEY         = '';
 
     $FRANCHISE              = '';
     $AM_USER_NAME           = '';
@@ -110,6 +111,7 @@ if (empty($_GET['id'])) {
     $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
     $MERCHANT_ID            = $res->fields['MERCHANT_ID'];
     $API_KEY                = $res->fields['API_KEY'];
+    $PUBLIC_API_KEY         = $res->fields['PUBLIC_API_KEY'];
 
     $FRANCHISE              = $res->fields['FRANCHISE'];
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
@@ -187,6 +189,7 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     $CORPORATION_DATA['LOGIN_ID'] = $_POST['LOGIN_ID'];
     $CORPORATION_DATA['MERCHANT_ID'] = $_POST['MERCHANT_ID'];
     $CORPORATION_DATA['API_KEY'] = $_POST['API_KEY'];
+    $CORPORATION_DATA['PUBLIC_API_KEY'] = $_POST['PUBLIC_API_KEY'];
 
     if (empty($_GET['id'])) {
         $CORPORATION_DATA['ACTIVE'] = 1;
@@ -530,6 +533,10 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <label class="form-label">API Key</label>
                                                                 <input type="text" class="form-control" name="API_KEY" value="<?= $API_KEY ?>">
                                                             </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Public Api Key</label>
+                                                                <input type="text" class="form-control" name="PUBLIC_API_KEY" value="<?= $PUBLIC_API_KEY ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -614,7 +621,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">AM Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $AM_AMOUNT * $am_location_count ?>" disabled>
+                                                                        <input type="text" class="form-control" value="<?= '$' . number_format($AM_AMOUNT * $am_location_count, 2) ?>" disabled>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -622,7 +629,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <div class="form-group">
                                                                     <label class="col-md-12">Non AM Amount</label>
                                                                     <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $NOT_AM_AMOUNT * $non_am_location_count ?>" disabled>
+                                                                        <input type="text" class="form-control" value="<?= '$' . number_format($NOT_AM_AMOUNT * $non_am_location_count, 2) ?>" disabled>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -635,7 +642,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         <div class="form-group">
                                                             <label class="col-md-12">Total Amount</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" class="form-control" value="<?= '$'.number_format(($am_location_count * $AM_AMOUNT) + ($non_am_location_count * $NOT_AM_AMOUNT), 2) ?>" disabled>
+                                                                <input type="text" class="form-control" value="<?= '$' . number_format(($am_location_count * $AM_AMOUNT) + ($non_am_location_count * $NOT_AM_AMOUNT), 2) ?>" disabled>
                                                             </div>
                                                         </div>
                                                     </div>

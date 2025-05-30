@@ -169,6 +169,14 @@
                                 </div>
 
                             </div>
+                        <?php } elseif ($PAYMENT_GATEWAY == 'Clover') { ?>
+                            <div class="row" id="card_list">
+                            </div>
+                            <div class="row">
+                                <div id="card-number"></div>
+                                <div id="card-expiry"></div>
+                                <div id="card-cvv"></div>
+                            </div>
                         <?php } ?>
 
 
@@ -387,23 +395,8 @@ else
             } else {
                 // Send the token to your server.
                 $('#token').val(result.token.id);
-                //stripeTokenHandler(result.token);
             }
         });
-    }
-
-    // Submit the form with the token ID.
-    function stripeTokenHandler(token) {
-        $('#token').val(token.id);
-        /*alert(token);
-        // Insert the token ID into the form, so it gets submitted to the server
-        let form = document.getElementById(pay_type+'_payment_form');
-        let hiddenInput = document.createElement('input');
-        hiddenInput.setAttribute('type', 'hidden');
-        hiddenInput.setAttribute('name', 'token');
-        hiddenInput.setAttribute('value', token.id);
-        form.appendChild(hiddenInput);
-        //form.submit();*/
     }
 </script>
 
@@ -449,6 +442,40 @@ else
     }
 </script>
 
+
+<script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
+<script>
+    const clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
+        merchantId: '<?= $MERCHANT_ID ?>'
+    });
+
+    function cloverPaymentFunction(type) {
+        const elements = clover.elements();
+        const cardNumber = elements.create('cardNumber');
+        const cardExpiry = elements.create('cardExpiry');
+        const cardCvv = elements.create('cardCvv');
+
+        cardNumber.mount('#card-number');
+        cardExpiry.mount('#card-expiry');
+        cardCvv.mount('#card-cvv');
+    }
+
+    async function addCloverTokenOnForm() {
+        const {
+            token,
+            error
+        } = await clover.createToken();
+
+        if (error) {
+            alert('Tokenization error: ' + error.message);
+        } else {
+            $('#token').val(token.id);
+            console.log('Token created: ' + token.id);
+        }
+    }
+</script>
+
+
 <script>
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -469,6 +496,16 @@ else
                 let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
                 if (PAYMENT_METHOD_ID == '') {
                     addSquareTokenOnForm();
+                    sleep(3000).then(() => {
+                        submitEnrollmentPaymentForm();
+                    });
+                } else {
+                    submitEnrollmentPaymentForm();
+                }
+            } else if (PAYMENT_GATEWAY == 'Clover') {
+                let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+                if (PAYMENT_METHOD_ID == '') {
+                    addCloverTokenOnForm();
                     sleep(3000).then(() => {
                         submitEnrollmentPaymentForm();
                     });
@@ -559,7 +596,6 @@ else
                 }
 
                 if (PAYMENT_GATEWAY == 'Clover') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div>`);
                     cloverPaymentFunction(type);
                 }
                 getCreditCardList();

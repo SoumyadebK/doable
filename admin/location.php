@@ -80,6 +80,7 @@ if (empty($_GET['id'])) {
     $AUTHORIZE_CLIENT_KEY = '';
     $MERCHANT_ID = '';
     $API_KEY = '';
+    $PUBLIC_API_KEY = '';
 
 
     $AM_USER_NAME = '';
@@ -149,6 +150,7 @@ if (empty($_GET['id'])) {
     $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
     $MERCHANT_ID            = $res->fields['MERCHANT_ID'];
     $API_KEY                = $res->fields['API_KEY'];
+    $PUBLIC_API_KEY         = $res->fields['PUBLIC_API_KEY'];
 
     $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
     $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
@@ -902,6 +904,10 @@ if (!empty($_POST)) {
                                                                     <label class="form-label">API Key</label>
                                                                     <input type="text" class="form-control" name="API_KEY" value="<?= $API_KEY ?>">
                                                                 </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Public Api Key</label>
+                                                                    <input type="text" class="form-control" name="PUBLIC_API_KEY" value="<?= $PUBLIC_API_KEY ?>">
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1214,7 +1220,7 @@ if (!empty($_POST)) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Amount</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control" value="<?= $AMOUNT ?>" disabled>
+                                                                    <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
                                                                 </div>
                                                             </div>
                                                         </div>
