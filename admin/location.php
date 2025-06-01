@@ -219,6 +219,12 @@ if (!empty($_POST)) {
             }
         }
 
+        $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
+        if (!file_exists('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+            mkdir('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+            chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
+        }
+
         if (empty($_GET['id'])) {
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];

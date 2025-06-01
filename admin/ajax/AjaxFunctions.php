@@ -1293,6 +1293,8 @@ function saveLocationData($RESPONSE_DATA)
 {
     global $db;
     global $db_account;
+    global $upload_path;
+
     $EMAIL_DATA['HOST'] = $RESPONSE_DATA['SMTP_HOST'];
     $EMAIL_DATA['PORT'] = $RESPONSE_DATA['SMTP_PORT'];
     $EMAIL_DATA['USER_NAME'] = $RESPONSE_DATA['SMTP_USERNAME'];
@@ -1322,6 +1324,12 @@ function saveLocationData($RESPONSE_DATA)
             move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
             $LOCATION_DATA['IMAGE_PATH'] = $image_path;
         }
+    }
+
+    $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
+    if (!file_exists('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+        mkdir('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+        chmod('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
     }
 
     if (empty($_GET['id'])) {

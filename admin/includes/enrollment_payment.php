@@ -172,10 +172,12 @@
                         <?php } elseif ($PAYMENT_GATEWAY == 'Clover') { ?>
                             <div class="row" id="card_list">
                             </div>
-                            <div class="row">
-                                <div id="card-number"></div>
-                                <div id="card-expiry"></div>
-                                <div id="card-cvv"></div>
+                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                <div class="col-12">
+                                    <div class="form-group" id="card_div">
+
+                                    </div>
+                                </div>
                             </div>
                         <?php } ?>
 
@@ -333,148 +335,154 @@ else
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 ?>
 
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    var stripe = Stripe('<?= $PUBLISHABLE_KEY ?>');
-    var elements = stripe.elements();
+<?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+        var stripe = Stripe('<?= $PUBLISHABLE_KEY ?>');
+        var elements = stripe.elements();
 
-    var style = {
-        base: {
-            height: '34px',
-            padding: '6px 12px',
-            fontSize: '14px',
-            lineHeight: '1.42857143',
-            color: '#555',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            '::placeholder': {
-                color: '#ddd'
-            }
-        },
-        invalid: {
-            color: '#fa755a',
-            iconColor: '#fa755a'
-        }
-    };
-
-    // Create an instance of the card Element.
-    var stripe_card = elements.create('card', {
-        style: style
-    });
-    var pay_type = '';
-
-    function stripePaymentFunction(type) {
-        pay_type = type;
-        // Add an instance of the card Element into the `card-element` <div>.
-        if (($('#card-element')).length > 0) {
-            stripe_card.mount('#card-element');
-        }
-        // Handle real-time validation errors from the card Element.
-        stripe_card.addEventListener('change', function(event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-                addStripeTokenOnForm();
-            }
-        });
-        // Handle form submission.
-        /*let form = document.getElementById(type+'_payment_form');
-        form.addEventListener('submit', listener);*/
-    }
-
-    function addStripeTokenOnForm() {
-        //event.preventDefault();
-        stripe.createToken(stripe_card).then(function(result) {
-            if (result.error) {
-                // Inform the user if there was an error.
-                let errorElement = document.getElementById('card-errors');
-                errorElement.textContent = result.error.message;
-            } else {
-                // Send the token to your server.
-                $('#token').val(result.token.id);
-            }
-        });
-    }
-</script>
-
-
-<script src="<?= $URL ?>"></script>
-<script type="text/javascript">
-    let square_card;
-
-    async function squarePaymentFunction(type) {
-        let square_appId = '<?= $SQUARE_APP_ID ?>';
-        let square_locationId = '<?= $SQUARE_LOCATION_ID ?>';
-        const payments = Square.payments(square_appId, square_locationId);
-        square_card = await payments.card();
-        $('#' + type + '-card-container').text('');
-        await square_card.attach('#' + type + '-card-container');
-    }
-
-    async function addSquareTokenOnForm() {
-        const statusContainer = document.getElementById('payment-status-container');
-
-        try {
-            // Tokenize the card details
-            const result = await square_card.tokenize();
-            if (result.status === 'OK') {
-                // Add the token to the hidden input field
-                $('#enrollment_sourceId').val(result.token);
-                console.log(`Payment token is ${result.token}`);
-
-                // Submit the form after adding the token
-                //form.submit();
-            } else {
-                // Handle tokenization errors
-                let errorMessage = `Tokenization failed with status: ${result.status}`;
-                if (result.errors) {
-                    errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+        var style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
                 }
-                throw new Error(errorMessage);
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
             }
-        } catch (e) {
-            console.error(e);
-            statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+        };
+
+        // Create an instance of the card Element.
+        var stripe_card = elements.create('card', {
+            style: style
+        });
+        var pay_type = '';
+
+        function stripePaymentFunction(type) {
+            pay_type = type;
+            // Add an instance of the card Element into the `card-element` <div>.
+            if (($('#card-element')).length > 0) {
+                stripe_card.mount('#card-element');
+            }
+            // Handle real-time validation errors from the card Element.
+            stripe_card.addEventListener('change', function(event) {
+                var displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                    addStripeTokenOnForm();
+                }
+            });
+            // Handle form submission.
+            /*let form = document.getElementById(type+'_payment_form');
+            form.addEventListener('submit', listener);*/
         }
-    }
-</script>
 
+        function addStripeTokenOnForm() {
+            //event.preventDefault();
+            stripe.createToken(stripe_card).then(function(result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    let errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    $('#token').val(result.token.id);
+                }
+            });
+        }
+    </script>
+<?php } ?>
 
-<script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
-<script>
-    const clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
-        merchantId: '<?= $MERCHANT_ID ?>'
-    });
+<?php if ($PAYMENT_GATEWAY == 'Square') { ?>
+    <script src="<?= $URL ?>"></script>
+    <script type="text/javascript">
+        let square_card;
 
-    function cloverPaymentFunction(type) {
+        async function squarePaymentFunction(type) {
+            let square_appId = '<?= $SQUARE_APP_ID ?>';
+            let square_locationId = '<?= $SQUARE_LOCATION_ID ?>';
+            const payments = Square.payments(square_appId, square_locationId);
+            square_card = await payments.card();
+            $('#' + type + '-card-container').text('');
+            await square_card.attach('#' + type + '-card-container');
+        }
+
+        async function addSquareTokenOnForm() {
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                // Tokenize the card details
+                const result = await square_card.tokenize();
+                if (result.status === 'OK') {
+                    // Add the token to the hidden input field
+                    $('#enrollment_sourceId').val(result.token);
+                    console.log(`Payment token is ${result.token}`);
+
+                    // Submit the form after adding the token
+                    //form.submit();
+                } else {
+                    // Handle tokenization errors
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+            }
+        }
+    </script>
+<?php } ?>
+
+<?php if ($PAYMENT_GATEWAY == 'Clover') { ?>
+    <script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
+    <script>
+        const clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
+            merchantId: '<?= $MERCHANT_ID ?>',
+        });
+
         const elements = clover.elements();
-        const cardNumber = elements.create('cardNumber');
-        const cardExpiry = elements.create('cardExpiry');
-        const cardCvv = elements.create('cardCvv');
 
-        cardNumber.mount('#card-number');
-        cardExpiry.mount('#card-expiry');
-        cardCvv.mount('#card-cvv');
-    }
+        function cloverPaymentFunction(type) {
+            const cardNumber = elements.create('CARD_NUMBER');
+            const cardDate = elements.create('CARD_DATE');
+            const cardCvv = elements.create('CARD_CVV');
+            const cardPostalCode = elements.create('CARD_POSTAL_CODE');
 
-    async function addCloverTokenOnForm() {
-        const {
-            token,
-            error
-        } = await clover.createToken();
-
-        if (error) {
-            alert('Tokenization error: ' + error.message);
-        } else {
-            $('#token').val(token.id);
-            console.log('Token created: ' + token.id);
+            cardNumber.mount('#card-number');
+            cardDate.mount('#card-date');
+            cardCvv.mount('#card-cvv');
+            cardPostalCode.mount('#card-postal-code');
         }
-    }
-</script>
 
+        async function addCloverTokenOnForm() {
+            const {
+                token,
+                error
+            } = await clover.createToken();
+
+            if (error) {
+                alert('Tokenization error: ' + error.message);
+            } else {
+                $('#token').val(token.id);
+                console.log('Token created: ' + token.id);
+            }
+        }
+    </script>
+<?php } ?>
 
 <script>
     function sleep(ms) {
@@ -596,6 +604,10 @@ else
                 }
 
                 if (PAYMENT_GATEWAY == 'Clover') {
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-number">CC</div>
+                                <div id="card-date">D</div>
+                                <div id="card-cvv">AA</div>
+                                <div id="card-postal-code">22</div>`);
                     cloverPaymentFunction(type);
                 }
                 getCreditCardList();
