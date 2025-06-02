@@ -1000,7 +1000,7 @@ if (!empty($_POST)) {
 
                     $appt_status = $allPrivateAppointments->fields['appt_status'];
                     if ($appt_status == "A") {
-                        $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 5;
+                        $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 1;
                     } elseif ($appt_status == "C") {
                         $APPOINTMENT_MASTER_DATA['PK_APPOINTMENT_STATUS'] = 6;
                     } elseif ($appt_status == "CM") {
@@ -1084,7 +1084,7 @@ if (!empty($_POST)) {
 
                 $appt_status = $allDemoAppointments->fields['appt_status'];
                 if ($appt_status == "A") {
-                    $DEMO_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 5;
+                    $DEMO_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 1;
                 } elseif ($appt_status == "C") {
                     $DEMO_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "CM") {
@@ -1186,7 +1186,7 @@ if (!empty($_POST)) {
 
                 $appt_status = $allGroupAppointments->fields['appt_status'];
                 if ($appt_status == "A") {
-                    $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 5;
+                    $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 1;
                 } elseif ($appt_status == "C") {
                     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 6;
                 } elseif ($appt_status == "CM") {
@@ -1507,6 +1507,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMTO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTO') ? 'selected' : '' ?>>AMTO</option>
                                     <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
                                     <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
+                                    <option value="AMWB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWB') ? 'selected' : '' ?>>AMWB</option>
                                 </select>
                             </div>
                         </div>

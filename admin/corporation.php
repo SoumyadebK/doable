@@ -530,11 +530,11 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                                 <input type="text" class="form-control" name="MERCHANT_ID" value="<?= $MERCHANT_ID ?>">
                                                             </div>
                                                             <div class="form-group">
-                                                                <label class="form-label">API Key</label>
+                                                                <label class="form-label">Private Token</label>
                                                                 <input type="text" class="form-control" name="API_KEY" value="<?= $API_KEY ?>">
                                                             </div>
                                                             <div class="form-group">
-                                                                <label class="form-label">Public Api Key</label>
+                                                                <label class="form-label">Public Token</label>
                                                                 <input type="text" class="form-control" name="PUBLIC_API_KEY" value="<?= $PUBLIC_API_KEY ?>">
                                                             </div>
                                                         </div>

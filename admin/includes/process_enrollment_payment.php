@@ -583,6 +583,51 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 echo json_encode($RETURN_DATA);
                 die();
             }
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Clover') {
+            header("Access-Control-Allow-Origin: *");
+            header("Content-Type: application/json");
+
+            $CLOVER_TOKEN = empty($_POST['token']) ? '' : $_POST['token'];
+            $charge_amount = (int)($_POST['AMOUNT_TO_PAY'] * 100); // e.g., 10.00 becomes 1000
+
+            $url = "https://scl.clover.com/v1/charges";
+
+            $payload = json_encode([
+                "merchant_id" => $MERCHANT_ID,
+                "amount" => $charge_amount,
+                "currency" => "usd",
+                "source" => $CLOVER_TOKEN,
+                "capture" => true,
+            ]);
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer $API_KEY",
+                "Content-Type: application/json",
+                "Content-Length: " . strlen($payload)
+            ]);
+
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+
+            if ($http_code == 200 || $http_code == 201) {
+                $PAYMENT_STATUS = 'Success';
+                $PAYMENT_INFO_ARRAY = ['details' => json_decode($response)];
+                $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+            } else {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $response;
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            }
         }
     } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
         $IS_ORIGINAL_RECEIPT = 0;

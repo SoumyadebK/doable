@@ -1,3 +1,21 @@
+<style>
+    .clover-input {
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        margin-left: 13px;
+    }
+
+    .clover-footer {
+        display: none;
+    }
+</style>
 <div class="modal fade payment_modal" id="enrollment_payment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form id="enrollment_payment_form">
@@ -448,7 +466,7 @@ else
 <?php } ?>
 
 <?php if ($PAYMENT_GATEWAY == 'Clover') { ?>
-    <script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
+    <script src="https://checkout.clover.com/sdk.js"></script>
     <script>
         const clover = new Clover('<?= $PUBLIC_API_KEY ?>', {
             merchantId: '<?= $MERCHANT_ID ?>',
@@ -466,6 +484,7 @@ else
             cardDate.mount('#card-date');
             cardCvv.mount('#card-cvv');
             cardPostalCode.mount('#card-postal-code');
+            console.log('Show Clover Payment Form');
         }
 
         async function addCloverTokenOnForm() {
@@ -473,12 +492,12 @@ else
                 token,
                 error
             } = await clover.createToken();
+            console.log('Clover Token:', token, 'Error:', error);
 
             if (error) {
-                alert('Tokenization error: ' + error.message);
+                console.log('Tokenization error: ' + error.message);
             } else {
-                $('#token').val(token.id);
-                console.log('Token created: ' + token.id);
+                $('#token').val(token);
             }
         }
     </script>
@@ -604,10 +623,12 @@ else
                 }
 
                 if (PAYMENT_GATEWAY == 'Clover') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-number">CC</div>
-                                <div id="card-date">D</div>
-                                <div id="card-cvv">AA</div>
-                                <div id="card-postal-code">22</div>`);
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div class="row">
+                                                                                    <div class="clover-input" id="card-number" style="width: 50%;"></div>
+                                                                                    <div class="clover-input" id="card-date" style="width: 15%;"></div>
+                                                                                    <div class="clover-input" id="card-cvv" style="width: 10%;"></div>
+                                                                                    <div class="clover-input" id="card-postal-code" style="width: 15%;"></div>
+                                                                                </div>`);
                     cloverPaymentFunction(type);
                 }
                 getCreditCardList();
