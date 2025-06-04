@@ -470,6 +470,19 @@ if (!empty($_GET['id'])) {
                                                                 </div>
 
                                                                 <div class="row">
+                                                                    <div class="col-6">
+                                                                        <div class="form-group">
+                                                                            <label class="col-md-12">User Name<span class="text-danger">*</span></label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" required>
+                                                                                <div id="uname_result"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <span id="lblError" style="color: red"></span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="row">
                                                                     <div class="col-md-2">
                                                                         <label class="form-label">Can Edit Enrollment : </label>
                                                                     </div>

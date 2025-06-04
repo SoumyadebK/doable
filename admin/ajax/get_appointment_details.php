@@ -299,6 +299,7 @@ $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
 if ($PK_USER_MASTER > 0) {
     makeMiscComplete($PK_USER_MASTER);
+    makeDroppedCancelled($PK_USER_MASTER);
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
     checkAllEnrollmentStatus($PK_USER_MASTER);
 }

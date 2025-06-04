@@ -866,6 +866,26 @@ function makeMiscComplete($PK_USER_MASTER): void
     }
 }
 
+function makeDroppedCancelled($PK_USER_MASTER): void
+{
+    global $db_account;
+    $miscEnrollmentData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%Dropped%' AND DOA_ENROLLMENT_MASTER.EXPIRY_DATE <= '" . date('Y-m-d') . "' AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+    while (!$miscEnrollmentData->EOF) {
+        $PK_ENROLLMENT_MASTER = $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER'];
+
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+        $ENR_UPDATE_DATA['STATUS'] = 'C';
+        $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'C';
+
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+        $miscEnrollmentData->MoveNext();
+    }
+}
+
 function makeExpiryEnrollmentComplete($PK_USER_MASTER): void
 {
     global $db_account;
@@ -925,6 +945,32 @@ function getPaymentGatewayData()
     }
 
     return $payment_gateway_data;
+}
+
+function getTwilioSettingData($PK_LOCATION)
+{
+    global $db;
+    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = $PK_LOCATION");
+    if ($location_data->fields['TEXTING_FEATURE_ENABLED'] == 1) {
+        if ($location_data->fields['TWILIO_ACCOUNT_TYPE'] == 1) {
+            return [$location_data->fields['SID'], $location_data->fields['TOKEN'], $location_data->fields['TWILIO_PHONE_NO']];
+        } else {
+            $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_TEXT_SETTINGS = 1");
+            return [$text_setting->fields['SID'], $text_setting->fields['TOKEN'], $text_setting->fields['FROM_NO']];
+        }
+    } else {
+        $corporation_data = $db->Execute("SELECT DOA_CORPORATION.* FROM DOA_CORPORATION INNER JOIN DOA_LOCATION ON DOA_CORPORATION.PK_CORPORATION = DOA_LOCATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION = $PK_LOCATION");
+        if ($corporation_data->fields['TEXTING_FEATURE_ENABLED'] == 1) {
+            if ($corporation_data->fields['TWILIO_ACCOUNT_TYPE'] == 1) {
+                return [$corporation_data->fields['SID'], $corporation_data->fields['TOKEN'], $corporation_data->fields['TWILIO_PHONE_NO']];
+            } else {
+                $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_TEXT_SETTINGS = 1");
+                return [$text_setting->fields['SID'], $text_setting->fields['TOKEN'], $text_setting->fields['FROM_NO']];
+            }
+        } else {
+            return [null, null, null];
+        }
+    }
 }
 
 function getWeekStartAndEndDate($date)
