@@ -75,7 +75,7 @@ if ($header_data->RecordCount() > 0) {
                                             <tr>
                                                 <th>No</th>
                                                 <th>Name</th>
-                                                <th>Username</th>
+                                                <!-- <th>Username</th> -->
                                                 <th>Roles</th>
                                                 <th>Location</th>
                                                 <th>Email Id</th>
@@ -117,7 +117,7 @@ if ($header_data->RecordCount() > 0) {
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $row->fields['NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $row->fields['USER_NAME'] ?></td>
+                                                    <!-- <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $row->fields['USER_NAME'] ?></td> -->
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= implode(', ', $selected_roles) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= implode(', ', $selected_location) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>

@@ -225,12 +225,6 @@ if (!empty($_GET['id'])) {
                                                                             <div class="col-md-12 multiselect-box">
                                                                                 <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                                     <?php
-                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' " . $user_role_condition . " ORDER BY SORT_ORDER");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?>><?= $row->fields['ROLES'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                    <?php
                                                                                     $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1'  ORDER BY SORT_ORDER");
                                                                                     while (!$row->EOF) { 
                                                                                         if(in_array($row->fields['PK_ROLES'], $selected_roles)) { ?>
@@ -456,7 +450,7 @@ if (!empty($_GET['id'])) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="1">
                                                             <div class="p-20">
-                                                                <div class="row">
+                                                                <!-- <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name<span class="text-danger">*</span></label>
@@ -467,14 +461,14 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
                                                                     </div>
-                                                                </div>
+                                                                </div> -->
 
                                                                 <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
-                                                                            <label class="col-md-12">User Name<span class="text-danger">*</span></label>
+                                                                            <label class="col-md-12">User Email<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" required>
+                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
                                                                                 <div id="uname_result"></div>
                                                                             </div>
                                                                         </div>

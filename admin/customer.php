@@ -215,7 +215,6 @@ if (!empty($_GET['master_id'])) {
 
 if ($PK_USER_MASTER > 0) {
     makeMiscComplete($PK_USER_MASTER);
-    makeDroppedCancelled($PK_USER_MASTER);
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
     checkAllEnrollmentStatus($PK_USER_MASTER);
 }
@@ -942,8 +941,8 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <div class="p-20">
-                                                                <div class="row">
-                                                                    <!-- <div class="col-6">
+                                                                <!-- <div class="row">
+                                                                    <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
                                                                             <div class="col-md-12">
@@ -953,7 +952,21 @@ if ($PK_USER_MASTER > 0) {
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
 
-                                                                    </div> -->
+                                                                    </div>
+                                                                </div> -->
+
+                                                                <div class="row">
+                                                                    <div class="col-6">
+                                                                        <div class="form-group">
+                                                                            <label class="col-md-12">User Email</label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>">
+                                                                                <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                                            </div>
+                                                                        </div>
+                                                                        <span id="lblError" style="color: red"></span>
+
+                                                                    </div>
                                                                 </div>
 
                                                                 <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>

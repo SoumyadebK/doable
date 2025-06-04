@@ -800,17 +800,17 @@ function saveProfileData($RESPONSE_DATA)
     $USER_DATA['APPEAR_IN_CALENDAR'] = 1;
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
-        if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['USER_NAME'])) {
+        if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['EMAIL_ID'])) {
             if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
                 $location_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_LOCATION WHERE PK_LOCATION = " . $RESPONSE_DATA['PRIMARY_LOCATION_ID']);
                 $USERNAME_PREFIX = ($location_data->RecordCount() > 0) ? $location_data->fields['USERNAME_PREFIX'] : '';
-                if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
-                    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+                if (strpos($RESPONSE_DATA['EMAIL_ID'], $USERNAME_PREFIX . '.') !== false) {
+                    $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
                 } else {
-                    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+                    $USER_DATA['EMAIL_ID'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['EMAIL_ID'];
                 }
             } else {
-                $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+                $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
             }
 
             $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
@@ -986,7 +986,7 @@ function saveProfileData($RESPONSE_DATA)
 /*function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $USER_DATA['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+    $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['CREATE_LOGIN'] = 1;
     $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
     $USER_DATA['CAN_EDIT_ENROLLMENT'] = isset($RESPONSE_DATA['CAN_EDIT_ENROLLMENT'])?$RESPONSE_DATA['CAN_EDIT_ENROLLMENT']:0;
@@ -1010,18 +1010,18 @@ function saveLoginData($RESPONSE_DATA)
     $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
     $FOCUSBIZ_API_KEY = ($account_data->RecordCount() > 0) ? $account_data->fields['FOCUSBIZ_API_KEY'] : '';
 
-    if (!empty($RESPONSE_DATA['USER_NAME'])) {
+    if (!empty($RESPONSE_DATA['EMAIL_ID'])) {
         $user_master_data = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = " . $RESPONSE_DATA['PK_USER']);
         if ($user_master_data->RecordCount() > 0) {
             $location_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_LOCATION WHERE PK_LOCATION = " . $user_master_data->fields['PRIMARY_LOCATION_ID']);
             $USERNAME_PREFIX = ($location_data->RecordCount() > 0) ? $location_data->fields['USERNAME_PREFIX'] : '';
-            if (strpos($RESPONSE_DATA['USER_NAME'], $USERNAME_PREFIX . '.') !== false) {
-                $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            if (strpos($RESPONSE_DATA['EMAIL_ID'], $USERNAME_PREFIX . '.') !== false) {
+                $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
             } else {
-                $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['USER_NAME'];
+                $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['EMAIL_ID'];
             }
         } else {
-            $USER_DATA['USER_NAME'] = $USER_DATA_ACCOUNT['USER_NAME'] = $RESPONSE_DATA['USER_NAME'];
+            $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
         }
 
         db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = " . $RESPONSE_DATA['PK_USER']);
@@ -1048,7 +1048,7 @@ function saveLoginData($RESPONSE_DATA)
             $user['LAST_NAME'] = $user_data->fields['LAST_NAME'];
             $user['EMAIL_ID'] = $user_data->fields['EMAIL_ID'];
             $user['ACTIVE'] = $user_data->fields['ACTIVE'];
-            $user['USER_ID'] = $user_data->fields['USER_NAME'];
+            $user['USER_ID'] = $user_data->fields['EMAIL_ID'];
 
             $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $user_data->fields['PASSWORD'];
 
@@ -1298,7 +1298,7 @@ function saveLocationData($RESPONSE_DATA)
 
     $EMAIL_DATA['HOST'] = $RESPONSE_DATA['SMTP_HOST'];
     $EMAIL_DATA['PORT'] = $RESPONSE_DATA['SMTP_PORT'];
-    $EMAIL_DATA['USER_NAME'] = $RESPONSE_DATA['SMTP_USERNAME'];
+    $EMAIL_DATA['EMAIL_ID'] = $RESPONSE_DATA['SMTP_USERNAME'];
     $EMAIL_DATA['PASSWORD'] = $RESPONSE_DATA['SMTP_PASSWORD'];
     unset($RESPONSE_DATA['FUNCTION_NAME']);
     unset($RESPONSE_DATA['SMTP_HOST']);
