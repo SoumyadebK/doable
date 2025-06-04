@@ -1038,6 +1038,18 @@ $selected_user_id = $customer_data->fields['PK_USER'];
 
                                                                 </div>
                                                             </div> -->
+                                                            <div class="row">
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <label class="col-md-12">User Email<span class="text-danger">*</span></label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
+                                                                            <div id="uname_result"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span id="lblError" style="color: red"></span>
+                                                                </div>
+                                                            </div>
 
                                                             <?php if(empty($_GET['id']) || $PASSWORD == '') { ?>
                                                                 <div class="row">
