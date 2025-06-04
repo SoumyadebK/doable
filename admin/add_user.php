@@ -271,13 +271,13 @@ else {
 											
 											 <div class="col-6">
 								
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <label class="col-md-12" for="example-text">User Name<span class="text-danger">*</span>
                                         </label>
                                         <div class="col-md-12">
                                             <input type="text" id="User_Id" name="User_Id" class="form-control" placeholder="enter User Name" required data-validation-required-message="This field is required" onkeyup="ValidateUsername()">
                                         </div>
-                                    </div>
+                                    </div> -->
 									<span id="lblError" style="color: red"></span>
 									</div>
                                            

@@ -387,7 +387,7 @@ if (!empty($_GET['id'])) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="1">
                                                             <div class="p-20">
-                                                                <div class="row">
+                                                                <!-- <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
@@ -398,7 +398,7 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
                                                                     </div>
-                                                                </div>
+                                                                </div> -->
 
                                                                 <div class="row">
                                                                     <div class="col-md-2">

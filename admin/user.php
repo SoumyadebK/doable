@@ -3,7 +3,10 @@ require_once('../global/config.php');
 global $db;
 
 $userType = "Users";
-$user_role_condition = " AND PK_ROLES IN(2,3,5,6,7,8,9,10)";
+$order = $db->Execute("SELECT SORT_ORDER FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = ".$_SESSION['PK_ROLES']);
+$sort_order = $order->fields['SORT_ORDER'];
+$user_role_condition = " AND SORT_ORDER > ".$sort_order;
+
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -202,19 +205,45 @@ if (!empty($_GET['id'])) {
                                                                         </select>
                                                                     </div>
                                                                 </div>-->
-                                                                    <div class="col-md-2">
-                                                                        <label class="form-label">Roles<span class="text-danger">*</span></label>
-                                                                        <div class="col-md-12 multiselect-box">
-                                                                            <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' " . $user_role_condition . " ORDER BY SORT_ORDER");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?>><?= $row->fields['ROLES'] ?></option>
-                                                                                <?php $row->MoveNext();
-                                                                                } ?>
-                                                                            </select>
+                                                                    <?php if (empty($_GET['id'])) { ?>
+                                                                        <div class="col-md-2">
+                                                                            <label class="form-label">Roles<span class="text-danger">*</span></label>
+                                                                            <div class="col-md-12 multiselect-box">
+                                                                                <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
+                                                                                    <?php
+                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' " . $user_role_condition . " ORDER BY SORT_ORDER");
+                                                                                    while (!$row->EOF) { ?>
+                                                                                        <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?>><?= $row->fields['ROLES'] ?></option>
+                                                                                    <?php $row->MoveNext();
+                                                                                    } ?>
+                                                                                </select>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
+                                                                    <?php } else { ?>
+                                                                        <div class="col-md-2">
+                                                                            <label class="form-label">Roles<span class="text-danger">*</span></label>
+                                                                            <div class="col-md-12 multiselect-box">
+                                                                                <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
+                                                                                    <?php
+                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' " . $user_role_condition . " ORDER BY SORT_ORDER");
+                                                                                    while (!$row->EOF) { ?>
+                                                                                        <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?>><?= $row->fields['ROLES'] ?></option>
+                                                                                    <?php $row->MoveNext();
+                                                                                    } ?>
+                                                                                    <?php
+                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1'  ORDER BY SORT_ORDER");
+                                                                                    while (!$row->EOF) { 
+                                                                                        if(in_array($row->fields['PK_ROLES'], $selected_roles)) { ?>
+                                                                                            <option value="<?php echo $row->fields['PK_ROLES']; ?>" selected disabled>
+                                                                                                <?= $row->fields['ROLES'] ?> 
+                                                                                            </option>
+                                                                                        <?php }
+                                                                                        $row->MoveNext();
+                                                                                    } ?>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php } ?>
                                                                 </div>
 
                                                                 <div class="row">
@@ -433,6 +462,19 @@ if (!empty($_GET['id'])) {
                                                                             <label class="col-md-12">User Name<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
                                                                                 <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?= $USER_NAME ?>" required>
+                                                                                <div id="uname_result"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <span id="lblError" style="color: red"></span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="row">
+                                                                    <div class="col-6">
+                                                                        <div class="form-group">
+                                                                            <label class="col-md-12">User Name<span class="text-danger">*</span></label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" required>
                                                                                 <div id="uname_result"></div>
                                                                             </div>
                                                                         </div>
