@@ -1025,7 +1025,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
                                                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?=$PK_USER?>">
                                                         <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                         <div class="p-20">
-                                                            <div class="row">
+                                                            <!-- <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
                                                                         <label class="col-md-12">User Name</label>
@@ -1037,7 +1037,7 @@ $selected_user_id = $customer_data->fields['PK_USER'];
                                                                     <span id="lblError" style="color: red"></span>
 
                                                                 </div>
-                                                            </div>
+                                                            </div> -->
 
                                                             <?php if(empty($_GET['id']) || $PASSWORD == '') { ?>
                                                                 <div class="row">

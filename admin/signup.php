@@ -770,7 +770,7 @@ $PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
                                                         <input type="hidden" name="PK_ROLES" value="2">
                                                         <input type="text" class="form-control" value="Account Admin" readonly>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <!-- <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">User Name<span class="text-danger">*</span>
                                                             </label>
@@ -779,7 +779,7 @@ $PAYMENT_FAILED_REMINDER_AFTER_DAYS = '';
                                                             </div>
                                                         </div>
                                                         <span id="lblError" style="color: red"></span>
-                                                    </div>
+                                                    </div> -->
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-6">

@@ -942,7 +942,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <div class="p-20">
                                                                 <div class="row">
-                                                                    <div class="col-6">
+                                                                    <!-- <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
                                                                             <div class="col-md-12">
@@ -952,7 +952,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
 
-                                                                    </div>
+                                                                    </div> -->
                                                                 </div>
 
                                                                 <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>
