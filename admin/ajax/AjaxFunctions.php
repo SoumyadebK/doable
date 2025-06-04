@@ -285,12 +285,8 @@ function saveEnrollmentData($RESPONSE_DATA)
     $ENROLLMENT_MASTER_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
     $ENROLLMENT_MASTER_DATA['CHARGE_TYPE'] = empty($RESPONSE_DATA['CHARGE_TYPE']) ? 0 : $RESPONSE_DATA['CHARGE_TYPE'];
 
-    if ($RESPONSE_DATA['CHARGE_TYPE'] == 'Session') {
-        $currentDate = new DateTime();
-        $currentDate->modify('+'.$RESPONSE_DATA['EXPIRY_DATE'].' month');
-        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d H:i');
-    } else {
-        $selectedOption = $RESPONSE_DATA['EXPIRY_DATE'];
+    if ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') {
+        $selectedOption = $RESPONSE_DATA['AUTO_RENEWAL'];
         $currentDate = new DateTime();
         if ($selectedOption == '0') {
             $renewalDate = clone $currentDate;
@@ -306,7 +302,11 @@ function saveEnrollmentData($RESPONSE_DATA)
                 $renewalDate->modify('+1 month');
             }
         }
-        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $renewalDate->format('Y-m-d H:i');
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $renewalDate->format('Y-m-d');
+    } else {
+        $currentDate = new DateTime();
+        $currentDate->modify('+' . $RESPONSE_DATA['EXPIRY_DATE'] . ' month');
+        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d');
     }
 
     //$ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
