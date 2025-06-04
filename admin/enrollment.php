@@ -284,7 +284,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         </div>
                                                     <?php } ?>
                                                     <div class="col-4">
-                                                        <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE == 'Session') ? ' ' : 'none' ?>">
+                                                        <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                             <label class="form-label">Expiration Date</label>
                                                             <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
                                                                 <option value="">Select Expiration Date</option>
@@ -298,7 +298,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                                                         <div class="form-group member_base" style="display: <?php echo ($CHARGE_TYPE == 'Membership') ? ' ' : 'none' ?>">
                                                             <label class="form-label">Auto Renewal</label>
-                                                            <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                            <select class="form-control" name="AUTO_RENEWAL" id="AUTO_RENEWAL">
                                                                 <option value="">Select Auto Renewal</option>
                                                                 <option value="1" <?= ($day == 1) ? 'selected' : '' ?>>1st of every month</option>
                                                                 <option value="15" <?= ($day == 15) ? 'selected' : '' ?>>15th of every month</option>
@@ -1565,13 +1565,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
 
         function chargeBySessions(param) {
+            $('.NUMBER_OF_SESSION').prop('readonly', false);
+            $('.NUMBER_OF_SESSION').val('').css('pointer-events', 'none').trigger('change');
+            $('.PRICE_PER_SESSION').prop('readonly', false);
+            $('.PRICE_PER_SESSION').val('').css('pointer-events', 'none').trigger('change');
             if ($(param).is(':checked') && ($(param).val() === 'Session' || $(param).val() === 'Membership')) {
                 if ($(param).val() === 'Session') {
                     $('#Membership').prop('checked', false);
-                    $('.NUMBER_OF_SESSION').prop('readonly', false);
-                    $('.NUMBER_OF_SESSION').val('').css('pointer-events', 'none').trigger('change');
-                    $('.PRICE_PER_SESSION').prop('readonly', false);
-                    $('.PRICE_PER_SESSION').val('').css('pointer-events', 'none').trigger('change');
                     $('.TOTAL').prop('readonly', true);
                     $('.add_more').hide();
                     $('.session_base').show();
