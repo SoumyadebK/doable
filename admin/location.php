@@ -655,7 +655,12 @@ if (!empty($_POST)) {
                                                         <div class="form-group">
                                                             <label for="example-text">Time Slot Interval</label>
                                                             <div>
-                                                                <input type="text" id="TIME_SLOT_INTERVAL" name="TIME_SLOT_INTERVAL" class="form-control time-picker" placeholder="Enter Time Slot Interval" value="<?php echo $TIME_SLOT_INTERVAL ?>">
+                                                                <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
+                                                                    <option value="">Select</option>
+                                                                    <?php for ($i = 5; $i <= 60; $i += 5) { ?>
+                                                                        <option value="<?= '00:' . $i . ':00' ?>" <?= ($TIME_SLOT_INTERVAL == '00:' . $i . ':00') ? 'selected' : '' ?>><?= '00:' . $i . ':00' ?></option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
