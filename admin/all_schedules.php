@@ -5,7 +5,8 @@ global $db_account;
 global $master_database;
 global $upload_path;
 
-$LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 
 $title = "All Appointments";
 
@@ -619,8 +620,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <div id="appointment_list_half" class="col-12">
                         <div class="card">
 
-
-
                             <div class="card-body row" style="margin-bottom: -30px;">
                                 <div class="col-2">
                                     <div class="row">
@@ -630,7 +629,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                 <div id="day-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
                                             </div>
                                             <div class="box d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">W</button>
+                                                <button type="button" id="week_count_btn" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">W</button>
                                                 <div id="week-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
                                             </div>
                                         </div>
@@ -680,7 +679,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                 <div class="search-container">
                                                     <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
                                                         <?php
-                                                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE=1 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                                         while (!$row->EOF) { ?>
                                                             <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
                                                         <?php $row->MoveNext();
@@ -704,12 +703,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
                             </div>
-
-
-
-
-
-
 
 
                             <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
@@ -946,17 +939,25 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     customPrev: {
                         text: 'Prev',
                         click: function() {
-                            todayDate.setDate(todayDate.getDate() - 1);
-                            renderCalendar(todayDate);
-                            calendar.gotoDate(todayDate);
+                            if (calendar.view.type == 'agendaDay') {
+                                todayDate.setDate(todayDate.getDate() - 1);
+                                renderCalendar(todayDate);
+                                calendar.gotoDate(todayDate);
+                            } else {
+                                calendar.prev();
+                            }
                         }
                     },
                     customNext: {
                         text: 'Next',
                         click: function() {
-                            todayDate.setDate(todayDate.getDate() + 1);
-                            renderCalendar(todayDate);
-                            calendar.gotoDate(todayDate);
+                            if (calendar.view.type == 'agendaDay') {
+                                todayDate.setDate(todayDate.getDate() + 1);
+                                renderCalendar(todayDate);
+                                calendar.gotoDate(todayDate);
+                            } else {
+                                calendar.next();
+                            }
                         }
                     },
                     customToday: {
@@ -1031,7 +1032,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                     calendar.setOption('editable', true);
                                 }
                             }
-                            getServiceProviderCount();
+                            //getServiceProviderCount();
                             if (calendar.view.type === 'month') {
                                 calendar.changeView('month');
                             }
@@ -1075,7 +1076,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             alert(thrownError);
                         }
                     });
-
                 },
                 eventRender: function(info) {
                     let event_data = info.event.extendedProps;
@@ -1408,11 +1408,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let month = currentDate.getMonth() + 1;
             let year = currentDate.getFullYear();
 
-            let all_service_provider = $('.fc-resource-cell').map(function() {
-                return $(this).data('resource-id');
-            }).get();
+            let selected_service_provider = [];
+            let selectedOptions = $('#SERVICE_PROVIDER_ID').find('option:selected');
+            selectedOptions.each(function() {
+                selected_service_provider.push($(this).val());
+            });
 
-            //$("#CHOOSE_DATE").val(month+'/'+day+'/'+year);
+            let calendar_view = calendar.view.type;
 
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
@@ -1420,7 +1422,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 data: {
                     FUNCTION_NAME: 'getServiceProviderCount',
                     currentDate: year + '-' + month + '-' + day,
-                    all_service_provider: all_service_provider
+                    selected_service_provider: selected_service_provider,
+                    calendar_view: calendar_view
                 },
                 async: false,
                 cache: false,
@@ -1429,6 +1432,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     let appointment_data = result_data.service_provider_count;
                     for (let i = 0; i < appointment_data.length; i++) {
                         $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').text(appointment_data[i].SERVICE_PROVIDER_NAME + ' - ' + appointment_data[i].APPOINTMENT_COUNT);
+                    }
+                    if (calendar_view === 'month') {
+                        $('#week_count_btn').text('M');
+                    } else {
+                        $('#week_count_btn').text('W');
                     }
                     $('#day-count').attr('data-to', result_data.day_count);
                     $('#week-count').attr('data-to', result_data.week_count);

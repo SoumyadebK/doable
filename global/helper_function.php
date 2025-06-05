@@ -869,16 +869,15 @@ function makeMiscComplete($PK_USER_MASTER): void
 function makeDroppedCancelled($PK_USER_MASTER): void
 {
     global $db_account;
-    $miscEnrollmentData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%Dropped%' AND DOA_ENROLLMENT_MASTER.EXPIRY_DATE <= '" . date('Y-m-d') . "' AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+    $miscEnrollmentData = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE ENROLLMENT_NAME LIKE '%Dropped%' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
     while (!$miscEnrollmentData->EOF) {
         $PK_ENROLLMENT_MASTER = $miscEnrollmentData->fields['PK_ENROLLMENT_MASTER'];
 
         $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
         $ENR_UPDATE_DATA['STATUS'] = 'C';
-        $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'C';
-
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
+        $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'C';
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
@@ -991,5 +990,17 @@ function getWeekStartAndEndDate($date)
     return [
         'start' => $startOfWeek->format('Y-m-d'),
         'end'   => $endOfWeek->format('Y-m-d')
+    ];
+}
+
+function getMonthStartAndEndDate($date)
+{
+    $dt = new DateTime($date);
+    $startOfMonth = $dt->format('Y-m-01');
+    $endOfMonth = $dt->format('Y-m-t');
+
+    return [
+        'start' => $startOfMonth,
+        'end'   => $endOfMonth
     ];
 }

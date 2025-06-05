@@ -67,7 +67,7 @@ if ($header_data->RecordCount() > 0) {
                                                     <td onclick="editpage(<?= $row->fields['PK_CORPORATION'] ?>);"><?= $row->fields['CORPORATION_NAME'] ?></td>
                                                     <td>
                                                         <a href="corporation.php?id=<?= $row->fields['PK_CORPORATION'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="all_corporations.php?type=del&id=<?= $row->fields['PK_CORPORATION'] ?>" onclick="javascript:ConfirmDelete(<?= $row->fields['PK_LOCATION'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="all_corporations.php?type=del&id=<?= $row->fields['PK_CORPORATION'] ?>" onclick="javascript:ConfirmDelete(<?= $row->fields['PK_CORPORATION'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>
