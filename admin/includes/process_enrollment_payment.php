@@ -733,7 +733,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
             $PAYMENT_DATA['AMOUNT'] = $PAID_AMOUNT;
             $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
-            $TYPE = 'Payment';
+            $TYPE = ($PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] > 0) ? 'Payment' : 'Adjustment';
             if ($_POST['PK_PAYMENT_TYPE'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
@@ -768,7 +768,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE_PARTIAL'];
             $PAYMENT_DATA['AMOUNT'] = $PARTIAL_AMOUNT;
             $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
-            $TYPE = 'Payment';
+            $TYPE = ($PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] > 0) ? 'Payment' : 'Adjustment';
             if ($_POST['PK_PAYMENT_TYPE_PARTIAL'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER_PARTIAL'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE_PARTIAL']))];
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);

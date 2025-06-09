@@ -739,14 +739,16 @@ function getGroupClassSerialNumber()
 function getAccessToken()
 {
     global $db;
-    $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+    $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
+    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
     $client_id = constant('client_id');
     $client_secret = constant('client_secret');
     $ami_api_url = constant('ami_api_url') . '/oauth/v2/token';
 
-    $AM_USER_NAME = $account_data->fields['AM_USER_NAME'];
-    $AM_PASSWORD = $account_data->fields['AM_PASSWORD'];
-    $AM_REFRESH_TOKEN = $account_data->fields['AM_REFRESH_TOKEN'];
+    $AM_USER_NAME = $location_data->fields['AM_USER_NAME'];
+    $AM_PASSWORD = $location_data->fields['AM_PASSWORD'];
+    $AM_REFRESH_TOKEN = $location_data->fields['AM_REFRESH_TOKEN'];
 
     $user_credential = [
         'client_id' => $client_id,
