@@ -971,7 +971,7 @@ function saveProfileData($RESPONSE_DATA)
         }
     }
 
-    $db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+    //$db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
     $return_data['PK_USER'] = $PK_USER;
     $return_data['PK_USER_MASTER'] = $PK_USER_MASTER;
@@ -1362,6 +1362,8 @@ function saveLocationData($RESPONSE_DATA)
         $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
     }
+
+    $db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
     $_SESSION['DEFAULT_LOCATION_ID'] = $PK_LOCATION;
 

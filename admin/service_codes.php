@@ -324,7 +324,7 @@ if($help->RecordCount() > 0) {
                                                                     <label>Scheduling Code</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-5">
+                                                            <div class="col-9">
                                                                 <div>
                                                                     <label for="PK_SCHEDULING_CODE"></label><select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
                                                                         <?php
