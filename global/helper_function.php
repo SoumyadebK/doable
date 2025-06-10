@@ -890,17 +890,17 @@ function makeDroppedCancelled($PK_USER_MASTER): void
 function makeExpiryEnrollmentComplete($PK_USER_MASTER): void
 {
     global $db_account;
-    $enrollmentServiceData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.EXPIRY_DATE <= '" . date('Y-m-d') . "' AND ((DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT <= DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID) OR (DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT = 0)) AND DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+    $enrollmentServiceData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.EXPIRY_DATE <= '" . date('Y-m-d') . "' AND ((DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT <= DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID) OR (DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT = 0)) AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
     while (!$enrollmentServiceData->EOF) {
-        $SESSION_COMPLETED_COUNT = getSessionCompletedCount($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
-        if ($enrollmentServiceData->fields['NUMBER_OF_SESSION'] <= $SESSION_COMPLETED_COUNT) {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-            $ENR_UPDATE_DATA['STATUS'] = 'CO';
-            db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
+        /* $SESSION_COMPLETED_COUNT = getSessionCompletedCount($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+        if ($enrollmentServiceData->fields['NUMBER_OF_SESSION'] <= $SESSION_COMPLETED_COUNT) { */
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+        $ENR_UPDATE_DATA['STATUS'] = 'CO';
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
 
-            db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
-            db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
-        }
+        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
+        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $enrollmentServiceData->fields['PK_ENROLLMENT_MASTER']);
+        //}
 
         $enrollmentServiceData->MoveNext();
     }
@@ -1005,4 +1005,13 @@ function getMonthStartAndEndDate($date)
         'start' => $startOfMonth,
         'end'   => $endOfMonth
     ];
+}
+
+function isSevenYearsExpired($dateString)
+{
+    $date = new DateTime($dateString);
+    $sevenYearsAgo = new DateTime();
+    $sevenYearsAgo->modify('-7 years');
+
+    return $date < $sevenYearsAgo;
 }
