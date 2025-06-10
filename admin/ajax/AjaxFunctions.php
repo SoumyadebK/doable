@@ -2436,7 +2436,8 @@ function moveToWallet($RESPONSE_DATA): void
     }
 
     if ($PK_ENROLLMENT_LEDGER == 0 && $PK_ENROLLMENT_PAYMENT == 0) {
-        $PAYMENT_DATA['RECEIPT_NUMBER'] = $old_payment_data->fields['RECEIPT_NUMBER'];
+        $old_receipt_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $old_receipt_data->fields['RECEIPT_NUMBER'];
     }
 
     $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
