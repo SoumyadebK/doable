@@ -3,14 +3,14 @@ require_once('../global/query_factory.php');
 require_once('../global/common_functions.php');
 
 $db1 = new queryFactory();
-if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn1 = $db1->connect('localhost','root','',$_SESSION['MIGRATION_DB_NAME']);
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    $conn1 = $db1->connect('localhost', 'root', '', $_SESSION['MIGRATION_DB_NAME']);
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn1 = $db1->connect('localhost','root','b54eawxj5h8ev',$_SESSION['MIGRATION_DB_NAME']);
+    $conn1 = $db1->connect('localhost', 'root', 'b54eawxj5h8ev', $_SESSION['MIGRATION_DB_NAME']);
     $http_path = 'http://allonehub.com/';
 }
-if ($db1->error_number){
+if ($db1->error_number) {
     die("Connection Error");
 }
 function getStartTime()
@@ -23,136 +23,164 @@ function getEndTime()
     global $db1;
     return $db1->Execute("SELECT * FROM settings WHERE name = 'Calendar End Time'");
 }
-function getAllInquiryMethod() {
+function getAllInquiryMethod()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM inquiry_type");
 }
 
-function getAllUsers() {
+function getAllUsers()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM users");
 }
 
-function getAllCustomers() {
+function getAllCustomers()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM customer");
 }
 
-function getAllCustomersID() {
+function getAllCustomersID()
+{
     global $db1;
     return $db1->Execute("SELECT customer_id FROM customer");
 }
 
-function getAllServices() {
+function getAllServices()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM service_codes");
 }
 
-function getAllSchedulingCodes() {
+function getAllSchedulingCodes()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM booking_codes");
 }
 
-function getAllEnrollmentTypes() {
+function getAllEnrollmentTypes()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM enrollment_type");
 }
 
-function getAllPackages() {
+function getAllPackages()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM packages");
 }
 
-function getPackageServices($package_id) {
+function getPackageServices($package_id)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM package_services WHERE package_id = '$package_id'");
 }
 
-function getLastEnrollmentId() {
+function getLastEnrollmentId()
+{
     global $db1;
     return $db1->Execute("SELECT MAX(enrollment_id) AS last_id FROM enrollment");
 }
 
-function getAllEnrollments($lastEnrollmentId) {
+function getAllEnrollments($lastEnrollmentId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM enrollment WHERE enrollment_id > $lastEnrollmentId AND `enrollmentname` NOT LIKE '%Renewal (NO SALE)%'");
 }
 
-function getAllEnrollmentServices() {
+function getAllEnrollmentServices()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM enrollment_services");
 }
 
-function getAllEnrollmentServicesById($enrollment_id) {
+function getAllEnrollmentServicesById($enrollment_id)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM enrollment_services WHERE enrollment_id = '$enrollment_id'");
 }
 
-function getAllEnrollmentChargesById($enrollment_id) {
+function getAllEnrollmentChargesById($enrollment_id)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM `charges` WHERE `enroll_id` = '$enrollment_id'");
 }
 
-function getLastPaymentId() {
+function getLastPaymentId()
+{
     global $db1;
     return $db1->Execute("SELECT MAX(id) AS last_id FROM payments");
 }
 
-function getAllEnrollmentPaymentByChargeId($charge_id, $lastId) {
+function getAllEnrollmentPaymentByChargeId($charge_id, $lastId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM `payments` WHERE id > $lastId AND charge_id = '$charge_id'");
 }
 
-function getAllEnrollmentPayments() {
+function getAllEnrollmentPayments()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM payments");
 }
 
-function getLastGeneralAppt() {
+function getLastGeneralAppt()
+{
     global $db1;
     return $db1->Execute("SELECT MAX(general_appt_id) AS last_id FROM general_appt");
 }
 
-function getAllGeneralAppt($lastApptId) {
+function getAllGeneralAppt($lastApptId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM general_appt WHERE `general_appt_id` > $lastApptId");
 }
 
-function getAllPrivateAppointments() {
+function getAllPrivateAppointments()
+{
     global $db1;
     return $db1->Execute("SELECT * FROM service_appt WHERE `service_id` LIKE '%PRI%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getLastAppointment() {
+function getLastAppointment()
+{
     global $db1;
     return $db1->Execute("SELECT MAX(service_appt_id) AS last_id FROM service_appt");
 }
 
-function getAllPrivateAppointmentsByCustomerId($customer_id, $lastServiceApptId) {
+function getAllPrivateAppointmentsByCustomerId($customer_id, $lastServiceApptId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getAllGroupAppointments($lastServiceApptId) {
+function getAllGroupAppointments($lastServiceApptId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND `service_id` NOT LIKE '%PRI%' AND `service_id` NOT LIKE '%COMM%' AND `service_id` NOT LIKE '%PCMP%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getDemoAppointments($lastServiceApptId) {
+function getDemoAppointments($lastServiceApptId)
+{
     global $db1;
     return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND `service_id` LIKE '%COMM%' ORDER BY appt_date ASC, appt_time ASC");
 }
 
-function getAllStudentIds($service_appt_id) {
+function getAllStudentIds($service_appt_id)
+{
     global $db1;
     return $db1->Execute("SELECT student_id, payment_status FROM group_parties WHERE service_appt_id = '$service_appt_id'");
 }
 
-function getRole($role_id){
+function getRole($role_id)
+{
     if ($role_id > 0) {
         global $db1;
         $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
-        if ( $role->fields['name'] == "Counselor") {
+        if ($role->fields['name'] == "Super Admin") {
+            return "Super Account Admin";
+        } elseif ($role->fields['name'] == "Counselor") {
             return "Account User";
         } elseif ($role->fields['name'] == "Instructor") {
             return "Service Provider";
@@ -166,7 +194,8 @@ function getRole($role_id){
     }
 }
 
-function getInquiry($inquiry_id) {
+function getInquiry($inquiry_id)
+{
     global $db1;
     $inquiry = $db1->Execute("SELECT inquiry_type FROM inquiry_type WHERE inquiry_id = '$inquiry_id'");
     if ($inquiry->RecordCount() > 0) {
@@ -176,7 +205,8 @@ function getInquiry($inquiry_id) {
     }
 }
 
-function getTaker($taker_id) {
+function getTaker($taker_id)
+{
     global $db1;
     $inquiry_taker = $db1->Execute("SELECT user_name FROM users WHERE user_id = '$taker_id'");
     if ($inquiry_taker->RecordCount() > 0) {
@@ -186,13 +216,15 @@ function getTaker($taker_id) {
     }
 }
 
-function getService($service_id) {
+function getService($service_id)
+{
     global $db1;
     $service_taker = $db1->Execute("SELECT service_name, chargeable FROM service_codes WHERE service_id = '$service_id'");
     return [$service_taker->fields['service_name'], $service_taker->fields['chargeable']];
 }
 
-function getCustomer($customer_id) {
+function getCustomer($customer_id)
+{
     global $db1;
     $customer_taker = $db1->Execute("SELECT email FROM customer WHERE customer_id = '$customer_id'");
     if ($customer_taker->RecordCount() > 0) {
@@ -202,7 +234,8 @@ function getCustomer($customer_id) {
     }
 }
 
-function getServiceMaster($service_id) {
+function getServiceMaster($service_id)
+{
     global $db1;
     $service_name_taker = $db1->Execute("SELECT service_name FROM service_codes WHERE service_id = '$service_id'");
     if ($service_name_taker->RecordCount() > 0) {
@@ -212,7 +245,8 @@ function getServiceMaster($service_id) {
     }
 }
 
-function getServiceCode($service_id) {
+function getServiceCode($service_id)
+{
     global $db1;
     $service_name_taker = $db1->Execute("SELECT service_id FROM service_codes WHERE service_id = '$service_id'");
     if ($service_name_taker->RecordCount() > 0) {
@@ -222,7 +256,8 @@ function getServiceCode($service_id) {
     }
 }
 
-function getBookingCode($booking_code) {
+function getBookingCode($booking_code)
+{
     global $db1;
     $result = $db1->Execute("SELECT booking_name FROM booking_codes WHERE booking_code = '$booking_code'");
     if ($result->RecordCount() > 0) {
@@ -239,7 +274,8 @@ function getEnrollmentType($enrollmentTypeId): array
     return [$enrollmentTypeData->fields['enrollment_type'], $enrollmentTypeData->fields['code']];
 }
 
-function getUser($user_id) {
+function getUser($user_id)
+{
     global $db1;
     $customer_taker = $db1->Execute("SELECT email FROM users WHERE user_id = '$user_id'");
     if ($customer_taker->RecordCount() > 0) {
@@ -248,13 +284,15 @@ function getUser($user_id) {
         return 0;
     }
 }
-function getEnrollmentDetails($enrollment_id) {
+function getEnrollmentDetails($enrollment_id)
+{
     global $db1;
     $enrollment_details = $db1->Execute("SELECT sale_value, discount, total_cost FROM enrollment WHERE enrollment_id = '$enrollment_id'");
     return [$enrollment_details->fields['sale_value'], $enrollment_details->fields['discount'], $enrollment_details->fields['total_cost']];
 }
 
-function getPackageCode($package_id) {
+function getPackageCode($package_id)
+{
     global $db1;
     $package_data = $db1->Execute("SELECT package_name FROM packages WHERE package_id = '$package_id'");
     if ($package_data->RecordCount() > 0) {

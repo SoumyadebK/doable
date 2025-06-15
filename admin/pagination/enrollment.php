@@ -147,11 +147,11 @@ while (!$enrollment_data->EOF) {
 
                             $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
-                            if ($type == 'completed') {
+                            /* if ($type == 'completed') {
                                 $SESSION_COMPLETED = $NUMBER_OF_SESSION;
-                            } else {
-                                $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                            }
+                            } else { */
+                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            //}
 
                             $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
 
@@ -162,7 +162,7 @@ while (!$enrollment_data->EOF) {
                             }
 
                             if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
-                                $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
+                                $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
                                 $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
                             } else {
                                 $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);

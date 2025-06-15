@@ -1508,6 +1508,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
                                     <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
                                     <option value="AMWB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWB') ? 'selected' : '' ?>>AMWB</option>
+                                    <option value="AMLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLV') ? 'selected' : '' ?>>AMLV</option>
+                                    <option value="JTLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'JTLV') ? 'selected' : '' ?>>JTLV</option>
                                 </select>
                             </div>
                         </div>
