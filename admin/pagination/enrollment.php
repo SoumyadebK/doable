@@ -103,12 +103,17 @@ while (!$enrollment_data->EOF) {
                 <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
             <?php
+            $amount_to_pay = 0;
+            $amount_to_return = 0;
             $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-            $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-            if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] <= $enr_total_amount->fields['TOTAL_AMOUNT'])) {
+            $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            $enr_refund_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Move' OR TYPE = 'Refund') AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] < $enr_total_amount->fields['TOTAL_AMOUNT'])) {
                 $amount_to_pay = $enr_total_amount->fields['TOTAL_AMOUNT'] - $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
                 $ledger_data = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                 $unpaid_count = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['PAID'] : 0;
+            } elseif (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && (($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT']) > $enr_total_amount->fields['TOTAL_AMOUNT'])) {
+                $amount_to_return = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT'] - $enr_total_amount->fields['TOTAL_AMOUNT'];
             }
             ?>
             <div class="col-8" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'appointment_details')" style="cursor: pointer;">
@@ -142,11 +147,11 @@ while (!$enrollment_data->EOF) {
 
                             $SESSION_SCHEDULED = getSessionScheduledCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
 
-                            if ($type == 'completed') {
+                            /* if ($type == 'completed') {
                                 $SESSION_COMPLETED = $NUMBER_OF_SESSION;
-                            } else {
-                                $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
-                            }
+                            } else { */
+                            $SESSION_COMPLETED = getSessionCompletedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            //}
 
                             $enrollment_service_array[] = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
 
@@ -157,7 +162,7 @@ while (!$enrollment_data->EOF) {
                             }
 
                             if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
-                                $TOTAL_PAID_SESSION = $SESSION_COMPLETED;
+                                $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
                                 $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
                             } else {
                                 $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);
@@ -195,7 +200,7 @@ while (!$enrollment_data->EOF) {
                 </table>
             </div>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-                <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] == $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
@@ -203,6 +208,10 @@ while (!$enrollment_data->EOF) {
                     <br><br>
                     <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
                     <p style="color:red;">$<?= number_format($amount_to_pay, 2) ?></p>
+                <?php } elseif ($amount_to_return > 0 && isSevenYearsExpired($enrollment_data->fields['ENROLLMENT_DATE'])) { ?>
+                    <br><br>
+                    <button class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, 0, <?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $PK_USER_MASTER ?>, <?= $amount_to_return ?>, 'completed', 'Move', 0)">Move to Wallet</button><br><br>
+                    <p style="color:green;">$<?= number_format($amount_to_return, 2) ?></p>
                 <?php } ?>
                 <?php
                 if ($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>

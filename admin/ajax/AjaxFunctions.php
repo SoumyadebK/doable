@@ -2432,10 +2432,16 @@ function moveToWallet($RESPONSE_DATA): void
     }*/
 
     if ($PK_ENROLLMENT_PAYMENT == 0) {
-        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
     } else {
-        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_PAYMENT = '$PK_ENROLLMENT_PAYMENT'");
+        $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE' AND PK_ENROLLMENT_PAYMENT = '$PK_ENROLLMENT_PAYMENT'");
     }
+
+    if ($PK_ENROLLMENT_LEDGER == 0 && $PK_ENROLLMENT_PAYMENT == 0) {
+        $old_receipt_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $old_receipt_data->fields['RECEIPT_NUMBER'];
+    }
+
     $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
     if ($PK_PAYMENT_TYPE == 1) {
         $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
@@ -2458,6 +2464,7 @@ function moveToWallet($RESPONSE_DATA): void
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
         }
     }
+
     if ($PK_PAYMENT_TYPE == 2) {
         $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
         $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
@@ -2476,7 +2483,7 @@ function moveToWallet($RESPONSE_DATA): void
     $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
-    if ($ENROLLMENT_TYPE == 'active') {
+    if ($ENROLLMENT_TYPE == 'active' || $ENROLLMENT_TYPE == 'completed') {
         $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_ENROLLMENT_PAYMENT =  '$PK_ENROLLMENT_PAYMENT'");
 

@@ -283,18 +283,27 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?> onchange="chargeBySessions(this);">Membership</label>
                                                         </div>
                                                     <?php } ?>
+
                                                     <div class="col-4">
-                                                        <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
-                                                            <label class="form-label">Expiration Date</label>
-                                                            <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
-                                                                <option value="">Select Expiration Date</option>
-                                                                <option value="1" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
-                                                                <option value="2" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
-                                                                <option value="3" <?= ($months == 3) ? 'selected' : '' ?>>90 days</option>
-                                                                <option value="6" <?= ($months == 6) ? 'selected' : '' ?>>180 days</option>
-                                                                <option value="12" <?= ($months == 12) ? 'selected' : '' ?>>365 days</option>
-                                                            </select>
-                                                        </div>
+                                                        <?php if (empty($_GET['id'])) { ?>
+                                                            <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
+                                                                <label class="form-label">Expiration Date</label>
+                                                                <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                                    <option value="">Select Expiration Date</option>
+                                                                    <option value="1" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
+                                                                    <option value="2" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
+                                                                    <option value="3" <?= ($months == 3) ? 'selected' : '' ?>>90 days</option>
+                                                                    <option value="6" <?= ($months == 6) ? 'selected' : '' ?>>180 days</option>
+                                                                    <option value="12" <?= ($months == 12) ? 'selected' : '' ?>>365 days</option>
+                                                                </select>
+                                                            </div>
+                                                        <?php } else { ?>
+                                                            <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
+                                                                <label class="form-label">Expiration Date</label>
+                                                                <input type="text" class="form-control" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
+                                                            </div>
+                                                        <?php } ?>
+
 
                                                         <div class="form-group member_base" style="display: <?php echo ($CHARGE_TYPE == 'Membership') ? ' ' : 'none' ?>">
                                                             <label class="form-label">Auto Renewal</label>

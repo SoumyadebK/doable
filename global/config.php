@@ -6,11 +6,11 @@ require_once('common_functions.php');
 require_once('helper_function.php');
 $db = new queryFactory();
 $master_database = 'DOA_MASTER';
-if($_SERVER['HTTP_HOST'] == 'localhost' ) {
-    $conn = $db->connect('localhost','root','',$master_database);
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    $conn = $db->connect('localhost', 'root', '', $master_database);
     $http_path = 'http://localhost/doable/';
 } else {
-    $conn = $db->connect('localhost','root','b54eawxj5h8ev',$master_database);
+    $conn = $db->connect('localhost', 'root', 'b54eawxj5h8ev', $master_database);
     $http_path = 'https://doable.net/';
 }
 
@@ -29,7 +29,7 @@ if (!empty($_SESSION['DB_NAME'])) {
     }
 }
 
-$env = 'dev';
+$env = 'prod';
 $upload_path = '';
 
 if ($env === 'dev') {
@@ -42,36 +42,41 @@ if ($env === 'dev') {
     define("ami_api_url", "https://reporting.arthurmurray.com");
 }
 
-if ($db->error_number){
+if ($db->error_number) {
     die("Master Database Connection Error");
-}else{
-    if (!empty($_SESSION['PK_ACCOUNT_MASTER'])){
-        $account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.SERVICE_PROVIDER_TITLE, DOA_ACCOUNT_MASTER.OPERATION_TAB_TITLE, DOA_ACCOUNT_MASTER.BUSINESS_NAME, DOA_ACCOUNT_MASTER.BUSINESS_LOGO, DOA_TIMEZONE.TIMEZONE, DOA_CURRENCY.CURRENCY_SYMBOL FROM DOA_TIMEZONE RIGHT JOIN DOA_ACCOUNT_MASTER ON DOA_TIMEZONE.PK_TIMEZONE = DOA_ACCOUNT_MASTER.PK_TIMEZONE LEFT JOIN DOA_CURRENCY ON DOA_CURRENCY.PK_CURRENCY = DOA_ACCOUNT_MASTER.PK_CURRENCY WHERE DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-        $business_logo = $account_data->fields['BUSINESS_LOGO'];
-        $business_name = $account_data->fields['BUSINESS_NAME'];
-        if ($account_data->fields['SERVICE_PROVIDER_TITLE'] == NULL || $account_data->fields['SERVICE_PROVIDER_TITLE'] == '')
+} else {
+    if (!empty($_SESSION['PK_ACCOUNT_MASTER'])) {
+        $location_data = $db->Execute("SELECT DOA_LOCATION.SERVICE_PROVIDER_TITLE, DOA_LOCATION.OPERATION_TAB_TITLE, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE WHERE DOA_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")");
+        /* $business_logo = $location_data->fields['BUSINESS_LOGO'];
+        $business_name = $location_data->fields['BUSINESS_NAME']; */
+        $business_logo = '';
+        $business_name = '';
+
+        if ($location_data->fields['SERVICE_PROVIDER_TITLE'] == NULL || $location_data->fields['SERVICE_PROVIDER_TITLE'] == '')
             $service_provider_title = 'Service Provider';
         else
-            $service_provider_title = $account_data->fields['SERVICE_PROVIDER_TITLE'];
+            $service_provider_title = $location_data->fields['SERVICE_PROVIDER_TITLE'];
 
-        if ($account_data->fields['OPERATION_TAB_TITLE'] == NULL || $account_data->fields['OPERATION_TAB_TITLE'] == '')
+        if ($location_data->fields['OPERATION_TAB_TITLE'] == NULL || $location_data->fields['OPERATION_TAB_TITLE'] == '')
             $operation_tab_title = 'Operations';
         else
-            $operation_tab_title = $account_data->fields['OPERATION_TAB_TITLE'];
+            $operation_tab_title = $location_data->fields['OPERATION_TAB_TITLE'];
 
-        if (is_null($account_data->fields['CURRENCY_SYMBOL']))
+        $currency = '$';
+
+        /* if (is_null($location_data->fields['CURRENCY_SYMBOL']))
             $currency = '$';
         else
-            $currency = $account_data->fields['CURRENCY_SYMBOL'];
+            $currency = $location_data->fields['CURRENCY_SYMBOL']; */
 
-        if (!is_null($account_data->fields['TIMEZONE'])) {
-            date_default_timezone_set($account_data->fields['TIMEZONE']);
+        if (!is_null($location_data->fields['TIMEZONE'])) {
+            date_default_timezone_set($location_data->fields['TIMEZONE']);
             $time_zone = 1;
-        }else{
+        } else {
             $time_zone = 0;
         }
 
-        $upload_path = 'uploads/'.$_SESSION['PK_ACCOUNT_MASTER'];
+        $upload_path = 'uploads/' . $_SESSION['PK_ACCOUNT_MASTER'];
 
         $PERMISSION_ARRAY = [];
         $permission_data = $db->Execute("SELECT DOA_PERMISSION.PERMISSION_NAME FROM DOA_PERMISSION LEFT JOIN DOA_ROLES_PERMISSION ON DOA_PERMISSION.PK_PERMISSION = DOA_ROLES_PERMISSION.PK_PERMISSION WHERE DOA_ROLES_PERMISSION.PK_ROLES = '$_SESSION[PK_ROLES]'");

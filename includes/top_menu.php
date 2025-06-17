@@ -14,7 +14,7 @@
                 <a class="navbar-brand" href="../super_admin/all_accounts.php">
                     <img src="../assets/images/doable_logo.png" alt="LOGO" style="height: 60px; width: auto;">
                 </a>
-            <?php } elseif ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
+                <?php } elseif ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
                 if ($business_logo == "" || $business_logo == null) { ?>
                     <a class="navbar-brand" href="../admin/my_profile.php">
                         <b>DOABLE</b>
@@ -46,7 +46,7 @@
                         <img src="<?= $business_logo ?>" alt="LOGO" style="height: 60px; width: auto;">
                     </a>
                 <?php } ?>
-                <?php
+            <?php
             } ?>
         </div>
         <!-- ============================================================== -->
@@ -63,15 +63,8 @@
                 <li class="nav-item">
                     <?php if ($_SESSION["PK_ROLES"] == 1) { ?>
                         <p style="font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;">Super Admin</p>
-
-
-                    <?php } elseif (
-                        $_SESSION["PK_ROLES"] == 2 ||
-                        $_SESSION["PK_ROLES"] == 4 ||
-                        $_SESSION["PK_ROLES"] == 5 || 
-                        $_SESSION["PK_ROLES"] == 11
-                    ) { ?>
-                        <p style="width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;"><?= $business_name ?></p>
+                    <?php } elseif ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4 || $_SESSION["PK_ROLES"] == 5 || $_SESSION["PK_ROLES"] == 11) { ?>
+                        <!-- <p style="width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 23px; font-weight: 400; color: white; margin-left: 40px; margin-top: 14px;"><?= $business_name ?></p> -->
                     <?php } ?>
                 </li>
             </ul>
@@ -83,29 +76,30 @@
                     <li class="nav-item m-t-15">
                         <div id="location" class="multiselect-box" style="width: 300px">
                             <?php
-                                $selected_location = [];
-                                if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
-                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                } else {
-                                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = ".$_SESSION['PK_USER']);
-                                    while (!$selected_location_row->EOF) {
-                                        //echo $selected_location_row->fields['PK_LOCATION'];
-                                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                        $selected_location_row->MoveNext();
-                                    }
-                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (".implode(',', $selected_location).")");
-                                } ?>
+                            $selected_location = [];
+                            if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            } else {
+                                $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $_SESSION['PK_USER']);
+                                while (!$selected_location_row->EOF) {
+                                    //echo $selected_location_row->fields['PK_LOCATION'];
+                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                    $selected_location_row->MoveNext();
+                                }
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . implode(',', $selected_location) . ")");
+                            } ?>
                             <?php
-                                if (($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) || count($selected_location) > 1) { ?>
+                            if (($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) || count($selected_location) > 1) { ?>
                                 <select class="multi_select_location" onchange="selectDefaultLocation(this);" multiple>
                                     <?php
                                     while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=(!empty($_SESSION['DEFAULT_LOCATION_ID']) && in_array($row->fields['PK_LOCATION'], explode(',', $_SESSION['DEFAULT_LOCATION_ID'])))?'selected':''?>><?=$row->fields['LOCATION_NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
+                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= (!empty($_SESSION['DEFAULT_LOCATION_ID']) && in_array($row->fields['PK_LOCATION'], explode(',', $_SESSION['DEFAULT_LOCATION_ID']))) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
                                 </select>
                             <?php } else {
-                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (".implode(',', $selected_location).")"); ?>
-                                <h4 style="color: white;"><?=$row->fields['LOCATION_NAME']?></h4>
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . implode(',', $selected_location) . ")"); ?>
+                                <h4 style="color: white;"><?= $row->fields['LOCATION_NAME'] ?></h4>
                             <?php } ?>
                         </div>
                     </li>
@@ -119,25 +113,27 @@
                     </a>
                 </li>
 
-                <?php if($_SESSION['ACCESS_TOKEN'] && $_SESSION['TICKET_SYSTEM_ACCESS']==1):?>
+                <?php if ($_SESSION['ACCESS_TOKEN'] && $_SESSION['TICKET_SYSTEM_ACCESS'] == 1): ?>
                     <li class="nav-item" style="margin-top: 4px;">
-                        <?php //if ($_SESSION["PK_ROLES"] == 1) { ?>
+                        <?php //if ($_SESSION["PK_ROLES"] == 1) { 
+                        ?>
                         <!-- <a href="email.php" style="margin-left: 40px;color:white;">Email List</a> -->
-                        <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?=$_SESSION['ACCESS_TOKEN'] ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
+                        <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $_SESSION['ACCESS_TOKEN'] ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
                             <img src="../assets/images/icon/ticket.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                             <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
                         </a>
-                        <?php //} ?>
+                        <?php //} 
+                        ?>
                     </li>
-                <?php endif;?>
+                <?php endif; ?>
 
                 <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4 || $_SESSION["PK_ROLES"] == 11) { ?>
                     <li class="nav-item dropdown" style="margin-top: 4px;">
                         <a class="nav-link dropdown-toggle waves-effect waves-dark notice_box" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/?>;"> <span class="button"></span> </div>-->
+                            <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/ ?>;"> <span class="button"></span> </div>-->
                             <div class="button">
                                 <img src="../assets/images/icon/cart.png" alt="Mail" style="height: 35px; width: 35px;">
-                                <span class="button__badge" id="cart_count"><?=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?count($_SESSION['CART_DATA']):0?></span>
+                                <span class="button__badge" id="cart_count"><?= (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) ? count($_SESSION['CART_DATA']) : 0 ?></span>
                             </div>
                         </a>
 
@@ -151,7 +147,7 @@
                                 <div id="cart_item_list">
 
                                 </div>
-                        </div>
+                            </div>
                     </li>
                 <?php } ?>
 
@@ -164,24 +160,24 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?php
-/*                        $res = $db->Execute(
+                        /*                        $res = $db->Execute(
                             "SELECT USER_IMAGE FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'"
                         );
-                        if (empty($res->fields["USER_IMAGE"])) { */?><!--
+                        if (empty($res->fields["USER_IMAGE"])) { */ ?><!--
                             <img src="../assets/images/users/user_image_demo.jpg" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?php /*= $_SESSION[
                         "FIRST_NAME"
                         ] .
                         " " .
                         $_SESSION[
                         "LAST_NAME"
-                        ] */?> <i class="fas fa-angle-down"></i>
-                        <?php /*} else { */?>
+                        ] */ ?> <i class="fas fa-angle-down"></i>
+                        <?php /*} else { */ ?>
                             <img src="<?php /*= $res->fields[
                             "USER_IMAGE"
-                            ] */?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?php /*= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] */?> <i class="fas fa-angle-down"></i>
+                            ] */ ?>" alt="user-img" class="img-circle" width="35" height="35"> &nbsp;&nbsp;&nbsp;<?php /*= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] */ ?> <i class="fas fa-angle-down"></i>
                         --><?php /*}
-                        */?>
-                        <?= $_SESSION["FIRST_NAME"]." ".$_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
+                        */ ?>
+                        <?= $_SESSION["FIRST_NAME"] . " " . $_SESSION["LAST_NAME"] ?> <i class="fas fa-angle-down"></i>
                     </a>
                     <div id="logout" class="dropdown-menu dropdown-menu-end mailbox animated bounceInDown" style="margin-right: 45%">
                         <ul>

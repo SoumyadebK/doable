@@ -3,10 +3,8 @@ require_once('../global/config.php');
 global $db;
 
 $userType = "Users";
-$order = $db->Execute("SELECT SORT_ORDER FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = ".$_SESSION['PK_ROLES']);
+$order = $db->Execute("SELECT SORT_ORDER FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = " . $_SESSION['PK_ROLES']);
 $sort_order = $order->fields['SORT_ORDER'];
-$user_role_condition = " AND SORT_ORDER > ".$sort_order;
-
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -51,7 +49,7 @@ $CAN_EDIT_ENROLLMENT = '';
 $TICKET_SYSTEM_ACCESS = '';
 $APPEAR_IN_CALENDAR = 0;
 
-$selected_roles = array();
+$selected_roles = array(0);
 //end
 if (!empty($_GET['id'])) {
     $res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_GET[id]'");
@@ -195,49 +193,19 @@ if (!empty($_GET['id'])) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <!--<div class="col-md-2">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Select Type</label>
-                                                                        <select class="form-control" name="TYPE">
-                                                                            <option value="">Select</option>
-                                                                            <option value="C" <?php /*=($TYPE == 'C')?'selected':''*/ ?>>Counsellor</option>
-                                                                            <option value="S" <?php /*=($TYPE == 'S')?'selected':''*/ ?>>Supervisor</option>
-                                                                        </select>
+                                                                    <div class="col-md-2">
+                                                                        <label class="form-label">Roles<span class="text-danger">*</span></label>
+                                                                        <div class="col-md-12 multiselect-box">
+                                                                            <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
+                                                                                <?php
+                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES, SORT_ORDER FROM DOA_ROLES WHERE (PK_ROLES IN (" . implode(',', $selected_roles) . ") OR SORT_ORDER >= " . $sort_order . ") AND ACTIVE = '1' ORDER BY SORT_ORDER");
+                                                                                while (!$row->EOF) { ?>
+                                                                                    <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?> <?= ($row->fields['SORT_ORDER'] < $sort_order) ? 'disabled' : '' ?>><?= $row->fields['ROLES'] ?></option>
+                                                                                <?php $row->MoveNext();
+                                                                                } ?>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
-                                                                </div>-->
-                                                                    <?php if (empty($_GET['id'])) { ?>
-                                                                        <div class="col-md-2">
-                                                                            <label class="form-label">Roles<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12 multiselect-box">
-                                                                                <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
-                                                                                    <?php
-                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1' " . $user_role_condition . " ORDER BY SORT_ORDER");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?>><?= $row->fields['ROLES'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php } else { ?>
-                                                                        <div class="col-md-2">
-                                                                            <label class="form-label">Roles<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12 multiselect-box">
-                                                                                <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
-                                                                                    <?php
-                                                                                    $row = $db->Execute("SELECT PK_ROLES, ROLES FROM DOA_ROLES WHERE ACTIVE='1'  ORDER BY SORT_ORDER");
-                                                                                    while (!$row->EOF) { 
-                                                                                        if(in_array($row->fields['PK_ROLES'], $selected_roles)) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_ROLES']; ?>" selected disabled>
-                                                                                                <?= $row->fields['ROLES'] ?> 
-                                                                                            </option>
-                                                                                        <?php }
-                                                                                        $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php } ?>
                                                                 </div>
 
                                                                 <div class="row">
