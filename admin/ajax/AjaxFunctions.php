@@ -2710,3 +2710,15 @@ function getReportDetails($RESPONSE_DATA): void
         echo 'Last exported on ' . date('m/d/Y H:i A', strtotime($date));
     }
 }
+
+function  updateCountOnCalendar($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    $COUNT_ON_CALENDAR = $RESPONSE_DATA['COUNT_ON_CALENDAR'] ?? 0;
+
+    $UPDATE_DATA['COUNT_ON_CALENDAR'] = $COUNT_ON_CALENDAR;
+    db_perform_account('DOA_SERVICE_CODE', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = " . $PK_SERVICE_MASTER);
+    echo 1;
+}
