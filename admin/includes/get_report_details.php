@@ -1,10 +1,27 @@
 <?php
 require_once('../../global/config.php');
-global $db_account;
 
 $REPORT_TYPE = $_POST['REPORT_TYPE'];
 
-$report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = '$REPORT_TYPE' ORDER BY SUBMISSION_DATE DESC");
+if ($REPORT_TYPE == 'royalty_service_report') {
+    $report_type = 'royalty';
+} elseif ($REPORT_TYPE == 'summary_of_studio_business_report') {
+    $report_type = 'studio_business';
+} elseif ($REPORT_TYPE == 'staff_performance_report') {
+    $report_type = 'staff_performance';
+} else {
+    die();
+}
+
+$access_token = getAccessToken();
+$authorization = "Authorization: Bearer " . $access_token;
+
+$url = constant('ami_api_url') . '/api/v1/reports';
+$data = [
+    'type' => $report_type
+];
+$post_data = callArturMurrayApiGet($url, $data, $authorization);
+$return_data = json_decode($post_data, true);
 ?>
 <table class="table">
     <thead>
@@ -15,19 +32,18 @@ $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS
         </tr>
     </thead>
     <tbody>
-    <?php while (!$report_details->EOF){ ?>
-        <tr style="text-align: center;">
-            <td>
-                <?=$report_details->fields['WEEK_NUMBER']?>
-            </td>
-            <td>
-                <?=$report_details->fields['YEAR']?>
-            </td>
-            <td>
-                <?=date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']))?>
-            </td>
-        </tr>
-    <?php $report_details->MoveNext();
-        } ?>
+        <?php foreach (array_reverse($return_data) as $key => $value) { ?>
+            <tr style="text-align: center;">
+                <td>
+                    <?= $value['week_number'] ?>
+                </td>
+                <td>
+                    <?= $value['week_year'] ?>
+                </td>
+                <td>
+                    <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
+                </td>
+            </tr>
+        <?php } ?>
     </tbody>
 </table>

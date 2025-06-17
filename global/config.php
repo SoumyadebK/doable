@@ -29,7 +29,7 @@ if (!empty($_SESSION['DB_NAME'])) {
     }
 }
 
-$env = 'prod';
+$env = 'dev';
 $upload_path = '';
 
 if ($env === 'dev') {

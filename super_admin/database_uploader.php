@@ -81,19 +81,16 @@ if (!empty($_POST)) {
 
         case 'DOA_USERS':
             $allUsers = getAllUsers();
-            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
-            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+            /* $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : ''; */
             while (!$allUsers->EOF) {
                 $user_id = $allUsers->fields['user_id'];
-                $user_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$user_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+                $user_exist = $db->Execute("SELECT PK_USER, USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$user_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
                 if ($user_exist->RecordCount() == 0) {
-                    $roleId = $allUsers->fields['role'];
-                    $getRole = getRole($roleId);
-                    $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
                     $USER_DATA['FIRST_NAME'] = trim($allUsers->fields['first_name']);
                     $USER_DATA['LAST_NAME'] = trim($allUsers->fields['last_name']);
-                    $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $allUsers->fields['user_name'];
+                    $USER_DATA['USER_NAME'] = $allUsers->fields['user_name']; //$USERNAME_PREFIX . '.' . $allUsers->fields['user_name'];
                     $USER_DATA['USER_ID'] = $allUsers->fields['user_id'];
                     $USER_DATA['EMAIL_ID'] = $allUsers->fields['email'];
                     if (!empty($allUsers->fields['cell_phone']) && $allUsers->fields['cell_phone'] != null) {
@@ -126,10 +123,6 @@ if (!empty($_POST)) {
                     $PK_USER = $db->insert_ID();
 
                     if ($PK_USER) {
-                        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-                        $USER_ROLE_DATA['PK_ROLES'] = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
-                        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
-
                         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
                         $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($allUsers->fields['first_name']);
@@ -144,33 +137,54 @@ if (!empty($_POST)) {
                         $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
                         $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+                    }
+                } else {
+                    $PK_USER = $user_exist->fields['PK_USER'];
+                }
 
-                        $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
-                        $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                $roleId = $allUsers->fields['role'];
+                $getRole = getRole($roleId);
+                $doableRoleId = $db->Execute("SELECT PK_ROLES FROM DOA_ROLES WHERE ROLES='$getRole'");
+                $PK_ROLE = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
 
-                        if ($USER_ROLE_DATA['PK_ROLES'] == 5) {
-                            $startTime = getStartTime();
-                            $endTime = getEndTime();
+                $user_role_exist = $db->Execute("SELECT PK_USER FROM DOA_USER_ROLES WHERE PK_USER = $PK_USER AND PK_ROLES = " . $PK_ROLE);
+                if ($user_role_exist->RecordCount() == 0) {
+                    $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                    $USER_ROLE_DATA['PK_ROLES'] = $PK_ROLE;
+                    db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+                }
 
-                            $SERVICE_PROVIDER_HOURS['PK_USER'] = $PK_USER;
-                            $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
-                            $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
-                            $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
-                            $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
-                            $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
-                            $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
-                            db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
-                        }
+                $user_location_exist = $db->Execute("SELECT PK_USER FROM DOA_USER_LOCATION WHERE PK_USER = $PK_USER AND PK_LOCATION = " . $PK_LOCATION);
+                if ($user_location_exist->RecordCount() == 0) {
+                    $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                    $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                }
+
+
+                if ($PK_ROLE == 5) {
+                    $operational_hour_exist = $db_account->Execute("SELECT PK_USER FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS WHERE PK_USER = $PK_USER AND PK_LOCATION = " . $PK_LOCATION);
+                    if ($operational_hour_exist->RecordCount() == 0) {
+                        $startTime = getStartTime();
+                        $endTime = getEndTime();
+
+                        $SERVICE_PROVIDER_HOURS['PK_USER'] = $PK_USER;
+                        $SERVICE_PROVIDER_HOURS['PK_LOCATION'] = $PK_LOCATION;
+                        $SERVICE_PROVIDER_HOURS['MON_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['MON_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['TUE_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['TUE_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['WED_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['WED_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['THU_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['THU_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['FRI_START_TIME'] = date('H:i', strtotime($startTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['FRI_END_TIME'] = date('H:i', strtotime($endTime->fields['value']));
+                        $SERVICE_PROVIDER_HOURS['SAT_START_TIME'] = '00:00:00';
+                        $SERVICE_PROVIDER_HOURS['SAT_END_TIME'] = '00:00:00';
+                        $SERVICE_PROVIDER_HOURS['SUN_START_TIME'] = '00:00:00';
+                        $SERVICE_PROVIDER_HOURS['SUN_END_TIME'] = '00:00:00';
+                        db_perform_account('DOA_SERVICE_PROVIDER_LOCATION_HOURS', $SERVICE_PROVIDER_HOURS, 'insert');
                     }
                 }
                 $allUsers->MoveNext();
@@ -179,15 +193,15 @@ if (!empty($_POST)) {
 
         case 'DOA_CUSTOMER':
             $allCustomers = getAllCustomers();
-            $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
-            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : '';
+            /* $account_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+            $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : ''; */
             while (!$allCustomers->EOF) {
                 $customer_id = $allCustomers->fields['customer_id'];
                 $customer_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$customer_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
                 if ($customer_exist->RecordCount() == 0) {
                     try {
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-                        $USER_DATA['USER_NAME'] = $USERNAME_PREFIX . '.' . $allCustomers->fields['customer_id'];
+                        $USER_DATA['USER_NAME'] = $allCustomers->fields['customer_id']; //$USERNAME_PREFIX . '.' . $allCustomers->fields['customer_id'];
                         $USER_DATA['USER_ID'] = $allCustomers->fields['customer_id'];
                         $USER_DATA['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
                         $USER_DATA['LAST_NAME'] = trim($allCustomers->fields['last_name']);
@@ -364,7 +378,7 @@ if (!empty($_POST)) {
             $allServices = getAllServices();
             while (!$allServices->EOF) {
                 $service_name = $allServices->fields['service_name'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
+                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name'");
                 if ($table_data->RecordCount() == 0) {
                     $SERVICE['SERVICE_NAME'] = $allServices->fields['service_name'];
                     if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous') !== false) {
@@ -446,10 +460,10 @@ if (!empty($_POST)) {
                     $service_code = $allSchedulingCodes->fields['service_id'];
                     $serviceCodeData = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$service_code'");
 
-                    $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
+                    /* $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
                     $SERVICE_SCHEDULING_CODE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
                     $SERVICE_SCHEDULING_CODE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
-                    db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_SCHEDULING_CODE, 'insert');
+                    db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_SCHEDULING_CODE, 'insert'); */
 
                     $SCHEDULING_SERVICE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
                     $SCHEDULING_SERVICE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];

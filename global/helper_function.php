@@ -806,7 +806,7 @@ function getStaffCode($access_token, $first_name, $last_name)
     return $data[0]['id'] ?? '';
 }
 
-function callArturMurrayApi(string $url, array $data, string $access_token)
+function callArturMurrayApi(string $url, array $data, string $access_token, $method = 'POST')
 {
     $curl = curl_init();
 
@@ -820,9 +820,38 @@ function callArturMurrayApi(string $url, array $data, string $access_token)
         CURLOPT_TIMEOUT => 0,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "POST",
-        CURLOPT_POST => true,
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_POST => false,
         CURLOPT_POSTFIELDS => $param,
+        CURLOPT_HTTPHEADER => array(
+            $access_token
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    if (curl_errno($curl)) {
+        echo 'Curl error: ' . curl_error($curl);
+    }
+    curl_close($curl);
+
+    return $response;
+}
+
+function callArturMurrayApiGet(string $url, array $data, string $access_token)
+{
+    $url .= '?' . http_build_query($data);
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
         CURLOPT_HTTPHEADER => array(
             $access_token
         ),

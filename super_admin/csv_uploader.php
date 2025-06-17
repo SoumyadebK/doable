@@ -3,13 +3,12 @@ error_reporting(0);
 require_once('../global/config.php');
 $title = "Upload CSV";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1 ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 1) {
     header("location:../login.php");
     exit;
 }
 
-if(!empty($_POST))
-{
+if (!empty($_POST)) {
     // Allowed mime types
     $fileMimes = array(
         'text/x-comma-separated-values',
@@ -26,9 +25,8 @@ if(!empty($_POST))
     );
 
     // Validate whether selected file is a CSV file
-    if (!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $fileMimes))
-    {
-        $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$_POST['PK_ACCOUNT_MASTER']);
+    if (!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $fileMimes)) {
+        $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_POST['PK_ACCOUNT_MASTER']);
         $DB_NAME = $account_data->fields['DB_NAME'];
 
         if (!empty($DB_NAME)) {
@@ -57,9 +55,11 @@ if(!empty($_POST))
         $PK_LOCATION = $_POST['PK_LOCATION'];
 
         // Parse data from CSV file line by line
-        while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
-        {
-            if ($lineNumber === 1) { $lineNumber++; continue; }
+        while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
+            if ($lineNumber === 1) {
+                $lineNumber++;
+                continue;
+            }
             switch ($_POST['TABLE_NAME']) {
                 case 'DOA_INQUIRY_METHOD':
                     $INQUIRY_METHOD = $getData[1];
@@ -237,8 +237,8 @@ if(!empty($_POST))
                             $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[24];
                             //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
                             $partner_name = explode(" ", $getData[26]);
-                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0])?:'';
-                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1])?:'';
+                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ?: '';
+                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ?: '';
                             if ($getData[27] == 0) {
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
                             } elseif ($getData[27] == 1) {
@@ -299,14 +299,14 @@ if(!empty($_POST))
                                     $getInquiry = getInquiry($inquiryId);
                                 }
                                 $doableInquiryId = $db_account->Execute("SELECT PK_INQUIRY_METHOD FROM DOA_INQUIRY_METHOD WHERE INQUIRY_METHOD='$getInquiry'");
-                                $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount()>0)?$doableInquiryId->fields['PK_INQUIRY_METHOD']:0;
+                                $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount() > 0) ? $doableInquiryId->fields['PK_INQUIRY_METHOD'] : 0;
                             }
 
                             if (!empty($getData[37])) {
                                 $takerId = $getData[37];
                                 $getTaker = getTaker($takerId);
                                 $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
-                                $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount()>0)?$doableTakerId->fields['PK_USER']:0;
+                                $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount() > 0) ? $doableTakerId->fields['PK_USER'] : 0;
                             }
                             db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
                         }
@@ -365,12 +365,6 @@ if(!empty($_POST))
                         $SCHEDULING_CODE['CREATED_ON'] = date("Y-m-d H:i");
                         db_perform_account('DOA_SCHEDULING_CODE', $SCHEDULING_CODE, 'insert');
                         $PK_SCHEDULING_CODE = $db_account->insert_ID();
-
-                        $serviceCodeData = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$getData[3]'");
-                        $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
-                        $SERVICE_SCHEDULING_CODE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
-                        $SERVICE_SCHEDULING_CODE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
-                        db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_SCHEDULING_CODE, 'insert');
                     }
                     break;
 
@@ -392,7 +386,7 @@ if(!empty($_POST))
 
                     [$enrollment_type, $code] = getEnrollmentType($getData[2]);
                     $enrollment_type_data = $db_account->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
-                    if ($enrollment_type_data->RecordCount() > 0){
+                    if ($enrollment_type_data->RecordCount() > 0) {
                         $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
                     } else {
                         $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
@@ -459,10 +453,10 @@ if(!empty($_POST))
                     if (strpos($getData[23], "C")  !== false) {
                         $info = str_replace('  ', ' ', $getData[23]);
                         $paymentInfo = explode(' ', $info);
-                        $NUMBER_OF_PAYMENT = (is_array($paymentInfo) && isset($paymentInfo[2]) && is_int($paymentInfo[2]))?$paymentInfo[2]:0;
+                        $NUMBER_OF_PAYMENT = (is_array($paymentInfo) && isset($paymentInfo[2]) && is_int($paymentInfo[2])) ? $paymentInfo[2] : 0;
                         $INSTALLMENT_AMOUNT = (float)$paymentInfo[1];
-                        $DOWN_PAYMENT = $TOTAL_AMOUNT-($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
-                        $BALANCE_PAYABLE = ($NUMBER_OF_PAYMENT*$INSTALLMENT_AMOUNT);
+                        $DOWN_PAYMENT = $TOTAL_AMOUNT - ($NUMBER_OF_PAYMENT * $INSTALLMENT_AMOUNT);
+                        $BALANCE_PAYABLE = ($NUMBER_OF_PAYMENT * $INSTALLMENT_AMOUNT);
                         $PAYMENT_METHOD = 'Flexible Payments';
                         $PAYMENT_TERM = 'Monthly';
                         $FIRST_DUE_DATE = date('Y-m-d', strtotime($getData[7]));
@@ -549,7 +543,7 @@ if(!empty($_POST))
 
                     preg_match('#\((.*?)\)#', $ENROLLMENT_NAME, $match);
                     $serviceCode = (is_array($match) && isset($match[1])) ? $match[1] : '';
-                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_NAME LIKE '%".$serviceCode."%'");
+                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_NAME LIKE '%" . $serviceCode . "%'");
                     if ($getServiceCodeId->RecordCount() > 0) {
                         $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
                     } else {
@@ -566,7 +560,7 @@ if(!empty($_POST))
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[3];
                         [$getTotal, $getDiscount, $getFinalAmount] = getEnrollmentDetails($enrollmentId);
-                        $SERVICE_DATA['PRICE_PER_SESSION'] = $getTotal/$getData[3];
+                        $SERVICE_DATA['PRICE_PER_SESSION'] = $getTotal / $getData[3];
                         $SERVICE_DATA['TOTAL'] = $getTotal;
                         $SERVICE_DATA['DISCOUNT'] = $getDiscount;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $getFinalAmount;
@@ -584,14 +578,14 @@ if(!empty($_POST))
                     $INSERT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING->fields['PK_ENROLLMENT_BILLING'];
                     $TOTAL_AMOUNT = $PK_ENROLLMENT_BILLING->fields['TOTAL_AMOUNT'];
 
-                    $total_paid = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT WHERE `PK_ENROLLMENT_MASTER`=".$PK_ENROLLMENT_MASTER);
+                    $total_paid = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT WHERE `PK_ENROLLMENT_MASTER`=" . $PK_ENROLLMENT_MASTER);
                     $TOTAL_PAID = $total_paid->fields['TOTAL_PAID'];
 
                     $PK_PAYMENT_TYPE = $db_account->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE='$getData[5]'");
-                    $INSERT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount()>0)?$PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE']:0;
+                    $INSERT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
 
                     $INSERT_DATA['AMOUNT'] = $getData[8];
-                    $INSERT_DATA['REMAINING_AMOUNT'] = $TOTAL_AMOUNT-$TOTAL_PAID;
+                    $INSERT_DATA['REMAINING_AMOUNT'] = $TOTAL_AMOUNT - $TOTAL_PAID;
                     $INSERT_DATA['PK_PAYMENT_TYPE_REMAINING'] = '';
                     $INSERT_DATA['NAME'] = '';
                     $INSERT_DATA['CARD_NUMBER'] = $getData[16];
@@ -632,7 +626,7 @@ if(!empty($_POST))
                     $LEDGER_DATA['BALANCE'] = 0;
                     $LEDGER_DATA['IS_PAID'] = 1;
                     $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-                    $LEDGER_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount()>0)?$PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE']:0;
+                    $LEDGER_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
                     $LEDGER_DATA['STATUS'] = 'A';
                     db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
 
@@ -706,8 +700,8 @@ if(!empty($_POST))
                     }
 
                     $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$getData[9]'");
-                    $PK_SERVICE_MASTER = ($doableServiceId->RecordCount()>0)?$doableServiceId->fields['PK_SERVICE_MASTER']:0;
-                    $PK_SERVICE_CODE = ($doableServiceId->RecordCount()>0)?$doableServiceId->fields['PK_SERVICE_CODE']:0;
+                    $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
+                    $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
 
                     $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$getData[14]'");
                     if ($getServiceCodeId->RecordCount() > 0) {
@@ -829,17 +823,16 @@ if(!empty($_POST))
         // Close opened CSV file
         fclose($csvFile);
         //header("Location: csv_uploader.php");
-    }
-    else
-    {
+    } else {
         echo "Please select valid file";
     }
 }
 
-function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER) {
+function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER)
+{
     global $db;
     global $db_account;
-    $SESSION_CREATED = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER." AND PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    $SESSION_CREATED = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER . " AND PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
     if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_COUNT'] >= $SESSION_COUNT) {
         $db_account->Execute("UPDATE `DOA_ENROLLMENT_MASTER` SET `ALL_APPOINTMENT_DONE` = '1' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY PK_ENROLLMENT_MASTER ASC LIMIT 1");
@@ -858,103 +851,106 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <?php require_once('../includes/setup_menu_super_admin.php') ?>
-        <div class="container-fluid body_content m-0">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <?php require_once('../includes/setup_menu_super_admin.php') ?>
+            <div class="container-fluid body_content m-0">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-7 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
+                            <a type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" href="database_uploader.php"><i class="fa fa-plus-circle"></i> Upload From DB</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                        <a type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" href="database_uploader.php"><i class="fa fa-plus-circle"></i> Upload From DB</a>
-                    </div>
-                </div>
-            </div>
-            <form action="" method="post" enctype="multipart/form-data">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label">Business Name</label>
-                            <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER">
-                                <option value="">Select Business</option>
-                                <?php
-                                $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER'];?>" ><?=$row->fields['BUSINESS_NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
-                            </select>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Business Name</label>
+                                <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER">
+                                    <option value="">Select Business</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>"><?= $row->fields['BUSINESS_NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="form-label">Select Location</label>
-                            <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
-                                <option value="">Select Location</option>
-                                <?php
-                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
-                            </select>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">Select Location</label>
+                                <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                    <option value="">Select Location</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>"><?= $row->fields['LOCATION_NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="form-label">Select Database Name</label>
-                            <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
-                                <option value="">Select Database Name</option>
-                                <option value="AMTO">AMTO</option>
-                                <option value="AMWH">AMWH</option>
-                                <option value="AMTO_NEW">AMTO_NEW</option>
-                            </select>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">Select Database Name</label>
+                                <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
+                                    <option value="">Select Database Name</option>
+                                    <option value="AMTO">AMTO</option>
+                                    <option value="AMWH">AMWH</option>
+                                    <option value="AMTO_NEW">AMTO_NEW</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label">Select Table Name</label>
-                            <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
-                                <option value="">Select Table Name</option>
-                                <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
-                                <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Select Table Name</label>
+                                <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
+                                    <option value="">Select Table Name</option>
+                                    <option value="DOA_INQUIRY_METHOD">DOA_INQUIRY_METHOD</option>
+                                    <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
-                                <option value="DOA_USERS">DOA_USERS</option>
-                                <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
-                                <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
-                                <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
-                                <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
-                                <option value="DOA_ENROLLMENT_MASTER">DOA_ENROLLMENT_MASTER</option>
-                                <option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
-                                <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>
-                                <option value="DOA_EVENT">DOA_EVENT</option>
-                                <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
-                            </select>
-                            <div id="view_download_div" class="m-10"></div>
+                                    <option value="DOA_USERS">DOA_USERS</option>
+                                    <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
+                                    <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
+                                    <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
+                                    <option value="DOA_ENROLLMENT_TYPE">DOA_ENROLLMENT_TYPE</option>
+                                    <option value="DOA_ENROLLMENT_MASTER">DOA_ENROLLMENT_MASTER</option>
+                                    <option value="DOA_ENROLLMENT_SERVICE">DOA_ENROLLMENT_SERVICE</option>
+                                    <option value="DOA_ENROLLMENT_PAYMENT">DOA_ENROLLMENT_PAYMENT</option>
+                                    <option value="DOA_EVENT">DOA_EVENT</option>
+                                    <option value="DOA_APPOINTMENT_MASTER">DOA_APPOINTMENT_MASTER</option>
+                                </select>
+                                <div id="view_download_div" class="m-10"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">Select CSV</label>
+                                <input type="file" class="form-control" name="file">
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label class="form-label">Select CSV</label>
-                            <input type="file" class="form-control" name="file">
-                        </div>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-            </form>
+                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 </body>
 <script>
     function viewCsvDownload(param) {
@@ -962,4 +958,5 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
         $('#view_download_div').html(`<a href="../uploads/csv_upload/${table_name}.csv" target="_blank">View Sample</a>`);
     }
 </script>
+
 </html>

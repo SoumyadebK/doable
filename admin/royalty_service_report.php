@@ -90,7 +90,6 @@ if ($type === 'export') {
     $access_token = getAccessToken();
     $authorization = "Authorization: Bearer " . $access_token;
     $line_item = [];
-
     $payment_data = $db_account->Execute($PAYMENT_QUERY);
     while (!$payment_data->EOF) {
         $TOTAL_UNIT = 0;
