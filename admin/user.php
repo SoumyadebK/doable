@@ -198,7 +198,7 @@ if (!empty($_GET['id'])) {
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                                 <?php
-                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES, SORT_ORDER FROM DOA_ROLES WHERE (PK_ROLES IN (" . implode(',', $selected_roles) . ") OR SORT_ORDER >= " . $sort_order . ") AND ACTIVE = '1' ORDER BY SORT_ORDER");
+                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES, SORT_ORDER FROM DOA_ROLES WHERE (PK_ROLES IN (" . implode(',', $selected_roles) . ") OR SORT_ORDER > " . $sort_order . ") AND ACTIVE = '1' ORDER BY SORT_ORDER");
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?> <?= ($row->fields['SORT_ORDER'] < $sort_order) ? 'disabled' : '' ?>><?= $row->fields['ROLES'] ?></option>
                                                                                 <?php $row->MoveNext();
@@ -436,7 +436,7 @@ if (!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Email<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
+                                                                                <input type="text" id="LOGIN_EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
                                                                                 <div id="uname_result"></div>
                                                                             </div>
                                                                         </div>
@@ -444,7 +444,7 @@ if (!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="row">
+                                                                <div class="row m-b-20">
                                                                     <div class="col-md-2">
                                                                         <label class="form-label">Can Edit Enrollment : </label>
                                                                     </div>
@@ -454,12 +454,13 @@ if (!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="row" style="margin-top: 10px;">
-                                                                    <div class="col-md-3">
-                                                                        <div class="col-md-12 form-group m-b-40 custom-control custom-checkbox form-group">
-                                                                            <input type="checkbox" class="custom-control-input" id="TICKET_SYSTEM_ACCESS" name="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo "checked"; ?>>
-                                                                            <label class="custom-control-label" for="TICKET_SYSTEM_ACCESS">Can Create Support Tickets</label>
-                                                                        </div>
+                                                                <div class="row m-b-20">
+                                                                    <div class="col-md-2">
+                                                                        <label class="form-label">Can Create Support Tickets : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="0" <?php if ($TICKET_SYSTEM_ACCESS == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                     </div>
                                                                 </div>
 
@@ -1146,6 +1147,7 @@ if (!empty($_GET['id'])) {
                                                         $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
                                                         if (PK_USER == 0 || NEW_USER) {
                                                             if ($('#CREATE_LOGIN').is(':checked')) {
+                                                                $('#LOGIN_EMAIL_ID').val(EMAIL_ID);
                                                                 $('#login_info_tab_link')[0].click();
                                                             } else {
                                                                 if ($('#PK_ROLES').val().indexOf('5') !== -1) {
