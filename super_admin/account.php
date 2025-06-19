@@ -771,23 +771,23 @@ while (!$account_payment_info->EOF) {
                                                 </div>
 
                                                 <div class="row">
-                                                    <div class="col-6">
+                                                    <div class="col-5">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Password<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
-                                                            </div>
+                                                            <label>Password<span class="text-danger">*</span></label>
+                                                            <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                         </div>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <div class="col-md-1" style="padding-top: 22px;">
+                                                        <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                    </div>
+                                                    <div class="col-5">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Confirm Password<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
-                                                            </div>
+                                                            <label class="col-md-12">Confirm Password<span class="text-danger">*</span></label>
+                                                            <input type="password" autocomplete="off" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                         </div>
+                                                    </div>
+                                                    <div class="col-md-1" style="padding-top: 22px;">
+                                                        <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
                                                     </div>
                                                 </div>
 
@@ -1140,6 +1140,24 @@ while (!$account_payment_info->EOF) {
     </script>
     <script>
         let PK_USER_EDIT = parseInt(<?= empty($PK_USER_EDIT) ? 0 : $PK_USER_EDIT ?>);
+
+        function togglePasswordVisibility() {
+            let passwordInput = document.getElementById("PASSWORD");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text"; // Show password
+            } else {
+                passwordInput.type = "password"; // Hide password
+            }
+        }
+
+        function toggleConfirmPasswordVisibility() {
+            let passwordInput = document.getElementById("CONFIRM_PASSWORD");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text"; // Show password
+            } else {
+                passwordInput.type = "password"; // Hide password
+            }
+        }
 
         function isGood(password) {
             //alert(password);

@@ -319,6 +319,8 @@ function saveEnrollmentData($RESPONSE_DATA)
     $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE'] = date("Y-m-d", strtotime($RESPONSE_DATA['ENROLLMENT_DATE']));
 
+
+
     if (empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0) {
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = " . $RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
@@ -421,6 +423,13 @@ function saveEnrollmentData($RESPONSE_DATA)
             $total += $RESPONSE_DATA['TOTAL'][$i];
             $final_amount += $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'];
         }
+    }
+
+    if ($final_amount <= 0) {
+        $ENROLLMENT_MASTER_UPDATE_DATA['ENROLLMENT_ID'] = 'Complementary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['MISC_ID'] = 'Complementary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['IS_SALE'] = 'N';
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     }
 
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");

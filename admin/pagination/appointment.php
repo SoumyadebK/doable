@@ -60,8 +60,10 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.IS_CHARGED,
                             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_APPOINTMENT_STATUS.STATUS_CODE,
                             DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                             DOA_SCHEDULING_CODE.COLOR_CODE,
                             DOA_SCHEDULING_CODE.UNIT,
                             GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ', ') AS SERVICE_PROVIDER_NAME,
@@ -120,6 +122,7 @@ $page_first_result = ($page - 1) * $results_per_page;
             <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
             <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
             <th>Paid</th>
+            <th>Status</th>
             <th>Completed</th>
             <th>Actions</th>
         </tr>
@@ -153,11 +156,11 @@ $page_first_result = ($page - 1) * $results_per_page;
             }
 
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION, SESSION_CREATED, SESSION_COMPLETED FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-            if ($enr_service_data->RecordCount() > 0) {
+            if ($enr_service_data->RecordCount() > 0 && $appointment_data->fields['PK_APPOINTMENT_STATUS'] != 6) {
                 if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
                     $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - $UNIT;
                 } else {
-                    $service_code_array[$PK_ENROLLMENT_SERVICE] = getSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
+                    $service_code_array[$PK_ENROLLMENT_SERVICE] = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
                 }
             } ?>
             <tr onclick="$(this).next().slideToggle(); loadMedia(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>)">
@@ -170,7 +173,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                 <?php } else { ?>
                     <td><?= $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
                 <?php } ?>
-                <td><?= (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '' ?></td>
+                <td><?= (isset($service_code_array[$PK_ENROLLMENT_SERVICE]) && $appointment_data->fields['PK_APPOINTMENT_STATUS'] != 6) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '' ?></td>
                 <td><?= $appointment_data->fields['SERIAL_NUMBER'] ?></td>
                 <td><?= $appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
                 <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
@@ -180,6 +183,12 @@ $page_first_result = ($page - 1) * $results_per_page;
                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>);">View</button> <?php } ?>
                 </td>
                 <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
+                <td style="text-align: left; color: <?= $appointment_data->fields['APPOINTMENT_COLOR'] ?>">
+                    <?= $appointment_data->fields['APPOINTMENT_STATUS'] ?>&nbsp;
+                    <?php if ($appointment_data->fields['IS_CHARGED'] == 1) { ?>
+                        <i class="ti-money"></i>
+                    <?php } ?>
+                </td>
                 <td style="text-align: center;">
                     <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 6 && $appointment_data->fields['IS_CHARGED'] == 1) { ?>
                         <i class="fa fa-check-circle" style="font-size:25px;color:red;"></i>

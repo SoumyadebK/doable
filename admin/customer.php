@@ -961,18 +961,28 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Email</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>">
-                                                                                <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" readonly>
                                                                             </div>
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
-
                                                                     </div>
                                                                 </div>
 
+                                                                <?php if (!empty($_GET['id'])) { ?>
+                                                                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
+                                                                        <div class="col-md-1">
+                                                                            <label class="form-label">Active : </label>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+
                                                                 <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>
                                                                     <div class="row">
-                                                                        <div class="col-6">
+                                                                        <div class="col-4">
                                                                             <div class="form-group">
                                                                                 <label class="col-md-12">Password</label>
                                                                                 <div class="col-md-12">
@@ -980,13 +990,19 @@ if ($PK_USER_MASTER > 0) {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-6">
+                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                            <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                                        </div>
+                                                                        <div class="col-4">
                                                                             <div class="form-group">
                                                                                 <label class="col-md-12">Confirm Password</label>
                                                                                 <div class="col-md-12">
                                                                                     <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                                 </div>
                                                                             </div>
+                                                                        </div>
+                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                            <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
                                                                         </div>
                                                                     </div>
                                                                     <b id="password_error" style="color: red;"></b>
@@ -1006,18 +1022,14 @@ if ($PK_USER_MASTER > 0) {
                                                                 <?php } else { ?>
                                                                     <div class="row">
                                                                         <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                            <!--<div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Old Password</label>
-                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*$PASSWORD */ ?>">
-                                                                            <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
-                                                                        </div>
-                                                                    </div>-->
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">New Password</label>
                                                                                     <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                                                                 </div>
+                                                                            </div>
+                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                                <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
                                                                             </div>
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
@@ -1025,25 +1037,19 @@ if ($PK_USER_MASTER > 0) {
                                                                                     <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                                 </div>
                                                                             </div>
+                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                                <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                                            </div>
                                                                         </div>
                                                                         <b id="password_error" style="color: red;"></b>
-                                                                    </div>
-                                                                <?php } ?>
-
-                                                                <?php if (!empty($_GET['id'])) { ?>
-                                                                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                        <div class="col-md-1">
-                                                                            <label class="form-label">Active : </label>
-                                                                        </div>
-                                                                        <div class="col-md-4">
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                        </div>
                                                                     </div>
                                                                 <?php } ?>
                                                             </div>
                                                             <div class="form-group">
                                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                <?php if (!empty($_GET['id']) && $PASSWORD != '') { ?>
+                                                                    <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                                                <?php } ?>
                                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                                             </div>
                                                         </form>
@@ -2357,6 +2363,25 @@ if ($PK_USER_MASTER > 0) {
     }
 </script>
 <script>
+    function togglePasswordVisibility() {
+        let passwordInput = document.getElementById("PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+    function toggleConfirmPasswordVisibility() {
+        let passwordInput = document.getElementById("CONFIRM_PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+
     function isGood(password) {
         let password_strength = document.getElementById("password-text");
 
