@@ -385,6 +385,18 @@ function getSessionCompletedCount($PK_ENROLLMENT_SERVICE)
     }
 }
 
+function getAppointmentPosition($PK_ENROLLMENT_SERVICE, $PK_APPOINTMENT_MASTER)
+{
+    global $db_account;
+    $appointment_position = $db_account->Execute("SELECT position FROM (SELECT PK_APPOINTMENT_MASTER, ROW_NUMBER() OVER (PARTITION BY PK_ENROLLMENT_SERVICE ORDER BY DATE ASC) AS position FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND PK_APPOINTMENT_STATUS != 6) ranked WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+
+    if ($appointment_position->RecordCount() > 0) {
+        return $appointment_position->fields['position'];
+    } else {
+        return 0;
+    }
+}
+
 function copyEnrollment($PK_ENROLLMENT_MASTER)
 {
     require_once("stripe-php-master/init.php");

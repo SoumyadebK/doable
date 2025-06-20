@@ -624,28 +624,6 @@ $page_first_result = ($page - 1) * $results_per_page;
         });
     </script>
     <script>
-        function confirmComplete(param) {
-            let conf = confirm("Do you want to mark this appointment as completed?");
-            if (conf) {
-                let PK_APPOINTMENT_MASTER = $(param).data('id');
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'markAppointmentCompleted',
-                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                    },
-                    success: function(data) {
-                        if (data == 1) {
-                            $(param).closest('td').html('<span class="status-box" style="background-color: #ff0019">Completed</span>');
-                        } else {
-                            alert("Something wrong");
-                        }
-                    }
-                });
-            }
-        }
-
         function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
             let $nextRows = $(param).nextUntil('tr.header');
 
@@ -669,7 +647,7 @@ $page_first_result = ($page - 1) * $results_per_page;
         }
 
         function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
-            swal({
+            Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
                 icon: "warning",
@@ -678,7 +656,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Yes, delete it!"
             }).then((result) => {
-                if (result) {
+                if (result.isConfirmed) {
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
                         type: 'POST',
@@ -688,7 +666,10 @@ $page_first_result = ($page - 1) * $results_per_page;
                             PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
                         },
                         success: function(data) {
-                            window.location.href = 'appointment_list.php';
+                            let currentURL = window.location.href;
+                            let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+                            console.log(extractedPart);
+                            window.location.href = extractedPart;
                         }
                     });
                 }
