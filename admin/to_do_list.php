@@ -598,40 +598,65 @@ $page_first_result = ($page - 1) * $results_per_page;
             });
         }
 
-        function ConfirmDelete(PK_SPECIAL_APPOINTMENT) {
-            var conf = confirm("Are you sure you want to delete this appointment?");
-            if (conf) {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'deleteSpecialAppointment',
-                        PK_SPECIAL_APPOINTMENT: PK_SPECIAL_APPOINTMENT,
-                        IS_STANDING: 0
-                    },
-                    success: function(data) {
-                        window.location.href = 'to_do_list.php';
-                    }
-                });
-            }
+
+        function ConfirmDelete(PK_SPECIAL_APPOINTMENT, type) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteSpecialAppointment',
+                            PK_SPECIAL_APPOINTMENT: PK_SPECIAL_APPOINTMENT,
+                            IS_STANDING: 0
+                        },
+                        success: function(data) {
+                            let currentURL = window.location.href;
+                            let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+                            console.log(extractedPart);
+                            window.location.href = extractedPart;
+                        }
+                    });
+                }
+            });
         }
 
         function ConfirmDeleteStanding(STANDING_ID) {
-            var conf = confirm("Are you sure you want to delete all standing appointment?");
-            if (conf) {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'deleteSpecialAppointment',
-                        PK_SPECIAL_APPOINTMENT: STANDING_ID,
-                        IS_STANDING: 1
-                    },
-                    success: function(data) {
-                        window.location.href = 'to_do_list.php';
-                    }
-                });
-            }
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You want to delete all standing appointment?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteSpecialAppointment',
+                            PK_SPECIAL_APPOINTMENT: STANDING_ID,
+                            IS_STANDING: 1
+                        },
+                        success: function(data) {
+                            let currentURL = window.location.href;
+                            let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+                            console.log(extractedPart);
+                            window.location.href = extractedPart;
+                        }
+                    });
+                }
+            });
         }
 
         function selectStatus(param) {

@@ -1861,55 +1861,23 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 } else {
                     let number_of_payment = $('#NUMBER_OF_PAYMENT').val();
                     if (Number.isInteger(Number(number_of_payment))) {
-                        let form_data = $('#billing_form').serialize();
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: form_data,
-                            dataType: 'json',
-                            success: function(data) {
-                                $('.PK_ENROLLMENT_BILLING').val(data.PK_ENROLLMENT_BILLING);
-                                $('.PK_ENROLLMENT_LEDGER').val(data.PK_ENROLLMENT_LEDGER);
-                                let payment_method = $('.PAYMENT_METHOD:checked').val();
-                                let down_payment = parseFloat($('#DOWN_PAYMENT').val());
-                                let today = new Date().getTime();
-                                let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val()).getTime();
-                                let billingDate = new Date($('#BILLING_DATE').val()).getTime();
-
-                                //alert((today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear()));
-
-                                //console.log($('.PAYMENT_METHOD:checked').val(), today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear(), billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear());
-
-                                if (((down_payment > 0) && (today >= billingDate)) || ((payment_method === 'One Time') && (today >= billingDate)) || ((payment_method === 'Payment Plans') && (today >= firstPaymentDate))) {
-                                    if (payment_method === 'One Time') {
-                                        let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
-                                        $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
-                                        $('#ACTUAL_AMOUNT').val(balance_payable.toFixed(2));
-                                    } else {
-                                        if (down_payment > 0) {
-                                            $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
-                                            $('#ACTUAL_AMOUNT').val(down_payment.toFixed(2));
-                                        } else {
-                                            if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
-                                                let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
-                                                $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
-                                                $('#ACTUAL_AMOUNT').val(installment_amount.toFixed(2));
-                                            }
-                                        }
-                                    }
-                                    $('#enrollment_payment_modal').modal('show');
-                                } else {
-                                    let header = '<?= $header ?>';
-                                    if (header) {
-                                        window.location.href = header;
-                                    } else {
-                                        let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
-                                        let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
-                                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
-                                    }
+                        if ((payment_method === 'One Time') && (balance_payable <= 0)) {
+                            Swal.fire({
+                                title: "Are you sure?",
+                                text: "The user want to create a $0.00 enrollment?",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: "Yes, create it!"
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    submitBillingForm();
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            submitBillingForm();
+                        }
                     } else {
                         $('#number_of_payment_error').slideUp();
                         $('#number_of_payment_error').slideDown();
@@ -1920,18 +1888,59 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             }
         });
 
-        /*$(document).on('submit', '#payment_confirmation_form', function (event) {
-            event.preventDefault();
-            let form_data = $('#payment_confirmation_form').serialize();
+        function submitBillingForm() {
+            let form_data = $('#billing_form').serialize();
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
-                success:function (data) {
-                    //window.location.href='all_enrollments.php';
+                dataType: 'json',
+                success: function(data) {
+                    $('.PK_ENROLLMENT_BILLING').val(data.PK_ENROLLMENT_BILLING);
+                    $('.PK_ENROLLMENT_LEDGER').val(data.PK_ENROLLMENT_LEDGER);
+                    let payment_method = $('.PAYMENT_METHOD:checked').val();
+                    let down_payment = parseFloat($('#DOWN_PAYMENT').val());
+                    let today = new Date().getTime();
+                    let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val()).getTime();
+                    let billingDate = new Date($('#BILLING_DATE').val()).getTime();
+                    let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+
+                    //alert((today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear()));
+
+                    //console.log($('.PAYMENT_METHOD:checked').val(), today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear(), billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear());
+
+                    if (((down_payment > 0) && (today >= billingDate)) || ((payment_method === 'One Time') && (today >= billingDate) && (balance_payable > 0)) || ((payment_method === 'Payment Plans') && (today >= firstPaymentDate))) {
+                        if (payment_method === 'One Time') {
+                            $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
+                            $('#ACTUAL_AMOUNT').val(balance_payable.toFixed(2));
+                        } else {
+                            if (down_payment > 0) {
+                                $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
+                                $('#ACTUAL_AMOUNT').val(down_payment.toFixed(2));
+                            } else {
+                                if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
+                                    let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
+                                    $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
+                                    $('#ACTUAL_AMOUNT').val(installment_amount.toFixed(2));
+                                }
+                            }
+                        }
+                        $('#enrollment_payment_modal').modal('show');
+                    } else {
+                        let header = '<?= $header ?>';
+                        if (header) {
+                            window.location.href = header;
+                        } else {
+                            let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                        }
+                    }
                 }
             });
-        });*/
+        }
+
+
 
         function payNow(PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);

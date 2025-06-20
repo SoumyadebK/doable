@@ -426,8 +426,8 @@ function saveEnrollmentData($RESPONSE_DATA)
     }
 
     if ($final_amount <= 0) {
-        $ENROLLMENT_MASTER_UPDATE_DATA['ENROLLMENT_ID'] = 'Complementary Enrollment';
-        $ENROLLMENT_MASTER_UPDATE_DATA['MISC_ID'] = 'Complementary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['ENROLLMENT_ID'] = 'Complimentary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['MISC_ID'] = 'Complimentary Enrollment';
         $ENROLLMENT_MASTER_UPDATE_DATA['IS_SALE'] = 'N';
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     }
@@ -620,7 +620,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-    $LEDGER_DATA['IS_PAID'] = 0;
+    $LEDGER_DATA['IS_PAID'] = ($RESPONSE_DATA['BALANCE_PAYABLE'] > 0) ? 0 : 1;
 
     $LEDGER_DATA['STATUS'] = 'A';
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
@@ -807,7 +807,7 @@ function saveProfileData($RESPONSE_DATA)
     $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
     $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
     $USER_DATA['CREATE_LOGIN'] = isset($RESPONSE_DATA['CREATE_LOGIN']) ? 1 : 0;
-    $USER_DATA['APPEAR_IN_CALENDAR'] = 1;
+    $USER_DATA['APPEAR_IN_CALENDAR'] = isset($RESPONSE_DATA['APPEAR_IN_CALENDAR']) ? 1 : 0;
 
     if ($USER_DATA['CREATE_LOGIN'] == 1) {
         if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['EMAIL_ID'])) {

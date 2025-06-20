@@ -182,16 +182,21 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             $customerName = implode(', ', $customerNameArray);
         }
         $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-        $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
+        //$SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
         $UNIT = $appointment_data->fields['UNIT'];
+        $appointment_position = 0;
         if ($enr_service_data->RecordCount() > 0) {
+            $appointment_position = getAppointmentPosition($PK_ENROLLMENT_SERVICE, $appointment_data->fields['PK_APPOINTMENT_MASTER']);
+        }
+        $title .= ($appointment_position > 0) ? '  ' . ($appointment_position / $UNIT) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+        /* if ($enr_service_data->RecordCount() > 0) {
             if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $service_code_array[$PK_ENROLLMENT_SERVICE] - $UNIT;
             } else {
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
             }
         }
-        $title .= ((isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? ' ' . $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : ' ');
+        $title .= ((isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? ' ' . $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : ' '); */
         $appointment_array[] = [
             'id' => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),
