@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "All Order Status";
+$title = "All Leads";
 
 $status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
 
@@ -19,13 +19,13 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_LEADS.LEAD_STATUS LIKE '%" . $search_text . "%' OR DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
 }
 
-$query = $db->Execute("SELECT count(DOA_LEAD_STATUS.PK_LEAD_STATUS) AS TOTAL_RECORDS FROM DOA_LEAD_STATUS");
+$query = $db->Execute("SELECT count(DOA_LEADS.PK_LEADS) AS TOTAL_RECORDS FROM DOA_LEADS");
 $number_of_result =  $query->fields['TOTAL_RECORDS'];
 $number_of_page = ceil($number_of_result / $results_per_page);
 
@@ -68,7 +68,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                                 <li class="breadcrumb-item active"><?= $title ?></li>
                             </ol>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='lead_status.php'"><i class="fa fa-plus-circle"></i> Create New</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='leads.php'"><i class="fa fa-plus-circle"></i> Create New</button>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,11 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <thead>
                                             <tr>
                                                 <th>No</th>
-                                                <th>Status</th>
+                                                <th>Name</th>
+                                                <th>Phone</th>
+                                                <th>Email</th>
+                                                <th>Lead Status</th>
+                                                <th>Description</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -90,13 +94,17 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE=1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE FROM `DOA_LEADS` LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS=DOA_LEAD_STATUS.PK_LEAD_STATUS  WHERE DOA_LEADS.ACTIVE=1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $i; ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['NAME'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['PHONE'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
                                                     <td>
-                                                        <a href="lead_status.php?id=<?= $row->fields['PK_LEAD_STATUS'] ?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="leadS.php?id=<?= $row->fields['PK_LEADS'] ?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>
@@ -113,21 +121,21 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <div class="pagination outer">
                                             <ul>
                                                 <?php if ($page > 1) { ?>
-                                                    <li><a href="all_lead_status.php?status=<?= $status_check ?>&page=1">&laquo;</a></li>
-                                                    <li><a href="all_lead_status.php?status=<?= $status_check ?>&page=<?= ($page - 1) ?>">&lsaquo;</a></li>
+                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=1">&laquo;</a></li>
+                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= ($page - 1) ?>">&lsaquo;</a></li>
                                                 <?php }
                                                 for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
                                                     if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_lead_status.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_leads.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     } elseif ($page_count == ($number_of_page - 1)) {
                                                         echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                     } else {
-                                                        echo '<li><a class="hidden" href="all_lead_status.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="hidden" href="all_leads.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     }
                                                 }
                                                 if ($page < $number_of_page) { ?>
-                                                    <li><a href="all_lead_status.php?status=<?= $status_check ?>&page=<?= ($page + 1) ?>">&rsaquo;</a></li>
-                                                    <li><a href="all_lead_status.php?status=<?= $status_check ?>&page=<?= $number_of_page ?>">&raquo;</a></li>
+                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= ($page + 1) ?>">&rsaquo;</a></li>
+                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= $number_of_page ?>">&raquo;</a></li>
                                                 <?php } ?>
                                             </ul>
                                         </div>
@@ -148,7 +156,7 @@ $page_first_result = ($page - 1) * $results_per_page;
 
         function editpage(id) {
             //alert(i);
-            window.location.href = "lead_status.php?id=" + id;
+            window.location.href = "leads.php?id=" + id;
         }
     </script>
 </body>

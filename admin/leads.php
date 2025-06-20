@@ -32,6 +32,7 @@ if (empty($_GET['id'])) {
     $LAST_NAME = '';
     $PHONE = '';
     $EMAIL_ID = '';
+    $PK_LEAD_STATUS = '';
     $DESCRIPTION = '';
     $ACTIVE = '';
 } else {
@@ -44,6 +45,7 @@ if (empty($_GET['id'])) {
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
+    $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
@@ -81,50 +83,63 @@ if (empty($_GET['id'])) {
                         <div class="card">
                             <div class="card-body">
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">First Name</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" value="<?= $FIRST_NAME ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Last Name</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?= $LAST_NAME ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Phone</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Email</label>
-                                                <div class="col-md-12">
-                                                    <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>">
-                                                </div>
+
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">First Name</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" value="<?= $FIRST_NAME ?>">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Description</label>
-                                                <div class="col-md-12">
-                                                    <textarea class="form-control" name="DESCRIPTION" rows="2"><?= $DESCRIPTION ?></textarea>
-                                                </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Last Name</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?= $LAST_NAME ?>">
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Phone</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Email</label>
+                                            <div class="col-md-12">
+                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-3">
+                                        <label class="form-label">Lead Status</label>
+                                        <div class="form-group">
+                                            <select class="form-control" name="PK_LEAD_STATUS" id="PK_LEAD_STATUS" required>
+                                                <?php
+                                                $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_LEAD_STATUS']; ?>" <?= ($row->fields['PK_LEAD_STATUS'] == $PK_LEAD_STATUS) ? 'selected' : '' ?>><?= $row->fields['LEAD_STATUS'] ?></option>
+                                                <?php $row->MoveNext();
+                                                } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class=" col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Description</label>
+                                            <div class="col-md-12">
+                                                <textarea class="form-control" name="DESCRIPTION" rows="2"><?= $DESCRIPTION ?></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
 
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <div class="row" style="margin-top: 15px;">

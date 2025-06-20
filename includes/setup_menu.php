@@ -51,7 +51,6 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="dropdown-item" href="../admin/all_event_types.php">Event Types</a>
                                 <a class="dropdown-item" href="../admin/all_inquiry_methods.php">Inquiry Method</a>
                                 <a class="dropdown-item" href="../admin/all_lead_status.php">Lead Status</a>
-                                <a class="dropdown-item" href="../admin/leads.php">Leads</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -116,8 +115,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_gift_certificate_setup.php') ? 'active' : '' ?>" href="../admin/all_gift_certificate_setup.php">Gift Certificate Setup</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_event_types.php') ? 'active' : '' ?>" href="../admin/all_event_types.php">Event Types</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_inquiry_methods.php') ? 'active' : '' ?>" href="../admin/all_inquiry_methods.php">Inquiry Method</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'all_inquiry_methods.php') ? 'active' : '' ?>" href="../admin/all_lead_status.php">Lead Status</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'all_inquiry_methods.php') ? 'active' : '' ?>" href="../admin/all_leads.php">Leads</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'all_lead_status.php') ? 'active' : '' ?>" href="../admin/all_lead_status.php">Lead Status</a></li>
                             </ul>
                         <?php } elseif ($address == "all_email_accounts.php" || $address == "all_email_templates.php" || $address == "all_text_templates.php" || $address == "test_chat_gpt.php") { ?>
                             <ul class="nav nav-pills justify-content-center">
