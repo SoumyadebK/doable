@@ -322,45 +322,6 @@ if ($help->RecordCount() > 0) {
                                                                 </div>
                                                             </div>
                                                         </div>-->
-<<<<<<< HEAD
-                                                        <div class="row">
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <label>Scheduling Code</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-9">
-                                                                <div>
-                                                                    <label for="PK_SCHEDULING_CODE"></label><select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
-                                                                        <?php
-                                                                        $selected_scheduling_code  = [];
-                                                                        if (!empty($_GET['id'])) {
-                                                                            $selected_scheduling_code_row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE` FROM `DOA_SCHEDULING_SERVICE` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-                                                                            while (!$selected_scheduling_code_row->EOF) {
-                                                                                $selected_scheduling_code[] = $selected_scheduling_code_row->fields['PK_SCHEDULING_CODE'];
-                                                                                $selected_scheduling_code_row->MoveNext();
-                                                                            }
-                                                                        }
-                                                                        $scheduling_code = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
-                                                                        while (!$scheduling_code->EOF) { ?>
-                                                                            <option value="<?=$scheduling_code->fields['PK_SCHEDULING_CODE']?>" <?=in_array($scheduling_code->fields['PK_SCHEDULING_CODE'], $selected_scheduling_code)?"selected":""?>><?=$scheduling_code->fields['SCHEDULING_NAME'].' ('.$scheduling_code->fields['SCHEDULING_CODE'].')'?></option>
-                                                                        <?php $scheduling_code->MoveNext(); } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <label>Is Group?</label>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="1" <?=(($IS_GROUP == 1) ? 'checked' : '')?>/>&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                        <label><input type="radio" name="IS_GROUP" class="IS_GROUP" value="0"  <?=(($IS_GROUP == 0) ? 'checked' : '')?>/>&nbsp;No</label>
-=======
                                                                 <div class="row">
                                                                     <div class="col-4">
                                                                         <div class="form-group">
@@ -387,7 +348,6 @@ if ($help->RecordCount() > 0) {
                                                                                 } ?>
                                                                             </select>
                                                                         </div>
->>>>>>> 7db8aeb2c2a27e8bfff3e07327635cd64271f0ba
                                                                     </div>
                                                                 </div>
                                                                 <div class="row">
