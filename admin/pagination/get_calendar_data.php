@@ -43,11 +43,11 @@ if (isset($_POST['APPOINTMENT_TYPE']) && $_POST['APPOINTMENT_TYPE'] != '') {
 $SERVICE_PROVIDER_ID = ' ';
 $APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
 $SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID = ' ';
-if(isset($_POST['SERVICE_PROVIDER_ID']) && $_POST['SERVICE_PROVIDER_ID'] != ''){
+if (isset($_POST['SERVICE_PROVIDER_ID']) && $_POST['SERVICE_PROVIDER_ID'] != '') {
     $service_providers = implode(',', $_POST['SERVICE_PROVIDER_ID']);
-    $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (".$service_providers.") ";
-    $SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID = " AND SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
-    $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (".$service_providers.") ";
+    $SERVICE_PROVIDER_ID = " AND DOA_USERS.PK_USER IN (" . $service_providers . ") ";
+    $SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID = " AND SERVICE_PROVIDER.PK_USER IN (" . $service_providers . ") ";
+    $APPOINTMENT_SERVICE_PROVIDER_ID = " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $service_providers . ") ";
 }
 
 //pre_r($APPOINTMENT_SERVICE_PROVIDER_ID);
@@ -101,9 +101,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null) 
                         AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                        ".$APPOINTMENT_DATE_CONDITION."
-                        ".$APPOINTMENT_TYPE_QUERY." 
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A' ".$APPOINTMENT_SERVICE_PROVIDER_ID."
+                        " . $APPOINTMENT_DATE_CONDITION . "
+                        " . $APPOINTMENT_TYPE_QUERY . " 
+                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A' " . $APPOINTMENT_SERVICE_PROVIDER_ID . "
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 
@@ -122,8 +122,8 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                 WHERE DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
                                 AND DOA_SPECIAL_APPOINTMENT.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                                ".$SPL_APPOINTMENT_DATE_CONDITION."
-                                ".$SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID."
+                                " . $SPL_APPOINTMENT_DATE_CONDITION . "
+                                " . $SPECIAL_APPOINTMENT_SERVICE_PROVIDER_ID . "
                                 GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT";
 
 $EVENT_QUERY = "SELECT DISTINCT
@@ -136,21 +136,22 @@ $EVENT_QUERY = "SELECT DISTINCT
                 LEFT JOIN DOA_EVENT_TYPE ON DOA_EVENT.PK_EVENT_TYPE = DOA_EVENT_TYPE.PK_EVENT_TYPE
                 WHERE DOA_EVENT.ACTIVE = 1 
                 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                ".$EVENT_DATE_CONDITION."
+                " . $EVENT_DATE_CONDITION . "
                 ORDER BY DOA_EVENT.START_DATE DESC";
 
 $appointment_array = [];
 if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointment_type == '') {
     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
     $paid_session = 0;
+    $service_code_array = [];
     while (!$appointment_data->EOF) {
         $PK_ENROLLMENT_SERVICE = '';
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL' || $appointment_data->fields['APPOINTMENT_TYPE'] === 'AD-HOC') {
             $PACKAGE_NAME = $appointment_data->fields['PACKAGE_NAME'];
-            if(empty($PACKAGE_NAME)){
+            if (empty($PACKAGE_NAME)) {
                 $PACKAGE = ' ';
-            }else {
-                $PACKAGE = " || "."$PACKAGE_NAME";
+            } else {
+                $PACKAGE = " || " . "$PACKAGE_NAME";
             }
             $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $appointment_data->fields['SERIAL_NUMBER'] . (($appointment_data->fields['IS_PAID'] == 1) ? ' (Paid)' : ' (Unpaid)');
             $type = "appointment";
@@ -167,21 +168,21 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
             $customerNameArray = [];
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
-            $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = ".$appointment_data->fields['PK_APPOINTMENT_MASTER']);
+            $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER']);
             while (!$selected_customer->EOF) {
                 if ($selected_customer->fields['IS_PARTNER'] == 0) {
-                    $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = ".$selected_customer->fields['PK_USER_MASTER']);
+                    $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $selected_customer->fields['PK_USER_MASTER']);
                     $customerNameArray[] = $user_data->fields['NAME'];
                 } elseif ($selected_customer->fields['IS_PARTNER'] == 1) {
-                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = ".$selected_customer->fields['PK_USER_MASTER']);
-                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'].' '.$partner_data->fields['PARTNER_LAST_NAME'];
+                    $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $selected_customer->fields['PK_USER_MASTER']);
+                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
                 }
                 $selected_customer->MoveNext();
             }
             $customerName = implode(', ', $customerNameArray);
         }
-        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
-        $SESSION_CREATED = getSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
+        $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+        $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, $appointment_data->fields['APPOINTMENT_TYPE']);
         $UNIT = $appointment_data->fields['UNIT'];
         if ($enr_service_data->RecordCount() > 0) {
             if (isset($service_code_array[$PK_ENROLLMENT_SERVICE])) {
@@ -190,7 +191,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
                 $service_code_array[$PK_ENROLLMENT_SERVICE] = $SESSION_CREATED;
             }
         }
-        $title .= ((isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? ' '.$service_code_array[$PK_ENROLLMENT_SERVICE].'/'.$enr_service_data->fields['NUMBER_OF_SESSION'] : '');
+        $title .= ((isset($service_code_array[$PK_ENROLLMENT_SERVICE])) ? ' ' . $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : ' ');
         $appointment_array[] = [
             'id' => $appointment_data->fields['PK_APPOINTMENT_MASTER'],
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),
@@ -218,7 +219,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
         $appointment_array[] = [
             'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
             'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'title' => preg_replace("/\([^)]+\)/","", $special_appointment_data->fields['TITLE']),
+            'title' => preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']),
             'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
             'color' => $special_appointment_data->fields['COLOR_CODE'],
@@ -285,13 +286,13 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
         $PK_LOCATION = $DEFAULT_LOCATION_ID;
 
         $dayNumber1 = date('N', strtotime($START_DATE));
-        $location_operational_hour = $db_account->Execute("SELECT OPEN_TIME, CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber1' AND CLOSED = 0 AND PK_LOCATION = ".$PK_LOCATION);
+        $location_operational_hour = $db_account->Execute("SELECT OPEN_TIME, CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber1' AND CLOSED = 0 AND PK_LOCATION = " . $PK_LOCATION);
         if ($location_operational_hour->RecordCount() > 0) {
             $LOCATION_OPEN_TIME = $location_operational_hour->fields['OPEN_TIME'];
             $LOCATION_CLOSE_TIME = $location_operational_hour->fields['CLOSE_TIME'];
         }
 
-        $user_operational_hour = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$PK_USER' AND PK_LOCATION = ".$PK_LOCATION);
+        $user_operational_hour = $db_account->Execute("SELECT * FROM `DOA_SERVICE_PROVIDER_LOCATION_HOURS` WHERE PK_USER = '$PK_USER' AND PK_LOCATION = " . $PK_LOCATION);
         if ($user_operational_hour->RecordCount() > 0) {
             switch ((int)$dayNumber1) {
                 case 1:
@@ -322,7 +323,6 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
                     $USER_OPEN_TIME = $user_operational_hour->fields['SUN_START_TIME'];
                     $USER_CLOSE_TIME = $user_operational_hour->fields['SUN_END_TIME'];
                     break;
-
             }
         }
 
@@ -367,4 +367,3 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
 }
 
 echo json_encode($appointment_array);
-

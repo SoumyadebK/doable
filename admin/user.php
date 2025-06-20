@@ -93,8 +93,8 @@ if (!empty($_GET['id'])) {
         }
     }
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php'); ?>
@@ -198,7 +198,7 @@ if (!empty($_GET['id'])) {
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                                 <?php
-                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES, SORT_ORDER FROM DOA_ROLES WHERE (PK_ROLES IN (" . implode(',', $selected_roles) . ") OR SORT_ORDER >= " . $sort_order . ") AND ACTIVE = '1' ORDER BY SORT_ORDER");
+                                                                                $row = $db->Execute("SELECT PK_ROLES, ROLES, SORT_ORDER FROM DOA_ROLES WHERE (PK_ROLES IN (" . implode(',', $selected_roles) . ") OR SORT_ORDER > " . $sort_order . ") AND ACTIVE = '1' ORDER BY SORT_ORDER");
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_ROLES']; ?>" <?= in_array($row->fields['PK_ROLES'], $selected_roles) ? "selected" : "" ?> <?= ($row->fields['SORT_ORDER'] < $sort_order) ? 'disabled' : '' ?>><?= $row->fields['ROLES'] ?></option>
                                                                                 <?php $row->MoveNext();
@@ -436,7 +436,7 @@ if (!empty($_GET['id'])) {
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Email<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
+                                                                                <input type="text" id="LOGIN_EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" value="<?= $EMAIL_ID ?>" required readonly>
                                                                                 <div id="uname_result"></div>
                                                                             </div>
                                                                         </div>
@@ -444,7 +444,7 @@ if (!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="row">
+                                                                <div class="row m-b-20">
                                                                     <div class="col-md-2">
                                                                         <label class="form-label">Can Edit Enrollment : </label>
                                                                     </div>
@@ -454,40 +454,48 @@ if (!empty($_GET['id'])) {
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="row" style="margin-top: 10px;">
-                                                                    <div class="col-md-3">
-                                                                        <div class="col-md-12 form-group m-b-40 custom-control custom-checkbox form-group">
-                                                                            <input type="checkbox" class="custom-control-input" id="TICKET_SYSTEM_ACCESS" name="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo "checked"; ?>>
-                                                                            <label class="custom-control-label" for="TICKET_SYSTEM_ACCESS">Can Create Support Tickets</label>
-                                                                        </div>
+                                                                <div class="row m-b-20">
+                                                                    <div class="col-md-2">
+                                                                        <label class="form-label">Can Create Support Tickets : </label>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="0" <?php if ($TICKET_SYSTEM_ACCESS == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                     </div>
                                                                 </div>
 
                                                                 <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>
                                                                     <div class="row">
-                                                                        <div class="col-6">
+                                                                        <div class="col-4">
                                                                             <div class="form-group">
                                                                                 <label class="col-md-12">Password</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
+                                                                                    <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-6">
+                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                            <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                                        </div>
+                                                                        <div class="col-4">
                                                                             <div class="form-group">
                                                                                 <label class="col-md-12">Confirm Password</label>
                                                                                 <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
+                                                                                    <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                                 </div>
                                                                             </div>
                                                                         </div>
+                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                            <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                                        </div>
                                                                     </div>
                                                                     <b id="password_error" style="color: red;"></b>
-                                                                    <!--<div class="row">
-                                                                    <div class="col-12">
-                                                                        <span style="color: orange;">Note  : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+
+                                                                    <div class="row" id="password_note">
+                                                                        <div class="col-12">
+                                                                            <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+                                                                        </div>
                                                                     </div>
-                                                                </div>-->
                                                                     <div class="row">
                                                                         <div class="col-2">
                                                                             Password Strength:
@@ -499,24 +507,23 @@ if (!empty($_GET['id'])) {
                                                                 <?php } else { ?>
                                                                     <div class="row">
                                                                         <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                            <!--<div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Old Password</label>
-                                                                                <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*=$PASSWORD*/ ?>">
-                                                                                <input type="password" name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
-                                                                            </div>
-                                                                        </div>-->
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">New Password</label>
                                                                                     <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                                                                 </div>
                                                                             </div>
+                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                                <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
+                                                                            </div>
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Confirm New Password</label>
                                                                                     <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                                                                 </div>
+                                                                            </div>
+                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
+                                                                                <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
                                                                             </div>
                                                                         </div>
                                                                         <b id="password_error" style="color: red;"></b>
@@ -893,191 +900,211 @@ if (!empty($_GET['id'])) {
                 </div>
             </div>
         </div>
+    </div>
+</body>
 
-        <?php require_once('../includes/footer.php'); ?>
-        <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
-        <script>
-            $('.datepicker-past').datepicker({
-                format: 'mm/dd/yyyy',
-                maxDate: 0
-            });
+<?php require_once('../includes/footer.php'); ?>
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script>
+    $('.datepicker-past').datepicker({
+        format: 'mm/dd/yyyy',
+        maxDate: 0
+    });
 
-            $('#NAME').SumoSelect({
-                placeholder: 'Select User',
-                search: true,
-                searchText: 'Search...'
-            });
-            $('.multi_sumo_select_location').SumoSelect({
-                placeholder: 'Select Location',
-                selectAll: true
-            });
-            $('.multi_sumo_select_roles').SumoSelect({
-                placeholder: 'Select Roles',
-                selectAll: true
-            });
-            $('.multi_sumo_select_services').SumoSelect({
-                placeholder: 'Select Services',
-                selectAll: true
-            });
+    $('#NAME').SumoSelect({
+        placeholder: 'Select User',
+        search: true,
+        searchText: 'Search...'
+    });
+    $('.multi_sumo_select_location').SumoSelect({
+        placeholder: 'Select Location',
+        selectAll: true
+    });
+    $('.multi_sumo_select_roles').SumoSelect({
+        placeholder: 'Select Roles',
+        selectAll: true
+    });
+    $('.multi_sumo_select_services').SumoSelect({
+        placeholder: 'Select Services',
+        selectAll: true
+    });
 
-            function editpage(param) {
-                var id = $(param).val();
-                window.location.href = "user.php?id=" + id;
+    function editpage(param) {
+        var id = $(param).val();
+        window.location.href = "user.php?id=" + id;
 
+    }
+
+    $(document).ready(function() {
+        fetch_state(<?php echo $PK_COUNTRY; ?>);
+    });
+
+    function fetch_state(PK_COUNTRY) {
+        jQuery(document).ready(function() {
+            let data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+            let value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache: false,
+                success: function(result) {
+                    document.getElementById('State_div').innerHTML = result;
+                }
+            }).responseText;
+        });
+    }
+
+    function setFormat(param) {
+        if ($(param).val() != "") {
+            $(param).val(parseFloat($(param).val().replace(/,/g, ""))
+                .toString()
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+        }
+    }
+
+    $(document).on('focus', '.time-picker', function() {
+        let minTime = $(this).closest('.form-group').find('.minTime').val();
+        let maxTime = $(this).closest('.form-group').find('.maxTime').val();
+        $(this).timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 30,
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true,
+            minTime: minTime,
+            maxTime: maxTime
+        });
+    });
+
+    function closeThisDay(param) {
+        if ($(param).is(':checked')) {
+            $(param).closest('.row').find('.time-input').val('');
+            //$(param).closest('.row').find('.time-input').css('pointer-events', 'none');
+            $(param).closest('.row').find('.time-input').each(function() {
+                this.style.cssText = 'background-color: #80808080 !important; pointer-events: none !important;';
+            });
+        } else {
+            $(param).closest('.row').find('.time-input').css('pointer-events', '');
+            $(param).closest('.row').find('.time-input').css('background-color', '');
+        }
+    }
+</script>
+<script>
+    let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+    let NEW_USER = parseInt(<?= empty($_GET['id']) ? true : false ?>);
+
+    function togglePasswordVisibility() {
+        let passwordInput = document.getElementById("PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+    function toggleConfirmPasswordVisibility() {
+        let passwordInput = document.getElementById("CONFIRM_PASSWORD");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text"; // Show password
+        } else {
+            passwordInput.type = "password"; // Hide password
+        }
+    }
+
+    function isGood(password) {
+        let password_strength = document.getElementById("password-text");
+
+        if (password.length == 0) {
+            password_strength.innerHTML = "";
+            return;
+        }
+        //Regular Expressions.
+        let regex = new Array();
+        regex.push("[A-Z]"); //Uppercase Alphabet.
+        regex.push("[a-z]"); //Lowercase Alphabet.
+        regex.push("[0-9]"); //Digit.
+        regex.push("[$@$!%*#?&]"); //Special Character.
+        let passed = 0;
+        //Validate for each Regular Expression.
+        for (let i = 0; i < regex.length; i++) {
+            if (new RegExp(regex[i]).test(password)) {
+                passed++;
             }
+        }
+        //Display status.
+        let strength = "";
+        switch (passed) {
+            case 0:
+            case 1:
+            case 2:
+                strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                break;
+            case 3:
+                strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                break;
+            case 4:
+                strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                break;
 
-            $(document).ready(function() {
-                fetch_state(<?php echo $PK_COUNTRY; ?>);
-            });
+        }
+        // alert(strength);
+        password_strength.innerHTML = strength;
+    }
 
-            function fetch_state(PK_COUNTRY) {
-                jQuery(document).ready(function() {
-                    let data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-                    let value = $.ajax({
-                        url: "ajax/state.php",
-                        type: "POST",
-                        data: data,
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            document.getElementById('State_div').innerHTML = result;
-                        }
-                    }).responseText;
-                });
-            }
+    $(document).on('click', '#cancel_button', function() {
+        window.location.href = 'all_users.php';
+    });
 
-            function setFormat(param) {
-                if ($(param).val() != "") {
-                    $(param).val(parseFloat($(param).val().replace(/,/g, ""))
-                        .toString()
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-                }
-            }
+    function setFormat(param) {
+        if ($(param).val() != "") {
+            $(param).val(parseFloat($(param).val().replace(/,/g, ""))
+                .toString()
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+        }
+    }
 
-            $(document).on('focus', '.time-picker', function() {
-                let minTime = $(this).closest('.form-group').find('.minTime').val();
-                let maxTime = $(this).closest('.form-group').find('.maxTime').val();
-                $(this).timepicker({
-                    timeFormat: 'hh:mm p',
-                    interval: 30,
-                    dynamic: false,
-                    dropdown: true,
-                    scrollbar: true,
-                    minTime: minTime,
-                    maxTime: maxTime
-                });
-            });
+    function createLogin(param) {
+        if ($(param).is(':checked')) {
+            $('#login_info_tab').show();
+            $('#phone_label').text('*');
+            $('#PHONE').prop('required', true);
+            $('#email_label').text('*');
+            $('#EMAIL_ID').prop('required', true);
+            $('#submit_button').hide();
+            $('#next_button_interest').hide();
+            $('#next_button').show();
+        } else {
+            $('#login_info_tab').hide();
+            $('#phone_label').text('');
+            $('#PHONE').prop('required', false);
+            $('#email_label').text('');
+            $('#EMAIL_ID').prop('required', false);
+            $('#submit_button').show();
+            $('#next_button_interest').show();
+            $('#next_button').hide();
+        }
+    }
 
-            function closeThisDay(param) {
-                if ($(param).is(':checked')) {
-                    $(param).closest('.row').find('.time-input').val('');
-                    //$(param).closest('.row').find('.time-input').css('pointer-events', 'none');
-                    $(param).closest('.row').find('.time-input').each(function() {
-                        this.style.cssText = 'background-color: #80808080 !important; pointer-events: none !important;';
-                    });
-                } else {
-                    $(param).closest('.row').find('.time-input').css('pointer-events', '');
-                    $(param).closest('.row').find('.time-input').css('background-color', '');
-                }
-            }
-        </script>
-        <script>
-            let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
-            let NEW_USER = parseInt(<?= empty($_GET['id']) ? true : false ?>);
+    /*function showServiceProviderTabs(param) {
+        let pk_role = $(param).val();
+        if (pk_role.indexOf('5') !== -1){
+            $('#rates_tab').show();
+            $('#service_tab').show();
+            $('#comment_tab').show();
+            $('#display_order').show();
+        }else {
+            $('#rates_tab').hide();
+            $('#service_tab').hide();
+            $('#comment_tab').hide();
+            $('#display_order').hide();
+        }
+    }*/
 
-            function isGood(password) {
-                let password_strength = document.getElementById("password-text");
+    let counter = parseInt(<?= $user_doc_count ?>);
 
-                if (password.length == 0) {
-                    password_strength.innerHTML = "";
-                    return;
-                }
-                //Regular Expressions.
-                let regex = new Array();
-                regex.push("[A-Z]"); //Uppercase Alphabet.
-                regex.push("[a-z]"); //Lowercase Alphabet.
-                regex.push("[0-9]"); //Digit.
-                regex.push("[$@$!%*#?&]"); //Special Character.
-                let passed = 0;
-                //Validate for each Regular Expression.
-                for (let i = 0; i < regex.length; i++) {
-                    if (new RegExp(regex[i]).test(password)) {
-                        passed++;
-                    }
-                }
-                //Display status.
-                let strength = "";
-                switch (passed) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                        break;
-                    case 3:
-                        strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                        break;
-                    case 4:
-                        strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                        break;
-
-                }
-                // alert(strength);
-                password_strength.innerHTML = strength;
-            }
-
-            $(document).on('click', '#cancel_button', function() {
-                window.location.href = 'all_users.php';
-            });
-
-            function setFormat(param) {
-                if ($(param).val() != "") {
-                    $(param).val(parseFloat($(param).val().replace(/,/g, ""))
-                        .toString()
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-                }
-            }
-
-            function createLogin(param) {
-                if ($(param).is(':checked')) {
-                    $('#login_info_tab').show();
-                    $('#phone_label').text('*');
-                    $('#PHONE').prop('required', true);
-                    $('#email_label').text('*');
-                    $('#EMAIL_ID').prop('required', true);
-                    $('#submit_button').hide();
-                    $('#next_button_interest').hide();
-                    $('#next_button').show();
-                } else {
-                    $('#login_info_tab').hide();
-                    $('#phone_label').text('');
-                    $('#PHONE').prop('required', false);
-                    $('#email_label').text('');
-                    $('#EMAIL_ID').prop('required', false);
-                    $('#submit_button').show();
-                    $('#next_button_interest').show();
-                    $('#next_button').hide();
-                }
-            }
-
-            /*function showServiceProviderTabs(param) {
-                let pk_role = $(param).val();
-                if (pk_role.indexOf('5') !== -1){
-                    $('#rates_tab').show();
-                    $('#service_tab').show();
-                    $('#comment_tab').show();
-                    $('#display_order').show();
-                }else {
-                    $('#rates_tab').hide();
-                    $('#service_tab').hide();
-                    $('#comment_tab').hide();
-                    $('#display_order').hide();
-                }
-            }*/
-
-            let counter = parseInt(<?= $user_doc_count ?>);
-
-            function addMoreUserDocument() {
-                $('#append_user_document').append(`<div class="row">
+    function addMoreUserDocument() {
+        $('#append_user_document').append(`<div class="row">
                                                 <div class="col-5">
                                                     <div class="form-group">
                                                         <label class="form-label">Document Name</label>
@@ -1096,127 +1123,128 @@ if (!empty($_GET['id'])) {
                                                     </div>
                                                 </div>
                                               </div>`);
-                counter++;
-            }
+        counter++;
+    }
 
-            function removeUserDocument(param) {
-                $(param).closest('.row').remove();
-                counter--;
-            }
+    function removeUserDocument(param) {
+        $(param).closest('.row').remove();
+        counter--;
+    }
 
-            $(document).on('submit', '#profile_form', function(event) {
-                event.preventDefault();
-                let PK_USER = $('.PK_USER').val();
-                const PHONE = $('#PHONE').val().trim();
-                const EMAIL_ID = $('#EMAIL_ID').val().trim();
-                if (PHONE != '') {
-                    $.ajax({
-                        url: 'ajax/username_checker.php',
-                        type: 'post',
-                        data: {
-                            PHONE: PHONE
-                        },
-                        success: function(response) {
-                            if (response && PK_USER == 0) {
-                                $('#phone_result').html(response);
-                            } else {
-                                $('#phone_result').html('');
-                                if (EMAIL_ID != '') {
-                                    $.ajax({
-                                        url: 'ajax/username_checker.php',
-                                        type: 'post',
-                                        data: {
-                                            EMAIL_ID: EMAIL_ID
-                                        },
-                                        success: function(response) {
-                                            if (response && PK_USER == 0) {
-                                                $('#email_result').html(response);
-                                            } else {
-                                                $('#email_result').html('');
-                                                let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
-                                                $.ajax({
-                                                    url: "ajax/AjaxFunctions.php",
-                                                    type: 'POST',
-                                                    data: form_data,
-                                                    processData: false,
-                                                    contentType: false,
-                                                    dataType: 'JSON',
-                                                    success: function(data) {
-                                                        $('.PK_USER').val(data.PK_USER);
-                                                        $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
-                                                        if (PK_USER == 0 || NEW_USER) {
-                                                            if ($('#CREATE_LOGIN').is(':checked')) {
-                                                                $('#login_info_tab_link')[0].click();
-                                                            } else {
-                                                                if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                                                    $('#rates_tab_link')[0].click();
-                                                                } else {
-                                                                    $('#document_tab_link')[0].click();
-                                                                }
-                                                            }
+    $(document).on('submit', '#profile_form', function(event) {
+        event.preventDefault();
+        let PK_USER = $('.PK_USER').val();
+        const PHONE = $('#PHONE').val().trim();
+        const EMAIL_ID = $('#EMAIL_ID').val().trim();
+        if (PHONE != '') {
+            $.ajax({
+                url: 'ajax/username_checker.php',
+                type: 'post',
+                data: {
+                    PHONE: PHONE
+                },
+                success: function(response) {
+                    if (response && PK_USER == 0) {
+                        $('#phone_result').html(response);
+                    } else {
+                        $('#phone_result').html('');
+                        if (EMAIL_ID != '') {
+                            $.ajax({
+                                url: 'ajax/username_checker.php',
+                                type: 'post',
+                                data: {
+                                    EMAIL_ID: EMAIL_ID
+                                },
+                                success: function(response) {
+                                    if (response && PK_USER == 0) {
+                                        $('#email_result').html(response);
+                                    } else {
+                                        $('#email_result').html('');
+                                        let form_data = new FormData($('#profile_form')[0]); //$('#profile_form').serialize();
+                                        $.ajax({
+                                            url: "ajax/AjaxFunctions.php",
+                                            type: 'POST',
+                                            data: form_data,
+                                            processData: false,
+                                            contentType: false,
+                                            dataType: 'JSON',
+                                            success: function(data) {
+                                                $('.PK_USER').val(data.PK_USER);
+                                                $('.PK_CUSTOMER_DETAILS').val(data.PK_CUSTOMER_DETAILS);
+                                                if (PK_USER == 0 || NEW_USER) {
+                                                    if ($('#CREATE_LOGIN').is(':checked')) {
+                                                        $('#LOGIN_EMAIL_ID').val(EMAIL_ID);
+                                                        $('#login_info_tab_link')[0].click();
+                                                    } else {
+                                                        if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                                                            $('#rates_tab_link')[0].click();
                                                         } else {
-                                                            window.location.href = 'all_users.php';
+                                                            $('#document_tab_link')[0].click();
                                                         }
                                                     }
-                                                });
+                                                } else {
+                                                    window.location.href = 'all_users.php';
+                                                }
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
-                            }
+                            });
                         }
-                    });
+                    }
                 }
             });
+        }
+    });
 
-            /*const phone = document.getElementById("PHONE");
-            if (phone.value !== "") {
-                phone.setAttribute("readonly", "readonly");
-            }
+    /*const phone = document.getElementById("PHONE");
+    if (phone.value !== "") {
+        phone.setAttribute("readonly", "readonly");
+    }
 
-            const email_id = document.getElementById("EMAIL_ID");
-            if (email_id.value !== "") {
-                email_id.setAttribute("readonly", "readonly");
-            }*/
+    const email_id = document.getElementById("EMAIL_ID");
+    if (email_id.value !== "") {
+        email_id.setAttribute("readonly", "readonly");
+    }*/
 
-            function goToLoginTab() {
-                let PK_USER = $('.PK_USER').val();
-                if (!PK_USER) {
-                    alert('Please fill up the profile and click next.');
-                    $('#profile_tab_link')[0].click();
-                }
-            }
+    function goToLoginTab() {
+        let PK_USER = $('.PK_USER').val();
+        if (!PK_USER) {
+            alert('Please fill up the profile and click next.');
+            $('#profile_tab_link')[0].click();
+        }
+    }
 
-            $(document).on('submit', '#login_form', function(event) {
-                event.preventDefault();
-                let PK_USER = $('.PK_USER').val();
-                let PASSWORD = $('#PASSWORD').val();
-                let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
-                if (PASSWORD === CONFIRM_PASSWORD) {
-                    let form_data = $('#login_form').serialize();
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: form_data,
-                        success: function(data) {
-                            if (PK_USER == 0 || NEW_USER) {
-                                if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                    $('#rates_tab_link')[0].click();
-                                } else {
-                                    $('#document_tab_link')[0].click();
-                                }
-                            } else {
-                                window.location.href = 'all_users.php';
-                            }
+    $(document).on('submit', '#login_form', function(event) {
+        event.preventDefault();
+        let PK_USER = $('.PK_USER').val();
+        let PASSWORD = $('#PASSWORD').val();
+        let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
+        if (PASSWORD === CONFIRM_PASSWORD) {
+            let form_data = $('#login_form').serialize();
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: form_data,
+                success: function(data) {
+                    if (PK_USER == 0 || NEW_USER) {
+                        if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                            $('#rates_tab_link')[0].click();
+                        } else {
+                            $('#document_tab_link')[0].click();
                         }
-                    });
-                } else {
-                    $('#password_error').text('Password and Confirm Password not matched');
+                    } else {
+                        window.location.href = 'all_users.php';
+                    }
                 }
             });
+        } else {
+            $('#password_error').text('Password and Confirm Password not matched');
+        }
+    });
 
-            function addMoreCodeCommission() {
-                $('#add_more_code_commission').append(`<div class="row m-t-15">
+    function addMoreCodeCommission() {
+        $('#add_more_code_commission').append(`<div class="row m-t-15">
                                                         <div class="col-md-3">
                                                             <select class="form-control" name="PK_SERVICE_MASTER[]">
                                                                 <option value="">Select Service</option>
@@ -1235,193 +1263,192 @@ if (!empty($_GET['id'])) {
                                                             <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                         </div>
                                                     </div>`);
-            }
+    }
 
-            function removeThis(param) {
-                $(param).closest('.row').remove();
-            }
+    function removeThis(param) {
+        $(param).closest('.row').remove();
+    }
 
-            $(document).on('submit', '#engagement_form', function(event) {
-                event.preventDefault();
-                let PK_USER = $('.PK_USER').val();
-                let form_data = $('#engagement_form').serialize();
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: form_data,
-                    success: function(data) {
-                        if (PK_USER == 0 || NEW_USER) {
-                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                $('#service_tab_link')[0].click();
-                            } else {
-                                $('#document_tab_link')[0].click();
-                            }
-                        } else {
-                            window.location.href = 'all_users.php';
-                        }
+    $(document).on('submit', '#engagement_form', function(event) {
+        event.preventDefault();
+        let PK_USER = $('.PK_USER').val();
+        let form_data = $('#engagement_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            success: function(data) {
+                if (PK_USER == 0 || NEW_USER) {
+                    if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                        $('#service_tab_link')[0].click();
+                    } else {
+                        $('#document_tab_link')[0].click();
                     }
-                });
-            });
-
-            function getLocationHours() {
-                let PK_USER = $('.PK_USER').val();
-                $.ajax({
-                    url: "ajax/get_location_hours.php",
-                    type: 'POST',
-                    data: {
-                        PK_USER: PK_USER
-                    },
-                    success: function(data) {
-                        $('#location_details_div').html(data);
-                    }
-                });
-            }
-
-            $(document).on('submit', '#location_hour_form', function(event) {
-                event.preventDefault();
-                let form_data = $('#location_hour_form').serialize();
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: form_data,
-                    success: function(data) {
-                        window.location.href = 'all_users.php';
-                        /*if (PK_USER == 0) {
-                            if ($('#PK_ROLES').val().indexOf('5') !== -1) {
-                                $('#document_tab_link')[0].click();
-                            } else {
-                                window.location.href='all_users.php';
-                            }
-                        }*/
-                    }
-                });
-            });
-
-            $(document).on('submit', '#document_form', function(event) {
-                event.preventDefault();
-                let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: form_data,
-                    processData: false,
-                    contentType: false,
-                    success: function(data) {
-                        window.location.href = 'all_users.php';
-                    }
-                });
-            });
-        </script>
-
-        <script>
-            let comment_model = document.getElementById("commentModel");
-            let comment_span = document.getElementsByClassName("close_comment_model")[0];
-
-            function openCommentModel() {
-                comment_model.style.display = "block";
-            }
-            comment_span.onclick = function() {
-                comment_model.style.display = "none";
-            }
-            window.onclick = function(event) {
-                if (event.target == comment_model) {
-                    comment_model.style.display = "none";
+                } else {
+                    window.location.href = 'all_users.php';
                 }
             }
+        });
+    });
 
-            function createUserComment() {
-                $('#comment_header').text("Add Comment");
-                $('#PK_COMMENT').val(0);
-                $('#COMMENT').val('');
-                $('#COMMENT_DATE').val('');
-                $('#comment_active').hide();
+    function getLocationHours() {
+        let PK_USER = $('.PK_USER').val();
+        $.ajax({
+            url: "ajax/get_location_hours.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER
+            },
+            success: function(data) {
+                $('#location_details_div').html(data);
+            }
+        });
+    }
+
+    $(document).on('submit', '#location_hour_form', function(event) {
+        event.preventDefault();
+        let form_data = $('#location_hour_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            success: function(data) {
+                window.location.href = 'all_users.php';
+                /*if (PK_USER == 0) {
+                    if ($('#PK_ROLES').val().indexOf('5') !== -1) {
+                        $('#document_tab_link')[0].click();
+                    } else {
+                        window.location.href='all_users.php';
+                    }
+                }*/
+            }
+        });
+    });
+
+    $(document).on('submit', '#document_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#document_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.href = 'all_users.php';
+            }
+        });
+    });
+</script>
+
+<script>
+    let comment_model = document.getElementById("commentModel");
+    let comment_span = document.getElementsByClassName("close_comment_model")[0];
+
+    function openCommentModel() {
+        comment_model.style.display = "block";
+    }
+    comment_span.onclick = function() {
+        comment_model.style.display = "none";
+    }
+    window.onclick = function(event) {
+        if (event.target == comment_model) {
+            comment_model.style.display = "none";
+        }
+    }
+
+    function createUserComment() {
+        $('#comment_header').text("Add Comment");
+        $('#PK_COMMENT').val(0);
+        $('#COMMENT').val('');
+        $('#COMMENT_DATE').val('');
+        $('#comment_active').hide();
+        openCommentModel();
+    }
+
+    function editComment(PK_COMMENT) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                FUNCTION_NAME: 'getEditCommentData',
+                PK_COMMENT: PK_COMMENT
+            },
+            success: function(data) {
+                $('#comment_header').text("Edit Comment");
+                $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                $('#COMMENT').val(data.fields.COMMENT);
+                $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                $('#COMMENT_ACTIVE_' + data.fields.ACTIVE).prop('checked', true);
+                $('#comment_active').show();
                 openCommentModel();
             }
+        });
+    }
 
-            function editComment(PK_COMMENT) {
+    $(document).on('submit', '#comment_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
+            }
+        });
+    });
+
+    function deleteComment(PK_COMMENT) {
+        let conf = confirm("Are you sure you want to delete?");
+        if (conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'deleteCommentData',
+                    PK_COMMENT: PK_COMMENT
+                },
+                success: function(data) {
+                    window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
+                }
+            });
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#USER_NAME').on('blur', function() {
+            const USER_NAME = $(this).val().trim();
+            if (USER_NAME != '') {
                 $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    dataType: 'JSON',
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
                     data: {
-                        FUNCTION_NAME: 'getEditCommentData',
-                        PK_COMMENT: PK_COMMENT
+                        USER_NAME: USER_NAME
                     },
-                    success: function(data) {
-                        $('#comment_header').text("Edit Comment");
-                        $('#PK_COMMENT').val(data.fields.PK_COMMENT);
-                        $('#COMMENT').val(data.fields.COMMENT);
-                        $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
-                        $('#COMMENT_ACTIVE_' + data.fields.ACTIVE).prop('checked', true);
-                        $('#comment_active').show();
-                        openCommentModel();
+                    success: function(response) {
+                        $('#uname_result').html(response);
                     }
                 });
+            } else {
+                $("#uname_result").html("");
             }
+        });
+    });
 
-            $(document).on('submit', '#comment_add_edit_form', function(event) {
-                event.preventDefault();
-                let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: form_data,
-                    processData: false,
-                    contentType: false,
-                    success: function(data) {
-                        window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
-                    }
-                });
-            });
-
-            function deleteComment(PK_COMMENT) {
-                let conf = confirm("Are you sure you want to delete?");
-                if (conf) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {
-                            FUNCTION_NAME: 'deleteCommentData',
-                            PK_COMMENT: PK_COMMENT
-                        },
-                        success: function(data) {
-                            window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
-                        }
-                    });
-                }
-            }
-        </script>
-
-        <script>
-            $(document).ready(function() {
-                $('#USER_NAME').on('blur', function() {
-                    const USER_NAME = $(this).val().trim();
-                    if (USER_NAME != '') {
-                        $.ajax({
-                            url: 'ajax/username_checker.php',
-                            type: 'post',
-                            data: {
-                                USER_NAME: USER_NAME
-                            },
-                            success: function(response) {
-                                $('#uname_result').html(response);
-                            }
-                        });
-                    } else {
-                        $("#uname_result").html("");
-                    }
-                });
-            });
-
-            $(document).on('change', '.engagement_terms', function() {
-                if ($(this).attr('id') == 4 && $(this).is(':checked')) {
-                    $('#5').prop('checked', false);
-                }
-                if ($(this).attr('id') == 5 && $(this).is(':checked')) {
-                    $('#4').prop('checked', false);
-                }
-            });
-        </script>
-</body>
+    $(document).on('change', '.engagement_terms', function() {
+        if ($(this).attr('id') == 4 && $(this).is(':checked')) {
+            $('#5').prop('checked', false);
+        }
+        if ($(this).attr('id') == 5 && $(this).is(':checked')) {
+            $('#4').prop('checked', false);
+        }
+    });
+</script>
 
 </html>

@@ -75,6 +75,7 @@ function saveServiceData($RESPONSE_DATA)
         $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
         $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
         $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
+        $SERVICE_CODE_DATA['COUNT_ON_CALENDAR'] = $RESPONSE_DATA['COUNT_ON_CALENDAR'] ?? 0;
         db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
         $PK_SERVICE_CODE = $db_account->insert_ID();
     } else {
@@ -91,6 +92,7 @@ function saveServiceData($RESPONSE_DATA)
         $SERVICE_CODE_DATA['CAPACITY'] = ($SERVICE_CODE_DATA['IS_GROUP'] == 0) ? 0 : $RESPONSE_DATA['CAPACITY'];
         $SERVICE_CODE_DATA['IS_CHARGEABLE'] = $RESPONSE_DATA['IS_CHARGEABLE'] ?? 0;
         $SERVICE_CODE_DATA['PRICE'] = ($SERVICE_CODE_DATA['IS_CHARGEABLE'] == 0) ? 0 : $RESPONSE_DATA['PRICE'];
+        $SERVICE_CODE_DATA['COUNT_ON_CALENDAR'] = $RESPONSE_DATA['COUNT_ON_CALENDAR'] ?? 0;
         db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'update', "PK_SERVICE_CODE = " . $RESPONSE_DATA['PK_SERVICE_CODE']);
         $PK_SERVICE_CODE = $RESPONSE_DATA['PK_SERVICE_CODE'];
     }
@@ -317,6 +319,8 @@ function saveEnrollmentData($RESPONSE_DATA)
     $ENROLLMENT_MASTER_DATA['STATUS'] = 'A';
     $ENROLLMENT_MASTER_DATA['ENROLLMENT_DATE'] = date("Y-m-d", strtotime($RESPONSE_DATA['ENROLLMENT_DATE']));
 
+
+
     if (empty($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == 0) {
         $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM, MISCELLANEOUS_ID_CHAR, MISCELLANEOUS_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = " . $RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
@@ -419,6 +423,13 @@ function saveEnrollmentData($RESPONSE_DATA)
             $total += $RESPONSE_DATA['TOTAL'][$i];
             $final_amount += $ENROLLMENT_SERVICE_DATA['FINAL_AMOUNT'];
         }
+    }
+
+    if ($final_amount <= 0) {
+        $ENROLLMENT_MASTER_UPDATE_DATA['ENROLLMENT_ID'] = 'Complementary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['MISC_ID'] = 'Complementary Enrollment';
+        $ENROLLMENT_MASTER_UPDATE_DATA['IS_SALE'] = 'N';
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     }
 
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
@@ -837,6 +848,7 @@ function saveProfileData($RESPONSE_DATA)
     }
     $USER_DATA['TYPE'] = $RESPONSE_DATA['TYPE'];
     $USER_DATA['DISPLAY_ORDER'] = isset($RESPONSE_DATA['DISPLAY_ORDER']) ? $RESPONSE_DATA['DISPLAY_ORDER'] : 0;
+    $USER_DATA['ARTHUR_MURRAY_ID'] = $RESPONSE_DATA['ARTHUR_MURRAY_ID'];
     $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
     $USER_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['DOB']));
     $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
@@ -1534,11 +1546,9 @@ function getServiceProviderCount($RESPONSE_DATA)
         $selected_service_provider = implode(',', $selected_service_provider_array);
     }
 
-
     $date = $RESPONSE_DATA['currentDate'];
     $calendar_view = $RESPONSE_DATA['calendar_view'];
     $service_provider_array = [];
-    $day_count = 0;
 
     $week = ($calendar_view === 'month') ? getMonthStartAndEndDate($date) : getWeekStartAndEndDate($date);
     $start_date = $week['start'];
@@ -1553,7 +1563,6 @@ function getServiceProviderCount($RESPONSE_DATA)
         $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = ($event_count->RecordCount() > 0) ? $event_count->fields['APPOINTMENT_COUNT'] : 0; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
         $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_ID'] = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
         $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
-        $day_count += $event_count->fields['APPOINTMENT_COUNT'];
         $all_service_provider_details->MoveNext();
     }
 
@@ -1576,11 +1585,11 @@ function getServiceProviderCount($RESPONSE_DATA)
     $service_provider_appointment_count = $db_account->Execute($ALL_APPOINTMENT_QUERY);
     while (!$service_provider_appointment_count->EOF) {
         $service_provider_array[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $service_provider_array[$service_provider_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] + $service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
-        $day_count += $service_provider_appointment_count->fields['APPOINTMENT_COUNT'];
         $service_provider_appointment_count->MoveNext();
     }
 
-    $week_appointment_count = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER)) AS APPOINTMENT_COUNT FROM DOA_APPOINTMENT_MASTER
+    $day_appointment_count = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER)) AS APPOINTMENT_COUNT FROM DOA_APPOINTMENT_MASTER
+                            LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                             LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                             LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                             LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
@@ -1588,24 +1597,30 @@ function getServiceProviderCount($RESPONSE_DATA)
                             LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                             
                             WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
+                            AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
+                            AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
+                            AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
+                            AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
+                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` = '$date'");
+
+    $week_appointment_count = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER)) AS APPOINTMENT_COUNT FROM DOA_APPOINTMENT_MASTER
+                            LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                            LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                            LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+
+                            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                            
+                            WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
+                            AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
                             AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                             AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
                             AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` BETWEEN '$start_date' AND '$end_date'");
 
     $return_data['service_provider_count'] = array_values($service_provider_array);
-    $return_data['day_count'] = ($calendar_view === 'agendaDay') ? $day_count : 0;
+    $return_data['day_count'] = $event_count->fields['APPOINTMENT_COUNT'] + $day_appointment_count->fields['APPOINTMENT_COUNT'];
     $return_data['week_count'] = $week_event_count->fields['APPOINTMENT_COUNT'] + $week_appointment_count->fields['APPOINTMENT_COUNT'];
-
-    /*$ALL_SPECIAL_APPOINTMENT_QUERY = "SELECT COUNT(DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT) AS APPOINTMENT_COUNT, DOA_SPECIAL_APPOINTMENT_USER.PK_USER AS SERVICE_PROVIDER_ID FROM DOA_SPECIAL_APPOINTMENT
-                            LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
-                            WHERE DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
-                            AND DOA_SPECIAL_APPOINTMENT_USER.PK_USER IN (".$selected_service_provider.") AND `DATE` = '$date' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_USER";
-    $service_provider_special_appointment_count = $db_account->Execute($ALL_SPECIAL_APPOINTMENT_QUERY);
-    while (!$service_provider_special_appointment_count->EOF){
-        $service_provider_array[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = $service_provider_array[$service_provider_special_appointment_count->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT']+$service_provider_special_appointment_count->fields['APPOINTMENT_COUNT'];
-        $service_provider_special_appointment_count->MoveNext();
-    }*/
 
     echo json_encode($return_data);
 }
@@ -2673,16 +2688,49 @@ function updateBillingDueDate($RESPONSE_DATA)
 
 function getReportDetails($RESPONSE_DATA): void
 {
-    global $db_account;
-
     $REPORT_TYPE = $RESPONSE_DATA['REPORT_TYPE'];
+
+    if ($REPORT_TYPE == 'royalty_service_report') {
+        $report_type = 'royalty';
+    } elseif ($REPORT_TYPE == 'summary_of_studio_business_report') {
+        $report_type = 'studio_business';
+    } elseif ($REPORT_TYPE == 'staff_performance_report') {
+        $report_type = 'staff_performance';
+    } else {
+        die();
+    }
+
     $YEAR = $RESPONSE_DATA['YEAR'];
     $WEEK_NUMBER = $RESPONSE_DATA['WEEK_NUMBER'];
 
-    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = '$REPORT_TYPE' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $WEEK_NUMBER);
-    if ($report_details->RecordCount() > 0) {
-        echo 'Last exported on ' . date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
-    } else {
+    $access_token = getAccessToken();
+    $authorization = "Authorization: Bearer " . $access_token;
+
+    $url = constant('ami_api_url') . '/api/v1/reports';
+    $data = [
+        'type' => $report_type,
+        'week_number' => $WEEK_NUMBER,
+        'week_year' => $YEAR,
+    ];
+    $post_data = callArturMurrayApiGet($url, $data, $authorization);
+    $return_data = json_decode($post_data, true);
+
+    if (count($return_data) <= 0) {
         echo '';
+    } else {
+        $date = ($return_data[0]['revised']) ? $return_data[0]['updated_at'] : $return_data[0]['created_at'];
+        echo 'Last exported on ' . date('m/d/Y H:i A', strtotime($date));
     }
+}
+
+function  updateCountOnCalendar($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_SERVICE_MASTER = $RESPONSE_DATA['PK_SERVICE_MASTER'];
+    $COUNT_ON_CALENDAR = $RESPONSE_DATA['COUNT_ON_CALENDAR'] ?? 0;
+
+    $UPDATE_DATA['COUNT_ON_CALENDAR'] = $COUNT_ON_CALENDAR;
+    db_perform_account('DOA_SERVICE_CODE', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = " . $PK_SERVICE_MASTER);
+    echo 1;
 }

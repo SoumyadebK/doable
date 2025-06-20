@@ -684,7 +684,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
     $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
     $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
-    while (!$enrollmentServiceData->EOF) {
+    while (!$enrollmentServiceData->EOF && $enrollmentServiceData->fields['FINAL_AMOUNT'] > 0) {
         $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
         $serviceAmount = ($TOTAL_AMOUNT_PAID * $servicePercent) / 100;
 
