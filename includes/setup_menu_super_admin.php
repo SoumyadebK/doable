@@ -79,7 +79,7 @@
                         $currentURL = $_SERVER['REQUEST_URI'];
                         $url = explode("/", $currentURL);
                         $address = $url[2];
-                        if ($address == "all_rate_types.php" || $address == "all_users.php" || $address == "all_departments.php" || $address == "all_roles.php" || $address == "all_countries.php" || $address == "all_states.php"|| $address == "all_currency.php" || $address == "all_account_types.php" || $address == "all_business_types.php") { ?>
+                        if ($address == "all_rate_types.php" || $address == "all_users.php" || $address == "all_departments.php" || $address == "all_roles.php" || $address == "all_countries.php" || $address == "all_states.php" || $address == "all_currency.php" || $address == "all_account_types.php" || $address == "all_business_types.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_rate_types.php">Rate Types</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_users.php">Users</a></li>
@@ -135,8 +135,8 @@
 
 <style>
     .nav-tabs li {
-        display: inline-block; /* Display list items as inline-block */
+        display: inline-block;
+        /* Display list items as inline-block */
         background-color: whitesmoke;
     }
 </style>
-
