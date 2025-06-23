@@ -1036,7 +1036,8 @@ CREATE TABLE `DOA_SERVICE_CODE` (
   `CAPACITY` int(11) DEFAULT 0,
   `IS_CHARGEABLE` tinyint(4) NOT NULL DEFAULT 0,
   `PRICE` float(9,2) NOT NULL DEFAULT 0.00,
-  `ACTIVE` int(1) DEFAULT NULL
+  `ACTIVE` int(1) DEFAULT NULL,
+  `COUNT_ON_CALENDAR` tinyint(4) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
