@@ -35,6 +35,8 @@ if (!empty($_POST)) {
             die("Account Database Connection Error");
         }
     }
+    $_SESSION['MIGRATION_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+    $_SESSION['MIGRATION_LOCATION'] = $PK_LOCATION;
     $_SESSION['MIGRATION_DB_NAME'] = $_POST['DATABASE_NAME'];
     $_SESSION['TABLE_NAME'] = $_POST['TABLE_NAME'];
     require_once('upload_functions.php');
@@ -1520,13 +1522,19 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                     <option value="">Select Database Name</option>
-                                    <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
+                                    <!-- <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
                                     <option value="AMTO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTO') ? 'selected' : '' ?>>AMTO</option>
                                     <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
                                     <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
                                     <option value="AMWB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWB') ? 'selected' : '' ?>>AMWB</option>
                                     <option value="AMLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLV') ? 'selected' : '' ?>>AMLV</option>
-                                    <option value="JTLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'JTLV') ? 'selected' : '' ?>>JTLV</option>
+                                    <option value="JTLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'JTLV') ? 'selected' : '' ?>>JTLV</option> -->
+
+                                    <option value="AMMB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMMB') ? 'selected' : '' ?>>AMMB</option>
+                                    <option value="AMMO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMMO') ? 'selected' : '' ?>>AMMO</option>
+                                    <option value="AMNP" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMNP') ? 'selected' : '' ?>>AMNP</option>
+                                    <option value="AMSR" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSR') ? 'selected' : '' ?>>AMSR</option>
+                                    <option value="AMPT" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMPT') ? 'selected' : '' ?>>AMPT</option>
                                 </select>
                             </div>
                         </div>
