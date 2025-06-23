@@ -306,9 +306,13 @@ function saveEnrollmentData($RESPONSE_DATA)
         }
         $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $renewalDate->format('Y-m-d');
     } else {
-        $currentDate = new DateTime();
-        $currentDate->modify('+' . $RESPONSE_DATA['EXPIRY_DATE'] . ' month');
-        $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d');
+        if (!empty($RESPONSE_DATA['EXPIRATION_DATE'])) {
+            $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = date("Y-m-d", strtotime($RESPONSE_DATA['EXPIRATION_DATE']));
+        } else {
+            $currentDate = new DateTime();
+            $currentDate->modify('+' . $RESPONSE_DATA['EXPIRY_DATE'] . ' month');
+            $ENROLLMENT_MASTER_DATA['EXPIRY_DATE'] = $currentDate->format('Y-m-d');
+        }
     }
 
     //$ENROLLMENT_MASTER_DATA['PK_AGREEMENT_TYPE'] = $RESPONSE_DATA['PK_AGREEMENT_TYPE'];
