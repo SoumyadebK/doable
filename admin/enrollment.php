@@ -260,8 +260,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                     </div>
                                                 </div>
 
-                                                <div class="row <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>" style="margin-top: -15px">
-                                                    <div class="col-4">
+                                                <div class="row" style="margin-top: -15px">
+                                                    <div class="col-4 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
                                                         <div class="form-group">
                                                             <label class="form-label">Packages</label>
                                                             <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
@@ -278,7 +278,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                     <?php
                                                     $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
                                                     if ($payment_gateway_type->RecordCount() > 0) { ?>
-                                                        <div class="col-4 m-t-15">
+                                                        <div class="col-4 m-t-15 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
                                                             <label class="m-l-40" for="Session"><input type="checkbox" id="Session" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?> onchange="chargeBySessions(this);">Charge by sessions</label>
                                                             <label class="m-l-40" for="Membership"><input type="checkbox" id="Membership" name="CHARGE_TYPE" class="form-check-inline charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?> onchange="chargeBySessions(this);">Membership</label>
                                                         </div>
@@ -298,9 +298,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </select>
                                                             </div>
                                                         <?php } else { ?>
-                                                            <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
+                                                            <div class="form-group session_base <?php if (!in_array('Enrollments Delete', $PERMISSION_ARRAY)) {
+                                                                                                    echo 'disabled_div';
+                                                                                                } ?>" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                                 <label class="form-label">Expiration Date</label>
-                                                                <input type="text" class="form-control" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
+                                                                <input type="text" class="form-control datepicker-future" name="EXPIRATION_DATE" id="EXPIRATION_DATE" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
                                                             </div>
                                                         <?php } ?>
 
