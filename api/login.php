@@ -4,10 +4,11 @@ $USER_NAME = trim($_POST['USER_NAME']);
 $PASSWORD  = $_POST['PASSWORD'];
 $result    = $db->Execute("SELECT DOA_USERS.*, DOA_USER_ROLES.PK_ROLES FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.USER_NAME = '$USER_NAME' AND DOA_USER_ROLES.PK_ROLES IN (4)");
 
-if($result->RecordCount() == 0){
+if ($result->RecordCount() == 0) {
     $return_data['success'] = 0;
     $return_data['message'] = 'Invalid User ID';
-    echo json_encode($return_data); exit;
+    echo json_encode($return_data);
+    exit;
 } else {
     if (password_verify($PASSWORD, $result->fields['PASSWORD'])) {
         if ($result->fields['ACTIVE'] == 0) {
@@ -29,9 +30,10 @@ if($result->RecordCount() == 0){
             echo json_encode($return_data);
             exit;
         }
-    }else{
+    } else {
         $return_data['success'] = 0;
         $return_data['message'] = 'Incorrect Password.';
-        echo json_encode($return_data); exit;
+        echo json_encode($return_data);
+        exit;
     }
 }

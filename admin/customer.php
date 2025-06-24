@@ -2203,6 +2203,35 @@ if ($PK_USER_MASTER > 0) {
                 </div>
             </div>
 
+            <!-- Delete Enrollment Modal -->
+            <div class="modal fade" id="delete_enrollment_model" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form id="delete_enrollment_form" method="post">
+                        <input type="hidden" name="FUNCTION_NAME" value="deleteActiveEnrollmentData">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4><b>Delete Enrollment</b></h4>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <input type="hidden" name="PK_ENROLLMENT_MASTER" id="DELETE_ENROLLMENT_ID">
+                            <div class="modal-body">
+                                <div class="row p-20">
+                                    <div>
+                                        <label><input type="radio" id="delete_type_1" name="delete_type" value="1" checked>&nbsp;&nbsp;&nbsp;Delete All Appointment</label><br><br>
+                                        <label><input type="radio" id="delete_type_0" name="delete_type" value="0">&nbsp;&nbsp;&nbsp;Move Appointment to Ad-Hoc</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <style>
                 .progress-bar {
                     border-radius: 5px;

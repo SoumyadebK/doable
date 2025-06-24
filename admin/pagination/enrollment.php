@@ -225,6 +225,10 @@ while (!$enrollment_data->EOF) {
                         <p style="color: red; margin-top: 20%;">Balance Owed</p>
                     <?php } ?>
                 <?php } ?>
+
+                <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
+                    <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a>
+                <?php } ?>
             </div>
         </div>
 
@@ -436,4 +440,36 @@ while (!$enrollment_data->EOF) {
             }
         });
     }
+
+    function openDeleteEnrollmentModal(PK_ENROLLMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure you want to delete this enrollment?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#delete_enrollment_model').modal('show');
+                $('#DELETE_ENROLLMENT_ID').val(PK_ENROLLMENT_MASTER);
+            }
+        });
+    }
+
+    $(document).on('submit', '#delete_enrollment_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#delete_enrollment_form')[0]);
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
 </script>
