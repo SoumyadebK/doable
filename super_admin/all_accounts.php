@@ -97,6 +97,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <thead>
                                             <tr>
                                                 <th>No</th>
+                                                <th>Account ID</th>
                                                 <th>Name</th>
                                                 <th>User Name</th>
                                                 <th>Phone No.</th>
@@ -112,6 +113,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $i; ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['PK_ACCOUNT_MASTER']; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['FIRST_NAME'] . ' ' . $row->fields['LAST_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['USER_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['PHONE'] ?></td>

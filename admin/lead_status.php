@@ -13,6 +13,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 
 if (!empty($_POST)) {
     $LEAD_STATUS_DATA = $_POST;
+    $LEAD_STATUS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if (empty($_GET['id'])) {
         $LEAD_STATUS_DATA['ACTIVE'] = 1;
         $LEAD_STATUS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
