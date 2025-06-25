@@ -97,6 +97,8 @@
                                     <div class="form-group" id="card_div">
 
                                     </div>
+
+                                    <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
@@ -584,6 +586,9 @@ else
         form.removeEventListener('submit', listener);*/
         $(param).closest('.payment_modal').find('#card-element').remove();
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+        $('#save_card').hide();
+        $('#SAVE_FOR_FUTURE').prop('checked', true);
+
     }
 
     $(document).on('click', '.credit-card', function() {
@@ -607,6 +612,8 @@ else
                 if (PAYMENT_GATEWAY == 'Stripe') {
                     $(param).closest('.payment_modal').find('#card_div').html(`<div id="card-element"></div><p id="card-errors" role="alert"></p>`);
                     stripePaymentFunction(type);
+                    $('#save_card').show();
+                    $('#SAVE_FOR_FUTURE').prop('checked', false);
                 }
 
                 if (PAYMENT_GATEWAY == 'Square') {

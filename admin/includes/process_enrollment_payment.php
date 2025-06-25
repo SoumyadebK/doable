@@ -156,6 +156,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
             $LAST4 = '';
             try {
+
                 if (empty($_POST['PAYMENT_METHOD_ID'])) {
                     $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
                     $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
@@ -173,6 +174,10 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 ));
 
                 $LAST4 = $charge->payment_method_details->card->last4;
+
+                if (!isset($_POST['SAVE_FOR_FUTURE'])) {
+                    $stripe->customers->deleteSource($CUSTOMER_PAYMENT_ID, $charge->payment_method);
+                }
             } catch (\Stripe\Exception\CardException $e) {
                 // Card declined or related issue
                 $PAYMENT_STATUS = 'Failed';
