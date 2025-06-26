@@ -41,13 +41,11 @@ if (!empty($_GET['search_text'])) {
 }
 
 $standing = 0;
-$standing_select = ' ';
 $standing_cond = ' ';
 $standing_group = ' GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT ';
 if (isset($_GET['standing'])) {
     if ($_GET['standing'] == 1) {
         $standing = 1;
-        $standing_select = ' MIN(DOA_SPECIAL_APPOINTMENT.DATE) AS BEGINNING_DATE, MAX(DOA_SPECIAL_APPOINTMENT.DATE) AS END_DATE, ';
         $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID > 0 ';
         $standing_group = " GROUP BY DOA_SPECIAL_APPOINTMENT.STANDING_ID ";
     } else {
@@ -63,7 +61,6 @@ if ($standing == 1) {
 
 $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                     DOA_SPECIAL_APPOINTMENT.*,
-                                    $standing_select
                                     DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                                     DOA_APPOINTMENT_STATUS.STATUS_CODE,
                                     DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -237,7 +234,11 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             <?php
                                             $i = $page_first_result + 1;
                                             $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
-                                            while (!$special_appointment_data->EOF) { ?>
+                                            while (!$special_appointment_data->EOF) {
+                                                if ($standing == 1 && $special_appointment_data->fields['STANDING_ID'] > 0) {
+                                                    $standing_date = $db_account->Execute("SELECT MIN(DOA_SPECIAL_APPOINTMENT.DATE) AS BEGINNING_DATE, MAX(DOA_SPECIAL_APPOINTMENT.DATE) AS END_DATE FROM `DOA_SPECIAL_APPOINTMENT` WHERE STANDING_ID = " . $special_appointment_data->fields['STANDING_ID']);
+                                                }
+                                            ?>
 
                                                 <?php
                                                 if ($standing == 0) { ?>
@@ -258,7 +259,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     <?php if ($standing == 0) { ?>
                                                         <td><?= date('m/d/Y', strtotime($special_appointment_data->fields['DATE'])) ?></td>&nbsp;&nbsp;&nbsp;
                                                     <?php } else { ?>
-                                                        <td><?= date('m/d/Y', strtotime($special_appointment_data->fields['BEGINNING_DATE'])) ?> - <?= date('m/d/Y', strtotime($special_appointment_data->fields['END_DATE'])) ?></td>&nbsp;&nbsp;&nbsp;
+                                                        <td><?= date('m/d/Y', strtotime($standing_date->fields['BEGINNING_DATE'])) ?> - <?= date('m/d/Y', strtotime($standing_date->fields['END_DATE'])) ?></td>&nbsp;&nbsp;&nbsp;
                                                     <?php } ?>
 
                                                     <td><?= date('h:i A', strtotime($special_appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($special_appointment_data->fields['END_TIME'])) ?></td>

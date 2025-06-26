@@ -56,34 +56,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                 </div>
             </div>
             <div class="row">
-                <div class="col-6">
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="3"><?= $DESCRIPTION ?></textarea>
-                    </div>
-                </div>
-                <!--<div class="col-6">
-                    <label class="form-label">Customer</label>
-                    <div style="margin-bottom: 15px; margin-top: 10px; width: 480px;">
-                        <select class="multi_sumo_select" name="PK_USER_MASTER[]" multiple>
-                            <?php
-                            /*                            $selected_customer = [];
-                            $selected_customer_row = $db_account->Execute("SELECT DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_SPECIAL_APPOINTMENT_CUSTOMER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_USER_MASTER = $master_database.DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_SPECIAL_APPOINTMENT_CUSTOMER.PK_SPECIAL_APPOINTMENT = '$PK_SPECIAL_APPOINTMENT'");
-                            while (!$selected_customer_row->EOF) {
-                                $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
-                                $selected_customer_row->MoveNext();
-                            }
-
-                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' ORDER BY DOA_USERS.FIRST_NAME ASC");
-                            while (!$row->EOF) { */ ?>
-                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/ ?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/ ?>><?php /*=$row->fields['NAME']*/ ?></option>
-                                <?php /*$row->MoveNext(); } */ ?>
-                        </select>
-                    </div>
-                </div>-->
-            </div>
-            <div class="row">
-                <div class="col-6">
+                <!-- <div class="col-6">
                     <label class="form-label"><?= $service_provider_title ?></label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
                         <select class="multi_sumo_select" name="PK_USER[]" multiple>
@@ -102,10 +75,10 @@ $ACTIVE = $res->fields['ACTIVE'];
                             } ?>
                         </select>
                     </div>
-                </div>
+                </div> -->
                 <div class="col-6">
-                    <label class="form-label">Scheduling Code</label>
-                    <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
+                    <div class="form-group">
+                        <label class="form-label">Scheduling Code</label>
                         <select class="form-control" name="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
                             <?php
                             $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
@@ -116,8 +89,6 @@ $ACTIVE = $res->fields['ACTIVE'];
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="row">
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Status:</label>
@@ -135,12 +106,20 @@ $ACTIVE = $res->fields['ACTIVE'];
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="3"><?= $DESCRIPTION ?></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label><input type="checkbox" name="STANDING_ID" value="<?= $STANDING_ID ?>"> All Standing Session Details Will Be Changed</label>
-    </div>
+    </div> -->
 
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>

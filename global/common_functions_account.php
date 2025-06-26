@@ -32,7 +32,8 @@
 // Section 1. General Functions
 /**************************************************************************************************************/
 // Redirect to another page or site
-function gen_redirect_account($url) {
+function gen_redirect_account($url)
+{
     global $messageStack;
     // put any messages form the messageStack into a session variable to recover after redirect
     $messageStack->convert_add_to_session();
@@ -44,66 +45,75 @@ function gen_redirect_account($url) {
     exit;
 }
 
-function gen_not_null_account($value) {
+function gen_not_null_account($value)
+{
     return (!is_null($value) || strlen(trim($value)) > 0) ? true : false;
 }
 
-function strip_alphanumeric_account($value) {
+function strip_alphanumeric_account($value)
+{
     return preg_replace("/[^a-zA-Z0-9\s]/", "", $value);
 }
 
-function remove_special_chars_account($value) {
+function remove_special_chars_account($value)
+{
     $value = str_replace('&', '-', $value);
     return $value;
 }
 
-function gen_js_encode_account($str) {
+function gen_js_encode_account($str)
+{
     $str = str_replace('"', '\"', $str);
     $str = str_replace(chr(10), '\n', $str);
     $str = str_replace(chr(13), '', $str);
     return $str;
 }
 
-function gen_trim_string_account($string, $length = 20, $add_dots = false) {
+function gen_trim_string_account($string, $length = 20, $add_dots = false)
+{
     return mb_strimwidth($string, 0, $length, $add_dots ? '...' : '');
 }
 
-function compare_strings_account($string1,$string2,$allow_empty = 1){
-    if($allow_empty == 0){
+function compare_strings_account($string1, $string2, $allow_empty = 1)
+{
+    if ($allow_empty == 0) {
         $string1 = trim($string1);
         $string2 = trim($string2);
-        if($string1 == '' || $string2 == '')
+        if ($string1 == '' || $string2 == '')
             return false;
     }
-    if(strcmp($string1,$string2) == 0)
+    if (strcmp($string1, $string2) == 0)
         return true;
     else
         return false;
 }
 
-function duplicate_email_account($db_account,$table_name,$field,$email){
+function duplicate_email_account($db_account, $table_name, $field, $email)
+{
     $email = trim($email);
-    $result = $db_account->Execute("select ".$field." from ".$table_name." where ".$field." = '".$email."' ");
-    if($result->RecordCount())
+    $result = $db_account->Execute("select " . $field . " from " . $table_name . " where " . $field . " = '" . $email . "' ");
+    if ($result->RecordCount())
         return true;
     else
         return false;
 }
 
-function is_valid_email_account($email){
+function is_valid_email_account($email)
+{
     $email = trim($email);
-    if(!empty($email)){
-        $regexp="/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i";
-        if ( !preg_match($regexp, $email) ){
+    if (!empty($email)) {
+        $regexp = "/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i";
+        if (!preg_match($regexp, $email)) {
             return false;
         } else
             return true;
-    }else
+    } else
         return false;
 }
 /*************** Other Functions *******************************/
 
-function get_ip_address_account() {
+function get_ip_address_account()
+{
     if (isset($_SERVER)) {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -125,10 +135,11 @@ function get_ip_address_account() {
 }
 
 // Return a random value
-function general_rand_account($min = null, $max = null) {
+function general_rand_account($min = null, $max = null)
+{
     static $seeded;
     if (!$seeded) {
-        mt_srand((double)microtime()*1000000);
+        mt_srand((float)microtime() * 1000000);
         $seeded = true;
     }
     if (isset($min) && isset($max)) {
@@ -145,23 +156,30 @@ function general_rand_account($min = null, $max = null) {
 /**************************************************************************************************************/
 // Section 2. Database Functions
 /**************************************************************************************************************/
-function db_perform_account($table, $data, $action = 'insert', $parameters = '') {
+function db_perform_account($table, $data, $action = 'insert', $parameters = '')
+{
     global $db_account;
     if (!is_array($data)) return false;
     reset($data);
     $query = '';
     if ($action == 'insert') {
         $query = 'insert into ' . $table . ' (';
-        while (list($columns, ) = each($data)) {
+        while (list($columns,) = each($data)) {
             $query .= $columns . ', ';
         }
         $query = substr($query, 0, -2) . ') values (';
         reset($data);
         while (list(, $value) = each($data)) {
             switch ((string)$value) {
-                case 'now()': $query .= 'now(), '; break;
-                case 'null':  $query .= 'null, ';  break;
-                default:      $query .= '\'' . db_input($value) . '\', '; break;
+                case 'now()':
+                    $query .= 'now(), ';
+                    break;
+                case 'null':
+                    $query .= 'null, ';
+                    break;
+                default:
+                    $query .= '\'' . db_input($value) . '\', ';
+                    break;
             }
         }
         $query = substr($query, 0, -2) . ')';
@@ -169,27 +187,36 @@ function db_perform_account($table, $data, $action = 'insert', $parameters = '')
         $query = 'update ' . $table . ' set ';
         while (list($columns, $value) = each($data)) {
             switch ((string)$value) {
-                case 'now()': $query .= $columns . ' = now(), '; break;
-                case 'null':  $query .= $columns .= ' = null, '; break;
-                default:      $query .= $columns . ' = \'' . db_input($value) . '\', '; break;
+                case 'now()':
+                    $query .= $columns . ' = now(), ';
+                    break;
+                case 'null':
+                    $query .= $columns .= ' = null, ';
+                    break;
+                default:
+                    $query .= $columns . ' = \'' . db_input($value) . '\', ';
+                    break;
             }
         }
         $query = substr($query, 0, -2) . ' where ' . $parameters;
     }
-    // echo $query;
+    // echo $query . "<br>";
     return $db_account->Execute($query);
 }
 
-function db_insert_id_account() {
+function db_insert_id_account()
+{
     global $db_account;
     return $db_account->insert_ID();
 }
 
-function db_input_account($string) {
+function db_input_account($string)
+{
     return addslashes($string);
 }
 
-function db_prepare_input_account($string, $required = false) {
+function db_prepare_input_account($string, $required = false)
+{
     if (is_string($string)) {
         $temp = trim(stripslashes($string));
         if ($required && (strlen($temp) == 0)) {
@@ -205,7 +232,8 @@ function db_prepare_input_account($string, $required = false) {
         return $string;
     }
 }
-function db_prepare_input_no_format_account($string, $required = false) {
+function db_prepare_input_no_format_account($string, $required = false)
+{
     if (is_string($string)) {
         $temp = trim(stripslashes($string));
         if ($required && (strlen($temp) == 0)) {
@@ -222,61 +250,69 @@ function db_prepare_input_no_format_account($string, $required = false) {
     }
 }
 
-function db_table_exists_account($table_name) {
+function db_table_exists_account($table_name)
+{
     global $db_account;
     $tables = $db_account->Execute("SHOW TABLES like '" . $table_name . "'");
     return ($tables->RecordCount() > 0) ? true : false;
 }
 
-function db_field_exists_account($table_name, $field_name) {
+function db_field_exists_account($table_name, $field_name)
+{
     global $db_account;
     $result = $db_account->Execute("show fields from " . $table_name);
     while (!$result->EOF) {
-        if  ($result->fields['Field'] == $field_name) return true;
+        if ($result->fields['Field'] == $field_name) return true;
         $result->MoveNext();
     }
     return false;
 }
-function createthumb_gallery_account($name,$filename,$new_w,$new_h,$dir_name,$large_image = 0){
-    $system=explode($dir_name,$name);
-    $size = getimagesize($dir_name.$filename);
-    if (preg_match("/jpeg|jpg|JPEG|JPG/",$system[0])){$src_img=imagecreatefromjpeg($dir_name.$filename);}
-    if (preg_match("/gif|GIF/",$system[0])){$src_img=imagecreatefromgif($dir_name.$filename);}
-    if (preg_match("/png|PNG/",$system[0])){$src_img=imagecreatefrompng($dir_name.$filename);}
+function createthumb_gallery_account($name, $filename, $new_w, $new_h, $dir_name, $large_image = 0)
+{
+    $system = explode($dir_name, $name);
+    $size = getimagesize($dir_name . $filename);
+    if (preg_match("/jpeg|jpg|JPEG|JPG/", $system[0])) {
+        $src_img = imagecreatefromjpeg($dir_name . $filename);
+    }
+    if (preg_match("/gif|GIF/", $system[0])) {
+        $src_img = imagecreatefromgif($dir_name . $filename);
+    }
+    if (preg_match("/png|PNG/", $system[0])) {
+        $src_img = imagecreatefrompng($dir_name . $filename);
+    }
 
-    $old_x=imagesx($src_img);
-    $old_y=imagesy($src_img);
+    $old_x = imagesx($src_img);
+    $old_y = imagesy($src_img);
     $thumb_w = round(($old_y * $new_h) / $old_x);
     $thumb_h = round(($old_y * $new_w) / $old_x);
-    $dst_img=imagecreatetruecolor($new_w,$thumb_h);
-    $transparent = imagecolorallocate($dst_img,0,255,0);
-    imagecolortransparent($dst_img,$transparent);
+    $dst_img = imagecreatetruecolor($new_w, $thumb_h);
+    $transparent = imagecolorallocate($dst_img, 0, 255, 0);
+    imagecolortransparent($dst_img, $transparent);
     imagealphablending($dst_img, false);
     imagesavealpha($dst_img, true);
-    if($large_image == 1)
-        $file_name = $dir_name.$filename;
+    if ($large_image == 1)
+        $file_name = $dir_name . $filename;
     else
-        $file_name = $dir_name."thumb".$filename;
-    imagecopyresampled($dst_img,$src_img,0,0,0,0,$new_w,$thumb_h,$old_x,$old_y);
-    if (preg_match("/png/",$system[0]))
-    {
-        imagepng($dst_img,$file_name);
+        $file_name = $dir_name . "thumb" . $filename;
+    imagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $new_w, $thumb_h, $old_x, $old_y);
+    if (preg_match("/png/", $system[0])) {
+        imagepng($dst_img, $file_name);
     } else {
-        imagejpeg($dst_img,$file_name);
+        imagejpeg($dst_img, $file_name);
     }
     imagedestroy($dst_img);
     imagedestroy($src_img);
     return $file_name;
 }
-function cropImage_account($source_image, $target_image, $crop_area){
+function cropImage_account($source_image, $target_image, $crop_area)
+{
     // detect source image type from extension
     $source_file_name = basename($source_image);
-    $ext = explode(".",$source_file_name);
+    $ext = explode(".", $source_file_name);
     $source_image_type = $ext[1];
     //echo $source_image_type;exit;
     // create an image resource from the source image
-    switch(strtolower($source_image_type))
-    {
+    switch (strtolower($source_image_type)) {
         case 'jpg':
             $original_image = imagecreatefromjpeg($source_image);
             break;
@@ -307,17 +343,24 @@ function cropImage_account($source_image, $target_image, $crop_area){
     $cropped_image = imagecreatetruecolor($crop_area['width'], $crop_area['height']);
 
     // copy the crop area from the source image to the blank image created above
-    imagecopy($cropped_image, $original_image, 0, 0, $crop_area['left'], $crop_area['top'],
-        $crop_area['width'], $crop_area['height']);
+    imagecopy(
+        $cropped_image,
+        $original_image,
+        0,
+        0,
+        $crop_area['left'],
+        $crop_area['top'],
+        $crop_area['width'],
+        $crop_area['height']
+    );
 
     // detect target image type from extension
     $target_file_name = basename($target_image);
-    $tar_ext = explode(".",$target_file_name);
+    $tar_ext = explode(".", $target_file_name);
     $target_image_type = $tar_ext[1];
     //echo $target_image;exit;
     // save the cropped image to disk
-    switch(strtolower($target_image_type))
-    {
+    switch (strtolower($target_image_type)) {
         case 'jpg':
             imagejpeg($cropped_image, $target_image, 100);
             break;
@@ -351,15 +394,18 @@ function cropImage_account($source_image, $target_image, $crop_area){
 
     return true;
 }
-function get_currency_symbol_account($db_account){
+function get_currency_symbol_account($db_account)
+{
     $res = $db_account->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '$_SESSION[PK_COMPANY]' ");
     return $res->fields['CURRENCY_SYMBOL'];
 }
-function get_currency_symbol_1_account($db_account,$PK_COMPANY){
+function get_currency_symbol_1_account($db_account, $PK_COMPANY)
+{
     $res = $db_account->Execute("SELECT CURRENCY_SYMBOL FROM APP_CURRENCY,APP_COMPANY WHERE APP_COMPANY.PK_CURRENCY = APP_CURRENCY.PK_CURRENCY AND PK_COMPANY = '$PK_COMPANY' ");
     return $res->fields['CURRENCY_SYMBOL'];
 }
-function generateRandomString_account($length) {
+function generateRandomString_account($length)
+{
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -368,7 +414,8 @@ function generateRandomString_account($length) {
     }
     return $randomString;
 }
-function generateRandomStringNumber_account($length) {
+function generateRandomStringNumber_account($length)
+{
     $characters = '0123456789';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -377,36 +424,40 @@ function generateRandomStringNumber_account($length) {
     }
     return $randomString;
 }
-function convert_to_user_date_account($date, $format, $userTimeZone, $serverTimeZone = 'CET'){
+function convert_to_user_date_account($date, $format, $userTimeZone, $serverTimeZone = 'CET')
+{
     try {
-        $dateTime = new DateTime ($date, new DateTimeZone($serverTimeZone));
+        $dateTime = new DateTime($date, new DateTimeZone($serverTimeZone));
         $dateTime->setTimezone(new DateTimeZone($userTimeZone));
         return $dateTime->format($format);
     } catch (Exception $e) {
         return '';
     }
 }
-function forceDownloadQR_account($QR_MSG,$PK_QR_MASTER, $width = 350, $height = 350) {
-    $image  = 'http://chart.apis.google.com/chart?chs='.$width.'x'.$height.'&cht=qr&chl='.urlencode($QR_MSG);
+function forceDownloadQR_account($QR_MSG, $PK_QR_MASTER, $width = 350, $height = 350)
+{
+    $image  = 'http://chart.apis.google.com/chart?chs=' . $width . 'x' . $height . '&cht=qr&chl=' . urlencode($QR_MSG);
     $file = file_get_contents($image);
-//echo $image;exit;
+    //echo $image;exit;
     $img = file_get_contents($image);
-    $target  = $_SESSION['PK_ACCOUNT'].'_'.$PK_QR_MASTER.'.png';
-    $newname = '../qr_images/'.$target;
-    file_put_contents($newname,$img);
+    $target  = $_SESSION['PK_ACCOUNT'] . '_' . $PK_QR_MASTER . '.png';
+    $newname = '../qr_images/' . $target;
+    file_put_contents($newname, $img);
 
     return $newname;
 }
-function url_format_account($str){
-    $str = str_replace(" ","-",$str);
-    $str = str_replace("/","-",$str);
-    $str = str_replace("\\","-",$str);
-    $str = str_replace("?","-",$str);
-    $str = str_replace("&","-",$str);
+function url_format_account($str)
+{
+    $str = str_replace(" ", "-", $str);
+    $str = str_replace("/", "-", $str);
+    $str = str_replace("\\", "-", $str);
+    $str = str_replace("?", "-", $str);
+    $str = str_replace("&", "-", $str);
 
     return $str;
 }
-function get_sequence_no_account($type){
+function get_sequence_no_account($type)
+{
     global $db_account;
     $res = $db_account->Execute("SELECT $type FROM NO_SEQUENCE WHERE PK_COMPANY = '$_SESSION[PK_COMPANY]' AND ACTIVE = 1 ");
 
@@ -416,8 +467,9 @@ function get_sequence_no_account($type){
     return $no;
 }
 
-function convert_to_inches_account($val,$METRIC_TYPE){
-    if($METRIC_TYPE == 2 || $METRIC_TYPE == 4){
+function convert_to_inches_account($val, $METRIC_TYPE)
+{
+    if ($METRIC_TYPE == 2 || $METRIC_TYPE == 4) {
         $val = $val * 0.03937;
     }
     return $val;
@@ -445,9 +497,10 @@ function my_decrypt_account($key,$txt){
 	return $decryption;
 }
 */
-function my_encrypt_account($key,$txt){
-    $ciphering 	= "AES-128-CTR";
-    $options 	= 0;
+function my_encrypt_account($key, $txt)
+{
+    $ciphering     = "AES-128-CTR";
+    $options     = 0;
     $crypto_key = "A!12V534s8E(RT$";
     $crypto_iv  = '4583260547891161';
 
@@ -456,37 +509,40 @@ function my_encrypt_account($key,$txt){
     return $encryption;
 }
 
-function my_decrypt_account($key,$txt){
-    $ciphering 	= "AES-128-CTR";
-    $options 	= 0;
+function my_decrypt_account($key, $txt)
+{
+    $ciphering     = "AES-128-CTR";
+    $options     = 0;
     $crypto_key = "A!12V534s8E(RT$";
     $crypto_iv  = '4583260547891161';
 
-    $decryption	= openssl_decrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv);
+    $decryption    = openssl_decrypt($txt, $ciphering, $crypto_key, $options, $crypto_iv);
 
     return $decryption;
 }
 
-function get_db_table_account($table_name) {
+function get_db_table_account($table_name)
+{
     global $db_account;
     $tables = $db_account->Execute("SHOW TABLES like '%" . $table_name . "%'");
     $db_account_arr = get_object_vars($db_account);
     while (!$tables->EOF) {
-        foreach($tables->fields as $KEY => $VALUE)
+        foreach ($tables->fields as $KEY => $VALUE)
             $result[] = $VALUE;
 
         $tables->MoveNext();
     }
     return $result;
 }
-function get_db_field_account($table_name) {
+function get_db_field_account($table_name)
+{
     global $db_account;
     $result = $db_account->Execute("show fields from " . $table_name);
     $i = 0;
     while (!$result->EOF) {
         $tables[$i]['Field'] =  $result->fields['Field'];
-        preg_match('/(([^()]+))/',$result->fields['Type'],$matches);
-        $tables[$i]['Type'] = substr($result->fields['Type'], strlen($matches[0])+1, -1);
+        preg_match('/(([^()]+))/', $result->fields['Type'], $matches);
+        $tables[$i]['Type'] = substr($result->fields['Type'], strlen($matches[0]) + 1, -1);
         if ($tables[$i]['Field'] == 'CREATED_ON') {
             $tables[$i]['Type'] = date("Y-m-d H:i");
         }
@@ -496,9 +552,10 @@ function get_db_field_account($table_name) {
     return $tables;
 }
 
-function pre_r_account($data){
+function pre_r_account($data)
+{
     echo "<pre>";
     print_r($data);
-    echo "</pre>"; die;
+    echo "</pre>";
+    die;
 }
-?>

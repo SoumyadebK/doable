@@ -3265,7 +3265,8 @@ if ($PK_USER_MASTER > 0) {
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
             data: {
-                PK_USER_MASTER: PK_USER_MASTER
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'customer_credit_card'
             },
             success: function(data) {
                 $('#saved_credit_card_list').slideDown().html(data);
@@ -3383,6 +3384,50 @@ if ($PK_USER_MASTER > 0) {
         });
     });
 </script>
+
+
+<script>
+    function deleteThisCreditCard(card_id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this credit card will erase all data related to this card.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let PK_USER = $('#PK_USER').val();
+                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                $.ajax({
+                    url: "includes/process_delete_credit_card.php",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'card_id': card_id,
+                        'PK_USER': PK_USER
+                    },
+                    success: function(data) {
+                        if (data.STATUS) {
+                            $('#delete_message').html(`<p class="alert alert-success">Credit Card Deleted, Page will refresh automatically.</p>`);
+                            setTimeout(function() {
+                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=credit_card';
+                            }, 3000);
+                        } else {
+                            $('#delete_message').html(`<p class="alert alert-danger">` + data.MESSAGE + `</p>`);
+                        }
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+
+
+
+
 <!-- JavaScript for Popup -->
 <script>
     function showPopup(type, src) {

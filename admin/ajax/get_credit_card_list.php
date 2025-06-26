@@ -14,6 +14,8 @@ require_once('../../global/authorizenet/autoload.php');
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
+$call_from = (isset($_POST['call_from'])) ? $_POST['call_from'] : '';
+
 /* $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
 $PAYMENT_GATEWAY = $_POST['PAYMENT_GATEWAY']; */
@@ -50,17 +52,27 @@ if ($PAYMENT_GATEWAY == "Stripe") {
         );
 
         foreach ($all_cards->data as $card_details) {
-            $card_type = getCardTypeDetails($card_details->brand);
-?>
-            <div class="credit-card-div" id="<?php echo $card_details->id; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                <div class="credit-card <?= $card_type ?> selectable">
-                    <div class="credit-card-last4">
-                        <?= $card_details->last4 ?>
-                    </div>
-                    <div class="credit-card-expiry">
-                        <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
+            $card_type = getCardTypeDetails($card_details->brand); ?>
+
+            <div style="position: relative; width: 303px; display: inline-block;">
+                <!-- Credit Card Box -->
+                <div class="credit-card-div" id="<?= $card_details->id; ?>" onclick="getPaymentMethodId(this)">
+                    <div class="credit-card <?= $card_type ?> selectable">
+                        <div class="credit-card-last4">
+                            <?= $card_details->last4 ?>
+                        </div>
+                        <div class="credit-card-expiry">
+                            <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
+                        </div>
                     </div>
                 </div>
+                <?php if ($call_from == 'customer_credit_card') { ?>
+                    <!-- Delete Button in Top-Right Corner -->
+                    <a href="javascript:;" onclick="deleteThisCreditCard('<?= $card_details->id ?>');" title="Delete"
+                        style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                        <i class="ti-trash"></i>
+                    </a>
+                <?php } ?>
             </div>
 <?php }
     }
@@ -166,7 +178,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
         }
     }
 } ?>
-
+<div id="delete_message"></div>
 <?php
 function getCardTypeDetails($brand)
 {

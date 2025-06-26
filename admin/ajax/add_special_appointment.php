@@ -23,7 +23,7 @@ if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
 }
 
-$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = ".$DEFAULT_LOCATION_ID);
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = " . $DEFAULT_LOCATION_ID);
 if ($location_operational_hour->RecordCount() > 0) {
     $minTime = $location_operational_hour->fields['OPEN_TIME'];
     $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
@@ -39,14 +39,15 @@ if ($location_operational_hour->RecordCount() > 0) {
         <div class="col-12">
             <div class="row">
                 <div class="col-6">
-                    <label class="form-label"><?=$service_provider_title?></label>
+                    <label class="form-label"><?= $service_provider_title ?></label>
                     <div class="col-md-12" style="margin-bottom: 15px; margin-top: 10px;">
                         <select class="multi_sumo_select" name="PK_USER[]" multiple>
                             <?php
-                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY NAME");
+                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER'];?>" <?=($PK_USER == $row->fields['PK_USER'])?"selected":""?>><?=$row->fields['NAME']?></option>
-                                <?php $row->MoveNext(); } ?>
+                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($PK_USER == $row->fields['PK_USER']) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
                         </select>
                     </div>
                 </div>
@@ -58,8 +59,9 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <?php
                             $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
                             while (!$booking_row->EOF) { ?>
-                                <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE'];?>" data-duration="<?php echo $booking_row->fields['DURATION'];?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME']?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT']?>"><?=$booking_row->fields['SCHEDULING_NAME'].' ('.$booking_row->fields['SCHEDULING_CODE'].')'?></option>
-                            <?php $booking_row->MoveNext(); } ?>
+                                <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE']; ?>" data-duration="<?php echo $booking_row->fields['DURATION']; ?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME'] ?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT'] ?>"><?= $booking_row->fields['SCHEDULING_NAME'] . ' (' . $booking_row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                            <?php $booking_row->MoveNext();
+                            } ?>
                         </select>
                     </div>
                 </div>
@@ -74,7 +76,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Date</label>
-                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" value="<?=$date?>" required>
+                        <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" value="<?= $date ?>" required>
                     </div>
                 </div>
             </div>
@@ -83,7 +85,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 <div class="col-6">
                     <div class="form-group">
                         <label class="form-label">Start Time</label>
-                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" value="<?=$time?>" required>
+                        <input type="text" id="START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" value="<?= $time ?>" required>
                     </div>
                 </div>
                 <div class="col-6 END_TIME">
@@ -106,10 +108,11 @@ if ($location_operational_hour->RecordCount() > 0) {
                         <label class="form-label">Customer</label><br>
                         <select class="multi_sumo_select" name="CUSTOMER_ID[]" id="PK_USER_MASTER" onchange="selectThisCustomer(this);" multiple>
                             <?php
-                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME ASC");
+                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER_MASTER'];?>" data-customer_id="<?=$row->fields['PK_USER_MASTER']?>" data-location_id="<?=$row->fields['PRIMARY_LOCATION_ID']?>" data-customer_name="<?=$row->fields['NAME']?>" <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'.' ('.$row->fields['EMAIL_ID'].')'?></option>
-                                <?php $row->MoveNext(); } ?>
+                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" data-customer_id="<?= $row->fields['PK_USER_MASTER'] ?>" data-location_id="<?= $row->fields['PRIMARY_LOCATION_ID'] ?>" data-customer_name="<?= $row->fields['NAME'] ?>" <?= ($PK_USER_MASTER == $row->fields['PK_USER_MASTER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' . ' (' . $row->fields['EMAIL_ID'] . ')' ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
                         </select>
                     </div>
                 </div>
@@ -160,7 +163,12 @@ if ($location_operational_hour->RecordCount() > 0) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
 <script type="text/javascript">
-    $('#PK_USER_MASTER').SumoSelect({placeholder: 'Select Customer', selectAll: true, search: true, searchText: 'Search...'});
+    $('#PK_USER_MASTER').SumoSelect({
+        placeholder: 'Select Customer',
+        selectAll: true,
+        search: true,
+        searchText: 'Search...'
+    });
 
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
@@ -168,21 +176,21 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     $('#START_TIME').timepicker({
         timeFormat: 'hh:mm p',
-        maxTime: '<?=$maxTime?>',
-        minTime: '<?=$minTime?>',
-        change: function () {
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>',
+        change: function() {
             calculateEndTime();
         },
     });
 
     $('#END_TIME').timepicker({
         timeFormat: 'hh:mm p',
-        maxTime: '<?=$maxTime?>',
-        minTime: '<?=$minTime?>'
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>'
     });
 
-    $('.DAYS').on('change', function(){
-        if ($('.DAYS').is(':checked')){
+    $('.DAYS').on('change', function() {
+        if ($('.DAYS').is(':checked')) {
             $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
             $('.occurrence_div').addClass('disable-div');
         } else {
@@ -191,8 +199,14 @@ if ($location_operational_hour->RecordCount() > 0) {
         }
     });
 
-    $('.multi_sumo_select').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', selectAll: true});
-    $('.PK_SCHEDULING_CODE').SumoSelect({placeholder: 'Select Scheduling Code', selectAll: true});
+    $('.multi_sumo_select').SumoSelect({
+        placeholder: 'Select <?= $service_provider_title ?>',
+        selectAll: true
+    });
+    $('.PK_SCHEDULING_CODE').SumoSelect({
+        placeholder: 'Select Scheduling Code',
+        selectAll: true
+    });
 
     function calculateEndTime() {
         let start_time = $('#START_TIME').val();
@@ -200,7 +214,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         let scheduling_name = $('#PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
         let is_default = $('#PK_SCHEDULING_CODE').find(':selected').data('is_default');
         $('#TITLE').val(scheduling_name);
-        duration = (duration)?duration:0;
+        duration = (duration) ? duration : 0;
 
         if (start_time && duration) {
             start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
@@ -209,7 +223,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             $('#END_TIME').val(end_time);
         }
 
-        if (is_default===1) {
+        if (is_default === 1) {
             $('.customer_div').show();
         } else {
             $('.customer_div').hide();
@@ -217,15 +231,17 @@ if ($location_operational_hour->RecordCount() > 0) {
     }
 
     function addMinutes(time, minsToAdd) {
-        function D(J){ return (J<10? '0':'') + J;};
+        function D(J) {
+            return (J < 10 ? '0' : '') + J;
+        };
         var piece = time.split(':');
-        var mins = piece[0]*60 + +piece[1] + +minsToAdd;
+        var mins = piece[0] * 60 + +piece[1] + +minsToAdd;
 
-        return D(mins%(24*60)/60 | 0) + ':' + D(mins%60);
+        return D(mins % (24 * 60) / 60 | 0) + ':' + D(mins % 60);
     }
 
-    $('#IS_STANDING').on('change', function(){
-        if ($(this).is(':checked')){
+    $('#IS_STANDING').on('change', function() {
+        if ($(this).is(':checked')) {
             $('.is_required').prop('required', true);
             $(this).closest('.to_dos_class_setting').find('.standing').show();
             $(this).closest('.to_dos_class_setting').find('.END_TIME').hide();
