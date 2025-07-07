@@ -1,7 +1,14 @@
 <?php require_once("../global/config.php");
 
 if (!empty($_POST)) {
-    $LEADS_DATA['PK_ACCOUNT_MASTER'] = $_POST['ACCOUNT_ID'];
+    if (empty($_POST['LOCATION_ID']) || $_POST['LOCATION_ID'] == '') {
+        $location_data = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE LOCATION_NAME LIKE '%" . $_POST['LOCATION_NAME'] . "%'");
+        if ($location_data->RecordCount() > 0) {
+            $LEADS_DATA['PK_LOCATION'] = $location_data->fields['PK_LOCATION'];
+        }
+    } else {
+        $LEADS_DATA['PK_LOCATION'] = $_POST['LOCATION_ID'];
+    }
     $LEADS_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
     $LEADS_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
     $LEADS_DATA['PHONE'] = $_POST['PHONE'];

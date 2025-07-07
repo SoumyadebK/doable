@@ -399,8 +399,13 @@ while (!$serviceCodeData->EOF) {
             foreach (array_reverse($appointment_array) as $key => $appointment_value) { ?>
                 <tr>
                     <td style="text-align: left;">
-                        <a href="javascript:" title="Edit Appointment" onclick="editThisAppointment(<?= $appointment_value['PK_APPOINTMENT_MASTER'] ?>, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>);"><i class="ti-pencil-alt"></i></a>&nbsp;&nbsp;
-                        <?= $appointment_value['SERVICE_NAME'] ?>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span><?= $appointment_value['SERVICE_NAME'] ?></span>
+                            <a href="javascript:" title="Edit Appointment"
+                                onclick="editThisAppointment(<?= $appointment_value['PK_APPOINTMENT_MASTER'] ?>, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>);">
+                                <i class="ti-pencil-alt"></i>
+                            </a>
+                        </div>
                     </td>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
                     if ($appointment_value['IS_CHARGED'] == 1) { ?>

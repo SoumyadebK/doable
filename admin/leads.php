@@ -13,7 +13,6 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 
 if (!empty($_POST)) {
     $LEADS_DATA = $_POST;
-    $LEADS_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if (empty($_GET['id'])) {
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
@@ -29,6 +28,7 @@ if (!empty($_POST)) {
 }
 
 if (empty($_GET['id'])) {
+    $PK_LOCATION = '';
     $FIRST_NAME = '';
     $LAST_NAME = '';
     $PHONE = '';
@@ -42,6 +42,7 @@ if (empty($_GET['id'])) {
         header("location:all_leads.php");
         exit;
     }
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
@@ -85,6 +86,23 @@ if (empty($_GET['id'])) {
                             <div class="card-body">
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
 
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Location</label>
+                                            <div class="col-md-12">
+                                                <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                                    <option value="">Select Location</option>
+                                                    <?php
+                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($row->fields['PK_LOCATION'] == $PK_LOCATION) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                    <?php
+                                                        $row->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label class="form-label">First Name</label>

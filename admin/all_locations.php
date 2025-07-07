@@ -51,7 +51,7 @@ if ($header_data->RecordCount() > 0) {
                                     <table id="myTable" class="table table-striped border" data-page-length='50'>
                                         <thead>
                                             <tr>
-                                                <th>No</th>
+                                                <th>Location ID</th>
                                                 <th>Location Name</th>
                                                 <th>Corporation Name</th>
                                                 <th>City</th>
@@ -67,7 +67,7 @@ if ($header_data->RecordCount() > 0) {
                                             $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $i; ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $row->fields['PK_LOCATION'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $row->fields['CORPORATION_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $row->fields['CITY'] ?></td>

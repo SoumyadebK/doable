@@ -2,6 +2,8 @@
 require_once('../global/config.php');
 $title = "All Leads";
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 $status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
 
 if ($status_check == 'active') {
@@ -19,7 +21,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_LEADS.LEAD_STATUS LIKE '%" . $search_text . "%' OR DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -85,6 +87,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <th>Name</th>
                                                 <th>Phone</th>
                                                 <th>Email</th>
+                                                <th>Location</th>
                                                 <th>Lead Status</th>
                                                 <th>Description</th>
                                                 <th>Action</th>
@@ -94,22 +97,25 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE FROM `DOA_LEADS` LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS=DOA_LEAD_STATUS.PK_LEAD_STATUS  WHERE DOA_LEADS.ACTIVE=1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['PHONE'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
                                                     <td>
-                                                        <a href="leadS.php?id=<?= $row->fields['PK_LEADS'] ?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>
                                                             <span class="active-box-red"></span>
                                                         <?php } ?>
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="leads.php?id=<?= $row->fields['PK_LEADS'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="javascript:" onclick="ConfirmDelete(<?= $row->fields['PK_LEADS'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>
                                                     </td>
                                                 </tr>
                                             <?php $row->MoveNext();
@@ -157,6 +163,35 @@ $page_first_result = ($page - 1) * $results_per_page;
         function editpage(id) {
             //alert(i);
             window.location.href = "leads.php?id=" + id;
+        }
+
+        function ConfirmDelete(PK_LEADS) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteLeads',
+                            PK_LEADS: PK_LEADS
+                        },
+                        success: function(data) {
+                            let currentURL = window.location.href;
+                            let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
+                            console.log(extractedPart);
+                            window.location.href = extractedPart;
+                        }
+                    });
+                }
+            });
         }
     </script>
 </body>
