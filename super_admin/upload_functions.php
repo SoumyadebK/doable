@@ -119,6 +119,12 @@ function getAllEnrollmentPaymentByChargeId($charge_id, $lastId)
     return $db1->Execute("SELECT * FROM `payments` WHERE id > $lastId AND charge_id = '$charge_id'");
 }
 
+function getAllEnrollmentPayment($lastId)
+{
+    global $db1;
+    return $db1->Execute("SELECT * FROM `payments` WHERE id > $lastId AND enroll_id > 0 AND charge_id > 0 ORDER BY id ASC");
+}
+
 function getAllEnrollmentPayments()
 {
     global $db1;

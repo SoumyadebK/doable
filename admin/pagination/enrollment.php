@@ -227,7 +227,7 @@ while (!$enrollment_data->EOF) {
                 <?php } ?>
 
                 <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                    <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a>
+                    <!-- <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a> -->
                 <?php } ?>
             </div>
         </div>

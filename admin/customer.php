@@ -7,15 +7,6 @@ global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-use Square\Models\Address;
-use Square\SquareClient;
-use Square\Environment;
-
-use Dompdf\Dompdf;
-use Mpdf\Mpdf;
-use Stripe\Exception\ApiErrorException;
-use Stripe\StripeClient;
-
 $userType = "Customers";
 
 $status_check = empty($_GET['status']) ? 'active' : $_GET['status'];

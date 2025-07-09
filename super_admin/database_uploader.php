@@ -1320,6 +1320,85 @@ if (!empty($_POST)) {
             }
             break;
 
+        case 'SYNC_ENROLLMENT_PAYMENT':
+            $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], 'OTHER_PAYMENT');
+
+            $enrollment_payment = getAllEnrollmentPayment($lastUploadedId);
+            if ($enrollment_payment->RecordCount() > 0) {
+                while (!$enrollment_payment->EOF) {
+                    $enroll_id = $enrollment_payment->fields['enroll_id'];
+                    $doableEnrollmentId = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_BILLING, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER 
+                        INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.ENROLLMENT_ID = '$enroll_id'");
+                    $PK_ENROLLMENT_MASTER = ($doableEnrollmentId->RecordCount() > 0) ? $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'] : 0;
+                    $PK_ENROLLMENT_BILLING = ($doableEnrollmentId->RecordCount() > 0) ? $doableEnrollmentId->fields['PK_ENROLLMENT_BILLING'] : 0;
+                    $TOTAL_AMOUNT = ($doableEnrollmentId->RecordCount() > 0) ? $doableEnrollmentId->fields['TOTAL_AMOUNT'] : 0;
+
+                    $enrollment_ledger = $db_account->Execute("SELECT PK_ENROLLMENT_LEDGER FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " AND PK_ENROLLMENT_BILLING = " . $PK_ENROLLMENT_BILLING . " AND IS_PAID = 0 ORDER BY PK_ENROLLMENT_LEDGER ASC LIMIT 1");
+                    $PK_ENROLLMENT_LEDGER = ($enrollment_ledger->RecordCount() > 0) ? $enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] : 0;
+
+                    if ($PK_ENROLLMENT_LEDGER > 0) {
+                        $orgDate = $enrollment_payment->fields['date_paid'];
+                        $newDate = date("Y-m-d", strtotime($orgDate));
+
+                        if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
+                            $payment_type = $enrollment_payment->fields['card_type'];
+                        } else {
+                            $payment_type = $enrollment_payment->fields['payment_method'];
+                        }
+                        $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
+
+                        $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                        $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
+                        $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
+                        $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                        $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                        $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
+                        $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
+                        $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
+                        $PAYMENT_INFO = null;
+                        if ($enrollment_payment->fields['card_number'] > 0) {
+                            $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $enrollment_payment->fields['transaction_id'], 'LAST4' => $enrollment_payment->fields['card_number']];
+                            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                        } elseif ($enrollment_payment->fields['check_number'] > 0) {
+                            $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
+                            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                        }
+                        $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;;
+                        $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                        $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $enrollment_payment->fields['receipt'];
+
+                        $enrollmentServiceData = $db_account->Execute("SELECT FINAL_AMOUNT, TOTAL_AMOUNT_PAID, PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                        while (!$enrollmentServiceData->EOF) {
+                            if ($enrollmentServiceData->fields['FINAL_AMOUNT'] > 0 && $TOTAL_AMOUNT > 0) {
+                                $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
+                                $serviceAmount = ($ENROLLMENT_PAYMENT_DATA['AMOUNT'] * $servicePercent) / 100;
+
+                                if ($enrollment_payment->fields['record_type'] === 'Payment' || $enrollment_payment->fields['record_type'] === 'Adjustment') {
+                                    $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
+                                } elseif ($enrollment_payment->fields['record_type'] === 'Refund') {
+                                    $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+                                } else {
+                                    $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'];
+                                }
+                                db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+                            }
+
+                            $enrollmentServiceData->MoveNext();
+                        }
+                        db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+
+                        if ($ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Payment' || $ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Adjustment') {
+                            $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
+                            $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+                            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', ' PK_ENROLLMENT_LEDGER = ' . $PK_ENROLLMENT_LEDGER);
+                        }
+                    }
+                    $enrollment_payment->MoveNext();
+                }
+            }
+            break;
+
         case 'OTHER_PAYMENT':
             $lastUploadedId = getLastUploadedID($PK_ACCOUNT_MASTER, $PK_LOCATION, $_SESSION['MIGRATION_DB_NAME'], $_POST['TABLE_NAME']);
 
@@ -1522,13 +1601,13 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                     <option value="">Select Database Name</option>
-                                    <!-- <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
+                                    <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
                                     <option value="AMTO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTO') ? 'selected' : '' ?>>AMTO</option>
                                     <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
                                     <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
                                     <option value="AMWB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWB') ? 'selected' : '' ?>>AMWB</option>
                                     <option value="AMLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLV') ? 'selected' : '' ?>>AMLV</option>
-                                    <option value="JTLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'JTLV') ? 'selected' : '' ?>>JTLV</option> -->
+                                    <option value="JTLV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'JTLV') ? 'selected' : '' ?>>JTLV</option>
 
                                     <option value="AMMB" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMMB') ? 'selected' : '' ?>>AMMB</option>
                                     <option value="AMMO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMMO') ? 'selected' : '' ?>>AMMO</option>
@@ -1573,6 +1652,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
 
                                     <option value="MARK_APPOINTMENT_PAID" <?= ($_SESSION['TABLE_NAME'] == 'MARK_APPOINTMENT_PAID') ? 'selected' : '' ?>>MARK_APPOINTMENT_PAID</option>
                                     <option value="UPDATE_TAX_ID" <?= ($_SESSION['TABLE_NAME'] == 'UPDATE_TAX_ID') ? 'selected' : '' ?>>UPDATE_TAX_ID</option>
+                                    <option value="SYNC_ENROLLMENT_PAYMENT" <?= ($_SESSION['TABLE_NAME'] == 'SYNC_ENROLLMENT_PAYMENT') ? 'selected' : '' ?>>SYNC_ENROLLMENT_PAYMENT</option>
                                 </select>
                                 <div id="view_download_div" class="m-10"></div>
                             </div>

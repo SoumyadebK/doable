@@ -1131,6 +1131,30 @@ if (!empty($_GET['id'])) {
         counter--;
     }
 
+
+    $(document).ready(function() {
+        let tab_link = <?= empty($_GET['tab']) ? 0 : $_GET['tab'] ?>;
+        if (tab_link.id == 'profile') {
+            $('#profile_tab_link')[0].click();
+        }
+        if (tab_link.id == 'login_info') {
+            $('#login_info_tab_link')[0].click();
+        }
+        if (tab_link.id == 'rates') {
+            $('#rates_tab_link')[0].click();
+        }
+        if (tab_link.id == 'service') {
+            $('#service_tab_link')[0].click();
+        }
+        if (tab_link.id == 'document') {
+            $('#document_tab_link')[0].click();
+        }
+        if (tab_link.id == 'comment') {
+            $('#comment_tab_link')[0].click();
+        }
+    });
+
+
     $(document).on('submit', '#profile_form', function(event) {
         event.preventDefault();
         let PK_USER = $('.PK_USER').val();
@@ -1183,7 +1207,7 @@ if (!empty($_GET['id'])) {
                                                         }
                                                     }
                                                 } else {
-                                                    window.location.href = 'all_users.php';
+                                                    window.location.href = 'user.php?tab=profile&id=' + data.PK_USER;
                                                 }
                                             }
                                         });
@@ -1234,7 +1258,7 @@ if (!empty($_GET['id'])) {
                             $('#document_tab_link')[0].click();
                         }
                     } else {
-                        window.location.href = 'all_users.php';
+                        window.location.href = 'user.php?tab=login_info&id=' + PK_USER;
                     }
                 }
             });
@@ -1285,7 +1309,7 @@ if (!empty($_GET['id'])) {
                         $('#document_tab_link')[0].click();
                     }
                 } else {
-                    window.location.href = 'all_users.php';
+                    window.location.href = 'user.php?tab=rates&id=' + PK_USER;
                 }
             }
         });
@@ -1313,7 +1337,7 @@ if (!empty($_GET['id'])) {
             type: 'POST',
             data: form_data,
             success: function(data) {
-                window.location.href = 'all_users.php';
+                window.location.href = 'user.php?tab=service&id=' + $('.PK_USER').val();
                 /*if (PK_USER == 0) {
                     if ($('#PK_ROLES').val().indexOf('5') !== -1) {
                         $('#document_tab_link')[0].click();
@@ -1335,7 +1359,7 @@ if (!empty($_GET['id'])) {
             processData: false,
             contentType: false,
             success: function(data) {
-                window.location.href = 'all_users.php';
+                window.location.href = `user.php?id=${PK_USER}&tab=document`;
             }
         });
     });
@@ -1397,7 +1421,7 @@ if (!empty($_GET['id'])) {
             processData: false,
             contentType: false,
             success: function(data) {
-                window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
+                window.location.href = `user.php?id=${PK_USER}&tab=comments`;
             }
         });
     });
@@ -1413,7 +1437,7 @@ if (!empty($_GET['id'])) {
                     PK_COMMENT: PK_COMMENT
                 },
                 success: function(data) {
-                    window.location.href = `user.php?id=${PK_USER}&on_tab=comments`;
+                    window.location.href = `user.php?id=${PK_USER}&tab=comments`;
                 }
             });
         }
