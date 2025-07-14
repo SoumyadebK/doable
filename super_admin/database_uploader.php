@@ -142,6 +142,37 @@ if (!empty($_POST)) {
                     }
                 } else {
                     $PK_USER = $user_exist->fields['PK_USER'];
+
+                    $USER_DATA['FIRST_NAME'] = trim($allUsers->fields['first_name']);
+                    $USER_DATA['LAST_NAME'] = trim($allUsers->fields['last_name']);
+                    $USER_DATA['USER_NAME'] = $allUsers->fields['user_name']; //$USERNAME_PREFIX . '.' . $allUsers->fields['user_name'];
+                    $USER_DATA['USER_ID'] = $allUsers->fields['user_id'];
+                    $USER_DATA['EMAIL_ID'] = $allUsers->fields['email'];
+                    if (!empty($allUsers->fields['cell_phone']) && $allUsers->fields['cell_phone'] != null) {
+                        $USER_DATA['PHONE'] = $allUsers->fields['cell_phone'];
+                    } elseif (!empty($allUsers->fields['home_phone']) && $allUsers->fields['home_phone'] != null) {
+                        $USER_DATA['PHONE'] = $allUsers->fields['home_phone'];
+                    }
+                    $USER_DATA['PASSWORD'] = password_hash($allUsers->fields['user_pass'], PASSWORD_DEFAULT);
+                    $USER_DATA['CREATE_LOGIN'] = ($USER_DATA['USER_NAME'] && $USER_DATA['PASSWORD']) ? 1 : 0;
+                    $USER_DATA['GENDER'] = ($allUsers->fields['gender'] == 'M') ? 'Male' : 'Female';
+                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($allUsers->fields['birth_date']));
+                    $USER_DATA['ADDRESS'] = $allUsers->fields['address1'];
+                    $USER_DATA['ADDRESS_1'] = $allUsers->fields['address2'];
+                    $USER_DATA['CITY'] = $allUsers->fields['city'];
+                    $USER_DATA['PK_COUNTRY'] = 1;
+                    $state = $allUsers->fields['state'];
+                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
+                    $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
+                    $USER_DATA['ZIP'] = $allUsers->fields['zip'];
+                    $USER_DATA['NOTES'] = $allUsers->fields['remarks'];
+                    $USER_DATA['ACTIVE'] = $allUsers->fields['is_active'];
+                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allUsers->fields['date_added']));
+                    $USER_DATA['APPEAR_IN_CALENDAR'] = $allUsers->fields['appear_in_calendar'];
+                    $USER_DATA['IS_DELETED'] = 0;
+                    $USER_DATA['DISPLAY_ORDER'] = $allUsers->fields['position'];
+                    $USER_DATA['ARTHUR_MURRAY_ID'] = $allUsers->fields['tax_id'];
+                    db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = $PK_USER");
                 }
 
                 $roleId = $allUsers->fields['role'];
@@ -199,7 +230,7 @@ if (!empty($_POST)) {
             $USERNAME_PREFIX = ($account_data->RecordCount() > 0) ? $account_data->fields['USERNAME_PREFIX'] : ''; */
             while (!$allCustomers->EOF) {
                 $customer_id = $allCustomers->fields['customer_id'];
-                $customer_exist = $db->Execute("SELECT USER_ID FROM `DOA_USERS` WHERE `USER_ID` LIKE '$customer_id' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
+                $customer_exist = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.USER_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.USER_ID LIKE '$customer_id' AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = '$PK_LOCATION' AND DOA_USERS.PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
                 if ($customer_exist->RecordCount() == 0) {
                     try {
                         $USER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
@@ -371,6 +402,45 @@ if (!empty($_POST)) {
                         echo $ex->getMessage() . "<br>";
                         die();
                     }
+                } else {
+                    $PK_USER = $customer_exist->fields['PK_USER'];
+
+                    $USER_DATA['USER_NAME'] = $allCustomers->fields['customer_id'];
+                    $USER_DATA['USER_ID'] = $allCustomers->fields['customer_id'];
+                    $USER_DATA['FIRST_NAME'] = trim($allCustomers->fields['first_name']);
+                    $USER_DATA['LAST_NAME'] = trim($allCustomers->fields['last_name']);
+                    $USER_DATA['EMAIL_ID'] = $allCustomers->fields['email'];
+                    if (!empty($allCustomers->fields['cell_phone']) && $allCustomers->fields['cell_phone'] != null && $allCustomers->fields['cell_phone'] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $allCustomers->fields['cell_phone'];
+                    } elseif (!empty($allCustomers->fields['home_phone']) && $allCustomers->fields['home_phone'] != null && $allCustomers->fields['home_phone'] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $allCustomers->fields['home_phone'];
+                    } elseif (!empty($allCustomers->fields['business_phone']) && $allCustomers->fields['business_phone'] != null && $allCustomers->fields['business_phone'] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $allCustomers->fields['business_phone'];
+                    }
+                    if ($allCustomers->fields['gender'] == 0) {
+                        $USER_DATA['GENDER'] = 'Male';
+                    } elseif ($allCustomers->fields['gender'] == 1) {
+                        $USER_DATA['GENDER'] = 'Female';
+                    }
+
+                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($allCustomers->fields['birth_date']));
+                    if ($allCustomers->fields['merital_status'] == 1) {
+                        $USER_DATA['MARITAL_STATUS'] = "Married";
+                    } elseif ($allCustomers->fields['merital_status'] == 0) {
+                        $USER_DATA['MARITAL_STATUS'] = "Unmarried";
+                    }
+
+                    $USER_DATA['ADDRESS'] = $allCustomers->fields['address1'];
+                    $USER_DATA['ADDRESS_1'] = $allCustomers->fields['address2'];
+                    $USER_DATA['CITY'] = $allCustomers->fields['city'];
+                    $USER_DATA['PK_COUNTRY'] = 1;
+                    $state = $allCustomers->fields['state'];
+                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$state' OR STATE_CODE='$state'");
+                    $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
+                    $USER_DATA['ZIP'] = $allCustomers->fields['zip'];
+                    $USER_DATA['NOTES'] = $allCustomers->fields['quote'];
+                    $USER_DATA['ACTIVE'] = ($allCustomers->fields['student_status'] == 'A') ? 1 : 0;
+                    db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = $PK_USER");
                 }
                 $allCustomers->MoveNext();
             }

@@ -13,13 +13,14 @@ $filesystem_path = $_SERVER['DOCUMENT_ROOT'] . '/' . $upload_path . '/enrollment
 
 while (!$res->EOF) {
     $file_path = $filesystem_path . $res->fields['AGREEMENT_PDF_LINK'];
-?>
-    <div style="margin-top: 5px">
-        <?php if (file_exists($file_path)) { ?>
-            <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $res->fields['AGREEMENT_PDF_LINK'] ?>" target="_blank"> View Agreement</a><br>
-        <?php } else { ?>
-            <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="javascript:"> (Not Available)</a><br>
-        <?php } ?>
-    </div>
-<?php $res->MoveNext();
+    if ($res->fields['AGREEMENT_PDF_LINK'] != NULL && $res->fields['AGREEMENT_PDF_LINK'] != '') { ?>
+        <div style="margin-top: 5px">
+            <?php if (file_exists($file_path)) { ?>
+                <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $res->fields['AGREEMENT_PDF_LINK'] ?>" target="_blank"> View Agreement</a><br>
+            <?php } else { ?>
+                <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="javascript:"> (Not Available)</a><br>
+            <?php } ?>
+        </div>
+<?php }
+    $res->MoveNext();
 } ?>

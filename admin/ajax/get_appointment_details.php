@@ -298,9 +298,9 @@ $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_U
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
 if ($PK_USER_MASTER > 0) {
+    makeExpiryEnrollmentComplete($PK_USER_MASTER);
     makeMiscComplete($PK_USER_MASTER);
     makeDroppedCancelled($PK_USER_MASTER);
-    makeExpiryEnrollmentComplete($PK_USER_MASTER);
     checkAllEnrollmentStatus($PK_USER_MASTER);
 }
 
