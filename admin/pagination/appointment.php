@@ -134,8 +134,9 @@ $page_first_result = ($page - 1) * $results_per_page;
         $i = $page_first_result + 1;
         $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
         while (!$appointment_data->EOF) {
+            $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
             $UNIT = $appointment_data->fields['UNIT'];
-            $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER']);
+            $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
             $CHANGED_BY = '';
             while (!$status_data->EOF) {
                 $CHANGED_BY .= "(" . $status_data->fields['APPOINTMENT_STATUS'] . " by " . $status_data->fields['NAME'] . " at " . date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])) . ")<br>";
@@ -143,11 +144,13 @@ $page_first_result = ($page - 1) * $results_per_page;
             }
             $IMAGE_LINK = $appointment_data->fields['IMAGE'];
             $VIDEO_LINK = $appointment_data->fields['VIDEO'];
+            $SERIAL_NUMBER = 0;
             if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
                 $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['PK_ENROLLMENT_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
+                $SERIAL_NUMBER = getSerialNumberOfAnAppointment($PK_APPOINTMENT_MASTER, $PK_USER_MASTER);
             } else {
                 $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
@@ -163,7 +166,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                     $service_code_array[$PK_ENROLLMENT_SERVICE] = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE);;
                 }
             } ?>
-            <tr onclick="$(this).next().slideToggle(); loadMedia(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>)">
+            <tr onclick="$(this).next().slideToggle(); loadMedia(<?= $PK_APPOINTMENT_MASTER ?>)">
                 <td><?= $i; ?></td>
                 <td><?= $appointment_data->fields['CUSTOMER_NAME'] ?></td>
                 <?php if (!empty($ENROLLMENT_ID) || !empty($ENROLLMENT_NAME)) { ?>
@@ -174,13 +177,13 @@ $page_first_result = ($page - 1) * $results_per_page;
                     <td><?= $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
                 <?php } ?>
                 <td><?= (isset($service_code_array[$PK_ENROLLMENT_SERVICE]) && $appointment_data->fields['PK_APPOINTMENT_STATUS'] != 6) ? $service_code_array[$PK_ENROLLMENT_SERVICE] . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '' ?></td>
-                <td><?= $appointment_data->fields['SERIAL_NUMBER'] ?></td>
+                <td><?= $SERIAL_NUMBER ?></td>
                 <td><?= $appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
                 <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
                 <td><?= date('m/d/Y', strtotime($appointment_data->fields['DATE'])) ?></td>
                 <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
                 <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if ($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
-                        <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>);">View</button> <?php } ?>
+                        <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?= $PK_APPOINTMENT_MASTER ?>);">View</button> <?php } ?>
                 </td>
                 <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
                 <td style="text-align: left; color: <?= $appointment_data->fields['APPOINTMENT_COLOR'] ?>">
@@ -195,19 +198,19 @@ $page_first_result = ($page - 1) * $results_per_page;
                     <?php } elseif ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2) { ?>
                         <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
                     <?php } else { ?>
-                        <a href="all_schedules.php?id=<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>&action=complete" data-id="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onclick='confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+                        <a href="all_schedules.php?id=<?= $PK_APPOINTMENT_MASTER ?>&action=complete" data-id="<?= $PK_APPOINTMENT_MASTER ?>" onclick='confirmComplete($(this));return false;'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
                     <?php } ?>
                 </td>
                 <td>
                     <?php /*if(empty($ENROLLMENT_ID)) { */ ?><!--
-                        <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/ ?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="create_appointment.php?type=ad_hoc&id=<?php /*=$PK_APPOINTMENT_MASTER*/ ?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php /*} else { */ ?>
-                        <a href="add_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/ ?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="add_schedule.php?id=<?php /*=$PK_APPOINTMENT_MASTER*/ ?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php /*} */ ?>
-                    <a href="copy_schedule.php?id=<?php /*=$appointment_data->fields['PK_APPOINTMENT_MASTER']*/ ?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-                    <a href="all_schedules.php?id=<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onclick='ConfirmDelete(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="copy_schedule.php?id=<?php /*=$PK_APPOINTMENT_MASTER*/ ?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                    <a href="all_schedules.php?id=<?= $PK_APPOINTMENT_MASTER ?>" onclick='ConfirmDelete(<?= $PK_APPOINTMENT_MASTER ?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php if ($type == 'cancelled' && ($enr_service_data->RecordCount() > 0 && ($enr_service_data->fields['NUMBER_OF_SESSION'] != $SESSION_CREATED))) { ?>
-                        <a href="all_schedules.php?id=<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onclick='ConfirmScheduled(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>,<?= $PK_ENROLLMENT_SERVICE ?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="all_schedules.php?id=<?= $PK_APPOINTMENT_MASTER ?>" onclick='ConfirmScheduled(<?= $PK_APPOINTMENT_MASTER ?>,<?= $PK_ENROLLMENT_SERVICE ?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php } ?>
                 </td>
             </tr>
@@ -218,7 +221,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                             <textarea class="form-control" name="COMMENT" rows="3"><?= $appointment_data->fields['COMMENT'] ?></textarea><span><?= $CHANGED_BY ?></span>
                         </div>
                     </div>
-                    <div id="media_div_<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>">
+                    <div id="media_div_<?= $PK_APPOINTMENT_MASTER ?>">
 
                     </div>
                 </td>

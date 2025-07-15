@@ -676,7 +676,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                             <div class="col-3">
                                                 <input type="hidden" id="IS_SELECTED" value="0">
-                                                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?php /*=($_GET['CHOOSE_DATE']) ?? ''*/ ?>">
+                                                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?= ($_GET['date']) ?? '' ?>">
                                             </div>
                                             <div class="col-5">
                                                 <div class="search-container">
