@@ -50,7 +50,7 @@ $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $STANDING_ID = $res->fields['STANDING_ID'];
 $CUSTOMER_ID = $res->fields['CUSTOMER_ID'];
 $PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
-//$SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
+$SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
 $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
 $SERVICE_NAME = $res->fields['SERVICE_NAME'];
 $PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
@@ -297,8 +297,6 @@ if ($customer_data->RecordCount() > 0) {
 $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$CUSTOMER_ID'");
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
 
-$SERIAL_NUMBER = getSerialNumberOfAnAppointment($PK_APPOINTMENT_MASTER, $PK_USER_MASTER);
-
 if ($PK_USER_MASTER > 0) {
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
     makeMiscComplete($PK_USER_MASTER);
@@ -387,7 +385,7 @@ if ($PK_USER_MASTER > 0) {
 <div class="tab-content tabcontent-border">
     <div class="tab-pane active" id="edit_appointment" role="tabpanel">
         <form class="form-material form-horizontal" id="appointment_form" action="includes/update_appointment_details.php" method="post" enctype="multipart/form-data">
-            <!--            <input type="hidden" name="FUNCTION_NAME" value="saveAppointmentData">-->
+            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
             <input type="hidden" name="REDIRECT_URL" value="../all_schedules.php?date=<?= date('m/d/Y', strtotime($DATE)) ?>">
             <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
             <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>>">

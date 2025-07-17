@@ -155,7 +155,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
 
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
-            $SERIAL_NUMBER = getSerialNumberOfAnAppointment($PK_APPOINTMENT_MASTER, $PK_USER_MASTER);
+            $SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
             $customerNameArray = [];
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];

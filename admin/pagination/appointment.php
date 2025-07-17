@@ -150,7 +150,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
                 $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
                 $ENROLLMENT_NAME = $appointment_data->fields['ENROLLMENT_NAME'];
-                $SERIAL_NUMBER = getSerialNumberOfAnAppointment($PK_APPOINTMENT_MASTER, $PK_USER_MASTER);
+                $SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];
             } else {
                 $SESSION_CREATED = getSessionCreatedCount($appointment_data->fields['APT_ENR_SERVICE'], $appointment_data->fields['APPOINTMENT_TYPE']);
                 $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
