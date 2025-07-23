@@ -523,7 +523,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <div class="col-md-2">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Created On</label>
-                                                                            <input type="text" class="form-control datepicker-normal" id="CREATED_ON" name="CREATED_ON" value="<?= ($CREATED_ON == '' || $CREATED_ON == '0000-00-00') ? date('m/d/Y') : date('m/d/Y', strtotime($CREATED_ON)) ?>">
+                                                                            <input type="text" class="form-control datepicker-normal" id="CREATED_ON" name="CREATED_ON" value="<?= ($CREATED_ON == '' || $CREATED_ON == '0000-00-00' || $CREATED_ON == '1969-12-31') ? date('m/d/Y') : date('m/d/Y', strtotime($CREATED_ON)) ?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -624,7 +624,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <div class="col-md-6">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Date of Birth</label>
-                                                                            <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
+                                                                            <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -888,7 +888,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="col-md-6">
                                                                             <div class="form-group">
                                                                                 <label class="form-label">Partner's Date of Birth</label>
-                                                                                <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" value="<?= ($PARTNER_DOB == '' || $PARTNER_DOB == '0000-00-00') ? '' : date('m/d/Y', strtotime($PARTNER_DOB)) ?>">
+                                                                                <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" value="<?= ($PARTNER_DOB == '' || $PARTNER_DOB == '0000-00-00' || $PARTNER_DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($PARTNER_DOB)) ?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -1140,7 +1140,7 @@ if ($PK_USER_MASTER > 0) {
                                                                                 <div class="col-md-6">
                                                                                     <div class="form-group">
                                                                                         <label class="form-label">Date of Birth</label>
-                                                                                        <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]" value="<?= ($family_member_details->fields['DOB'] == '' || $family_member_details->fields['DOB'] == '0000-00-00') ? '' : date('m/d/Y', strtotime($family_member_details->fields['DOB'])) ?>">
+                                                                                        <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]" value="<?= ($family_member_details->fields['DOB'] == '' || $family_member_details->fields['DOB'] == '0000-00-00' || $family_member_details->fields['DOB'] == '1969-12-31') ? '' : date('m/d/Y', strtotime($family_member_details->fields['DOB'])) ?>">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1462,7 +1462,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Inquiry Date</label>
                                                                             <div class="col-md-12">
-                                                                                <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?= ($INQUIRY_DATE == '' || $INQUIRY_DATE == '0000-00-00') ? '' : date('m/d/Y', strtotime($INQUIRY_DATE)) ?>">
+                                                                                <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?= ($INQUIRY_DATE == '' || $INQUIRY_DATE == '0000-00-00' || $INQUIRY_DATE == '1969-12-31') ? '' : date('m/d/Y', strtotime($INQUIRY_DATE)) ?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>

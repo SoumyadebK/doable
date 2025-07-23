@@ -4,12 +4,11 @@ $title = "All Leads";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-$status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
+$status_check = empty($_GET['status']) ? '' : $_GET['status'];
 
-if ($status_check == 'active') {
-    $status = 1;
-} elseif ($status_check == 'inactive') {
-    $status = 0;
+$status_condition = ' ';
+if ($status_check != '') {
+    $status_condition = " AND DOA_LEADS.PK_LEAD_STATUS = " . $status_check;
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
@@ -21,7 +20,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
+    $search = $status_condition . " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -52,19 +51,34 @@ $page_first_result = ($page - 1) * $results_per_page;
             <?php require_once('../includes/setup_menu.php') ?>
             <div class="container-fluid body_content m-0">
                 <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
+                    <div class="col-md-3 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
                     </div>
-                    <div class="col-md-3 align-self-center text-end">
-                        <form class="form-material form-horizontal" action="" method="get">
-                            <input type="hidden" name="status" value="<?= $status_check ?>">
-                            <div class="input-group">
-                                <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
-                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                    <div class="col-md-6">
+                        <form class=" form-material form-horizontal" action="" method="get">
+                            <div class="row">
+                                <div class="col-md-4 align-self-center text-end">
+                                    <select class="form-control" name="status" id="status" onchange="this.form.submit();">
+                                        <option value="">Select Status</option>
+                                        <?php
+                                        $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                        while (!$row->EOF) { ?>
+                                            <option value="<?php echo $row->fields['PK_LEAD_STATUS']; ?>" <?= ($row->fields['PK_LEAD_STATUS'] == $status_check) ? 'selected' : '' ?>><?= $row->fields['LEAD_STATUS'] ?></option>
+                                        <?php $row->MoveNext();
+                                        } ?>
+                                    </select>
+                                </div>
+
+                                <div class=" col-md-8 align-self-center text-end">
+                                    <div class="input-group">
+                                        <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
+                                        <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
-                    <div class="col-md-4 align-self-center text-end">
+                    <div class="col-md-3 align-self-center text-end">
                         <div class="d-flex justify-content-end align-items-center">
                             <ol class="breadcrumb justify-content-end">
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
@@ -88,6 +102,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <th>Phone</th>
                                                 <th>Email</th>
                                                 <th>Location</th>
+                                                <th>Date</th>
+                                                <th>Time</th>
                                                 <th>Lead Status</th>
                                                 <th>Description</th>
                                                 <th>Action</th>
@@ -97,7 +113,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $i; ?></td>
@@ -105,6 +121,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['PHONE'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= date('m/d/Y', strtotime($row->fields['CREATED_ON'])) ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= date('h:i A', strtotime($row->fields['CREATED_ON'])) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
                                                     <td>

@@ -188,7 +188,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             } else {
                 $PACKAGE = " || " . "$PACKAGE_NAME";
             }
-            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $SERIAL_NUMBER . (($appointment_position <= $PAID_COUNT) ? ' (' . $PAID_COUNT . ' Paid)' : ' (Unpaid)');
+            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $SERIAL_NUMBER . (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
             $title = ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $SERIAL_NUMBER;
@@ -198,7 +198,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             $type = "group_class";
         }
 
-        $title .= ($appointment_position > 0) ? '  ' . ($appointment_position / $UNIT) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+        $title .= ($appointment_position > 0) ? '  ' . ($appointment_position) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
 
         $appointment_array[] = [
             'id' => $PK_APPOINTMENT_MASTER,

@@ -5,9 +5,6 @@ global $db_account;
 
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
-use Twilio\Exceptions\ConfigurationException;
-use Twilio\Rest\Client;
-
 if (empty($_GET['id']))
     $title = "Create Appointment";
 else
@@ -32,7 +29,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
 $PK_USER_MASTER = $_SESSION['PK_USER_MASTER'];
 
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
-    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['master_id_customer'].'&tab=appointment';
+    $header = 'customer.php?id=' . $_GET['id_customer'] . '&master_id=' . $_GET['master_id_customer'] . '&tab=appointment';
     $source = 'customer';
     $id_customer = $_GET['id_customer'];
 } else {
@@ -41,14 +38,14 @@ if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
     $id_customer = '';
 }
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4 ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 4) {
     header("location:../login.php");
     exit;
 }
 
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
-if ($FUNCTION_NAME == 'saveGroupClassData'){
+if ($FUNCTION_NAME == 'saveGroupClassData') {
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
     $PK_SERVICE_MASTER = $SERVICE_ID[0];
     $PK_SERVICE_CODE = $SERVICE_ID[1];
@@ -68,11 +65,11 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
         $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
 
         $GROUP_CLASS_DATE_ARRAY = [];
-        if (!empty($_POST['OCCURRENCE_'.$i])) {
+        if (!empty($_POST['OCCURRENCE_' . $i])) {
             $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
-            if ($_POST['OCCURRENCE_'.$i] == 'WEEKLY') {
-                if (isset($_POST['DAYS_'.$i])) {
-                    $DAYS = $_POST['DAYS_'.$i];
+            if ($_POST['OCCURRENCE_' . $i] == 'WEEKLY') {
+                if (isset($_POST['DAYS_' . $i])) {
+                    $DAYS = $_POST['DAYS_' . $i];
                 } else {
                     $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
                 }
@@ -126,15 +123,15 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
                 $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
                 $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
-                for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID_'.$i]); $k++) {
+                for ($k = 0; $k < count($_POST['SERVICE_PROVIDER_ID_' . $i]); $k++) {
                     $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-                    $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_'.$i][$k];
+                    $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID_' . $i][$k];
                     db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
                 }
             }
         }
     }
-    header("location:".$header);
+    header("location:" . $header);
 } elseif ($FUNCTION_NAME == 'saveSpecialAppointment') {
     $standing_id = 0;
     $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
@@ -220,11 +217,11 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
         }
     }
-    header("location:".$header);
+    header("location:" . $header);
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
-    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])) {
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
@@ -245,14 +242,14 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
 
-    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = ".$PK_ENROLLMENT_MASTER);
+    $enrollment_location = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     if ($enrollment_location->RecordCount() > 0) {
         $PK_LOCATION = $enrollment_location->fields['PK_LOCATION'];
     } else {
         $PK_LOCATION = 0;
     }
 
-    $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = ".$PK_ENROLLMENT_SERVICE);
+    $enrollment_service_data = $db_account->Execute("SELECT `NUMBER_OF_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
     $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $enrollment_service_data->fields['NUMBER_OF_SESSION'] - $SESSION_CREATED;
 
@@ -266,7 +263,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-    for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+    for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
         if ($i < $SESSION_LEFT) {
             $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
             $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
@@ -302,11 +299,11 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:".$header);
+    header("location:" . $header);
 } elseif ($FUNCTION_NAME == 'saveAdhocAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
-    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])) {
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
@@ -346,7 +343,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-    for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+    for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
         $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
         $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($_POST['CUSTOMER_ID'][0]);
@@ -372,7 +369,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:".$header);
+    header("location:" . $header);
 }
 
 ?>
@@ -380,15 +377,17 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
+<?php require_once('../includes/header.php'); ?>
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 <style>
-    .slot_btn{
+    .slot_btn {
         background-color: greenyellow;
     }
+
     .SumoSelect {
         width: 100%;
     }
+
     .disable-div {
         opacity: 0.5;
         pointer-events: none
@@ -405,227 +404,231 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     }
 </style>
 <link rel="stylesheet" href="../assets/CalendarPicker/CalendarPicker.style.css">
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid body_content">
                 <div class="row page-titles navbar-fixed-top">
                     <div class="d-flex justify-content-center align-items-center">
-                            <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
+                        <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('group_class', this);"><i class="fa fa-plus-circle"></i> Group Class</button>
                             <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('int_app', this);"><i class="fa fa-plus-circle"></i> To Dos</button>-->
-                            <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
-                            <!--<button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc</button>
+                        <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('appointment', this);"><i class="fa fa-plus-circle"></i> Appointment</button>
+                        <!--<button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('ad_hoc', this);"><i class="fa fa-plus-circle"></i> Ad-hoc</button>
                             <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="createAppointment('standing', this);"><i class="fa fa-plus-circle"></i> Standing</button>-->
                     </div>
                 </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body" id="create_form_div">
-                            <h3 style="text-align: center">Select type of Appointment you want to create</h3>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body" id="create_form_div">
+                                <h3 style="text-align: center">Select type of Appointment you want to create</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <?php require_once('../includes/footer.php');?>
-    <script>
-        let PK_APPOINTMENT_MASTER = 0;
-        const nextYear 	= new Date().getFullYear() + 2;
-        const month 	= new Date().getMonth();
-        var def_date 	= new Date();
-        let start_time_array = [];
-        let end_time_array = [];
-        var myCalender;
-        var PK_USER_MASTER = <?=$PK_USER_MASTER?>;
-        var SELECTED_SERVICE_PROVIDER_ID = '<?=$PK_USER?>';
+        <?php require_once('../includes/footer.php'); ?>
+        <script>
+            let PK_APPOINTMENT_MASTER = 0;
+            const nextYear = new Date().getFullYear() + 2;
+            const month = new Date().getMonth();
+            var def_date = new Date();
+            let start_time_array = [];
+            let end_time_array = [];
+            var myCalender;
+            var PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+            var SELECTED_SERVICE_PROVIDER_ID = '<?= $PK_USER ?>';
 
-        function createAppointment(type, param) {
-            let PK_APPOINTMENT_MASTER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
-            $('.btn').removeClass('button-selected');
-            $(param).addClass('button-selected');
-            let url = '';
-            if (type === 'appointment') {
-                url = "ajax/add_appointment.php?date=<?=$date?>&time=<?=$time?>&SERVICE_PROVIDER_ID=<?=$PK_USER?>&PK_USER_MASTER="+PK_USER_MASTER+"";
-            }
-
-            $.ajax({
-                url: url,
-                type: "POST",
-                success: function (data) {
-                    $('#create_form_div').html(data);
+            function createAppointment(type, param) {
+                let PK_APPOINTMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+                $('.btn').removeClass('button-selected');
+                $(param).addClass('button-selected');
+                let url = '';
+                if (type === 'appointment') {
+                    url = "ajax/add_appointment.php?date=<?= $date ?>&time=<?= $time ?>&SERVICE_PROVIDER_ID=<?= $PK_USER ?>&PK_USER_MASTER=" + PK_USER_MASTER + "";
                 }
-            });
-        }
 
-        function selectThisCustomer(param) {
-            PK_USER_MASTER = $(param).val();
-            $.ajax({
-                url: "ajax/get_enrollments.php",
-                type: "POST",
-                data: {PK_USER_MASTER: PK_USER_MASTER},
-                async: false,
-                cache: false,
-                success: function (result) {
-                    $('#PK_ENROLLMENT_MASTER').empty();
-                    $('#PK_ENROLLMENT_MASTER').append(result);
-                }
-            });
-        }
-
-        function getSlots(){
-            let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
-
-            /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
-            let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
-            let SERVICE_PROVIDER_ID = $('#SERVICE_PROVIDER_ID').val();
-            let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
-            let selected_date  = myCalender.value.toDateString();
-            let day = (selected_date.toString().split(' ')[0]).toUpperCase();
-            let month = selected_date.toString().split(' ')[1];
-
-            let PK_LOCATION = $('#PK_ENROLLMENT_MASTER').find(':selected').data('location_id');
-            if (!PK_LOCATION) {
-                PK_LOCATION = $('#SELECT_CUSTOMER').find(':selected').data('location_id');
-            }
-
-            if(month == 'Jan')
-                month = '01'
-            else if(month == 'Feb')
-                month = '02'
-            else if(month == 'Mar')
-                month = '03'
-            else if(month == 'Apr')
-                month = '04'
-            else if(month == 'May')
-                month = '05'
-            else if(month == 'Jun')
-                month = '06'
-            else if(month == 'Jul')
-                month = '07'
-            else if(month == 'Aug')
-                month = '08'
-            else if(month == 'Sep')
-                month = '09'
-            else if(month == 'Oct')
-                month = '10'
-            else if(month == 'Nov')
-                month = '11'
-            else if(month == 'Dec')
-                month = '12'
-            let date = selected_date.toString().split(' ')[3]+'-'+month+'-'+selected_date.toString().split(' ')[2];
-            let START_TIME = '';
-            let END_TIME = '';
-
-            //duration = (duration > 0) ?duration: 30;
-
-            //console.log(SERVICE_PROVIDER_ID,duration,day);
-
-            if (SERVICE_PROVIDER_ID > 0 && duration > 0) {
-                start_time_array = [];
-                end_time_array = [];
                 $.ajax({
-                    url: "ajax/get_slots.php",
+                    url: url,
+                    type: "POST",
+                    success: function(data) {
+                        $('#create_form_div').html(data);
+                    }
+                });
+            }
+
+            function selectThisCustomer(param) {
+                PK_USER_MASTER = $(param).val();
+                $.ajax({
+                    url: "ajax/get_enrollments.php",
                     type: "POST",
                     data: {
-                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
-                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                        /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
-                        PK_SERVICE_CODE: PK_SERVICE_CODE,*/
-                        SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
-                        PK_LOCATION: PK_LOCATION,
-                        duration: duration,
-                        day: day,
-                        date: date,
-                        START_TIME: START_TIME,
-                        END_TIME: END_TIME,
-                        slot_time: '<?=$time?>'
+                        PK_USER_MASTER: PK_USER_MASTER
                     },
                     async: false,
                     cache: false,
-                    success: function (result) {
-                        $('#slot_div').html(result);
+                    success: function(result) {
+                        $('#PK_ENROLLMENT_MASTER').empty();
+                        $('#PK_ENROLLMENT_MASTER').append(result);
                     }
                 });
-            }else {
-                $('#slot_div').html('');
-            }
-        }
-
-        function set_time(param, id, start_time, end_time, PK_APPOINTMENT_MASTER){
-            if ($(param).data('is_selected') == 0) {
-                start_time_array.push(start_time);
-                end_time_array.push(end_time);
-                $('#START_TIME').val(start_time_array.sort());
-                $('#END_TIME').val(end_time_array.sort());
-                $('#slot_btn_' + id).data('is_selected', 1);
-                document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
-            } else {
-                const start_time_index = start_time_array.indexOf(start_time);
-                if (start_time_index > -1) {
-                    start_time_array.splice(start_time_index, 1);
-                }
-
-                const end_time_index = end_time_array.indexOf(end_time);
-                if (end_time_index > -1) {
-                    end_time_array.splice(end_time_index, 1);
-                }
-
-                $('#START_TIME').val(start_time_array.sort());
-                $('#END_TIME').val(end_time_array.sort());
-                $('#slot_btn_' + id).data('is_selected', 0);
-                document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'greenyellow', 'important');
             }
 
-            console.log(start_time_array.sort(), end_time_array.sort());
+            function getSlots() {
+                let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
 
-            if (PK_APPOINTMENT_MASTER > 0) {
-                let slot_btn = $(".slot_btn");
-                slot_btn.each(function (index) {
-                    if ($(param).data('is_disable') == 0) {
-                        $(param).css('background-color', 'greenyellow');
+                /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
+                let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
+                let SERVICE_PROVIDER_ID = $('#SERVICE_PROVIDER_ID').val();
+                let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+                let selected_date = myCalender.value.toDateString();
+                let day = (selected_date.toString().split(' ')[0]).toUpperCase();
+                let month = selected_date.toString().split(' ')[1];
+
+                let PK_LOCATION = $('#PK_ENROLLMENT_MASTER').find(':selected').data('location_id');
+                if (!PK_LOCATION) {
+                    PK_LOCATION = $('#SELECT_CUSTOMER').find(':selected').data('location_id');
+                }
+
+                if (month == 'Jan')
+                    month = '01'
+                else if (month == 'Feb')
+                    month = '02'
+                else if (month == 'Mar')
+                    month = '03'
+                else if (month == 'Apr')
+                    month = '04'
+                else if (month == 'May')
+                    month = '05'
+                else if (month == 'Jun')
+                    month = '06'
+                else if (month == 'Jul')
+                    month = '07'
+                else if (month == 'Aug')
+                    month = '08'
+                else if (month == 'Sep')
+                    month = '09'
+                else if (month == 'Oct')
+                    month = '10'
+                else if (month == 'Nov')
+                    month = '11'
+                else if (month == 'Dec')
+                    month = '12'
+                let date = selected_date.toString().split(' ')[3] + '-' + month + '-' + selected_date.toString().split(' ')[2];
+                let START_TIME = '';
+                let END_TIME = '';
+
+                //duration = (duration > 0) ?duration: 30;
+
+                //console.log(SERVICE_PROVIDER_ID,duration,day);
+
+                if (SERVICE_PROVIDER_ID > 0 && duration > 0) {
+                    start_time_array = [];
+                    end_time_array = [];
+                    $.ajax({
+                        url: "ajax/get_slots.php",
+                        type: "POST",
+                        data: {
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                            PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                            /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
+                            PK_SERVICE_CODE: PK_SERVICE_CODE,*/
+                            SERVICE_PROVIDER_ID: SERVICE_PROVIDER_ID,
+                            PK_LOCATION: PK_LOCATION,
+                            duration: duration,
+                            day: day,
+                            date: date,
+                            START_TIME: START_TIME,
+                            END_TIME: END_TIME,
+                            slot_time: '<?= $time ?>'
+                        },
+                        async: false,
+                        cache: false,
+                        success: function(result) {
+                            $('#slot_div').html(result);
+                        }
+                    });
+                } else {
+                    $('#slot_div').html('');
+                }
+            }
+
+            function set_time(param, id, start_time, end_time, PK_APPOINTMENT_MASTER) {
+                if ($(param).data('is_selected') == 0) {
+                    start_time_array.push(start_time);
+                    end_time_array.push(end_time);
+                    $('#START_TIME').val(start_time_array.sort());
+                    $('#END_TIME').val(end_time_array.sort());
+                    $('#slot_btn_' + id).data('is_selected', 1);
+                    document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
+                } else {
+                    const start_time_index = start_time_array.indexOf(start_time);
+                    if (start_time_index > -1) {
+                        start_time_array.splice(start_time_index, 1);
                     }
-                })
-            }
-        }
 
-        $(document).on('submit', '#appointment_form', function (event) {
-            //event.preventDefault();
-            $('.selected_slot').trigger('click');
-            let selected_date  = myCalender.value.toDateString()
-            let month = selected_date.toString().split(' ')[1];
-            if(month == 'Jan')
-                month = '01'
-            else if(month == 'Feb')
-                month = '02'
-            else if(month == 'Mar')
-                month = '03'
-            else if(month == 'Apr')
-                month = '04'
-            else if(month == 'May')
-                month = '05'
-            else if(month == 'Jun')
-                month = '06'
-            else if(month == 'Jul')
-                month = '07'
-            else if(month == 'Aug')
-                month = '08'
-            else if(month == 'Sep')
-                month = '09'
-            else if(month == 'Oct')
-                month = '10'
-            else if(month == 'Nov')
-                month = '11'
-            else if(month == 'Dec')
-                month = '12'
-            let date = selected_date.toString().split(' ')[3]+'-'+month+'-'+selected_date.toString().split(' ')[2];
-            $('#DATE').val(date);
-        });
-    </script>
+                    const end_time_index = end_time_array.indexOf(end_time);
+                    if (end_time_index > -1) {
+                        end_time_array.splice(end_time_index, 1);
+                    }
+
+                    $('#START_TIME').val(start_time_array.sort());
+                    $('#END_TIME').val(end_time_array.sort());
+                    $('#slot_btn_' + id).data('is_selected', 0);
+                    document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'greenyellow', 'important');
+                }
+
+                console.log(start_time_array.sort(), end_time_array.sort());
+
+                if (PK_APPOINTMENT_MASTER > 0) {
+                    let slot_btn = $(".slot_btn");
+                    slot_btn.each(function(index) {
+                        if ($(param).data('is_disable') == 0) {
+                            $(param).css('background-color', 'greenyellow');
+                        }
+                    })
+                }
+            }
+
+            $(document).on('submit', '#appointment_form', function(event) {
+                //event.preventDefault();
+                $('.selected_slot').trigger('click');
+                let selected_date = myCalender.value.toDateString()
+                let month = selected_date.toString().split(' ')[1];
+                if (month == 'Jan')
+                    month = '01'
+                else if (month == 'Feb')
+                    month = '02'
+                else if (month == 'Mar')
+                    month = '03'
+                else if (month == 'Apr')
+                    month = '04'
+                else if (month == 'May')
+                    month = '05'
+                else if (month == 'Jun')
+                    month = '06'
+                else if (month == 'Jul')
+                    month = '07'
+                else if (month == 'Aug')
+                    month = '08'
+                else if (month == 'Sep')
+                    month = '09'
+                else if (month == 'Oct')
+                    month = '10'
+                else if (month == 'Nov')
+                    month = '11'
+                else if (month == 'Dec')
+                    month = '12'
+                let date = selected_date.toString().split(' ')[3] + '-' + month + '-' + selected_date.toString().split(' ')[2];
+                $('#DATE').val(date);
+            });
+        </script>
 </body>
+
 </html>
