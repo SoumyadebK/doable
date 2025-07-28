@@ -22,7 +22,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_USERS.PK_ACCOUNT_MASTER LIKE '%" . $search_text . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -109,7 +109,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT DOA_USERS.* FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_ROLES.PK_ROLES = 2 || DOA_USER_ROLES.PK_ROLES = 11) " . $search . " AND DOA_USERS.ACTIVE = '$status' AND CREATED_BY = '$_SESSION[PK_USER]' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT DOA_USERS.* FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 11 " . $search . " AND DOA_USERS.ACTIVE = '$status' AND CREATED_BY = '$_SESSION[PK_USER]' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $i; ?></td>
