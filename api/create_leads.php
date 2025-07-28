@@ -23,6 +23,7 @@ if (!empty($postData)) {
     $LEADS_DATA['PHONE'] = $postData['PHONE'];
     $LEADS_DATA['EMAIL_ID'] = $postData['EMAIL_ID'];
     $LEADS_DATA['DESCRIPTION'] = $postData['DESCRIPTION'];
+    $LEADS_DATA['OPPORTUNITY_SOURCE'] = $postData['OPPORTUNITY_SOURCE'];
     $LEADS_DATA['PK_LEAD_STATUS'] = 1;
     if (empty($_GET['id'])) {
         $LEADS_DATA['ACTIVE'] = 1;

@@ -112,15 +112,15 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             $row = $db->Execute("SELECT DOA_USERS.* FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_ROLES.PK_ROLES = 2 || DOA_USER_ROLES.PK_ROLES = 11) " . $search . " AND DOA_USERS.ACTIVE = '$status' AND CREATED_BY = '$_SESSION[PK_USER]' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['PK_ACCOUNT_MASTER']; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['FIRST_NAME'] . ' ' . $row->fields['LAST_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['USER_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['PHONE'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>);"><?= date('m/d/Y', strtotime($row->fields['CREATED_ON'])) ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $i; ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['PK_ACCOUNT_MASTER']; ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['FIRST_NAME'] . ' ' . $row->fields['LAST_NAME'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['USER_NAME'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['PHONE'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= date('m/d/Y', strtotime($row->fields['CREATED_ON'])) ?></td>
                                                     <td style="text-align: center;padding: 10px 0px 0px 0px;font-size: 25px;">
-                                                        <a href="account.php?id=<?= $row->fields['PK_ACCOUNT_MASTER'] ?>" style="color: #03a9f3;"><i class="ti-eye"></i></a>&nbsp;&nbsp;
+                                                        <a href="account.php?id=<?= $row->fields['PK_ACCOUNT_MASTER'] ?>&user_id=<?= $row->fields['PK_USER']; ?>" style="color: #03a9f3;"><i class="ti-eye"></i></a>&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>
@@ -176,8 +176,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                 window.location = anchor.attr("href");
         }
 
-        function editpage(id) {
-            window.location.href = "account.php?id=" + id;
+        function editpage(id, user_id) {
+            window.location.href = "account.php?id=" + id + "&user_id=" + user_id;
         }
     </script>
 </body>

@@ -103,7 +103,7 @@ if (!empty($_GET['id'])) {
     $NOT_AM_AMOUNT = $account_res->fields['NOT_AM_AMOUNT'];
     $RENEWAL_INTERVAL = $account_res->fields['RENEWAL_INTERVAL'];
 
-    $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND CREATED_BY = '$_SESSION[PK_USER]'");
+    $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND PK_USER = '$_GET[user_id]'");
     if ($user_res->RecordCount() > 0) {
         $PK_USER_EDIT = $user_res->fields['PK_USER'];
         $USER_NAME = $user_res->fields['USER_NAME'];

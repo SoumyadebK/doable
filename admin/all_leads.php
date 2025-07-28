@@ -8,7 +8,7 @@ $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 
 $status_condition = ' ';
 if ($status_check != '') {
-    $status_condition = " AND DOA_LEADS.PK_LEAD_STATUS = " . $status_check;
+    $status_condition = " AND PK_LEAD_STATUS = " . $status_check;
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
@@ -20,7 +20,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $status_condition . " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -41,6 +41,108 @@ $page_first_result = ($page - 1) * $results_per_page;
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php'); ?>
+
+<style>
+    body {
+        overflow-x: auto;
+    }
+
+    .kanban-board {
+        display: flex;
+        flex-wrap: nowrap;
+        min-width: max-content;
+        padding: 20px;
+    }
+
+    .kanban-column {
+        flex: 0 0 300px;
+        margin-right: 15px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        max-height: 80vh;
+    }
+
+    .kanban-header {
+        color: black;
+        padding: 10px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .kanban-body {
+        overflow-y: auto;
+        padding: 10px;
+        flex: 1;
+    }
+
+    .kanban-card {
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    .kanban-card .title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .kanban-card .title:hover {
+        color: #39b54a;
+    }
+
+
+
+
+    .kanban-icons {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: nowrap;
+        margin-top: 15px;
+    }
+
+    .icon-with-pill {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .icon-with-pill i {
+        color: #39b54a;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    /* Pill initially hidden */
+    .pill {
+        background-color: #eefdf0ff;
+        color: #39b54a;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+        margin-left: 6px;
+
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        display: none;
+    }
+
+    /* Pill visible */
+    .pill.show {
+        display: inline-block;
+        opacity: 1;
+        transform: scaleX(1);
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -94,7 +196,49 @@ $page_first_result = ($page - 1) * $results_per_page;
                         <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-striped border">
+
+                                    <div class="kanban-board">
+                                        <?php
+                                        $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE (PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
+                                        while (!$leads_status->EOF) {
+                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
+                                            <div class="kanban-column">
+                                                <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;"><?= $leads_status->fields['LEAD_STATUS'] ?><br><small><?= $leds_user->RecordCount(); ?> Opportunities</small></div>
+                                                <div class="kanban-body">
+                                                    <?php while (!$leds_user->EOF) { ?>
+                                                        <div class="kanban-card">
+                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;"><?= $leds_user->fields['NAME'] ?></div>
+                                                            <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
+                                                            <div class="kanban-icons">
+                                                                <div class="icon-with-pill">
+                                                                    <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['PHONE'] ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['EMAIL_ID'] ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['DESCRIPTION'] ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php $leds_user->MoveNext();
+                                                    } ?>
+                                                </div>
+                                            </div>
+                                        <?php $leads_status->MoveNext();
+                                        } ?>
+                                    </div>
+
+
+
+                                    <!-- <table class="table table-striped border">
                                         <thead>
                                             <tr>
                                                 <th>No</th>
@@ -163,7 +307,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <?php } ?>
                                             </ul>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
@@ -174,6 +318,14 @@ $page_first_result = ($page - 1) * $results_per_page;
     </div>
     <?php require_once('../includes/footer.php'); ?>
     <script>
+        $(document).ready(function() {
+            $('.toggle-pill').on('click', function() {
+                const target = $(this).data('target');
+                $(this).closest('.kanban-card').find('.pill').not('.' + target).removeClass('show');
+                $('.' + target).toggleClass('show');
+            });
+        });
+
         $(function() {
             $('#myTable').DataTable();
         });

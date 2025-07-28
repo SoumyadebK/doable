@@ -31,6 +31,11 @@ if (!empty($_POST)) {
 if (empty($_GET['id'])) {
     $LEAD_STATUS = '';
     $ACTIVE = '';
+    $STATUS_COLOR = '#ffffff';
+    $DISPLAY_ORDER = '';
+    $TEXT_MESSAGE = '';
+    $EMAIL_MESSAGE = '';
+    $SEND_AFTER_DAYS = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_LEAD_STATUS = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -39,6 +44,11 @@ if (empty($_GET['id'])) {
     }
     $LEAD_STATUS = $res->fields['LEAD_STATUS'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $STATUS_COLOR = $res->fields['STATUS_COLOR'];
+    $DISPLAY_ORDER = $res->fields['DISPLAY_ORDER'];
+    $TEXT_MESSAGE = $res->fields['TEXT_MESSAGE'];
+    $EMAIL_MESSAGE = $res->fields['EMAIL_MESSAGE'];
+    $SEND_AFTER_DAYS = $res->fields['SEND_AFTER_DAYS'];
 }
 
 ?>
@@ -76,23 +86,69 @@ if (empty($_GET['id'])) {
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
                                     <div class="row">
                                         <div class="col-md-4">
-                                            <label>Status<span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="LEAD_STATUS" name="LEAD_STATUS" placeholder="Enter Status" value="<?php echo $LEAD_STATUS ?>" required>
-                                            <div class="invalid-feedback">
-                                                Enter Lead Status
+                                            <div class="form-group">
+                                                <label>Status Name<span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="LEAD_STATUS" name="LEAD_STATUS" placeholder="Enter Status Name" value="<?php echo $LEAD_STATUS ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Status Color <span class="text-danger">*</span></label>
+                                                <input type="color" class="form-control" id="STATUS_COLOR" name="STATUS_COLOR" placeholder="Enter Status" value="<?php echo $STATUS_COLOR ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Display Order <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="DISPLAY_ORDER" name="DISPLAY_ORDER" placeholder="Enter Status" value="<?php echo $DISPLAY_ORDER ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Text Message</label>
+                                                <textarea class="form-control" id="TEXT_MESSAGE" name="TEXT_MESSAGE" placeholder="Enter Text Message" rows="5"><?php echo $TEXT_MESSAGE ?></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Email Message</label>
+                                                <textarea class="form-control" id="EMAIL_MESSAGE" name="EMAIL_MESSAGE" placeholder="Enter Email Message" rows="5"><?php echo $EMAIL_MESSAGE ?></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-md-4">
+                                                <label>Send after days</label>
+                                                <input type="text" class="form-control" id="SEND_AFTER_DAYS" name="SEND_AFTER_DAYS" placeholder="Enter Status" value="<?php echo $SEND_AFTER_DAYS ?>" required>
                                             </div>
                                         </div>
                                     </div>
 
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <div class="row" style="margin-top: 15px;">
-                                            <div class="col-6">
-                                                <div class="col-md-2">
-                                                    <label>Active</label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                            <div class="form-group">
+                                                <div class="col-6">
+                                                    <div class="col-md-2">
+                                                        <label>Active</label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                        <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

@@ -83,6 +83,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             <tr>
                                                 <th>No</th>
                                                 <th>Status</th>
+                                                <th>Color</th>
+                                                <th>Sort Order</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -95,6 +97,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><span style="display: block; width: 44px; height: 22px; background-color: <?= $row->fields['STATUS_COLOR'] ?>"></span></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $row->fields['DISPLAY_ORDER'] ?></td>
                                                     <td>
                                                         <a href="lead_status.php?id=<?= $row->fields['PK_LEAD_STATUS'] ?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>

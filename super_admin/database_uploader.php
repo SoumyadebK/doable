@@ -1671,7 +1671,6 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
                                     <option value="">Select Database Name</option>
-                                    <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
                                     <option value="AMTO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTO') ? 'selected' : '' ?>>AMTO</option>
                                     <option value="AMWH" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMWH') ? 'selected' : '' ?>>AMWH</option>
                                     <option value="AMLS" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLS') ? 'selected' : '' ?>>AMLS</option>
@@ -1684,6 +1683,11 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMNP" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMNP') ? 'selected' : '' ?>>AMNP</option>
                                     <option value="AMSR" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSR') ? 'selected' : '' ?>>AMSR</option>
                                     <option value="AMPT" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMPT') ? 'selected' : '' ?>>AMPT</option>
+
+                                    <option value="AMLG" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMLG') ? 'selected' : '' ?>>AMLG</option>
+                                    <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
+
+                                    <option value="AMTC" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTC') ? 'selected' : '' ?>>AMTC</option>
                                 </select>
                             </div>
                         </div>
