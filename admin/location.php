@@ -729,21 +729,6 @@ if (!empty($_POST)) {
                                                 </div>
 
                                                 <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
-                                                        <div class="form-group">
-                                                            <label class="form-label">How many hours before the appointment ?</label>
-                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
                                                     <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">Royalty Percentage</label>
@@ -810,6 +795,21 @@ if (!empty($_POST)) {
 
                                                 <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+                                                    <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                        <div class="form-group">
+                                                            <label class="form-label">How many hours before the appointment ?</label>
+                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                     <div class="col-4">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">SID</label>
