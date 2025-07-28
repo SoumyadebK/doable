@@ -185,7 +185,7 @@ function getRole($role_id)
         global $db1;
         $role = $db1->Execute("SELECT name FROM roles WHERE id = '$role_id'");
         if ($role->fields['name'] == "Super Admin") {
-            return "Super Account Admin";
+            return "Account Admin";
         } elseif ($role->fields['name'] == "Counselor") {
             return "Account User";
         } elseif ($role->fields['name'] == "Instructor") {

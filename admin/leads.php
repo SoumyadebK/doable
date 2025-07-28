@@ -35,6 +35,7 @@ if (empty($_GET['id'])) {
     $EMAIL_ID = '';
     $PK_LEAD_STATUS = '';
     $DESCRIPTION = '';
+    $OPPORTUNITY_SOURCE = '';
     $ACTIVE = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LEADS` WHERE PK_LEADS = '$_GET[id]'");
@@ -49,6 +50,7 @@ if (empty($_GET['id'])) {
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
+    $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
@@ -147,6 +149,15 @@ if (empty($_GET['id'])) {
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-3">
+                                        <div class="form-group">
+                                            <label class="form-label">Opportunity Source</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="OPPORTUNITY_SOURCE" name="OPPORTUNITY_SOURCE" class="form-control" placeholder="Enter Opportunity Source" value="<?php echo $OPPORTUNITY_SOURCE ?>">
+                                            </div>
                                         </div>
                                     </div>
 
