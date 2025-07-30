@@ -7,6 +7,11 @@ global $db_account;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
+require_once('../../global/authorizenet/autoload.php');
+
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
 $PK_USER = $_POST['PK_USER'];
 
 $payment_gateway_data = getPaymentGatewayData();
@@ -53,6 +58,47 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     } else {
         $STATUS = false;
         $MESSAGE = 'No credit card found for this user.';
+    }
+    $RETURN_DATA['STATUS'] = $STATUS;
+    $RETURN_DATA['MESSAGE'] = $MESSAGE;
+    echo json_encode($RETURN_DATA);
+} elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
+    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $PK_USER);
+    if ($customer_payment_info->RecordCount() > 0) {
+        $customerProfileId = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+        $paymentProfileId = $_POST['card_id'];
+    } else {
+        $RETURN_DATA['STATUS'] = false;
+        $RETURN_DATA['MESSAGE'] = 'No credit card found for this user.';
+        echo json_encode($RETURN_DATA);
+        exit;
+    }
+
+    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+    $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+    $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
+
+    // Create the request
+    $request = new AnetAPI\DeleteCustomerPaymentProfileRequest();
+    $request->setMerchantAuthentication($merchantAuthentication);
+    $request->setCustomerProfileId($customerProfileId);
+    $request->setCustomerPaymentProfileId($paymentProfileId);
+
+    // Create the controller and get the response
+    $controller = new AnetController\DeleteCustomerPaymentProfileController($request);
+
+    if ($GATEWAY_MODE == 'live') {
+        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+    } else {
+        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+    }
+
+    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+        $STATUS = true;
+        $MESSAGE = 'Credit card deleted successfully.';
+    } else {
+        $STATUS = false;
+        $MESSAGE = 'Error deleting credit card: ' . ($response->getMessages() ? $response->getMessages()->getMessage()[0]->getText() : 'Unknown error');
     }
     $RETURN_DATA['STATUS'] = $STATUS;
     $RETURN_DATA['MESSAGE'] = $MESSAGE;

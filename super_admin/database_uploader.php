@@ -825,7 +825,7 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_SESSION_COUNT'] = $quantity;
 
-                        if (strpos($service_code, 'PRI')  !== false) {
+                        if ((strpos($service_code, 'PRI')  !== false) && ($service_code != 'NPRI')) {
                             $SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $TOTAL_AMOUNT / $quantity : 0;
                             $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                             $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
@@ -1118,8 +1118,6 @@ if (!empty($_POST)) {
                     $APPOINTMENT_MASTER_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
                     $APPOINTMENT_MASTER_DATA['ACTIVE'] = 1;
                     $APPOINTMENT_MASTER_DATA['IS_PAID'] = 0;
-
-
 
                     $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                     $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -1688,6 +1686,9 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMSJ" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSJ') ? 'selected' : '' ?>>AMSJ</option>
 
                                     <option value="AMTC" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMTC') ? 'selected' : '' ?>>AMTC</option>
+
+                                    <option value="AMSI" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSI') ? 'selected' : '' ?>>AMSI</option>
+                                    <option value="AMBV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMBV') ? 'selected' : '' ?>>AMBV</option>
                                 </select>
                             </div>
                         </div>

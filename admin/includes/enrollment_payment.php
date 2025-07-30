@@ -102,9 +102,10 @@
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+                            <div class="row" id="card_list">
+                            </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" id="card_list">
-                                </div>
+
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
@@ -116,10 +117,9 @@
                             $customer_id = isset($PK_USER_MASTER) ? $PK_USER_MASTER : '';
                             $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$customer_id'");
                         ?>
+                            <div class="row" id="card_list">
+                            </div>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row" id="card_list">
-                                </div>
-
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -135,7 +135,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
                                             <div class="col-md-12">
-                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?= ($customer_data->RecordCount() > 0) ? $customer_data->fields['EMAIL_ID'] : '' ?>" required>
+                                                <input type="email" name="EMAIL" id="EMAIL" class="form-control" value="<?= ($customer_data->RecordCount() > 0) ? $customer_data->fields['EMAIL_ID'] : '' ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +145,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card" required>
+                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
                                             </div>
                                         </div>
                                     </div>
@@ -155,7 +155,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" required>
+                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
                                                     <?php
                                                     for ($i = 1; $i <= 12; $i++) { ?>
                                                         <option value="<?= $i ?>"><?= $i ?></option>
@@ -168,7 +168,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" required>
+                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
                                                     <?php
                                                     $year = (int)date('Y');
                                                     for ($i = $year; $i <= $year + 25; $i++) { ?>
@@ -182,12 +182,13 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" required>
+                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Clover') { ?>
                             <div class="row" id="card_list">
@@ -627,6 +628,8 @@ else
                         mask: "9999 9999 9999 9999",
                         placeholder: ""
                     });
+                    $('#save_card').show();
+                    $('#SAVE_FOR_FUTURE').prop('checked', false);
                 }
 
                 if (PAYMENT_GATEWAY == 'Clover') {
