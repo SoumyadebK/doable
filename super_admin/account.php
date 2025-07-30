@@ -24,6 +24,7 @@ if (!empty($_GET['cond']) && $_GET['cond'] == 'del') {
     header('location:account.php?id=' . $_GET['id']);
 }
 
+$PK_USER = 0;
 $PK_ACCOUNT_MASTER = '';
 $PK_BUSINESS_TYPE = '';
 $PK_ACCOUNT_TYPE = '';
@@ -630,15 +631,49 @@ while (!$account_payment_info->EOF) {
                                                 </div>
 
                                                 <div class="row">
+                                                <?php if (empty($_GET['id'])) { ?>  
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Phone<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="PHONE" name="PHONE" maxlength="10" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>">
+                                                                <div id="phone_result"></div>
+                                                            </div>
+                                                            <span id="lblError" style="color: red"></span>
+                                                        </div>
+                                                    </div>  
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Email<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
                                                                 <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>">
+                                                                <div id="email_result"></div>
+                                                            </div>
+                                                            <span id="lblError" style="color: red"></span>
+                                                        </div>
+                                                    </div>
+                                                <?php } else { ?> 
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Phone<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>" readonly>
+                                                            </div>
+                                                        </div>
+                                                    </div> 
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Email<span class="text-danger">*</span>
+                                                            </label>
+                                                            <div class="col-md-12">
+                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>" readonly>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                <?php } ?>   
                                                 </div>
 
                                                 <div class="row">
@@ -739,10 +774,9 @@ while (!$account_payment_info->EOF) {
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Phone
-                                                            </label>
+                                                            <label class="col-md-12">Image Upload</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
+                                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -756,16 +790,6 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                 </div>
 
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Image Upload</label>
-                                                            <div class="col-md-12">
-                                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                 <div class="form-group">
                                                     <?php if ($USER_IMAGE != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery"><img src="<?php echo $USER_IMAGE; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                                 </div>
@@ -1253,35 +1277,106 @@ while (!$account_payment_info->EOF) {
             });
         });
 
+        // $(document).on('submit', '#profile_info_form', function(event) {
+        //     event.preventDefault();
+        //     let PK_USER = $('.PK_USER').val();
+        //     const PHONE = $('#PHONE').val().trim();
+        //     const EMAIL_ID = $('#EMAIL_ID').val().trim();
+        //     const USER_NAME = $('#USER_NAME').val().trim();
+        //     $.ajax({
+        //         url: 'ajax/username_checker.php',
+        //         type: 'post',
+        //         data: {
+        //             USER_NAME: USER_NAME
+        //         },
+        //         success: function(response) {
+        //             if (response && PK_USER_EDIT == 0) {
+        //                 $('#USER_NAME').focus();
+        //                 $('#username_result').html(response);
+        //             } else {
+        //                 let form_data = $('#profile_info_form').serialize();
+        //                 $.ajax({
+        //                     url: "ajax/AjaxFunctions.php",
+        //                     type: 'POST',
+        //                     data: form_data,
+        //                     dataType: 'JSON',
+        //                     success: function(data) {
+        //                         $('.PK_ACCOUNT_MASTER').val(data);
+        //                         window.location.href = 'all_accounts.php';
+        //                     }
+        //                 });
+        //             }
+        //         }
+        //     });
+        // });
+
         $(document).on('submit', '#profile_info_form', function(event) {
-            event.preventDefault();
-            const USER_NAME = $('#USER_NAME').val().trim();
+        event.preventDefault();
+        let PK_USER = $('.PK_USER_EDIT').val();
+        const PHONE = $('#PHONE').val().trim();
+        const EMAIL_ID = $('#EMAIL_ID').val().trim();
+        const USER_NAME = $('#USER_NAME').val().trim();
+        //alert(PHONE + ' ' + EMAIL_ID + ' ' + USER_NAME);
+        if (PHONE != '') {
             $.ajax({
                 url: 'ajax/username_checker.php',
                 type: 'post',
                 data: {
-                    USER_NAME: USER_NAME
+                    PHONE: PHONE
                 },
                 success: function(response) {
-                    if (response && PK_USER_EDIT == 0) {
-                        $('#USER_NAME').focus();
-                        $('#username_result').html(response);
+                    if (response && PK_USER == 0) {
+                        $('#phone_result').html(response);
                     } else {
-                        let form_data = $('#profile_info_form').serialize();
-                        $.ajax({
-                            url: "ajax/AjaxFunctions.php",
-                            type: 'POST',
-                            data: form_data,
-                            dataType: 'JSON',
-                            success: function(data) {
-                                $('.PK_ACCOUNT_MASTER').val(data);
-                                window.location.href = 'all_accounts.php';
-                            }
-                        });
+                        $('#phone_result').html('');
+                        if (EMAIL_ID != '') {
+                            $.ajax({
+                                url: 'ajax/username_checker.php',
+                                type: 'post',
+                                data: {
+                                    EMAIL_ID: EMAIL_ID
+                                },
+                                success: function(response) {
+                                    if (response && PK_USER == 0) {
+                                        $('#email_result').html(response);
+                                    } else {
+                                        $('#email_result').html('');
+                                        if (USER_NAME != '') {
+                                            $.ajax({
+                                                url: 'ajax/username_checker.php',
+                                                type: 'post',
+                                                data: {
+                                                    USER_NAME: USER_NAME
+                                                },
+                                                success: function(response) {
+                                                    if (response && PK_USER == 0) {
+                                                        $('#username_result').html(response);
+                                                    } else {
+                                                        $('#username_result').html('');
+                                                        let form_data = $('#profile_info_form').serialize();
+                                                        $.ajax({
+                                                            url: "ajax/AjaxFunctions.php",
+                                                            type: 'POST',
+                                                            data: form_data,
+                                                            dataType: 'JSON',
+                                                            success: function(data) {
+                                                                $('.PK_ACCOUNT_MASTER').val(data);
+                                                                window.location.href = 'all_accounts.php';
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
             });
-        });
+        }
+    });
     </script>
 
     <script>

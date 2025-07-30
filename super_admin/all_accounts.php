@@ -110,13 +110,15 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             <?php
                                             $i = 1;
                                             $row = $db->Execute("SELECT DOA_USERS.* FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 11 " . $search . " AND DOA_USERS.ACTIVE = '$status' AND CREATED_BY = '$_SESSION[PK_USER]' ORDER BY CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
-                                            while (!$row->EOF) { ?>
+                                            while (!$row->EOF) {
+                                                $phone = $row->fields['PHONE'];
+                                                $formatted = preg_replace('/(\d{3})(\d{3})(\d{4})/', '($1) $2-$3', $phone); ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['PK_ACCOUNT_MASTER']; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['FIRST_NAME'] . ' ' . $row->fields['LAST_NAME'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['USER_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['PHONE'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $formatted ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ACCOUNT_MASTER']; ?>, <?= $row->fields['PK_USER']; ?>);"><?= date('m/d/Y', strtotime($row->fields['CREATED_ON'])) ?></td>
                                                     <td style="text-align: center;padding: 10px 0px 0px 0px;font-size: 25px;">
