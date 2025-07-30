@@ -427,92 +427,91 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $paymentOne = new AnetAPI\PaymentType();
                 $paymentOne->setCreditCard($creditCard);
 
-                //$paymentOne->setPaymentProfile($CUSTOMER_PAYMENT_ID);
 
-                // Create Payment Profile
-                $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-                $paymentProfile->setCustomerType('individual');
-                $paymentProfile->setPayment($paymentOne);
-
-                if ($customer_payment_info->RecordCount() > 0) {
-                    // Existing customer profile
-                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-
-                    // Add a new payment profile to the existing customer profile
+                if (isset($_POST['SAVE_FOR_FUTURE'])) {
+                    // Create Payment Profile
                     $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
                     $paymentProfile->setCustomerType('individual');
                     $paymentProfile->setPayment($paymentOne);
 
-                    $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
-                    $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
-                    $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
-                    $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
-                    $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+                    if ($customer_payment_info->RecordCount() > 0) {
+                        // Existing customer profile
+                        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
 
-                    $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
+                        $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+                        $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                        $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+                        $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
 
-                    if ($GATEWAY_MODE == 'live')
-                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-                    else
-                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+                        if ($GATEWAY_MODE == 'live')
+                            $createPaymentProfileRequest->setValidationMode("liveMode");
+                        else
+                            $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
 
-                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
-                        //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
+                        $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                        else
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                            $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
+                            //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
+                        } else {
+                            $PAYMENT_STATUS = 'Failed';
+                            $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
+
+                            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                            echo json_encode($RETURN_DATA);
+                            die();
+                        }
                     } else {
-                        $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
+                        $customerProfile = new AnetAPI\CustomerProfileType();
+                        $customerProfile->setMerchantCustomerId("USER_ID_" . $user_master->fields['PK_USER'] . "_" . time());
+                        $customerProfile->setEmail($email);
+                        $customerProfile->setPaymentProfiles([$paymentProfile]);
 
-                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
-                        die();
+                        $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
+                        $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                        $createProfileRequest->setProfile($customerProfile);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $createProfileRequest->setValidationMode("liveMode");
+                        else
+                            $createProfileRequest->setValidationMode("testMode");
+
+                        $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                        else
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                            $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
+                            $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
+
+                            // Save the customer profile ID in the database
+                            $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                            $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                            $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
+                            $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+                        } else {
+                            $PAYMENT_STATUS = 'Failed';
+                            $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
+
+                            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                            echo json_encode($RETURN_DATA);
+                            die();
+                        }
                     }
-                } else {
-                    // Create a new customer profile
-                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-                    $paymentProfile->setCustomerType('individual');
-                    $paymentProfile->setPayment($paymentOne);
-
-                    $customerProfile = new AnetAPI\CustomerProfileType();
-                    $customerProfile->setMerchantCustomerId("M_" . time());
-                    $customerProfile->setEmail($email);
-                    $customerProfile->setPaymentProfiles([$paymentProfile]);
-
-                    $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
-                    $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
-                    $createProfileRequest->setProfile($customerProfile);
-                    $createProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
-
-                    $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
-
-                    if ($GATEWAY_MODE == 'live')
-                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-                    else
-                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-                    if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                        $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
-                        $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
-
-                        // Save the customer profile ID in the database
-                        $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                        $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                        $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
-                        $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                        db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
-                    } else {
-                        $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
-
-                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
-                        die();
-                    }
+                    $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                    $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
                 }
-                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
-                $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
             }
 
             // Create order information
@@ -525,27 +524,17 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $transactionRequestType->setAmount($itemPrice);
             $transactionRequestType->setOrder($order);
 
-            if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                $transactionRequestType->setPayment($paymentOne);
-            } else {
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
                 $transactionRequestType->setProfile($profileToCharge);
+            } else {
+                $transactionRequestType->setPayment($paymentOne);
             }
-
-            //$transactionRequestType->setProfile($profileToCharge);
-
-            //$transactionRequestType->setPayment($paymentOne);
-            //$transactionRequestType->setCustomer($customerData);
-
-            // $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
-            // $paymentProfile->setPaymentProfileId($PAYMENT_PROFILE_ID);
-            // $profileToCharge->setPaymentProfile($paymentProfile);
-
-            //$transactionRequest->setProfile($profileToCharge);
 
             $request = new AnetAPI\CreateTransactionRequest();
             $request->setMerchantAuthentication($merchantAuthentication);
             $request->setRefId($refID);
             $request->setTransactionRequest($transactionRequestType);
+
             $controller = new AnetController\CreateTransactionController($request);
 
             try {

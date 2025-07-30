@@ -74,7 +74,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                     </a>
                 <?php } ?>
             </div>
-<?php }
+            <?php }
     }
 } elseif ($PAYMENT_GATEWAY == "Square") {
     $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
@@ -155,20 +155,28 @@ if ($PAYMENT_GATEWAY == "Stripe") {
             $card_list = '';
             foreach ($paymentProfiles as $profile) {
                 $card = $profile->getPayment()->getCreditCard();
-                $card_type = getCardTypeDetails($card->getCardType());
+                $card_type = getCardTypeDetails($card->getCardType()); ?>
 
-                $card_list .= '<div class="credit-card-div" id="' . $profile->getCustomerPaymentProfileId() . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                            <div class="credit-card ' . $card_type . ' selectable">
-                                <div class="credit-card-last4">
-                                    ' . $card->getCardNumber() . '
-                                </div>
-                                <div class="credit-card-expiry">
-                                    ' . $card->getExpirationDate() . '
-                                </div>
+                <div style="position: relative; width: 303px; display: inline-block;">
+                    <div class="credit-card-div" id="<?= $profile->getCustomerPaymentProfileId() ?>" onclick="getPaymentMethodId(this)">
+                        <div class="credit-card <?= $card_type ?> selectable">
+                            <div class="credit-card-last4">
+                                <?= $card->getCardNumber() ?>
                             </div>
-                        </div>';
-            }
-            echo $card_list;
+                            <div class="credit-card-expiry">
+                                <?= $card->getExpirationDate() ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if ($call_from == 'customer_credit_card') { ?>
+                        <!-- Delete Button in Top-Right Corner -->
+                        <a href="javascript:;" onclick="deleteThisCreditCard('<?= $profile->getCustomerPaymentProfileId() ?>');" title="Delete"
+                            style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                            <i class="ti-trash"></i>
+                        </a>
+                    <?php } ?>
+                </div>
+<?php }
         } else {
             echo "Error fetching payment profiles.\n";
             $errorMessages = $response->getMessages()->getMessage();

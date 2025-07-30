@@ -29,103 +29,185 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 ?>
 
-<div class="row m-b-20">
-    <div class="col-md-8">
-        <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCardOnStripe()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+<?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
+    <div class="row m-b-20">
+        <div class="col-md-8">
+            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+        </div>
     </div>
-</div>
 
-<form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
-    <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-    <input type="hidden" name="stripe_token" id="stripe_token">
-    <input type="hidden" name="PK_USER" id="PK_USER" value="<?= $PK_USER ?>">
-    <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-    <div class="row">
-        <div class="col-8">
-            <div class="form-group" id="card_div">
-                <div id="save-card-element"></div>
-                <p id="save-card-errors" role="alert"></p>
+    <form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
+        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+        <input type="hidden" name="stripe_token" id="stripe_token">
+        <input type="hidden" name="PK_USER" id="PK_USER" value="<?= $PK_USER ?>">
+        <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+        <div class="row">
+            <div class="col-8">
+                <div class="form-group" id="card_div">
+                    <div id="save-card-element"></div>
+                    <p id="save-card-errors" role="alert"></p>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-8" id="save_message">
+        <div class="row">
+            <div class="col-8" id="save_message">
 
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-8">
+                <button type="submit" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+            </div>
+        </div>
+    </form>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+        var stripe_save_card = Stripe('<?= $PUBLISHABLE_KEY ?>');
+        var save_card_elements = stripe_save_card.elements();
+
+        var style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        // Create an instance of the card Element.
+        var save_stripe_card = save_card_elements.create('card', {
+            style: style
+        });
+
+        function addCreditCard() {
+            $('#save_credit_card_form').slideDown();
+            // Add an instance of the card Element into the `save-card-element` <div>.
+            if (($('#save-card-element')).length > 0) {
+                save_stripe_card.mount('#save-card-element');
+            }
+            // Handle real-time validation errors from the card Element.
+            save_stripe_card.addEventListener('change', function(event) {
+                var displayError = document.getElementById('save-card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                    addStripeTokenOnSaveCardForm();
+                }
+            });
+            // Handle form submission.
+            /*let form = document.getElementById(type+'_payment_form');
+            form.addEventListener('submit', listener);*/
+        }
+
+        function addStripeTokenOnSaveCardForm() {
+            //event.preventDefault();
+            stripe_save_card.createToken(save_stripe_card).then(function(result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    let errorElement = document.getElementById('save-card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    $('#stripe_token').val(result.token.id);
+                    //stripeTokenHandler(result.token);
+                }
+            });
+        }
+    </script>
+<?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
+    <div class="row m-b-20">
+        <div class="col-md-8">
+            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
         </div>
     </div>
-    <div class="row">
-        <div class="col-8">
-            <button type="submit" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+    <form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
+        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+        <input type="hidden" name="PK_USER" id="PK_USER" value="<?= $PK_USER ?>">
+        <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+        <div class="payment_type_div">
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <div class="col-md-12">
+                            <input type="text" name="SAVE_CARD_NUMBER" id="SAVE_CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Expiration Month</label>
+                        <div class="col-md-12">
+                            <select name="SAVE_EXPIRATION_MONTH" id="SAVE_EXPIRATION_MONTH" class="form-control">
+                                <?php
+                                for ($i = 1; $i <= 12; $i++) { ?>
+                                    <option value="<?= $i ?>"><?= $i ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Expiration Year</label>
+                        <div class="col-md-12">
+                            <select name="SAVE_EXPIRATION_YEAR" id="SAVE_EXPIRATION_YEAR" class="form-control">
+                                <?php
+                                $year = (int)date('Y');
+                                for ($i = $year; $i <= $year + 25; $i++) { ?>
+                                    <option value="<?= $i ?>"><?= $i ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label class="form-label">Security Code</label>
+                        <div class="col-md-12">
+                            <input type="text" name="SAVE_SECURITY_CODE" id="SAVE_SECURITY_CODE" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8" id="save_message">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <button type="submit" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                </div>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
 
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    var stripe_save_card = Stripe('<?= $PUBLISHABLE_KEY ?>');
-    var save_card_elements = stripe_save_card.elements();
-
-    var style = {
-        base: {
-            height: '34px',
-            padding: '6px 12px',
-            fontSize: '14px',
-            lineHeight: '1.42857143',
-            color: '#555',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            '::placeholder': {
-                color: '#ddd'
-            }
-        },
-        invalid: {
-            color: '#fa755a',
-            iconColor: '#fa755a'
+    <script>
+        function addCreditCard() {
+            $('#save_credit_card_form').slideDown();
+            $(".format-card").inputmask({
+                mask: "9999 9999 9999 9999",
+                placeholder: ""
+            });
         }
-    };
-
-    // Create an instance of the card Element.
-    var save_stripe_card = save_card_elements.create('card', {
-        style: style
-    });
-
-    function addCreditCardOnStripe() {
-        $('#save_credit_card_form').slideDown();
-        // Add an instance of the card Element into the `save-card-element` <div>.
-        if (($('#save-card-element')).length > 0) {
-            save_stripe_card.mount('#save-card-element');
-        }
-        // Handle real-time validation errors from the card Element.
-        save_stripe_card.addEventListener('change', function(event) {
-            var displayError = document.getElementById('save-card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-                addStripeTokenOnSaveCardForm();
-            }
-        });
-        // Handle form submission.
-        /*let form = document.getElementById(type+'_payment_form');
-        form.addEventListener('submit', listener);*/
-    }
-
-    function addStripeTokenOnSaveCardForm() {
-        //event.preventDefault();
-        stripe_save_card.createToken(save_stripe_card).then(function(result) {
-            if (result.error) {
-                // Inform the user if there was an error.
-                let errorElement = document.getElementById('save-card-errors');
-                errorElement.textContent = result.error.message;
-            } else {
-                // Send the token to your server.
-                $('#stripe_token').val(result.token.id);
-                //stripeTokenHandler(result.token);
-            }
-        });
-    }
-</script>
+    </script>
+<?php } ?>
 
 
 <script>
