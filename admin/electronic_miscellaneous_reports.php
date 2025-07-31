@@ -134,19 +134,19 @@ if (!empty($_GET['NAME'])) {
                                     <div class="col-4">
                                         <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <!--<input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">-->
+                                            <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                         <?php } ?>
                                     </div>
-                                    <!--<div class="col-4">
+                                    <div class="col-4">
                                         <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
-                                    </div>-->
+                                    </div>
                                 </div>
-                                <!--<div class="row">
+                                <div class="row">
                                     <div class="col-4" id="export_log">
                                     </div>
-                                </div>-->
+                                </div>
                             </form>
                         </div>
                     </div>

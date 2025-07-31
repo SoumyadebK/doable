@@ -597,17 +597,31 @@ while (!$account_payment_info->EOF) {
                                                         <input type="hidden" name="PK_ROLES" value="11">
                                                         <input type="text" class="form-control" value="Super Account Admin" readonly>
                                                     </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">User Name<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" <?= empty($_GET['id']) ? '' : 'readonly' ?> value="<?= $USER_NAME ?>">
-                                                                <div id="username_result"></div>
+                                                    <?php if (empty($_GET['id'])) { ?>  
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">User Name<span class="text-danger">*</span>
+                                                                </label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" value="<?= $USER_NAME ?>">
+                                                                    <div id="username_result"></div>
+                                                                </div>
                                                             </div>
+                                                            <span id="lblError" style="color: red"></span>
                                                         </div>
-                                                        <span id="lblError" style="color: red"></span>
-                                                    </div>
+                                                    <?php } else { ?>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">User Name<span class="text-danger">*</span>
+                                                                </label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" required data-validation-required-message="This field is required" <?= empty($USER_NAME) ? '' : 'readonly' ?> value="<?= $USER_NAME ?>">
+                                                                    <div id="username_result"></div>
+                                                                </div>
+                                                            </div>
+                                                            <span id="lblError" style="color: red"></span>
+                                                        </div>
+                                                    <?php } ?>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-6">
@@ -660,7 +674,7 @@ while (!$account_payment_info->EOF) {
                                                             <label class="col-md-12">Phone<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>" readonly>
+                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>" <?= empty($PHONE) ? '' : 'readonly' ?>>
                                                             </div>
                                                         </div>
                                                     </div> 
@@ -669,7 +683,7 @@ while (!$account_payment_info->EOF) {
                                                             <label class="col-md-12">Email<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>" readonly>
+                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>" <?= empty($EMAIL_ID) ? '' : 'readonly' ?>>
                                                             </div>
                                                         </div>
                                                     </div>

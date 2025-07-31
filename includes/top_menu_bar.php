@@ -191,9 +191,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                             </a>
                         </li>
                         <li class="<?= (('payments_do_report.php' === $current_address) ? 'active' : '') ?>">
-                            <a class="nav-link <?= (('payments_do_report.php' === $current_address) ? 'active' : '') ?>" href="../admin/payments_do_report.php" aria-expanded="false">
-                                <i class="ti-layers-alt"></i>
-                                <span class="hide-menu">Payments Do.</span>
+                            <a class="nav-link <?= (('payments_do_report.php' === $current_address) ? 'active' : '') ?>" href="../admin/payment_due_report.php" aria-expanded="false">
+                                <i class="ti-receipt"></i>
+                                <span class="hide-menu">Payment Due</span>
                             </a>
                         </li>
                         <li class="<?= (('setup.php' === $current_address) ? 'active' : '') ?>">

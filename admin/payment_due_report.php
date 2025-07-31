@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "Payments Do. Report";
+$title = "Payment Due Report";
 
 if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
     header("location:../login.php");
@@ -10,7 +10,7 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 if (!empty($_GET['SELECTED_DATE'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $SELECTED_DATE = $_GET['SELECTED_DATE'];
-    header('location:payments_do_report_details.php?selected_date=' . $SELECTED_DATE . '&type=' . $type);
+    header('location:payment_due_report_details.php?selected_date=' . $SELECTED_DATE . '&type=' . $type);
 }
 ?>
 
