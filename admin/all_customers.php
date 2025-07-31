@@ -23,7 +23,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';

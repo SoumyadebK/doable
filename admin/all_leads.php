@@ -37,6 +37,21 @@ if (!isset($_GET['page'])) {
 }
 
 $page_first_result = ($page - 1) * $results_per_page;
+
+$lead_status = ['New' => '#fffbb9', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
+$i = 1;
+foreach ($lead_status as $key => $value) {
+    $is_exist = $db->Execute("SELECT * FROM DOA_LEAD_STATUS WHERE LEAD_STATUS='" . $key . "' AND PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
+    if ($is_exist->RecordCount() == 0) {
+        $lead_status_data['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $lead_status_data['LEAD_STATUS'] = $key;
+        $lead_status_data['STATUS_COLOR'] = $value;
+        $lead_status_data['DISPLAY_ORDER'] = $i;
+        $lead_status_data['ACTIVE'] = 1;
+        db_perform('DOA_LEAD_STATUS', $lead_status_data, 'insert');
+    }
+    $i++;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -163,7 +178,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                     <select class="form-control" name="status" id="status" onchange="this.form.submit();">
                                         <option value="">Select Status</option>
                                         <?php
-                                        $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                        $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
                                         while (!$row->EOF) { ?>
                                             <option value="<?php echo $row->fields['PK_LEAD_STATUS']; ?>" <?= ($row->fields['PK_LEAD_STATUS'] == $status_check) ? 'selected' : '' ?>><?= $row->fields['LEAD_STATUS'] ?></option>
                                         <?php $row->MoveNext();
@@ -199,7 +214,7 @@ $page_first_result = ($page - 1) * $results_per_page;
 
                                     <div class="kanban-board">
                                         <?php
-                                        $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE (PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
+                                        $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
                                         while (!$leads_status->EOF) {
                                             $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
                                             <div class="kanban-column">

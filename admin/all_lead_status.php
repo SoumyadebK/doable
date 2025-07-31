@@ -36,6 +36,22 @@ if (!isset($_GET['page'])) {
 }
 
 $page_first_result = ($page - 1) * $results_per_page;
+
+$lead_status = ['New' => '#fffbb9', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
+$i = 1;
+foreach ($lead_status as $key => $value) {
+    $is_exist = $db->Execute("SELECT * FROM DOA_LEAD_STATUS WHERE LEAD_STATUS='" . $key . "' AND PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
+    if ($is_exist->RecordCount() == 0) {
+        $lead_status_data['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $lead_status_data['LEAD_STATUS'] = $key;
+        $lead_status_data['STATUS_COLOR'] = $value;
+        $lead_status_data['DISPLAY_ORDER'] = $i;
+        $lead_status_data['ACTIVE'] = 1;
+        db_perform('DOA_LEAD_STATUS', $lead_status_data, 'insert');
+    }
+    $i++;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,7 +108,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE=1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $i; ?></td>

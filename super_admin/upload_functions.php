@@ -158,7 +158,7 @@ function getLastAppointment()
 function getAllPrivateAppointmentsByCustomerId($customer_id, $lastServiceApptId)
 {
     global $db1;
-    return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%PCMP%') ORDER BY appt_date ASC, appt_time ASC");
+    return $db1->Execute("SELECT * FROM service_appt WHERE service_appt_id > $lastServiceApptId AND student_id = '$customer_id' AND (`service_id` LIKE '%PRI%' OR `service_id` LIKE '%CMP%') ORDER BY appt_date ASC, appt_time ASC");
 }
 
 function getAllGroupAppointments($lastServiceApptId)
