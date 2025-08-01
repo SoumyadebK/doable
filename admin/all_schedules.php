@@ -78,7 +78,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:all_schedules.php");
+    header("location:all_schedules.php?date=" . date('m/d/Y', strtotime($_POST['START_DATE'])));
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData') {

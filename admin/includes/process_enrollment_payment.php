@@ -469,7 +469,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         }
                     } else {
                         $customerProfile = new AnetAPI\CustomerProfileType();
-                        $customerProfile->setMerchantCustomerId("USER_ID_" . $user_master->fields['PK_USER'] . "_" . time());
+                        $customerProfile->setMerchantCustomerId("USER_ID_" . $user_master->fields['PK_USER']);
                         $customerProfile->setEmail($email);
                         $customerProfile->setPaymentProfiles([$paymentProfile]);
 

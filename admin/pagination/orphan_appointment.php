@@ -50,52 +50,53 @@ $ORPHAN_APPOINTMENT_QUERY = "SELECT
 $query = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY);
 
 $number_of_result =  $query->RecordCount();
-$number_of_page = ceil ($number_of_result / $orphan_results_per_page);
+$number_of_page = ceil($number_of_result / $orphan_results_per_page);
 
-if (!isset ($_GET['page']) ) {
+if (!isset($_GET['page'])) {
     $page = 1;
 } else {
     $page = $_GET['page'];
 }
-$page_first_result = ($page-1) * $orphan_results_per_page;
+$page_first_result = ($page - 1) * $orphan_results_per_page;
 $orphan_appointment_data = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY, $page_first_result . ',' . $orphan_results_per_page);
 if ($orphan_appointment_data->RecordCount() > 0) {
 ?>
-    <h5>List of Orphan Appointments (<span style="color: red;"><?=$number_of_result?></span>)</h5>
-<table id="myTable" class="table table-striped border" data-page-length='50'>
-    <thead style="cursor:pointer;" onclick="$(this).next().slideToggle();">
-        <tr>
-            <th data-type="number" style="cursor: pointer">No</i></th>
-            <th data-type="string" style="cursor: pointer">Customer</th>
-            <th data-type="string" style="cursor: pointer">Location</th>
-            <th data-type="string" style="cursor: pointer">Service</th>
-            <th data-type="string" style="cursor: pointer">Service Code</th>
-            <th data-type="string" style="cursor: pointer"><?=$service_provider_title?></th>
-            <th data-type="string" style="cursor: pointer">Day</th>
-            <th data-date data-order style="cursor: pointer">Date</th>
-            <th data-type="string" style="cursor: pointer">Time</th>
-            <th data-type="string" style="cursor: pointer">Status</th>
-        </tr>
-    </thead>
+    <h5>List of Orphan Appointments (<span style="color: red;"><?= $number_of_result ?></span>)</h5>
+    <table id="myTable" class="table table-striped border" data-page-length='50'>
+        <thead style="cursor:pointer;" onclick="$(this).next().slideToggle();">
+            <tr>
+                <th data-type="number" style="cursor: pointer">No</i></th>
+                <th data-type="string" style="cursor: pointer">Customer</th>
+                <th data-type="string" style="cursor: pointer">Location</th>
+                <th data-type="string" style="cursor: pointer">Service</th>
+                <th data-type="string" style="cursor: pointer">Service Code</th>
+                <th data-type="string" style="cursor: pointer"><?= $service_provider_title ?></th>
+                <th data-type="string" style="cursor: pointer">Day</th>
+                <th data-date data-order style="cursor: pointer">Date</th>
+                <th data-type="string" style="cursor: pointer">Time</th>
+                <th data-type="string" style="cursor: pointer">Status</th>
+            </tr>
+        </thead>
 
-    <tbody style="display: none">
-    <?php
-    $i=$orphan_appointment_data->RecordCount();
-    while (!$orphan_appointment_data->EOF) { ?>
-        <tr>
-            <td><?=$i;?></td>
-            <td><?=$orphan_appointment_data->fields['CUSTOMER_NAME']?></td>
-            <td><?=$orphan_appointment_data->fields['LOCATION_NAME']?></td>
-            <td><?=$orphan_appointment_data->fields['SERVICE_NAME']?></td>
-            <td><?=$orphan_appointment_data->fields['SERVICE_CODE']?></td>
-            <td><?=$orphan_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-            <td><?=date('l', strtotime($orphan_appointment_data->fields['DATE']))?></td>
-            <td><?=date('m/d/Y', strtotime($orphan_appointment_data->fields['DATE']))?></td>
-            <td><?=date('h:i A', strtotime($orphan_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($orphan_appointment_data->fields['END_TIME']))?></td>
-            <td style="color: <?=$orphan_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$orphan_appointment_data->fields['APPOINTMENT_STATUS']?></td>
-        </tr>
-        <?php $orphan_appointment_data->MoveNext();
-        $i--; } ?>
-    </tbody>
-</table>
+        <tbody style="display: none">
+            <?php
+            $i = $orphan_appointment_data->RecordCount();
+            while (!$orphan_appointment_data->EOF) { ?>
+                <tr>
+                    <td id="<?= $orphan_appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>"><?= $i; ?></td>
+                    <td><?= $orphan_appointment_data->fields['CUSTOMER_NAME'] ?></td>
+                    <td><?= $orphan_appointment_data->fields['LOCATION_NAME'] ?></td>
+                    <td><?= $orphan_appointment_data->fields['SERVICE_NAME'] ?></td>
+                    <td><?= $orphan_appointment_data->fields['SERVICE_CODE'] ?></td>
+                    <td><?= $orphan_appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
+                    <td><?= date('l', strtotime($orphan_appointment_data->fields['DATE'])) ?></td>
+                    <td><?= date('m/d/Y', strtotime($orphan_appointment_data->fields['DATE'])) ?></td>
+                    <td><?= date('h:i A', strtotime($orphan_appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($orphan_appointment_data->fields['END_TIME'])) ?></td>
+                    <td style="color: <?= $orphan_appointment_data->fields['APPOINTMENT_COLOR'] ?>"><?= $orphan_appointment_data->fields['APPOINTMENT_STATUS'] ?></td>
+                </tr>
+            <?php $orphan_appointment_data->MoveNext();
+                $i--;
+            } ?>
+        </tbody>
+    </table>
 <?php } ?>

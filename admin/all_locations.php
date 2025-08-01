@@ -2,6 +2,8 @@
 require_once('../global/config.php');
 $title = "All Locations";
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
@@ -64,7 +66,7 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $row = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM `DOA_LOCATION` LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LOCATION.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LOCATION'] ?>);"><?= $row->fields['PK_LOCATION'] ?></td>

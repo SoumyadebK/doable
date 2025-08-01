@@ -1921,7 +1921,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="p-20">
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <h5>Credit Card</h5>
+                                                                    <h5 style="margin-top: 20px;">Credit Card</h5>
                                                                 </div>
                                                             </div>
                                                             <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>

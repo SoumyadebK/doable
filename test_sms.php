@@ -32,6 +32,11 @@ if (!empty($_POST) && $_POST['function'] == 'send_sms') {
 
         [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
 
+        /* echo 'SID: ' . $SID . "<br>";
+        echo 'TOKEN: ' . $TOKEN . "<br>";
+        echo 'TWILIO_PHONE_NO: ' . $TWILIO_PHONE_NO . "<br>";
+        die(); */
+
         $customer_phone_number = $_POST['phone_number'];
         $message = $_POST['message'];
 

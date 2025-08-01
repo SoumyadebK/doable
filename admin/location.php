@@ -777,7 +777,7 @@ if (!empty($_POST)) {
                                                 </div>
 
                                                 <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
-                                                    <div class="col-md-2">
+                                                    <div class="col-md-4">
                                                         <label class="form-label">Texting Feature Enabled?</label>
                                                     </div>
                                                     <div class="col-md-3">
@@ -787,7 +787,7 @@ if (!empty($_POST)) {
                                                 </div>
 
                                                 <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
                                                     </div>
@@ -796,20 +796,20 @@ if (!empty($_POST)) {
                                                 <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                                     <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                            <div class="form-group">
+                                                                <label class="form-label">How many hours before the appointment ?</label>
+                                                                <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
-                                                        <div class="form-group">
-                                                            <label class="form-label">How many hours before the appointment ?</label>
-                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                     <div class="col-4">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">SID</label>

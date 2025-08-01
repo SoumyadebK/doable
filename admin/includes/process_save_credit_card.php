@@ -94,13 +94,12 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
         $card_exp_year_month = $card_exp_year . '-' . sprintf('%02d', $card_exp_month);
         $card_cvc = $_POST['SAVE_SECURITY_CODE'];
 
-        // Create the payment data for a credit card
+        // Create the payment data
         $creditCard = new AnetAPI\CreditCardType();
         $creditCard->setCardNumber($card_number);
         $creditCard->setExpirationDate($card_exp_year_month);
         $creditCard->setCardCode($card_cvc);
 
-        // Add the payment data to a paymentType object
         $payment = new AnetAPI\PaymentType();
         $payment->setCreditCard($creditCard);
 
@@ -109,71 +108,65 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
         $paymentProfile->setPayment($payment);
 
         if ($customer_payment_info->RecordCount() > 0) {
+            // ✅ Customer already exists, just add new card
             $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
-        } else {
-            $customerProfile = new AnetAPI\CustomerProfileType();
-            $customerProfile->setMerchantCustomerId("USER_ID_" . $PK_USER . "_" . time());
-            //$customerProfile->setEmail($email);
-            $customerProfile->setPaymentProfiles([$paymentProfile]);
 
-            $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
-            $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
-            $createProfileRequest->setProfile($customerProfile);
+            $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+            $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
+            $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+            $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
+            $createPaymentProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
 
-            if ($GATEWAY_MODE == 'live')
-                $createProfileRequest->setValidationMode("liveMode");
-            else
-                $createProfileRequest->setValidationMode("testMode");
-
-            $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
-
-            if ($GATEWAY_MODE == 'live')
-                $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-            else
-                $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+            $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
+            $response = $controller->executeWithApiResponse($GATEWAY_MODE == 'live' ? \net\authorize\api\constants\ANetEnvironment::PRODUCTION : \net\authorize\api\constants\ANetEnvironment::SANDBOX);
 
             if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
+                $STATUS = true;
+                $MESSAGE = "Credit Card Added Successfully";
+            } else {
+                $STATUS = false;
+                $MESSAGE = 'Error adding credit card: ' . $response->getMessages()->getMessage()[0]->getText();
+            }
+        } else {
+            // ✅ No customer profile yet, create new customer and card together
+            try {
+                $customerProfile = new AnetAPI\CustomerProfileType();
+                $customerProfile->setMerchantCustomerId("USER_ID_" . $PK_USER);
+                $customerProfile->setPaymentProfiles([$paymentProfile]);
 
-                $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
-                $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
-                $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+                $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
+                $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                $createProfileRequest->setProfile($customerProfile);
+                $createProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
+
+                $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
+                $response = $controller->executeWithApiResponse($GATEWAY_MODE == 'live' ? \net\authorize\api\constants\ANetEnvironment::PRODUCTION : \net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                    $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
+
+                    $CUSTOMER_PAYMENT_DETAILS = [
+                        'PK_USER' => $PK_USER,
+                        'CUSTOMER_PAYMENT_ID' => $CUSTOMER_PAYMENT_ID,
+                        'PAYMENT_TYPE' => 'Authorized.net',
+                        'CREATED_ON' => date("Y-m-d H:i")
+                    ];
+                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+
+                    $STATUS = true;
+                    $MESSAGE = "Customer and Card Added Successfully";
+                } else {
+                    $STATUS = false;
+                    $MESSAGE = 'Error creating customer profile: ' . $response->getMessages()->getMessage()[0]->getText();
+                }
+            } catch (Exception $e) {
+                $STATUS = false;
+                $MESSAGE = 'Exception: ' . $e->getMessage();
             }
         }
 
-        $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
-        $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
-        $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
-        $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
-
-        if ($GATEWAY_MODE == 'live')
-            $createPaymentProfileRequest->setValidationMode("liveMode");
-        else
-            $createPaymentProfileRequest->setValidationMode("testMode");
-
-        $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
-
-        if ($GATEWAY_MODE == 'live')
-            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-        else
-            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-        // Step 6: Handle response
-        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-            $STATUS = true;
-            $MESSAGE = "Credit Card Added Successfully";
-        } else {
-            $STATUS = false;
-            $MESSAGE = 'Error adding credit card: ' . $response->getMessages()->getMessage()[0]->getText();
-        }
         $RETURN_DATA['STATUS'] = $STATUS;
         $RETURN_DATA['MESSAGE'] = $MESSAGE;
-        echo json_encode($RETURN_DATA);
-    } else {
-        $RETURN_DATA['STATUS'] = false;
-        $RETURN_DATA['MESSAGE'] = 'Unsupported payment gateway.';
         echo json_encode($RETURN_DATA);
         exit;
     }

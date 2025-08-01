@@ -597,7 +597,7 @@ while (!$account_payment_info->EOF) {
                                                         <input type="hidden" name="PK_ROLES" value="11">
                                                         <input type="text" class="form-control" value="Super Account Admin" readonly>
                                                     </div>
-                                                    <?php if (empty($_GET['id'])) { ?>  
+                                                    <?php if (empty($_GET['id'])) { ?>
                                                         <div class="col-6">
                                                             <div class="form-group">
                                                                 <label class="col-md-12">User Name<span class="text-danger">*</span>
@@ -645,49 +645,28 @@ while (!$account_payment_info->EOF) {
                                                 </div>
 
                                                 <div class="row">
-                                                <?php if (empty($_GET['id'])) { ?>  
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Phone<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="PHONE" name="PHONE" maxlength="10" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>">
+                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." required value="<?php echo $PHONE ?>">
                                                                 <div id="phone_result"></div>
                                                             </div>
                                                             <span id="lblError" style="color: red"></span>
                                                         </div>
-                                                    </div>  
+                                                    </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Email<span class="text-danger">*</span>
                                                             </label>
                                                             <div class="col-md-12">
-                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>">
+                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required value="<?= $EMAIL_ID ?>">
                                                                 <div id="email_result"></div>
                                                             </div>
                                                             <span id="lblError" style="color: red"></span>
                                                         </div>
                                                     </div>
-                                                <?php } else { ?> 
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Phone<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." required data-validation-required-message="This field is required" value="<?php echo $PHONE ?>" <?= empty($PHONE) ? '' : 'readonly' ?>>
-                                                            </div>
-                                                        </div>
-                                                    </div> 
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Email<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" required data-validation-required-message="This field is required" value="<?= $EMAIL_ID ?>" <?= empty($EMAIL_ID) ? '' : 'readonly' ?>>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php } ?>   
                                                 </div>
 
                                                 <div class="row">
@@ -1325,72 +1304,74 @@ while (!$account_payment_info->EOF) {
         // });
 
         $(document).on('submit', '#profile_info_form', function(event) {
-        event.preventDefault();
-        let PK_USER = $('.PK_USER_EDIT').val();
-        const PHONE = $('#PHONE').val().trim();
-        const EMAIL_ID = $('#EMAIL_ID').val().trim();
-        const USER_NAME = $('#USER_NAME').val().trim();
-        //alert(PHONE + ' ' + EMAIL_ID + ' ' + USER_NAME);
-        if (PHONE != '') {
-            $.ajax({
-                url: 'ajax/username_checker.php',
-                type: 'post',
-                data: {
-                    PHONE: PHONE
-                },
-                success: function(response) {
-                    if (response && PK_USER == 0) {
-                        $('#phone_result').html(response);
-                    } else {
-                        $('#phone_result').html('');
-                        if (EMAIL_ID != '') {
-                            $.ajax({
-                                url: 'ajax/username_checker.php',
-                                type: 'post',
-                                data: {
-                                    EMAIL_ID: EMAIL_ID
-                                },
-                                success: function(response) {
-                                    if (response && PK_USER == 0) {
-                                        $('#email_result').html(response);
-                                    } else {
-                                        $('#email_result').html('');
-                                        if (USER_NAME != '') {
-                                            $.ajax({
-                                                url: 'ajax/username_checker.php',
-                                                type: 'post',
-                                                data: {
-                                                    USER_NAME: USER_NAME
-                                                },
-                                                success: function(response) {
-                                                    if (response && PK_USER == 0) {
-                                                        $('#username_result').html(response);
-                                                    } else {
-                                                        $('#username_result').html('');
-                                                        let form_data = $('#profile_info_form').serialize();
-                                                        $.ajax({
-                                                            url: "ajax/AjaxFunctions.php",
-                                                            type: 'POST',
-                                                            data: form_data,
-                                                            dataType: 'JSON',
-                                                            success: function(data) {
-                                                                $('.PK_ACCOUNT_MASTER').val(data);
-                                                                window.location.href = 'all_accounts.php';
-                                                            }
-                                                        });
+            event.preventDefault();
+            let PK_USER = $('.PK_USER_EDIT').val();
+            const PHONE = $('#PHONE').val().trim();
+            const EMAIL_ID = $('#EMAIL_ID').val().trim();
+            const USER_NAME = $('#USER_NAME').val().trim();
+            const OLD_PHONE = '<?= $PHONE ?>';
+            const OLD_EMAIL = '<?= $EMAIL_ID ?>';
+            //alert(PHONE + ' ' + EMAIL_ID + ' ' + USER_NAME);
+            if (PHONE != '') {
+                $.ajax({
+                    url: 'ajax/username_checker.php',
+                    type: 'post',
+                    data: {
+                        PHONE: PHONE
+                    },
+                    success: function(response) {
+                        if (response && (PK_USER == 0 || OLD_PHONE != PHONE)) {
+                            $('#phone_result').html(response);
+                        } else {
+                            $('#phone_result').html('');
+                            if (EMAIL_ID != '') {
+                                $.ajax({
+                                    url: 'ajax/username_checker.php',
+                                    type: 'post',
+                                    data: {
+                                        EMAIL_ID: EMAIL_ID
+                                    },
+                                    success: function(response) {
+                                        if (response && (PK_USER == 0 || OLD_EMAIL != EMAIL_ID)) {
+                                            $('#email_result').html(response);
+                                        } else {
+                                            $('#email_result').html('');
+                                            if (USER_NAME != '') {
+                                                $.ajax({
+                                                    url: 'ajax/username_checker.php',
+                                                    type: 'post',
+                                                    data: {
+                                                        USER_NAME: USER_NAME
+                                                    },
+                                                    success: function(response) {
+                                                        if (response && PK_USER == 0) {
+                                                            $('#username_result').html(response);
+                                                        } else {
+                                                            $('#username_result').html('');
+                                                            let form_data = $('#profile_info_form').serialize();
+                                                            $.ajax({
+                                                                url: "ajax/AjaxFunctions.php",
+                                                                type: 'POST',
+                                                                data: form_data,
+                                                                dataType: 'JSON',
+                                                                success: function(data) {
+                                                                    $('.PK_ACCOUNT_MASTER').val(data);
+                                                                    window.location.href = 'all_accounts.php';
+                                                                }
+                                                            });
+                                                        }
                                                     }
-                                                }
-                                            });
+                                                });
+                                            }
                                         }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
-                }
-            });
-        }
-    });
+                });
+            }
+        });
     </script>
 
     <script>
