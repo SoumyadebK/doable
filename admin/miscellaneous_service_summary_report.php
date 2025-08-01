@@ -46,7 +46,9 @@ if ($type === 'export') {
 
     $line_item = [];
 
-    $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY PAYMENT_DATE ");
+    $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT, ENROLLMENT_DATE, EXPIRY_DATE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = ".$PK_PACKAGE. " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ORDER BY PAYMENT_DATE ");
+    $package = $db_account->Execute("SELECT PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_PACKAGE = ".$PK_PACKAGE);
+
         $total =0;
         $unique_id = [];
         while (!$row->EOF) {
@@ -73,7 +75,7 @@ if ($type === 'export') {
             "total_charges_due" => $row->fields['TOTAL_AMOUNT'],
             "payment_amount" => number_format($row->fields['AMOUNT'], 2),
             "reported_week_number" => $weekNumber,
-            "reported_week_year" => $party_time_non_unit,
+            "reported_week_year" => $weekYear,
         );
 
         $row->MoveNext();
@@ -82,10 +84,10 @@ if ($type === 'export') {
     $data = [
         'type' => 'miscellaneous',
         'prepared_by' => $_SESSION['PK_USER'],
-        'event' => $account_data->fields['BUSINESS_NAME'],
+        'event' => $package->fields['PACKAGE_NAME'],
         'location' => $concatenatedResults,
-        'date_started' => date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])),
-        'date_ended' =>date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])),
+        'date_started' => date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])),
+        'date_ended' =>date('m-d-Y', strtotime($row->fields['EXPIRY_DATE'])),
         'transportation_costs' => $TRANSPORTATION_CHARGES,
         'package_costs' => $PACKAGE_COSTS,
         'line_items' => $line_item,
@@ -94,7 +96,22 @@ if ($type === 'export') {
     $url = constant('ami_api_url').'/api/v1/reports';
     $post_data = callArturMurrayApi($url, $data, $authorization);
 
-    //pre_r(json_decode($post_data));
+    pre_r(json_decode($post_data));
+    $response = json_decode($post_data);
+
+    if (isset($response->error) || isset($response->errors)) {
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'staff_performance_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
+        if ($report_details->RecordCount() > 0) {
+            $error_message = 'This report has already been exported on ' . date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
+        }
+    } else {
+        $REPORT_DATA['REPORT_TYPE'] = 'staff_performance_report';
+        $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+        $REPORT_DATA['YEAR'] = $YEAR;
+        $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+        db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+    }
+
 }
 ?>
 

@@ -9,6 +9,8 @@ if ($REPORT_TYPE == 'royalty_service_report') {
     $report_type = 'studio_business';
 } elseif ($REPORT_TYPE == 'staff_performance_report') {
     $report_type = 'staff_performance';
+} elseif ($REPORT_TYPE == 'miscellaneous_service_summary_report') {
+    $report_type = 'miscellaneous';
 } else {
     die();
 }
