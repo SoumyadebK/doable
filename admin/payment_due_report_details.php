@@ -131,7 +131,7 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                                             <tbody>
                                                 <?php
                                                 $i = 1;
-                                                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, ENROLLMENT_NAME, ENROLLMENT_ID, DUE_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " AND DOA_ENROLLMENT_LEDGER.DUE_DATE <= '" . date('Y-m-d', strtotime($selected_date)) . "' ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE DESC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER");
+                                                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_LEDGER.DUE_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE DESC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
                                                 while (!$row->EOF) {
                                                     $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = " . $row->fields['PK_USER_MASTER']);
                                                     $selected_user_id = $customer->fields['PK_USER'];
@@ -141,9 +141,9 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                                                         <td style="text-align: left"><a href="customer.php?id=<?= $selected_user_id ?>&master_id=<?= $selected_customer_id ?>&tab=enrollment" target="_blank" style="color: blue; font-weight: bold"><?= $customer->fields['CUSTOMER_NAME'] ?></a></td>
                                                         <td style="text-align: center"><?= $row->fields['ENROLLMENT_NAME'] . " || " . $row->fields['ENROLLMENT_ID'] ?></td>
                                                         <td class="date" style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['DUE_DATE'])) ?></td>
-                                                        <td style="text-align: right">$<?= $row->fields['AMOUNT'] ?></td>
+                                                        <td style="text-align: right">$<?= $row->fields['BILLED_AMOUNT'] ?></td>
                                                         <td style="text-align: center">
-                                                            <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $row->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $row->fields['BILLED_AMOUNT'] ?>, '<?= $row->fields['PK_ENROLLMENT_LEDGER'] ?>', <?= $selected_customer_id ?>);">Pay Now</button>
+                                                            <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $row->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $row->fields['BILLED_AMOUNT'] ?>, '<?= $row->fields['ENROLLMENT_ID'] ?>', <?= $selected_customer_id ?>);">Pay Now</button>
                                                             <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit Due Date</button>
                                                             <button class="saveBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save Due Date</button>
                                                         </td>
@@ -205,7 +205,13 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
             const dateCell = row.querySelector('.date');
 
             // Replace the cell content with input fields containing the current text
-            dateCell.innerHTML = `<input type="text" value="${dateCell.textContent}" class="edit-date">`;
+            dateCell.innerHTML = `<input type="text" value="${dateCell.textContent}" class="edit-date form-control">`;
+
+            // Initialize datepicker on the new input
+            $(dateCell.querySelector('.edit-date')).datepicker({
+                dateFormat: 'yy-mm-dd', // Set your preferred format
+                minDate: 0 // Optional: disable past dates
+            });
 
             // Show the save button and hide the edit button
             editButton.style.display = 'none';
