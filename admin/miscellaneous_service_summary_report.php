@@ -101,23 +101,14 @@ if ($type === 'export') {
     $response = json_decode($post_data);
 
     if (isset($response->error) || isset($response->errors)) {
-<<<<<<< HEAD
-        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
-=======
         $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$weekYear' AND `WEEK_NUMBER` = " . $weekNumber);
->>>>>>> 51b909ecd92757a4d0767dc9bf9b0a02e5d5b27b
         if ($report_details->RecordCount() > 0) {
             $error_message = 'This report has already been exported on ' . date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
         }
     } else {
         $REPORT_DATA['REPORT_TYPE'] = 'miscellaneous_service_summary_report';
-<<<<<<< HEAD
-        $REPORT_DATA['WEEK_NUMBER'] = $week_number;
-        $REPORT_DATA['YEAR'] = $YEAR;
-=======
         $REPORT_DATA['WEEK_NUMBER'] = $weekNumber;
         $REPORT_DATA['YEAR'] = $weekYear;
->>>>>>> 51b909ecd92757a4d0767dc9bf9b0a02e5d5b27b
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
         db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
     }
