@@ -100,12 +100,12 @@ if ($type === 'export') {
     $response = json_decode($post_data);
 
     if (isset($response->error) || isset($response->errors)) {
-        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'staff_performance_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
+        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'miscellaneous_service_summary_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
         if ($report_details->RecordCount() > 0) {
             $error_message = 'This report has already been exported on ' . date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
         }
     } else {
-        $REPORT_DATA['REPORT_TYPE'] = 'staff_performance_report';
+        $REPORT_DATA['REPORT_TYPE'] = 'miscellaneous_service_summary_report';
         $REPORT_DATA['WEEK_NUMBER'] = $week_number;
         $REPORT_DATA['YEAR'] = $YEAR;
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
