@@ -377,6 +377,7 @@ if ($PK_USER_MASTER > 0) {
                                     <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                                     <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
                                     <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                                    <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" onclick="getPaymentRegisterData()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
@@ -1559,6 +1560,12 @@ if ($PK_USER_MASTER > 0) {
                                                     <!--Enrollment Model-->
                                                     <div class="tab-pane" id="enrollment" role="tabpanel">
                                                         <div id="enrollment_list" class="p-20">
+
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="tab-pane" id="payment_register" role="tabpanel" style="margin-top: 15px;">
+                                                        <div id="payment_register_list" class="p-20">
 
                                                         </div>
                                                     </div>
@@ -2976,6 +2983,23 @@ if ($PK_USER_MASTER > 0) {
             cache: false,
             success: function(result) {
                 $('#enrollment_list').html(result);
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function getPaymentRegisterData() {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/payment_register.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#payment_register_list').html(result);
             }
         });
         window.scrollTo(0, 0);
