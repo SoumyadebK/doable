@@ -9,22 +9,46 @@ if (!empty($_POST)) {
     $postData = json_decode($rawInput, true);
 }
 
+
 if (!empty($postData)) {
     if (empty($postData['LOCATION_ID']) || $postData['LOCATION_ID'] == '') {
-        $location_data = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE LOCATION_NAME LIKE '%" . $postData['LOCATION_NAME'] . "%'");
+        $location_data = $db->Execute("SELECT PK_LOCATION, PK_ACCOUNT_MASTER FROM DOA_LOCATION WHERE LOCATION_NAME LIKE '%" . $postData['LOCATION_NAME'] . "%'");
         if ($location_data->RecordCount() > 0) {
-            $LEADS_DATA['PK_LOCATION'] = $location_data->fields['PK_LOCATION'];
+            $PK_LOCATION = $location_data->fields['PK_LOCATION'];
+            $PK_ACCOUNT_MASTER = $location_data->fields['PK_ACCOUNT_MASTER'];
         }
     } else {
-        $LEADS_DATA['PK_LOCATION'] = $postData['LOCATION_ID'];
+        $PK_LOCATION = $postData['LOCATION_ID'];
+        $location_data = $db->Execute("SELECT PK_ACCOUNT_MASTER FROM DOA_LOCATION WHERE PK_LOCATION = '$PK_LOCATION'");
+        if ($location_data->RecordCount() > 0) {
+            $PK_ACCOUNT_MASTER = $location_data->fields['PK_ACCOUNT_MASTER'];
+        }
+
+        $lead_status = ['New' => '#fffbb9', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
+        $i = 1;
+        foreach ($lead_status as $key => $value) {
+            $is_exist = $db->Execute("SELECT * FROM DOA_LEAD_STATUS WHERE LEAD_STATUS='" . $key . "' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
+            if ($is_exist->RecordCount() == 0) {
+                $lead_status_data['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                $lead_status_data['LEAD_STATUS'] = $key;
+                $lead_status_data['STATUS_COLOR'] = $value;
+                $lead_status_data['DISPLAY_ORDER'] = $i;
+                $lead_status_data['ACTIVE'] = 1;
+                db_perform('DOA_LEAD_STATUS', $lead_status_data, 'insert');
+            }
+            $i++;
+        }
     }
+    $lead_status_data = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE LEAD_STATUS = 'New' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+    $LEADS_DATA['PK_LOCATION'] = $PK_LOCATION;
     $LEADS_DATA['FIRST_NAME'] = $postData['FIRST_NAME'];
     $LEADS_DATA['LAST_NAME'] = $postData['LAST_NAME'];
     $LEADS_DATA['PHONE'] = $postData['PHONE'];
     $LEADS_DATA['EMAIL_ID'] = $postData['EMAIL_ID'];
     $LEADS_DATA['DESCRIPTION'] = $postData['DESCRIPTION'];
     $LEADS_DATA['OPPORTUNITY_SOURCE'] = $postData['OPPORTUNITY_SOURCE'];
-    $LEADS_DATA['PK_LEAD_STATUS'] = 1;
+    $LEADS_DATA['PK_LEAD_STATUS'] = $lead_status_data->fields['PK_LEAD_STATUS'];
+
     if (empty($_GET['id'])) {
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = 0;
