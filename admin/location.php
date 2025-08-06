@@ -404,6 +404,58 @@ if (!empty($_POST)) {
         background-color: #fefde5 !important;
     }
 </style>
+<style>
+/* Add this to your stylesheet */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;  /* Width of capsule */
+  height: 34px; /* Height of capsule */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px; /* This makes it capsule-shaped */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%; /* Round slider */
+}
+
+input:checked + .slider {
+  background-color: #39B54A; /* Active color */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px); /* Move slider to right */
+}
+
+/* Optional: Focus styles */
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -446,6 +498,7 @@ if (!empty($_POST)) {
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
                                 </ul>
@@ -1182,6 +1235,66 @@ if (!empty($_POST)) {
                                         </form>
                                     </div>
 
+                                    <div class="tab-pane" id="customer_tab_permissions" role="tabpanel">
+                                        <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
+                                            <div class="p-20" id="permission_list_section">
+                                                <?php
+                                                $row = $db->Execute("SELECT * FROM DOA_LOCATION_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
+                                                if ($row->RecordCount() > 0) {
+                                                    while (!$row->EOF) { 
+                                                        ?>
+                                                        <div class="row">
+                                                            <?php
+                                                            $customer_tab = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_CUSTOMER_TAB = " . $row->fields['PK_CUSTOMER_TAB']);
+                                                            while (!$customer_tab->EOF) { 
+                                                            ?>
+                                                            <div style="text-align: center; margin-bottom: 10px" onclick="changePermission(<?= $row->fields['PK_LOCATION_CUSTOMER_TAB'] ?>);">
+                                                                <label class="switch">
+                                                                    <input type="checkbox" <?= ($row->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
+                                                                    <span class="slider"></span><?= $customer_tab->fields['TAB_NAME'] ?>
+                                                                </label>
+                                                            </div>
+                                                            <?php $customer_tab->MoveNext();
+                                                            } ?>
+                                                        </div>
+                                                    <?php $row->MoveNext();
+                                                    }
+                                                 } else {
+                                                    $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB");
+                                                    while (!$customer_tabs->EOF) { ?>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <table class="table table-bordered permission-table">
+                                                                <tbody>
+                                                                    <?php while (!$customer_tabs->EOF): ?>
+                                                                    <tr>
+                                                                    <td width="70%"><?= $customer_tabs->fields['TAB_NAME'] ?></td>
+                                                                    <td width="30%" style="text-align: center">
+                                                                        <label class="switch">
+                                                                        <input type="checkbox" 
+                                                                                id="tab_<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>" 
+                                                                                onclick="changePermission(<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>);">
+                                                                        <span class="slider"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    </tr>
+                                                                    <?php $customer_tabs->MoveNext(); ?>
+                                                                    <?php endwhile; ?>
+                                                                </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    <?php $customer_tabs->MoveNext();
+                                                    }
+                                                 } ?>
+                                                
+                                            </div>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                        </form>
+                                    </div>
+
                                     <div class="tab-pane p-20" id="billing" role="tabpanel">
                                         <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
@@ -1508,6 +1621,24 @@ if (!empty($_POST)) {
             }
         });
     }
+
+    function changeTabPermission(PK_LOCATION_CUSTOMER_TAB) {
+            var checkbox = event.target;
+            var countOnPermission = checkbox.checked ? 1 : 0;
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'updateTabPermission',
+                    PK_LOCATION_CUSTOMER_TAB: PK_LOCATION_CUSTOMER_TAB,
+                    COUNT_ON_PERMISSION: countOnPermission
+                },
+                success: function(data) {
+
+                }
+            });
+        }
 </script>
 
 </html>
