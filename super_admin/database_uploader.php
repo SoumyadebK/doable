@@ -1689,6 +1689,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
 
                                     <option value="AMSI" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSI') ? 'selected' : '' ?>>AMSI</option>
                                     <option value="AMBV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMBV') ? 'selected' : '' ?>>AMBV</option>
+                                    <option value="AMFW" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMFW') ? 'selected' : '' ?>>AMFW</option>
+                                    <option value="AMSE" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSE') ? 'selected' : '' ?>>AMSE</option>
 
                                     <option value="AMEV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMEV') ? 'selected' : '' ?>>AMEV</option>
                                 </select>
@@ -1699,7 +1701,7 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <label class="form-label">Select Table Name</label>
                                 <select class="form-control" name="TABLE_NAME" id="TABLE_NAME" onchange="viewCsvDownload(this)">
                                     <option value="">Select Table Name</option>
-                                    <option value="DOA_OPERATIONAL_HOUR" <?= ($_SESSION['TABLE_NAME'] == 'DOA_OPERATIONAL_HOUR') ? 'selected' : '' ?>>DOA_OPERATIONAL_HOUR</option>
+                                    <!-- <option value="DOA_OPERATIONAL_HOUR" <?= ($_SESSION['TABLE_NAME'] == 'DOA_OPERATIONAL_HOUR') ? 'selected' : '' ?>>DOA_OPERATIONAL_HOUR</option> -->
                                     <option value="DOA_INQUIRY_METHOD" <?= ($_SESSION['TABLE_NAME'] == 'DOA_INQUIRY_METHOD') ? 'selected' : '' ?>>DOA_INQUIRY_METHOD</option>
                                     <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
