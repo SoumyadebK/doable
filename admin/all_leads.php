@@ -222,7 +222,10 @@ foreach ($lead_status as $key => $value) {
                                                 <div class="kanban-body">
                                                     <?php while (!$leds_user->EOF) { ?>
                                                         <div class="kanban-card">
-                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;"><?= $leds_user->fields['NAME'] ?></div>
+                                                            <div style="float: right;"><a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a></div>
+                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;">
+                                                                <?= $leds_user->fields['NAME'] ?>
+                                                            </div>
                                                             <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
                                                             <div class="kanban-icons">
                                                                 <div class="icon-with-pill">
@@ -248,81 +251,44 @@ foreach ($lead_status as $key => $value) {
                                                 </div>
                                             </div>
                                         <?php $leads_status->MoveNext();
-                                        } ?>
-                                    </div>
+                                        }
 
-
-
-                                    <!-- <table class="table table-striped border">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Name</th>
-                                                <th>Phone</th>
-                                                <th>Email</th>
-                                                <th>Location</th>
-                                                <th>Date</th>
-                                                <th>Time</th>
-                                                <th>Lead Status</th>
-                                                <th>Description</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            <?php
-                                            $i = 1;
-                                            $row = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
-                                            while (!$row->EOF) { ?>
-                                                <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['PHONE'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= date('m/d/Y', strtotime($row->fields['CREATED_ON'])) ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= date('h:i A', strtotime($row->fields['CREATED_ON'])) ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['LEAD_STATUS'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_LEADS'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
-                                                    <td>
-                                                        <?php if ($row->fields['ACTIVE'] == 1) { ?>
-                                                            <span class="active-box-green"></span>
-                                                        <?php } else { ?>
-                                                            <span class="active-box-red"></span>
-                                                        <?php } ?>
-                                                        &nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="leads.php?id=<?= $row->fields['PK_LEADS'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="javascript:" onclick="ConfirmDelete(<?= $row->fields['PK_LEADS'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>
-                                                    </td>
-                                                </tr>
-                                            <?php $row->MoveNext();
-                                                $i++;
-                                            } ?>
-                                        </tbody>
-                                    </table>
-                                    <div class="center">
-                                        <div class="pagination outer">
-                                            <ul>
-                                                <?php if ($page > 1) { ?>
-                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=1">&laquo;</a></li>
-                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= ($page - 1) ?>">&lsaquo;</a></li>
-                                                <?php }
-                                                for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
-                                                    if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_leads.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    } elseif ($page_count == ($number_of_page - 1)) {
-                                                        echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
-                                                    } else {
-                                                        echo '<li><a class="hidden" href="all_leads.php?status=' . $status_check . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    }
-                                                }
-                                                if ($page < $number_of_page) { ?>
-                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= ($page + 1) ?>">&rsaquo;</a></li>
-                                                    <li><a href="all_leads.php?status=<?= $status_check ?>&page=<?= $number_of_page ?>">&raquo;</a></li>
-                                                <?php } ?>
-                                            </ul>
+                                        $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 0" . $search); ?>
+                                        <div class="kanban-column">
+                                            <div class="kanban-header" style="background: #e80c0cbd; color: white;">Inactive<br><small><?= $leds_user->RecordCount(); ?></small></div>
+                                            <div class="kanban-body">
+                                                <?php while (!$leds_user->EOF) { ?>
+                                                    <div class="kanban-card">
+                                                        <div style="float: right;"><a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a></div>
+                                                        <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;">
+                                                            <?= $leds_user->fields['NAME'] ?>
+                                                        </div>
+                                                        <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
+                                                        <div class="kanban-icons">
+                                                            <div class="icon-with-pill">
+                                                                <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['PHONE'] ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['EMAIL_ID'] ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['DESCRIPTION'] ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php $leds_user->MoveNext();
+                                                } ?>
+                                            </div>
                                         </div>
-                                    </div> -->
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -369,10 +335,7 @@ foreach ($lead_status as $key => $value) {
                             PK_LEADS: PK_LEADS
                         },
                         success: function(data) {
-                            let currentURL = window.location.href;
-                            let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
-                            console.log(extractedPart);
-                            window.location.href = extractedPart;
+                            window.location.href = 'all_leads.php';
                         }
                     });
                 }
