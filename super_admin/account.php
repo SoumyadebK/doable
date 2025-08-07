@@ -45,6 +45,7 @@ $TEXTING_FEATURE_ENABLED = '';
 $TWILIO_ACCOUNT_TYPE = '';
 $ACTIVE = '';
 $ABLE_TO_EDIT_PAYMENT_GATEWAY = '';
+$TICKET_SYSTEM_ACCESS = '';
 $USERNAME_PREFIX = '';
 $FOCUSBIZ_API_KEY = '';
 $AM_AMOUNT       = '';
@@ -123,6 +124,7 @@ if (!empty($_GET['id'])) {
         $PHONE = $user_res->fields['PHONE'];
         $NOTES = $user_res->fields['NOTES'];
         $ABLE_TO_EDIT_PAYMENT_GATEWAY = $user_res->fields['ABLE_TO_EDIT_PAYMENT_GATEWAY'];
+        $TICKET_SYSTEM_ACCESS = $user_res->fields['TICKET_SYSTEM_ACCESS'];
     }
 
     $user_billing_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_BILLING_DETAILS WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
@@ -822,11 +824,22 @@ while (!$account_payment_info->EOF) {
                                                     </div>
                                                 </div>
 
-                                                <div class="row">
+                                                <div class="row m-b-20">
                                                     <div class="col-6">
                                                         <label class="col-md-12"><input type="checkbox" id="ABLE_TO_EDIT_PAYMENT_GATEWAY" name="ABLE_TO_EDIT_PAYMENT_GATEWAY" class="form-check-inline" <?= ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) ? 'checked' : '' ?>> Able to edit payment gateway</label>
                                                     </div>
                                                 </div>
+
+                                                <div class="row m-b-20">
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Can Create Support Tickets : </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="0" <?php if ($TICKET_SYSTEM_ACCESS == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    </div>
+                                                </div>
+
                                                 <?php if (!empty($_GET['id'])) { ?>
                                                     <div class="row" style="margin-top: 15px;">
                                                         <div class="col-md-1">
