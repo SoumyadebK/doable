@@ -23,12 +23,14 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 ?>
 
 <style>
-/* Add this to your stylesheet */
+/* Compact toggle switch for font-size 14px */
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;  /* Width of capsule */
-  height: 34px; /* Height of capsule */
+  width: 42px;    /* Reduced from 60px */
+  height: 22px;    /* Reduced from 30px */
+  vertical-align: middle; /* Better alignment with text */
+  margin: 0 5px;   /* Add some spacing */
 }
 
 .switch input {
@@ -46,32 +48,37 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
-  border-radius: 34px; /* This makes it capsule-shaped */
+  border-radius: 22px; /* Adjusted to match new height */
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
+  height: 18px;    /* Reduced from 26px */
+  width: 18px;     /* Reduced from 26px */
+  left: 2px;       /* Adjusted positioning */
+  bottom: 2px;     /* Adjusted positioning */
   background-color: white;
   transition: .4s;
-  border-radius: 50%; /* Round slider */
+  border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: #2196F3; /* Active color */
+  background-color: #39B54A;
 }
 
 input:checked + .slider:before {
-  transform: translateX(26px); /* Move slider to right */
+  transform: translateX(20px); /* Adjusted for new width */
 }
 
-/* Optional: Focus styles */
+/* Focus state for accessibility */
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+  box-shadow: 0 0 0 2px rgba(57, 181, 74, 0.3);
+}
+
+/* Optional: Add transition for smooth toggle */
+.switch * {
+  transition: all 0.3s ease;
 }
 </style>
 <!DOCTYPE html>

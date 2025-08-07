@@ -363,6 +363,63 @@ if (!empty($_POST)) {
         }
     }
 
+    // if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
+
+    //     $customer_tab = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
+
+    //     if ($customer_tab->RecordCount() > 0) {
+    //         for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
+    //             $PK_LOCATION = (int)$_GET['id'];
+    //             $TAB_NUMBER = (int)($i + 1);
+    //             $PERMISSION_DATA['PK_LOCATION'] = $PK_LOCATION;
+    //             $PERMISSION_DATA['TAB_NUMBER'] = $TAB_NUMBER;
+
+    //             $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
+
+    //             db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND TAB_NUMBER = $TAB_NUMBER");
+    //         }
+    //     } else {
+    //         if (count($_POST['PERMISSION']) > 0) {
+    //             for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
+    //                 $PERMISSION_DATA['PK_LOCATION'] = (int)$_GET['id'];
+    //                 $PERMISSION_DATA['TAB_NUMBER'] = $i + 1;
+
+    //                 $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
+
+    //                 db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
+    //             }
+    //         }
+    //     }
+    // }
+
+    if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+        
+        // First delete all existing permissions for this location
+        $db_account->Execute("DELETE FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ?", [$PK_LOCATION]);
+        
+        // Process each tab permission
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'PERMISSION_') === 0) {
+                $i = substr($key, strlen('PERMISSION_'));
+                $TAB_NUMBER = (int)($_POST['TAB_NUMBER_HIDDEN'][$i] ?? ($i + 1));
+                
+                $PERMISSION_DATA = [
+                    'PK_LOCATION' => $PK_LOCATION,
+                    'TAB_NUMBER' => $TAB_NUMBER,
+                    'PERMISSION' => ($value == 'on') ? 1 : 0
+                ];
+                
+                // Insert new record
+                db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
+            }
+        }
+        
+        $_SESSION['success_message'] = "Permissions updated successfully!";
+        header("Location: ".$_SERVER['PHP_SELF']."?id=$PK_LOCATION");
+        exit();
+    }
+
     header("location:all_locations.php");
 }
 
@@ -405,12 +462,14 @@ if (!empty($_POST)) {
     }
 </style>
 <style>
-/* Add this to your stylesheet */
+/* Compact toggle switch for font-size 14px */
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;  /* Width of capsule */
-  height: 34px; /* Height of capsule */
+  width: 42px;    /* Reduced from 60px */
+  height: 22px;    /* Reduced from 30px */
+  vertical-align: middle; /* Better alignment with text */
+  margin: 0 5px;   /* Add some spacing */
 }
 
 .switch input {
@@ -428,32 +487,37 @@ if (!empty($_POST)) {
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
-  border-radius: 34px; /* This makes it capsule-shaped */
+  border-radius: 22px; /* Adjusted to match new height */
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
+  height: 18px;    /* Reduced from 26px */
+  width: 18px;     /* Reduced from 26px */
+  left: 2px;       /* Adjusted positioning */
+  bottom: 2px;     /* Adjusted positioning */
   background-color: white;
   transition: .4s;
-  border-radius: 50%; /* Round slider */
+  border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: #39B54A; /* Active color */
+  background-color: #39B54A;
 }
 
 input:checked + .slider:before {
-  transform: translateX(26px); /* Move slider to right */
+  transform: translateX(20px); /* Adjusted for new width */
 }
 
-/* Optional: Focus styles */
+/* Focus state for accessibility */
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+  box-shadow: 0 0 0 2px rgba(57, 181, 74, 0.3);
+}
+
+/* Optional: Add transition for smooth toggle */
+.switch * {
+  transition: all 0.3s ease;
 }
 </style>
 
@@ -1238,60 +1302,108 @@ input:focus + .slider {
                                     <div class="tab-pane" id="customer_tab_permissions" role="tabpanel">
                                         <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
-                                            <div class="p-20" id="permission_list_section">
-                                                <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_LOCATION_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
-                                                if ($row->RecordCount() > 0) {
-                                                    while (!$row->EOF) { 
-                                                        ?>
-                                                        <div class="row">
-                                                            <?php
-                                                            $customer_tab = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_CUSTOMER_TAB = " . $row->fields['PK_CUSTOMER_TAB']);
-                                                            while (!$customer_tab->EOF) { 
-                                                            ?>
-                                                            <div style="text-align: center; margin-bottom: 10px" onclick="changePermission(<?= $row->fields['PK_LOCATION_CUSTOMER_TAB'] ?>);">
-                                                                <label class="switch">
-                                                                    <input type="checkbox" <?= ($row->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
-                                                                    <span class="slider"></span><?= $customer_tab->fields['TAB_NAME'] ?>
-                                                                </label>
-                                                            </div>
-                                                            <?php $customer_tab->MoveNext();
-                                                            } ?>
+                                            <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                            
+                                            <div class="p-20" id="permission_list_div">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group text-center">
+                                                            <label class="form-label font-weight-bold">Customer Tabs</label>
                                                         </div>
-                                                    <?php $row->MoveNext();
-                                                    }
-                                                 } else {
-                                                    $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB");
-                                                    while (!$customer_tabs->EOF) { ?>
-                                                        <div class="row">
-                                                            <div class="col-12">
-                                                                <table class="table table-bordered permission-table">
-                                                                <tbody>
-                                                                    <?php while (!$customer_tabs->EOF): ?>
-                                                                    <tr>
-                                                                    <td width="70%"><?= $customer_tabs->fields['TAB_NAME'] ?></td>
-                                                                    <td width="30%" style="text-align: center">
-                                                                        <label class="switch">
-                                                                        <input type="checkbox" 
-                                                                                id="tab_<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>" 
-                                                                                onclick="changePermission(<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>);">
-                                                                        <span class="slider"></span>
-                                                                        </label>
-                                                                    </td>
-                                                                    </tr>
-                                                                    <?php $customer_tabs->MoveNext(); ?>
-                                                                    <?php endwhile; ?>
-                                                                </tbody>
-                                                                </table>
-                                                            </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group text-center">
+                                                            <label class="form-label font-weight-bold">Visible in Customer Login</label>
                                                         </div>
-                                                    <?php $customer_tabs->MoveNext();
-                                                    }
-                                                 } ?>
+                                                    </div>
+                                                </div>
                                                 
+                                                <?php
+                                                $customer_tabs = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ?", [$PK_LOCATION]);
+                                                $tab_count = $customer_tabs->RecordCount();
+                                                $tab_options = [
+                                                    1 => 'Profile',
+                                                    2 => 'Family',
+                                                    3 => 'Documents',
+                                                    4 => 'Active Enrollments',
+                                                    5 => 'Completed Enrollments',
+                                                    6 => 'Payment Register',
+                                                    7 => 'Appointments',
+                                                    8 => 'For Record Only',
+                                                    9 => 'Comments',
+                                                    10 => 'Credit Card',
+                                                    11 => 'Wallet',
+                                                    12 => 'Delete'
+                                                ];
+                                                
+                                                if ($tab_count > 0) {
+                                                    $i = 0;
+                                                    while (!$customer_tabs->EOF) { 
+                                                        $tab_number = $customer_tabs->fields['TAB_NUMBER'];
+                                                        ?>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <select name="TAB_NUMBER[]" class="form-control" disabled>
+                                                                        <?php foreach ($tab_options as $value => $label): ?>
+                                                                            <option value="<?= $value ?>" <?= ($tab_number == $value) ? 'selected' : '' ?>>
+                                                                                <?= $label ?>
+                                                                            </option>
+                                                                        <?php endforeach; ?>
+                                                                    </select>
+                                                                    <input type="hidden" name="TAB_NUMBER_HIDDEN[]" value="<?= $tab_number ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group text-center">
+                                                                    <label class="switch">
+                                                                        <input type="checkbox" name="PERMISSION_<?= $i ?>" 
+                                                                            <?= ($customer_tabs->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
+                                                                        <span class="slider"></span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <?php 
+                                                        $customer_tabs->MoveNext();
+                                                        $i++;
+                                                    } 
+                                                } else {
+                                                    for ($i = 0; $i < 12; $i++) { 
+                                                        $tab_number = $i + 1;
+                                                        ?>
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <select name="TAB_NUMBER[]" class="form-control" disabled>
+                                                                        <?php foreach ($tab_options as $value => $label): ?>
+                                                                            <option value="<?= $value ?>" <?= ($tab_number == $value) ? 'selected' : '' ?>>
+                                                                                <?= $label ?>
+                                                                            </option>
+                                                                        <?php endforeach; ?>
+                                                                    </select>
+                                                                    <input type="hidden" name="TAB_NUMBER_HIDDEN[]" value="<?= $tab_number ?>">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group text-center">
+                                                                    <label class="switch">
+                                                                        <input type="checkbox" name="PERMISSION_<?= $i ?>">
+                                                                        <span class="slider"></span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <?php 
+                                                    }
+                                                } 
+                                                ?>
                                             </div>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
+                                            
+                                            <div class="form-group text-right">
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                            </div>
                                         </form>
                                     </div>
 
