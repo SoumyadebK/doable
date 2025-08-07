@@ -897,9 +897,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <div class="row payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Payment Term</label>
+                                                                        <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
                                                                         <div class="col-md-12">
-                                                                            <select class="form-control" name="PAYMENT_TERM" id="PAYMENT_TERM">
+                                                                            <select class="form-control installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                                 <option value="">Select</option>
                                                                                 <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
                                                                                 <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
@@ -909,18 +909,18 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Number of Payments</label>
+                                                                        <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control" onkeyup="calculatePaymentPlans();">
+                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                         </div>
                                                                         <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">First Scheduled Payment Date</label>
+                                                                        <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future">
+                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -928,7 +928,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                     <div class="form-group">
                                                                         <label class="form-label">Installment Amount</label>
                                                                         <div class="col-md-12">
-                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control" onkeyup="calculateNumberOfPayment(this)">
+                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1963,6 +1963,40 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
             }
         }
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethods = document.querySelectorAll('.PAYMENT_METHOD');
+        const paymentPlanFields = document.getElementById('payment_plans_div');
+        const installmentInputs = document.querySelectorAll('.installment-input');
+        
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                if (this.value === 'Payment Plans') {
+                    paymentPlanFields.style.display = 'block';
+                    installmentInputs.forEach(input => {
+                        input.required = true;
+                    });
+                } else {
+                    paymentPlanFields.style.display = 'none';
+                    installmentInputs.forEach(input => {
+                        input.required = false;
+                        input.value = ''; // Clear values when not needed
+                    });
+                }
+            });
+        });
+        
+        // Initialize on page load
+        const selectedMethod = document.querySelector('.PAYMENT_METHOD:checked');
+        if (selectedMethod && selectedMethod.value === 'Payment Plans') {
+            paymentPlanFields.style.display = 'block';
+            installmentInputs.forEach(input => {
+                input.required = true;
+            });
+        }
+    });
     </script>
 
 </body>
