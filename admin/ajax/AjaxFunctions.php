@@ -2739,6 +2739,18 @@ function updateCountOnCalendar($RESPONSE_DATA)
     echo 1;
 }
 
+function updateTabPermission($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_LOCATION_CUSTOMER_TAB = $RESPONSE_DATA['PK_LOCATION_CUSTOMER_TAB'];
+    $COUNT_ON_PERMISSION = $RESPONSE_DATA['COUNT_ON_PERMISSION'] ?? 0;
+
+    $UPDATE_DATA['PERMISSION'] = $COUNT_ON_CALENDAR;
+    db_perform_account('DOA_LOCATION_CUSTOMER_TAB', $UPDATE_DATA, 'update', " PK_LOCATION_CUSTOMER_TAB = " . $PK_LOCATION_CUSTOMER_TAB);
+    echo 1;
+}
+
 function deleteActiveEnrollmentData($RESPONSE_DATA)
 {
     global $db_account;

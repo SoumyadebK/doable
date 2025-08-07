@@ -408,7 +408,7 @@ if ($PK_USER_MASTER > 0) {
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <div class="card">
+                                        <div class="card" style="margin-top: 40px;">
                                             <!--<div class="row">
                                         <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
                                             <?php
@@ -449,7 +449,7 @@ if ($PK_USER_MASTER > 0) {
                                             <?php /*}*/ ?>
                                         </div>
                                     </div>-->
-                                            <div class="card-body" style="margin-top: 25px;">
+                                            <div class="card-body">
                                                 <div class="tab-content tabcontent-border">
                                                     <div class="tab-pane active" id="profile" role="tabpanel">
                                                         <form class="form-material form-horizontal" id="profile_form">

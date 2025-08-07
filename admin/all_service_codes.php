@@ -22,6 +22,58 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 ?>
 
+<style>
+/* Add this to your stylesheet */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;  /* Width of capsule */
+  height: 34px; /* Height of capsule */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px; /* This makes it capsule-shaped */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%; /* Round slider */
+}
+
+input:checked + .slider {
+  background-color: #2196F3; /* Active color */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px); /* Move slider to right */
+}
+
+/* Optional: Focus styles */
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+</style>
 <!DOCTYPE html>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <html lang="en">
@@ -72,13 +124,13 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
                                     <table id="myTable" class="table table-striped border" data-page-length="50">
                                         <thead>
                                             <tr>
-                                                <th>No</th>
-                                                <th>Service Name</th>
-                                                <th>Service Code</th>
-                                                <th>Description</th>
-                                                <th>Upload Documents</th>
-                                                <th>Count on Calendar</th>
-                                                <th>Actions</th>
+                                                <th style="text-align: left">No</th>
+                                                <th style="text-align: center">Service Name</th>
+                                                <th style="text-align: center">Service Code</th>
+                                                <th style="text-align: center">Description</th>
+                                                <th style="text-align: center">Upload Documents</th>
+                                                <th style="text-align: center">Count on Calendar</th>
+                                                <th style="text-align: center">Actions</th>
                                             </tr>
                                         </thead>
 
@@ -88,24 +140,24 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
                                             $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.COUNT_ON_CALENDAR FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER JOIN DOA_SERVICE_LOCATION ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_LOCATION.PK_SERVICE_MASTER WHERE DOA_SERVICE_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0 AND DOA_SERVICE_MASTER.ACTIVE = '$status' ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
                                             while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
+                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
+                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
+                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
+                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
                                                         <?php
                                                         $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = " . $row->fields['PK_SERVICE_MASTER']);
                                                         $doc_count = $doc_row->RecordCount();
                                                         ?>
                                                         <i class="fas fa-upload"></i> (<?= $doc_count; ?>)
                                                     </td>
-                                                    <td onclick="changeCountOnCalendar(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
+                                                    <td style="text-align: center" onclick="changeCountOnCalendar(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
                                                         <label class="switch">
                                                             <input type="checkbox" <?= ($row->fields['COUNT_ON_CALENDAR'] == 1) ? 'checked' : '' ?>>
                                                             <span class="slider"></span>
                                                         </label>
                                                     </td>
-                                                    <td>
+                                                    <td style="text-align: center">
                                                         <a href="service_codes.php?id=<?= $row->fields['PK_SERVICE_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <a href="all_services.php?type=del&id=<?= $row->fields['PK_SERVICE_MASTER'] ?>" onclick="ConfirmDelete(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
