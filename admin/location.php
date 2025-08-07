@@ -225,6 +225,55 @@ if (!empty($_POST)) {
             chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
         }
 
+        if (!empty($LOCATION_DATA['FOCUSBIZ_API_KEY'])) {
+            if ($LOCATION_DATA['FOCUSBIZ_API_KEY'] != $LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']) {
+                $location = array();
+                $location['FIRST_NAME'] = $LOCATION_DATA['LOCATION_NAME'];
+                $location['LAST_NAME'] = '(' . $LOCATION_DATA['LOCATION_CODE'] . ')';
+                $location['EMAIL_ID'] = $LOCATION_DATA['EMAIL'];
+                $location['ACTIVE'] = 1;
+                $location['USER_ID'] = $LOCATION_DATA['LOCATION_CODE'];
+
+                $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
+
+                $URL = "https://focusbiz.com/API/V1/user";
+
+                $json = json_encode($location);
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_SSL_VERIFYHOST => '0',
+                    CURLOPT_SSL_VERIFYPEER => '0',
+                    CURLOPT_URL => $URL,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => "",
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 30,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_POST => 1,
+                    CURLOPT_POSTFIELDS => $json,
+                    CURLOPT_HTTPHEADER => array(
+                        "APIKEY: " . $LOCATION_DATA['FOCUSBIZ_API_KEY']
+                    ),
+                ));
+
+                $return_data = curl_exec($curl);
+                $err = curl_error($curl);
+
+                curl_close($curl);
+
+                if ($err) {
+                    echo "cURL Error #:" . $err;
+                    exit;
+                } else {
+                    $response = json_decode($return_data);
+                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+                }
+            }
+        } else {
+            $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
+        }
+        unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
+
         if (empty($_GET['id'])) {
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -363,35 +412,6 @@ if (!empty($_POST)) {
         }
     }
 
-    // if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
-
-    //     $customer_tab = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
-
-    //     if ($customer_tab->RecordCount() > 0) {
-    //         for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
-    //             $PK_LOCATION = (int)$_GET['id'];
-    //             $TAB_NAME = (int)($i + 1);
-    //             $PERMISSION_DATA['PK_LOCATION'] = $PK_LOCATION;
-    //             $PERMISSION_DATA['TAB_NAME'] = $TAB_NAME;
-
-    //             $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
-
-    //             db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND TAB_NAME = $TAB_NAME");
-    //         }
-    //     } else {
-    //         if (count($_POST['PERMISSION']) > 0) {
-    //             for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
-    //                 $PERMISSION_DATA['PK_LOCATION'] = (int)$_GET['id'];
-    //                 $PERMISSION_DATA['TAB_NAME'] = $i + 1;
-
-    //                 $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
-
-    //                 db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
-    //             }
-    //         }
-    //     }
-    // }
-
     if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
         $PK_LOCATION = (int)$_POST['PK_LOCATION'];
         
@@ -457,63 +477,74 @@ if (!empty($_POST)) {
     }
 </style>
 <style>
-/* Compact toggle switch for font-size 14px */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 42px;    /* Reduced from 60px */
-  height: 22px;    /* Reduced from 30px */
-  vertical-align: middle; /* Better alignment with text */
-  margin: 0 5px;   /* Add some spacing */
-}
+    /* Compact toggle switch for font-size 14px */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        /* Reduced from 60px */
+        height: 22px;
+        /* Reduced from 30px */
+        vertical-align: middle;
+        /* Better alignment with text */
+        margin: 0 5px;
+        /* Add some spacing */
+    }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 22px; /* Adjusted to match new height */
-}
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;    /* Reduced from 26px */
-  width: 18px;     /* Reduced from 26px */
-  left: 2px;       /* Adjusted positioning */
-  bottom: 2px;     /* Adjusted positioning */
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 22px;
+        /* Adjusted to match new height */
+    }
 
-input:checked + .slider {
-  background-color: #39B54A;
-}
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        /* Reduced from 26px */
+        width: 18px;
+        /* Reduced from 26px */
+        left: 2px;
+        /* Adjusted positioning */
+        bottom: 2px;
+        /* Adjusted positioning */
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
 
-input:checked + .slider:before {
-  transform: translateX(20px); /* Adjusted for new width */
-}
+    input:checked+.slider {
+        background-color: #39B54A;
+    }
 
-/* Focus state for accessibility */
-input:focus + .slider {
-  box-shadow: 0 0 0 2px rgba(57, 181, 74, 0.3);
-}
+    input:checked+.slider:before {
+        transform: translateX(20px);
+        /* Adjusted for new width */
+    }
 
-/* Optional: Add transition for smooth toggle */
-.switch * {
-  transition: all 0.3s ease;
-}
+    /* Focus state for accessibility */
+    input:focus+.slider {
+        box-shadow: 0 0 0 2px rgba(57, 181, 74, 0.3);
+    }
+
+    /* Optional: Add transition for smooth toggle */
+    .switch * {
+        transition: all 0.3s ease;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -874,6 +905,7 @@ input:focus + .slider {
                                                         <div class="form-group">
                                                             <label class="col-md-12">Focusbiz API Key</label>
                                                             <div class="col-md-12">
+                                                                <input type="hidden" name="FOCUSBIZ_API_KEY_OLD" value="<?= $FOCUSBIZ_API_KEY ? $FOCUSBIZ_API_KEY : '' ?>">
                                                                 <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
                                                             </div>
                                                         </div>
@@ -1298,7 +1330,7 @@ input:focus + .slider {
                                         <form class="form-material form-horizontal" action="" method="post">
                                             <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
                                             <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                            
+
                                             <div class="p-20" id="permission_list_div">
                                                 <div class="row">
                                                     <div class="col-md-6">
@@ -1312,7 +1344,7 @@ input:focus + .slider {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <?php
                                                 $tab_options = [
                                                     'Profile' => 'Profile',
@@ -1361,7 +1393,7 @@ input:focus + .slider {
                                                 }
                                                 ?>
                                             </div>
-                                            
+
                                             <div class="form-group text-right">
                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                                 <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
@@ -1697,22 +1729,22 @@ input:focus + .slider {
     }
 
     function changeTabPermission(PK_LOCATION_CUSTOMER_TAB) {
-            var checkbox = event.target;
-            var countOnPermission = checkbox.checked ? 1 : 0;
+        var checkbox = event.target;
+        var countOnPermission = checkbox.checked ? 1 : 0;
 
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'updateTabPermission',
-                    PK_LOCATION_CUSTOMER_TAB: PK_LOCATION_CUSTOMER_TAB,
-                    COUNT_ON_PERMISSION: countOnPermission
-                },
-                success: function(data) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'updateTabPermission',
+                PK_LOCATION_CUSTOMER_TAB: PK_LOCATION_CUSTOMER_TAB,
+                COUNT_ON_PERMISSION: countOnPermission
+            },
+            success: function(data) {
 
-                }
-            });
-        }
+            }
+        });
+    }
 </script>
 
 </html>

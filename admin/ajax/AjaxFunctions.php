@@ -1021,9 +1021,6 @@ function saveProfileData($RESPONSE_DATA)
 function saveLoginData($RESPONSE_DATA)
 {
     global $db;
-    $account_data = $db->Execute("SELECT FOCUSBIZ_API_KEY FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-    $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-    $FOCUSBIZ_API_KEY = ($account_data->RecordCount() > 0) ? $account_data->fields['FOCUSBIZ_API_KEY'] : '';
 
     if (!empty($RESPONSE_DATA['EMAIL_ID'])) {
         $user_master_data = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = " . $RESPONSE_DATA['PK_USER']);
@@ -1048,69 +1045,10 @@ function saveLoginData($RESPONSE_DATA)
     }
 
     $USER_DATA['CAN_EDIT_ENROLLMENT'] = isset($RESPONSE_DATA['CAN_EDIT_ENROLLMENT']) ? $RESPONSE_DATA['CAN_EDIT_ENROLLMENT'] : 0;
+    $USER_DATA['TICKET_SYSTEM_ACCESS'] = $_SESSION['TICKET_SYSTEM_ACCESS'] = isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) ? $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] : 0;
     $USER_DATA['ACTIVE'] = isset($RESPONSE_DATA['ACTIVE']) ? $RESPONSE_DATA['ACTIVE'] : 1;
     $USER_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $USER_DATA['EDITED_ON'] = date("Y-m-d H:i");
-
-    // focusbiz code
-    if (isset($RESPONSE_DATA['TICKET_SYSTEM_ACCESS']) && $RESPONSE_DATA['TICKET_SYSTEM_ACCESS'] == 1) {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 1;
-
-        //$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$RESPONSE_DATA[PK_USER]' ");
-        if (($user_data->fields['ACCESS_TOKEN'] == NULL || $user_data->fields['ACCESS_TOKEN'] == "") && $FOCUSBIZ_API_KEY != NULL) {
-            $user = array();
-            $user['FIRST_NAME'] = $user_data->fields['FIRST_NAME'];
-            $user['LAST_NAME'] = $user_data->fields['LAST_NAME'];
-            $user['EMAIL_ID'] = $user_data->fields['EMAIL_ID'];
-            $user['ACTIVE'] = $user_data->fields['ACTIVE'];
-            $user['USER_ID'] = $user_data->fields['EMAIL_ID'];
-
-            $user['PASSWORD'] = $USER_DATA['PASSWORD'] ?? $user_data->fields['PASSWORD'];
-
-            $URL = "https://focusbiz.com/API/V1/user";
-
-            $json = json_encode($user);
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_SSL_VERIFYHOST => '0',
-                CURLOPT_SSL_VERIFYPEER => '0',
-                CURLOPT_URL => $URL,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_POST => 1,
-                CURLOPT_POSTFIELDS => $json,
-                CURLOPT_HTTPHEADER => array(
-                    "APIKEY: " . $FOCUSBIZ_API_KEY
-                ),
-            ));
-
-            $response = curl_exec($curl);
-            $err = curl_error($curl);
-
-            curl_close($curl);
-
-            if ($err) {
-                echo "cURL Error #:" . $err;
-                exit;
-            } else {
-                $response1 = json_decode($response);
-                $USER_DATA['ACCESS_TOKEN'] = $response1->ACCESS_TOKEN;
-                $_SESSION['ACCESS_TOKEN'] = $USER_DATA['ACCESS_TOKEN'];
-                $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
-            }
-        } elseif ($user_data->fields['ACCESS_TOKEN']) {
-            $_SESSION['ACCESS_TOKEN'] = $user_data->fields['ACCESS_TOKEN'];
-            $_SESSION['TICKET_SYSTEM_ACCESS'] = 1;
-        }
-    } else {
-        $USER_DATA['TICKET_SYSTEM_ACCESS'] = 0;
-        $_SESSION['ACCESS_TOKEN'] = '';
-        $_SESSION['TICKET_SYSTEM_ACCESS'] = 0;
-    }
-    // focusbiz code end
 
     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = " . $RESPONSE_DATA['PK_USER']);
     echo $RESPONSE_DATA['PK_USER'];
@@ -1346,6 +1284,54 @@ function saveLocationData($RESPONSE_DATA)
     if (!file_exists('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
         mkdir('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
         chmod('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
+    }
+
+    if (!empty($RESPONSE_DATA['FOCUSBIZ_API_KEY'])) {
+        if ($RESPONSE_DATA['FOCUSBIZ_API_KEY'] != $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD']) {
+            $location = array();
+            $location['FIRST_NAME'] = $RESPONSE_DATA['LOCATION_NAME'];
+            $location['LAST_NAME'] = '(' . $RESPONSE_DATA['LOCATION_CODE'] . ')';
+            $location['EMAIL_ID'] = $RESPONSE_DATA['EMAIL'];
+            $location['ACTIVE'] = 1;
+            $location['USER_ID'] = $RESPONSE_DATA['LOCATION_CODE'];
+
+            $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
+
+            $URL = "https://focusbiz.com/API/V1/user";
+
+            $json = json_encode($location);
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_SSL_VERIFYHOST => '0',
+                CURLOPT_SSL_VERIFYPEER => '0',
+                CURLOPT_URL => $URL,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_POST => 1,
+                CURLOPT_POSTFIELDS => $json,
+                CURLOPT_HTTPHEADER => array(
+                    "APIKEY: " . $RESPONSE_DATA['FOCUSBIZ_API_KEY']
+                ),
+            ));
+
+            $return_data = curl_exec($curl);
+            $err = curl_error($curl);
+
+            curl_close($curl);
+
+            if ($err) {
+                echo "cURL Error #:" . $err;
+                exit;
+            } else {
+                $response = json_decode($return_data);
+                $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+            }
+        }
+    } else {
+        $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
     }
 
     if (empty($_GET['id'])) {
