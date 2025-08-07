@@ -1370,7 +1370,8 @@ if (!empty($_POST)) {
                                                 
                                                 $i = 0;
                                                 foreach ($tab_options as $tab_key => $tab_label) {
-                                                    $is_checked = isset($existing_permissions[$tab_key]) && $existing_permissions[$tab_key] == 1;
+                                                    // Modified this line to default to checked if no existing permission is found
+                                                    $is_checked = isset($existing_permissions[$tab_key]) ? ($existing_permissions[$tab_key] == 1) : true;
                                                     ?>
                                                     <div class="row mb-3">
                                                         <div class="col-md-6">
