@@ -88,7 +88,7 @@ if (empty($_GET['id'])) {
                             <div class="card-body">
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
 
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Location</label>
                                             <div class="col-md-12">
@@ -105,7 +105,7 @@ if (empty($_GET['id'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">First Name</label>
                                             <div class="col-md-12">
@@ -113,7 +113,7 @@ if (empty($_GET['id'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Last Name</label>
                                             <div class="col-md-12">
@@ -121,7 +121,7 @@ if (empty($_GET['id'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Phone</label>
                                             <div class="col-md-12">
@@ -129,7 +129,7 @@ if (empty($_GET['id'])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Email</label>
                                             <div class="col-md-12">
@@ -138,7 +138,7 @@ if (empty($_GET['id'])) {
                                         </div>
                                     </div>
 
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <label class="form-label">Lead Status</label>
                                         <div class="form-group">
                                             <select class="form-control" name="PK_LEAD_STATUS" id="PK_LEAD_STATUS" required>
@@ -152,7 +152,7 @@ if (empty($_GET['id'])) {
                                         </div>
                                     </div>
 
-                                    <div class="col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Opportunity Source</label>
                                             <div class="col-md-12">
@@ -161,7 +161,7 @@ if (empty($_GET['id'])) {
                                         </div>
                                     </div>
 
-                                    <div class=" col-3">
+                                    <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Description</label>
                                             <div class="col-md-12">
@@ -170,23 +170,19 @@ if (empty($_GET['id'])) {
                                         </div>
                                     </div>
 
-
                                     <?php if (!empty($_GET['id'])) { ?>
-                                        <div class="row" style="margin-top: 15px;">
-                                            <div class="col-6">
-                                                <div class="col-md-2">
-                                                    <label>Active</label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label class="m-r-25">Active</label>
+                                                <label class="m-r-15"><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                             </div>
                                         </div>
                                     <? } ?>
 
                                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="margin-top: 10px;">Submit</button>
                                     <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_leads.php'">Cancel</button>
+                                    <a href="javascript:;" onclick="createCustomer()" class="btn btn-success waves-effect waves-light m-r-10 text-white" style="margin-top: 10px;">Create Customer</a>
                                 </form>
                             </div>
                         </div>
@@ -197,5 +193,16 @@ if (empty($_GET['id'])) {
     </div>
     <?php require_once('../includes/footer.php'); ?>
 </body>
+
+<script>
+    function createCustomer() {
+        let PK_LOCATION = $('#PK_LOCATION').val();
+        let FIRST_NAME = $('#FIRST_NAME').val();
+        let LAST_NAME = $('#LAST_NAME').val();
+        let PHONE = $('#PHONE').val();
+        let EMAIL_ID = $('#EMAIL_ID').val();
+        window.location.href = `customer.php?PK_LOCATION=${PK_LOCATION}&FIRST_NAME=${FIRST_NAME}&LAST_NAME=${LAST_NAME}&PHONE=${PHONE}&EMAIL_ID=${EMAIL_ID}`;
+    }
+</script>
 
 </html>

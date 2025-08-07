@@ -103,11 +103,11 @@ if($PAYMENT_GATEWAY == "Stripe") {
 }*/
 
 $USER_NAME = '';
-$FIRST_NAME = '';
-$LAST_NAME = '';
+$FIRST_NAME = $_GET['FIRST_NAME'] ?? '';
+$LAST_NAME = $_GET['LAST_NAME'] ?? '';
 $CUSTOMER_ID = '';
 $UNIQUE_ID = '';
-$EMAIL_ID = '';
+$EMAIL_ID = $_GET['EMAIL_ID'] ?? '';
 $USER_IMAGE = '';
 $GENDER = '';
 $DOB = '';
@@ -117,7 +117,7 @@ $PK_COUNTRY = '';
 $PK_STATES = '';
 $CITY = '';
 $ZIP = '';
-$PHONE = '';
+$PHONE = $_GET['PHONE'] ?? '';
 $NOTES = '';
 $PASSWORD = '';
 $ACTIVE = '';
@@ -196,8 +196,8 @@ if (!empty($_GET['id'])) {
     }
 }
 
-$primary_location = 0;
-if (!empty($_GET['master_id'])) {
+$primary_location = $_GET['PK_LOCATION'] ?? 0;
+if (!empty($_GET['master_id']) && $primary_location > 0) {
     $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
     if ($selected_primary_location->RecordCount() > 0) {
         $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
