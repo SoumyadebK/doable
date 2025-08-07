@@ -363,61 +363,33 @@ if (!empty($_POST)) {
         }
     }
 
-    // if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
-
-    //     $customer_tab = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
-
-    //     if ($customer_tab->RecordCount() > 0) {
-    //         for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
-    //             $PK_LOCATION = (int)$_GET['id'];
-    //             $TAB_NUMBER = (int)($i + 1);
-    //             $PERMISSION_DATA['PK_LOCATION'] = $PK_LOCATION;
-    //             $PERMISSION_DATA['TAB_NUMBER'] = $TAB_NUMBER;
-
-    //             $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
-
-    //             db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND TAB_NUMBER = $TAB_NUMBER");
-    //         }
-    //     } else {
-    //         if (count($_POST['PERMISSION']) > 0) {
-    //             for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
-    //                 $PERMISSION_DATA['PK_LOCATION'] = (int)$_GET['id'];
-    //                 $PERMISSION_DATA['TAB_NUMBER'] = $i + 1;
-
-    //                 $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
-
-    //                 db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
-    //             }
-    //         }
-    //     }
-    // }
-
     if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
-        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
-        
-        // First delete all existing permissions for this location
-        $db_account->Execute("DELETE FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ?", [$PK_LOCATION]);
-        
-        // Process each tab permission
-        foreach ($_POST as $key => $value) {
-            if (strpos($key, 'PERMISSION_') === 0) {
-                $i = substr($key, strlen('PERMISSION_'));
-                $TAB_NUMBER = (int)($_POST['TAB_NUMBER_HIDDEN'][$i] ?? ($i + 1));
-                
-                $PERMISSION_DATA = [
-                    'PK_LOCATION' => $PK_LOCATION,
-                    'TAB_NUMBER' => $TAB_NUMBER,
-                    'PERMISSION' => ($value == 'on') ? 1 : 0
-                ];
-                
-                // Insert new record
-                db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
+
+        $customer_tab = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
+
+        if ($customer_tab->RecordCount() > 0) {
+            for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
+                $PK_LOCATION = (int)$_GET['id'];
+                $TAB_NUMBER = (int)($i + 1);
+                $PERMISSION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $PERMISSION_DATA['TAB_NUMBER'] = $TAB_NUMBER;
+
+                $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
+
+                db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND TAB_NUMBER = $TAB_NUMBER");
+            }
+        } else {
+            if (count($_POST['PERMISSION']) > 0) {
+                for ($i = 0; $i < count($_POST['PERMISSION']); $i++) {
+                    $PERMISSION_DATA['PK_LOCATION'] = (int)$_GET['id'];
+                    $PERMISSION_DATA['TAB_NUMBER'] = $i + 1;
+
+                    $PERMISSION_DATA['PERMISSION'] = isset($_POST['PERMISSION_' . $i]) ? 1 : 0;
+
+                    db_perform_account('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
+                }
             }
         }
-        
-        $_SESSION['success_message'] = "Permissions updated successfully!";
-        header("Location: ".$_SERVER['PHP_SELF']."?id=$PK_LOCATION");
-        exit();
     }
 
     header("location:all_locations.php");
@@ -1302,108 +1274,96 @@ input:focus + .slider {
                                     <div class="tab-pane" id="customer_tab_permissions" role="tabpanel">
                                         <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
-                                            <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                            
                                             <div class="p-20" id="permission_list_div">
                                                 <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group text-center">
-                                                            <label class="form-label font-weight-bold">Customer Tabs</label>
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Customer Tabs</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group text-center">
-                                                            <label class="form-label font-weight-bold">Visible in Customer Login</label>
+                                                    <div class="col-3">
+                                                        <div class="form-group" style="text-align: center;">
+                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Switch to visible tabs in Customer Login</label>
                                                         </div>
                                                     </div>
+                                                    
                                                 </div>
-                                                
                                                 <?php
-                                                $customer_tabs = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ?", [$PK_LOCATION]);
-                                                $tab_count = $customer_tabs->RecordCount();
-                                                $tab_options = [
-                                                    1 => 'Profile',
-                                                    2 => 'Family',
-                                                    3 => 'Documents',
-                                                    4 => 'Active Enrollments',
-                                                    5 => 'Completed Enrollments',
-                                                    6 => 'Payment Register',
-                                                    7 => 'Appointments',
-                                                    8 => 'For Record Only',
-                                                    9 => 'Comments',
-                                                    10 => 'Credit Card',
-                                                    11 => 'Wallet',
-                                                    12 => 'Delete'
-                                                ];
-                                                
-                                                if ($tab_count > 0) {
+                                                $customer_tabs = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                                if ($customer_tabs->RecordCount() > 0) {
                                                     $i = 0;
-                                                    while (!$customer_tabs->EOF) { 
-                                                        $tab_number = $customer_tabs->fields['TAB_NUMBER'];
-                                                        ?>
-                                                        <div class="row mb-3">
-                                                            <div class="col-md-6">
+                                                    while (!$customer_tabs->EOF) { ?>
+                                                        <div class="row">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <select name="TAB_NUMBER[]" class="form-control" disabled>
-                                                                        <?php foreach ($tab_options as $value => $label): ?>
-                                                                            <option value="<?= $value ?>" <?= ($tab_number == $value) ? 'selected' : '' ?>>
-                                                                                <?= $label ?>
-                                                                            </option>
-                                                                        <?php endforeach; ?>
-                                                                    </select>
-                                                                    <input type="hidden" name="TAB_NUMBER_HIDDEN[]" value="<?= $tab_number ?>">
+                                                                    <div class="col-md-12">
+                                                                        <select name="TAB_NUMBER[]" class="form-control required-entry" disabled>
+                                                                            <option value="1" <?= ($customer_tabs->fields['TAB_NUMBER'] == 1) ? 'selected' : '' ?>>Profile</option>
+                                                                            <option value="2" <?= ($customer_tabs->fields['TAB_NUMBER'] == 2) ? 'selected' : '' ?>>Family</option>
+                                                                            <option value="3" <?= ($customer_tabs->fields['TAB_NUMBER'] == 3) ? 'selected' : '' ?>>Documents</option>
+                                                                            <option value="4" <?= ($customer_tabs->fields['TAB_NUMBER'] == 4) ? 'selected' : '' ?>>Active Enrollments</option>
+                                                                            <option value="5" <?= ($customer_tabs->fields['TAB_NUMBER'] == 5) ? 'selected' : '' ?>>Completed Enrollments</option>
+                                                                            <option value="6" <?= ($customer_tabs->fields['TAB_NUMBER'] == 6) ? 'selected' : '' ?>>Payement Register</option>
+                                                                            <option value="7" <?= ($customer_tabs->fields['TAB_NUMBER'] == 7) ? 'selected' : '' ?>>Appointments</option>
+                                                                            <option value="8" <?= ($customer_tabs->fields['TAB_NUMBER'] == 8) ? 'selected' : '' ?>>For Record Only</option>
+                                                                            <option value="9" <?= ($customer_tabs->fields['TAB_NUMBER'] == 9) ? 'selected' : '' ?>>Comments</option>
+                                                                            <option value="10" <?= ($customer_tabs->fields['TAB_NUMBER'] == 10) ? 'selected' : '' ?>>Credit Card</option>
+                                                                            <option value="11" <?= ($customer_tabs->fields['TAB_NUMBER'] == 11) ? 'selected' : '' ?>>Wallet</option>
+                                                                            <option value="12" <?= ($customer_tabs->fields['TAB_NUMBER'] == 12) ? 'selected' : '' ?>>Delete</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <div class="form-group text-center">
-                                                                    <label class="switch">
-                                                                        <input type="checkbox" name="PERMISSION_<?= $i ?>" 
-                                                                            <?= ($customer_tabs->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
-                                                                        <span class="slider"></span>
-                                                                    </label>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" style="margin-top: 10px;">
+                                                                        <!-- <label><input type="checkbox" name="CLOSED_<?= $i ?>" <?= ($customer_tabs->fields['CLOSED'] == 1) ? 'checked' : '' ?>></label> -->
+                                                                        <label class="switch"><input type="checkbox" name="PERMISSION_<?= $i ?>" <?= ($customer_tabs->fields['PERMISSION'] == 1) ? 'checked' : '' ?>><span class="slider"></span>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <?php 
-                                                        $customer_tabs->MoveNext();
-                                                        $i++;
-                                                    } 
-                                                } else {
-                                                    for ($i = 0; $i < 12; $i++) { 
-                                                        $tab_number = $i + 1;
-                                                        ?>
-                                                        <div class="row mb-3">
-                                                            <div class="col-md-6">
+                                                    <?php $customer_tabs->MoveNext();
+                                                    $i++;
+                                                    } ?>
+                                                    <?php }  else {
+                                                    for ($i = 1; $i <= 12; $i++) { ?>
+                                                        <div class="row">
+                                                            <div class="col-3">
                                                                 <div class="form-group">
-                                                                    <select name="TAB_NUMBER[]" class="form-control" disabled>
-                                                                        <?php foreach ($tab_options as $value => $label): ?>
-                                                                            <option value="<?= $value ?>" <?= ($tab_number == $value) ? 'selected' : '' ?>>
-                                                                                <?= $label ?>
-                                                                            </option>
-                                                                        <?php endforeach; ?>
-                                                                    </select>
-                                                                    <input type="hidden" name="TAB_NUMBER_HIDDEN[]" value="<?= $tab_number ?>">
+                                                                    <div class="col-md-12">
+                                                                        <select name="TAB_NUMBER[]" class="form-control required-entry" disabled>
+                                                                            <option value="1" <?= ($i == 1) ? 'selected' : '' ?>>Profile</option>
+                                                                            <option value="2" <?= ($i == 2) ? 'selected' : '' ?>>Family</option>
+                                                                            <option value="3" <?= ($i == 3) ? 'selected' : '' ?>>Documents</option>
+                                                                            <option value="4" <?= ($i == 4) ? 'selected' : '' ?>>Active Enrollments</option>
+                                                                            <option value="5" <?= ($i == 5) ? 'selected' : '' ?>>Completed Enrollments</option>
+                                                                            <option value="6" <?= ($i == 6) ? 'selected' : '' ?>>Payement Register</option>
+                                                                            <option value="7" <?= ($i == 7) ? 'selected' : '' ?>>Appointments</option>
+                                                                            <option value="8" <?= ($i == 8) ? 'selected' : '' ?>>For Record Only</option>
+                                                                            <option value="9" <?= ($i == 9) ? 'selected' : '' ?>>Comments</option>
+                                                                            <option value="10" <?= ($i == 10) ? 'selected' : '' ?>>Credit Card</option>
+                                                                            <option value="11" <?= ($i == 11) ? 'selected' : '' ?>>Wallet</option>
+                                                                            <option value="12" <?= ($i == 12) ? 'selected' : '' ?>>Delete</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <div class="form-group text-center">
-                                                                    <label class="switch">
-                                                                        <input type="checkbox" name="PERMISSION_<?= $i ?>">
-                                                                        <span class="slider"></span>
-                                                                    </label>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <div class="col-md-12" style="margin-top: 10px;">
+                                                                        <!-- <label><input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)"></label> -->
+                                                                        <label class="switch"><input type="checkbox" name="PERMISSION_<?= $i - 1 ?>"><span class="slider"></span>
+                                                                        </label>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <?php 
-                                                    }
-                                                } 
-                                                ?>
+                                                <?php }
+                                                } ?>
                                             </div>
-                                            
-                                            <div class="form-group text-right">
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                            </div>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
                                         </form>
                                     </div>
 
