@@ -3,7 +3,13 @@
         z-index: 100;
     }
 </style>
-
+<?php
+$LOCATIONS = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+if (count($LOCATIONS) == 1) {
+    $location_data = $db->Execute("SELECT FOCUSBIZ_ACCESS_TOKEN FROM DOA_LOCATION WHERE PK_LOCATION = " . $LOCATIONS[0]);
+    $FOCUSBIZ_ACCESS_TOKEN = $location_data->fields['FOCUSBIZ_ACCESS_TOKEN'];
+}
+?>
 <header id="top_menu" class="topbar">
     <nav class="navbar top-navbar navbar-expand-md navbar-dark">
         <!-- ============================================================== -->
@@ -113,17 +119,12 @@
                     </a>
                 </li>
 
-                <?php if ($_SESSION['ACCESS_TOKEN'] && $_SESSION['TICKET_SYSTEM_ACCESS'] == 1): ?>
+                <?php if (($_SESSION['TICKET_SYSTEM_ACCESS'] == 1) && (count($LOCATIONS) == 1) && ($FOCUSBIZ_ACCESS_TOKEN != null && $FOCUSBIZ_ACCESS_TOKEN != '')): ?>
                     <li class="nav-item" style="margin-top: 4px;">
-                        <?php //if ($_SESSION["PK_ROLES"] == 1) { 
-                        ?>
-                        <!-- <a href="email.php" style="margin-left: 40px;color:white;">Email List</a> -->
-                        <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $_SESSION['ACCESS_TOKEN'] ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
+                        <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $FOCUSBIZ_ACCESS_TOKEN ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
                             <img src="../assets/images/icon/ticket.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                             <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
                         </a>
-                        <?php //} 
-                        ?>
                     </li>
                 <?php endif; ?>
 

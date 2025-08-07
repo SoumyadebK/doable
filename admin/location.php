@@ -225,6 +225,55 @@ if (!empty($_POST)) {
             chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
         }
 
+        if (!empty($LOCATION_DATA['FOCUSBIZ_API_KEY'])) {
+            if ($LOCATION_DATA['FOCUSBIZ_API_KEY'] != $LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']) {
+                $location = array();
+                $location['FIRST_NAME'] = $LOCATION_DATA['LOCATION_NAME'];
+                $location['LAST_NAME'] = '(' . $LOCATION_DATA['LOCATION_CODE'] . ')';
+                $location['EMAIL_ID'] = $LOCATION_DATA['EMAIL'];
+                $location['ACTIVE'] = 1;
+                $location['USER_ID'] = $LOCATION_DATA['LOCATION_CODE'];
+
+                $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
+
+                $URL = "https://focusbiz.com/API/V1/user";
+
+                $json = json_encode($location);
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_SSL_VERIFYHOST => '0',
+                    CURLOPT_SSL_VERIFYPEER => '0',
+                    CURLOPT_URL => $URL,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => "",
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 30,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_POST => 1,
+                    CURLOPT_POSTFIELDS => $json,
+                    CURLOPT_HTTPHEADER => array(
+                        "APIKEY: " . $LOCATION_DATA['FOCUSBIZ_API_KEY']
+                    ),
+                ));
+
+                $return_data = curl_exec($curl);
+                $err = curl_error($curl);
+
+                curl_close($curl);
+
+                if ($err) {
+                    echo "cURL Error #:" . $err;
+                    exit;
+                } else {
+                    $response = json_decode($return_data);
+                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+                }
+            }
+        } else {
+            $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
+        }
+        unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
+
         if (empty($_GET['id'])) {
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -405,56 +454,62 @@ if (!empty($_POST)) {
     }
 </style>
 <style>
-/* Add this to your stylesheet */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;  /* Width of capsule */
-  height: 34px; /* Height of capsule */
-}
+    /* Add this to your stylesheet */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        /* Width of capsule */
+        height: 34px;
+        /* Height of capsule */
+    }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 34px; /* This makes it capsule-shaped */
-}
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+        /* This makes it capsule-shaped */
+    }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%; /* Round slider */
-}
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        /* Round slider */
+    }
 
-input:checked + .slider {
-  background-color: #39B54A; /* Active color */
-}
+    input:checked+.slider {
+        background-color: #39B54A;
+        /* Active color */
+    }
 
-input:checked + .slider:before {
-  transform: translateX(26px); /* Move slider to right */
-}
+    input:checked+.slider:before {
+        transform: translateX(26px);
+        /* Move slider to right */
+    }
 
-/* Optional: Focus styles */
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
+    /* Optional: Focus styles */
+    input:focus+.slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -815,6 +870,7 @@ input:focus + .slider {
                                                         <div class="form-group">
                                                             <label class="col-md-12">Focusbiz API Key</label>
                                                             <div class="col-md-12">
+                                                                <input type="hidden" name="FOCUSBIZ_API_KEY_OLD" value="<?= $FOCUSBIZ_API_KEY ? $FOCUSBIZ_API_KEY : '' ?>">
                                                                 <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
                                                             </div>
                                                         </div>
@@ -1242,53 +1298,53 @@ input:focus + .slider {
                                                 <?php
                                                 $row = $db->Execute("SELECT * FROM DOA_LOCATION_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
                                                 if ($row->RecordCount() > 0) {
-                                                    while (!$row->EOF) { 
-                                                        ?>
+                                                    while (!$row->EOF) {
+                                                ?>
                                                         <div class="row">
                                                             <?php
                                                             $customer_tab = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_CUSTOMER_TAB = " . $row->fields['PK_CUSTOMER_TAB']);
-                                                            while (!$customer_tab->EOF) { 
+                                                            while (!$customer_tab->EOF) {
                                                             ?>
-                                                            <div style="text-align: center; margin-bottom: 10px" onclick="changePermission(<?= $row->fields['PK_LOCATION_CUSTOMER_TAB'] ?>);">
-                                                                <label class="switch">
-                                                                    <input type="checkbox" <?= ($row->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
-                                                                    <span class="slider"></span><?= $customer_tab->fields['TAB_NAME'] ?>
-                                                                </label>
-                                                            </div>
+                                                                <div style="text-align: center; margin-bottom: 10px" onclick="changePermission(<?= $row->fields['PK_LOCATION_CUSTOMER_TAB'] ?>);">
+                                                                    <label class="switch">
+                                                                        <input type="checkbox" <?= ($row->fields['PERMISSION'] == 1) ? 'checked' : '' ?>>
+                                                                        <span class="slider"></span><?= $customer_tab->fields['TAB_NAME'] ?>
+                                                                    </label>
+                                                                </div>
                                                             <?php $customer_tab->MoveNext();
                                                             } ?>
                                                         </div>
                                                     <?php $row->MoveNext();
                                                     }
-                                                 } else {
+                                                } else {
                                                     $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB");
                                                     while (!$customer_tabs->EOF) { ?>
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <table class="table table-bordered permission-table">
-                                                                <tbody>
-                                                                    <?php while (!$customer_tabs->EOF): ?>
-                                                                    <tr>
-                                                                    <td width="70%"><?= $customer_tabs->fields['TAB_NAME'] ?></td>
-                                                                    <td width="30%" style="text-align: center">
-                                                                        <label class="switch">
-                                                                        <input type="checkbox" 
-                                                                                id="tab_<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>" 
-                                                                                onclick="changePermission(<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>);">
-                                                                        <span class="slider"></span>
-                                                                        </label>
-                                                                    </td>
-                                                                    </tr>
-                                                                    <?php $customer_tabs->MoveNext(); ?>
-                                                                    <?php endwhile; ?>
-                                                                </tbody>
+                                                                    <tbody>
+                                                                        <?php while (!$customer_tabs->EOF): ?>
+                                                                            <tr>
+                                                                                <td width="70%"><?= $customer_tabs->fields['TAB_NAME'] ?></td>
+                                                                                <td width="30%" style="text-align: center">
+                                                                                    <label class="switch">
+                                                                                        <input type="checkbox"
+                                                                                            id="tab_<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>"
+                                                                                            onclick="changePermission(<?= $customer_tabs->fields['PK_CUSTOMER_TAB'] ?>);">
+                                                                                        <span class="slider"></span>
+                                                                                    </label>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <?php $customer_tabs->MoveNext(); ?>
+                                                                        <?php endwhile; ?>
+                                                                    </tbody>
                                                                 </table>
                                                             </div>
                                                         </div>
-                                                    <?php $customer_tabs->MoveNext();
+                                                <?php $customer_tabs->MoveNext();
                                                     }
-                                                 } ?>
-                                                
+                                                } ?>
+
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='business_profile.php'">Cancel</button>
@@ -1623,22 +1679,22 @@ input:focus + .slider {
     }
 
     function changeTabPermission(PK_LOCATION_CUSTOMER_TAB) {
-            var checkbox = event.target;
-            var countOnPermission = checkbox.checked ? 1 : 0;
+        var checkbox = event.target;
+        var countOnPermission = checkbox.checked ? 1 : 0;
 
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'updateTabPermission',
-                    PK_LOCATION_CUSTOMER_TAB: PK_LOCATION_CUSTOMER_TAB,
-                    COUNT_ON_PERMISSION: countOnPermission
-                },
-                success: function(data) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'updateTabPermission',
+                PK_LOCATION_CUSTOMER_TAB: PK_LOCATION_CUSTOMER_TAB,
+                COUNT_ON_PERMISSION: countOnPermission
+            },
+            success: function(data) {
 
-                }
-            });
-        }
+            }
+        });
+    }
 </script>
 
 </html>

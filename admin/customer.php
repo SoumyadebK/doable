@@ -3213,9 +3213,11 @@ if ($PK_USER_MASTER > 0) {
         let PK_ENROLLMENT_LEDGER = [];
 
         $(".PAYMENT_CHECKBOX_" + PK_ENROLLMENT_MASTER + ":checked").each(function() {
-            BILLED_AMOUNT.push($(this).data('billed_amount'));
+            BILLED_AMOUNT.push(parseFloat($(this).data('billed_amount')));
             PK_ENROLLMENT_LEDGER.push($(this).val());
         });
+
+        console.log(BILLED_AMOUNT);
 
         let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
 

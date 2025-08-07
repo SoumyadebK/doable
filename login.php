@@ -37,7 +37,6 @@ if ($FUNCTION_NAME == 'loginFunction') {
 
                 $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
                 $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
-                $_SESSION['ACCESS_TOKEN'] = $result->fields['ACCESS_TOKEN'];
                 $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
 
                 if ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 11) {

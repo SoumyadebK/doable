@@ -872,7 +872,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
 
         let calendar;
-        let todayDate = new Date();
+        let redirect_date = '<?= $redirect_date ?>';
+        let todayDate = redirect_date ? new Date(redirect_date) : new Date();
         const dayConfigs = <?= json_encode($dayConfig) ?>;
 
         function renderCalendar(date) {
@@ -1102,8 +1103,20 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             html: true,
                         });
                     }
+                    if (event_data.paid_status) {
+                        if (event_data.paid_status === ' (Unpaid)') {
+                            $(element).find(".fc-title").append('<span style="color: red;">' + event_data.paid_status + '</span>');
+                        } else {
+                            $(element).find(".fc-title").append('<span>' + event_data.paid_status + '</span>');
+                        }
+                    }
+
+                    if (event_data.appointment_number) {
+                        $(element).find(".fc-title").append('<span>' + event_data.appointment_number + '</span>');
+                    }
+
                     if (event_data.statusCode) {
-                        $(element).find(".fc-title").append(' <br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
+                        $(element).find(".fc-title").append('<br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
                     }
                 },
                 eventClick: function(info) {
