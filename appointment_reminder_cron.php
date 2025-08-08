@@ -2,8 +2,8 @@
 
 use Twilio\Rest\Client;
 
-require_once('global/config.php');
-require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
+require_once('/var/www/html/global/config.php');
+require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
 
 global $db;
 

@@ -135,7 +135,7 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
     $APPOINTMENT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
     $APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
 
-    if (isset($_POST['STANDING_ID'])) {
+    if (isset($_POST['STANDING_ID']) && ($_POST['STANDING_ID'] > 0)) {
         db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'update', " STANDING_ID =  '$_POST[STANDING_ID]'");
 
         $appointment_id = [];

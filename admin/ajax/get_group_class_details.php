@@ -424,10 +424,11 @@ while (!$customer_update_data->EOF) {
             </div>
         </div>
     </div>
-    </div>
-    <div class="form-group">
-        <label><input type="checkbox" name="STANDING_ID" value="<?= $STANDING_ID ?>"> All Session Details Will Be Changed</label>
-    </div>
+    <?php if ($STANDING_ID > 0) { ?>
+        <div class="form-group">
+            <label><input type="checkbox" name="STANDING_ID" value="<?= $STANDING_ID ?>"> All Session Details Will Be Changed</label>
+        </div>
+    <?php } ?>
     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
     <a onclick="closeEditAppointment()" class="btn btn-inverse waves-effect waves-light">Cancel</a>
 </form>
