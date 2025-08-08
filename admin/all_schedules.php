@@ -110,11 +110,9 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
         $convertedTime = date('H:i:s', strtotime('+30 minutes', strtotime($startTime)));
     }
     $GROUP_CLASS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-    //$GROUP_CLASS_DATA['GROUP_NAME'] = $_POST['GROUP_NAME'];
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-    //$GROUP_CLASS_DATA['IS_CHARGED'] = ($GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] == 2) ? 1 : 0;
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
     $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = $_POST['INTERNAL_COMMENT'];
@@ -196,8 +194,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveGroupClas
     $existing_customer = (!empty($_POST['EXISTING_CUSTOMER'])) ? explode(',', $_POST['EXISTING_CUSTOMER']) : [];
     $existing_partner = (!empty($_POST['EXISTING_PARTNER'])) ? explode(',', $_POST['EXISTING_PARTNER']) : [];
 
-    $SELECTED_CUSTOMERS = $_POST['PK_USER_MASTER'] ?? [];
-    $SELECTED_PARTNERS = $_POST['PARTNER'] ?? [];
+    $SELECTED_CUSTOMERS = (!empty($_POST['PK_USER_MASTER'])) ? explode(',', $_POST['PK_USER_MASTER']) : [];
+    $SELECTED_PARTNERS = (!empty($_POST['PARTNER'])) ? explode(',', $_POST['PARTNER']) : [];
 
     $customer_to_add = array_values(array_diff($SELECTED_CUSTOMERS, $existing_customer));
     $customer_to_remove = array_values(array_diff($existing_customer, $SELECTED_CUSTOMERS));

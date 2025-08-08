@@ -234,7 +234,7 @@ while (!$customer_update_data->EOF) {
                             }
                             //$orderBy = " ORDER BY DOA_USERS.FIRST_NAME ASC";
 
-                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_MASTER.PK_USER_MASTER IN (" . $user_master_id . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'" . $orderBy);
+                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_MASTER.PK_USER_MASTER IN (" . $user_master_id . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED != 1 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'" . $orderBy);
                             $customer_name = '';
                             while (!$row->EOF) {
                                 $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $row->fields['PK_USER_MASTER']);
@@ -252,60 +252,20 @@ while (!$customer_update_data->EOF) {
                                     }
                                     $customer_name .= '<p><span class="m-r-30" style="display: ' . $display . '"><i class="fa fa-check-square" style="font-size:15px; color: #1d1;"></i>&nbsp;&nbsp;<a href="customer.php?id=' . $selected_user_id . '&master_id=' . $selected_customer_id . '&tab=profile" target="_blank" style="color: blue;">' . $row->fields['NAME'] . '</a></span>' . $partner_name . '</p>';
                                 } ?>
-                                <input type="hidden" name="EXISTING_CUSTOMER" value="<?= implode(',', $selected_customer) ?>">
-                                <input type="hidden" name="EXISTING_PARTNER" value="<?= implode(',', $selected_partner) ?>">
                                 <li class="customer-li">
-                                    <label style="width: 50%;"> <input type="checkbox" name="PK_USER_MASTER[]" value="<?= $row->fields['PK_USER_MASTER'] ?>" class="customer-checkbox" <?= in_array($row->fields['PK_USER_MASTER'], $selected_customer) ? "checked" : "" ?>> <?= $row->fields['NAME'] ?> </label>
+                                    <label style="width: 50%;"> <input type="checkbox" value="<?= $row->fields['PK_USER_MASTER'] ?>" class="customer-checkbox PK_USER_MASTER" <?= in_array($row->fields['PK_USER_MASTER'], $selected_customer) ? "checked" : "" ?> onchange="selectCustomers()"> <?= $row->fields['NAME'] ?> </label>
                                     <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
-                                        <label style="width: 48%;"> <input type="checkbox" name="PARTNER[]" value="<?= $row->fields['PK_USER_MASTER'] ?>" class="partner-checkbox" <?= in_array($row->fields['PK_USER_MASTER'], $selected_partner) ? "checked" : "" ?>> <?= $partner_data->fields['PARTNER_FIRST_NAME'] ?> <?= $partner_data->fields['PARTNER_LAST_NAME'] ?></label>
+                                        <label style="width: 48%;"> <input type="checkbox" value="<?= $row->fields['PK_USER_MASTER'] ?>" class="partner-checkbox PARTNER" <?= in_array($row->fields['PK_USER_MASTER'], $selected_partner) ? "checked" : "" ?> onchange="selectPartners(this)"> <?= $partner_data->fields['PARTNER_FIRST_NAME'] ?> <?= $partner_data->fields['PARTNER_LAST_NAME'] ?></label>
                                     <?php } ?>
                                 </li>
                             <?php $row->MoveNext();
                             } ?>
+
+                            <input type="hidden" name="EXISTING_CUSTOMER" value="<?= implode(',', $selected_customer) ?>">
+                            <input type="hidden" name="EXISTING_PARTNER" value="<?= implode(',', $selected_partner) ?>">
+                            <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER">
+                            <input type="hidden" name="PARTNER" id="PARTNER">
                         </ul>
-
-
-                        <!--<select class="multi_sumo_select" name="PK_USER_MASTER[]" id="PK_USER_MASTER" multiple>
-                            <?php
-                            /*                            $with_enr_customer = [];
-                                                    $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = '$PK_SERVICE_CODE'");
-                                                    while (!$serviceCodeData->EOF) {
-                                                        if ($serviceCodeData->fields['CHARGE_TYPE'] == 'Membership') {
-                                                            $NUMBER_OF_SESSION = 99;
-                                                        } else {
-                                                            $NUMBER_OF_SESSION = $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                                        }
-                                                        $SESSION_CREATED = getSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
-                                                        if ($NUMBER_OF_SESSION > $SESSION_CREATED) {
-                                                            $with_enr_customer[] = $serviceCodeData->fields['PK_USER_MASTER'];
-                                                        }
-                                                        $serviceCodeData->MoveNext();
-                                                    }
-                                                    $user_master_id = implode(',', $with_enr_customer);
-
-                                                    $selected_customer = [];
-                                                    $selected_customer_row = $db_account->Execute("SELECT DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_CUSTOMER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = $master_database.DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
-                                                    while (!$selected_customer_row->EOF) {
-                                                        $selected_customer[] = $selected_customer_row->fields['PK_USER_MASTER'];
-                                                        $selected_customer_row->MoveNext();
-                                                    }
-                                                    if (count($selected_customer) > 0) {
-                                                        $orderBy = " ORDER BY FIELD(PK_USER_MASTER, ".implode(',', $selected_customer).") DESC";
-                                                    } else {
-                                                        $orderBy = "";
-                                                    }
-
-                                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_MASTER.PK_USER_MASTER IN (".$user_master_id.") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'".$orderBy);
-                                                    $customer_name = '';
-                                                    while (!$row->EOF) {
-                                                        if (in_array($row->fields['PK_USER_MASTER'], $selected_customer)) {
-                                                            $selected_customer_id = $row->fields['PK_USER_MASTER'];
-                                                            $selected_user_id = $row->fields['PK_USER'];
-                                                            $customer_name.= '<p><i class="fa fa-check-square" style="font-size:15px; color: #069419"></i>&nbsp;&nbsp;<a href="customer.php?id='.$selected_user_id.'&master_id='.$selected_customer_id.'&tab=profile" target="_blank">'.$row->fields['NAME'].'<br></a></p>';
-                                                        }*/ ?>
-                                <option value="<?php /*echo $row->fields['PK_USER_MASTER'];*/ ?>" <?php /*=in_array($row->fields['PK_USER_MASTER'], $selected_customer)?"selected":""*/ ?>><?php /*=$row->fields['NAME']*/ ?></option>
-                            <?php /*$row->MoveNext(); } */ ?>
-                        </select>-->
 
                     </div>
                     <p><?= $customer_name; ?></p>
@@ -462,8 +422,8 @@ while (!$customer_update_data->EOF) {
 
     function closeListSelect() {
         allOptions.removeClass('selected');
-        let checked_customer = $("input[name='PK_USER_MASTER[]']:checked").length;
-        let checked_partner = $("input[name='PARTNER[]']:checked").length;
+        let checked_customer = $(".PK_USER_MASTER:checked").length;
+        let checked_partner = $(".PARTNER:checked").length;
         $(".list-select").children('.init').html((checked_partner + checked_customer) + ' Selected');
         $(".list-select").css({
             "height": "30px",
@@ -484,6 +444,22 @@ while (!$customer_update_data->EOF) {
                 item.style.display = 'none';
             }
         });
+    }
+
+    function selectCustomers() {
+        var customerIds = $('.PK_USER_MASTER:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        $('#PK_USER_MASTER').val(customerIds);
+    }
+
+    function selectPartners(element) {
+        var partnerIds = $('.PARTNER:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        $('#PARTNER').val(partnerIds);
     }
 </script>
 

@@ -13,14 +13,14 @@ if (!empty($_GET['type'])) {
 }
 
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
 
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 
-if ($FUNCTION_NAME == 'saveGroupClassData'){
+if ($FUNCTION_NAME == 'saveGroupClassData') {
     $SERVICE_ID = explode(',', $_POST['SERVICE_ID']);
     $DURATION = $SERVICE_ID[0];
     $PK_SERVICE_CODE = $SERVICE_ID[1];
@@ -32,12 +32,12 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
     $START_TIME = $_POST['START_TIME'];
-    $END_TIME = date("H:i", strtotime($START_TIME)+($DURATION*60));
+    $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
 
     $GROUP_CLASS_DATE_ARRAY = [];
-    if (!empty($_POST['OCCURRENCE'])){
+    if (!empty($_POST['OCCURRENCE'])) {
         $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
-        if ($_POST['OCCURRENCE'] == 'WEEKLY'){
+        if ($_POST['OCCURRENCE'] == 'WEEKLY') {
             if (isset($_POST['DAYS'])) {
                 $DAYS = $_POST['DAYS'];
             } else {
@@ -45,17 +45,17 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             }
             while ($SERVICE_DATE < $END_DATE) {
                 $appointment_day = date('l', strtotime($SERVICE_DATE));
-                if (in_array(strtolower($appointment_day), $DAYS)){
+                if (in_array(strtolower($appointment_day), $DAYS)) {
                     $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
                 }
                 $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
             }
-        }else {
-            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS']))?7:$_POST['OCCURRENCE_DAYS'];
+        } else {
+            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
 
             while ($SERVICE_DATE < $END_DATE) {
                 $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
-                $SERVICE_DATE = date('Y-m-d', strtotime('+ '.$OCCURRENCE_DAYS.' day', strtotime($SERVICE_DATE)));
+                $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
                 //echo $SERVICE_DATE . "<br>";
             }
         }
@@ -64,7 +64,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     if (count($GROUP_CLASS_DATE_ARRAY) > 0) {
         $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_GROUP_CLASS` ORDER BY STANDING_ID DESC LIMIT 1");
         if ($standing_data->RecordCount() > 0) {
-            $standing_id = $standing_data->fields['STANDING_ID']+1;
+            $standing_id = $standing_data->fields['STANDING_ID'] + 1;
         } else {
             $standing_id = 1;
         }
@@ -98,19 +98,19 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
     $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
 
 
-    if(empty($_GET['id'])){
+    if (empty($_GET['id'])) {
         $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
         $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
         $SPECIAL_APPOINTMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $SPECIAL_APPOINTMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
         $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
-    }else{
+    } else {
         //$SPECIAL_APPOINTMENT_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-        $SPECIAL_APPOINTMENT_DATA['EDITED_BY']	= $_SESSION['PK_USER'];
+        $SPECIAL_APPOINTMENT_DATA['EDITED_BY']    = $_SESSION['PK_USER'];
         $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update'," PK_SPECIAL_APPOINTMENT =  '$_GET[id]'");
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT =  '$_GET[id]'");
         $PK_SPECIAL_APPOINTMENT = $_GET['id'];
     }
 
@@ -127,7 +127,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 } elseif ($FUNCTION_NAME == 'saveAppointmentData') {
     unset($_POST['TIME']);
     unset($_POST['FUNCTION_NAME']);
-    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])){
+    if (empty($_POST['START_TIME']) || empty($_POST['END_TIME'])) {
         unset($_POST['START_TIME']);
         unset($_POST['END_TIME']);
     }
@@ -136,7 +136,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     $START_TIME_ARRAY = explode(',', $_POST['START_TIME']);
     $END_TIME_ARRAY = explode(',', $_POST['END_TIME']);
-    for ($i=0; $i<count($START_TIME_ARRAY); $i++) {
+    for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
         $APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $APPOINTMENT_DATA['CUSTOMER_ID'] = $_POST['CUSTOMER_ID'];
 
@@ -159,20 +159,22 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-    header("location:customer.php?id=".$_POST['PK_USER']."&master_id=".$_POST['CUSTOMER_ID']);
+    header("location:customer.php?id=" . $_POST['PK_USER'] . "&master_id=" . $_POST['CUSTOMER_ID']);
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 <style>
-    .slot_btn{
+    .slot_btn {
         background-color: greenyellow;
     }
+
     .SumoSelect {
         width: 100%;
     }
+
     .disable-div {
         opacity: 0.5;
         pointer-events: none
@@ -185,8 +187,8 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
 
     .btn-info:hover {
         background-color: #690C24;
-        border-color: #690C24;*/
-    }
+        border-color: #690C24;
+    }*/
 </style>
 <link rel="stylesheet" href="../assets/CalendarPicker/CalendarPicker.style.css">
 <div id="appointmentModel" class="modal">
@@ -213,19 +215,20 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             </div>
         </div>
     </div>
-    </div>
+</div>
+
 </html>
 <script>
-    let type = '<?=$type?>';
-    $(window).on('load', function () {
-        let param = $('#'+type);
+    let type = '<?= $type ?>';
+    $(window).on('load', function() {
+        let param = $('#' + type);
         createAppointment(type, param)
     })
 
     let PK_APPOINTMENT_MASTER = 0;
-    const nextYear 	= new Date().getFullYear() + 2;
-    const month 	= new Date().getMonth();
-    var def_date 	= new Date();
+    const nextYear = new Date().getFullYear() + 2;
+    const month = new Date().getMonth();
+    var def_date = new Date();
     let start_time_array = [];
     let end_time_array = [];
     var myCalender;
@@ -247,14 +250,17 @@ if ($FUNCTION_NAME == 'saveGroupClassData'){
             url = "ajax/add_multiple_appointment.php";
         }
 
-        let PK_USER = parseInt(<?=empty($_GET['id'])?0:$_GET['id']?>);
-        let PK_USER_MASTER = parseInt(<?=empty($_GET['master_id'])?0:$_GET['master_id']?>);
+        let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+        let PK_USER_MASTER = parseInt(<?= empty($_GET['master_id']) ? 0 : $_GET['master_id'] ?>);
 
         $.ajax({
             url: url,
             type: "GET",
-            data: {PK_USER: PK_USER, PK_USER_MASTER: PK_USER_MASTER},
-            success: function (data) {
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
                 $('#create_form_div').html(data);
             }
         });
