@@ -66,7 +66,7 @@ if (!empty($_GET['NAME'])) {
                         } else {
                             $address = $url[2];
                         }
-                        if ($address == "reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "enrollment_reports.php" || $address == "student_mailing_list.php" || $address == "total_open_liability.php") { ?>
+                        if ($address == "reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "enrollment_reports.php" || $address == "student_mailing_list.php" || $address == "total_open_liability.php" || $address == "active_account_balance_report.php") { ?>
                             <ul class="nav nav-pills justify-content-left">
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'reports.php') ? 'active' : '' ?>" href="../admin/reports.php">Electronic Weekly Reports</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'business_reports.php') ? 'active' : '' ?>" href="../admin/business_reports.php">Business Reports</a></li>
@@ -76,6 +76,7 @@ if (!empty($_GET['NAME'])) {
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'customer_summary_report.php') ? 'active' : '' ?>" href="../admin/customer_summary_report.php">Customer Summary Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'student_mailing_list.php') ? 'active' : '' ?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'total_open_liability.php') ? 'active' : '' ?>" href="../admin/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin/active_account_balance_report.php">Active Account Balance Report</a></li>
                             </ul>
                         <?php } ?>
                     </div>
