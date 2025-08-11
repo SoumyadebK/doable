@@ -168,7 +168,11 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER): void
         $PK_SERVICE_MASTER = $enrollmentServiceData->fields['PK_SERVICE_MASTER'];
         $PK_SERVICE_CODE = $enrollmentServiceData->fields['PK_SERVICE_CODE'];
         $NUMBER_OF_SESSION = $enrollmentServiceData->fields['NUMBER_OF_SESSION'];
-        $SESSION_CREATED_COUNT = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE);
+
+        $session_created = $db_account->Execute("SELECT COUNT(PK_APPOINTMENT_MASTER) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS NOT IN (6,4) AND APPOINTMENT_TYPE = 'NORMAL' AND `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+        $SESSION_CREATED_COUNT = ($session_created->RecordCount() > 0) ? $session_created->fields['SESSION_CREATED'] : 0;
+
+        //$SESSION_CREATED_COUNT = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
         $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED_COUNT;
         //$SERIAL_NUMBER = getAppointmentSerialNumber($PK_USER_MASTER);
 
