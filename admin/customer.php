@@ -388,40 +388,20 @@ if ($PK_USER_MASTER > 0) {
 
                             <?php if (!empty($_GET['id'])) { ?>
                                 <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                    <?php if (in_array('Documents', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Active Enrollments', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Completed Enrollments', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Payment Register', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" onclick="getPaymentRegisterData()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Appointments', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('For Record Only', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
-                                    <?php } ?>
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                                    <?php if (in_array('Comments', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Credit Card', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" onclick="getSavedCreditCardList()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Wallet', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
-                                    <?php } ?>
                                 <?php } ?>
                                 <?php if (in_array('Customers Delete', $PERMISSION_ARRAY)) { ?>
-                                    <?php if (in_array('Delete', $TAB_PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
-                                    <?php } ?>
                                 <?php } ?>
                             <?php } ?>
                         </ul>
