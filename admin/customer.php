@@ -205,12 +205,12 @@ if (!empty($_GET['master_id']) && $primary_location > 0) {
 }
 
 $TAB_PERMISSION_ARRAY = [];
-        $permission_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PERMISSION = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
-        
-        while (!$permission_data->EOF) {
-            $TAB_PERMISSION_ARRAY[] = $permission_data->fields['TAB_NAME'];
-            $permission_data->MoveNext();
-        }
+$permission_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PERMISSION = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
+
+while (!$permission_data->EOF) {
+    $TAB_PERMISSION_ARRAY[] = $permission_data->fields['TAB_NAME'];
+    $permission_data->MoveNext();
+}
 
 if ($PK_USER_MASTER > 0) {
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
@@ -375,13 +375,13 @@ if ($PK_USER_MASTER > 0) {
                         <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 124%">
                             <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
                                 <?php if (in_array('Profile', $TAB_PERMISSION_ARRAY)) { ?>
-                                <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                                    <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                 <?php } ?>
-                                
+
                                 <li id="login_info_tab" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                
+
                                 <?php if (in_array('Family', $TAB_PERMISSION_ARRAY)) { ?>
-                                <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
                                 <?php } ?>
                             <?php } ?>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
