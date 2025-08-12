@@ -197,7 +197,7 @@ if (!empty($_GET['id'])) {
 }
 
 $primary_location = $_GET['PK_LOCATION'] ?? 0;
-if (!empty($_GET['master_id']) && $primary_location > 0) {
+if (!empty($_GET['master_id']) && $primary_location <= 0) {
     $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
     if ($selected_primary_location->RecordCount() > 0) {
         $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
@@ -374,15 +374,9 @@ if ($PK_USER_MASTER > 0) {
                     <div class="col-md-8 align-self-center">
                         <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 124%">
                             <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                <?php if (in_array('Profile', $TAB_PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                <?php } ?>
-
+                                <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
                                 <li id="login_info_tab" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-
-                                <?php if (in_array('Family', $TAB_PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
-                                <?php } ?>
+                                <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
                             <?php } ?>
                             <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
 
@@ -1973,40 +1967,7 @@ if ($PK_USER_MASTER > 0) {
                                                         </div>
                                                     </div>
 
-                                                    <!--Comment Model-->
-                                                    <div id="commentModel" class="modal">
-                                                        <!-- Modal content -->
-                                                        <div class="modal-content" style="width: 50%;">
-                                                            <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
-                                                            <div class="card">
-                                                                <div class="card-body">
-                                                                    <h4><b id="comment_header">Add Comment</b></h4>
-                                                                    <form id="comment_add_edit_form" role="form" action="" method="post">
-                                                                        <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
-                                                                        <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                                        <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
-                                                                        <div class="p-20">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Comments</label>
-                                                                                <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
-                                                                            </div>
-                                                                            <div class="form-group" id="comment_active" style="display: none;">
-                                                                                <label class="form-label">Active</label>
-                                                                                <div>
-                                                                                    <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                    <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
-                                                                                </div>
-                                                                            </div>
 
-                                                                            <div class="form-group">
-                                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
                                                 </div>
                                             </div>
@@ -2018,6 +1979,8 @@ if ($PK_USER_MASTER > 0) {
                     </div>
                 </div>
             </div>
+
+
 
             <!--Refund Model-->
             <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
@@ -2125,6 +2088,42 @@ if ($PK_USER_MASTER > 0) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Comment Model-->
+            <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4><b id="comment_header">Add Comment</b></h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#commentModal').modal('hide');"></button>
+                        </div>
+                        <form id="comment_add_edit_form" role="form" action="" method="post">
+                            <div class="modal-body">
+                                <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                                <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                                <div class="p-20">
+                                    <div class="form-group">
+                                        <label class="form-label">Comments</label>
+                                        <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                                    </div>
+                                    <div class="form-group" id="comment_active" style="display: none;">
+                                        <label class="form-label">Active</label>
+                                        <div>
+                                            <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -2313,6 +2312,10 @@ if ($PK_USER_MASTER > 0) {
                 openCommentModel();
             }
         });
+    }
+
+    function openCommentModel() {
+        $('#commentModal').modal('show');
     }
 
     $(document).on('submit', '#comment_add_edit_form', function(event) {

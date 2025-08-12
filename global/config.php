@@ -1,4 +1,6 @@
 <?php
+ini_set('session.gc_maxlifetime', 36000); // 30 minutes
+ini_set('session.cookie_lifetime', 36000); // 30 minutes cookie lifetime
 session_start();
 ob_start();
 require_once('query_factory.php');
