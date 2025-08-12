@@ -17,7 +17,7 @@ $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 $service_provider_id = $_GET['service_provider_id'];
 
-$payment_date = "AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
+$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -88,17 +88,36 @@ foreach ($resultsArray as $key => $result) {
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                <div>
-                                    <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
-                                    <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                                <div class="row" style="margin-bottom: 20px;">
+                                    <div class="col-md-2 text-left">
+                                        <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$title?></h3>
+                                    </div>
+                                    <div class="col-md-5 text-center">
+                                        <h5 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?=$business_name." (".$concatenatedResults.")"?></h5>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <h6 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</h6>
+                                    </div>
                                 </div>
+
+                                <?php
+                                $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$payment_date);
+                                while (!$each_service_provider->EOF) {
+                                    $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$each_service_provider->fields['SERVICE_PROVIDER_ID']);
+                                    $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
+                                    $total_portion = 0; // Initialize sum variable here
+                                    ?>
 
                                 <div class="table-responsive">
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
                                             <tr>
-                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="7"><?=($account_data->fields['FRANCHISE']==1)?'Franchisee: ':''?><?=$business_name." (".$concatenatedResults.")"?></th>
-                                                <th style="width:50%; text-align: center; font-weight: bold" colspan="5">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
+                                                
+                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="11"><?= $name->fields['TEACHER'] ?></th>
+                                                
                                             </tr>
                                             <tr>
                                                 <th style="width:8%; text-align: center">Receipt #</th>
@@ -111,19 +130,19 @@ foreach ($resultsArray as $key => $result) {
                                                 <th style="width:10%; text-align: center" >Units/Total Cost</th>
                                                 <th style="width:8%; text-align: center" >Portion</th>
                                                 <th style="width:5%; text-align: center" >%</th>
-                                                <th style="width:10%; text-align: center" >Service Provider</th>
                                                 <th style="width:8%; text-align: center" >Comment/Remark</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                         <?php
-                                        $i=1;
-                                        //$row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$payment_date);
+                                        
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id_per_table.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
                                         while (!$row->EOF) {
                                             $sessions = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                             $units = $sessions->fields['NUMBER_OF_SESSION'] ?? 0;
-                                            $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER, SERVICE_PROVIDER_PERCENTAGE FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                            $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$row->fields['SERVICE_PROVIDER_ID']);
+                                            $portion = $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+                                            $total_portion += $portion; // Add to the sum
                                             ?>
                                             <tr>
                                                 <td style="text-align: center"><?=$row->fields['RECEIPT_NUMBER']?></td>
@@ -134,18 +153,23 @@ foreach ($resultsArray as $key => $result) {
                                                 <td style="text-align: center"><?=$row->fields['ENROLLMENT_ID']?></td>
                                                 <td style="text-align: center"><?=$row->fields['ENROLLMENT_NAME']?></td>
                                                 <td style="text-align: center"><?=$units.'/$'.$row->fields['TOTAL_AMOUNT']?></td>
-                                                <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'] * ($service_provider->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
-                                                <td style="text-align: center"><?=number_format($service_provider->fields['SERVICE_PROVIDER_PERCENTAGE'], 0)?></td>
-                                                
-                                                <td style="text-align: center"><?=$service_provider->fields['TEACHER']?></td>
-                                                  
+                                                <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
+                                                <td style="text-align: center"><?=number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0)?></td>
                                                 <td style="text-align: center"></td>
                                             </tr>
                                             <?php $row->MoveNext();
-                                            $i++; } ?>
+                                            } ?>
+                                            <tr>
+                                                <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
+                                                <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion, 2) ?></th>
+                                                <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>                                                
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php
+                                    $each_service_provider->MoveNext();
+                                } ?>
                             </div>
                         </div>
                     </div>

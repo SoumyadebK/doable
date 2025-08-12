@@ -8,10 +8,17 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 }
 
 if (!empty($_GET['SELECTED_DATE'])) {
-    $type = isset($_GET['view']) ? 'view' : 'export';
+    $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $SELECTED_DATE = $_GET['SELECTED_DATE'];
     $SELECTED_RANGE = $_GET['SELECTED_RANGE'];
-    header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+    if ($generate_excel === 1) {
+        $report_name = 'active_account_balance_report';
+        header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
+    } else {
+        header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+    }
+    //header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
 }
 ?>
 
@@ -86,6 +93,7 @@ if (!empty($_GET['SELECTED_DATE'])) {
                                     <div class="col-4">
                                         <?php if(in_array('Reports Create', $PERMISSION_ARRAY)){ ?>
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                         <?php } ?>
                                     </div>
                                 </div>
