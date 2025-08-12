@@ -414,21 +414,21 @@ if (!empty($_POST)) {
 
     if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
         $PK_LOCATION = (int)$_POST['PK_LOCATION'];
-        
+
         // First delete all existing permissions for this location
-        $db->Execute("DELETE FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ". $PK_LOCATION);
-        
+        $db->Execute("DELETE FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
+
         // Process each tab permission
         if (!empty($_POST['TAB_NAME']) && is_array($_POST['TAB_NAME'])) {
             foreach ($_POST['TAB_NAME'] as $i => $tab_name) {
                 $permission = isset($_POST['PERMISSION'][$i]) ? 1 : 0;
-                
+
                 $PERMISSION_DATA = [
                     'PK_LOCATION' => $PK_LOCATION,
                     'TAB_NAME' => $tab_name,
                     'PERMISSION' => $permission
                 ];
-                
+
                 // Insert new record
                 db_perform('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
             }
@@ -930,15 +930,9 @@ if (!empty($_POST)) {
                                                     </div>
                                                 </div>
 
-                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
-                                                    <div class="col-md-12">
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
-                                                    </div>
-                                                </div>
 
-                                                <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+
+                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <div class="form-group">
@@ -954,6 +948,14 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div class="col-md-12">
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
+                                                    </div>
+                                                </div>
+
+                                                <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                                     <div class="col-4">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">SID</label>
@@ -1360,19 +1362,19 @@ if (!empty($_POST)) {
                                                     'Wallet' => 'Wallet',
                                                     'Delete' => 'Delete'
                                                 ];
-                                                
-                                                $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = ". $PK_LOCATION);
+
+                                                $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
                                                 $existing_permissions = [];
                                                 while (!$customer_tabs->EOF) {
                                                     $existing_permissions[$customer_tabs->fields['TAB_NAME']] = $customer_tabs->fields['PERMISSION'];
                                                     $customer_tabs->MoveNext();
                                                 }
-                                                
+
                                                 $i = 0;
                                                 foreach ($tab_options as $tab_key => $tab_label) {
                                                     // Modified this line to default to checked if no existing permission is found
                                                     $is_checked = isset($existing_permissions[$tab_key]) ? ($existing_permissions[$tab_key] == 1) : true;
-                                                    ?>
+                                                ?>
                                                     <div class="row mb-3">
                                                         <div class="col-md-6">
                                                             <div class="form-group">
@@ -1389,7 +1391,7 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <?php
+                                                <?php
                                                     $i++;
                                                 }
                                                 ?>
