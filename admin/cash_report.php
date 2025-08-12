@@ -7,11 +7,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-if (!empty($_GET['NAME'])) {
-    $type = isset($_GET['view']) ? 'view' : 'export';
+if (!empty($_GET['start_date'])) {
+    $type = isset($_GET['view']) ? 'view' : 'generate_excel';
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $report_name = $_GET['NAME'];
+    $report_name = 'cash_report';
     $START_DATE = $_GET['start_date'];
     $END_DATE = $_GET['end_date'];
     $selectedProviders = $_GET['SERVICE_PROVIDER_ID'];
@@ -22,17 +22,17 @@ if (!empty($_GET['NAME'])) {
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
     } else {
-        if ($_GET['NAME'] == 'payments_made_report') {
+        if ($report_name == 'payments_made_report') {
             header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'royalty_service_report') {
+        } elseif ($report_name == 'royalty_service_report') {
             header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'summary_of_studio_business_report') {
+        } elseif ($report_name == 'summary_of_studio_business_report') {
             header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'staff_performance_report') {
+        } elseif ($report_name == 'staff_performance_report') {
             header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
+        } elseif ($report_name == 'summary_of_staff_member_report') {
             header('location:summary_of_staff_member_report.php?start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'cash_report') {
+        } elseif ($report_name == 'cash_report') {
             header('location:cash_report_details.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
     }
@@ -107,14 +107,14 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                     <input type="hidden" name="start_date" id="start_date">
                                     <input type="hidden" name="end_date" id="end_date">
                                     <div class="row">
-                                        <div class="col-2">
+                                        <!-- <div class="col-2">
                                             <div class="form-group">
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="cash_report">CASH REPORT</option>
                                                 </select>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="col-2">
                                             <div style=" width: 315px;">
                                                 <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
@@ -140,8 +140,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <!-- <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                                 <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
                                         </div>

@@ -61,8 +61,8 @@ foreach ($resultsArray as $key => $result) {
                 <div class="col-md-7 align-self-center text-end">
                     <div class="d-flex justify-content-end align-items-center">
                         <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
-                            <li class="breadcrumb-item active"><a href="customer_summary_report.php"><?=$title?></a></li>
+                            <li class="breadcrumb-item active"><a href="cash_report.php">Reports</a></li>
+                            <li class="breadcrumb-item active"><?=$title?></a></li>
                         </ol>
                     </div>
                 </div>
