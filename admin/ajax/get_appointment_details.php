@@ -849,8 +849,8 @@ if ($PK_USER_MASTER > 0) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-2">
-                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
+                    <div class="col-2" style="width: 15%;">
+                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 22px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
                     </div>
                     <div class="col-3">
                         <div class="form-group">
@@ -860,11 +860,11 @@ if ($PK_USER_MASTER > 0) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-2">
-                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
+                    <div class="col-2" style="width: 15%;">
+                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 22px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
                     </div>
-                    <div class="col-2">
-                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                    <div class="col-2" style="width: 18%;">
+                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 15px;" onchange="createLogin(this);"> Create Login</label>
                     </div>
                 </div>
                 <div class="row">
@@ -1151,20 +1151,17 @@ if ($PK_USER_MASTER > 0) {
                 </div>
                 <hr>
 
-                <div class="row">
-                    <div class="col-8">
-                        <div class="form-group">
-                            <div class="row m-t-10">
-                                <div class="col-md-4">
-                                    <label class="form-label">Will you be attending your lessons</label>
-                                </div>
-                                <div class="col-md-2">
-                                    <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideUp():$('#partner_details').slideDown()" value="Solo" <?= (($ATTENDING_WITH == '') ? 'checked' : (($ATTENDING_WITH == 'Solo') ? 'checked' : '')) ?>> Solo</label>
-                                </div>
-                                <div class="col-md-3">
-                                    <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideDown():$('#partner_details').slideUp()" value="With a Partner" <?= (($ATTENDING_WITH == 'With a Partner') ? 'checked' : '') ?>> With a Partner</label>
-                                </div>
-                            </div>
+
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-4">
+                            <label class="form-label">Will you be attending your lessons</label>
+                        </div>
+                        <div class="col-2">
+                            <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideUp():$('#partner_details').slideDown()" value="Solo" <?= (($ATTENDING_WITH == '') ? 'checked' : (($ATTENDING_WITH == 'Solo') ? 'checked' : '')) ?>> Solo</label>
+                        </div>
+                        <div class="col-4">
+                            <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideDown():$('#partner_details').slideUp()" value="With a Partner" <?= (($ATTENDING_WITH == 'With a Partner') ? 'checked' : '') ?>> With a Partner</label>
                         </div>
                     </div>
                 </div>
@@ -1223,17 +1220,15 @@ if ($PK_USER_MASTER > 0) {
                     </div>
                 </div>
 
-                <?php if (!empty($_GET['id'])) { ?>
-                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
-                        <div class="col-md-1">
-                            <label class="form-label">Active : </label>
-                        </div>
-                        <div class="col-md-4">
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                        </div>
+                <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
+                    <div class="col-md-1">
+                        <label class="form-label">Active : </label>
                     </div>
-                <?php } ?>
+                    <div class="col-md-4">
+                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
@@ -1262,7 +1257,7 @@ if ($PK_USER_MASTER > 0) {
                     </div>
                 </div>
 
-                <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>
+                <?php if ($PASSWORD == '') { ?>
                     <div class="row">
                         <div class="col-6">
                             <div class="form-group">
@@ -1298,23 +1293,16 @@ if ($PK_USER_MASTER > 0) {
                 <?php } else { ?>
                     <div class="row">
                         <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                            <!--<div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Old Password</label>
-                                                                            <input type="hidden" name="SAVED_OLD_PASSWORD" id="SAVED_OLD_PASSWORD" value="<?php /*$PASSWORD */ ?>">
-                                                                            <input type="password" required name="OLD_PASSWORD" id="OLD_PASSWORD" class="form-control">
-                                                                        </div>
-                                                                    </div>-->
                             <div class="col-3">
                                 <div class="form-group">
                                     <label class="form-label">New Password</label>
-                                    <input type="password" required name="PASSWORD" class="form-control" id="PASSWORD">
+                                    <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
                                     <label class="form-label">Confirm New Password</label>
-                                    <input type="password" required name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
+                                    <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
                                 </div>
                             </div>
                         </div>
@@ -1322,17 +1310,15 @@ if ($PK_USER_MASTER > 0) {
                     </div>
                 <?php } ?>
 
-                <?php if (!empty($_GET['id'])) { ?>
-                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
-                        <div class="col-md-1">
-                            <label class="form-label">Active : </label>
-                        </div>
-                        <div class="col-md-4">
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                        </div>
+                <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
+                    <div class="col-md-1">
+                        <label class="form-label">Active : </label>
                     </div>
-                <?php } ?>
+                    <div class="col-md-4">
+                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
