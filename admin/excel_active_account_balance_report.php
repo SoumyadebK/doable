@@ -49,7 +49,7 @@ $objReader->setIncludeCharts(TRUE);
 $objPHPExcel 	= new PHPExcel();
 $objWriter     	= PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
 
-$objPHPExcel->getActiveSheet()->getColumnDimension("A")->setWidth(12);
+$objPHPExcel->getActiveSheet()->getColumnDimension("A")->setWidth(20);
 $objPHPExcel->getActiveSheet()->getColumnDimension("B")->setWidth(12);
 $objPHPExcel->getActiveSheet()->getColumnDimension("C")->setWidth(12);
 $objPHPExcel->getActiveSheet()->getColumnDimension("D")->setWidth(12);
@@ -92,6 +92,7 @@ $objPHPExcel->getActiveSheet()->getStyle('A2:H2')->applyFromArray($styleArray);
 
 $service_data = $db_account->Execute($query);
 $rowNumber = 4; // Start data at row 3
+$borderRows = [];
 while (!$service_data->EOF) {
     $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $service_data->fields['PK_USER_MASTER']);
 
@@ -106,11 +107,21 @@ while (!$service_data->EOF) {
         ->setCellValue('G'.$rowNumber, 'Balance')
         ->setCellValue('H'.$rowNumber, 'Paid');
     
-    // Style headers
+    // Style headers - bold and center-aligned
+    $headerStyle = [
+        'font' => [
+            'bold' => true
+        ],
+        'alignment' => [
+            'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER
+        ]
+    ];
     $objPHPExcel->getActiveSheet()
         ->getStyle('A'.$rowNumber.':H'.$rowNumber)
-        ->getFont()->setBold(true);
-    
+        ->applyFromArray($headerStyle);
+
+    // Add header row to border array
+    $borderRows[] = $rowNumber;
     $rowNumber++;
 
 
@@ -162,13 +173,26 @@ while (!$service_data->EOF) {
                 ->setCellValue('F'.$rowNumber, $service_code['REMAIN'])
                 ->setCellValue('G'.$rowNumber, $service_code['BALANCE'])
                 ->setCellValue('H'.$rowNumber, '$'.number_format($service_code['PAID'], 2));
+                
+            // Apply right alignment to the Paid column (H)
+            $objPHPExcel->getActiveSheet()
+                ->getStyle('H'.$rowNumber)
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
             
+            // Add data row to border array
+            $borderRows[] = $rowNumber;
             $rowNumber++;
         }
+
+        // Add blank row between customers
+        $rowNumber++;
 $service_data->MoveNext();
 }
 
-// Apply borders
+
+
+// Apply borders only to header and data rows
 $borderStyle = [
     'borders' => [
         'allborders' => [
@@ -177,7 +201,11 @@ $borderStyle = [
         ]
     ]
 ];
-$objPHPExcel->getActiveSheet()->getStyle('A3:H'.($rowNumber-1))->applyFromArray($borderStyle);
+
+foreach ($borderRows as $row) {
+    $objPHPExcel->getActiveSheet()->getStyle('A'.$row.':H'.$row)->applyFromArray($borderStyle);
+}
+
 
 $objWriter->save($outputFileName);
 $objPHPExcel->disconnectWorksheets();
