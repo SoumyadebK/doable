@@ -1,6 +1,6 @@
 <?php
 require_once('../global/config.php');
-$title = "Cas Report";
+$title = "Cash Report";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
