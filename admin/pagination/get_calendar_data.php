@@ -152,12 +152,14 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
         $PK_USER_MASTER = $appointment_data->fields['PK_USER_MASTER'];
         $customerName = $appointment_data->fields['CUSTOMER_NAME'];
+        $partnerName = '';
 
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
             $SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'GROUP') {
             $customerNameArray = [];
+            $partnerNameArray = [];
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['APT_ENR_SERVICE'];
             $selected_customer = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER);
             while (!$selected_customer->EOF) {
@@ -166,12 +168,19 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
                     $customerNameArray[] = $user_data->fields['NAME'];
                 } elseif ($selected_customer->fields['IS_PARTNER'] == 1) {
                     $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $selected_customer->fields['PK_USER_MASTER']);
-                    $customerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                    echo "SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $selected_customer->fields['PK_USER_MASTER'];
+                    $partnerNameArray[] = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
                 }
                 $selected_customer->MoveNext();
             }
             $customerName = implode(', ', $customerNameArray);
+            $partnerName = implode(', ', $partnerNameArray);
         }
+
+        $displayName = $customerName;
+            if (!empty($partnerName)) {
+                $displayName = $customerName . " & " . $partnerName;
+            }
 
         $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
         $UNIT = $appointment_data->fields['UNIT'];
@@ -205,7 +214,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $appointment_array[] = [
             'id' => $PK_APPOINTMENT_MASTER,
             'resourceIds' => explode(',', $appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'customerName' => $customerName,
+            'customerName' => $displayName,
             'title' => $title,
             'appointment_number' => $appointment_number,
             'paid_status' => $paid_status,

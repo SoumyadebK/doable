@@ -64,6 +64,7 @@ if (empty($_GET['id'])) {
     $CAPACITY = '';
     $IS_CHARGEABLE = 0;
     $COUNT_ON_CALENDAR = 1;
+    $SORT_ORDER = 0;
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -86,6 +87,7 @@ if (empty($_GET['id'])) {
     $CAPACITY = $service_code->fields['CAPACITY'];
     $IS_CHARGEABLE = $service_code->fields['IS_CHARGEABLE'];
     $COUNT_ON_CALENDAR = $service_code->fields['COUNT_ON_CALENDAR'];
+    $SORT_ORDER = $service_code->fields['SORT_ORDER'];
 }
 
 $help_title = '';
@@ -392,6 +394,20 @@ if ($help->RecordCount() > 0) {
                                                                         <div class="col-md-12">
                                                                             <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="1" <?= (($COUNT_ON_CALENDAR == 1) ? 'checked' : '') ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                             <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="0" <?= (($COUNT_ON_CALENDAR == 0) ? 'checked' : '') ?> />&nbsp;No</label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-4">
+                                                                    <div class="form-group">
+                                                                        <label>Sort Order</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-8">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" id="SORT_ORDER" name="SORT_ORDER" class="form-control" placeholder="Enter Sort Order" value="<?php echo $SORT_ORDER ?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
