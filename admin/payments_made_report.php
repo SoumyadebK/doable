@@ -197,16 +197,42 @@ while (!$executive_data->EOF) {
                                         <tbody>
                                         <?php
                                         $i=1;
+                                        $total_amount = 0;
                                         //$row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$enrollment_date);
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$enrollment_date);
                                         while (!$row->EOF) {
                                             $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = ".$row->fields['ENROLLMENT_BY_ID']);
                                             $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+                                            $total_amount += $row->fields['AMOUNT'];
+                                            if ($row->fields['TYPE'] == 'Move') {
+                                                $payment_type = 'Wallet';
+                                            } elseif ($row->fields['PK_PAYMENT_TYPE'] == '2') {
+                                                $payment_info = json_decode($row->fields['PAYMENT_INFO']);
+                                                $payment_type = $row->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                            } elseif (in_array($row->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                                                $payment_info = json_decode($row->fields['PAYMENT_INFO']);
+                                                $payment_type = $row->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                                            } elseif ($row->fields['PK_PAYMENT_TYPE'] == '7') {
+                                                $receipt_number_array = explode(',', $row->fields['RECEIPT_NUMBER']);
+                                                $payment_type_array = [];
+                                                foreach ($receipt_number_array as $receipt_number) {
+                                                    $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                                                    if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                                                        $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                                        $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                    } else {
+                                                        $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                                                    }
+                                                }
+                                                $payment_type = implode(', ', $payment_type_array);
+                                            } else {
+                                                $payment_type = $row->fields['PAYMENT_TYPE'];
+                                            }
                                             ?>
                                             <tr>
                                                 <td style="text-align: center"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
                                                 <td style="text-align: right">$<?=$row->fields['AMOUNT']?></td>
-                                                <td style="text-align: left"><?=$row->fields['PAYMENT_INFO']?></td>
+                                                <td style="text-align: left"><?=$payment_type?></td>
                                                 <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
                                                 <?php if($row->fields['PAYMENT_TYPE'] == 'Credit Card' || $row->fields['PAYMENT_TYPE'] == 'Visa' || $row->fields['PAYMENT_TYPE'] == 'Master Card' || $row->fields['PAYMENT_TYPE'] == 'American Express' || $row->fields['PAYMENT_TYPE'] == 'Card' || $row->fields['PAYMENT_TYPE'] == 'Card On File') {?>
                                                 <td style="text-align: center"><?=$row->fields['PAYMENT_TYPE']?></td>
@@ -221,16 +247,22 @@ while (!$executive_data->EOF) {
                                                 <td style="text-align: right"><?=$row->fields['ENROLLMENT_TYPE']?></td>
                                                 <td style="text-align: right">$<?=$row->fields['TOTAL_AMOUNT']?></td>
                                                 <td style="text-align: right">$<?=number_format($row->fields['TOTAL_AMOUNT'] - $row->fields['AMOUNT'], 2)?></td>
-                                                <td style="text-align: left"><?=$enrollment_by->fields['CLOSER']?></td>
+                                                <td style="text-align: left"><?=!empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
                                                 <?php if($service_provider->RecordCount() > 0) {
                                                     while (!$service_provider->EOF) { ?>
                                                 <td style="text-align: left"><?=$service_provider->fields['TEACHER']?></td>
                                                     <?php $service_provider->MoveNext();
                                                     }
                                                 } ?>
+                                                <td></td>
                                             </tr>
                                             <?php $row->MoveNext();
                                             $i++; } ?>
+                                            <tr style="font-weight: bold">
+                                                <td style="text-align: center">Total</td>
+                                                <td style="text-align: right">$<?=number_format($total_amount, 2)?></td>
+                                                <td colspan="15"></td> <!-- Empty cells for remaining columns -->
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>

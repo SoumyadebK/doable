@@ -46,6 +46,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.START_TIME,
                             DOA_APPOINTMENT_MASTER.END_TIME,
                             DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
                             DOA_APPOINTMENT_MASTER.IMAGE,
                             DOA_APPOINTMENT_MASTER.VIDEO,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
@@ -182,7 +183,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                 <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
                 <td><?= date('m/d/Y', strtotime($appointment_data->fields['DATE'])) ?></td>
                 <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
-                <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if ($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
+                <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if ($appointment_data->fields['COMMENT'] != '' || $appointment_data->fields['INTERNAL_COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="loadMedia(<?= $PK_APPOINTMENT_MASTER ?>);">View</button> <?php } ?>
                 </td>
                 <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
@@ -215,10 +216,19 @@ $page_first_result = ($page - 1) * $results_per_page;
                 </td>
             </tr>
             <tr style="display: none">
-                <td style="vertical-align: middle; text-align: center;" colspan="13">
-                    <div class="col-12">
-                        <div class="form-group">
-                            <textarea class="form-control" name="COMMENT" rows="3"><?= $appointment_data->fields['COMMENT'] ?></textarea><span><?= $CHANGED_BY ?></span>
+                <td style="vertical-align: middle; text-align: center;" colspan="14">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label" style="color: red;">Comments (Visual for client)</label>
+                                <textarea class="form-control" name="COMMENT" rows="3"><?= $appointment_data->fields['COMMENT'] ?></textarea><span><?= $CHANGED_BY ?></span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label">Internal Comment</label>
+                                <textarea class="form-control" name="INTERNAL_COMMENT" rows="3"><?= $appointment_data->fields['INTERNAL_COMMENT'] ?></textarea>
+                            </div>
                         </div>
                     </div>
                     <div id="media_div_<?= $PK_APPOINTMENT_MASTER ?>">
