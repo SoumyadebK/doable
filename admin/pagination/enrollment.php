@@ -207,7 +207,8 @@ while (!$enrollment_data->EOF) {
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
-                <?php } elseif ($amount_to_pay > 0 && $unpaid_count <= 0) { ?>
+                <?php }
+                if ($amount_to_pay > 0 && $unpaid_count <= 0) { ?>
                     <br><br>
                     <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
                     <p style="color:red;">$<?= number_format($amount_to_pay, 2) ?></p>

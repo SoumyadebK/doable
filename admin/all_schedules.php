@@ -15,7 +15,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || (in_array($_SESSI
     exit;
 }
 
-$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'] . ' +1 day')) : "";
+$redirect_date = (!empty($_GET['date'])) ? date('Y-m-d', strtotime($_GET['date'])) : "";
 $header = 'all_schedules.php';
 
 $SERVICE_PROVIDER_ID = ' ';
@@ -724,12 +724,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
                 let currentDate = new Date(redirect_date);
+                calendar.gotoDate(currentDate);
 
-                let day = currentDate.getDate();
+                /* let day = currentDate.getDate();
                 let month = currentDate.getMonth() + 1;
                 let year = currentDate.getFullYear();
 
-                calendar.gotoDate(month + '/' + day + '/' + year);
+                calendar.gotoDate(month + '/' + day + '/' + year); */
             }
         });
 

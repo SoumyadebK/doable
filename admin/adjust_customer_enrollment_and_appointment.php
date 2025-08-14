@@ -22,19 +22,20 @@ while (!$enrollment_data->EOF) {
     $enrollment_service_count = $db_account->Execute("SELECT COUNT(PK_ENROLLMENT_SERVICE) AS TOTAL_SERVICE FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     $TOTAL_SERVICE = $enrollment_service_count->fields['TOTAL_SERVICE'];
     if ($TOTAL_SERVICE > 1) {
-        $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND NUMBER_OF_SESSION < (SELECT MAX(NUMBER_OF_SESSION) FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER') ORDER BY NUMBER_OF_SESSION DESC");
-        while (!$enrollment_service_data->EOF) {
-            //if ($enrollment_service_data->fields['IS_GROUP'] == 1) {
-            $PK_ENROLLMENT_SERVICE = $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'];
-            $ENR_UPDATE_SERVICE_DATA['PRICE_PER_SESSION'] = 0;
-            $ENR_UPDATE_SERVICE_DATA['TOTAL'] = 0.00;
-            $ENR_UPDATE_SERVICE_DATA['TOTAL_AMOUNT_PAID'] = 0.00;
-            $ENR_UPDATE_SERVICE_DATA['DISCOUNT'] = 0.00;
-            $ENR_UPDATE_SERVICE_DATA['DISCOUNT_TYPE'] = 0;
-            $ENR_UPDATE_SERVICE_DATA['FINAL_AMOUNT'] = 0.00;
-            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_UPDATE_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
-            //}
-            $enrollment_service_data->MoveNext();
+        $max_session_service = $db_account->Execute("SELECT es.NUMBER_OF_SESSION, sc.IS_GROUP FROM DOA_ENROLLMENT_SERVICE es INNER JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE WHERE es.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY es.NUMBER_OF_SESSION DESC LIMIT 1");
+        if ($max_session_service->fields['IS_GROUP'] == 0) {
+            $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND NUMBER_OF_SESSION < (SELECT MAX(NUMBER_OF_SESSION) FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER') ORDER BY NUMBER_OF_SESSION DESC");
+            while (!$enrollment_service_data->EOF) {
+                $PK_ENROLLMENT_SERVICE = $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'];
+                $ENR_UPDATE_SERVICE_DATA['PRICE_PER_SESSION'] = 0;
+                $ENR_UPDATE_SERVICE_DATA['TOTAL'] = 0.00;
+                $ENR_UPDATE_SERVICE_DATA['TOTAL_AMOUNT_PAID'] = 0.00;
+                $ENR_UPDATE_SERVICE_DATA['DISCOUNT'] = 0.00;
+                $ENR_UPDATE_SERVICE_DATA['DISCOUNT_TYPE'] = 0;
+                $ENR_UPDATE_SERVICE_DATA['FINAL_AMOUNT'] = 0.00;
+                db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_UPDATE_SERVICE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
+                $enrollment_service_data->MoveNext();
+            }
         }
     }
 

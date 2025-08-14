@@ -1966,37 +1966,37 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const paymentMethods = document.querySelectorAll('.PAYMENT_METHOD');
-        const paymentPlanFields = document.getElementById('payment_plans_div');
-        const installmentInputs = document.querySelectorAll('.installment-input');
-        
-        paymentMethods.forEach(method => {
-            method.addEventListener('change', function() {
-                if (this.value === 'Payment Plans') {
-                    paymentPlanFields.style.display = 'block';
-                    installmentInputs.forEach(input => {
-                        input.required = true;
-                    });
-                } else {
-                    paymentPlanFields.style.display = 'none';
-                    installmentInputs.forEach(input => {
-                        input.required = false;
-                        input.value = ''; // Clear values when not needed
-                    });
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentMethods = document.querySelectorAll('.PAYMENT_METHOD');
+            const paymentPlanFields = document.getElementById('payment_plans_div');
+            const installmentInputs = document.querySelectorAll('.installment-input');
+
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'Payment Plans') {
+                        paymentPlanFields.style.display = 'block';
+                        installmentInputs.forEach(input => {
+                            input.required = true;
+                        });
+                    } else {
+                        paymentPlanFields.style.display = 'none';
+                        installmentInputs.forEach(input => {
+                            input.required = false;
+                            input.value = ''; // Clear values when not needed
+                        });
+                    }
+                });
             });
+
+            // Initialize on page load
+            const selectedMethod = document.querySelector('.PAYMENT_METHOD:checked');
+            if (selectedMethod && selectedMethod.value === 'Payment Plans') {
+                paymentPlanFields.style.display = 'block';
+                installmentInputs.forEach(input => {
+                    input.required = true;
+                });
+            }
         });
-        
-        // Initialize on page load
-        const selectedMethod = document.querySelector('.PAYMENT_METHOD:checked');
-        if (selectedMethod && selectedMethod.value === 'Payment Plans') {
-            paymentPlanFields.style.display = 'block';
-            installmentInputs.forEach(input => {
-                input.required = true;
-            });
-        }
-    });
     </script>
 
 </body>
