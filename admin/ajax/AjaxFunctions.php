@@ -626,7 +626,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
     $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-    $LEDGER_DATA['IS_PAID'] = ($RESPONSE_DATA['BALANCE_PAYABLE'] > 0) ? 0 : 1;
+    $LEDGER_DATA['IS_PAID'] = ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time' && $RESPONSE_DATA['BALANCE_PAYABLE'] == 0) ? 1 : 0;
 
     $LEDGER_DATA['STATUS'] = 'A';
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'One Time') {
@@ -655,7 +655,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
             $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['INSTALLMENT_AMOUNT'];
             $BALANCE = ($BALANCE + $RESPONSE_DATA['INSTALLMENT_AMOUNT']);
             $LEDGER_DATA['BALANCE'] = $BALANCE;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($LEDGER_DATA['BILLED_AMOUNT'] > 0) {
+                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            }
             if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
                 $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
             }
@@ -676,7 +678,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
             $LEDGER_DATA['BILLED_AMOUNT'] = $FLEXIBLE_PAYMENT_AMOUNT[$i];
             $BALANCE = ($BALANCE + $FLEXIBLE_PAYMENT_AMOUNT[$i]);
             $LEDGER_DATA['BALANCE'] = $BALANCE;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($LEDGER_DATA['BILLED_AMOUNT'] > 0) {
+                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            }
             if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0 && $i == 0) {
                 $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
             }
@@ -685,7 +689,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
             $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+1 month", strtotime($FLEXIBLE_PAYMENT_DATE[(count($FLEXIBLE_PAYMENT_DATE) - 1)])));
             $LEDGER_DATA['BILLED_AMOUNT'] = $RESPONSE_DATA['TOTAL_AMOUNT'] - $BALANCE;
             $LEDGER_DATA['BALANCE'] = $RESPONSE_DATA['TOTAL_AMOUNT'] - $BALANCE;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            if ($LEDGER_DATA['BILLED_AMOUNT'] > 0) {
+                db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            }
             if ($RESPONSE_DATA['DOWN_PAYMENT'] <= 0) {
                 $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
             }

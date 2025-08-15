@@ -894,11 +894,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                             </div>
 
-                                                            <div class="row payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
-                                                                        <div class="col-md-12">
+                                                            <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
+                                                                <div class="row">
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
                                                                             <select class="form-control installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                                 <option value="">Select</option>
                                                                                 <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
@@ -906,28 +906,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                             </select>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
-                                                                        <div class="col-md-12">
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
                                                                             <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
                                                                         </div>
-                                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
-                                                                        <div class="col-md-12">
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
                                                                             <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Installment Amount</label>
-                                                                        <div class="col-md-12">
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Installment Amount</label>
                                                                             <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                         </div>
                                                                     </div>
