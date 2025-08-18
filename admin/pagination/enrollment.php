@@ -361,13 +361,6 @@ while (!$enrollment_data->EOF) {
         }
     }
 
-    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
-        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
-        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
-            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
-        }
-    }
-
     function editThisAppointment(PK_APPOINTMENT_MASTER, PK_USER, PK_USER_MASTER) {
         $.ajax({
             url: "includes/edit_appointment_details.php",
