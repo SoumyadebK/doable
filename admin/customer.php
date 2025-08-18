@@ -3017,9 +3017,25 @@ if ($PK_USER_MASTER > 0) {
             cache: false,
             success: function(result) {
                 $('#payment_register_list').html(result);
+                $('#paymentRegisterTable').DataTable({
+                    order: [
+                        [0, 'asc']
+                    ],
+                    columnDefs: [{
+                        type: 'date',
+                        targets: 0
+                    }]
+                });
             }
         });
         window.scrollTo(0, 0);
+    }
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+        }
     }
 
     function showAgreementDocument() {
@@ -3040,18 +3056,18 @@ if ($PK_USER_MASTER > 0) {
     }
 
     /*function showCompletedEnrollmentList(page) {
-        let PK_USER_MASTER=$('.PK_USER_MASTER').val();
-        $.ajax({
-            url: "pagination/completed_enrollments.php",
-            type: "GET",
-            data: {search_text:'', page:page, master_id:PK_USER_MASTER},
-            async: false,
-            cache: false,
-            success: function (result) {
-                $('#completed_enrollment_list').html(result)
-            }
-        });
-        window.scrollTo(0,0);
+    let PK_USER_MASTER=$('.PK_USER_MASTER').val();
+    $.ajax({
+    url: "pagination/completed_enrollments.php",
+    type: "GET",
+    data: {search_text:'', page:page, master_id:PK_USER_MASTER},
+    async: false,
+    cache: false,
+    success: function (result) {
+    $('#completed_enrollment_list').html(result)
+    }
+    });
+    window.scrollTo(0,0);
     }*/
 
     function showAppointment(page, type) {

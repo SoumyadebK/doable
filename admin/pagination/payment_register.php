@@ -5,7 +5,7 @@ global $db_account;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 ?>
-<table id="myTable" class="table table-striped border" data-page-length="50">
+<table id="paymentRegisterTable" class="table table-striped border" data-page-length="50">
     <thead>
         <tr>
             <th style="text-align: center;">Date</th>
@@ -18,7 +18,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
     </thead>
     <tbody>
         <?php
-        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY PAYMENT_DATE DESC");
+        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY PAYMENT_DATE ASC");
         if ($payment_details->RecordCount() > 0) {
             while (!$payment_details->EOF) {
                 if ($payment_details->fields['TYPE'] == 'Move') {
@@ -65,16 +65,3 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 
     </tbody>
 </table>
-
-<script>
-    $(function() {
-        $('#myTable').DataTable();
-    });
-
-    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
-        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
-        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
-            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
-        }
-    }
-</script>
