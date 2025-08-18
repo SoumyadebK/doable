@@ -204,6 +204,13 @@ while (!$executive_data->EOF) {
                                                 while (!$row->EOF) {
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $row->fields['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                                    if ($service_provider->RecordCount() > 0) {
+                                                        while (!$service_provider->EOF) {
+                                                            $teacher = $service_provider->fields['TEACHER'];
+                                                        $service_provider->MoveNext();
+                                                        }
+                                                    }
+                                                    $enrollment_balance = $row->fields['TOTAL_AMOUNT'] - $row->fields['AMOUNT'];
                                                     $total_amount += $row->fields['AMOUNT'];
                                                     if ($row->fields['TYPE'] == 'Move') {
                                                         $payment_type = 'Wallet';
@@ -247,47 +254,37 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
                                                         <td style="text-align: right"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
-                                                        <td style="text-align: right">$<?= number_format($row->fields['TOTAL_AMOUNT'] - $row->fields['AMOUNT'], 2) ?></td>
+                                                        <td style="text-align: right">$<?= number_format($enrollment_balance, 2) ?></td>
                                                         <td style="text-align: left"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <?php if ($service_provider->RecordCount() > 0) {
-                                                            while (!$service_provider->EOF) { ?>
-                                                                <td style="text-align: left"><?= $service_provider->fields['TEACHER'] ?></td>
-                                                        <?php $service_provider->MoveNext();
-                                                            }
-                                                        } ?>
+                                                        <td style="text-align: left"><?= $teacher ?></td>
                                                         <td></td>
                                                     </tr>
                                                     <?php if ($row->fields['TYPE'] == 'Refund') { 
                                                         $total_refund += $row->fields['AMOUNT'];?>
                                                         <tr>
-                                                        <td style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right">$<?= $row->fields['AMOUNT'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])) ?></td>
+                                                        <td style="text-align: right; color: red">$<?= $row->fields['AMOUNT'] ?></td>
                                                         <?php if ($row->fields['PAYMENT_TYPE'] == 'Cash') { ?>
-                                                            <td style="text-align: left"><?= $row->fields['TYPE'] ?></td>
+                                                            <td style="text-align: left; color: red"><?= $row->fields['TYPE'] ?></td>
                                                         <?php } else { ?>
-                                                            <td style="text-align: left"><?= '(Refund) '.$payment_type ?></td>
+                                                            <td style="text-align: left; color: red"><?= '(Refund) '.$payment_type ?></td>
                                                         <?php } ?>
-                                                        <td style="text-align: center"><?= $row->fields['PAYMENT_TYPE'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $row->fields['PAYMENT_TYPE'] ?></td>
                                                         <?php if ($row->fields['PAYMENT_TYPE'] == 'Credit Card' || $row->fields['PAYMENT_TYPE'] == 'Visa' || $row->fields['PAYMENT_TYPE'] == 'Master Card' || $row->fields['PAYMENT_TYPE'] == 'American Express' || $row->fields['PAYMENT_TYPE'] == 'Card' || $row->fields['PAYMENT_TYPE'] == 'Card On File') { ?>
-                                                            <td style="text-align: center"><?= $row->fields['PAYMENT_TYPE'] ?></td>
+                                                            <td style="text-align: center; color: red"><?= $row->fields['PAYMENT_TYPE'] ?></td>
                                                         <?php } else { ?>
-                                                            <td style="text-align: center"></td>
+                                                            <td style="text-align: center; color: red"></td>
                                                         <?php } ?>
-                                                        <td style="text-align: right"><?= $row->fields['RECEIPT_NUMBER'] ?></td>
-                                                        <td style="text-align: left"><?= $row->fields['MEMO'] ?></td>
-                                                        <td style="text-align: left"><?= $row->fields['CLIENT'] ?></td>
-                                                        <td style="text-align: left"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
-                                                        <td style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
-                                                        <td style="text-align: right">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
-                                                        <td style="text-align: right">$<?= number_format($row->fields['TOTAL_AMOUNT'] - $row->fields['AMOUNT'], 2) ?></td>
-                                                        <td style="text-align: left"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <?php if ($service_provider->RecordCount() > 0) {
-                                                            while (!$service_provider->EOF) { ?>
-                                                                <td style="text-align: left"><?= $service_provider->fields['TEACHER'] ?></td>
-                                                        <?php $service_provider->MoveNext();
-                                                            }
-                                                        } ?>
+                                                        <td style="text-align: right; color: red"><?= $row->fields['RECEIPT_NUMBER'] ?></td>
+                                                        <td style="text-align: left; color: red"><?= $row->fields['MEMO'] ?></td>
+                                                        <td style="text-align: left; color: red"><?= $row->fields['CLIENT'] ?></td>
+                                                        <td style="text-align: left; color: red"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
+                                                        <td style="text-align: right; color: red"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
+                                                        <td style="text-align: right; color: red">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
+                                                        <td style="text-align: right; color: red">$<?= number_format($enrollment_balance + $row->fields['AMOUNT'], 2) ?></td>
+                                                        <td style="text-align: left; color: red"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
+                                                        <td style="text-align: left; color: red"><?= $teacher ?></td>
                                                         <td></td>
                                                     </tr>
                                                     <?php } ?>
