@@ -1936,7 +1936,7 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="p-20">
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <h5 style="margin-top: 20px;">Credit Card</h5>
+                                                                    <h5 style="margin-top: 20px;">Credit Card <i id="credit_card_loader" class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></h5>
                                                                 </div>
                                                             </div>
                                                             <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
@@ -3321,6 +3321,7 @@ if ($PK_USER_MASTER > 0) {
             },
             success: function(data) {
                 $('#saved_credit_card_list').slideDown().html(data);
+                $('#credit_card_loader').hide();
                 addCreditCard();
             }
         });

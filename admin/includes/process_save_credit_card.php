@@ -83,6 +83,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
         echo json_encode($RETURN_DATA);
     } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
         $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $PK_USER);
+        $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
 
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
@@ -132,6 +133,16 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
             try {
                 $customerProfile = new AnetAPI\CustomerProfileType();
                 $customerProfile->setMerchantCustomerId("USER_ID_" . $PK_USER);
+                $customerProfile->setEmail($user_data->fields['EMAIL_ID']);
+
+                // Add billing info
+                $billTo = new AnetAPI\CustomerAddressType();
+                $billTo->setFirstName($user_data->fields['FIRST_NAME']);
+                $billTo->setLastName($user_data->fields['LAST_NAME']);
+                $billTo->setZip($user_data->fields['ZIP']);
+                $billTo->setCountry("US");
+                $paymentProfile->setBillTo($billTo);
+
                 $customerProfile->setPaymentProfiles([$paymentProfile]);
 
                 $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
