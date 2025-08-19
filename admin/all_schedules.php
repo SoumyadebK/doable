@@ -889,7 +889,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() - 1);
-                                renderCalendar(todayDate);
+                                //renderCalendar(todayDate);
                                 calendar.gotoDate(todayDate);
                             } else {
                                 calendar.prev();
@@ -901,7 +901,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() + 1);
-                                renderCalendar(todayDate);
+                                //renderCalendar(todayDate);
                                 calendar.gotoDate(todayDate);
                             } else {
                                 calendar.next();
@@ -912,7 +912,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         text: 'Today',
                         click: function() {
                             todayDate = new Date();
-                            renderCalendar(todayDate);
+                            //renderCalendar(todayDate);
                             calendar.gotoDate(todayDate);
                         }
                     }
@@ -992,6 +992,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     });
                 },
                 events: function(info, successCallback, failureCallback) {
+                    $('#day-count').html('<i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i>');
+                    $('#week-count').html('<i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i>');
                     let STATUS_CODE = $('#STATUS_CODE').val();
                     let APPOINTMENT_TYPE = $('#APPOINTMENT_TYPE').val();
 
