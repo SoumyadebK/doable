@@ -300,6 +300,14 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
 
 if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointment_type == '') {
     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
+
+    while ($conn_account->more_results() && $conn_account->next_result()) {
+        $result = $conn_account->use_result();
+        if ($result instanceof mysqli_result) {
+            $result->free();
+        }
+    }
+
     $paid_session = 0;
     $service_code_array = [];
     while (!$appointment_data->EOF) {
