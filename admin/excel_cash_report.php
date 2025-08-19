@@ -116,10 +116,15 @@ $objPHPExcel->getActiveSheet()->getStyle('A2:K2')->applyFromArray($styleArray);
 $rowNumber = 5; // Start data at row 4
 $borderRows = [];
 $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") ".$payment_date);
+    $total_refund = 0; // Reset for each service provider
+    $total_portion = 0;
     while (!$each_service_provider->EOF) {
-        $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$each_service_provider->fields['SERVICE_PROVIDER_ID']);
-        $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
-        $total_portion = 0; // Initialize sum variable here
+    $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$each_service_provider->fields['SERVICE_PROVIDER_ID']);
+    $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
+    
+    // Initialize totals for EACH service provider
+    $total_portion = 0;
+    $total_refund = 0;
 
     // Write service provider name (merged across all columns)
     $objPHPExcel->getActiveSheet()
@@ -128,7 +133,7 @@ $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SE
     
     // Style the service provider name with borders
     $objPHPExcel->getActiveSheet()
-        ->getStyle('A'.$rowNumber.':K'.$rowNumber) // Apply to all merged cells
+        ->getStyle('A'.$rowNumber.':K'.$rowNumber)
         ->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -146,6 +151,7 @@ $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SE
         ]);
     
     $rowNumber++; // Move to next row for headers
+    $borderRows[] = $rowNumber; // Add header row to border array
 
     // Write headers
     $objPHPExcel->getActiveSheet()
@@ -174,90 +180,107 @@ $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SE
         ->getStyle('A'.$rowNumber.':K'.$rowNumber)
         ->applyFromArray($headerStyle);
 
-    // Add header row to border array
-    $borderRows[] = $rowNumber;
     $rowNumber++;
 
-    $row = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id_per_table.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
-    while (!$row->EOF) {
-        $sessions = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-        $units = $sessions->fields['NUMBER_OF_SESSION'] ?? 0;
-        $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$row->fields['SERVICE_PROVIDER_ID']);
-        $portion = $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
-        $total_portion += $portion; // Add to the sum
+    $row = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id_per_table.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
     
-        // Write data row
+    while (!$row->EOF) {
+    $sessions = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
+    $units = $sessions->fields['NUMBER_OF_SESSION'] ?? 0;
+    $portion = $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+    
+    // Calculate portion and add to total
+    $total_portion += $portion;
+    
+    // Check if it's a refund and add to refund total
+    if ($row->fields['TYPE'] == 'Refund') {
+        $total_refund += $portion;
+    }
+
+    // Write data row - REGULAR PAYMENT
+    $objPHPExcel->getActiveSheet()
+        ->setCellValue('A'.$rowNumber, $row->fields['RECEIPT_NUMBER'])
+        ->setCellValue('B'.$rowNumber, date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])))
+        ->setCellValue('C'.$rowNumber, '$'.$row->fields['AMOUNT'])
+        ->setCellValue('D'.$rowNumber, $row->fields['CLIENT'])
+        ->setCellValue('E'.$rowNumber, $row->fields['PAYMENT_TYPE'])
+        ->setCellValue('F'.$rowNumber, $row->fields['ENROLLMENT_ID'])
+        ->setCellValue('G'.$rowNumber, $row->fields['ENROLLMENT_NAME'])
+        ->setCellValue('H'.$rowNumber, $units.'/$'.$row->fields['TOTAL_AMOUNT'])
+        ->setCellValue('I'.$rowNumber, '$'.number_format($portion, 2))
+        ->setCellValue('J'.$rowNumber, number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0))
+        ->setCellValue('K'.$rowNumber, ' ');
+        
+    // Apply center alignment
+    $objPHPExcel->getActiveSheet()
+        ->getStyle('A'.$rowNumber.':J'.$rowNumber)
+        ->getAlignment()
+        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+    // Apply specific right alignment to columns C and I
+    $objPHPExcel->getActiveSheet()
+        ->getStyle('C'.$rowNumber)
+        ->getAlignment()
+        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+        
+    $objPHPExcel->getActiveSheet()
+        ->getStyle('I'.$rowNumber)
+        ->getAlignment()
+        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+    
+    // Add data row to border array
+    $borderRows[] = $rowNumber;
+    $rowNumber++; // MOVE TO NEXT ROW FOR REFUND DATA
+
+    // If it's a refund, create a SECOND ROW with refund details
+    if ($row->fields['TYPE'] == 'Refund') {
         $objPHPExcel->getActiveSheet()
             ->setCellValue('A'.$rowNumber, $row->fields['RECEIPT_NUMBER'])
             ->setCellValue('B'.$rowNumber, date('m-d-Y', strtotime($row->fields['PAYMENT_DATE'])))
             ->setCellValue('C'.$rowNumber, '$'.$row->fields['AMOUNT'])
             ->setCellValue('D'.$rowNumber, $row->fields['CLIENT'])
-            ->setCellValue('E'.$rowNumber, $row->fields['PAYMENT_TYPE'])
+            ->setCellValue('E'.$rowNumber, '(Refund) '.$row->fields['PAYMENT_TYPE'])
             ->setCellValue('F'.$rowNumber, $row->fields['ENROLLMENT_ID'])
             ->setCellValue('G'.$rowNumber, $row->fields['ENROLLMENT_NAME'])
             ->setCellValue('H'.$rowNumber, $units.'/$'.$row->fields['TOTAL_AMOUNT'])
-            ->setCellValue('I'.$rowNumber, '$'.number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2))
+            ->setCellValue('I'.$rowNumber, '$'.number_format($portion, 2))
             ->setCellValue('J'.$rowNumber, number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0))
-            ->setCellValue('K'.$rowNumber, ' '); // Assuming you want to leave this column empty for comments/remarks
+            ->setCellValue('K'.$rowNumber, ' ');
+
+        // Set the entire refund row's font color to red
+        $objPHPExcel->getActiveSheet()
+            ->getStyle('A'.$rowNumber.':K'.$rowNumber)
+            ->getFont()
+            ->setColor(new PHPExcel_Style_Color(PHPExcel_Style_Color::COLOR_RED));
             
-        // Apply right alignment to the Amount column (A)
+        // Apply center alignment to refund row
         $objPHPExcel->getActiveSheet()
-            ->getStyle('A'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);        
-        // Apply right alignment to the Units/Total Cost column (H)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('B'.$rowNumber)
+            ->getStyle('A'.$rowNumber.':J'.$rowNumber)
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the Portion column (C)
+
+        // Apply specific right alignment to columns C and I in refund row
         $objPHPExcel->getActiveSheet()
             ->getStyle('C'.$rowNumber)
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-        // Apply right alignment to the Student Name column (D)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('D'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the Type column (E)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('E'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the ENR ID column (F)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('F'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the Enrollment column (G)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('G'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the Paid column (H)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('H'.$rowNumber)          
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        // Apply right alignment to the Portion column (I)
+            
         $objPHPExcel->getActiveSheet()
             ->getStyle('I'.$rowNumber)
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-        // Apply right alignment to the Percentage column (J)
-        $objPHPExcel->getActiveSheet()
-            ->getStyle('J'.$rowNumber)
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         
-        // Add data row to border array
+        // Add refund row to border array
         $borderRows[] = $rowNumber;
-        $rowNumber++;
-        $row->MoveNext();
+        $rowNumber++; // MOVE TO NEXT ROW AFTER REFUND
     }
+    
+    $row->MoveNext();
+}
+    
+    // Add total row
     $objPHPExcel->getActiveSheet()
-    ->setCellValue('I'.$rowNumber, '$'.number_format($total_portion, 2));
+        ->setCellValue('I'.$rowNumber, '$'.number_format($total_portion - $total_refund, 2));
 
     // Apply styling to the total portion cell
     $objPHPExcel->getActiveSheet()
@@ -277,10 +300,11 @@ $each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SE
             ]
         ]);
 
-        // Add blank row between customers
-        $rowNumber++;
-        $rowNumber++;
-$each_service_provider->MoveNext();
+    $borderRows[] = $rowNumber;
+
+    // Add blank rows between service providers
+    $rowNumber += 2;
+    $each_service_provider->MoveNext();
 }
 
 
