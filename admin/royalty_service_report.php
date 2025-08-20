@@ -51,7 +51,6 @@ $PAYMENT_QUERY = "SELECT
                 LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
                     ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
                 WHERE CUSTOMER.IS_DELETED = 0 
-                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' 
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) 
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                     AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) 
