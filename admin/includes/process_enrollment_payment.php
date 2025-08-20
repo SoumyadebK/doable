@@ -556,7 +556,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
                     if ($tresponse != null && $tresponse->getMessages() != null) {
                         $PAYMENT_STATUS = 'Success';
-                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getLs()];
                         $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                     } else {
                         $PAYMENT_STATUS = 'Failed';
