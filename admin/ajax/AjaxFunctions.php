@@ -2539,7 +2539,12 @@ function moveToWallet($RESPONSE_DATA): void
             $request->setTransactionRequest($transactionRequest);
 
             $controller = new AnetController\CreateTransactionController($request);
-            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+            if ($GATEWAY_MODE == 'test') {
+                $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+            } else {
+                $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+            }
 
             if ($response != null) {
                 $tresponse = $response->getTransactionResponse();
