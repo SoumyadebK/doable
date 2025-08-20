@@ -108,7 +108,8 @@ foreach ($resultsArray as $key => $result) {
                                 while (!$each_service_provider->EOF) {
                                     $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$each_service_provider->fields['SERVICE_PROVIDER_ID']);
                                     $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
-                                    $total_portion = 0; // Initialize sum variable here
+                                    $total_portion = 0; 
+                                    $total_refund = 0; 
                                     ?>
 
                                 <div class="table-responsive">
@@ -136,7 +137,7 @@ foreach ($resultsArray as $key => $result) {
                                         <tbody>
                                         <?php
                                         
-                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id_per_table.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
+                                        $row = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID, DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_PERCENTAGE, DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_ID, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (".$service_provider_id_per_table.") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
                                         while (!$row->EOF) {
                                             $sessions = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
                                             $units = $sessions->fields['NUMBER_OF_SESSION'] ?? 0;
@@ -157,11 +158,27 @@ foreach ($resultsArray as $key => $result) {
                                                 <td style="text-align: center"><?=number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0)?></td>
                                                 <td style="text-align: center"></td>
                                             </tr>
+                                            <?php if ($row->fields['TYPE'] == 'Refund') { 
+                                                $total_refund += $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);?>
+                                                <tr>
+                                                    <td style="text-align: center; color: red"><?=$row->fields['RECEIPT_NUMBER']?></td>
+                                                    <td style="text-align: center; color: red"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
+                                                    <td style="text-align: center; color: red">$<?=$row->fields['AMOUNT']?></td>
+                                                    <td style="text-align: center; color: red"><?=$row->fields['CLIENT']?></td>
+                                                    <td style="text-align: center; color: red"><?='(Refund) '.$row->fields['PAYMENT_TYPE']?></td>
+                                                    <td style="text-align: center; color: red"><?=$row->fields['ENROLLMENT_ID']?></td>
+                                                    <td style="text-align: center; color: red"><?=$row->fields['ENROLLMENT_NAME']?></td>
+                                                    <td style="text-align: center; color: red"><?=$units.'/$'.$row->fields['TOTAL_AMOUNT']?></td>
+                                                    <td style="text-align: center; color: red">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
+                                                    <td style="text-align: center; color: red"><?=number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0)?></td>
+                                                    <td style="text-align: center; color: red"></td>
+                                                </tr>
+                                            <?php } ?>
                                             <?php $row->MoveNext();
                                             } ?>
                                             <tr>
                                                 <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
-                                                <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion, 2) ?></th>
+                                                <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion -$total_refund, 2) ?></th>
                                                 <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>                                                
                                             </tr>
                                         </tbody>
