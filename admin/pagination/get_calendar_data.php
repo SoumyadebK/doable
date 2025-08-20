@@ -319,6 +319,21 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $customerName = $appointment_data->fields['CUSTOMER_NAME'];
         $partnerName = '';
 
+        if ($appointment_data->fields['APPOINTMENT_TYPE'] != 'GROUP') {
+            $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+            $ATTENDING_WITH = '';
+            $PARTNER_FIRST_NAME = '';
+            $PARTNER_LAST_NAME = '';
+            if ($customer_details->RecordCount() > 0) {
+                $ATTENDING_WITH = $customer_details->fields['ATTENDING_WITH'];
+                $PARTNER_FIRST_NAME = $customer_details->fields['PARTNER_FIRST_NAME'];
+                $PARTNER_LAST_NAME = $customer_details->fields['PARTNER_LAST_NAME'];
+            }
+            if ($ATTENDING_WITH == 'With a Partner') {
+                $customerName .= ' & ' . $PARTNER_FIRST_NAME . ' ' . $PARTNER_LAST_NAME;
+            }
+        }
+
         if ($appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
             $PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
             $SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];

@@ -244,8 +244,6 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
-$partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$selected_customer_id'");
-
 $res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
 if ($res->RecordCount() == 0) {
@@ -283,13 +281,15 @@ if ($user_interest_other_data->RecordCount() > 0) {
 }
 
 $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
-if ($customer_data->RecordCount() > 0) {
+if ($customer_details->RecordCount() > 0) {
     $PK_CUSTOMER_DETAILS = $customer_details->fields['PK_CUSTOMER_DETAILS'];
     $CALL_PREFERENCE = $customer_details->fields['CALL_PREFERENCE'];
     $REMINDER_OPTION = $customer_details->fields['REMINDER_OPTION'];
     $ATTENDING_WITH = $customer_details->fields['ATTENDING_WITH'];
     $PARTNER_FIRST_NAME = $customer_details->fields['PARTNER_FIRST_NAME'];
     $PARTNER_LAST_NAME = $customer_details->fields['PARTNER_LAST_NAME'];
+    $PARTNER_PHONE = $customer_details->fields['PARTNER_PHONE'];
+    $PARTNER_EMAIL = $customer_details->fields['PARTNER_EMAIL'];
     $PARTNER_GENDER = $customer_details->fields['PARTNER_GENDER'];
     $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
 }
@@ -410,24 +410,24 @@ if ($PK_USER_MASTER > 0) {
                         </div>
                     </div>
                 </div>
-                <?php if ($partner_data->RecordCount() > 0 && $partner_data->fields['ATTENDING_WITH'] == 'With a Partner') { ?>
+                <?php if ($ATTENDING_WITH == 'With a Partner') { ?>
                     <div class="row" style="margin-top: -25px;">
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Partner Name: </label>
-                                <p><?= $partner_data->fields['PARTNER_FIRST_NAME'] ?> <?= $partner_data->fields['PARTNER_LAST_NAME'] ?></p>
+                                <p><?= $PARTNER_FIRST_NAME ?> <?= $PARTNER_LAST_NAME ?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Phone: </label>
-                                <p><?= $partner_data->fields['PARTNER_PHONE'] ?></p>
+                                <p><?= $PARTNER_PHONE ?></p>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="form-group">
                                 <label class="form-label">Email: </label>
-                                <p><?= $partner_data->fields['PARTNER_EMAIL'] ?></p>
+                                <p><?= $PARTNER_EMAIL ?></p>
                             </div>
                         </div>
                     </div>

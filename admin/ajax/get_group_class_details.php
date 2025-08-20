@@ -261,14 +261,17 @@ while (!$customer_update_data->EOF) {
                             <?php $row->MoveNext();
                             } ?>
 
-                            <input type="hidden" name="EXISTING_CUSTOMER" value="<?= implode(',', $selected_customer) ?>">
-                            <input type="hidden" name="EXISTING_PARTNER" value="<?= implode(',', $selected_partner) ?>">
-                            <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER">
-                            <input type="hidden" name="PARTNER" id="PARTNER">
+
                         </ul>
 
                     </div>
                     <p><?= $customer_name; ?></p>
+
+                    <input type="hidden" name="EXISTING_CUSTOMER" value="<?= implode(',', $selected_customer) ?>">
+                    <input type="hidden" name="EXISTING_PARTNER" value="<?= implode(',', $selected_partner) ?>">
+                    <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?= implode(',', $selected_customer) ?>">
+                    <input type="hidden" name="PARTNER" id="PARTNER" value="<?= implode(',', $selected_partner) ?>">
+
                 </div>
             </div>
             <div class="row">
