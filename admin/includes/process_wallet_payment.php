@@ -1,4 +1,5 @@
 <?php
+
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\StripeClient;
@@ -8,7 +9,7 @@ require_once("../../global/stripe-php-master/init.php");
 global $db;
 global $db_account;
 
-$header = '../'.$_POST['header'];
+$header = '../' . $_POST['header'];
 
 $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -26,7 +27,7 @@ if ($SQUARE_MODE == 1)
 else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";*/
 
-if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
+if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
     $RECEIPT_NUMBER = generateReceiptNumber(0);
 
     $PAYMENT_INFO = 'Payment Done';
@@ -50,9 +51,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                 try {
                     $customer = $stripe->customers->create([
                         'email' => $user_master->fields['EMAIL_ID'],
-                        'name' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                        'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                         'phone' => $user_master->fields['PHONE'],
-                        'description' => $user_master->fields['FIRST_NAME']." ".$user_master->fields['LAST_NAME'],
+                        'description' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]);
                     $CUSTOMER_PAYMENT_ID = $customer->id;
                 } catch (ApiErrorException $e) {
@@ -73,9 +74,9 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                 $charge = \Stripe\Charge::create(array(
                     "amount" => $AMOUNT * 100,
                     "currency" => "usd",
-                    "description" => "Receipt# ".$RECEIPT_NUMBER,
+                    "description" => "Receipt# " . $RECEIPT_NUMBER,
                     "customer" => $CUSTOMER_PAYMENT_ID,
-                    "statement_descriptor" => "Receipt# ".$RECEIPT_NUMBER,
+                    "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER,
                 ));
 
                 $LAST4 = $charge->payment_method_details->card->last4;
@@ -115,6 +116,7 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+        $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
 
         $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
         $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
@@ -126,6 +128,8 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
             $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
             $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
         }
+        $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
+        $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
         $PAYMENT_DATA['TYPE'] = $TYPE;
         $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
         $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
@@ -135,7 +139,6 @@ if(!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
         $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
 
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
     }
-    header('location:'.$header);
+    header('location:' . $header);
 }

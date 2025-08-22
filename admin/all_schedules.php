@@ -724,13 +724,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
                 let currentDate = new Date(redirect_date);
-                calendar.gotoDate(currentDate);
+                //calendar.gotoDate(currentDate);
 
-                /* let day = currentDate.getDate();
+                let day = currentDate.getDate();
                 let month = currentDate.getMonth() + 1;
                 let year = currentDate.getFullYear();
 
-                calendar.gotoDate(month + '/' + day + '/' + year); */
+                calendar.gotoDate(month + '/' + day + '/' + year);
             }
         });
 
@@ -986,8 +986,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             }
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
-                            alert(xhr.status);
-                            alert(thrownError);
+                            console.log(xhr.status);
+                            console.log(thrownError);
                         }
                     });
                 },
@@ -1022,8 +1022,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             successCallback(result);
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
-                            alert(xhr.status);
-                            alert(thrownError);
+                            console.log(xhr.status);
+                            console.log(thrownError);
                         }
                     });
                 },
@@ -1418,7 +1418,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 let month = currentDate.getMonth() + 1;
                 let year = currentDate.getFullYear();
 
-                renderCalendar(currentDate);
+                //renderCalendar(currentDate);
                 calendar.gotoDate(month + '/' + day + '/' + year);
 
                 todayDate = currentDate;

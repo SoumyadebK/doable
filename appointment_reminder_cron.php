@@ -3,20 +3,19 @@
 use Twilio\Rest\Client;
 
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
-    date_default_timezone_set('Asia/Kolkata');
     require_once("global/config.php");
     require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
 } else {
-    date_default_timezone_set('Pacific/Honolulu');
     require_once("/var/www/html/global/config.php");
     require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
 }
 
-$currentHour = (int)date('G');
-if ($currentHour > 7 || $currentHour < 21) {
-    global $db;
-    $all_location = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_LOCATION LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.TEXTING_FEATURE_ENABLED = 1 AND DOA_LOCATION.APPOINTMENT_REMINDER = 1");
-    while (!$all_location->EOF) {
+global $db;
+$all_location = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.TEXTING_FEATURE_ENABLED = 1 AND DOA_LOCATION.APPOINTMENT_REMINDER = 1");
+while (!$all_location->EOF) {
+    date_default_timezone_set($all_location->fields['TIMEZONE']);
+    $currentHour = (int)date('G');
+    if ($currentHour > 7 || $currentHour < 21) {
         $DB_NAME = $all_location->fields['DB_NAME'];
         $db1 = new queryFactory();
         if ($_SERVER['HTTP_HOST'] == 'localhost') {
@@ -62,6 +61,6 @@ if ($currentHour > 7 || $currentHour < 21) {
 
             $APPOINTMENT_DATA->MoveNext();
         }
-        $all_location->MoveNext();
     }
+    $all_location->MoveNext();
 }

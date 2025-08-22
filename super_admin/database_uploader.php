@@ -899,6 +899,7 @@ if (!empty($_POST)) {
                             $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
                             $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
                             $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                            $ENROLLMENT_PAYMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
                             $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
                             $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
                             $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
@@ -1421,6 +1422,7 @@ if (!empty($_POST)) {
                         $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
                         $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
                         $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                        $ENROLLMENT_PAYMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
                         $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
                         $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
                         $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
@@ -1491,6 +1493,7 @@ if (!empty($_POST)) {
                     $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
                     $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
                     $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                    $ENROLLMENT_PAYMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
                     $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
                     $ENROLLMENT_PAYMENT_DATA['NOTE'] = $enrollment_payment->fields['title'];
