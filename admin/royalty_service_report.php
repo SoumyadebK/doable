@@ -51,7 +51,6 @@ $PAYMENT_QUERY = "SELECT
                 LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
                     ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
                 WHERE CUSTOMER.IS_DELETED = 0 
-                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' 
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5,7) 
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                     AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) 
@@ -85,6 +84,11 @@ $REFUND_QUERY = "SELECT
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
+if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
+    $business_name = '';
+} else {
+    $business_name = 'Franchisee: '.$business_name;
+}
 
 if ($type === 'export') {
     $access_token = getAccessToken();
@@ -305,7 +309,7 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
@@ -466,7 +470,7 @@ foreach ($resultsArray as $key => $result) {
                                                         <?php
                                                         if ($i < $total_record) { ?>
                                                             <tr>
-                                                                <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name ?></th>
+                                                                <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                                                 <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                                                 <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                             </tr>
@@ -510,7 +514,7 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <tbody>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name ?></th>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name ?></th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
