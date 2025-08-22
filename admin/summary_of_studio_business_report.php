@@ -40,6 +40,11 @@ $last_day_of_week_previous_year = date('Y-m-d', strtotime($first_day_of_week_pre
 
 $res = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
+    $business_name = '';
+} else {
+    $business_name = 'Franchisee: '.$business_name;
+}
 
 if ($type === 'export') {
     $access_token = getAccessToken();
@@ -406,7 +411,7 @@ if ($type === 'export') {
                                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $yearly_interview_renewal_count[0] ?? 0 ?></th>
                                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $yearly_interview_renewal_count[1] ?? 0 ?></th>
                                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $group_data_yearly->fields['GROUP_COUNT'] . " [" . $group_data_yearly->fields['GROUP_COUNT'] . "]" ?></th>
-                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[0] ?> Intv(front)</th>
+                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[0] ?? 0 ?> Intv(front)</th>
                                                 </tr>
                                                 <tr>
                                                     <?php
@@ -432,12 +437,12 @@ if ($type === 'export') {
                                                     ?>
                                                     <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold; border-left: 1px solid black; border-bottom: 1px solid black;">PREV</th>
                                                     <th style="width:10%; text-align: center; border-bottom: 1px solid black; font-weight: normal !important"><?= $prev_year_customer_count + $prev_year_leads_data->fields['LEADS_COUNT'] ?></th>
-                                                    <th style="width:10%; text-align: center; border-bottom: 1px solid black; font-weight: normal !important"><?= $prev_year_booked_data->fields['BOOKED_COUNT'] ?></th>
-                                                    <th style="width:10%; text-align: center; border-bottom: 1px solid black; font-weight: normal !important; border-right: 1px solid black;"><?= $prev_year_showed_data->fields['SHOWED_COUNT'] ?></th>
-                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[0] ?></th>
-                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[1] ?></th>
+                                                    <th style="width:10%; text-align: center; border-bottom: 1px solid black; font-weight: normal !important"><?= $prev_year_booked_data->fields['BOOKED_COUNT'] ?? 0 ?></th>
+                                                    <th style="width:10%; text-align: center; border-bottom: 1px solid black; font-weight: normal !important; border-right: 1px solid black;"><?= $prev_year_showed_data->fields['SHOWED_COUNT'] ?? 0 ?></th>
+                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[0] ?? 0 ?></th>
+                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $prev_year_interview_renewal_count[1] ?? 0 ?></th>
                                                     <th style="width:10%; text-align: center; font-weight: normal !important"><?= $group_data_prev_year->fields['GROUP_COUNT'] . " [" . $group_data_prev_year->fields['GROUP_COUNT'] . "]" ?></th>
-                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[1] ?> Ren(back)</th>
+                                                    <th style="width:10%; text-align: center; font-weight: normal !important"><?= $active_interview_renewal_count[1] ?? 0 ?> Ren(back)</th>
                                                 </tr>
                                             </thead>
                                         </table>
