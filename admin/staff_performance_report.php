@@ -121,7 +121,7 @@ foreach ($resultsArray as $key => $result) {
     }
 }
 
-$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER > 0 $enrollment_date");
+$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ENROLLMENT_MASTER > 0 $enrollment_date");
 $executive_id = [];
 while (!$executive_data->EOF) {
     $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
