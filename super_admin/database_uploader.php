@@ -450,8 +450,9 @@ if (!empty($_POST)) {
             $allServices = getAllServices();
             while (!$allServices->EOF) {
                 $service_name = $allServices->fields['service_name'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name'");
+                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
                 if ($table_data->RecordCount() == 0) {
+                    $SERVICE['PK_LOCATION'] = $PK_LOCATION;
                     $SERVICE['SERVICE_NAME'] = $allServices->fields['service_name'];
                     if (strpos($SERVICE['SERVICE_NAME'], 'Miscellaneous') !== false) {
                         $SERVICE['PK_SERVICE_CLASS'] = 5;
@@ -469,6 +470,7 @@ if (!empty($_POST)) {
                     $PK_SERVICE_MASTER = $db_account->insert_ID();
 
                     $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                    $SERVICE_CODE['PK_LOCATION'] = $PK_LOCATION;
                     $SERVICE_CODE['SERVICE_CODE'] = $allServices->fields['service_id'];
                     //$SERVICE_CODE['PK_FREQUENCY'] = 0;
                     $SERVICE_CODE['DESCRIPTION'] = $allServices->fields['service_name'];
@@ -491,6 +493,10 @@ if (!empty($_POST)) {
                     db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
                 } else {
                     $PK_SERVICE_MASTER = $table_data->fields['PK_SERVICE_MASTER'];
+
+                    $UPDATE_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_SERVICE_MASTER', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = $PK_SERVICE_MASTER");
+                    db_perform_account('DOA_SERVICE_CODE', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = $PK_SERVICE_MASTER");
                 }
 
                 $service_location_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_LOCATION WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
@@ -508,9 +514,10 @@ if (!empty($_POST)) {
             $allSchedulingCodes = getAllSchedulingCodes();
             while (!$allSchedulingCodes->EOF) {
                 $scheduling_code = $allSchedulingCodes->fields['booking_code'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$scheduling_code' AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
+                $table_data = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$scheduling_code' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL) AND PK_ACCOUNT_MASTER='$PK_ACCOUNT_MASTER'");
                 if ($table_data->RecordCount() == 0) {
                     $SCHEDULING_CODE['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+                    $SCHEDULING_CODE['PK_LOCATION'] = $PK_LOCATION;
                     $SCHEDULING_CODE['SCHEDULING_CODE'] = $scheduling_code;
                     $SCHEDULING_CODE['SCHEDULING_NAME'] = $allSchedulingCodes->fields['booking_name'];
                     $SCHEDULING_CODE['PK_SCHEDULING_EVENT'] = 1;
@@ -530,7 +537,25 @@ if (!empty($_POST)) {
                     $PK_SCHEDULING_CODE = $db_account->insert_ID();
 
                     $service_code = $allSchedulingCodes->fields['service_id'];
-                    $serviceCodeData = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$service_code'");
+                    $serviceCodeData = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+
+                    /* $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_SCHEDULING_CODE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
+                    $SERVICE_SCHEDULING_CODE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                    db_perform_account('DOA_SERVICE_SCHEDULING_CODE', $SERVICE_SCHEDULING_CODE, 'insert'); */
+
+                    $SCHEDULING_SERVICE['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+                    $SCHEDULING_SERVICE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
+                    $SCHEDULING_SERVICE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
+                    db_perform_account('DOA_SCHEDULING_SERVICE', $SCHEDULING_SERVICE, 'insert');
+                } else {
+                    $PK_SCHEDULING_CODE = $table_data->fields['PK_SCHEDULING_CODE'];
+
+                    $UPDATE_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_SCHEDULING_CODE', $UPDATE_DATA, 'update', " PK_SCHEDULING_CODE = $PK_SCHEDULING_CODE");
+
+                    $service_code = $allSchedulingCodes->fields['service_id'];
+                    $serviceCodeData = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE FROM DOA_SERVICE_CODE WHERE SERVICE_CODE = '$service_code' AND PK_LOCATION = '$PK_LOCATION'");
 
                     /* $SERVICE_SCHEDULING_CODE['PK_SERVICE_MASTER'] = $serviceCodeData->fields['PK_SERVICE_MASTER'];
                     $SERVICE_SCHEDULING_CODE['PK_SERVICE_CODE'] = $serviceCodeData->fields['PK_SERVICE_CODE'];
@@ -567,8 +592,9 @@ if (!empty($_POST)) {
             $allPackages = getAllPackages();
             while (!$allPackages->EOF) {
                 $package_name = $allPackages->fields['package_name'];
-                $table_data = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name'");
+                $table_data = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
                 if ($table_data->RecordCount() == 0) {
+                    $PACKAGE_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $PACKAGE_DATA['PACKAGE_NAME'] = $allPackages->fields['package_name'];
                     $PACKAGE_DATA['SORT_ORDER'] = $allPackages->fields['sorder'];
                     $PACKAGE_DATA['EXPIRY_DATE'] = 30;
@@ -586,7 +612,7 @@ if (!empty($_POST)) {
                     $packageServiceData = getPackageServices($allPackages->fields['package_id']);
                     while (!$packageServiceData->EOF) {
                         $service_code = $packageServiceData->fields['service_id'];
-                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
+                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
                         $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
                         $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
                         $DESCRIPTION = $doableServiceId->fields['DESCRIPTION'];
@@ -612,6 +638,37 @@ if (!empty($_POST)) {
                         $PACKAGE_DATA['ACTIVE'] = ($allPackages->fields['closed'] == 1) ? 0 : 1;
                         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'update', ' PK_PACKAGE = '.$package_data->fields['PK_PACKAGE']);
                     }*/
+                } else {
+                    $PK_PACKAGE = $table_data->fields['PK_PACKAGE'];
+                    $UPDATE_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_PACKAGE', $UPDATE_DATA, 'update', " PK_PACKAGE = $PK_PACKAGE");
+
+                    $PACKAGE_LOCATION_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                    $PACKAGE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                    db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+
+                    $packageServiceData = getPackageServices($allPackages->fields['package_id']);
+                    while (!$packageServiceData->EOF) {
+                        $service_code = $packageServiceData->fields['service_id'];
+                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                        $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                        $DESCRIPTION = $doableServiceId->fields['DESCRIPTION'];
+                        $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                        $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                        $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                        $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $DESCRIPTION;
+                        $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $packageServiceData->fields['quantity'];
+                        $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $packageServiceData->fields['cost'];
+                        $PACKAGE_SERVICE_DATA['TOTAL'] = $packageServiceData->fields['quantity'] * $packageServiceData->fields['cost'];
+                        $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = 0;
+                        $PACKAGE_SERVICE_DATA['DISCOUNT'] = 0;
+                        $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $PACKAGE_SERVICE_DATA['TOTAL'];
+                        $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                        db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+
+                        $packageServiceData->MoveNext();
+                    }
                 }
                 $allPackages->MoveNext();
             }
@@ -678,7 +735,7 @@ if (!empty($_POST)) {
                 $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
 
                 $package_name = getPackageCode($allEnrollments->fields['package_code']);
-                $enrollment_package = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name'");
+                $enrollment_package = $db_account->Execute("SELECT PK_PACKAGE FROM `DOA_PACKAGE` WHERE PACKAGE_NAME = '$package_name' AND PK_LOCATION = '$PK_LOCATION'");
                 if ($enrollment_package->RecordCount() > 0) {
                     $ENROLLMENT_DATA['PK_PACKAGE'] = $enrollment_package->fields['PK_PACKAGE'];
                 } else {
@@ -796,7 +853,7 @@ if (!empty($_POST)) {
                     $PK_ENROLLMENT_MASTER = $doableEnrollmentId->fields['PK_ENROLLMENT_MASTER'];*/
 
                     $service_code = 'NONE';
-                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
+                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
                     $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
                     $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -816,7 +873,7 @@ if (!empty($_POST)) {
                     while (!$allEnrollmentServices->EOF) {
                         $service_code = $allEnrollmentServices->fields['service_id'];
                         $quantity = $allEnrollmentServices->fields['quantity'];
-                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code'");
+                        $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
                         $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
                         $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
                         $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
@@ -982,7 +1039,7 @@ if (!empty($_POST)) {
                 $INSERT_DATA['DESCRIPTION'] = $allSpecialAppointment->fields['appts_comment'];
 
                 $booking_code = $allSpecialAppointment->fields['booking_code'];
-                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code' AND PK_LOCATION = '$PK_LOCATION'");
                 if ($getServiceCodeId->RecordCount() > 0) {
                     $PK_SCHEDULING_CODE = $getServiceCodeId->fields['PK_SCHEDULING_CODE'];
                 } else {
@@ -1042,12 +1099,12 @@ if (!empty($_POST)) {
                     $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
                     $service_id = $allPrivateAppointments->fields['service_id'];
-                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
+                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id' AND PK_LOCATION = '$PK_LOCATION'");
                     $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
                     $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
 
                     $booking_code = $allPrivateAppointments->fields['booking_code'];
-                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                    $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code' AND PK_LOCATION = '$PK_LOCATION'");
                     $PK_SCHEDULING_CODE = ($getServiceCodeId->RecordCount() > 0) ? $getServiceCodeId->fields['PK_SCHEDULING_CODE'] : 0;
 
                     $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER') AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
@@ -1149,12 +1206,12 @@ if (!empty($_POST)) {
                 $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
                 $service_id = $allDemoAppointments->fields['service_id'];
-                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
+                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id' AND PK_LOCATION = '$PK_LOCATION'");
                 $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
                 $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
 
                 $booking_code = $allDemoAppointments->fields['booking_code'];
-                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code' AND PK_LOCATION = '$PK_LOCATION'");
                 $PK_SCHEDULING_CODE = ($getServiceCodeId->RecordCount() > 0) ? $getServiceCodeId->fields['PK_SCHEDULING_CODE'] : 0;
 
                 $DEMO_CLASS_DATA['PK_ENROLLMENT_MASTER'] = 0;
@@ -1225,12 +1282,12 @@ if (!empty($_POST)) {
                 $PK_USER_MASTER = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
 
                 $service_id = $allGroupAppointments->fields['service_id'];
-                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id'");
+                $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_id' AND PK_LOCATION = '$PK_LOCATION'");
                 $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
                 $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
 
                 $booking_code = $allGroupAppointments->fields['booking_code'];
-                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code'");
+                $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$booking_code' AND PK_LOCATION = '$PK_LOCATION'");
                 $PK_SCHEDULING_CODE = ($getServiceCodeId->RecordCount() > 0) ? $getServiceCodeId->fields['PK_SCHEDULING_CODE'] : 0;
 
                 $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC LIMIT 1");
