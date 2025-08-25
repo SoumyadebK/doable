@@ -2573,6 +2573,7 @@ function moveToWallet($RESPONSE_DATA): void
     $PAYMENT_DATA['AMOUNT'] = $BALANCE;
     $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     $PAYMENT_DATA['TYPE'] = $TYPE;
+    $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
     $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
     $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;

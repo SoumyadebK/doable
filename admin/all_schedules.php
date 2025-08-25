@@ -724,13 +724,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
                 let currentDate = new Date(redirect_date);
-                calendar.gotoDate(currentDate);
-
-                /* let day = currentDate.getDate();
-                let month = currentDate.getMonth() + 1;
-                let year = currentDate.getFullYear();
-
-                calendar.gotoDate(month + '/' + day + '/' + year); */
+                renderCalendar(currentDate);
             }
         });
 
@@ -889,8 +883,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() - 1);
-                                //renderCalendar(todayDate);
-                                calendar.gotoDate(todayDate);
+                                renderCalendar(todayDate);
+                                //calendar.gotoDate(todayDate);
                             } else {
                                 calendar.prev();
                             }
@@ -901,8 +895,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() + 1);
-                                //renderCalendar(todayDate);
-                                calendar.gotoDate(todayDate);
+                                renderCalendar(todayDate);
+                                //calendar.gotoDate(todayDate);
                             } else {
                                 calendar.next();
                             }
@@ -912,8 +906,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         text: 'Today',
                         click: function() {
                             todayDate = new Date();
-                            //renderCalendar(todayDate);
-                            calendar.gotoDate(todayDate);
+                            renderCalendar(todayDate);
+                            //calendar.gotoDate(todayDate);
                         }
                     }
                 },
@@ -933,6 +927,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         }
                     }
                 },
+                defaultDate: date,
                 defaultView: 'agendaDay',
                 slotDuration: '<?= $INTERVAL ?>',
                 slotLabelInterval: {
@@ -986,8 +981,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             }
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
-                            alert(xhr.status);
-                            alert(thrownError);
+                            console.log(xhr.status);
+                            console.log(thrownError);
                         }
                     });
                 },
@@ -1022,8 +1017,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             successCallback(result);
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
-                            alert(xhr.status);
-                            alert(thrownError);
+                            console.log(xhr.status);
+                            console.log(thrownError);
                         }
                     });
                 },
@@ -1413,13 +1408,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             if (IS_SELECTED == 1) {
                 let CHOOSE_DATE = $('#CHOOSE_DATE').val();
                 let currentDate = new Date(CHOOSE_DATE);
-
-                let day = currentDate.getDate();
-                let month = currentDate.getMonth() + 1;
-                let year = currentDate.getFullYear();
-
                 renderCalendar(currentDate);
-                calendar.gotoDate(month + '/' + day + '/' + year);
 
                 todayDate = currentDate;
 
