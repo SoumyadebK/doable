@@ -38,7 +38,7 @@ if (!empty($_POST)) {
 
         $service_code = $service_code_data->fields['SERVICE_CODE'];
 
-        $existing_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_LOCATION` = '$location_2' AND `SERVICE_CODE` = '$service_code'");
+        $existing_data = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_LOCATION` = '$location_2' AND `SERVICE_CODE` LIKE '$service_code'");
         $NEW_PK_SERVICE_CODE = $existing_data->fields['PK_SERVICE_CODE'] ?? 0;
         $NEW_PK_SERVICE_MASTER = $existing_data->fields['PK_SERVICE_MASTER'] ?? 0;
 
@@ -55,6 +55,19 @@ if (!empty($_POST)) {
                                     AND S.PK_SERVICE_CODE = $PK_SERVICE_CODE");
 
         $service_code_data->MoveNext();
+    }
+
+    $scheduling_code_data = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `PK_LOCATION` = '$location_1'");
+    while (!$scheduling_code_data->EOF) {
+        $PK_SCHEDULING_CODE = $scheduling_code_data->fields['PK_SCHEDULING_CODE'];
+        $SCHEDULING_CODE = $scheduling_code_data->fields['SCHEDULING_CODE'];
+
+        $existing_data = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `PK_LOCATION` = '$location_2' AND `SCHEDULING_CODE` LIKE '$SCHEDULING_CODE'");
+        $NEW_PK_SCHEDULING_CODE = $existing_data->fields['PK_SCHEDULING_CODE'] ?? 0;
+
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_SCHEDULING_CODE = $NEW_PK_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = $PK_SCHEDULING_CODE AND PK_LOCATION = '$location_2'");
+        $db_account->Execute("UPDATE DOA_SPECIAL_APPOINTMENT SET PK_SCHEDULING_CODE = $NEW_PK_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = $PK_SCHEDULING_CODE AND PK_LOCATION = '$location_2'");
+        $scheduling_code_data->MoveNext();
     }
 }
 ?>

@@ -92,7 +92,7 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.* FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                                            $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
                                             while (!$row->EOF) {
                                                 $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE, DOA_PACKAGE_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_PACKAGE_SERVICE.PK_PACKAGE = " . $row->fields['PK_PACKAGE']);
                                                 $serviceCode = [];
