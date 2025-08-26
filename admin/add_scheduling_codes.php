@@ -16,6 +16,7 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $SCHEDULING_DATA['SCHEDULING_CODE'] = $_POST['SCHEDULING_CODE'];
     $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
+    $SCHEDULING_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     /*$SCHEDULING_DATA['PK_SCHEDULING_EVENT'] = $_POST['PK_SCHEDULING_EVENT'];
     $SCHEDULING_DATA['PK_EVENT_ACTION'] = $_POST['PK_EVENT_ACTION'];*/
     $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'] ? 1 : 0;
@@ -53,6 +54,7 @@ if (!empty($_POST)) {
 if (empty($_GET['id'])) {
     $SCHEDULING_CODE        = '';
     $SCHEDULING_NAME        = '';
+    $PK_LOCATION            = '';
     $UNIT                   = '';
     $PK_SCHEDULING_EVENT    = '';
     $PK_EVENT_ACTION        = '';
@@ -69,6 +71,7 @@ if (empty($_GET['id'])) {
     }
     $SCHEDULING_CODE      = $res->fields['SCHEDULING_CODE'];
     $SCHEDULING_NAME      = $res->fields['SCHEDULING_NAME'];
+    $PK_LOCATION      = $res->fields['PK_LOCATION'];
     $UNIT                 = $res->fields['UNIT'];
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
@@ -132,6 +135,25 @@ if($help->RecordCount() > 0) {
                                     <input type="text" class="form-control" id="SCHEDULING_NAME" name="SCHEDULING_NAME" value="<?php echo $SCHEDULING_NAME ?>" required>
                                     <div class="invalid-feedback">
                                         Enter Scheduling Name
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <label class="form-label">Location</label>
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <select class="form-control PK_LOCATION" name="PK_LOCATION">
+                                                    <option value="">Select</option>
+                                                    <?php
+                                                    $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

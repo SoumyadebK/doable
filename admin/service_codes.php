@@ -53,6 +53,7 @@ if (empty($_GET['id'])) {
     $PK_SERVICE_CLASS = '';
     $MISC_TYPE = '';
     $IS_SCHEDULE = 1;
+    $PK_LOCATION = '';
     $DESCRIPTION = '';
     $ACTIVE = '';
 
@@ -76,6 +77,7 @@ if (empty($_GET['id'])) {
     $MISC_TYPE = $res->fields['MISC_TYPE'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
     $ACTIVE = $res->fields['ACTIVE'];
 
     $service_code = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$_GET[id]'");
@@ -225,23 +227,18 @@ if ($help->RecordCount() > 0) {
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <label class="form-label">Location</label>
-                                                                <div class="col-md-12 multiselect-box">
-                                                                    <label for="PK_LOCATION"></label><select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
-                                                                        <?php
-                                                                        $selected_location = [];
-                                                                        if (!empty($_GET['id'])) {
-                                                                            $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-                                                                            while (!$selected_location_row->EOF) {
-                                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                                $selected_location_row->MoveNext();
-                                                                            }
-                                                                        }
-                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                                                                        <?php $row->MoveNext();
-                                                                        } ?>
-                                                                    </select>
+                                                                <div class="col-12">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
+                                                                            <option value="">Select</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                                            <?php $row->MoveNext();
+                                                                            } ?>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>

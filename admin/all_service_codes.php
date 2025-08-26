@@ -144,6 +144,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
                                                 <th style="text-align: left">No</th>
                                                 <th style="text-align: center">Service Name</th>
                                                 <th style="text-align: center">Service Code</th>
+                                                <th style="text-align: center">Location Name</th>
                                                 <th style="text-align: center">Description</th>
                                                 <th style="text-align: center">Upload Documents</th>
                                                 <th style="text-align: center">Count on Calendar</th>
@@ -155,13 +156,14 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.COUNT_ON_CALENDAR, DOA_SERVICE_CODE.SORT_ORDER FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0 AND DOA_SERVICE_MASTER.ACTIVE = '$status' ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
+                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.COUNT_ON_CALENDAR, DOA_SERVICE_CODE.SORT_ORDER, DOA_LOCATION.LOCATION_NAME FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_SERVICE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0 AND DOA_SERVICE_MASTER.ACTIVE = '$status' ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
                                             while (!$row->EOF) { ?>
                                                 <tr>
-                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
-                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
-                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
-                                                    <td style="text-align: left" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
+                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
                                                     <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
                                                         <?php
                                                         $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = " . $row->fields['PK_SERVICE_MASTER']);
