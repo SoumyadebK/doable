@@ -3025,7 +3025,7 @@ if ($PK_USER_MASTER > 0) {
                 $('#payment_register_list').html(result);
                 $('#paymentRegisterTable').DataTable({
                     order: [
-                        [0, 'asc']
+                        [0, 'desc']
                     ],
                     columnDefs: [{
                         type: 'date',
