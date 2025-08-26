@@ -1918,11 +1918,14 @@ if ($PK_USER_MASTER > 0) {
                                                                             <td><?= $walletTransaction->fields['DEBIT'] ?></td>
                                                                             <td><?= $walletTransaction->fields['CREDIT'] ?></td>
                                                                             <td><?= $walletTransaction->fields['CURRENT_BALANCE'] ?></td>
-                                                                            <?php if ($RECEIPT_NUMBER != '') { ?>
-                                                                                <td><a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a></td>
-                                                                            <?php } else { ?>
-                                                                                <td></td>
-                                                                            <?php } ?>
+                                                                            <td>
+                                                                                <?php if ($RECEIPT_NUMBER != '') { ?>
+                                                                                    <a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
+                                                                                <?php }
+                                                                                if ($walletTransaction->fields['CREDIT'] > 0 && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
+                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" onclick="deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)"><i class="ti-trash"></i></a>
+                                                                                <?php } ?>
+                                                                            </td>
                                                                         </tr>
                                                                     <?php $walletTransaction->MoveNext();
                                                                         $i++;
@@ -2375,6 +2378,9 @@ if ($PK_USER_MASTER > 0) {
         }
         if (tab_link.id == 'credit_card') {
             $('#credit_card_tab_link')[0].click();
+        }
+        if (tab_link.id == 'wallet') {
+            $('#wallet_tab_link')[0].click();
         }
         let on_tab_link = <?= empty($_GET['on_tab']) ? 0 : $_GET['on_tab'] ?>;
         if (on_tab_link.id == 'comments') {
@@ -3019,7 +3025,7 @@ if ($PK_USER_MASTER > 0) {
                 $('#payment_register_list').html(result);
                 $('#paymentRegisterTable').DataTable({
                     order: [
-                        [0, 'asc']
+                        [0, 'desc']
                     ],
                     columnDefs: [{
                         type: 'date',
@@ -3362,6 +3368,48 @@ if ($PK_USER_MASTER > 0) {
                     title: "Cancelled",
                     text: "Your imaginary file is safe :)",
                     icon: "error"
+                });
+            }
+        });
+    }
+
+    function deleteWalletPayment(PK_CUSTOMER_WALLET) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this wallet payment will erase all data related to this payment.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteWalletPayment',
+                        PK_CUSTOMER_WALLET: PK_CUSTOMER_WALLET
+                    },
+                    success: function(data) {
+                        if (data == 1) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "Wallet Payment Deleted.",
+                                icon: "success",
+                                timer: 3000,
+                            }).then((result) => {
+                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=wallet';
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "You already used this wallet amount in enrollment, so you can't delete it.",
+                                icon: "warning",
+                                timer: 3000,
+                            });
+                        }
+                    }
                 });
             }
         });

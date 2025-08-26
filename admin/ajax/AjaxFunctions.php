@@ -2709,6 +2709,34 @@ function deleteCustomerAfterVerify($RESPONSE_DATA)
     }
 }
 
+function deleteWalletPayment($RESPONSE_DATA)
+{
+    global $db_account;
+    $PK_CUSTOMER_WALLET = $RESPONSE_DATA['PK_CUSTOMER_WALLET'];
+    $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = '$PK_CUSTOMER_WALLET'");
+    $PK_USER_MASTER = $wallet_data->fields['PK_USER_MASTER'];
+
+    $wallet_balance = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+    $CURRENT_BALANCE = $wallet_balance->fields['CURRENT_BALANCE'] - $wallet_data->fields['CREDIT'];
+
+    if ($CURRENT_BALANCE < 0) {
+        echo 0;
+    } else {
+        $INSERT_DATA['CURRENT_BALANCE'] = $CURRENT_BALANCE;
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['DEBIT'] = $wallet_data->fields['CREDIT'];
+        $INSERT_DATA['DESCRIPTION'] = "Payment deleted for Receipt : " . $wallet_data->fields['RECEIPT_NUMBER'];
+        $INSERT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
+        $INSERT_DATA['IS_DELETED'] = 1;
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+
+        db_perform_account('DOA_CUSTOMER_WALLET', ['IS_DELETED' => 1], 'update', " PK_CUSTOMER_WALLET = '$PK_CUSTOMER_WALLET'");
+        echo 1;
+    }
+}
+
 function reactiveCustomer($RESPONSE_DATA)
 {
     global $db;
