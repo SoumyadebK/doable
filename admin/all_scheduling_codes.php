@@ -81,6 +81,7 @@ if ($header_data->RecordCount() > 0) {
                                             <tr>
                                                 <th>Scheduling code</th>
                                                 <th>Scheduling Name</th>
+                                                <th>Location Name</th>
                                                 <th>Duration</th>
                                                 <th>Unit</th>
                                                 <th>Color</th>
@@ -94,11 +95,12 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_SCHEDULING_CODE.DURATION, DOA_SCHEDULING_CODE.UNIT, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.ACTIVE =" . $status . " AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_LOCATION.LOCATION_NAME, DOA_SCHEDULING_CODE.DURATION, DOA_SCHEDULING_CODE.UNIT, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_SCHEDULING_CODE.PK_LOCATION WHERE DOA_SCHEDULING_CODE.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.ACTIVE =" . $status . " AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
                                             while (!$row->EOF) { ?>
                                                 <tr data-id="<?= $row->fields['PK_SCHEDULING_CODE'] ?>">
                                                     <td class="code"><?= $row->fields['SCHEDULING_CODE'] ?></td>
                                                     <td class="name"><?= $row->fields['SCHEDULING_NAME'] ?></td>
+                                                    <td class="name"><?= $row->fields['LOCATION_NAME'] ?></td>
                                                     <td class="duration"><?= $row->fields['DURATION'] ?></td>
                                                     <td class="unit"><?= $row->fields['UNIT'] ?></td>
                                                     <td class="color" data-value="<?= $row->fields['COLOR_CODE'] ?>"><span style="display: block; width: 44px; height: 22px; background-color: <?= $row->fields['COLOR_CODE'] ?>"></span></td>
