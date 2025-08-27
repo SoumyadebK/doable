@@ -115,6 +115,13 @@ foreach ($resultsArray as $key => $result) {
                                     $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
                                     $total_portion = 0; 
                                     $total_refund = 0; 
+                                    $total_amount = 0;
+                                    $total_refund_amount = 0;
+
+                                    // $grand_total_amount = 0;
+                                    // $grand_total_portion = 0;
+                                    // $grand_total_refund = 0;
+                                    // $grand_total_refund_amount = 0;
                                     ?>
 
                                 <div class="table-responsive">
@@ -149,6 +156,7 @@ foreach ($resultsArray as $key => $result) {
                                             $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = ".$row->fields['SERVICE_PROVIDER_ID']);
                                             $portion = $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
                                             $total_portion += $portion; // Add to the sum
+                                            $total_amount += $row->fields['AMOUNT'];
                                             ?>
                                             <tr>
                                                 <td style="text-align: center"><?=$row->fields['RECEIPT_NUMBER']?></td>
@@ -164,7 +172,9 @@ foreach ($resultsArray as $key => $result) {
                                                 <td style="text-align: center"></td>
                                             </tr>
                                             <?php if ($row->fields['TYPE'] == 'Refund') { 
-                                                $total_refund += $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);?>
+                                                $total_refund += $row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+                                                $total_refund_amount += $row->fields['AMOUNT'];
+                                                ?>
                                                 <tr>
                                                     <td style="text-align: center; color: red"><?=$row->fields['RECEIPT_NUMBER']?></td>
                                                     <td style="text-align: center; color: red"><?=date('m-d-Y', strtotime($row->fields['PAYMENT_DATE']))?></td>
@@ -180,7 +190,21 @@ foreach ($resultsArray as $key => $result) {
                                                 </tr>
                                             <?php } ?>
                                             <?php $row->MoveNext();
-                                            } ?>
+                                            }
+                                            
+                                            // Store service provider summary for later use
+                                            $service_provider_summaries[] = array(
+                                                'name' => $name->fields['TEACHER'],
+                                                'total_amount' => $total_amount - $total_refund_amount,
+                                                'total_portion' => $total_portion - $total_refund
+                                            );
+                                            
+                                            // Add to grand totals
+                                            $grand_total_amount += ($total_amount - $total_refund_amount);
+                                            $grand_total_portion += ($total_portion - $total_refund);
+                                            $grand_total_refund_amount += $total_refund_amount;
+                                            $grand_total_refund += $total_refund;
+                                            ?>
                                             <tr>
                                                 <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
                                                 <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion -$total_refund, 2) ?></th>
@@ -192,6 +216,33 @@ foreach ($resultsArray as $key => $result) {
                                 <?php
                                     $each_service_provider->MoveNext();
                                 } ?>
+                                <!-- Service Provider Summary Table -->
+                                <!-- <div class="table-responsive" style="margin-top: 30px;">
+                                    <h4 style="text-align: center; margin-bottom: 20px;">Service Provider Summary</h4>
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: center; font-weight: bold">Service Provider</th>
+                                                <th style="text-align: center; font-weight: bold">Total Amount</th>
+                                                <th style="text-align: center; font-weight: bold">Total Portion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($service_provider_summaries as $summary): ?>
+                                            <tr>
+                                                <td style="text-align: center"><?= $summary['name'] ?></td>
+                                                <td style="text-align: center">$<?= number_format($summary['total_amount'], 2) ?></td>
+                                                <td style="text-align: center">$<?= number_format($summary['total_portion'], 2) ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                            <tr style="font-weight: bold; background-color: #f8f9fa;">
+                                                <td style="text-align: center">GRAND TOTAL</td>
+                                                <td style="text-align: center">$<?= number_format($grand_total_amount, 2) ?></td>
+                                                <td style="text-align: center">$<?= number_format($grand_total_portion - $grand_total_refund, 2) ?></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div> -->
                             </div>
                         </div>
                     </div>

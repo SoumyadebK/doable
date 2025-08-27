@@ -202,7 +202,7 @@ while (!$executive_data->EOF) {
                                             <tbody>
                                                 <?php
                                                 // Get all payments first and separate regular payments from refunds
-                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
                                                 // Separate regular payments and refunds
                                                 $regular_payments = [];
@@ -219,32 +219,34 @@ while (!$executive_data->EOF) {
 
                                                 // Get wallet payments
                                                 $total_wallet = 0;
-                                                $wallet_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_CUSTOMER_WALLET ON DOA_ENROLLMENT_PAYMENT.PK_CUSTOMER_WALLET = DOA_CUSTOMER_WALLET.PK_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_CUSTOMER_WALLET.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE = DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet' AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                $wallet_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_CUSTOMER_WALLET.BALANCE_LEFT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_CUSTOMER_WALLET ON DOA_ENROLLMENT_PAYMENT.PK_CUSTOMER_WALLET = DOA_CUSTOMER_WALLET.PK_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_CUSTOMER_WALLET.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE = DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet' AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
                                                 ?>
 
                                                 <!-- Display wallet payments first -->
                                                 <?php while (!$wallet_payments->EOF) { 
                                                     $total_wallet += $wallet_payments->fields['AMOUNT'];
+                                                    if ($wallet_payments->fields['BALANCE_LEFT'] > 0) {
                                                     ?>
                                                     <tr>
                                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($wallet_payments->fields['PAYMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right">$<?= $wallet_payments->fields['AMOUNT'] ?></td>
-                                                        <td style="text-align: left">Wallet</td>
+                                                        <td style="text-align: right">$<?= $wallet_payments->fields['BALANCE_LEFT'] ?></td>
+                                                        <td style="text-align: center">Wallet</td>
                                                         <td style="text-align: center"><?= $wallet_payments->fields['PAYMENT_TYPE'] ?></td>
                                                         <td style="text-align: center">-</td>
                                                         <td style="text-align: center"><?= $wallet_payments->fields['RECEIPT_NUMBER'] ?></td>
-                                                        <td style="text-align: left"><?= $wallet_payments->fields['MEMO'] ?? '-' ?></td>
-                                                        <td style="text-align: left"><?= $wallet_payments->fields['CLIENT'] ?></td>
+                                                        <td style="text-align: center"><?= $wallet_payments->fields['MEMO'] ?? '-' ?></td>
+                                                        <td style="text-align: center"><?= $wallet_payments->fields['CLIENT'] ?></td>
                                                         <td style="text-align: center">-</td>
                                                         <td style="text-align: center">-</td>
                                                         <td style="text-align: center">-</td>
                                                         <td style="text-align: right">-</td>
                                                         <td style="text-align: right">-</td>
-                                                        <td style="text-align: left">-</td>
-                                                        <td style="text-align: left">-</td>
+                                                        <td style="text-align: center">-</td>
+                                                        <td style="text-align: center">-</td>
                                                         <td></td>
                                                     </tr>
                                                     <?php
+                                                    }
                                                     $wallet_payments->MoveNext();
                                                 } ?>
 
@@ -298,23 +300,23 @@ while (!$executive_data->EOF) {
                                                     <tr>
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right">$<?= $payment['AMOUNT'] ?></td>
-                                                        <td style="text-align: left"><?= $payment_type ?></td>
+                                                        <td style="text-align: center"><?= $payment_type ?></td>
                                                         <td style="text-align: center"><?= $payment['PAYMENT_TYPE'] ?></td>
                                                         <?php if ($payment['PAYMENT_TYPE'] == 'Credit Card' || $payment['PAYMENT_TYPE'] == 'Visa' || $payment['PAYMENT_TYPE'] == 'Master Card' || $payment['PAYMENT_TYPE'] == 'American Express' || $payment['PAYMENT_TYPE'] == 'Card' || $payment['PAYMENT_TYPE'] == 'Card On File') { ?>
                                                             <td style="text-align: center"><?= $payment['PAYMENT_TYPE'] ?></td>
                                                         <?php } else { ?>
                                                             <td style="text-align: center"></td>
                                                         <?php } ?>
-                                                        <td style="text-align: right"><?= $payment['RECEIPT_NUMBER'] ?></td>
+                                                        <td style="text-align: center"><?= $payment['RECEIPT_NUMBER'] ?></td>
                                                         <td style="text-align: left"><?= $payment['MEMO'] ?></td>
                                                         <td style="text-align: left"><?= $payment['CLIENT'] ?></td>
                                                         <td style="text-align: left"><?= $payment['ENROLLMENT_NAME'] ?></td>
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right"><?= $payment['ENROLLMENT_TYPE'] ?></td>
+                                                        <td style="text-align: center"><?= $payment['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right">$<?= $payment['TOTAL_AMOUNT'] ?></td>
                                                         <td style="text-align: right">$<?= number_format($enrollment_balance, 2) ?></td>
-                                                        <td style="text-align: left"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <td style="text-align: left"><?= $teacher ?></td>
+                                                        <td style="text-align: center"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
+                                                        <td style="text-align: center"><?= $teacher ?></td>
                                                         <td></td>
                                                     </tr>
                                                     <?php
@@ -367,9 +369,9 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['AMOUNT'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Cash') { ?>
-                                                            <td style="text-align: left; color: red"><?= $refund['TYPE'] ?></td>
+                                                            <td style="text-align: center; color: red"><?= $refund['TYPE'] ?></td>
                                                         <?php } else { ?>
-                                                            <td style="text-align: left; color: red"><?= '(Refund) '.$refund_payment_type ?></td>
+                                                            <td style="text-align: center; color: red"><?= '(Refund) '.$refund_payment_type ?></td>
                                                         <?php } ?>
                                                         <td style="text-align: center; color: red"><?= $refund['PAYMENT_TYPE'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Credit Card' || $refund['PAYMENT_TYPE'] == 'Visa' || $refund['PAYMENT_TYPE'] == 'Master Card' || $refund['PAYMENT_TYPE'] == 'American Express' || $refund['PAYMENT_TYPE'] == 'Card' || $refund['PAYMENT_TYPE'] == 'Card On File') { ?>
@@ -377,12 +379,12 @@ while (!$executive_data->EOF) {
                                                         <?php } else { ?>
                                                             <td style="text-align: center; color: red"></td>
                                                         <?php } ?>
-                                                        <td style="text-align: right; color: red"><?= $refund['RECEIPT_NUMBER'] ?></td>
-                                                        <td style="text-align: left; color: red"><?= $refund['MEMO'] ?></td>
-                                                        <td style="text-align: left; color: red"><?= $refund['CLIENT'] ?></td>
-                                                        <td style="text-align: left; color: red"><?= $refund['ENROLLMENT_NAME'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['RECEIPT_NUMBER'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['MEMO'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['CLIENT'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_NAME'] ?></td>
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right; color: red"><?= $refund['ENROLLMENT_TYPE'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['TOTAL_AMOUNT'] ?></td>
                                                         <td style="text-align: right; color: red">$<?= number_format($enrollment_balance + $refund['AMOUNT'], 2) ?></td>
                                                         <td style="text-align: left; color: red"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
@@ -394,7 +396,7 @@ while (!$executive_data->EOF) {
                                                 <!-- Total row -->
                                                 <tr style="font-weight: bold">
                                                     <td style="text-align: center">Total</td>
-                                                    <td style="text-align: right">$<?= number_format(($total_amount + $total_wallet) - $total_refund, 2) ?></td>
+                                                    <td style="text-align: right">$<?= number_format($total_amount - $total_refund, 2) ?></td>
                                                     <td colspan="15"></td> <!-- Empty cells for remaining columns -->
                                                 </tr>
                                             </tbody>
