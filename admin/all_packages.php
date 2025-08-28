@@ -93,7 +93,7 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.*, DOA_LOCATION.LOCATION_NAME FROM DOA_PACKAGE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_PACKAGE.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.*, DOA_LOCATION.LOCATION_NAME FROM DOA_PACKAGE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_PACKAGE.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE (DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") OR DOA_PACKAGE.PK_LOCATION IS NULL) AND IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
                                             while (!$row->EOF) {
                                                 $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE, DOA_PACKAGE_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_PACKAGE_SERVICE.PK_PACKAGE = " . $row->fields['PK_PACKAGE']);
                                                 $serviceCode = [];
