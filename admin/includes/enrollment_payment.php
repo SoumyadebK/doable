@@ -419,6 +419,7 @@ else
                 } else {
                     // Send the token to your server.
                     $('#token').val(result.token.id);
+                    $('#wallet_token').val(result.token.id);
                 }
             });
         }
@@ -582,6 +583,7 @@ else
     function getPaymentMethodId(param) {
         $('.credit-card-div').css("opacity", "1");
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        $('#PAYMENT_METHOD_ID_WALLET').val($(param).attr('id'));
         $(param).css("opacity", "0.6");
         /*let form = document.getElementById('enrollment_payment_form');
         form.removeEventListener('submit', listener);*/
@@ -710,6 +712,7 @@ else
             },
             success: function(data) {
                 $('#card_list').slideDown().html(data);
+                $('#card_list_wallet').slideDown().html(data);
             }
         });
     }
