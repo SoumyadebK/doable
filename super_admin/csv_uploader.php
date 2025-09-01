@@ -156,39 +156,41 @@ if (!empty($_POST)) {
 
                 case 'DOA_CUSTOMER':
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                    $USER_DATA['USER_NAME'] = $getData[1];
-                    $USER_DATA['FIRST_NAME'] = trim($getData[2]);
-                    $USER_DATA['LAST_NAME'] = trim($getData[3]);
-                    $USER_DATA['EMAIL_ID'] = $getData[25];
+                    $USER_DATA['USER_NAME'] = $getData[0];
+                    $customer_first_name = explode(" ", $getData[1]);
+                    $customer_last_name = explode(" ", $getData[2]);
+                    $USER_DATA['FIRST_NAME'] = isset($customer_first_name[0]) ?: '';
+                    $USER_DATA['LAST_NAME'] = isset($customer_last_name[0]) ?: '';
+                    $USER_DATA['EMAIL_ID'] = $getData[18];
                     //$USER_DATA['HOME_PHONE'] = $getData[18];
-                    if (!empty($getData[21]) && $getData[21] != null && $getData[21] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $getData[21];
-                    } elseif (!empty($getData[19]) && $getData[19] != null && $getData[19] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $getData[19];
-                    } elseif (!empty($getData[20]) && $getData[20] != null && $getData[20] != "   -   -    *") {
-                        $USER_DATA['PHONE'] = $getData[20];
+                    if (!empty($getData[14]) && $getData[14] != null && $getData[14] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $getData[14];
+                    } elseif (!empty($getData[15]) && $getData[15] != null && $getData[15] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $getData[15];
+                    } elseif (!empty($getData[16]) && $getData[16] != null && $getData[16] != "   -   -    *") {
+                        $USER_DATA['PHONE'] = $getData[16];
                     }
-                    if ($getData[8] == 0) {
+                    if ($getData[6] == 0) {
                         $USER_DATA['GENDER'] = 'Male';
                     } elseif ($getData[8] == 1) {
                         $USER_DATA['GENDER'] = 'Female';
                     }
 
-                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[6]));
+                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[4]));
                     if ($getData[9] == 1) {
                         $USER_DATA['MARITAL_STATUS'] = "Married";
                     } elseif ($getData[9] == 0) {
                         $USER_DATA['MARITAL_STATUS'] = "Unmarried";
                     }
 
-                    $USER_DATA['ADDRESS'] = $getData[14];
-                    $USER_DATA['ADDRESS_1'] = $getData[15];
-                    $USER_DATA['CITY'] = $getData[16];
+                    $USER_DATA['ADDRESS'] = $getData[0];
+                    $USER_DATA['ADDRESS_1'] = $getData[10];
+                    $USER_DATA['CITY'] = $getData[11];
                     $USER_DATA['PK_COUNTRY'] = 1;
-                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$getData[17]' OR STATE_CODE='$getData[17]'");
+                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$getData[12]' OR STATE_CODE='$getData[12]'");
                     $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
-                    $USER_DATA['ZIP'] = $getData[18];
-                    $USER_DATA['NOTES'] = $getData[43];
+                    $USER_DATA['ZIP'] = $getData[13];
+                    $USER_DATA['NOTES'] = $getData[44];
                     $USER_DATA['ACTIVE'] = ($getData[46] == 'A') ? 1 : 0;
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -198,16 +200,16 @@ if (!empty($_POST)) {
                     if ($PK_USER) {
                         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[2]);
-                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[3]);
-                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[1];
-                        $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[25];
-                        if (!empty($getData[21]) && $getData[21] != null && $getData[21] != "   -   -    *") {
-                            $USER_DATA_ACCOUNT['PHONE'] = $getData[21];
-                        } elseif (!empty($getData[19]) && $getData[19] != null && $getData[19] != "   -   -    *") {
-                            $USER_DATA_ACCOUNT['PHONE'] = $getData[19];
-                        } elseif (!empty($getData[20]) && $getData[20] != null && $getData[20] != "   -   -    *") {
-                            $USER_DATA_ACCOUNT['PHONE'] = $getData[20];
+                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[1]);
+                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[2]);
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[0];
+                        $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[18];
+                        if (!empty($getData[14]) && $getData[14] != null && $getData[14] != "   -   -    *") {
+                            $USER_DATA_ACCOUNT['PHONE'] = $getData[14];
+                        } elseif (!empty($getData[15]) && $getData[15] != null && $getData[15] != "   -   -    *") {
+                            $USER_DATA_ACCOUNT['PHONE'] = $getData[15];
+                        } elseif (!empty($getData[16]) && $getData[16] != null && $getData[16] != "   -   -    *") {
+                            $USER_DATA_ACCOUNT['PHONE'] = $getData[16];
                         }
                         $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
                         $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
@@ -229,22 +231,23 @@ if (!empty($_POST)) {
 
                         if ($PK_USER_MASTER) {
                             $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                            $CUSTOMER_DATA['FIRST_NAME'] = $getData[2];
-                            $CUSTOMER_DATA['LAST_NAME'] = $getData[3];
-                            $CUSTOMER_DATA['EMAIL'] = $getData[25];
-                            $CUSTOMER_DATA['PHONE'] = $getData[21];
-                            $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[6]));
-                            $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[24];
+                            $CUSTOMER_DATA['FIRST_NAME'] = $getData[1];
+                            $CUSTOMER_DATA['LAST_NAME'] = $getData[2];
+                            $CUSTOMER_DATA['EMAIL'] = $getData[18];
+                            $CUSTOMER_DATA['PHONE'] = $getData[14];
+                            $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
+                            $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[17];
                             //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
-                            $partner_name = explode(" ", $getData[26]);
-                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[0]) ?: '';
-                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[1]) ?: '';
+                            $partner_first_name = explode(" ", $getData[1]);
+                            $partner_last_name = explode(" ", $getData[2]);
+                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_first_name[1]) ?: '';
+                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_last_name[1]) ?: '';
                             if ($getData[27] == 0) {
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
                             } elseif ($getData[27] == 1) {
                                 $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
                             }
-                            if (!empty($getData[26])) {
+                            if (!empty(isset($partner_first_name[1]))) {
                                 $CUSTOMER_DATA['ATTENDING_WITH'] = "With a Partner";
                             } else {
                                 $CUSTOMER_DATA['ATTENDING_WITH'] = "Solo";
@@ -266,27 +269,27 @@ if (!empty($_POST)) {
                                 db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
                             }
 
-                            if ($getData[10] != "0000-00-00 00:00:00" && $getData[10] > 0) {
+                            if ($getData[7] != "0000-00-00 00:00:00" && $getData[7] > 0) {
                                 $SPECIAL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[10]));
-                                $SPECIAL_DATA['DATE_NAME'] = $getData[12];
+                                $SPECIAL_DATA['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[7]));
+                                $SPECIAL_DATA['DATE_NAME'] = $getData[7];
                                 db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA, 'insert');
                             }
-                            if ($getData[11] != "0000-00-00 00:00:00" && $getData[11] > 0) {
+                            if ($getData[8] != "0000-00-00 00:00:00" && $getData[8] > 0) {
                                 $SPECIAL_DATA_1['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[11]));
-                                $SPECIAL_DATA_1['DATE_NAME'] = $getData[13];
+                                $SPECIAL_DATA_1['SPECIAL_DATE'] = date("Y-m-d", strtotime($getData[8]));
+                                $SPECIAL_DATA_1['DATE_NAME'] = $getData[8];
                                 db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATA_1, 'insert');
                             }
 
                             $INQUIRY_VALUE['PK_USER_MASTER'] = $PK_USER_MASTER;
-                            $INQUIRY_VALUE['WHAT_PROMPTED_YOU_TO_INQUIRE'] = $getData[39];
+                            $INQUIRY_VALUE['WHAT_PROMPTED_YOU_TO_INQUIRE'] = $getData[27];
 
                             $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = 0;
                             $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = 0;
 
-                            if (!empty($getData[38])) {
-                                $inquiryId = $getData[38];
+                            if (!empty($getData[26])) {
+                                $inquiryId = $getData[26];
                                 if ($inquiryId == "TEL") {
                                     $getInquiry = "Telephone";
                                 } elseif ($inquiryId == "WIN") {
@@ -302,8 +305,8 @@ if (!empty($_POST)) {
                                 $INQUIRY_VALUE['PK_INQUIRY_METHOD'] = ($doableInquiryId->RecordCount() > 0) ? $doableInquiryId->fields['PK_INQUIRY_METHOD'] : 0;
                             }
 
-                            if (!empty($getData[37])) {
-                                $takerId = $getData[37];
+                            if (!empty($getData[25])) {
+                                $takerId = $getData[25];
                                 $getTaker = getTaker($takerId);
                                 $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
                                 $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount() > 0) ? $doableTakerId->fields['PK_USER'] : 0;
@@ -880,12 +883,12 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label">Business Name</label>
-                                <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER">
+                                <select class="form-control" name="PK_ACCOUNT_MASTER" id="PK_ACCOUNT_MASTER" onchange="getLocations(this)">
                                     <option value="">Select Business</option>
                                     <?php
                                     $row = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_BUSINESS_TYPE.BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_BUSINESS_TYPE ON DOA_BUSINESS_TYPE.PK_BUSINESS_TYPE = DOA_ACCOUNT_MASTER.PK_BUSINESS_TYPE ORDER BY CREATED_ON DESC");
                                     while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>"><?= $row->fields['BUSINESS_NAME'] ?></option>
+                                        <option value="<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>">(<?php echo $row->fields['PK_ACCOUNT_MASTER']; ?>) <?= $row->fields['BUSINESS_NAME'] ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
@@ -896,12 +899,6 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                 <label class="form-label">Select Location</label>
                                 <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
                                     <option value="">Select Location</option>
-                                    <?php
-                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>"><?= $row->fields['LOCATION_NAME'] ?></option>
-                                    <?php $row->MoveNext();
-                                    } ?>
                                 </select>
                             </div>
                         </div>
@@ -912,7 +909,23 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                     <option value="">Select Database Name</option>
                                     <option value="AMTO">AMTO</option>
                                     <option value="AMWH">AMWH</option>
-                                    <option value="AMTO_NEW">AMTO_NEW</option>
+                                    <option value="AMLS">AMLS</option>
+                                    <option value="AMWB">AMWB</option>
+                                    <option value="AMLV">AMLV</option>
+                                    <option value="JTLV">JTLV</option>
+                                    <option value="AMMB">AMMB</option>
+                                    <option value="AMMO">AMMO</option>
+                                    <option value="AMNP">AMNP</option>
+                                    <option value="AMSR">AMSR</option>
+                                    <option value="AMPT">AMPT</option>
+                                    <option value="AMLG">AMLG</option>
+                                    <option value="AMSJ">AMSJ</option>
+                                    <option value="AMTC">AMTC</option>
+                                    <option value="AMSI">AMSI</option>
+                                    <option value="AMBV">AMBV</option>
+                                    <option value="AMFW">AMFW</option>
+                                    <option value="AMSE">AMSE</option>
+                                    <option value="AMEV">AMEV</option>
                                 </select>
                             </div>
                         </div>
@@ -956,6 +969,20 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
     function viewCsvDownload(param) {
         let table_name = $(param).val();
         $('#view_download_div').html(`<a href="../uploads/csv_upload/${table_name}.csv" target="_blank">View Sample</a>`);
+    }
+
+    function getLocations(param) {
+        let PK_ACCOUNT_MASTER = $(param).val();
+        $.ajax({
+            url: "ajax/get_location.php",
+            type: 'GET',
+            data: {
+                PK_ACCOUNT_MASTER: PK_ACCOUNT_MASTER
+            },
+            success: function(data) {
+                $('#PK_LOCATION').empty().append(data);
+            }
+        });
     }
 </script>
 
