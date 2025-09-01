@@ -4,6 +4,8 @@ global $db;
 global $db_account;
 global $master_database;
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
 if (empty($_GET['id']))
     $title = "Add Service / Service Code";
 else
@@ -327,7 +329,7 @@ if ($help->RecordCount() > 0) {
                                                                                     $selected_scheduling_code_row->MoveNext();
                                                                                 }
                                                                             }
-                                                                            $scheduling_code = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
+                                                                            $scheduling_code = $db_account->Execute("SELECT * FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND `ACTIVE` = 1");
                                                                             while (!$scheduling_code->EOF) { ?>
                                                                                 <option value="<?= $scheduling_code->fields['PK_SCHEDULING_CODE'] ?>" <?= in_array($scheduling_code->fields['PK_SCHEDULING_CODE'], $selected_scheduling_code) ? "selected" : "" ?>><?= $scheduling_code->fields['SCHEDULING_NAME'] . ' (' . $scheduling_code->fields['SCHEDULING_CODE'] . ')' ?></option>
                                                                             <?php $scheduling_code->MoveNext();

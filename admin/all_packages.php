@@ -109,7 +109,7 @@ if ($header_data->RecordCount() > 0) {
                                                     <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= $row->fields['SORT_ORDER'] ?></td>
                                                     <td>
                                                         <a href="package.php?id=<?= $row->fields['PK_PACKAGE'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="all_packages.php?type=del&id=<?= $row->fields['PK_PACKAGE'] ?>" onclick="ConfirmDelete(<?= $row->fields['PK_PACKAGE'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_PACKAGE'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>

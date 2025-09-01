@@ -267,7 +267,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                                 <option value="">Select Package</option>
                                                                 <?php
-                                                                $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_LOCATION ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_LOCATION.PK_PACKAGE WHERE DOA_PACKAGE_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 ORDER BY SORT_ORDER ASC");
+                                                                $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE WHERE DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 ORDER BY SORT_ORDER ASC");
                                                                 while (!$row->EOF) { ?>
                                                                     <option value="<?php echo $row->fields['PK_PACKAGE']; ?>" data-expiry_date="<?= $row->fields['EXPIRY_DATE'] ?>" <?= ($row->fields['PK_PACKAGE'] == $PK_PACKAGE) ? 'selected' : '' ?>><?= $row->fields['PACKAGE_NAME'] ?></option>
                                                                 <?php $row->MoveNext();
