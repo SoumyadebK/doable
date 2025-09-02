@@ -232,9 +232,8 @@ if ($help->RecordCount() > 0) {
                                                                 <div class="col-12">
                                                                     <div class="form-group">
                                                                         <select class="form-control PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
-                                                                            <option value="">Select</option>
                                                                             <?php
-                                                                            $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                            $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                             while (!$row->EOF) { ?>
                                                                                 <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
                                                                             <?php $row->MoveNext();
