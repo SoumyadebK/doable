@@ -209,7 +209,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                         <a href="add_schedule.php?id=<?php /*=$PK_APPOINTMENT_MASTER*/ ?>"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php /*} */ ?>
                     <a href="copy_schedule.php?id=<?php /*=$PK_APPOINTMENT_MASTER*/ ?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-                    <a href="all_schedules.php?id=<?= $PK_APPOINTMENT_MASTER ?>" onclick='ConfirmDelete(<?= $PK_APPOINTMENT_MASTER ?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="javascript:;" onclick="deleteThisAppointment(<?= $PK_APPOINTMENT_MASTER ?>)"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php if ($type == 'cancelled' && ($enr_service_data->RecordCount() > 0 && ($enr_service_data->fields['NUMBER_OF_SESSION'] != $SESSION_CREATED))) { ?>
                         <a href="all_schedules.php?id=<?= $PK_APPOINTMENT_MASTER ?>" onclick='ConfirmScheduled(<?= $PK_APPOINTMENT_MASTER ?>,<?= $PK_ENROLLMENT_SERVICE ?>);' style="font-size: 18px"><i class="far fa-calendar-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <?php } ?>
@@ -267,21 +267,37 @@ $page_first_result = ($page - 1) * $results_per_page;
 </div>
 
 <script>
-    function ConfirmDelete(PK_APPOINTMENT_MASTER) {
-        var conf = confirm("Are you sure you want to delete this appointment?");
-        if (conf) {
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'deleteAppointment',
-                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                },
-                success: function(data) {
-                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=appointment';
-                }
-            });
-        }
+    function deleteThisAppointment(PK_APPOINTMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this Appointment will not revert back.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteAppointment',
+                        type: 'normal',
+                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                    },
+                    success: function(data) {
+                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=appointment';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your appointment is safe :)",
+                    icon: "error"
+                });
+            }
+        });
     }
 
     function ConfirmScheduled(PK_APPOINTMENT_MASTER, PK_ENROLLMENT_SERVICE) {

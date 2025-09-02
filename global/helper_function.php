@@ -185,9 +185,9 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER): void
             }
             $appointments->MoveNext();
         }
-        markEnrollmentComplete($PK_ENROLLMENT_MASTER);
         $enrollmentServiceData->MoveNext();
     }
+    markEnrollmentComplete($PK_ENROLLMENT_MASTER);
 }
 
 function updateSessionCreatedCount($PK_ENROLLMENT_SERVICE)
@@ -1024,7 +1024,7 @@ function checkAllEnrollmentStatus($PK_USER_MASTER): void
     $allActiveEnrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE STATUS = 'A' AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY ENROLLMENT_DATE ASC");
     while (!$allActiveEnrollment->EOF) {
         markAdhocAppointmentNormal($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
-        markEnrollmentComplete($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
+        //markEnrollmentComplete($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
         $allActiveEnrollment->MoveNext();
     }
 }

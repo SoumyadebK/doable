@@ -116,7 +116,8 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
             $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
             $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
             $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
-            $createPaymentProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
+            $createPaymentProfileRequest->setValidationMode("testMode");
+            //$createPaymentProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
 
             $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
             $response = $controller->executeWithApiResponse($GATEWAY_MODE == 'live' ? \net\authorize\api\constants\ANetEnvironment::PRODUCTION : \net\authorize\api\constants\ANetEnvironment::SANDBOX);
@@ -132,23 +133,30 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
             // ✅ No customer profile yet, create new customer and card together
             try {
                 $customerProfile = new AnetAPI\CustomerProfileType();
-                $customerProfile->setMerchantCustomerId("USER_ID_" . $PK_USER);
-                $customerProfile->setEmail($user_data->fields['EMAIL_ID']);
+                $customerProfile->setMerchantCustomerId(substr("USER_" . $PK_USER, 0, 20));
 
-                // Add billing info
+                if (!empty($user_data->fields['EMAIL_ID']) && filter_var($user_data->fields['EMAIL_ID'], FILTER_VALIDATE_EMAIL)) {
+                    $customerProfile->setEmail($user_data->fields['EMAIL_ID']);
+                }
+
                 $billTo = new AnetAPI\CustomerAddressType();
                 $billTo->setFirstName($user_data->fields['FIRST_NAME']);
                 $billTo->setLastName($user_data->fields['LAST_NAME']);
-                $billTo->setZip($user_data->fields['ZIP']);
+                $billTo->setAddress("123 Main St");
+                $billTo->setCity("Seattle");
+                $billTo->setState("WA");
+                $billTo->setZip("98101");
                 $billTo->setCountry("US");
-                $paymentProfile->setBillTo($billTo);
 
+                $paymentProfile->setBillTo($billTo);
                 $customerProfile->setPaymentProfiles([$paymentProfile]);
 
                 $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
                 $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
                 $createProfileRequest->setProfile($customerProfile);
-                $createProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
+
+                //$createProfileRequest->setValidationMode($GATEWAY_MODE == 'live' ? "liveMode" : "testMode");
+                $createProfileRequest->setValidationMode("testMode");
 
                 $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
                 $response = $controller->executeWithApiResponse($GATEWAY_MODE == 'live' ? \net\authorize\api\constants\ANetEnvironment::PRODUCTION : \net\authorize\api\constants\ANetEnvironment::SANDBOX);

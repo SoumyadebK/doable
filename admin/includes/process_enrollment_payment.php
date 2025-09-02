@@ -73,6 +73,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
     $PAYMENT_INFO_JSON = '';
     $PAYMENT_STATUS = 'Success';
     $IS_ORIGINAL_RECEIPT = 1;
+    $PK_CUSTOMER_WALLET_NEW = 0;
 
     $RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($_POST['PK_ENROLLMENT_MASTER']);
 
@@ -443,10 +444,10 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
                         $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
 
-                        if ($GATEWAY_MODE == 'live')
+                        /* if ($GATEWAY_MODE == 'live')
                             $createPaymentProfileRequest->setValidationMode("liveMode");
-                        else
-                            $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+                        else */
+                        $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
 
                         $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
 
@@ -469,26 +470,32 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         }
                     } else {
                         $customerProfile = new AnetAPI\CustomerProfileType();
-                        $customerProfile->setMerchantCustomerId("USER_ID_" . $user_master->fields['PK_USER']);
-                        $customerProfile->setEmail($user_master->fields['EMAIL_ID']);
+                        $customerProfile->setMerchantCustomerId(substr("USER_" . $PK_USER, 0, 20));
+
+                        if (!empty($user_data->fields['EMAIL_ID']) && filter_var($user_data->fields['EMAIL_ID'], FILTER_VALIDATE_EMAIL)) {
+                            $customerProfile->setEmail($user_data->fields['EMAIL_ID']);
+                        }
 
                         $billTo = new AnetAPI\CustomerAddressType();
-                        $billTo->setFirstName($user_master->fields['FIRST_NAME']);
-                        $billTo->setLastName($user_master->fields['LAST_NAME']);
-                        $billTo->setZip($user_master->fields['ZIP']);
+                        $billTo->setFirstName($user_data->fields['FIRST_NAME']);
+                        $billTo->setLastName($user_data->fields['LAST_NAME']);
+                        $billTo->setAddress("123 Main St");
+                        $billTo->setCity("Seattle");
+                        $billTo->setState("WA");
+                        $billTo->setZip("98101");
                         $billTo->setCountry("US");
-                        $paymentProfile->setBillTo($billTo);
 
+                        $paymentProfile->setBillTo($billTo);
                         $customerProfile->setPaymentProfiles([$paymentProfile]);
 
                         $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
                         $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
                         $createProfileRequest->setProfile($customerProfile);
 
-                        if ($GATEWAY_MODE == 'live')
+                        /* if ($GATEWAY_MODE == 'live')
                             $createProfileRequest->setValidationMode("liveMode");
-                        else
-                            $createProfileRequest->setValidationMode("testMode");
+                        else */
+                        $createProfileRequest->setValidationMode("testMode");
 
                         $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
 
@@ -674,6 +681,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+        $PK_CUSTOMER_WALLET_NEW = $db_account->insert_ID();
 
         $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
 
@@ -743,6 +751,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             }
             $PAYMENT_DATA['TYPE'] = $TYPE;
+            $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET_NEW;
             $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
             $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
             $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');

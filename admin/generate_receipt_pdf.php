@@ -61,28 +61,36 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
         $TOTAL_AMOUNT = 0;
         $PAYMENT_METHOD = '';
         $TYPE = '';
-        while (!$enrollment_payment->EOF) {
-            $TYPE = $enrollment_payment->fields['TYPE'];
-            if ($enrollment_payment->fields['TYPE'] == 'Payment' || $enrollment_payment->fields['TYPE'] == 'Wallet') {
-                if ($enrollment_payment->fields['PK_PAYMENT_TYPE'] == 2) {
-                    $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
-                    $PAYMENT_DETAILS = "<tr>
+        if ($enrollment_payment->RecordCount() > 0) {
+            while (!$enrollment_payment->EOF) {
+                $TYPE = $enrollment_payment->fields['TYPE'];
+                if ($enrollment_payment->fields['TYPE'] == 'Payment' || $enrollment_payment->fields['TYPE'] == 'Wallet') {
+                    if ($enrollment_payment->fields['PK_PAYMENT_TYPE'] == 2) {
+                        $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
+                        $PAYMENT_DETAILS = "<tr>
                                 <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
                                 <td style='text-align:right'>" . $PAYMENT_INFO->CHECK_NUMBER . "</td>
                             </tr>";
-                } elseif (in_array($enrollment_payment->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
-                    $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
-                    $PAYMENT_DETAILS = "<tr>
+                    } elseif (in_array($enrollment_payment->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                        $PAYMENT_INFO = json_decode($enrollment_payment->fields['PAYMENT_INFO']);
+                        $PAYMENT_DETAILS = "<tr>
                                 <td>" . $enrollment_payment->fields['PAYMENT_TYPE'] . "# : </td>
                                 <td style='text-align:right'>**** " . $PAYMENT_INFO->LAST4 . "</td>
                             </tr>";
+                    }
                 }
-            }
 
-            $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
-            $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
-            $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
-            $enrollment_payment->MoveNext();
+                $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
+                $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
+                $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
+                $enrollment_payment->MoveNext();
+            }
+        } else {
+            $wallet_data = $db_account->Execute("SELECT DOA_CUSTOMER_WALLET.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+            $PAYMENT_METHOD = $wallet_data->fields['PAYMENT_TYPE'];
+            $TOTAL_AMOUNT = ($wallet_data->fields['CREDIT'] > 0) ? $wallet_data->fields['CREDIT'] : $wallet_data->fields['DEBIT'];
+            $DETAILS_AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
+            $TYPE = $enrollment_payment->fields['TYPE'];
         }
 
         $BUSINESS_NAME = $business_details->fields['BUSINESS_NAME'];
