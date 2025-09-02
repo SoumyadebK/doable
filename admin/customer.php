@@ -218,6 +218,7 @@ if ($PK_USER_MASTER > 0) {
     makeDroppedCancelled($PK_USER_MASTER);
     checkAllEnrollmentStatus($PK_USER_MASTER);
     //markAdhocAppointmentNormal(24013);
+    //markEnrollmentComplete(9850);
 }
 ?>
 <!DOCTYPE html>
@@ -1910,7 +1911,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     $i = 1;
                                                                     while (!$walletTransaction->EOF) {
                                                                         $RECEIPT_NUMBER = $walletTransaction->fields['RECEIPT_NUMBER'];
-                                                                        $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = " . $walletTransaction->fields['RECEIPT_NUMBER'] . " LIMIT 1");
+                                                                        $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = '$RECEIPT_NUMBER' LIMIT 1");
                                                                     ?>
                                                                         <tr>
                                                                             <td><?= date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON'])) ?></td>

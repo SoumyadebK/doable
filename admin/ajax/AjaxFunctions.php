@@ -2388,6 +2388,7 @@ function moveToWallet($RESPONSE_DATA): void
     $TRANSACTION_TYPE = $RESPONSE_DATA['TRANSACTION_TYPE'];
     $PK_PAYMENT_TYPE = ($TRANSACTION_TYPE == 'Move') ? 7 : $RESPONSE_DATA['PK_PAYMENT_TYPE'];
     $IS_ORIGINAL_RECEIPT = 0;
+    $PK_CUSTOMER_WALLET = 0;
 
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, MISC_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     if (empty($enrollment_data->fields['ENROLLMENT_NAME'])) {
@@ -2420,6 +2421,7 @@ function moveToWallet($RESPONSE_DATA): void
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+        $PK_CUSTOMER_WALLET = $db_account->insert_ID();
 
         $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
     } else {
@@ -2567,6 +2569,7 @@ function moveToWallet($RESPONSE_DATA): void
     $PAYMENT_DATA['AMOUNT'] = $BALANCE;
     $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     $PAYMENT_DATA['TYPE'] = $TYPE;
+    $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
     $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
     $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
     $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
