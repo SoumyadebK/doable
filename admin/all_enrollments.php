@@ -361,6 +361,7 @@ if (isset($_POST['SUBMIT'])) {
                                                 <th data-type="number" class="sortable" style="cursor: pointer">Date</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Email ID</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Phone</th>
+                                                <th data-type="string" class="sortable" style="cursor: pointer">Service Provider</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
                                                 <th>Actions</th>
                                                 <th>Status</th>
@@ -391,7 +392,26 @@ if (isset($_POST['SUBMIT'])) {
                                                 while (!$serviceCodeData->EOF) {
                                                     $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                                     $serviceCodeData->MoveNext();
-                                                } ?>
+                                                } 
+                                                
+                                                $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                                $resultsArray = [];
+                                                while (!$results->EOF) {
+                                                    $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
+                                                    $results->MoveNext();
+                                                }
+                                                $totalResults = count($resultsArray);
+                                                $concatenatedResults = "";
+                                                foreach ($resultsArray as $key => $result) {
+                                                    // Append the current result to the concatenated string
+                                                    $concatenatedResults .= $result;
+
+                                                    // If it's not the last result, append a comma
+                                                    if ($key < $totalResults - 1) {
+                                                        $concatenatedResults .= ", ";
+                                                    }
+                                                }
+                                                ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['FIRST_NAME'] . " " . $row->fields['LAST_NAME'] ?></td>
@@ -402,6 +422,7 @@ if (isset($_POST['SUBMIT'])) {
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['PHONE'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $concatenatedResults ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
                                                     <td>
                                                         <?php if (in_array('Enrollments Edit', $PERMISSION_ARRAY)) { ?>
