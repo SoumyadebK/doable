@@ -40,6 +40,11 @@ $last_day_of_week_previous_year = date('Y-m-d', strtotime($first_day_of_week_pre
 
 $res = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
+if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
+    $business_name = '';
+} else {
+    $business_name = 'Franchisee: '.$business_name;
+}
 
 ?>
 
@@ -71,7 +76,7 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?=$business_name?></th>
+                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?=$business_name . " (" . $concatenatedResults . ")" ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
                                     <th style="width:20%; text-align: center; font-weight: bold">Week # <?=$week_number?></th>
                                 </tr>
@@ -90,9 +95,9 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                                 </tr>
                                 <tr>
                                     <?php
-                                    $regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS REGULAR_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE (DOA_ENROLLMENT_MASTER.MISC_TYPE IS NULL || DOA_ENROLLMENT_MASTER.MISC_TYPE = '') AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
+                                    $regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS REGULAR_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE (DOA_ENROLLMENT_MASTER.MISC_TYPE IS NULL || DOA_ENROLLMENT_MASTER.MISC_TYPE = '') AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
                                     $other_payment_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS OTHER_TOTAL FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
-                                    $misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.MISC_TYPE != '' AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE != 7 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
+                                    $misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.MISC_TYPE != '' AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
                                     ?>
                                     <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
                                     <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format($regular_data->fields['REGULAR_TOTAL'] + $other_payment_data->fields['OTHER_TOTAL'], 2) ?></th>
@@ -257,10 +262,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                         </table>
                     </div>
                     <div class="table-responsive">
-                        <?php if($res->fields['FRANCHISE']==1){?>
-                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">UNIT SALES TRACKING</label>
-                        <?php }else{ ?>
-                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">SALES TRACKING</label>
+                        <?php if ($res->fields['FRANCHISE'] == 1) { ?>
+                            <label style="width:100%; text-align: center; font-weight: bold">UNIT SALES TRACKING</label>
+                        <?php } else { ?>
+                            <label style="width:100%; text-align: center; font-weight: bold">SALES TRACKING</label>
                         <?php } ?>
                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                             <thead>
@@ -406,10 +411,10 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
                         </table>
                     </div>
                     <div class="table-responsive">
-                        <?php if($res->fields['FRANCHISE']==1){?>
-                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
+                        <?php if ($res->fields['FRANCHISE'] == 1) { ?>
+                            <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
                         <?php } else { ?>
-                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">MISCELLANEOUS</label>
+                            <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS</label>
                         <?php } ?>
                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                             <thead>
