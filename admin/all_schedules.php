@@ -724,6 +724,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
                 let currentDate = new Date(redirect_date);
+                currentDate.setDate(currentDate.getDate() + 1);
                 renderCalendar(currentDate);
             }
         });
