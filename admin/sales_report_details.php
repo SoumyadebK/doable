@@ -101,15 +101,17 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="3"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
-                                                    <th style="width:50%; text-align: center; font-weight: bold" colspan="2">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; font-weight: bold" colspan="3">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
                                                 <tr>
                                                     <th style="width:10%; text-align: center" >Student</th>
                                                     <th style="width:10%; text-align: center" >Amount of Sale</th>
                                                     <th style="width:10%; text-align: center" >Services</th>
                                                     <th style="width:10%; text-align: center" >Executive</th>
-                                                    <th style="width:12%; text-align: center" ><?= $service_provider_title ?> </th>
+                                                    <th style="width:12%; text-align: center" ><?= $service_provider_title ?> 1</th>
+                                                    <th style="width:12%; text-align: center" ><?= $service_provider_title ?> 2</th>
+                                                    <th style="width:12%; text-align: center" ><?= $service_provider_title ?> 3</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -124,10 +126,10 @@ foreach ($resultsArray as $key => $result) {
                                                     $serviceCodeData->MoveNext();
                                                 } 
                                                 
-                                                $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                                $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
                                                 $resultsArray = [];
                                                 while (!$results->EOF) {
-                                                    $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
+                                                    $resultsArray[] = $results->fields['SERVICE_PROVIDER'].' ('.number_format($results->fields['SERVICE_PROVIDER_PERCENTAGE']).'%)';
                                                     $results->MoveNext();
                                                 }
                                                 $totalResults = count($resultsArray);
@@ -150,7 +152,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: right">$<?=$row->fields['AMOUNT'] ?></td>
                                                         <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
                                                         <td><?=$executive->fields['EXECUTIVE'] ?></td>
-                                                        <td><?= $concatenatedResults ?></td>
+                                                        <td><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '' ?></td>
+                                                        <td><?= (isset($resultsArray[1]) && $resultsArray[1]) ? $resultsArray[1] : '' ?></td>
+                                                        <td><?= (isset($resultsArray[2]) && $resultsArray[2]) ? $resultsArray[2] : '' ?></td>
                                                     </tr>
                                                 <?php $row->MoveNext();
                                                     $i++;

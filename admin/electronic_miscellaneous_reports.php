@@ -114,7 +114,7 @@ if (!empty($_GET['NAME'])) {
                                             <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                 <option value="">Select a package</option>
                                                 <?php
-                                                $row = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE ACTIVE = 1");
+                                                $row = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
                                                 while (!$row->EOF) {?>
                                                 <option value="<?=$row->fields['PK_PACKAGE']?>"><?=$row->fields['PACKAGE_NAME']?></option>
                                                 <?php $row->MoveNext();
