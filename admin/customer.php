@@ -1918,7 +1918,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             <td><?= $walletTransaction->fields['DESCRIPTION'] ?></td>
                                                                             <td><?= $walletTransaction->fields['DEBIT'] ?></td>
                                                                             <td><?= $walletTransaction->fields['CREDIT'] ?></td>
-                                                                            <td><?= $walletTransaction->fields['CURRENT_BALANCE'] ?></td>
+                                                                            <td><?= $walletTransaction->fields['BALANCE_LEFT'] ?></td>
                                                                             <td>
                                                                                 <?php if ($RECEIPT_NUMBER != '') { ?>
                                                                                     <a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
