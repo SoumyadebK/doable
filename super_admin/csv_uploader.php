@@ -154,6 +154,61 @@ if (!empty($_POST)) {
                     }
                     break;
 
+                case 'DOA_STAFF':
+                    $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                    $staff_name = explode(" ", $getData[0]);
+                    $USER_DATA['FIRST_NAME'] = isset($staff_name[0]) ?: '';
+                    $USER_DATA['LAST_NAME'] = isset($staff_name[1]) ?: '';
+                    $USER_DATA['USER_NAME'] = $getData[19];
+                    $USER_DATA['EMAIL_ID'] = $getData[14];
+                    if (!empty($getData[13]) && $getData[13] != null) {
+                        $USER_DATA['PHONE'] = $getData[13];
+                    } elseif (!empty($getData[12]) && $getData[12] != null) {
+                        $USER_DATA['PHONE'] = $getData[12];
+                    }
+                    $USER_DATA['PASSWORD'] = $getData[20];
+                    $USER_DATA['GENDER'] = ($getData[5] == 'M') ? 'Male' : 'Female';
+                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[16]));
+                    $USER_DATA['ADDRESS'] = $getData[7];
+                    $USER_DATA['ADDRESS_1'] = $getData[8];
+                    $USER_DATA['CITY'] = $getData[9];
+                    $USER_DATA['PK_COUNTRY'] = 1;
+                    $state_data = $db->Execute("SELECT PK_STATES FROM DOA_STATES WHERE STATE_NAME='$getData[10]' OR STATE_CODE='$getData[10]'");
+                    $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
+                    $USER_DATA['ZIP'] = $getData[11];
+                    $USER_DATA['NOTES'] = $getData[18];
+                    $USER_DATA['ACTIVE'] = $getData[17];
+                    $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform('DOA_USERS', $USER_DATA, 'insert');
+                    $PK_USER = $db->insert_ID();
+
+                    if ($PK_USER) {
+                        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+                        $USER_ROLE_DATA['PK_ROLES'] = ($doableRoleId->RecordCount() > 0) ? $doableRoleId->fields['PK_ROLES'] : 0;
+                        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
+                        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+                        $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
+                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
+                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[4]);
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[19];
+                        $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[14];
+                        if (!empty($getData[13]) && $getData[13] != null) {
+                            $USER_DATA_ACCOUNT['PHONE'] = $getData[13];
+                        } elseif (!empty($getData[12]) && $getData[12] != null) {
+                            $USER_DATA_ACCOUNT['PHONE'] = $getData[12];
+                        }
+                        $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+
+                        $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                        $USER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                    }
+                    break;
+
                 case 'DOA_CUSTOMER':
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $USER_DATA['USER_NAME'] = $getData[0];
