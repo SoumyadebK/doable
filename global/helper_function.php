@@ -720,52 +720,55 @@ function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT
 function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
 {
     global $db_account;
-    $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_DATE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
+    if ($enrollment_data->RecordCount() > 0 && $enrollment_data->fields['ENROLLMENT_DATE'] > '2023-12-31') {
+        $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
 
-    $TOTAL_COMPLETED_SESSION = 0;
-    $enrollmentServiceData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
-    while (!$enrollmentServiceData->EOF) {
-        $SESSION_COMPLETED_COUNT = getSessionCompletedCount($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
-        $TOTAL_COMPLETED_SESSION += $SESSION_COMPLETED_COUNT;
-        $enrollmentServiceData->MoveNext();
-    }
-
-    $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-
-    $paid_count = (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 0 : 1;
-
-    $enr_data = $db_account->Execute("SELECT STATUS, CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    if (($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') && $enr_data->fields['CHARGE_TYPE'] != 'Membership') {
-        if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-            $ENR_UPDATE_DATA['STATUS'] = 'C';
-            $ENR_UPDATE_DATA['IS_SALE'] = NULL;
-        } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-            $ENR_UPDATE_DATA['STATUS'] = 'CA';
-        } else {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
-            $ENR_UPDATE_DATA['STATUS'] = 'CA';
+        $TOTAL_COMPLETED_SESSION = 0;
+        $enrollmentServiceData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        while (!$enrollmentServiceData->EOF) {
+            $SESSION_COMPLETED_COUNT = getSessionCompletedCount($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            $TOTAL_COMPLETED_SESSION += $SESSION_COMPLETED_COUNT;
+            $enrollmentServiceData->MoveNext();
         }
-        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-    } elseif ($enr_data->fields['CHARGE_TYPE'] != 'Membership') {
-        if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-            $ENR_UPDATE_DATA['STATUS'] = 'CO';
-            $ENR_UPDATE_DATA['IS_SALE'] = 'N';
-        } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
-            $ENR_UPDATE_DATA['STATUS'] = 'A';
-        } else {
-            $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
-            $ENR_UPDATE_DATA['STATUS'] = 'A';
+
+        $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+        $paid_count = (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 0 : 1;
+
+        $enr_data = $db_account->Execute("SELECT STATUS, CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        if (($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') && $enr_data->fields['CHARGE_TYPE'] != 'Membership') {
+            if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+                $ENR_UPDATE_DATA['STATUS'] = 'C';
+                $ENR_UPDATE_DATA['IS_SALE'] = NULL;
+            } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+                $ENR_UPDATE_DATA['STATUS'] = 'CA';
+            } else {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+                $ENR_UPDATE_DATA['STATUS'] = 'CA';
+            }
+            db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        } elseif ($enr_data->fields['CHARGE_TYPE'] != 'Membership') {
+            if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+                $ENR_UPDATE_DATA['STATUS'] = 'CO';
+                $ENR_UPDATE_DATA['IS_SALE'] = 'N';
+            } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+                $ENR_UPDATE_DATA['STATUS'] = 'A';
+            } else {
+                $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+                $ENR_UPDATE_DATA['STATUS'] = 'A';
+            }
+            db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+            db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
         }
-        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     }
 }
 
@@ -1000,6 +1003,19 @@ function makeExpiryEnrollmentComplete($PK_USER_MASTER): void
         }
 
         $enrollmentServiceData->MoveNext();
+    }
+
+    $oldEnrollmentData = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_ENROLLMENT_MASTER` WHERE `ENROLLMENT_DATE` <= '2023-12-31' AND `PK_USER_MASTER` = '$PK_USER_MASTER' AND `STATUS` = 'A'");
+    while (!$oldEnrollmentData->EOF) {
+        $PK_ENROLLMENT_MASTER = $oldEnrollmentData->fields['PK_ENROLLMENT_MASTER'];
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+        $ENR_UPDATE_DATA['STATUS'] = 'CO';
+        db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+        db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+        $oldEnrollmentData->MoveNext();
     }
 
     /* $enrollmentServiceData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER, SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS TOTAL_SESSIONS, SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS TOTAL_FINAL_AMOUNT, SUM(DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID) AS TOTAL_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.EXPIRY_DATE <= '" . date('Y-m-d') . "' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' GROUP BY DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER HAVING TOTAL_FINAL_AMOUNT <= TOTAL_PAID OR TOTAL_FINAL_AMOUNT = 0");
