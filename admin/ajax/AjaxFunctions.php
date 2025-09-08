@@ -2362,6 +2362,50 @@ function copyAppointment($RESPONSE_DATA)
             $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
             db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
         }
+    } elseif ($OPERATION === 'copy' && $TYPE === "special_appointment") {
+        $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+
+        $SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $special_appointment_details->fields['STANDING_ID'];
+        $SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $special_appointment_details->fields['PK_LOCATION'];
+        $SPECIAL_APPOINTMENT_DATA['TITLE'] = $special_appointment_details->fields['TITLE'];
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
+        $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $special_appointment_details->fields['DESCRIPTION'];
+        $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $special_appointment_details->fields['PK_SCHEDULING_CODE'];
+        $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
+        $SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+        $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
+
+        $SPECIAL_APPOINTMENT_SP_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+        $SPECIAL_APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+        db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_SP_DATA, 'insert');
+    } elseif ($OPERATION === 'move' && $TYPE === "special_appointment") {
+        $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
+        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+
+        if ($PK_ID > 0) {
+            db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT = " . $PK_ID);
+
+            $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+            $SPECIAL_APPOINTMENT_SP_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_ID;
+            $SPECIAL_APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_SP_DATA, 'insert');
+        }
     }
 
     echo date('m/d/Y', strtotime($DATE));

@@ -538,6 +538,43 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         padding-right: 10px;
         padding-left: 0px;
     }
+
+
+
+    .radio-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .radio-buttons input[type="radio"] {
+        display: none;
+    }
+
+    .radio-buttons label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid #ccc;
+        transition: all 0.3s ease;
+        background: #f9f9f9;
+        color: #666666ff;
+    }
+
+    .radio-buttons input[type="radio"]:checked+label {
+        background: #39b54a;
+        border-color: #39b54a;
+        color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .radio-buttons label:hover {
+        transform: scale(1.05);
+    }
 </style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
@@ -664,13 +701,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                     <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
                                     <h5>Copy OR Move Events</h5>
                                     <?php if (in_array('Calendar Move/Copy', $PERMISSION_ARRAY) || in_array('Appointments Move/Copy', $PERMISSION_ARRAY) || in_array('To-Do Move/Copy', $PERMISSION_ARRAY)) { ?>
-                                        <p>
+                                        <div class="radio-buttons" style="margin-bottom: 15px;">
                                             <input type='radio' name="copy_move" id='drop-copy' checked />
-                                            <label for='drop-copy'>Copy</label>
+                                            <label for='drop-copy'><i class="fa fa-copy"></i> Copy</label>
 
                                             <input type='radio' name="copy_move" id='drop-remove' />
-                                            <label for='drop-remove'>Move</label>
-                                        </p>
+                                            <label for='drop-remove'><i class="fa fa-cut"></i> Move</label>
+                                        </div>
                                     <?php } ?>
                                 </div>
                             </div>
