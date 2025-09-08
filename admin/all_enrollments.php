@@ -95,15 +95,18 @@ if (isset($_POST['SUBMIT'])) {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
 
-    $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
-
-    $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
+        $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
-    } else {
+    } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
+        $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
+    } else {
+        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'";
     }
+    $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
+    db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 
     $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
 
@@ -111,9 +114,12 @@ if (isset($_POST['SUBMIT'])) {
         $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
         if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
-        } else {
+        } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+        } else {
+            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getAllSessionCreatedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
+
         if ($TOTAL_POSITIVE_BALANCE >= 0) {
             $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
         }
@@ -129,8 +135,6 @@ if (isset($_POST['SUBMIT'])) {
             db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
     }*/
-
-    db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 
     db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
@@ -392,8 +396,8 @@ if (isset($_POST['SUBMIT'])) {
                                                 while (!$serviceCodeData->EOF) {
                                                     $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
                                                     $serviceCodeData->MoveNext();
-                                                } 
-                                                
+                                                }
+
                                                 $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
                                                 $resultsArray = [];
                                                 while (!$results->EOF) {
@@ -411,7 +415,7 @@ if (isset($_POST['SUBMIT'])) {
                                                         $concatenatedResults .= ", ";
                                                     }
                                                 }
-                                                ?>
+                                            ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $i; ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['FIRST_NAME'] . " " . $row->fields['LAST_NAME'] ?></td>
@@ -531,6 +535,13 @@ if (isset($_POST['SUBMIT'])) {
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2" /></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <label>Keep All Future Appointments on Schedule <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
                                             </div>
                                         </div>
                                     </div>
@@ -695,6 +706,7 @@ if (isset($_POST['SUBMIT'])) {
         function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_USER_MASTER').val(PK_USER_MASTER);
+            $('#CANCEL_FUTURE_APPOINTMENT_3').prop('checked', false);
             $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
             $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
             $('#step_3').hide();
