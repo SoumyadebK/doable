@@ -640,7 +640,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         }
     } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
         $IS_ORIGINAL_RECEIPT = 0;
-        $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
+        $PK_CUSTOMER_WALLET = $_POST['PK_CUSTOMER_WALLET'];
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
         $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
@@ -650,13 +650,15 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
         }
 
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = '$PK_CUSTOMER_WALLET'");
+        $RECEIPT_NUMBER = $RECEIPT_NUMBER_ORIGINAL = $wallet_data->fields['RECEIPT_NUMBER'];
+        $WALLET_BALANCE = $wallet_data->fields['BALANCE_LEFT'];
         $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT_TO_PAY) ? $AMOUNT_TO_PAY : $WALLET_BALANCE;
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
-        }
 
-        $wallet_transaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
+        $WALLET_UPDATE_DATA['BALANCE_LEFT'] = $WALLET_BALANCE - $DEBIT_AMOUNT;
+        db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET =  '$PK_CUSTOMER_WALLET'");
+
+        /* $wallet_transaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
         while (!$wallet_transaction->EOF) {
             $PK_CUSTOMER_WALLET = $wallet_transaction->fields['PK_CUSTOMER_WALLET'];
             $BALANCE_LEFT = $wallet_transaction->fields['BALANCE_LEFT'] - $AMOUNT_BILLED;
@@ -672,18 +674,18 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $AMOUNT_BILLED -= $wallet_transaction->fields['BALANCE_LEFT'];
             }
             $wallet_transaction->MoveNext();
-        }
+        } */
 
+        $INSERT_DATA['CUSTOMER_WALLET_PARENT'] = $PK_CUSTOMER_WALLET;
+        $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
         $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $enrollment_id;
-        $INSERT_DATA['RECEIPT_NUMBER'] = implode(',', $RECEIPT_NUMBER_ARRAY);
+        $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
         $PK_CUSTOMER_WALLET_NEW = $db_account->insert_ID();
-
-        $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
 
         $PAYMENT_INFO_ARRAY = ['RECEIPT_NUMBER' => $RECEIPT_NUMBER];
         $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
@@ -712,11 +714,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
     $enrollment_billing_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_BILLING WHERE PK_ENROLLMENT_MASTER=" . $_POST['PK_ENROLLMENT_MASTER']);
 
-    if (count($RECEIPT_NUMBER_ARRAY) > 0) {
-        $RECEIPT_NUMBER = implode(',', $RECEIPT_NUMBER_ARRAY);
-    } else {
-        $RECEIPT_NUMBER = $RECEIPT_NUMBER_ORIGINAL;
-    }
+    $RECEIPT_NUMBER = $RECEIPT_NUMBER_ORIGINAL;
 
     for ($i = 0; $i < count($ENROLLMENT_LEDGER_PARENT_ARRAY); $i++) {
         $ledger_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `DUE_DATE` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = " . $ENROLLMENT_LEDGER_PARENT_ARRAY[$i]);

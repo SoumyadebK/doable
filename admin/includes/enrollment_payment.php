@@ -609,6 +609,13 @@ else
         form.removeEventListener('submit', listener);*/
         $(param).closest('.payment_modal').find('#card-element').remove();
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
+
+        $(param).closest('.payment_modal').find('.payment_type_div').slideUp();
+        $(param).closest('.payment_modal').find('#wallet_balance_div').slideUp();
+        $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
+        $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+        $(param).closest('.payment_modal').find('#PK_CUSTOMER_WALLET').prop('required', false);
+
         switch (paymentType) {
             case 1:
                 $(param).closest('.payment_modal').find('#credit_card_payment').slideDown();
@@ -666,28 +673,6 @@ else
                     success: function(data) {
                         $('#wallet_balance_div').html(data);
                         $('#wallet_balance_div').slideDown();
-
-                        let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
-
-                        if (ACTUAL_AMOUNT > WALLET_BALANCE) {
-                            //$('#PARTIAL_PAYMENT').prop('checked', true);
-                            //$('.partial_payment_div').slideDown();
-
-                            $('#AMOUNT_TO_PAY').val(WALLET_BALANCE);
-                            $('#PARTIAL_AMOUNT').val(0);
-                            $('#REMAINING_AMOUNT').val(ACTUAL_AMOUNT - WALLET_BALANCE);
-
-                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
-                        } else {
-                            //$('#PARTIAL_PAYMENT').prop('checked', false);
-                            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
-                            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
-                            $('#PARTIAL_AMOUNT').val(0);
-                            $('#REMAINING_AMOUNT').val(0);
-                            //$('.partial_payment_div').slideUp();
-                            //$('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
-                        }
                     }
                 });
                 break;
@@ -698,6 +683,7 @@ else
                 $(param).closest('.payment_modal').find('#wallet_balance_div').slideUp();
                 $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
                 $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+                $(param).closest('.payment_modal').find('#PK_CUSTOMER_WALLET').prop('required', false);
                 break;
         }
     }

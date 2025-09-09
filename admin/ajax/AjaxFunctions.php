@@ -2447,27 +2447,37 @@ function moveToWallet($RESPONSE_DATA): void
         $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
     }
 
-    $payment_data = $db_account->Execute("SELECT PK_PAYMENT_TYPE, RECEIPT_NUMBER, RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=" . $PK_ENROLLMENT_LEDGER);
     if ($PK_PAYMENT_TYPE == 7) {
         $TYPE = 'Move';
+        $payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_PAYMENT = " . $PK_ENROLLMENT_PAYMENT);
 
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+        $wallet_parent_data = $db_account->Execute("SELECT CUSTOMER_WALLET_PARENT FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = " . $payment_data->fields['PK_CUSTOMER_WALLET']);
+        $CUSTOMER_WALLET_PARENT = $wallet_parent_data->fields['CUSTOMER_WALLET_PARENT'];
+
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = '$CUSTOMER_WALLET_PARENT'");
+        $WALLET_BALANCE = $wallet_data->fields['BALANCE_LEFT'];
+
+        $WALLET_UPDATE_DATA['BALANCE_LEFT'] = $WALLET_BALANCE + $BALANCE;
+        db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET = '$CUSTOMER_WALLET_PARENT'");
+
+        $customer_wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        if ($customer_wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $customer_wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
             $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
         }
+        $INSERT_DATA['CUSTOMER_WALLET_PARENT'] = $CUSTOMER_WALLET_PARENT;
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
-        $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
+        $INSERT_DATA['BALANCE_LEFT'] = 0;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-        $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        $INSERT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
         $PK_CUSTOMER_WALLET = $db_account->insert_ID();
 
-        $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
     } else {
         $BALANCE = $REFUND_AMOUNT;
         $TYPE = 'Refund';

@@ -29,7 +29,7 @@ $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSIN
 if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
     $business_name = '';
 } else {
-    $business_name = ''.$business_name;
+    $business_name = '' . $business_name;
 }
 
 if ($type === 'export') {
@@ -223,29 +223,29 @@ while (!$executive_data->EOF) {
                                                 ?>
 
                                                 <!-- Display wallet payments first -->
-                                                <?php while (!$wallet_payments->EOF) { 
+                                                <?php while (!$wallet_payments->EOF) {
                                                     $total_wallet += $wallet_payments->fields['AMOUNT'];
                                                     if ($wallet_payments->fields['BALANCE_LEFT'] > 0) {
-                                                    ?>
-                                                    <tr>
-                                                        <td style="text-align: center"><?= date('m/d/Y', strtotime($wallet_payments->fields['PAYMENT_DATE'])) ?></td>
-                                                        <td style="text-align: right">$<?= $wallet_payments->fields['BALANCE_LEFT'] ?></td>
-                                                        <td style="text-align: center">Wallet</td>
-                                                        <td style="text-align: center"><?= $wallet_payments->fields['PAYMENT_TYPE'] ?></td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td style="text-align: center"><?= $wallet_payments->fields['RECEIPT_NUMBER'] ?></td>
-                                                        <td style="text-align: center"><?= $wallet_payments->fields['MEMO'] ?? '-' ?></td>
-                                                        <td style="text-align: center"><?= $wallet_payments->fields['CLIENT'] ?></td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td style="text-align: right">-</td>
-                                                        <td style="text-align: right">-</td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td style="text-align: center">-</td>
-                                                        <td></td>
-                                                    </tr>
-                                                    <?php
+                                                ?>
+                                                        <tr>
+                                                            <td style="text-align: center"><?= date('m/d/Y', strtotime($wallet_payments->fields['PAYMENT_DATE'])) ?></td>
+                                                            <td style="text-align: right">$<?= $wallet_payments->fields['BALANCE_LEFT'] ?></td>
+                                                            <td style="text-align: center">Wallet</td>
+                                                            <td style="text-align: center"><?= $wallet_payments->fields['PAYMENT_TYPE'] ?></td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td style="text-align: center"><?= $wallet_payments->fields['RECEIPT_NUMBER'] ?></td>
+                                                            <td style="text-align: center"><?= $wallet_payments->fields['MEMO'] ?? '-' ?></td>
+                                                            <td style="text-align: center"><?= $wallet_payments->fields['CLIENT'] ?></td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td style="text-align: right">-</td>
+                                                            <td style="text-align: right">-</td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td style="text-align: center">-</td>
+                                                            <td></td>
+                                                        </tr>
+                                                <?php
                                                     }
                                                     $wallet_payments->MoveNext();
                                                 } ?>
@@ -260,7 +260,7 @@ while (!$executive_data->EOF) {
                                                     $PK_USER_MASTER = $payment['PK_USER_MASTER'];
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
-                                                    
+
                                                     $teacher = '';
                                                     if ($service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
@@ -268,10 +268,10 @@ while (!$executive_data->EOF) {
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
-                                                    
+
                                                     $enrollment_balance = $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'];
                                                     $total_amount += $payment['AMOUNT'];
-                                                    
+
                                                     if ($payment['TYPE'] == 'Move') {
                                                         $payment_type = 'Wallet';
                                                     } elseif ($payment['PK_PAYMENT_TYPE'] == '2') {
@@ -296,7 +296,7 @@ while (!$executive_data->EOF) {
                                                     } else {
                                                         $payment_type = $payment['PAYMENT_TYPE'];
                                                     }
-                                                    ?>
+                                                ?>
                                                     <tr>
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right">$<?= $payment['AMOUNT'] ?></td>
@@ -319,7 +319,7 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center"><?= $teacher ?></td>
                                                         <td></td>
                                                     </tr>
-                                                    <?php
+                                                <?php
                                                     $i++;
                                                 }
                                                 ?>
@@ -330,7 +330,7 @@ while (!$executive_data->EOF) {
                                                     $PK_USER_MASTER = $refund['PK_USER_MASTER'];
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
-                                                    
+
                                                     $teacher = '';
                                                     if ($service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
@@ -338,9 +338,9 @@ while (!$executive_data->EOF) {
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
-                                                    
+
                                                     $enrollment_balance = $refund['TOTAL_AMOUNT'] - $refund['AMOUNT'];
-                                                    
+
                                                     // Payment type logic for refunds
                                                     if ($refund['PK_PAYMENT_TYPE'] == '2') {
                                                         $payment_info = json_decode($refund['PAYMENT_INFO']);
@@ -364,14 +364,14 @@ while (!$executive_data->EOF) {
                                                     } else {
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'];
                                                     }
-                                                    ?>
+                                                ?>
                                                     <tr>
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['AMOUNT'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Cash') { ?>
                                                             <td style="text-align: center; color: red"><?= $refund['TYPE'] ?></td>
                                                         <?php } else { ?>
-                                                            <td style="text-align: center; color: red"><?= '(Refund) '.$refund_payment_type ?></td>
+                                                            <td style="text-align: center; color: red"><?= '(Refund) ' . $refund_payment_type ?></td>
                                                         <?php } ?>
                                                         <td style="text-align: center; color: red"><?= $refund['PAYMENT_TYPE'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Credit Card' || $refund['PAYMENT_TYPE'] == 'Visa' || $refund['PAYMENT_TYPE'] == 'Master Card' || $refund['PAYMENT_TYPE'] == 'American Express' || $refund['PAYMENT_TYPE'] == 'Card' || $refund['PAYMENT_TYPE'] == 'Card On File') { ?>
@@ -401,7 +401,7 @@ while (!$executive_data->EOF) {
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        
+
                                     </div>
                                 </div>
                             </div>
