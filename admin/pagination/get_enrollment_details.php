@@ -147,7 +147,7 @@ while (!$serviceCodeData->EOF) {
                     } elseif (in_array($payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                         $payment_info = json_decode($payment_details->fields['PAYMENT_INFO']);
                         $payment_type = $payment_details->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                    } elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                    } /* elseif ($payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
                         $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
                         $payment_type_array = [];
                         foreach ($receipt_number_array as $receipt_number) {
@@ -160,7 +160,7 @@ while (!$serviceCodeData->EOF) {
                             }
                         }
                         $payment_type = implode(', ', $payment_type_array);
-                    } else {
+                    } */ else {
                         $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                     } ?>
                     <tr style="border-style: hidden; color: <?= ($payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
@@ -227,7 +227,7 @@ while (!$serviceCodeData->EOF) {
                     } elseif (in_array($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                         $payment_info = json_decode($cancelled_enrollment_payment_details->fields['PAYMENT_INFO']);
                         $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                    } elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                    } /* elseif ($cancelled_enrollment_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
                         $receipt_number_array = explode(',', $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER']);
                         $payment_type_array = [];
                         foreach ($receipt_number_array as $receipt_number) {
@@ -240,7 +240,7 @@ while (!$serviceCodeData->EOF) {
                             }
                         }
                         $payment_type = implode(', ', $payment_type_array);
-                    } else {
+                    } */ else {
                         $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'];
                     } ?>
                     <tr style="border-style: hidden; color: <?= ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
@@ -277,7 +277,7 @@ while (!$serviceCodeData->EOF) {
                 } elseif (in_array($adjusted_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                     $payment_info = json_decode($adjusted_payment_details->fields['PAYMENT_INFO']);
                     $payment_type = $adjusted_payment_details->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                } elseif ($adjusted_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
+                } /* elseif ($adjusted_payment_details->fields['PK_PAYMENT_TYPE'] == '7') {
                     $receipt_number_array = explode(',', $adjusted_payment_details->fields['RECEIPT_NUMBER']);
                     $payment_type_array = [];
                     foreach ($receipt_number_array as $receipt_number) {
@@ -290,7 +290,7 @@ while (!$serviceCodeData->EOF) {
                         }
                     }
                     $payment_type = implode(', ', $payment_type_array);
-                } else {
+                } */ else {
                     $payment_type = $adjusted_payment_details->fields['PAYMENT_TYPE'];
                 } ?>
                 <tr style="border-style: hidden;">

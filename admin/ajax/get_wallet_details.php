@@ -69,7 +69,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                         <?php if ($RECEIPT_NUMBER != '') { ?>
                             <a class="btn btn-info waves-effect waves-light text-white btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
                         <?php }
-                        if ($walletTransaction->fields['CREDIT'] > 0 && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
+                        if (($walletTransaction->fields['CREDIT'] == $walletTransaction->fields['BALANCE_LEFT']) && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
                             <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" onclick="deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)"><i class="ti-trash"></i></a>
                         <?php } ?>
                     </td>

@@ -202,7 +202,7 @@ while (!$executive_data->EOF) {
                                             <tbody>
                                                 <?php
                                                 // Get all payments first and separate regular payments from refunds
-                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, ENROLLMENT_NAME, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
                                                 // Separate regular payments and refunds
                                                 $regular_payments = [];
@@ -211,7 +211,8 @@ while (!$executive_data->EOF) {
                                                 while (!$all_payments->EOF) {
                                                     if ($all_payments->fields['TYPE'] == 'Refund') {
                                                         $refund_payments[] = $all_payments->fields;
-                                                    } else {
+                                                    }
+                                                    if ($all_payments->fields['TYPE'] == 'Payment' || $all_payments->fields['TYPE'] == 'Refund') {
                                                         $regular_payments[] = $all_payments->fields;
                                                     }
                                                     $all_payments->MoveNext();
@@ -280,7 +281,7 @@ while (!$executive_data->EOF) {
                                                     } elseif (in_array($payment['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                                                         $payment_info = json_decode($payment['PAYMENT_INFO']);
                                                         $payment_type = $payment['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                                                    } elseif ($payment['PK_PAYMENT_TYPE'] == '7') {
+                                                    } /* elseif ($payment['PK_PAYMENT_TYPE'] == '7') {
                                                         $receipt_number_array = explode(',', $payment['RECEIPT_NUMBER']);
                                                         $payment_type_array = [];
                                                         foreach ($receipt_number_array as $receipt_number) {
@@ -293,8 +294,17 @@ while (!$executive_data->EOF) {
                                                             }
                                                         }
                                                         $payment_type = implode(', ', $payment_type_array);
-                                                    } else {
+                                                    } */ else {
                                                         $payment_type = $payment['PAYMENT_TYPE'];
+                                                    }
+
+                                                    $name = $payment['ENROLLMENT_NAME'];
+                                                    $ENROLLMENT_ID = $payment['ENROLLMENT_ID'];
+                                                    $MISC_ID = $payment['MISC_ID'];
+                                                    if (empty($name)) {
+                                                        $enrollment_name = '';
+                                                    } else {
+                                                        $enrollment_name = "$name" . " - ";
                                                     }
                                                 ?>
                                                     <tr>
@@ -310,7 +320,7 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center"><?= $payment['RECEIPT_NUMBER'] ?></td>
                                                         <td style="text-align: left"><?= $payment['MEMO'] ?></td>
                                                         <td style="text-align: left"><?= $payment['CLIENT'] ?></td>
-                                                        <td style="text-align: left"><?= $payment['ENROLLMENT_NAME'] ?></td>
+                                                        <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID ?></td>
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) ?></td>
                                                         <td style="text-align: center"><?= $payment['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right">$<?= $payment['TOTAL_AMOUNT'] ?></td>
@@ -348,7 +358,7 @@ while (!$executive_data->EOF) {
                                                     } elseif (in_array($refund['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                                                         $payment_info = json_decode($refund['PAYMENT_INFO']);
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                                                    } elseif ($refund['PK_PAYMENT_TYPE'] == '7') {
+                                                    } /* elseif ($refund['PK_PAYMENT_TYPE'] == '7') {
                                                         $receipt_number_array = explode(',', $refund['RECEIPT_NUMBER']);
                                                         $payment_type_array = [];
                                                         foreach ($receipt_number_array as $receipt_number) {
@@ -361,8 +371,17 @@ while (!$executive_data->EOF) {
                                                             }
                                                         }
                                                         $refund_payment_type = implode(', ', $payment_type_array);
-                                                    } else {
+                                                    } */ else {
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'];
+                                                    }
+
+                                                    $name = $refund['ENROLLMENT_NAME'];
+                                                    $ENROLLMENT_ID = $refund['ENROLLMENT_ID'];
+                                                    $MISC_ID = $refund['MISC_ID'];
+                                                    if (empty($name)) {
+                                                        $enrollment_name = '';
+                                                    } else {
+                                                        $enrollment_name = "$name" . " - ";
                                                     }
                                                 ?>
                                                     <tr>
@@ -382,7 +401,7 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center; color: red"><?= $refund['RECEIPT_NUMBER'] ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['MEMO'] ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['CLIENT'] ?></td>
-                                                        <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_NAME'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID ?></td>
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['TOTAL_AMOUNT'] ?></td>
