@@ -319,7 +319,7 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center"><?= $payment['RECEIPT_NUMBER'] ?></td>
                                                         <td style="text-align: left"><?= $payment['MEMO'] ?></td>
                                                         <td style="text-align: left"><?= $payment['CLIENT'] ?></td>
-                                                        <td style="text-align: left"><?= ($enrollment_name . $payment['ENROLLMENT_ID'] == null) ? $enrollment_name . $payment['MISC_ID'] : $enrollment_name . $payment['ENROLLMENT_ID'] ?></td>
+                                                        <td style="text-align: center"><?= ($enrollment_name . $payment['ENROLLMENT_ID'] == null) ? $enrollment_name . $payment['MISC_ID'] : $enrollment_name . $payment['ENROLLMENT_ID'] ?></td>
                                                         <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) ?></td>
                                                         <td style="text-align: center"><?= $payment['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right">$<?= $payment['TOTAL_AMOUNT'] ?></td>
@@ -335,6 +335,12 @@ while (!$executive_data->EOF) {
 
                                                 <!-- Display all refunds at the bottom -->
                                                 <?php foreach ($refund_payments as $refund) {
+                                                    $name = $payment['ENROLLMENT_NAME'];
+                                                    if (empty($name)) {
+                                                        $enrollment_name = '';
+                                                    } else {
+                                                        $enrollment_name = "$name" . " - ";
+                                                    }
                                                     $total_refund += $refund['AMOUNT'];
                                                     $PK_USER_MASTER = $refund['PK_USER_MASTER'];
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
@@ -391,7 +397,7 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: center; color: red"><?= $refund['RECEIPT_NUMBER'] ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['MEMO'] ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['CLIENT'] ?></td>
-                                                        <td style="text-align: center; color: red"><?= ($enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= ($enrollment_name . $refund['ENROLLMENT_ID'] == null) ? $enrollment_name . $refund['MISC_ID'] : $enrollment_name . $refund['ENROLLMENT_ID'] ?></td>
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) ?></td>
                                                         <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_TYPE'] ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['TOTAL_AMOUNT'] ?></td>
