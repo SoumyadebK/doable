@@ -258,6 +258,12 @@ while (!$executive_data->EOF) {
                                                 $total_refund = 0;
 
                                                 foreach ($regular_payments as $payment) {
+                                                    $name = $payment['ENROLLMENT_NAME'];
+                                                    if (empty($name)) {
+                                                        $enrollment_name = '';
+                                                    } else {
+                                                        $enrollment_name = "$name" . " - ";
+                                                    }
                                                     $PK_USER_MASTER = $payment['PK_USER_MASTER'];
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
@@ -336,6 +342,12 @@ while (!$executive_data->EOF) {
 
                                                 <!-- Display all refunds at the bottom -->
                                                 <?php foreach ($refund_payments as $refund) {
+                                                    $name = $payment['ENROLLMENT_NAME'];
+                                                    if (empty($name)) {
+                                                        $enrollment_name = '';
+                                                    } else {
+                                                        $enrollment_name = "$name" . " - ";
+                                                    }
                                                     $total_refund += $refund['AMOUNT'];
                                                     $PK_USER_MASTER = $refund['PK_USER_MASTER'];
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
