@@ -157,9 +157,9 @@ if (!empty($_POST)) {
                 case 'DOA_STAFF':
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $staff_name = explode(" ", $getData[0]);
-                    $USER_DATA['FIRST_NAME'] = isset($staff_name[0]) ?: '';
-                    $USER_DATA['LAST_NAME'] = isset($staff_name[1]) ?: '';
-                    $USER_DATA['USER_NAME'] = $getData[19];
+                    $USER_DATA['FIRST_NAME'] = isset($staff_name[0]) ? $staff_name[0]: '';
+                    $USER_DATA['LAST_NAME'] = isset($staff_name[1]) ? $staff_name[1]: '';
+                    $USER_DATA['USER_ID'] = $getData[1];
                     $USER_DATA['EMAIL_ID'] = $getData[14];
                     if (!empty($getData[13]) && $getData[13] != null) {
                         $USER_DATA['PHONE'] = $getData[13];
@@ -167,8 +167,8 @@ if (!empty($_POST)) {
                         $USER_DATA['PHONE'] = $getData[12];
                     }
                     $USER_DATA['PASSWORD'] = $getData[20];
-                    $USER_DATA['GENDER'] = ($getData[5] == 'M') ? 'Male' : 'Female';
-                    $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[16]));
+                    $USER_DATA['GENDER'] = '';
+                    $USER_DATA['DOB'] = '';
                     $USER_DATA['ADDRESS'] = $getData[7];
                     $USER_DATA['ADDRESS_1'] = $getData[8];
                     $USER_DATA['CITY'] = $getData[9];
@@ -190,9 +190,9 @@ if (!empty($_POST)) {
 
                         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[3]);
-                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[4]);
-                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[19];
+                        $USER_DATA_ACCOUNT['FIRST_NAME'] = isset($staff_name[0]) ? $staff_name[0]: '';
+                        $USER_DATA_ACCOUNT['LAST_NAME'] = isset($staff_name[1]) ? $staff_name[1]: '';
+                        $USER_DATA_ACCOUNT['USER_NAME'] = $getData[1];
                         $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[14];
                         if (!empty($getData[13]) && $getData[13] != null) {
                             $USER_DATA_ACCOUNT['PHONE'] = $getData[13];
@@ -212,10 +212,9 @@ if (!empty($_POST)) {
                 case 'DOA_CUSTOMER':
                     $USER_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $USER_DATA['USER_NAME'] = $getData[0];
-                    $customer_first_name = explode(" ", $getData[1]);
-                    $customer_last_name = explode(" ", $getData[2]);
-                    $USER_DATA['FIRST_NAME'] = isset($customer_first_name[0]) ?: '';
-                    $USER_DATA['LAST_NAME'] = isset($customer_last_name[0]) ?: '';
+                    $customer_name = preg_split("/\s*[,&]|\s+and\s+\s*/", $getData[1]);
+                    $USER_DATA['FIRST_NAME'] = isset($customer_name[1]) ? $customer_name[1] : '';
+                    $USER_DATA['LAST_NAME'] = isset($customer_name[0]) ? $customer_name[0] : '';
                     $USER_DATA['EMAIL_ID'] = $getData[18];
                     //$USER_DATA['HOME_PHONE'] = $getData[18];
                     if (!empty($getData[14]) && $getData[14] != null && $getData[14] != "   -   -    *") {
@@ -225,10 +224,12 @@ if (!empty($_POST)) {
                     } elseif (!empty($getData[16]) && $getData[16] != null && $getData[16] != "   -   -    *") {
                         $USER_DATA['PHONE'] = $getData[16];
                     }
-                    if ($getData[6] == 0) {
+                    if ($getData[6] == 'M') {
                         $USER_DATA['GENDER'] = 'Male';
-                    } elseif ($getData[8] == 1) {
+                    } elseif ($getData[6] == 'F') {
                         $USER_DATA['GENDER'] = 'Female';
+                    } elseif ($getData[6] == 'C') {
+                        $USER_DATA['GENDER'] = 'Common';
                     }
 
                     $USER_DATA['DOB'] = date("Y-m-d", strtotime($getData[4]));
@@ -238,7 +239,7 @@ if (!empty($_POST)) {
                         $USER_DATA['MARITAL_STATUS'] = "Unmarried";
                     }
 
-                    $USER_DATA['ADDRESS'] = $getData[0];
+                    $USER_DATA['ADDRESS'] = $getData[9];
                     $USER_DATA['ADDRESS_1'] = $getData[10];
                     $USER_DATA['CITY'] = $getData[11];
                     $USER_DATA['PK_COUNTRY'] = 1;
@@ -246,7 +247,7 @@ if (!empty($_POST)) {
                     $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
                     $USER_DATA['ZIP'] = $getData[13];
                     $USER_DATA['NOTES'] = $getData[44];
-                    $USER_DATA['ACTIVE'] = ($getData[46] == 'A') ? 1 : 0;
+                    $USER_DATA['ACTIVE'] = ($getData[33] == 'A') ? 1 : 0;
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                     $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
                     db_perform('DOA_USERS', $USER_DATA, 'insert');
@@ -255,8 +256,9 @@ if (!empty($_POST)) {
                     if ($PK_USER) {
                         $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
                         $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
-                        $USER_DATA_ACCOUNT['FIRST_NAME'] = trim($getData[1]);
-                        $USER_DATA_ACCOUNT['LAST_NAME'] = trim($getData[2]);
+                        $customer_name = preg_split("/\s*[,&]|\s+and\s+\s*/", $getData[1]);
+                        $USER_DATA_ACCOUNT['FIRST_NAME'] = isset($customer_name[1]) ? $customer_name[1] : '';
+                        $USER_DATA_ACCOUNT['LAST_NAME'] = isset($customer_name[0]) ? $customer_name[0] : '';
                         $USER_DATA_ACCOUNT['USER_NAME'] = $getData[0];
                         $USER_DATA_ACCOUNT['EMAIL_ID'] = $getData[18];
                         if (!empty($getData[14]) && $getData[14] != null && $getData[14] != "   -   -    *") {
@@ -286,41 +288,54 @@ if (!empty($_POST)) {
 
                         if ($PK_USER_MASTER) {
                             $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                            $CUSTOMER_DATA['FIRST_NAME'] = $getData[1];
-                            $CUSTOMER_DATA['LAST_NAME'] = $getData[2];
+                            $customer_name = preg_split("/\s*[,&]|\s+and\s+\s*/", $getData[1]);
+                            $CUSTOMER_DATA['FIRST_NAME'] = isset($customer_name[1]) ? $customer_name[1] : '';
+                            $CUSTOMER_DATA['LAST_NAME'] = isset($customer_name[0]) ? $customer_name[0] : '';
                             $CUSTOMER_DATA['EMAIL'] = $getData[18];
-                            $CUSTOMER_DATA['PHONE'] = $getData[14];
-                            $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[5]));
+                            if (!empty($getData[14]) && $getData[14] != null && $getData[14] != "   -   -    *") {
+                                $CUSTOMER_DATA['PHONE'] = $getData[14];
+                            } elseif (!empty($getData[15]) && $getData[15] != null && $getData[15] != "   -   -    *") {
+                                $CUSTOMER_DATA['PHONE'] = $getData[15];
+                            } elseif (!empty($getData[16]) && $getData[16] != null && $getData[16] != "   -   -    *") {
+                                $CUSTOMER_DATA['PHONE'] = $getData[16];
+                            }
+                            $CUSTOMER_DATA['DOB'] = date("Y-m-d", strtotime($getData[4]));
                             $CUSTOMER_DATA['CALL_PREFERENCE'] = $getData[17];
                             //$CUSTOMER_DATA['REMINDER_OPTION'] = $getData[23];
-                            $partner_first_name = explode(" ", $getData[1]);
-                            $partner_last_name = explode(" ", $getData[2]);
-                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_first_name[1]) ?: '';
-                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_last_name[1]) ?: '';
-                            if ($getData[27] == 0) {
-                                $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
-                            } elseif ($getData[27] == 1) {
-                                $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
-                            }
-                            if (!empty(isset($partner_first_name[1]))) {
+                            $partner_name = preg_split("/\s*[,&]|\s+and\s+\s*/", $getData[1]);
+                            $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = isset($partner_name[3]) ? $partner_name[3] : '';
+                            $CUSTOMER_DATA['PARTNER_LAST_NAME'] = isset($partner_name[4]) ? $partner_name[4] : '';
+                            // if ($getData[27] == 0) {
+                            //     $CUSTOMER_DATA['PARTNER_GENDER'] = "Male";
+                            // } elseif ($getData[27] == 1) {
+                            //     $CUSTOMER_DATA['PARTNER_GENDER'] = "Female";
+                            // }
+                            $CUSTOMER_DATA['PARTNER_GENDER'] = "";
+                            if (!empty(isset($partner_name[3]))) {
                                 $CUSTOMER_DATA['ATTENDING_WITH'] = "With a Partner";
                             } else {
                                 $CUSTOMER_DATA['ATTENDING_WITH'] = "Solo";
                             }
-                            $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($getData[7]));
+                            $CUSTOMER_DATA['PARTNER_DOB'] = date("Y-m-d", strtotime($getData[5]));
                             $CUSTOMER_DATA['IS_PRIMARY'] = 1;
                             db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
                             $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
-                            if (!empty($getData[19]) && $getData[19] != "   -   -    *") {
+                            if (!empty($getData[14]) && $getData[14] != "   -   -    *") {
                                 $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $PHONE_DATA['PHONE'] = $getData[19];
+                                $PHONE_DATA['PHONE'] = $getData[14];
                                 db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
                             }
 
-                            if (!empty($getData[20]) && $getData[20] != "   -   -    *") {
+                            if (!empty($getData[15]) && $getData[15] != "   -   -    *") {
                                 $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-                                $PHONE_DATA['PHONE'] = $getData[20];
+                                $PHONE_DATA['PHONE'] = $getData[15];
+                                db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                            }
+
+                            if (!empty($getData[16]) && $getData[16] != "   -   -    *") {
+                                $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                                $PHONE_DATA['PHONE'] = $getData[16];
                                 db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
                             }
 
@@ -362,8 +377,8 @@ if (!empty($_POST)) {
 
                             if (!empty($getData[25])) {
                                 $takerId = $getData[25];
-                                $getTaker = getTaker($takerId);
-                                $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_NAME='$getTaker'");
+                                //$getTaker = getTaker($takerId);
+                                $doableTakerId = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID = '".$takerId."'");
                                 $INQUIRY_VALUE['INQUIRY_TAKER_ID'] = ($doableTakerId->RecordCount() > 0) ? $doableTakerId->fields['PK_USER'] : 0;
                             }
                             db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $INQUIRY_VALUE, 'insert');
@@ -455,13 +470,13 @@ if (!empty($_POST)) {
                     $ENROLLMENT_DATA['ENROLLMENT_ID'] = $getData[0];
                     $ENROLLMENT_DATA['ENROLLMENT_NAME'] = $getData[20];
 
-                    [$enrollment_type, $code] = getEnrollmentType($getData[2]);
-                    $enrollment_type_data = $db_account->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
-                    if ($enrollment_type_data->RecordCount() > 0) {
-                        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
-                    } else {
-                        $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
-                    }
+                    // [$enrollment_type, $code] = getEnrollmentType($getData[2]);
+                    // $enrollment_type_data = $db_account->Execute("SELECT PK_ENROLLMENT_TYPE FROM `DOA_ENROLLMENT_TYPE` WHERE ENROLLMENT_TYPE = '$enrollment_type'");
+                    // if ($enrollment_type_data->RecordCount() > 0) {
+                    //     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = $enrollment_type_data->fields['PK_ENROLLMENT_TYPE'];
+                    // } else {
+                    //     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
+                    // }
 
                     /*$account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_POST[PK_ACCOUNT_MASTER]'");
                     if ($account_data->RecordCount() > 0){
@@ -483,17 +498,19 @@ if (!empty($_POST)) {
                     $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
                     $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
                     $ENROLLMENT_DATA['PK_PACKAGE'] = $getData[2];
-                    $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = $getData[21];
+                    $enrollmentById = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID = '".$getData[21]."'");
+                    $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = ($enrollmentById->RecordCount() > 0) ? $enrollmentById->fields['PK_USER'] : 0;
                     $ENROLLMENT_BY_PERCENTAGE = 100;
                     $ENROLLMENT_DATA['ENROLLMENT_BY_PERCENTAGE'] = number_format($ENROLLMENT_BY_PERCENTAGE, 2);
                     $ENROLLMENT_DATA['ACTIVE'] = 1;
                     $ENROLLMENT_DATA['IS_SALE'] = $getData[6];
                     $ENROLLMENT_DATA['STATUS'] = "A";
-                    $ENROLLMENT_DATA['ENROLLMENT_DATE'] = $getData[3];
+                    $ENROLLMENT_DATA['ENROLLMENT_DATE'] = date('Y-m-d', strtotime($getData[3]));
                     $ENROLLMENT_DATA['CHARGE_TYPE'] = 0;
-                    $ENROLLMENT_DATA['EXPIRY_DATE'] = $getData[31];
+                    $ENROLLMENT_DATA['EXPIRY_DATE'] = date('Y-m-d', strtotime($getData[31]));
                     $ENROLLMENT_DATA['CREATED_BY'] = $_POST['PK_ACCOUNT_MASTER'];
                     $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    //pre_r($ENROLLMENT_DATA);
                     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
                     $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
 
@@ -504,6 +521,7 @@ if (!empty($_POST)) {
                         $ENROLLMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_ID'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER'] : 0;
                         $ENROLLMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_PERCENTAGE'] = $getData[23];
                         $ENROLLMENT_SERVICE_PROVIDER_DATA['PERCENTAGE_AMOUNT'] = ($getData[4] * $getData[23]) / 100;
+                        pre_r($ENROLLMENT_SERVICE_PROVIDER_DATA); //till here
                         db_perform_account('DOA_ENROLLMENT_SERVICE_PROVIDER', $ENROLLMENT_SERVICE_PROVIDER_DATA, 'insert');
                     }
                     if ($getData[24] != NULL && $getData[24] != '' && $getData[25] > 0) {
@@ -595,19 +613,19 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                         $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                         $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                        $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                        $SERVICE_DATA['SERVICE_DETAILS'] = $getData[20];
                         $SERVICE_DATA['NUMBER_OF_SESSION'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_SESSION_COUNT'] = 1;
                         $SERVICE_DATA['PRICE_PER_SESSION'] = $TOTAL_AMOUNT;
                         $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                         $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
-                        $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = $TOTAL_AMOUNT;
+                        $SERVICE_DATA['FINAL_AMOUNT'] = $getData[40] = $TOTAL_AMOUNT;
                         $SERVICE_DATA['STATUS'] = 'A';
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
                     } else {
                         $allEnrollmentServices = getAllEnrollmentServicesById($enrollment_id);
                         while (!$allEnrollmentServices->EOF) {
-                            $service_code = $allEnrollmentServices->fields['service_id'];
+                            $service_code = $getData[1];
                             $quantity = $allEnrollmentServices->fields['quantity'];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
                             $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
@@ -615,7 +633,7 @@ if (!empty($_POST)) {
                             $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                             $SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                             $SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
-                            $SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $SERVICE_DATA['SERVICE_DETAILS'] = $getData[20];
                             $SERVICE_DATA['NUMBER_OF_SESSION'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_SESSION_COUNT'] = $quantity;
 
                             if ((strpos($service_code, 'PRI')  !== false) && ($service_code != 'NPRI')) {
@@ -623,13 +641,13 @@ if (!empty($_POST)) {
                                 $SERVICE_DATA['TOTAL'] = $ACTUAL_AMOUNT;
                                 $SERVICE_DATA['DISCOUNT'] = $DISCOUNT;
                                 $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
-                                $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = $TOTAL_AMOUNT;
+                                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[40] = $TOTAL_AMOUNT;
                             } else {
                                 $SERVICE_DATA['PRICE_PER_SESSION'] = 0;
                                 $SERVICE_DATA['TOTAL'] = 0;
                                 $SERVICE_DATA['DISCOUNT'] = 0;
                                 $SERVICE_DATA['DISCOUNT_TYPE'] = 0;
-                                $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = 0;
+                                $SERVICE_DATA['FINAL_AMOUNT'] = $getData[40] = 0;
                             }
 
                             db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
@@ -637,56 +655,115 @@ if (!empty($_POST)) {
                         }
                     }
 
-                    /*if ($NUMBER_OF_PAYMENT == 0) {
-                        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                        $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
-                        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                        $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT;
-                        $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                        $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT;
-                        $LEDGER_DATA['IS_PAID'] = 0;
-                        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
-                        $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
-                        $LEDGER_DATA['STATUS'] = 'A';
-                        db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                    } else {
-                        pre_r($BILLING_DATA);
-                        $TOTAL_INSTALLMENT = 0;
-                        for ($i = 0; $i < $NUMBER_OF_PAYMENT; $i++) {
-                            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                            $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
-                            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                            $LEDGER_DATA['BILLED_AMOUNT'] = $INSTALLMENT_AMOUNT;
-                            $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                            $LEDGER_DATA['BALANCE'] = $INSTALLMENT_AMOUNT;
-                            $LEDGER_DATA['IS_PAID'] = 0;
-                            $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
-                            $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
-                            $LEDGER_DATA['STATUS'] = 'A';
-                            db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                            $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
+                    $BALANCE = 0;
+                    $allEnrollmentCharges = getAllEnrollmentChargesById($enrollment_id);
+                    while (!$allEnrollmentCharges->EOF) {
+                        $BILLED_AMOUNT = $getData[4];
+                        $IS_DOWN_PAYMENT = (strpos($getData[33], 'down payment')  !== false) ? 1 : 0;
+                        $BALANCE += $BILLED_AMOUNT;
+                        if ($BILLED_AMOUNT == 0 && $IS_DOWN_PAYMENT == 1) {
+                            $BILLED_AMOUNT = getDownPaymentBilledAmount($allEnrollmentCharges->fields['id']);
                         }
-                        if ($TOTAL_INSTALLMENT < $TOTAL_AMOUNT) {
-                            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                            $LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
-                            $LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
-                            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
-                            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d', strtotime($getData[7]));
-                            $LEDGER_DATA['BILLED_AMOUNT'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
-                            $LEDGER_DATA['PAID_AMOUNT'] = 0;
-                            $LEDGER_DATA['BALANCE'] = $TOTAL_AMOUNT - $TOTAL_INSTALLMENT;
-                            $LEDGER_DATA['IS_PAID'] = 0;
-                            $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = 0;
-                            $LEDGER_DATA['PK_PAYMENT_TYPE'] = 0;
-                            $LEDGER_DATA['STATUS'] = 'A';
-                            db_perform('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-                            $TOTAL_INSTALLMENT += $INSTALLMENT_AMOUNT;
+                        $BILLING_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                        $BILLING_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
+                        $BILLING_LEDGER_DATA['TRANSACTION_TYPE'] = 'Billing';
+                        $BILLING_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+                        $BILLING_LEDGER_DATA['DUE_DATE'] = $getData[3];
+                        $BILLING_LEDGER_DATA['BILLED_AMOUNT'] = $BILLED_AMOUNT;
+                        $BILLING_LEDGER_DATA['PAID_AMOUNT'] = 0;
+                        $BILLING_LEDGER_DATA['BALANCE'] = $BALANCE;
+                        $BILLING_LEDGER_DATA['IS_PAID'] = (!empty($getData[63])) ? 1 : 0;
+                        $BILLING_LEDGER_DATA['STATUS'] = 'A';
+                        $BILLING_LEDGER_DATA['IS_DOWN_PAYMENT'] = $IS_DOWN_PAYMENT;
+                        db_perform_account('DOA_ENROLLMENT_LEDGER', $BILLING_LEDGER_DATA, 'insert');
+                        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+
+                        $enrollment_payment = getAllEnrollmentPaymentByChargeId($allEnrollmentCharges->fields['id'], 0);
+                        if ($enrollment_payment->RecordCount() > 0) {
+                            $TOTAL_PAID_AMOUNT = 0;
+                            while (!$enrollment_payment->EOF) {
+                                $orgDate = $getData[3];
+                                $newDate = date("Y-m-d", strtotime($orgDate));
+
+                                /*$PAYMENT_LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                                $PAYMENT_LEDGER_DATA['PK_ENROLLMENT_BILLING '] = $PK_ENROLLMENT_BILLING;
+                                $PAYMENT_LEDGER_DATA['TRANSACTION_TYPE'] = $enrollment_payment->fields['record_type'];
+                                $PAYMENT_LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $ENROLLMENT_LEDGER_PARENT;
+                                $PAYMENT_LEDGER_DATA['DUE_DATE'] = $newDate;
+                                $PAYMENT_LEDGER_DATA['BILLED_AMOUNT'] = 0;
+                                $PAYMENT_LEDGER_DATA['PAID_AMOUNT'] = abs($enrollment_payment->fields['amount_paid']);
+                                $PAYMENT_LEDGER_DATA['BALANCE'] = 0;
+                                $PAYMENT_LEDGER_DATA['IS_PAID'] = ($enrollment_payment->fields['record_type'] === 'Payment') ? 1 : 2;
+                                $PAYMENT_LEDGER_DATA['STATUS'] = 'A';
+                                db_perform_account('DOA_ENROLLMENT_LEDGER', $PAYMENT_LEDGER_DATA, 'insert');
+                                $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
+
+                                if ($enrollment_payment->fields['payment_method'] == 'Save Card' || $enrollment_payment->fields['payment_method'] == 'Charge') {
+                                    $payment_type = $enrollment_payment->fields['card_type'];
+                                } else {
+                                    $payment_type = $enrollment_payment->fields['payment_method'];
+                                }
+                                $PK_PAYMENT_TYPE = $db->Execute("SELECT PK_PAYMENT_TYPE FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE = '$payment_type'");
+
+                                $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                                $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
+                                $ENROLLMENT_PAYMENT_DATA['PK_PAYMENT_TYPE'] = ($PK_PAYMENT_TYPE->RecordCount() > 0) ? $PK_PAYMENT_TYPE->fields['PK_PAYMENT_TYPE'] : 0;
+                                $ENROLLMENT_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                                $ENROLLMENT_PAYMENT_DATA['TYPE'] = $enrollment_payment->fields['record_type'];
+                                $ENROLLMENT_PAYMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+                                $ENROLLMENT_PAYMENT_DATA['AMOUNT'] = abs($getData[63]);
+                                $ENROLLMENT_PAYMENT_DATA['NOTE'] = $getData[33];
+                                $ENROLLMENT_PAYMENT_DATA['PAYMENT_DATE'] = $newDate;
+                                $PAYMENT_INFO = null;
+                                if ($enrollment_payment->fields['card_number'] > 0) {
+                                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $enrollment_payment->fields['transaction_id'], 'LAST4' => $enrollment_payment->fields['card_number']];
+                                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                                } elseif ($enrollment_payment->fields['check_number'] > 0) {
+                                    $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $enrollment_payment->fields['check_number'], 'CHECK_DATE' => $newDate];
+                                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                                }
+                                $ENROLLMENT_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;;
+                                $ENROLLMENT_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                                $ENROLLMENT_PAYMENT_DATA['RECEIPT_NUMBER'] = $getData[80];
+
+                                $enrollmentServiceData = $db_account->Execute("SELECT FINAL_AMOUNT, TOTAL_AMOUNT_PAID, PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                                while (!$enrollmentServiceData->EOF) {
+                                    if ($enrollmentServiceData->fields['FINAL_AMOUNT'] > 0 && $TOTAL_AMOUNT > 0) {
+                                        $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $TOTAL_AMOUNT;
+                                        $serviceAmount = ($ENROLLMENT_PAYMENT_DATA['AMOUNT'] * $servicePercent) / 100;
+
+                                        if ($enrollment_payment->fields['record_type'] === 'Payment' || $enrollment_payment->fields['record_type'] === 'Adjustment') {
+                                            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
+                                        } elseif ($enrollment_payment->fields['record_type'] === 'Refund') {
+                                            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+                                        } else {
+                                            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'];
+                                        }
+                                        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+                                    }
+
+                                    $enrollmentServiceData->MoveNext();
+                                }
+                                db_perform_account('DOA_ENROLLMENT_PAYMENT', $ENROLLMENT_PAYMENT_DATA, 'insert');
+
+                                if ($ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Payment' || $ENROLLMENT_PAYMENT_DATA['TYPE'] == 'Adjustment') {
+                                    $TOTAL_PAID_AMOUNT += $ENROLLMENT_PAYMENT_DATA['AMOUNT'];
+                                    if ($TOTAL_PAID_AMOUNT < $BILLED_AMOUNT) {
+                                        $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = $BILLED_AMOUNT - $TOTAL_PAID_AMOUNT;
+                                        $LEDGER_UPDATE_DATA['IS_PAID'] = 0;
+                                    } elseif ($TOTAL_PAID_AMOUNT == $BILLED_AMOUNT) {
+                                        $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
+                                        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
+                                    }
+                                    db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', ' PK_ENROLLMENT_LEDGER = ' . $PK_ENROLLMENT_LEDGER);
+                                }
+                                $enrollment_payment->MoveNext();
+                            }
                         }
-                    }*/
+                        $allEnrollmentCharges->MoveNext();
+                    }
+                    $allEnrollments->MoveNext();
+                
 
                     break;
 
@@ -1094,6 +1171,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                     <!--<option value="DOA_EVENT_TYPE">DOA_EVENT_TYPE</option>
                                 <option value="DOA_HOLIDAY_LIST">DOA_HOLIDAY_LIST</option>-->
                                     <option value="DOA_USERS">DOA_USERS</option>
+                                    <option value="DOA_STAFF">DOA_STAFF</option>
                                     <option value="DOA_CUSTOMER">DOA_CUSTOMER</option>
                                     <option value="DOA_SERVICE_MASTER">DOA_SERVICE_MASTER</option>
                                     <option value="DOA_SCHEDULING_CODE">DOA_SCHEDULING_CODE</option>
