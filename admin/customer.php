@@ -393,7 +393,7 @@ if ($PK_USER_MASTER > 0) {
                                     <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
                                     <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
                                     <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" onclick="getSavedCreditCardList()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
+                                    <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" onclick="getWalletDetails()" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
                                 <?php } ?>
                                 <?php if (in_array('Customers Delete', $PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
@@ -1885,54 +1885,17 @@ if ($PK_USER_MASTER > 0) {
                                                         <div class="p-20">
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
-                                                                    <h3 id="wallet_balance_span">Wallet Balance : $<?= ($wallet_data->RecordCount() > 0) ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00 ?></h3>
+                                                                    <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) AS WALLET_BALANCE_LEFT FROM DOA_CUSTOMER_WALLET WHERE CUSTOMER_WALLET_PARENT = 0 AND BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
+                                                                    <h3 id="wallet_balance_span">Wallet Balance : $<?= ($wallet_data->RecordCount() > 0) ? $wallet_data->fields['WALLET_BALANCE_LEFT'] : 0.00 ?></h3>
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>
                                                                 </div>
                                                             </div>
 
-                                                            <table id="myTable" class="table table-striped border">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Date</th>
-                                                                        <th>Transaction Details</th>
-                                                                        <th>Debit</th>
-                                                                        <th>Credit</th>
-                                                                        <th>Balance</th>
-                                                                        <th></th>
-                                                                    </tr>
-                                                                </thead>
+                                                            <div id="wallet_details" style="display: none;">
 
-                                                                <tbody>
-                                                                    <?php
-                                                                    $walletTransaction = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET ASC");
-                                                                    $i = 1;
-                                                                    while (!$walletTransaction->EOF) {
-                                                                        $RECEIPT_NUMBER = $walletTransaction->fields['RECEIPT_NUMBER'];
-                                                                        $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = '$RECEIPT_NUMBER' LIMIT 1");
-                                                                    ?>
-                                                                        <tr>
-                                                                            <td><?= date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON'])) ?></td>
-                                                                            <td><?= $walletTransaction->fields['DESCRIPTION'] ?></td>
-                                                                            <td><?= $walletTransaction->fields['DEBIT'] ?></td>
-                                                                            <td><?= $walletTransaction->fields['CREDIT'] ?></td>
-                                                                            <td><?= $walletTransaction->fields['BALANCE_LEFT'] ?></td>
-                                                                            <td>
-                                                                                <?php if ($RECEIPT_NUMBER != '') { ?>
-                                                                                    <a class="btn btn-info waves-effect waves-light text-white" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
-                                                                                <?php }
-                                                                                if ($walletTransaction->fields['CREDIT'] > 0 && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
-                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" onclick="deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)"><i class="ti-trash"></i></a>
-                                                                                <?php } ?>
-                                                                            </td>
-                                                                        </tr>
-                                                                    <?php $walletTransaction->MoveNext();
-                                                                        $i++;
-                                                                    } ?>
-                                                                </tbody>
-                                                            </table>
+                                                            </div>
                                                         </div>
                                                     </div>
 
@@ -3350,7 +3313,19 @@ if ($PK_USER_MASTER > 0) {
         });
     }
 
-
+    function getWalletDetails() {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "ajax/get_wallet_details.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#wallet_details').slideDown().html(data);
+            }
+        });
+    }
 
     function deleteThisCustomer(PK_USER) {
         Swal.fire({

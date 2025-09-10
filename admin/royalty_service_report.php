@@ -22,6 +22,7 @@ $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 
 $PAYMENT_QUERY = "SELECT 
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, 
                     DOA_ENROLLMENT_PAYMENT.AMOUNT, 
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -87,7 +88,7 @@ $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSIN
 if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
     $business_name = '';
 } else {
-    $business_name = 'Franchisee: '.$business_name;
+    $business_name = 'Franchisee: ' . $business_name;
 }
 
 if ($type === 'export') {
@@ -172,6 +173,9 @@ if ($type === 'export') {
             "miscellaneous_services" => $MISC_AMOUNT,
             "sundry" => $SUNDRY_AMOUNT,
         );
+
+        $UPDATE_PAYMENT_DATA['IS_EXPORTED_TO_AMI'] = 1;
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, "update", " PK_ENROLLMENT_PAYMENT = " . $payment_data->fields['PK_ENROLLMENT_PAYMENT']);
 
         $payment_data->MoveNext();
     }

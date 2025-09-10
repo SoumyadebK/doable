@@ -2362,6 +2362,50 @@ function copyAppointment($RESPONSE_DATA)
             $APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
             db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
         }
+    } elseif ($OPERATION === 'copy' && $TYPE === "special_appointment") {
+        $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+
+        $SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $special_appointment_details->fields['STANDING_ID'];
+        $SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $special_appointment_details->fields['PK_LOCATION'];
+        $SPECIAL_APPOINTMENT_DATA['TITLE'] = $special_appointment_details->fields['TITLE'];
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
+        $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $special_appointment_details->fields['DESCRIPTION'];
+        $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $special_appointment_details->fields['PK_SCHEDULING_CODE'];
+        $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+        $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;
+        $SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+
+        db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
+        $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
+
+        $SPECIAL_APPOINTMENT_SP_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
+        $SPECIAL_APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+        db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_SP_DATA, 'insert');
+    } elseif ($OPERATION === 'move' && $TYPE === "special_appointment") {
+        $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+
+        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+        $duration = $scheduling_code->fields['DURATION'];
+
+        $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
+        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+
+        if ($PK_ID > 0) {
+            db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT = " . $PK_ID);
+
+            $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_USER` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
+            $SPECIAL_APPOINTMENT_SP_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_ID;
+            $SPECIAL_APPOINTMENT_SP_DATA['PK_USER'] = $SERVICE_PROVIDER_ID;
+            db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_SP_DATA, 'insert');
+        }
     }
 
     echo date('m/d/Y', strtotime($DATE));
@@ -2403,27 +2447,37 @@ function moveToWallet($RESPONSE_DATA): void
         $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
     }
 
-    $payment_data = $db_account->Execute("SELECT PK_PAYMENT_TYPE, RECEIPT_NUMBER, RECEIPT_PDF_LINK FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER=" . $PK_ENROLLMENT_LEDGER);
     if ($PK_PAYMENT_TYPE == 7) {
         $TYPE = 'Move';
+        $payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_PAYMENT = " . $PK_ENROLLMENT_PAYMENT);
 
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
+        $wallet_parent_data = $db_account->Execute("SELECT CUSTOMER_WALLET_PARENT FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = " . $payment_data->fields['PK_CUSTOMER_WALLET']);
+        $CUSTOMER_WALLET_PARENT = $wallet_parent_data->fields['CUSTOMER_WALLET_PARENT'];
+
+        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_CUSTOMER_WALLET = '$CUSTOMER_WALLET_PARENT'");
+        $WALLET_BALANCE = $wallet_data->fields['BALANCE_LEFT'];
+
+        $WALLET_UPDATE_DATA['BALANCE_LEFT'] = $WALLET_BALANCE + $BALANCE;
+        db_perform_account('DOA_CUSTOMER_WALLET', $WALLET_UPDATE_DATA, 'update', " PK_CUSTOMER_WALLET = '$CUSTOMER_WALLET_PARENT'");
+
+        $customer_wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+        if ($customer_wallet_data->RecordCount() > 0) {
+            $INSERT_DATA['CURRENT_BALANCE'] = $customer_wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
         } else {
             $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
         }
+        $INSERT_DATA['CUSTOMER_WALLET_PARENT'] = $CUSTOMER_WALLET_PARENT;
         $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $INSERT_DATA['CREDIT'] = $BALANCE;
-        $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
+        $INSERT_DATA['BALANCE_LEFT'] = 0;
         $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-        $INSERT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        $INSERT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
         $PK_CUSTOMER_WALLET = $db_account->insert_ID();
 
-        $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $wallet_data->fields['RECEIPT_NUMBER'];
     } else {
         $BALANCE = $REFUND_AMOUNT;
         $TYPE = 'Refund';
