@@ -5,6 +5,7 @@ global $db_account;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 ?>
+
 <table id="paymentRegisterTable" class="table table-striped border" data-page-length="50">
     <thead>
         <tr>
@@ -60,8 +61,8 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
         } ?>
 
     </tbody>
-
-    <tbody>
-
-    </tbody>
 </table>
+
+<script>
+
+</script>
