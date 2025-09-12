@@ -175,6 +175,10 @@ while (!$enrollment_data->EOF) {
                             $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
                             $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
+                            if ($type == 'completed' && $SERVICE_CREDIT > 0) {
+                                $SERVICE_CREDIT = 0;
+                            }
+
                             $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                             $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                             $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
