@@ -29,7 +29,7 @@ $dompdf = new Dompdf($options);
 
 // Fetch the HTML content of the PHP page
 ob_start(); // Start output buffering
-include "pdf_".$report_type.".php"; // Replace with the path to your PHP page
+include "pdf_" . $report_type . ".php"; // Replace with the path to your PHP page
 $html = ob_get_clean(); // Get the buffered content and clean the buffer
 
 // Load HTML content into Dompdf
@@ -42,5 +42,4 @@ $dompdf->setPaper($paper_size, $orientation);
 $dompdf->render();
 
 // Output the generated PDF to the browser
-$dompdf->stream($report_type.'_'.$_GET['week_number'].'.pdf', ['Attachment' => true]); // Set 'Attachment' to true to force download
-?>
+$dompdf->stream($report_type . '_' . $_GET['week_number'] . '.pdf', ['Attachment' => true]); // Set 'Attachment' to true to force download
