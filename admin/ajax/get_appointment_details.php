@@ -50,6 +50,7 @@ $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $STANDING_ID = $res->fields['STANDING_ID'];
 $CUSTOMER_ID = $res->fields['CUSTOMER_ID'];
 $PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
+$PK_ENROLLMENT_SERVICE = $res->fields['PK_ENROLLMENT_SERVICE'];
 $SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
 $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
 $SERVICE_NAME = $res->fields['SERVICE_NAME'];
@@ -474,7 +475,7 @@ if ($PK_USER_MASTER > 0) {
                                         if ($PK_ENROLLMENT_MASTER == $row->fields['PK_ENROLLMENT_MASTER']) {
                                             $selected_enrollment = $row->fields['ENROLLMENT_ID'];
                                         } ?>
-                                        <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'] . ',' . $row->fields['PK_ENROLLMENT_SERVICE'] . ',' . $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" data-location_id="<?= $row->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?> <?= ($PK_ENROLLMENT_MASTER == $row->fields['PK_ENROLLMENT_MASTER']) ? 'selected' : '' ?>><?= $enrollment_name . $row->fields['PK_ENROLLMENT_MASTER'] . ' || ' . $PACKAGE . $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] . ' || ' . $USED_SESSION_COUNT . '/' . $NUMBER_OF_SESSION . ' || Paid : ' . $paid_session; ?></option>
+                                        <option value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'] . ',' . $row->fields['PK_ENROLLMENT_SERVICE'] . ',' . $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" data-location_id="<?= $row->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?> <?= ($PK_ENROLLMENT_SERVICE == $row->fields['PK_ENROLLMENT_SERVICE']) ? 'selected' : '' ?>><?= $enrollment_name . $row->fields['PK_ENROLLMENT_MASTER'] . ' || ' . $PACKAGE . $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] . ' || ' . $USED_SESSION_COUNT . '/' . $NUMBER_OF_SESSION . ' || Paid : ' . $paid_session; ?></option>
                                     <?php
                                         $row->MoveNext();
                                     } ?>
@@ -2111,14 +2112,15 @@ if ($PK_USER_MASTER > 0) {
     </div>
 
     <!--Comment Model-->
-    <div id="commentModel" class="modal">
-        <!-- Modal content -->
-        <div class="modal-content" style="width: 50%;">
-            <span class="close close_comment_model" style="margin-left: 96%;">&times;</span>
-            <div class="card">
-                <div class="card-body">
+    <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
                     <h4><b id="comment_header">Add Comment</b></h4>
-                    <form id="comment_add_edit_form" role="form" action="" method="post">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#commentModal').modal('hide');"></button>
+                </div>
+                <form id="comment_add_edit_form" role="form" action="" method="post">
+                    <div class="modal-body">
                         <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
                         <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                         <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
@@ -2134,13 +2136,13 @@ if ($PK_USER_MASTER > 0) {
                                     <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2204,6 +2206,10 @@ if ($PK_USER_MASTER > 0) {
                 openCommentModel();
             }
         });
+    }
+
+    function openCommentModel() {
+        $('#commentModal').modal('show');
     }
 
     $(document).on('submit', '#comment_add_edit_form', function(event) {
@@ -2771,6 +2777,13 @@ if ($PK_USER_MASTER > 0) {
             }
         });
     });
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+        }
+    }
 </script>
 
 <script>

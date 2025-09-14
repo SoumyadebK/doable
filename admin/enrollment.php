@@ -288,7 +288,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <?php if (empty($_GET['id'])) { ?>
                                                             <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                                 <label class="form-label">Expiration Date</label>
-                                                                <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                                <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                                                                     <option value="">Select Expiration Date</option>
                                                                     <option value="1" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
                                                                     <option value="2" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
