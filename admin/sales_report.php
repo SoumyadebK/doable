@@ -70,34 +70,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         <?php require_once('../includes/top_menu.php'); ?>
         <div class="page-wrapper">
             <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="row page-titles">
-                    <div class="col-md-12 align-self-start">
-                        <?php
-                        $currentURL = parse_url($_SERVER['REQUEST_URI']);
-                        $url = explode("/", $currentURL['path']);
-                        if ($_SERVER['HTTP_HOST'] == 'localhost') {
-                            $address = $url[3];
-                        } else {
-                            $address = $url[2];
-                        }
-                        if ($address == "business_reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "all_locations.php" || $address == "all_users.php" || $address == "total_open_liability.php" || $address == "active_account_balance_report.php" || $address == "cash_report.php" || $address == "sales_report.php") { ?>
-                            <ul class="nav nav-pills justify-content-left">
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'reports.php') ? 'active' : '' ?>" href="../admin/reports.php">Electronic Weekly Reports</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'business_reports.php') ? 'active' : '' ?>" href="../admin/business_reports.php">Business Reports</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'service_provider_reports.php') ? 'active' : '' ?>" href="../admin/service_provider_reports.php">Service Provider Reports</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'electronic_miscellaneous_reports.php') ? 'active' : '' ?>" href="../admin/electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li>
-                                <!-- <li class="nav-item"><a class="nav-link <?= ($address == 'enrollment_reports.php') ? 'active' : '' ?>" href="../admin/enrollment_reports.php">Enrollment Reports</a></li> -->
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'customer_reports.php') ? 'active' : '' ?>" href="../admin/customer_reports.php">Customer Summary Report</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'student_mailing_list.php') ? 'active' : '' ?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'total_open_liability.php') ? 'active' : '' ?>" href="../admin/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin/active_account_balance_report.php">Active Account Balance Report</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'cash_report.php') ? 'active' : '' ?>" href="../admin/cash_report.php">Cash Report</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'sales_report.php') ? 'active' : '' ?>" href="../admin/sales_report.php">Sales Report</a></li>
-                            </ul>
-                        <?php } ?>
-                    </div>
-                </div>
+            <?php require_once('../includes/report_menu.php') ?>
+            <div class="container-fluid" style="padding: 10px 20px 0 20px;">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -105,7 +79,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Sales Report</h4>
                                 </div>
-                            
+
                                 <form class="form-material form-horizontal" action="" method="get">
                                     <input type="hidden" name="start_date" id="start_date">
                                     <input type="hidden" name="end_date" id="end_date">
@@ -119,7 +93,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                             </div>
                                         </div> -->
                                         <div class="col-2">
-                                            <div style=" width: 315px;">
+                                            <div>
                                                 <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
                                                     <?php
                                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME");
@@ -143,9 +117,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <!-- <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;"> -->
-                                                <!-- <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
+                                                <!-- <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">-->
+                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
                                         </div>
                                         <div class="col-4">
@@ -169,7 +143,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 
 </html>
 <script>
-     $('.multi_sumo_select').SumoSelect({
+    $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select Service Provider',
         selectAll: true,
         search: true,

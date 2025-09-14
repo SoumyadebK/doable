@@ -270,10 +270,10 @@ while (!$executive_data->EOF) {
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
 
-                                                    $teacher = '';
+                                                    $teacher = [];
                                                     if ($service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
-                                                            $teacher = $service_provider->fields['TEACHER'];
+                                                            $teacher[] = $service_provider->fields['TEACHER'];
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
@@ -325,8 +325,9 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: right">$<?= $payment['TOTAL_AMOUNT'] ?></td>
                                                         <td style="text-align: right">$<?= number_format($enrollment_balance, 2) ?></td>
                                                         <td style="text-align: center"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <td style="text-align: center"><?= $teacher ?></td>
-                                                        <td></td>
+                                                        <td style="text-align: center"><?= isset($teacher[0]) ? $teacher[0] : '' ?></td>
+                                                        <td style="text-align: center"><?= isset($teacher[1]) ? $teacher[1] : '' ?></td>
+                                                        <td style="text-align: center"><?= isset($teacher[2]) ? $teacher[2] : '' ?></td>
                                                     </tr>
                                                 <?php
                                                     $i++;
@@ -346,10 +347,10 @@ while (!$executive_data->EOF) {
                                                     $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
 
-                                                    $teacher = '';
+                                                    $teacher = [];
                                                     if ($service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
-                                                            $teacher = $service_provider->fields['TEACHER'];
+                                                            $teacher[] = $service_provider->fields['TEACHER'];
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
@@ -403,8 +404,9 @@ while (!$executive_data->EOF) {
                                                         <td style="text-align: right; color: red">$<?= $refund['TOTAL_AMOUNT'] ?></td>
                                                         <td style="text-align: right; color: red">$<?= number_format($enrollment_balance + $refund['AMOUNT'], 2) ?></td>
                                                         <td style="text-align: left; color: red"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <td style="text-align: left; color: red"><?= $teacher ?></td>
-                                                        <td></td>
+                                                        <td style="text-align: center"><?= isset($teacher[0]) ? $teacher[0] : '' ?></td>
+                                                        <td style="text-align: center"><?= isset($teacher[1]) ? $teacher[1] : '' ?></td>
+                                                        <td style="text-align: center"><?= isset($teacher[2]) ? $teacher[2] : '' ?></td>
                                                     </tr>
                                                 <?php } ?>
 

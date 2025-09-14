@@ -450,7 +450,7 @@ if (!empty($_POST)) {
             $allServices = getAllServices();
             while (!$allServices->EOF) {
                 $service_name = $allServices->fields['service_name'];
-                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
+                $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='" . $service_name . "' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
                 if ($table_data->RecordCount() == 0) {
                     $SERVICE['PK_LOCATION'] = $PK_LOCATION;
                     $SERVICE['SERVICE_NAME'] = $allServices->fields['service_name'];
