@@ -7,7 +7,7 @@ global $master_database;
 
 $title = "SUMMARY OF STUDIO BUSINESS REPORT";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
@@ -16,13 +16,13 @@ $week_number = $_SESSION['week_number'];
 $YEAR = date('Y', strtotime($_SESSION['start_date']));
 
 $from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
-$to_date = date('Y-m-d', strtotime($from_date. ' +6 day'));
+$to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 
-$weekly_date_condition = "'".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
-$net_year_date_condition = "'".date('Y', strtotime($to_date))."-01-01' AND '".date('Y-m-d', strtotime($to_date))."'";
-$prev_year_date_condition = "'".(date('Y', strtotime($to_date))-1)."-01-01' AND '".(date('Y', strtotime($to_date))-1).date('-m-d', strtotime($to_date))."'";
+$weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
+$net_year_date_condition = "'" . date('Y', strtotime($to_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
+$prev_year_date_condition = "'" . (date('Y', strtotime($to_date)) - 1) . "-01-01' AND '" . (date('Y', strtotime($to_date)) - 1) . date('-m-d', strtotime($to_date)) . "'";
 
-$appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '".date('Y-m-d', strtotime($from_date))."' AND '".date('Y-m-d', strtotime($to_date))."'";
+$appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
 
 // Calculate the year and week number of the selected date
@@ -43,14 +43,14 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
     $business_name = '';
 } else {
-    $business_name = 'Franchisee: '.$business_name;
+    $business_name = 'Franchisee: ' . $business_name;
 }
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
 <style>
     table,
     td,
@@ -62,30 +62,32 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
     #collapseTable {
         border-collapse: collapse;
     }
+
     body {
         font-size: 12px;
     }
 </style>
+
 <body class="skin-default-dark fixed-layout">
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h1 style="margin: 25px;"><?=$title?></h1>
                     <div class="table-responsive">
+                        <h1 style="margin: 25px;"><?= $title ?></h1>
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?=$business_name . " (" . $concatenatedResults . ")" ?></th>
-                                    <th style="width:20%; text-align: center; font-weight: bold">(<?=date('m/d/Y', strtotime($from_date))?> - <?=date('m/d/Y', strtotime($to_date))?>)</th>
-                                    <th style="width:20%; text-align: center; font-weight: bold">Week # <?=$week_number?></th>
+                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                    <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    <th style="width:20%; text-align: center; font-weight: bold">Week # <?= $week_number ?></th>
                                 </tr>
                             </thead>
                         </table>
-                    </div>
-                    <div class="table-responsive">
+
                         <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">CASH RECEIPTS</label>
-                        <table id="myTable" class="table table-bordered" data-page-length='50'>
+
+                        <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr style='font-weight: normal;'>
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Period</th>
@@ -144,9 +146,8 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                 </tr>
                             </thead>
                         </table>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="myTable" class="table table-bordered" data-page-length='50'>
+
+                        <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold; border: 1px solid black; border-bottom: 0px solid black;" colspan="4">INQUIRIES</th>
@@ -260,14 +261,13 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                 </tr>
                             </thead>
                         </table>
-                    </div>
-                    <div class="table-responsive">
+
                         <?php if ($res->fields['FRANCHISE'] == 1) { ?>
-                            <label style="width:100%; text-align: center; font-weight: bold">UNIT SALES TRACKING</label>
+                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">UNIT SALES TRACKING</label>
                         <?php } else { ?>
-                            <label style="width:100%; text-align: center; font-weight: bold">SALES TRACKING</label>
+                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">SALES TRACKING</label>
                         <?php } ?>
-                        <table id="myTable" class="table table-bordered" data-page-length='50'>
+                        <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th style="width:5%; text-align: center; vertical-align:auto; font-weight: normal !important"></th>
@@ -409,14 +409,15 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
 
                             </thead>
                         </table>
-                    </div>
-                    <div class="table-responsive">
+
+                        <br><br><br><br>
+
                         <?php if ($res->fields['FRANCHISE'] == 1) { ?>
-                            <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
+                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">MISCELLANEOUS / FESTIVAL SALES TRACKING</label>
                         <?php } else { ?>
-                            <label style="width:100%; text-align: center; font-weight: bold">MISCELLANEOUS</label>
+                            <label style="width:100%; text-align: center; font-weight: bold; margin: 25px;">MISCELLANEOUS</label>
                         <?php } ?>
-                        <table id="myTable" class="table table-bordered" data-page-length='50'>
+                        <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="2"></th>
@@ -466,4 +467,5 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
         </div>
     </div>
 </body>
+
 </html>
