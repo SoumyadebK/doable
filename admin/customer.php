@@ -2232,6 +2232,15 @@ if ($PK_USER_MASTER > 0) {
 </body>
 
 
+
+<!-- Buttons extension -->
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+<!-- JSZip (needed for Excel export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+
 <script>
     let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
     let PK_USER_MASTER = parseInt(<?= empty($_GET['master_id']) ? 0 : $_GET['master_id'] ?>);
@@ -2987,14 +2996,75 @@ if ($PK_USER_MASTER > 0) {
             cache: false,
             success: function(result) {
                 $('#payment_register_list').html(result);
-                $('#paymentRegisterTable').DataTable({
+
+                var table = $('#paymentRegisterTable').DataTable({
                     order: [
                         [0, 'desc']
                     ],
                     columnDefs: [{
                         type: 'date',
                         targets: 0
+                    }],
+                    dom: '<"d-flex justify-content-between align-items-center"l<"date-filter">fB>rtip', // Add export buttons
+                    buttons: [{
+                        extend: 'excelHtml5',
+                        text: 'Export to Excel',
+                        title: 'Payment Register', // Excel file name
+                        exportOptions: {
+                            columns: ':visible' // export only visible columns
+                        }
                     }]
+                });
+
+                $("div.date-filter").html(`
+                    <div class="input-group">
+                        <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date">
+                        <input type="text" id="END_DATE" class="form-control form-control-sm ms-2" placeholder="To Date">
+                    </div>
+                `);
+
+                startDate = $("#START_DATE").datepicker({
+                    numberOfMonths: 1,
+                    onSelect: function(selected) {
+                        $("#END_DATE").datepicker("option", "minDate", selected);
+                        $("#START_DATE, #END_DATE").trigger("change");
+                    }
+                });
+                $("#END_DATE").datepicker({
+                    numberOfMonths: 1,
+                    onSelect: function(selected) {
+                        $("#START_DATE").datepicker("option", "maxDate", selected);
+                        $("#START_DATE, #END_DATE").trigger("change");
+                    }
+                });
+
+                // Custom filtering function for date range
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    var min = $('#START_DATE').val();
+                    var max = $('#END_DATE').val();
+                    var date = data[0]; // Date is in the first column
+
+                    if (!date) return true; // Skip empty
+
+                    // Convert to comparable date
+                    var tableDate = new Date(date);
+
+                    if ((min === "" && max === "") ||
+                        (min === "" && tableDate <= new Date(max)) ||
+                        (new Date(min) <= tableDate && max === "") ||
+                        (new Date(min) <= tableDate && tableDate <= new Date(max))) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                // Event listener for inputs
+                $('#START_DATE').on('change keyup', function() {
+                    table.draw();
+                });
+
+                $('#END_DATE').on('change keyup', function() {
+                    table.draw();
                 });
             }
         });

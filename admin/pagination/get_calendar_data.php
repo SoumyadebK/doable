@@ -258,7 +258,7 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
             }
         }
 
-        if ($LOCATION_OPEN_TIME < $USER_OPEN_TIME) {
+        if (($LOCATION_OPEN_TIME < $USER_OPEN_TIME) && ($USER_OPEN_TIME != '00:00:00' && $USER_OPEN_TIME != '')) {
             $appointment_array[] = [
                 'id' => $i++,
                 'resourceId' => $PK_USER,
@@ -276,7 +276,7 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
             ];
         }
 
-        if ($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) {
+        if (($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) && ($USER_CLOSE_TIME != '00:00:00' && $USER_CLOSE_TIME != '')) {
             $appointment_array[] = [
                 'id' => $i++,
                 'resourceId' => $PK_USER,

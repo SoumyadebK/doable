@@ -175,6 +175,10 @@ while (!$enrollment_data->EOF) {
                             $ENR_BALANCE = $NUMBER_OF_SESSION - $TOTAL_PAID_SESSION;
                             $SERVICE_CREDIT = $TOTAL_PAID_SESSION - $SESSION_COMPLETED;
 
+                            if ($type == 'completed' && $SERVICE_CREDIT > 0) {
+                                $SERVICE_CREDIT = 0;
+                            }
+
                             $total_amount += $serviceCodeData->fields['FINAL_AMOUNT'];
                             $total_paid_amount += $TOTAL_AMOUNT_PAID; //$serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
                             $total_used_amount +=  ($PRICE_PER_SESSION * $SESSION_COMPLETED);
@@ -195,9 +199,9 @@ while (!$enrollment_data->EOF) {
                             <td style="text-align: right;"><?= number_format($total_amount, 2) ?></td>
                             <td style="text-align: right;"><?= number_format($total_amount - $total_used_amount < 0.00 ? $total_amount : $total_used_amount, 2) ?></td>
                             <td style="text-align: right;"><?= number_format($total_scheduled_amount, 2) ?></td>
-                            <td style="text-align: right; color:<?= ($total_amount - $total_paid_amount < -0.03) ? 'red' : 'black' ?>;"><?= number_format((($total_amount - $total_paid_amount < 0.03) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
+                            <td style="text-align: right; color:<?= ($total_amount - $total_paid_amount < -0.05) ? 'red' : 'black' ?>;"><?= number_format((abs($total_amount - $total_paid_amount <= 0.05) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
                             <td style="text-align: right;">$<?= number_format($total_paid_amount, 2) ?></td>
-                            <td style="text-align: right; color:<?= ($total_paid_amount - $total_used_amount < 0) ? 'red' : 'black' ?>;"><?= number_format($total_paid_amount - $total_used_amount, 2) ?></td>
+                            <td style="text-align: right; color:<?= ($total_paid_amount - $total_used_amount < -0.05) ? 'red' : 'black' ?>;"><?= number_format((abs($total_paid_amount - $total_used_amount) <= 0.05) ? 0 : ($total_paid_amount - $total_used_amount), 2) ?></td>
                         </tr>
                     </tbody>
                 </table>
