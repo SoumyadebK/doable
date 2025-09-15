@@ -18,7 +18,7 @@ if (!empty($_GET['start_date'])) {
     $SERVICE_PROVIDER_ID = implode(', ', $selectedProviders);
 
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        header('location:generate_report_pdf.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
     } else {

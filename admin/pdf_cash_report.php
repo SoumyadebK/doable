@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$title = "PAYMENTS MADE REPORT";
+$title = "CASH REPORT";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -107,20 +107,13 @@ while (!$executive_data->EOF) {
                         $total_refund = 0;
                         $total_amount = 0;
                         $total_refund_amount = 0;
-
-                        // $grand_total_amount = 0;
-                        // $grand_total_portion = 0;
-                        // $grand_total_refund = 0;
-                        // $grand_total_refund_amount = 0;
                     ?>
 
                         <div class="table-responsive">
                             <table id="collapseTable" style="width:100%">
                                 <thead>
                                     <tr>
-
                                         <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="11"><?= $name->fields['TEACHER'] ?></th>
-
                                     </tr>
                                     <tr>
                                         <th style="width:8%; text-align: center">Receipt #</th>
@@ -181,19 +174,6 @@ while (!$executive_data->EOF) {
                                         <?php } ?>
                                     <?php $row->MoveNext();
                                     }
-
-                                    // Store service provider summary for later use
-                                    $service_provider_summaries[] = array(
-                                        'name' => $name->fields['TEACHER'],
-                                        'total_amount' => $total_amount - $total_refund_amount,
-                                        'total_portion' => $total_portion - $total_refund
-                                    );
-
-                                    // Add to grand totals
-                                    $grand_total_amount += ($total_amount - $total_refund_amount);
-                                    $grand_total_portion += ($total_portion - $total_refund);
-                                    $grand_total_refund_amount += $total_refund_amount;
-                                    $grand_total_refund += $total_refund;
                                     ?>
                                     <tr>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
@@ -206,33 +186,6 @@ while (!$executive_data->EOF) {
                     <?php
                         $each_service_provider->MoveNext();
                     } ?>
-                    <!-- Service Provider Summary Table -->
-                    <!-- <div class="table-responsive" style="margin-top: 30px;">
-                                    <h4 style="text-align: center; margin-bottom: 20px;">Service Provider Summary</h4>
-                                    <table class="table table-bordered table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th style="text-align: center; font-weight: bold">Service Provider</th>
-                                                <th style="text-align: center; font-weight: bold">Total Amount</th>
-                                                <th style="text-align: center; font-weight: bold">Total Portion</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($service_provider_summaries as $summary): ?>
-                                            <tr>
-                                                <td style="text-align: center"><?= $summary['name'] ?></td>
-                                                <td style="text-align: center">$<?= number_format($summary['total_amount'], 2) ?></td>
-                                                <td style="text-align: center">$<?= number_format($summary['total_portion'], 2) ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <tr style="font-weight: bold; background-color: #f8f9fa;">
-                                                <td style="text-align: center">GRAND TOTAL</td>
-                                                <td style="text-align: center">$<?= number_format($grand_total_amount, 2) ?></td>
-                                                <td style="text-align: center">$<?= number_format($grand_total_portion - $grand_total_refund, 2) ?></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div> -->
                 </div>
             </div>
         </div>
