@@ -43,11 +43,11 @@ $business_name = $res->RecordCount() > 0 ? $res->fields['BUSINESS_NAME'] : '';
 if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
     $business_name = '';
 } else {
-    $business_name = 'Franchisee: '.$business_name;
+    $business_name = 'Franchisee: ' . $business_name;
 }
 
-$location_name='';
-$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$location_name = '';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $resultsArray = [];
 while (!$results->EOF) {
     $resultsArray[] = $results->fields['LOCATION_NAME'];

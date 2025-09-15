@@ -255,6 +255,7 @@ CREATE TABLE `DOA_CUSTOMER_SPECIAL_DATE` (
 
 CREATE TABLE `DOA_CUSTOMER_WALLET` (
   `PK_CUSTOMER_WALLET` int(11) NOT NULL,
+  `CUSTOMER_WALLET_PARENT` int(11) NOT NULL DEFAULT 0,
   `PK_USER_MASTER` int(11) NOT NULL,
   `CURRENT_BALANCE` float(9,2) NOT NULL,
   `DEBIT` float(9,2) NOT NULL DEFAULT 0.00,
@@ -265,6 +266,7 @@ CREATE TABLE `DOA_CUSTOMER_WALLET` (
   `RECEIPT_NUMBER` varchar(255) DEFAULT NULL,
   `RECEIPT_PDF_LINK` varchar(255) DEFAULT NULL,
   `NOTE` text DEFAULT NULL,
+  `IS_DELETED` tinyint(4) NOT NULL DEFAULT 0,
   `CREATED_BY` int(11) NOT NULL,
   `CREATED_ON` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -568,6 +570,8 @@ CREATE TABLE `DOA_ENROLLMENT_PAYMENT` (
   `PK_PAYMENT_TYPE` int(11) NOT NULL,
   `PK_ENROLLMENT_LEDGER` int(11) NOT NULL,
   `PK_ORDER` int(11) DEFAULT NULL,
+  `PK_CUSTOMER_WALLET` int(11) NOT NULL,
+  `PK_LOCATION` int(11) NOT NULL,
   `TYPE` varchar(25) DEFAULT NULL,
   `IS_REFUNDED` tinyint(4) NOT NULL DEFAULT 0,
   `AMOUNT` float(9,2) NOT NULL,
@@ -577,7 +581,8 @@ CREATE TABLE `DOA_ENROLLMENT_PAYMENT` (
   `PAYMENT_STATUS` varchar(50) DEFAULT NULL,
   `RECEIPT_NUMBER` varchar(255) DEFAULT NULL,
   `IS_ORIGINAL_RECEIPT` tinyint(4) NOT NULL DEFAULT 1,
-  `RECEIPT_PDF_LINK` varchar(255) DEFAULT NULL
+  `RECEIPT_PDF_LINK` varchar(255) DEFAULT NULL,
+  `IS_EXPORTED_TO_AMI` tinyint(4) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -870,6 +875,7 @@ CREATE TABLE `DOA_ORDER_ITEM` (
 
 CREATE TABLE `DOA_PACKAGE` (
   `PK_PACKAGE` int(11) NOT NULL,
+  `PK_LOCATION` int(11) DEFAULT NULL,
   `PACKAGE_NAME` varchar(250) NOT NULL,
   `SORT_ORDER` int(11) DEFAULT NULL,
   `EXPIRY_DATE` int(11) DEFAULT NULL,
@@ -987,6 +993,7 @@ CREATE TABLE `DOA_REPORT_EXPORT_DETAILS` (
 
 CREATE TABLE `DOA_SCHEDULING_CODE` (
   `PK_SCHEDULING_CODE` int(11) NOT NULL,
+  `PK_LOCATION` int(11) DEFAULT NULL,
   `PK_ACCOUNT_MASTER` int(11) DEFAULT NULL,
   `SCHEDULING_CODE` varchar(200) DEFAULT NULL,
   `SCHEDULING_NAME` varchar(200) DEFAULT NULL,
@@ -1028,6 +1035,7 @@ CREATE TABLE `DOA_SCHEDULING_SERVICE` (
 CREATE TABLE `DOA_SERVICE_CODE` (
   `PK_SERVICE_CODE` int(11) NOT NULL,
   `PK_SERVICE_MASTER` int(11) NOT NULL,
+  `PK_LOCATION` int(11) DEFAULT NULL,
   `IS_DEFAULT` int(11) DEFAULT NULL,
   `SERVICE_CODE` varchar(100) DEFAULT NULL,
   `DESCRIPTION` varchar(255) DEFAULT NULL,
@@ -1037,7 +1045,8 @@ CREATE TABLE `DOA_SERVICE_CODE` (
   `IS_CHARGEABLE` tinyint(4) NOT NULL DEFAULT 0,
   `PRICE` float(9,2) NOT NULL DEFAULT 0.00,
   `ACTIVE` int(1) DEFAULT NULL,
-  `COUNT_ON_CALENDAR` tinyint(4) NOT NULL DEFAULT 1
+  `COUNT_ON_CALENDAR` tinyint(4) NOT NULL DEFAULT 1,
+  `SORT_ORDER` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -1096,6 +1105,7 @@ CREATE TABLE `DOA_SERVICE_LOCATION` (
 
 CREATE TABLE `DOA_SERVICE_MASTER` (
   `PK_SERVICE_MASTER` int(11) NOT NULL,
+  `PK_LOCATION` int(11) DEFAULT NULL,
   `SERVICE_NAME` varchar(250) DEFAULT NULL,
   `PK_SERVICE_CLASS` int(11) DEFAULT NULL,
   `MISC_TYPE` varchar(50) DEFAULT NULL,
@@ -1592,7 +1602,9 @@ ALTER TABLE `DOA_ENROLLMENT_PAYMENT`
   ADD KEY `PK_ENROLLMENT_BILLING` (`PK_ENROLLMENT_BILLING`),
   ADD KEY `PK_PAYMENT_TYPE` (`PK_PAYMENT_TYPE`),
   ADD KEY `PK_ENROLLMENT_LEDGER` (`PK_ENROLLMENT_LEDGER`),
-  ADD KEY `PK_ORDER` (`PK_ORDER`);
+  ADD KEY `PK_ORDER` (`PK_ORDER`),
+  ADD KEY `PK_CUSTOMER_WALLET` (`PK_CUSTOMER_WALLET`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
 -- Indexes for table `DOA_ENROLLMENT_SERVICE`
@@ -1709,7 +1721,8 @@ ALTER TABLE `DOA_ORDER_ITEM`
 -- Indexes for table `DOA_PACKAGE`
 --
 ALTER TABLE `DOA_PACKAGE`
-  ADD PRIMARY KEY (`PK_PACKAGE`);
+  ADD PRIMARY KEY (`PK_PACKAGE`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
 -- Indexes for table `DOA_PACKAGE_LOCATION`
@@ -1754,7 +1767,8 @@ ALTER TABLE `DOA_REPORT_EXPORT_DETAILS`
 -- Indexes for table `DOA_SCHEDULING_CODE`
 --
 ALTER TABLE `DOA_SCHEDULING_CODE`
-  ADD PRIMARY KEY (`PK_SCHEDULING_CODE`);
+  ADD PRIMARY KEY (`PK_SCHEDULING_CODE`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
 -- Indexes for table `DOA_SCHEDULING_SERVICE`
@@ -1767,7 +1781,8 @@ ALTER TABLE `DOA_SCHEDULING_SERVICE`
 --
 ALTER TABLE `DOA_SERVICE_CODE`
   ADD PRIMARY KEY (`PK_SERVICE_CODE`),
-  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`);
+  ADD KEY `PK_SERVICE_MASTER` (`PK_SERVICE_MASTER`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
 -- Indexes for table `DOA_SERVICE_COMMISSION`
@@ -1796,7 +1811,8 @@ ALTER TABLE `DOA_SERVICE_LOCATION`
 --
 ALTER TABLE `DOA_SERVICE_MASTER`
   ADD PRIMARY KEY (`PK_SERVICE_MASTER`),
-  ADD KEY `PK_SERVICE_CLASS` (`PK_SERVICE_CLASS`);
+  ADD KEY `PK_SERVICE_CLASS` (`PK_SERVICE_CLASS`),
+  ADD KEY `PK_LOCATION` (`PK_LOCATION`);
 
 --
 -- Indexes for table `DOA_SERVICE_PROVIDER_AMOUNT`
@@ -2265,18 +2281,6 @@ ALTER TABLE `DOA_SERVICE_PROVIDER_LOCATION_HOURS`
   MODIFY `PK_SERVICE_PROVIDER_LOCATION_HOURS` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `DOA_SERVICE_SCHEDULING_CODE`
---
-ALTER TABLE `DOA_SERVICE_SCHEDULING_CODE`
-  MODIFY `PK_SERVICE_BOOKING_CODE` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_SKILL_LEVEL`
---
-ALTER TABLE `DOA_SKILL_LEVEL`
-  MODIFY `PK_SKILL_LEVEL` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `DOA_SPECIAL_APPOINTMENT`
 --
 ALTER TABLE `DOA_SPECIAL_APPOINTMENT`
@@ -2293,46 +2297,87 @@ ALTER TABLE `DOA_SPECIAL_APPOINTMENT_CUSTOMER`
 --
 ALTER TABLE `DOA_SPECIAL_APPOINTMENT_USER`
   MODIFY `PK_SPECIAL_APPOINTMENT_USER` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_UPDATE_HISTORY`
---
-ALTER TABLE `DOA_UPDATE_HISTORY`
-  MODIFY `PK_UPDATE_HISTORY` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_USERS`
---
-ALTER TABLE `DOA_USERS`
-  MODIFY `PK_USER` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_USER_DOCUMENT`
---
-ALTER TABLE `DOA_USER_DOCUMENT`
-  MODIFY `PK_USER_DOCUMENT` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_USER_RATE`
---
-ALTER TABLE `DOA_USER_RATE`
-  MODIFY `PK_USER_RATE` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_Z_HELP`
---
-ALTER TABLE `DOA_Z_HELP`
-  MODIFY `PK_HELP` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `DOA_Z_HELP_FILES`
---
-ALTER TABLE `DOA_Z_HELP_FILES`
-  MODIFY `PK_HELP_FILES` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
-
-
 
 INSERT INTO `DOA_DOCUMENT_LIBRARY` (`PK_DOCUMENT_TYPE`, `DOCUMENT_NAME`, `DOCUMENT_TEMPLATE`, `ACTIVE`) VALUES ('1', 'Enrollment Template', '<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>CLIENT ENROLLMENT AGREEMENT</td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n\r\n<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>Please Print</td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left; width:auto\">Client</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:left; width:5cm\">Full Name</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{FULL_NAME}</strong></td>\r\n <th>Street Address</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{STREET_ADD}</strong></td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left\">City</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CITY}</td>\r\n <th>State</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{STATE}</td>\r\n <th>Zip</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{ZIP}</td>\r\n <th>Res. Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">&nbsp;</td>\r\n <th>Cell Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CELL_PHONE}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:91%\">The Client agrees to purchase and the owner of {BUSINESS_NAME} agrees to provide the following course of dance instruction and/or services on the following terms and conditions including the terms and conditions on the reverse side of this agreement.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">NAME/TYPE OF ENROLLMENT</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">SERVICES</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">PRIVATE LESSON(S)</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">TUITION</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">DISCOUNT</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">BALANCE DUE</td>\r\n </tr>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{TYPE_OF_ENROLLMENT}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{SERVICE_DETAILS}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{PVT_LESSONS}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{TUITION}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{DISCOUNT}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{BAL_DUE}</td>\r\n </tr>\r\n <tr>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px; text-align:center; vertical-align:middle\">Lessons are 45 minutes which includes transition time between lessons</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"height:auto; text-align:left; width:91%\">The Client acknowledges the above of {CASH_PRICE}&nbsp;for the instruction and/or services(s) described above and agrees to pay {DOWN_PAYMENTS} on {FIRST_DATE} and the remaining cash balance of {REMAINING_BALANCE}, which includes any applicable previous balance and service charge as shown below, in {NO_AMT_PAYMENT} Installments of {INSTALLMENT_AMOUNT} starting on .</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td style=\"height:auto; text-align:left; width:91%\">The lesson rates in this agreement are: Private Instruction $189.00 per lesson, Class Instruction $0.00 per lesson, and there is no charge for Party Practice units when included.</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">1. Cash Price of This Course</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{CASH_PRICE}</td>\r\n </tr>\r\n <tr>\r\n <th style=\"width:9cm\">2. Down Payment(s)</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{DOWN_PAYMENTS}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:99%\">You have the right at this time to receive an itemization of the amount financed, which is shown in the left column of this document</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td style=\"width:auto\">\r\n <p>Your payment schedule will be</p>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Date of Payment</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Amount of Payment</td>\r\n </tr>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{DUE_DATE}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{BILLED_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <p>and on the same date each month thereafter until paid in full</p>\r\n\r\n <p>Notice to Buyer: Do not sign this agreement before you read it or if it contains any blank spaces. You are entitled to a copy of the agreement you sign. Keep this agreement to protect your legal rights.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">Amount to be Scheduled\r\n <p>The amount of tuition to be scheduled as installments:</p>\r\n </th>\r\n <td style=\"border-bottom:0px solid #cccccc; height:auto; text-align:center; vertical-align:bottom; width:93px\">{SCHEDULE_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"vertical-align:top; width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>\r\n <p>If you pay off early, you:</p>\r\n\r\n <p><strong>Will not</strong> have to pay a penalty</p>\r\n\r\n <p><strong>May</strong> be entitled to a refund of part of the service Charge, under rule of 78, prorata or a method whichever is applicable in your state.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center\">CLIENT ACKNOWLEDGES RECEIPT OF AN EXACT COPY OF THIS RETAIL INSTALLMENT AGREEMENT.</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:0px solid #cccccc; height:auto\">It is agreed that the Studio&#39;s obligation for furnishing instructions under this agreement shall expire on {EXPIRATION_DATE} or three years from the date of this agreement whichever occurs first.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th rowspan=\"8\" style=\"text-align:center; width:8cm\"><strong>{BUSINESS_NAME}</strong><br />\r\n {BUSINESS_ADD}<br />\r\n {BUSINESS_CITY}<br />\r\n {BUSINESS_STATE},&nbsp;{BUSINESS_ZIP}&nbsp; {BUSINESS_COUNTRY} &nbsp;{BUSINESS_PHONE}</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Client&#39;s Signature</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Studio Representative</th>\r\n </tr>\r\n <tr>\r\n <td style=\"height:50px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Co-Client or Guardian</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Verified by</th>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n', '1');
 INSERT INTO `DOA_DOCUMENT_LIBRARY` (`PK_DOCUMENT_TYPE`, `DOCUMENT_NAME`, `DOCUMENT_TEMPLATE`, `ACTIVE`) VALUES ('3', 'Miscellaneous Agreement', '<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>CLIENT ENROLLMENT AGREEMENT</td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n\r\n<table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>Please Print</td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left; width:auto\">Client</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:left; width:5cm\">Full Name</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{FULL_NAME}</strong></td>\r\n <th>Street Address</th>\r\n <td style=\"border-bottom:1px solid #cccccc; text-align:center\"><strong>{STREET_ADD}</strong></td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th style=\"text-align:left\">City</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CITY}</td>\r\n <th>State</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{STATE}</td>\r\n <th>Zip</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{ZIP}</td>\r\n <th>Res. Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">&nbsp;</td>\r\n <th>Cell Phone</th>\r\n <td style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center; width:5cm\">{CELL_PHONE}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:91%\">The Client agrees to purchase and the owner of Arthur Murray Woodland Hills agrees to provide the following course of dance instruction and/or services on the following terms and conditions including the terms and conditions on the reverse side of this agreement.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"5\" style=\"border-style:solid; border-width:0px; text-align:center; vertical-align:middle\">Lessons are 45 minutes which includes transition time between lessons</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"3\" style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">ENROLLED ON MISCELLANEOUS SERVICES</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">TUITION OR COST</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"3\" style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{SERVICE_DETAILS}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{TUITION}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"height:auto; text-align:left; width:91%\">\r\n <p>The Client acknowledges the above of {CASH_PRICE}&nbsp;for the instruction and/or services(s) described above and agrees to pay {DOWN_PAYMENTS} on {BILLING_DATE} and the remaining cash balance of {REMAINING_BALANCE}, which includes any applicable previous balance and service charge as shown below, in {NO_AMT_PAYMENT} installments of {INSTALLMENT_AMOUNT} starting on {STARTING_DATE}.</p>\r\n </td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td>&nbsp;</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">1. Cash Price of This Course</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{CASH_PRICE}</td>\r\n </tr>\r\n <tr>\r\n <th style=\"width:9cm\">2. Down Payment(s)</th>\r\n <td style=\"border-bottom:1px solid #cccccc; vertical-align:bottom\">{DOWN_PAYMENTS}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"text-align:left; width:99%\">You have the right at this time to receive an itemization of the amount financed, which is shown in the left column of this document</td>\r\n <td>&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <td style=\"width:auto\">\r\n <p>Your payment schedule will be</p>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Date of Payment</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">Amount of Payment</td>\r\n </tr>\r\n <tr>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{DUE_DATE}</td>\r\n <td style=\"border-color:#cccccc; border-style:solid; border-width:1px; text-align:center\">{BILLED_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <p>and on the same date each month thereafter until paid in full</p>\r\n\r\n <p>Notice to Buyer: Do not sign this agreement before you read it or if it contains any blank spaces. You are entitled to a copy of the agreement you sign. Keep this agreement to protect your legal rights.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n </tr>\r\n </tbody>\r\n </table>\r\n\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td style=\"width:50%\">\r\n <table>\r\n <tbody>\r\n <tr>\r\n <th style=\"width:9cm\">Amount to be Scheduled\r\n <p>The amount of tuition to be scheduled as installments:</p>\r\n </th>\r\n <td style=\"border-bottom:0px solid #cccccc; height:auto; text-align:center; vertical-align:bottom; width:93px\">{SCHEDULE_AMOUNT}</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n <td style=\"vertical-align:top; width:50%\">\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <td>\r\n <p>If you pay off early, you:</p>\r\n\r\n <p><strong>Will not</strong> have to pay a penalty</p>\r\n\r\n <p><strong>May</strong> be entitled to a refund of part of the service Charge, under rule of 78, prorata or a method whichever is applicable in your state.</p>\r\n </td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:1px solid #cccccc; height:auto; text-align:center\">CLIENT ACKNOWLEDGES RECEIPT OF AN EXACT COPY OF THIS RETAIL INSTALLMENT AGREEMENT.</td>\r\n </tr>\r\n <tr>\r\n <td colspan=\"2\" style=\"border-bottom:0px solid #cccccc; height:auto\">It is agreed that the Studio&#39;s obligation for furnishing instructions under this agreement shall expire on {EXPIRATION_DATE} or three years from the date of this agreement whichever occurs first.</td>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n <tr>\r\n <td>\r\n <table style=\"width:100%\">\r\n <tbody>\r\n <tr>\r\n <th rowspan=\"8\" style=\"text-align:center; width:8cm\"><strong>{BUSINESS_NAME}</strong><br />\r\n {BUSINESS_ADD}<br />\r\n {BUSINESS_CITY}<br />\r\n {BUSINESS_STATE},&nbsp;{BUSINESS_ZIP}&nbsp; {BUSINESS_COUNTRY} &nbsp;{BUSINESS_PHONE}</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Client&#39;s Signature</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Studio Representative</th>\r\n </tr>\r\n <tr>\r\n <td style=\"height:50px\">&nbsp;</td>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">&nbsp;</th>\r\n </tr>\r\n <tr>\r\n <th style=\"text-align:center\">__________________________</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th style=\"text-align:center\">__________________________</th>\r\n </tr>\r\n <tr>\r\n <th>Co-Client or Guardian</th>\r\n <th style=\"width:15px\">&nbsp;</th>\r\n <th>Verified by</th>\r\n </tr>\r\n </tbody>\r\n </table>\r\n </td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n\r\n<table>\r\n <tbody>\r\n <tr>\r\n <td>A.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>B.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>C.</td>\r\n <td style=\"text-align:left\">Instructions shall be available commencing this date and shall not be charged against this enrollment until the completion of all previous enrollments, if any. Performance of the agreed upon lessons and instructions shall begin within six months from this date. All lessons are 45 minutes long, which includes transition time between lessons. The rates for lessons calculated on an hourly basis equal the lesson rates set forth in this agreement multiptded by 1.33</td>\r\n </tr>\r\n <tr>\r\n <td>D.</td>\r\n <td style=\"text-align:left\">Private lessons to be made available by the Studio, shall expire whether actually used or not upon the agreed expiration date for all instruction or lessons under this agreement. All group lessons (if charged) and Video Tape Studies shall expire over the same period as the private lessons. The teaching or honoring of any lessons and/or services beyond the term of expiration shall not be deemed as a waiver of this expiration provision by the Studio</td>\r\n </tr>\r\n <tr>\r\n <td>E.</td>\r\n <td style=\"text-align:left\">Student agrees to complete all lessons and/or services as expressly provided in this agreement. Student shall not be retdeved of the obtdgation to make any payment agreed to, and no deduction or allowance for any payments shall be made by reason of Student&#39;s failure to use any lessons and/or services, except as provided.</td>\r\n </tr>\r\n <tr>\r\n <td>F.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>G.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>H.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>I.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>J.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td>K.</td>\r\n <td style=\"text-align:left\">The Studio agrees to provide this course of instruction and/or services in accordance with the Arthur Murray&reg; method of dance instruction and to make its facilities and personnel available by individual independent appointment for each lesson or service for such purposes during the term of this agreement. The Studio may provide the Student with any instructor employed by the Studio and is not obtdgated to provide any specific instructor nor to provide the same instuctor for different lessons.</td>\r\n </tr>\r\n <tr>\r\n <td style=\"text-align:left\">&nbsp;</td>\r\n </tr>\r\n </tbody>\r\n</table>\r\n', '1');
 ";
+
+$create_store_procedure = 'DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCalendarAppointments`(IN `p_location_ids` VARCHAR(255), IN `p_status_ids` VARCHAR(255), IN `p_date_condition` VARCHAR(255), IN `p_type_condition` VARCHAR(255), IN `p_service_provider_condition` VARCHAR(255))
+BEGIN
+    SET @sql = CONCAT("
+        SELECT
+            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+            DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+            DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE AS APT_ENR_SERVICE,
+            DOA_APPOINTMENT_MASTER.GROUP_NAME,
+            DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
+            DOA_APPOINTMENT_MASTER.DATE,
+            DOA_APPOINTMENT_MASTER.START_TIME,
+            DOA_APPOINTMENT_MASTER.END_TIME,
+            DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+            DOA_APPOINTMENT_MASTER.IS_PAID,
+            DOA_APPOINTMENT_MASTER.COMMENT,
+            DOA_APPOINTMENT_MASTER.INTERNAL_COMMENT,
+            DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER,
+            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+            DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+            DOA_SERVICE_MASTER.SERVICE_NAME,
+            DOA_SERVICE_CODE.SERVICE_CODE,
+            DOA_APPOINTMENT_MASTER.IS_PAID,
+            DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+            DOA_APPOINTMENT_STATUS.STATUS_CODE,
+            DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+            DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+            DOA_SCHEDULING_CODE.COLOR_CODE,
+            DOA_SCHEDULING_CODE.SCHEDULING_CODE,
+            DOA_SCHEDULING_CODE.DURATION,
+            DOA_SCHEDULING_CODE.UNIT,
+            GROUP_CONCAT(DISTINCT(DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER) SEPARATOR \',\') AS SERVICE_PROVIDER_ID,
+            GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, \' \', CUSTOMER.LAST_NAME)) SEPARATOR \', \') AS CUSTOMER_NAME,
+            DOA_PACKAGE.PACKAGE_NAME
+        FROM
+            DOA_APPOINTMENT_MASTER
+        LEFT JOIN DOA_APPOINTMENT_CUSTOMER 
+            ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+        LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER 
+            ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+        LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
+            ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER 
+            ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT 
+            ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER 
+            AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = \'GROUP\'
+        LEFT JOIN DOA_ENROLLMENT_MASTER AS APT_ENR 
+            ON DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = APT_ENR.PK_ENROLLMENT_MASTER 
+            AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = \'GROUP\'
+        LEFT JOIN DOA_SCHEDULING_CODE 
+            ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
+        LEFT JOIN DOA_SERVICE_MASTER 
+            ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+        LEFT JOIN DOA_MASTER.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS 
+            ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+        LEFT JOIN DOA_ENROLLMENT_MASTER 
+            ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+        LEFT JOIN DOA_SERVICE_CODE 
+            ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+        LEFT JOIN DOA_PACKAGE 
+            ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE
+        WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS NULL)
+        AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN (", p_location_ids, ")
+        AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (", p_status_ids, ")
+        ", p_date_condition, "
+        ", p_type_condition, "
+        AND DOA_APPOINTMENT_MASTER.STATUS = \'A\' 
+        ", p_service_provider_condition, "
+        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC
+    ");
+
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END$$
+DELIMITER;';

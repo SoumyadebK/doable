@@ -58,6 +58,11 @@ function saveAccountInfoData($RESPONSE_DATA)
         if ($conn_account_db->multi_query($sqlCreateTable) === FALSE) {
             echo "Error creating table: " . $conn_account_db->error . "\n";
         }
+
+        $sqlCreateStoreProcedure = $create_store_procedure;
+        if ($conn_account_db->multi_query($sqlCreateStoreProcedure) === FALSE) {
+            echo "Error creating store procedure: " . $conn_account_db->error . "\n";
+        }
         $conn_account_db->close();
 
         $ACCOUNT_DATA_UPDATE['DB_NAME'] = $databaseName;
