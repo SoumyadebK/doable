@@ -16,19 +16,11 @@ if (!empty($_GET['NAME'])) {
     $START_DATE = $_GET['start_date'];
     $END_DATE = $_GET['end_date'];
     $PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
-    $selected_service_provider = [];
-    $selected_service_provider_name = [];
-    $selected_service_provider_row = $db->Execute("SELECT DISTINCT DOA_USERS.`PK_USER`, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM `DOA_USERS` LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.PK_USER IN (" . $PK_USER . ") AND DOA_USER_ROLES.`PK_ROLES` = 5");
-    while (!$selected_service_provider_row->EOF) {
-        $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
-        $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
-        $selected_service_provider_row->MoveNext();
-    }
     echo "<script>console.log('Selected Service Provider: " . implode(',', $selected_service_provider) . "');</script>";
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
     } elseif ($generate_excel === 1) {
-        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
     } else {
         if ($_GET['NAME'] == 'payments_made_report') {
             header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
@@ -39,7 +31,7 @@ if (!empty($_GET['NAME'])) {
         } elseif ($_GET['NAME'] == 'staff_performance_report') {
             header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
         } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
-            header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&PK_USER=' . implode(',', $selected_service_provider));
+            header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&PK_USER=' . implode(',', $PK_USER));
         }
     }
 }
@@ -209,7 +201,7 @@ if (!empty($_GET['NAME'])) {
         $('#reportForm').on('submit', function() {
             // Get selected service provider values
             var selectedProviders = $('#service_provider_select').val();
-            alert(selectedProviders);
+            //alert(selectedProviders);
 
             // If no providers selected, show alert and prevent submission
             if (!selectedProviders || selectedProviders.length === 0) {
