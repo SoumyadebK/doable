@@ -29,6 +29,11 @@ if (!empty($_GET['week_number'])) {
 
 $account_data = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
+if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
+    $business_name = '';
+} else {
+    $business_name = 'Franchisee: ' . $business_name;
+}
 
 //$PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
 $selected_service_provider = [];
