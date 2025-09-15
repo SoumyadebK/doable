@@ -54,12 +54,12 @@ if ($db->error_number) {
         $business_logo = '';
         $business_name = '';
 
-        if ($location_data->fields['SERVICE_PROVIDER_TITLE'] == NULL || $location_data->fields['SERVICE_PROVIDER_TITLE'] == '')
+        if ($location_data->RecordCount() == 0 || ($location_data->fields['SERVICE_PROVIDER_TITLE'] == NULL || $location_data->fields['SERVICE_PROVIDER_TITLE'] == ''))
             $service_provider_title = 'Service Provider';
         else
             $service_provider_title = $location_data->fields['SERVICE_PROVIDER_TITLE'];
 
-        if ($location_data->fields['OPERATION_TAB_TITLE'] == NULL || $location_data->fields['OPERATION_TAB_TITLE'] == '')
+        if ($location_data->RecordCount() == 0 || ($location_data->fields['OPERATION_TAB_TITLE'] == NULL || $location_data->fields['OPERATION_TAB_TITLE'] == ''))
             $operation_tab_title = 'Operations';
         else
             $operation_tab_title = $location_data->fields['OPERATION_TAB_TITLE'];
@@ -71,7 +71,7 @@ if ($db->error_number) {
         else
             $currency = $location_data->fields['CURRENCY_SYMBOL']; */
 
-        if (!is_null($location_data->fields['TIMEZONE'])) {
+        if ($location_data->RecordCount() > 0 &&  !is_null($location_data->fields['TIMEZONE'])) {
             date_default_timezone_set($location_data->fields['TIMEZONE']);
             $time_zone = 1;
         } else {
