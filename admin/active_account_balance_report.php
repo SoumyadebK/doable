@@ -61,8 +61,8 @@ if (!empty($_GET['SELECTED_DATE'])) {
                                                 <select class="form-control" name="SELECTED_RANGE" id="SELECTED_RANGE">
                                                     <option value="">Select Range</option>
                                                     <option value="1">1 Month Prior</option>
-                                                    <option value="3">3 Months</option>
-                                                    <option value="6">6 Months</option>
+                                                    <option value="3">3 Months Prior</option>
+                                                    <option value="6">6 Months Prior</option>
                                                 </select>
                                             </div>
                                         </div>
