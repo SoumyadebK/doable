@@ -12,11 +12,13 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$week_number = $_SESSION['week_number'];
-$YEAR = date('Y', strtotime($_SESSION['start_date']));
+$type = $_GET['type'];
 
-$from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
-$to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+$week_number = $_GET['week_number'];
+$YEAR = date('Y');
+
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$to_date = date('Y-m-d', strtotime($_GET['end_date']));
 
 $weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $net_year_date_condition = "'" . date('Y', strtotime($to_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
