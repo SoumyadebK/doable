@@ -95,147 +95,25 @@ if (!empty($_GET['tab']))
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
-$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$payment_gateway_data = getPaymentGatewayData();
 
-$PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-$SECRET_KEY = $account_data->fields['SECRET_KEY'];
-$PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
 
-$ACCESS_TOKEN = $account_data->fields['ACCESS_TOKEN'];
-$APP_ID = $account_data->fields['APP_ID'];
-$LOCATION_ID = $account_data->fields['LOCATION_ID'];
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
 
-$FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-if (!empty($_POST) && $FUNCTION_NAME == 'confirmEnrollmentPayment') {
-    $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
-    $PK_ENROLLMENT_LEDGER_ARRAY = explode(',', $PK_ENROLLMENT_LEDGER);
-    unset($_POST['PK_ENROLLMENT_LEDGER']);
-    $AMOUNT = $_POST['AMOUNT'];
-    if (empty($_POST['PK_ENROLLMENT_PAYMENT'])) {
-        if ($_POST['PK_PAYMENT_TYPE'] == 1) {
-            if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-                require_once("../../global/stripe-php-master/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-                $STRIPE_TOKEN = $_POST['token'];
-                try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
-                    ]);
-                } catch (Exception $e) {
-                }
-                if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-            }
-        } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-            $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
 
-            if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-                require_once("../../global/stripe-php-master/init.php");
-                \Stripe\Stripe::setApiKey($_POST['SECRET_KEY']);
-                $STRIPE_TOKEN = $_POST['token'];
-                $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-                try {
-                    $charge = \Stripe\Charge::create([
-                        'amount' => ($REMAINING_AMOUNT * 100),
-                        'currency' => 'usd',
-                        'description' => $_POST['NOTE'],
-                        'source' => $STRIPE_TOKEN
-                    ]);
-                } catch (Exception $e) {
-                }
-                if ($charge->paid == 1) {
-                    $PAYMENT_INFO = $charge->id;
-                } else {
-                    $PAYMENT_INFO = 'Payment Unsuccessful.';
-                }
-            }
-            $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
-            if (empty($enrollment_data->fields['ENROLLMENT_ID'])) {
-                $enrollment_id = $enrollment_data->fields['MISC_ID'];
-            } else {
-                $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
-            }
-            $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-            $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
-            if ($wallet_data->RecordCount() > 0) {
-                $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
-            }
-            $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-            $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-            $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $enrollment_id;
-            $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-        } else {
-            $PAYMENT_INFO = 'Payment Done.';
-        }
-
-        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $BILLING_DATA = $db_account->Execute("SELECT PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_BILLING WHERE `PK_ENROLLMENT_MASTER`=" . $_POST['PK_ENROLLMENT_MASTER']);
-        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = ($BILLING_DATA->RecordCount() > 0) ? $BILLING_DATA->fields['PK_ENROLLMENT_BILLING'] : 0;
-        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
-        if ($_POST['PK_PAYMENT_TYPE'] == 7) {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = $_POST['REMAINING_AMOUNT'];
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER_REMAINING'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE_REMAINING']));
-        } else {
-            $PAYMENT_DATA['REMAINING_AMOUNT'] = 0.00;
-            $PAYMENT_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-            $PAYMENT_DATA['CHECK_DATE'] = date('Y-m-d', strtotime($_POST['CHECK_DATE']));
-        }
-        $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-        $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
-
-        $enrollment_balance = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BALANCE` WHERE PK_ENROLLMENT_MASTER = '$_POST[PK_ENROLLMENT_MASTER]'");
-        if ($enrollment_balance->RecordCount() > 0) {
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $enrollment_balance->fields['TOTAL_BALANCE_PAID'] + $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_BY']    = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$_POST[PK_ENROLLMENT_MASTER]'");
-        } else {
-            $ENROLLMENT_BALANCE_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $ENROLLMENT_BALANCE_DATA['TOTAL_BALANCE_PAID'] = $_POST['AMOUNT'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-            $ENROLLMENT_BALANCE_DATA['CREATED_ON']  = date("Y-m-d H:i");
-            db_perform_account('DOA_ENROLLMENT_BALANCE', $ENROLLMENT_BALANCE_DATA, 'insert');
-        }
-
-        $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
-        $ledger_record = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-        $LEDGER_DATA['TRANSACTION_TYPE'] = 'Payment';
-        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = $PK_ENROLLMENT_LEDGER;
-        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $_POST['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA['PAID_AMOUNT'] = $ledger_record->fields['BILLED_AMOUNT'];
-        $LEDGER_DATA['BALANCE'] = 0.00;
-        $LEDGER_DATA['IS_PAID'] = 1;
-        $LEDGER_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $LEDGER_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-        $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', "PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
-    } else {
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $_POST, 'update', " PK_ENROLLMENT_PAYMENT =  '$_POST[PK_ENROLLMENT_PAYMENT]'");
-        $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
-    }
-
-    header('location:all_schedules.php?view=table');
-}
-
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
@@ -379,6 +257,7 @@ if ($PK_USER_MASTER > 0) {
         <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#payment_due" id="payment_due_tab_link" onclick="getPaymentDueList()" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Due</span></a> </li>
     </ul>
 <?php } ?>
 
@@ -1833,9 +1712,6 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 
-    <!--Enrollment Model-->
-
-
     <div class="tab-pane" id="appointment_view" role="tabpanel">
         <div id="appointment_list_calendar" style="overflow-x: scroll;">
 
@@ -1847,6 +1723,54 @@ if ($PK_USER_MASTER > 0) {
 
         </div>
     </div>
+
+    <div class="tab-pane" id="comments" role="tabpanel">
+        <div class="p-20">
+            <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
+            <table id="myTable" class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>Commented Date</th>
+                        <th>Commented User</th>
+                        <th>Comment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php
+                    $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
+                    $i = 1;
+                    while (!$comment_data->EOF) { ?>
+                        <tr>
+                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></td>
+                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['FULL_NAME'] ?></td>
+                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['COMMENT'] ?></td>
+                            <td>
+                                <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <a href="javascript:;" onclick='javascript:deleteComment(<?= $comment_data->fields['PK_COMMENT'] ?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <?php if ($comment_data->fields['ACTIVE'] == 1) { ?>
+                                    <span class="active-box-green"></span>
+                                <?php } else { ?>
+                                    <span class="active-box-red"></span>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    <?php $comment_data->MoveNext();
+                        $i++;
+                    } ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="payment_due" role="tabpanel">
+        <div id="payment_due_list" class="p-20">
+
+        </div>
+    </div>
+
+
 
     <!--Edit Billing Due Date Model-->
     <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
@@ -1888,46 +1812,6 @@ if ($PK_USER_MASTER > 0) {
                     </div>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <div class="tab-pane" id="comments" role="tabpanel">
-        <div class="p-20">
-            <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
-            <table id="myTable" class="table table-striped border">
-                <thead>
-                    <tr>
-                        <th>Commented Date</th>
-                        <th>Commented User</th>
-                        <th>Comment</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <?php
-                    $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
-                    $i = 1;
-                    while (!$comment_data->EOF) { ?>
-                        <tr>
-                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></td>
-                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['FULL_NAME'] ?></td>
-                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['COMMENT'] ?></td>
-                            <td>
-                                <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <a href="javascript:;" onclick='javascript:deleteComment(<?= $comment_data->fields['PK_COMMENT'] ?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                <?php if ($comment_data->fields['ACTIVE'] == 1) { ?>
-                                    <span class="active-box-green"></span>
-                                <?php } else { ?>
-                                    <span class="active-box-red"></span>
-                                <?php } ?>
-                            </td>
-                        </tr>
-                    <?php $comment_data->MoveNext();
-                        $i++;
-                    } ?>
-                </tbody>
-            </table>
         </div>
     </div>
 
@@ -1995,16 +1879,6 @@ if ($PK_USER_MASTER > 0) {
         $('#COMMENT_DATE').val('');
         $('#comment_active').hide();
         openCommentModel();
-    }
-
-    function createEnrollment() {
-        $('#enrollment_header').text("Add Enrollment");
-        openEnrollmentModel();
-    }
-
-    function viewPaymentList() {
-        $('#payment_header').text("Add Payment");
-        openPaymentListModel();
     }
 
     function editComment(PK_COMMENT) {
@@ -2759,44 +2633,6 @@ if ($PK_USER_MASTER > 0) {
         window.scrollTo(0, 0);
     }
 
-    function showBillingList(page) {
-        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-        $.ajax({
-            url: "pagination/billing.php",
-            type: "GET",
-            data: {
-                search_text: '',
-                page: page,
-                master_id: PK_USER_MASTER
-            },
-            async: false,
-            cache: false,
-            success: function(result) {
-                $('#billing_list').html(result)
-            }
-        });
-        window.scrollTo(0, 0);
-    }
-
-    function showLedgerList(page) {
-        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-        $.ajax({
-            url: "pagination/ledger.php",
-            type: "GET",
-            data: {
-                search_text: '',
-                page: page,
-                master_id: PK_USER_MASTER
-            },
-            async: false,
-            cache: false,
-            success: function(result) {
-                $('#ledger_list').html(result)
-            }
-        });
-        window.scrollTo(0, 0);
-    }
-
     function editpage(param) {
         var id = $(param).val();
         var master_id = $(param).find(':selected').data('master_id');
@@ -2805,6 +2641,77 @@ if ($PK_USER_MASTER > 0) {
     }
 </script>
 
+<script>
+    $('#verify_password_form').on('submit', function(event) {
+        event.preventDefault();
+        let pk_user = $('.PK_USER').val();
+        let password = $('#verify_password').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'deleteCustomerAfterVerify',
+                pk_user: pk_user,
+                PASSWORD: password
+            },
+            success: function(data) {
+                $('#verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Your file has been deleted.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        window.location.href = 'all_customers.php';
+                    });
+                } else {
+                    $('#verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
+
+    $('#edit_due_date_form').on('submit', function(event) {
+        event.preventDefault();
+
+        let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
+        let old_due_date = $('#old_due_date').val();
+        let due_date = $('#due_date').val();
+        let edit_type = $('#edit_type').val();
+        let due_date_verify_password = $('#due_date_verify_password').val();
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'updateBillingDueDate',
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                old_due_date: old_due_date,
+                due_date: due_date,
+                edit_type: edit_type,
+                due_date_verify_password: due_date_verify_password
+            },
+            success: function(data) {
+                $('#due_date_verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Due Date is Updated.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        $('#billing_due_date_model').modal('hide');
+                        enrollmentLoadMore('normal');
+                        getPaymentDueList();
+                    });
+                } else {
+                    $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
+</script>
 
 <script>
     function changeServiceProvider() {
@@ -3136,5 +3043,34 @@ if ($PK_USER_MASTER > 0) {
         if (event.key === "Escape") {
             closePopup();
         }
+    }
+</script>
+
+<script>
+    function getPaymentDueList() {
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        $.ajax({
+            url: "pagination/payment_due.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#payment_due_list').html(result);
+
+                var table = $('#paymentDueTable').DataTable({
+                    order: [
+                        [1, 'desc']
+                    ],
+                    columnDefs: [{
+                        type: 'date',
+                        targets: 1
+                    }],
+                });
+            }
+        });
+        window.scrollTo(0, 0);
     }
 </script>
