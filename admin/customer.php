@@ -384,8 +384,8 @@ if ($PK_USER_MASTER > 0) {
                             <?php if (!empty($_GET['id'])) { ?>
                                 <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
                                     <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                    <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                                    <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                                    <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+                                    <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
                                     <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" onclick="getPaymentRegisterData()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
                                     <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
@@ -1570,6 +1570,7 @@ if ($PK_USER_MASTER > 0) {
                                                     <div class="tab-pane" id="enrollment" role="tabpanel">
                                                         <div id="enrollment_list" class="p-20">
 
+                                                            <div id="load-marker" style="text-align:center; padding:10px;">Loading <i class="fas fa-spinner fa-pulse" style="font-size: 15px;"></i></div>
                                                         </div>
                                                     </div>
 
@@ -2963,7 +2964,93 @@ if ($PK_USER_MASTER > 0) {
         }
     }
 
+
+    var enr_tab_type = '';
+    var page_count = 1;
+    var loading = false;
+    var hasMore = true;
+    var observer;
+
     function showEnrollmentList(page, type) {
+        enr_tab_type = type;
+        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        let PK_USER = $('.PK_USER').val();
+
+        loading = true;
+        $("#load-marker").text("Loading...");
+
+        $.ajax({
+            url: "pagination/enrollment.php",
+            type: "GET",
+            data: {
+                search_text: '',
+                page: page,
+                type: type,
+                pk_user: PK_USER,
+                master_id: PK_USER_MASTER
+            },
+            cache: false,
+            success: function(result) {
+                if (result && result.trim() !== "") {
+                    // Insert new content ABOVE the marker
+                    $('#load-marker').before(result);
+                    loading = false;
+                } else {
+                    // No more data
+                    hasMore = false;
+                    $("#load-marker").text("No more data");
+                    if (observer) observer.disconnect();
+                }
+            },
+            error: function() {
+                loading = false;
+                $("#load-marker").text("Error loading data");
+            }
+        });
+    }
+
+    // Setup observer only once
+    function enrollmentLoadMore(type) {
+        enr_tab_type = type;
+        page_count = 1;
+        hasMore = true;
+        loading = false;
+        $("#enrollment_list").html('<div id="load-marker" style="text-align:center; padding:10px;">Loading <i class="fas fa-spinner fa-pulse" style="font-size: 15px;"></i></div>');
+
+        // Load first page
+        showEnrollmentList(page_count, enr_tab_type);
+
+        if (observer) observer.disconnect();
+
+        observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && !loading && hasMore) {
+                page_count++;
+                showEnrollmentList(page_count, enr_tab_type);
+            }
+        }, {
+            rootMargin: "300px",
+            threshold: 0.1
+        });
+
+        observer.observe(document.querySelector("#load-marker"));
+    }
+
+    $(window).on("scroll", function() {
+        if (!loading && hasMore && enr_tab_type != '') {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+                page_count++;
+                showEnrollmentList(page_count, enr_tab_type);
+            }
+        }
+    });
+
+
+
+    /* var enr_tab_type = '';
+    var page_count = 1;
+
+    function showEnrollmentList(page, type) {
+        enr_tab_type = type;
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
         $.ajax({
             url: "pagination/enrollment.php",
@@ -2978,11 +3065,24 @@ if ($PK_USER_MASTER > 0) {
             async: false,
             cache: false,
             success: function(result) {
-                $('#enrollment_list').html(result);
+                if (page > 1) {
+                    $('#enrollment_list').append(result);
+                } else {
+                    $('#enrollment_list').html(result);
+                }
             }
         });
-        window.scrollTo(0, 0);
+        //window.scrollTo(0, 0);
     }
+
+    let loading = false;
+    $(window).scroll(function() {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100 && !loading && enr_tab_type != '') {
+            page_count++;
+            alert(page_count);
+            showEnrollmentList(page_count, enr_tab_type);
+        }
+    }); */
 
     function getPaymentRegisterData() {
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
@@ -3521,7 +3621,7 @@ if ($PK_USER_MASTER > 0) {
                         timer: 3000,
                     }).then((result) => {
                         $('#billing_due_date_model').modal('hide');
-                        showEnrollmentList(1, 'normal');
+                        enrollmentLoadMore('normal');
                     });
                 } else {
                     $('#due_date_verify_password_error').text("Incorrect Password").slideDown();

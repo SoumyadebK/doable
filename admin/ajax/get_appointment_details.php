@@ -375,8 +375,8 @@ if ($PK_USER_MASTER > 0) {
         <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#document" id="document_tab_link" onclick="showAgreementDocument()" role="tab"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'normal')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="showEnrollmentList(1, 'completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('normal')" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
+        <li> <a class="nav-link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#appointment_view" onclick="showAppointmentListView(1)" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
         <li> <a class="nav-link" data-bs-toggle="tab" href="#comments" id="comment_tab_link" role="tab"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
     </ul>
@@ -1848,228 +1848,48 @@ if ($PK_USER_MASTER > 0) {
         </div>
     </div>
 
+    <!--Edit Billing Due Date Model-->
+    <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="edit_due_date_form" method="post">
+                <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
+                <input type="hidden" name="old_due_date" id="old_due_date">
+                <input type="hidden" name="edit_type" id="edit_type">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4><b>Edit Due Date</b></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
 
-    <!--
-    <div id="paymentModel" class="modal">
-
-        <div class="modal-content" style="width: 50%;">
-            <span class="close" style="margin-left: 96%;">&times;</span>
-
-            <div class="card" id="payment_confirmation_form_div_customer" style="display: none;">
-                <div class="card-body">
-                    <h4><b>Payment</b></h4>
-
-                    <form id="payment_confirmation_form_customer" role="form" action="" method="post">
-                        <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
-                        <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
-                        <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
-                        <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                        <input type="hidden" name="SECRET_KEY" value="<?php /*=$SECRET_KEY*/ ?>">
-                        <input type="hidden" name="PAYMENT_GATEWAY" value="<?php /*=$PAYMENT_GATEWAY*/ ?>">
-                        <div class="p-20">
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Customer Name</label>
-                                        <div class="col-md-12">
-                                            <p><?php /*=$FIRST_NAME." ".$LAST_NAME*/ ?></p>
-                                        </div>
-                                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required>
                                 </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Enrollment Number</label>
-                                        <div class="col-md-12">
-                                            <p id="enrollment_number"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Amount</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY_CUSTOMER" class="form-control" readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Payment Type</label>
-                                        <div class="col-md-12">
-                                            <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentTypeCustomer(this)">
-                                                <option value="">Select</option>
-                                                <?php
-                                                /*                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                while (!$row->EOF) { */ ?>
-                                                    <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/ ?>"><?php /*=$row->fields['PAYMENT_TYPE']*/ ?></option>
-                                                    <?php /*$row->MoveNext(); } */ ?>
-                                            </select>
-                                        </div>
-                                        <?php /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); */ ?>
-                                        <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/ ?></span>
-                                        <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/ ?>">
-                                        <input type="hidden" name="PK_USER_MASTER" value="<?php /*=$PK_USER_MASTER*/ ?>">
-                                    </div>
-                                </div>
-                            </div>
-
-
-
-                            <div class="row" id="remaining_amount_div" style="display: none;">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Remaining Amount</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT_CUSTOMER" class="form-control" readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Payment Type</label>
-                                        <div class="col-md-12">
-                                            <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
-                                                <option value="">Select</option>
-                                                <?php
-                                                /*                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                while (!$row->EOF) { */ ?>
-                                                    <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/ ?>"><?php /*=$row->fields['PAYMENT_TYPE']*/ ?></option>
-                                                    <?php /*$row->MoveNext(); } */ ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                                <div class="col-12">
-                                    <div class="form-group" id="remaining_card_div">
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Check Number</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Check Date</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */ ?>
-                                <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
-                                    <div class="col-12">
-                                        <div class="form-group" id="customer_card_div">
-
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/ ?>
-                                <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="form-group">
-                                                <label class="form-label">Name (As it appears on your card)</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/ ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="form-group">
-                                                <label class="form-label">Card Number</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/ ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Expiration Date</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/ ?>" placeholder="MM/YYYY">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Security Code</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/ ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php /*} */ ?>
-
-
-                            <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Check Number</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="CHECK_NUMBER" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Check Date</label>
-                                        <div class="col-md-12">
-                                            <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label class="form-label">Notes</label>
-                                        <div class="col-md-12">
-                                            <textarea class="form-control" name="NOTE" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
                             </div>
                         </div>
-                    </form>
 
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Enter your profile password</label>
+                                    <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
+                                    <p id="due_date_verify_password_error" style="color: red;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-
-    <div class="tab-pane" id="accounts" role="tabpanel">
-        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="viewPaymentList();" style="width: 150px; float: right;"><i class="fa fa-plus-circle"></i> Create Payment</a>
-        <div id="ledger_list" class="p-20">
-
-        </div>
-    </div>-->
 
     <div class="tab-pane" id="comments" role="tabpanel">
         <div class="p-20">
@@ -2824,8 +2644,20 @@ if ($PK_USER_MASTER > 0) {
         }
     }
 
+    var enr_tab_type = '';
+    var page_count = 1;
+    var loading = false;
+    var hasMore = true;
+    var observer;
+
     function showEnrollmentList(page, type) {
+        enr_tab_type = type;
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+        let PK_USER = $('.PK_USER').val();
+
+        loading = true;
+        $("#load-marker").text("Loading...");
+
         $.ajax({
             url: "pagination/enrollment.php",
             type: "GET",
@@ -2836,15 +2668,60 @@ if ($PK_USER_MASTER > 0) {
                 pk_user: PK_USER,
                 master_id: PK_USER_MASTER
             },
-            async: false,
             cache: false,
             success: function(result) {
-                $('#enrollment_list').html(result)
-
+                if (result && result.trim() !== "") {
+                    // Insert new content ABOVE the marker
+                    $('#load-marker').before(result);
+                    loading = false;
+                } else {
+                    // No more data
+                    hasMore = false;
+                    $("#load-marker").text("No more data");
+                    if (observer) observer.disconnect();
+                }
+            },
+            error: function() {
+                loading = false;
+                $("#load-marker").text("Error loading data");
             }
         });
-        window.scrollTo(0, 0);
     }
+
+    // Setup observer only once
+    function enrollmentLoadMore(type) {
+        enr_tab_type = type;
+        page_count = 1;
+        hasMore = true;
+        loading = false;
+        $("#enrollment_list").html('<div id="load-marker" style="text-align:center; padding:10px;">Loading <i class="fas fa-spinner fa-pulse" style="font-size: 15px;"></i></div>');
+
+        // Load first page
+        showEnrollmentList(page_count, enr_tab_type);
+
+        if (observer) observer.disconnect();
+
+        observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && !loading && hasMore) {
+                page_count++;
+                showEnrollmentList(page_count, enr_tab_type);
+            }
+        }, {
+            rootMargin: "300px",
+            threshold: 0.1
+        });
+
+        observer.observe(document.querySelector("#load-marker"));
+    }
+
+    $(window).on("scroll", function() {
+        if (!loading && hasMore && enr_tab_type != '') {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+                page_count++;
+                showEnrollmentList(page_count, enr_tab_type);
+            }
+        }
+    });
 
     function showAgreementDocument() {
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
