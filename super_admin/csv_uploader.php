@@ -248,7 +248,7 @@ if (!empty($_POST)) {
                     $USER_DATA['PK_STATES'] = ($state_data->RecordCount() > 0) ? $state_data->fields['PK_STATES'] : 0;
                     $USER_DATA['ZIP'] = $getData[13];
                     $USER_DATA['NOTES'] = $getData[44];
-                    $USER_DATA['ACTIVE'] = ($getData[33] == 'S') ? 1 : 0;
+                    $USER_DATA['ACTIVE'] = ($getData[33] == 'C') ? 1 : 0;
                     $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($getData[8]));
                     $USER_DATA['IS_DELETED'] = 0;
                     $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
@@ -393,7 +393,6 @@ if (!empty($_POST)) {
                     $service_name = $getData[1];
                     $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
                     if ($table_data->RecordCount() == 0) {
-                        //$SERVICE['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                         $SERVICE['PK_LOCATION'] = $PK_LOCATION;
                         $SERVICE['SERVICE_NAME'] = $getData[1];
                         if (strpos($getData[1], 'Miscellaneous') !== false) {
@@ -414,9 +413,7 @@ if (!empty($_POST)) {
                         $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
                         $SERVICE_CODE['PK_LOCATION'] = $PK_LOCATION;
                         $SERVICE_CODE['SERVICE_CODE'] = $getData[0];
-                        //$SERVICE_CODE['PK_FREQUENCY'] = 0;
                         $SERVICE_CODE['DESCRIPTION'] = $getData[1];
-                        //$SERVICE_CODE['DURATION'] = 0;
                         if (strpos($getData[0], "GRP") !== false || strpos($getData[0], "Group") !== false) {
                             $SERVICE_CODE['IS_GROUP'] = 1;
                             $SERVICE_CODE['CAPACITY'] = 20;
@@ -488,7 +485,205 @@ if (!empty($_POST)) {
                     $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_NAME='" . $customerId . "' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                     $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
                     $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    $ENROLLMENT_DATA['PK_PACKAGE'] = $getData[2];
+                    $package = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE PACKAGE_NAME = '" . $getData[2] . "'");
+                    if ($package->RecordCount() > 0) {
+                        $PK_PACKAGE = $package->fields['PK_PACKAGE'];
+                    } else {
+                        $PACKAGE_DATA['PK_LOCATION'] = $PK_LOCATION;
+                        $PACKAGE_DATA['PACKAGE_NAME'] = $getData[2];
+                        $PACKAGE_DATA['SORT_ORDER'] = '';
+                        $PACKAGE_DATA['EXPIRY_DATE'] = '';
+                        $PACKAGE_DATA['ACTIVE'] = 1;
+                        $PACKAGE_DATA['IS_DELETED'] = 0;
+                        $PACKAGE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                        $PACKAGE_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+                        $PK_PACKAGE = $db_account->insert_ID();
+
+                        if ($getData[9] > 0) {
+                            $service_code = 'PRI1';
+                            $quantity = $getData[9];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[10] > 0) {
+                            $service_code = 'PRI2';
+                            $quantity = $getData[10];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[11] > 0) {
+                            $service_code = 'PRI3';
+                            $quantity = $getData[11];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[12] > 0) {
+                            $service_code = 'PRI4';
+                            $quantity = $getData[12];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[14] > 0) {
+                            $service_code = 'CMP';
+                            $quantity = $getData[14];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[15] > 0) {
+                            $service_code = 'GRP1';
+                            $quantity = $getData[15];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[16] > 0) {
+                            $service_code = 'GRP2';
+                            $quantity = $getData[16];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[17] > 0) {
+                            $service_code = 'PRT';
+                            $quantity = $getData[17];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[18] > 0) {
+                            $service_code = 'NPRI';
+                            $quantity = $getData[18];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        } elseif ($getData[19] > 0) {
+                            $service_code = 'NCLASS';
+                            $quantity = $getData[19];
+                            $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                            $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                            $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                            $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+                            $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+                            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $doableServiceId->fields['DESCRIPTION'];
+                            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $quantity;
+                            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = ($quantity > 0) ? $getData[54] / $quantity : 0;
+                            $PACKAGE_SERVICE_DATA['TOTAL'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = '';
+                            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
+                            $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                        }
+                    }
+                    ############# Enrollment Master Entry #############
+                    $ENROLLMENT_DATA['PK_PACKAGE'] = $PK_PACKAGE;
                     $enrollmentById = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE USER_ID = '" . $getData[21] . "'");
                     $ENROLLMENT_DATA['ENROLLMENT_BY_ID'] = ($enrollmentById->RecordCount() > 0) ? $enrollmentById->fields['PK_USER'] : 0;
                     $ENROLLMENT_BY_PERCENTAGE = 100;
@@ -989,7 +1184,8 @@ if (!empty($_POST)) {
                     if ($getEmail !== 0) {
                         $doableUserId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getEmail' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $PK_USER_MASTER = ($doableUserId->RecordCount() > 0) ? $doableUserId->fields['PK_USER_MASTER'] : NULL;
-                        $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
+                        $APPOINTMENT_CUSTOMER_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
+                        db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
                     } else {
                         $INSERT_DATA['CUSTOMER_ID'] = NULL;
                     }
@@ -999,7 +1195,8 @@ if (!empty($_POST)) {
                     $getServiceProvider = $service_provider->fields['EMAIL_ID'];
                     if ($getServiceProvider !== 0) {
                         $SERVICE_PROVIDER_ID = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE EMAIL_ID = '$getServiceProvider'");
-                        $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($SERVICE_PROVIDER_ID->RecordCount() > 0) ? $SERVICE_PROVIDER_ID->fields['PK_USER'] : '';
+                        $APPOINTMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_ID'] = ($SERVICE_PROVIDER_ID->RecordCount() > 0) ? $SERVICE_PROVIDER_ID->fields['PK_USER'] : '';
+                        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SERVICE_PROVIDER_DATA, 'insert');
                     } else {
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
                     }
@@ -1113,7 +1310,7 @@ if (!empty($_POST)) {
                         $APPOINTMENT_MASTER_DATA['IS_CHARGED'] = 1;
                     }
                     $APPOINTMENT_MASTER_DATA['INTERNAL_COMMENT'] = $getData[20];
-                    if ($getData[8] == 'GRP') {
+                    if (strpos($getData[8], 'GRP') !== false) {
                         $APPOINTMENT_MASTER_DATA['GROUP_NAME'] = $getData[9];
                     }
 
@@ -1154,7 +1351,7 @@ if (!empty($_POST)) {
         }
         // Close opened CSV file
         fclose($csvFile);
-        //header("Location: csv_uploader.php");
+        header("Location: csv_uploader.php");
     } else {
         echo "Please select valid file";
     }
@@ -1231,7 +1428,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <!-- <div class="col-md-2">
                             <div class="form-group">
                                 <label class="form-label">Select Database Name</label>
                                 <select class="form-control" name="DATABASE_NAME" id="DATABASE_NAME">
@@ -1257,7 +1454,7 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
                                     <option value="AMEV">AMEV</option>
                                 </select>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label">Select Table Name</label>
