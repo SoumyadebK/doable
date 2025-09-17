@@ -390,60 +390,88 @@ if (!empty($_POST)) {
                     break;
 
                 case 'DOA_SERVICE_MASTER':
-                    $service_name = $getData[1];
-                    $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE SERVICE_NAME='$service_name' AND (PK_LOCATION='$PK_LOCATION' OR `PK_LOCATION` IS NULL)");
+                    $service_code = trim($getData[0]);
+                    $service_name = trim($getData[1]);
+
+                    // Fallback: if no service name, use service code
+                    if ($service_name == '') {
+                        $service_name = $service_code;
+                    }
+
+                    // Skip if still no code (completely empty row)
+                    if ($service_code == '') {
+                        continue 2;
+                    }
+
+                    // Clean up spaces
+                    $service_name_clean = preg_replace('/\s+/', ' ', $service_name);
+
+
+                    // 1. Ensure MASTER
+                    $table_data = $db_account->Execute("
+    SELECT * FROM DOA_SERVICE_MASTER 
+    WHERE TRIM(SERVICE_NAME) = '$service_name_clean'
+    AND (PK_LOCATION = '$PK_LOCATION' OR PK_LOCATION IS NULL)
+");
+
                     if ($table_data->RecordCount() == 0) {
-                        $SERVICE['PK_LOCATION'] = $PK_LOCATION;
-                        $SERVICE['SERVICE_NAME'] = $getData[1];
-                        if (strpos($getData[1], 'Miscellaneous') !== false) {
-                            $SERVICE['PK_SERVICE_CLASS'] = 5;
-                        } else {
-                            $SERVICE['PK_SERVICE_CLASS'] = 2;
-                        }
-                        $SERVICE['IS_SCHEDULE'] = 1;
-                        $SERVICE['IS_SUNDRY'] = 0;
-                        $SERVICE['DESCRIPTION'] = $getData[1];
-                        $SERVICE['ACTIVE'] = 1;
-                        $SERVICE['IS_DELETED'] = 0;
-                        $SERVICE['CREATED_BY'] = $_SESSION['PK_USER'];
-                        $SERVICE['CREATED_ON'] = date("Y-m-d H:i");
+                        $SERVICE = [
+                            'PK_LOCATION'      => $PK_LOCATION,
+                            'SERVICE_NAME'     => $service_name_clean,
+                            'PK_SERVICE_CLASS' => (stripos($service_name_clean, 'Miscellaneous') !== false ? 5 : 2),
+                            'IS_SCHEDULE'      => 1,
+                            'IS_SUNDRY'        => 0,
+                            'DESCRIPTION'      => $service_name_clean,
+                            'ACTIVE'           => 1,
+                            'IS_DELETED'       => 0,
+                            'CREATED_BY'       => $_SESSION['PK_USER'],
+                            'CREATED_ON'       => date("Y-m-d H:i")
+                        ];
                         db_perform_account('DOA_SERVICE_MASTER', $SERVICE, 'insert');
                         $PK_SERVICE_MASTER = $db_account->insert_ID();
-
-                        $SERVICE_CODE['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                        $SERVICE_CODE['PK_LOCATION'] = $PK_LOCATION;
-                        $SERVICE_CODE['SERVICE_CODE'] = $getData[0];
-                        $SERVICE_CODE['DESCRIPTION'] = $getData[1];
-                        if (strpos($getData[0], "GRP") !== false || strpos($getData[0], "Group") !== false) {
-                            $SERVICE_CODE['IS_GROUP'] = 1;
-                            $SERVICE_CODE['CAPACITY'] = 20;
-                        } else {
-                            $SERVICE_CODE['IS_GROUP'] = 0;
-                            $SERVICE_CODE['CAPACITY'] = 0;
-                        }
-
-                        if ($getData[2] == "Y") {
-                            $SERVICE_CODE['IS_CHARGEABLE'] = 1;
-                        } elseif ($getData[2] == "N") {
-                            $SERVICE_CODE['IS_CHARGEABLE'] = 0;
-                        }
-                        $SERVICE_CODE['SORT_ORDER'] = $getData[10];
-                        $SERVICE_CODE['ACTIVE'] = 1;
-                        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
                     } else {
                         $PK_SERVICE_MASTER = $table_data->fields['PK_SERVICE_MASTER'];
-
-                        $UPDATE_DATA['PK_LOCATION'] = $PK_LOCATION;
-                        db_perform_account('DOA_SERVICE_MASTER', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = $PK_SERVICE_MASTER");
-                        db_perform_account('DOA_SERVICE_CODE', $UPDATE_DATA, 'update', " PK_SERVICE_MASTER = $PK_SERVICE_MASTER");
                     }
 
-                    $service_location_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_LOCATION WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
-                    if ($service_location_data->RecordCount() == 0) {
-                        $SERVICE_LOCATION_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
-                        $SERVICE_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-                        db_perform_account('DOA_SERVICE_LOCATION', $SERVICE_LOCATION_DATA, 'insert');
+                    // 2. Ensure CODE
+                    $code_data = $db_account->Execute("
+    SELECT * FROM DOA_SERVICE_CODE 
+    WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' 
+    AND PK_LOCATION = '$PK_LOCATION'
+");
+
+                    $SERVICE_CODE = [
+                        'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                        'PK_LOCATION'       => $PK_LOCATION,
+                        'SERVICE_CODE'      => $service_code,
+                        'DESCRIPTION'       => $service_name_clean,
+                        'IS_GROUP'          => (stripos($service_code, 'GRP') !== false ? 1 : 0),
+                        'CAPACITY'          => (stripos($service_code, 'GRP') !== false ? 20 : 0),
+                        'IS_CHARGEABLE'     => ($getData[2] == "Y" ? 1 : 0),
+                        'SORT_ORDER'        => isset($getData[10]) ? intval($getData[10]) : 0,
+                        'ACTIVE'            => 1
+                    ];
+
+                    if ($code_data->RecordCount() == 0) {
+                        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
+                    } else {
+                        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'update', " PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND PK_LOCATION = '$PK_LOCATION'");
                     }
+
+                    // 3. Ensure LOCATION
+                    $loc_data = $db_account->Execute("
+    SELECT * FROM DOA_SERVICE_LOCATION 
+    WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' 
+    AND PK_LOCATION = '$PK_LOCATION'
+");
+
+                    if ($loc_data->RecordCount() == 0) {
+                        db_perform_account('DOA_SERVICE_LOCATION', [
+                            'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                            'PK_LOCATION'       => $PK_LOCATION
+                        ], 'insert');
+                    }
+
                     break;
 
                 case 'DOA_SCHEDULING_CODE':
