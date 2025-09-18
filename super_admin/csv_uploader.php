@@ -408,11 +408,7 @@ if (!empty($_POST)) {
 
 
                     // 1. Ensure MASTER
-                    $table_data = $db_account->Execute("
-    SELECT * FROM DOA_SERVICE_MASTER 
-    WHERE TRIM(SERVICE_NAME) = '$service_name_clean'
-    AND (PK_LOCATION = '$PK_LOCATION' OR PK_LOCATION IS NULL)
-");
+                    $table_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE TRIM(SERVICE_NAME) = '$service_name_clean'AND (PK_LOCATION = '$PK_LOCATION' OR PK_LOCATION IS NULL)");
 
                     if ($table_data->RecordCount() == 0) {
                         $SERVICE = [
@@ -434,11 +430,7 @@ if (!empty($_POST)) {
                     }
 
                     // 2. Ensure CODE
-                    $code_data = $db_account->Execute("
-    SELECT * FROM DOA_SERVICE_CODE 
-    WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' 
-    AND PK_LOCATION = '$PK_LOCATION'
-");
+                    $code_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
 
                     $SERVICE_CODE = [
                         'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
@@ -459,11 +451,7 @@ if (!empty($_POST)) {
                     }
 
                     // 3. Ensure LOCATION
-                    $loc_data = $db_account->Execute("
-    SELECT * FROM DOA_SERVICE_LOCATION 
-    WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' 
-    AND PK_LOCATION = '$PK_LOCATION'
-");
+                    $loc_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_LOCATION WHERE PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND PK_LOCATION = '$PK_LOCATION'");
 
                     if ($loc_data->RecordCount() == 0) {
                         db_perform_account('DOA_SERVICE_LOCATION', [
@@ -513,7 +501,7 @@ if (!empty($_POST)) {
                     $doableCustomerId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.USER_NAME='" . $customerId . "' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                     $ENROLLMENT_DATA['PK_USER_MASTER'] = ($doableCustomerId->RecordCount() > 0) ? $doableCustomerId->fields['PK_USER_MASTER'] : 0;
                     $ENROLLMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
-                    $package = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE PACKAGE_NAME = '" . $getData[2] . "'");
+                    $package = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_LOCATION = '$PK_LOCATION' AND PACKAGE_NAME = '" . $getData[2] . "'");
                     if ($package->RecordCount() > 0) {
                         $PK_PACKAGE = $package->fields['PK_PACKAGE'];
                     } else {
@@ -546,7 +534,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[10] > 0) {
+                        }
+
+                        if ($getData[10] > 0) {
                             $service_code = 'PRI2';
                             $quantity = $getData[10];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -564,7 +554,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[11] > 0) {
+                        }
+
+                        if ($getData[11] > 0) {
                             $service_code = 'PRI3';
                             $quantity = $getData[11];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -582,7 +574,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[12] > 0) {
+                        }
+
+                        if ($getData[12] > 0) {
                             $service_code = 'PRI4';
                             $quantity = $getData[12];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -600,7 +594,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[14] > 0) {
+                        }
+
+                        if ($getData[14] > 0) {
                             $service_code = 'CMP';
                             $quantity = $getData[14];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -618,7 +614,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[15] > 0) {
+                        }
+
+                        if ($getData[15] > 0) {
                             $service_code = 'GRP1';
                             $quantity = $getData[15];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -636,7 +634,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[16] > 0) {
+                        }
+
+                        if ($getData[16] > 0) {
                             $service_code = 'GRP2';
                             $quantity = $getData[16];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -654,7 +654,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[17] > 0) {
+                        }
+
+                        if ($getData[17] > 0) {
                             $service_code = 'PRT';
                             $quantity = $getData[17];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -672,7 +674,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[18] > 0) {
+                        }
+
+                        if ($getData[18] > 0) {
                             $service_code = 'NPRI';
                             $quantity = $getData[18];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -690,7 +694,9 @@ if (!empty($_POST)) {
                             $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = '';
                             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
                             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
-                        } elseif ($getData[19] > 0) {
+                        }
+
+                        if ($getData[19] > 0) {
                             $service_code = 'NCLASS';
                             $quantity = $getData[19];
                             $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -727,6 +733,7 @@ if (!empty($_POST)) {
                     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
                     $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
 
+                    $PK_ACCOUNT_MASTER = $_POST['PK_ACCOUNT_MASTER'];
                     if ($getData[22] != NULL && $getData[22] != '' && $getData[23] > 0) {
                         $ENROLLMENT_SERVICE_PROVIDER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                         $user_id = $getData[22];
@@ -810,7 +817,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[10] > 0) {
+                    }
+
+                    if ($getData[10] > 0) {
                         $service_code = 'PRI2';
                         $quantity = $getData[10];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -827,7 +836,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[11] > 0) {
+                    }
+
+                    if ($getData[11] > 0) {
                         $service_code = 'PRI3';
                         $quantity = $getData[11];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -844,7 +855,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[12] > 0) {
+                    }
+
+                    if ($getData[12] > 0) {
                         $service_code = 'PRI4';
                         $quantity = $getData[12];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -861,7 +874,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[14] > 0) {
+                    }
+
+                    if ($getData[14] > 0) {
                         $service_code = 'CMP';
                         $quantity = $getData[14];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -878,7 +893,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[15] > 0) {
+                    }
+
+                    if ($getData[15] > 0) {
                         $service_code = 'GRP1';
                         $quantity = $getData[15];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -895,7 +912,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[16] > 0) {
+                    }
+
+                    if ($getData[16] > 0) {
                         $service_code = 'GRP2';
                         $quantity = $getData[16];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -912,7 +931,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[17] > 0) {
+                    }
+
+                    if ($getData[17] > 0) {
                         $service_code = 'PRT';
                         $quantity = $getData[17];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -929,7 +950,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[18] > 0) {
+                    }
+
+                    if ($getData[18] > 0) {
                         $service_code = 'NPRI';
                         $quantity = $getData[18];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -946,7 +969,9 @@ if (!empty($_POST)) {
                         $SERVICE_DATA['DISCOUNT_TYPE'] = ($DISCOUNT > 0) ? 1 : 0;
                         $SERVICE_DATA['FINAL_AMOUNT'] = $ENROLLMENT_SERVICE_DATA['ORIGINAL_AMOUNT'] = number_format($TOTAL_AMOUNT, 2);
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
-                    } elseif ($getData[19] > 0) {
+                    }
+
+                    if ($getData[19] > 0) {
                         $service_code = 'NCLASS';
                         $quantity = $getData[19];
                         $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
@@ -1202,7 +1227,6 @@ if (!empty($_POST)) {
                     break;
 
                 case "DOA_APPOINTMENT_MASTER":
-                    $INSERT_DATA['PK_ACCOUNT_MASTER'] = $_POST['PK_ACCOUNT_MASTER'];
                     $customer_name = preg_split("/\s*[,&]|\s+and\s+\s*/", $getData[3]);
                     $first_name = isset($customer_name[1]) ? $customer_name[1] : '';
                     $$last_name = isset($customer_name[0]) ? $customer_name[0] : '';
@@ -1212,8 +1236,7 @@ if (!empty($_POST)) {
                     if ($getEmail !== 0) {
                         $doableUserId = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USER_MASTER INNER JOIN DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.EMAIL_ID='$getEmail' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_POST[PK_ACCOUNT_MASTER]'");
                         $PK_USER_MASTER = ($doableUserId->RecordCount() > 0) ? $doableUserId->fields['PK_USER_MASTER'] : NULL;
-                        $APPOINTMENT_CUSTOMER_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
-                        db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+                        $INSERT_DATA['CUSTOMER_ID'] = $PK_USER_MASTER;
                     } else {
                         $INSERT_DATA['CUSTOMER_ID'] = NULL;
                     }
@@ -1223,15 +1246,46 @@ if (!empty($_POST)) {
                     $getServiceProvider = $service_provider->fields['EMAIL_ID'];
                     if ($getServiceProvider !== 0) {
                         $SERVICE_PROVIDER_ID = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE EMAIL_ID = '$getServiceProvider'");
-                        $APPOINTMENT_SERVICE_PROVIDER_DATA['SERVICE_PROVIDER_ID'] = ($SERVICE_PROVIDER_ID->RecordCount() > 0) ? $SERVICE_PROVIDER_ID->fields['PK_USER'] : '';
-                        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SERVICE_PROVIDER_DATA, 'insert');
+                        $INSERT_DATA['SERVICE_PROVIDER_ID'] = ($SERVICE_PROVIDER_ID->RecordCount() > 0) ? $SERVICE_PROVIDER_ID->fields['PK_USER'] : '';
                     } else {
                         $INSERT_DATA['SERVICE_PROVIDER_ID'] = NULL;
                     }
 
-                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$getData[8]'");
-                    $PK_SERVICE_MASTER = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_MASTER'] : 0;
-                    $PK_SERVICE_CODE = ($doableServiceId->RecordCount() > 0) ? $doableServiceId->fields['PK_SERVICE_CODE'] : 0;
+                    $service = $getData[8];
+                    $doableServiceId = $db_account->Execute("SELECT PK_SERVICE_MASTER, PK_SERVICE_CODE, DESCRIPTION FROM DOA_SERVICE_CODE WHERE SERVICE_CODE ='$service_code' AND PK_LOCATION = '$PK_LOCATION'");
+                    if ($doableServiceId->RecordCount() > 0) {
+                        $PK_SERVICE_MASTER = $doableServiceId->fields['PK_SERVICE_MASTER'];
+                        $PK_SERVICE_CODE = $doableServiceId->fields['PK_SERVICE_CODE'];
+                    } else {
+                        $SERVICE = [
+                            'PK_LOCATION'      => $PK_LOCATION,
+                            'SERVICE_NAME'     => $service,
+                            'PK_SERVICE_CLASS' => (stripos($service, 'Miscellaneous') !== false ? 5 : 2),
+                            'IS_SCHEDULE'      => 1,
+                            'IS_SUNDRY'        => 0,
+                            'DESCRIPTION'      => $service,
+                            'ACTIVE'           => 1,
+                            'IS_DELETED'       => 0,
+                            'CREATED_BY'       => $_SESSION['PK_USER'],
+                            'CREATED_ON'       => date("Y-m-d H:i")
+                        ];
+                        db_perform_account('DOA_SERVICE_MASTER', $SERVICE, 'insert');
+                        $PK_SERVICE_MASTER = $db_account->insert_ID();
+
+                        $SERVICE_CODE = [
+                            'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                            'PK_LOCATION'       => $PK_LOCATION,
+                            'SERVICE_CODE'      => $service_code,
+                            'DESCRIPTION'       => $service_name_clean,
+                            'IS_GROUP'          => (stripos($service_code, 'GRP') !== false ? 1 : 0),
+                            'CAPACITY'          => (stripos($service_code, 'GRP') !== false ? 20 : 0),
+                            'IS_CHARGEABLE'     => '',
+                            'SORT_ORDER'        => '',
+                            'ACTIVE'            => 1
+                        ];
+                        db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE, 'insert');
+                        $PK_SERVICE_CODE = $db_account->insert_ID();
+                    }
 
                     $getServiceCodeId = $db_account->Execute("SELECT PK_SCHEDULING_CODE FROM DOA_SCHEDULING_CODE WHERE SCHEDULING_CODE = '$getData[2]'");
                     if ($getServiceCodeId->RecordCount() > 0) {
@@ -1356,7 +1410,7 @@ if (!empty($_POST)) {
 
                     $APPOINTMENT_MASTER_DATA['CREATED_BY'] = $PK_ACCOUNT_MASTER;
                     $APPOINTMENT_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                    pre_r($APPOINTMENT_MASTER_DATA);
+                    //pre_r($APPOINTMENT_MASTER_DATA);
                     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_MASTER_DATA, 'insert');
                     $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 

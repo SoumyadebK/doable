@@ -79,7 +79,7 @@ if (!empty($_GET['NAME'])) {
                                             </div>
                                         </div>
                                         <div class="col-2">
-                                            <div id="location" class="multiselect-box" style="width: 100%;">
+                                            <div id="location" style="width: 100%;">
                                                 <select class="multi_select_service_provider" multiple id="service_provider_select" name="PK_USER[]">
                                                     <?php
                                                     $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -133,7 +133,6 @@ if (!empty($_GET['NAME'])) {
     $('.multi_select_service_provider').SumoSelect({
         placeholder: 'Select Service Provider',
         selectAll: true,
-        okCancelInMulti: true,
         triggerChangeCombined: true
     });
 

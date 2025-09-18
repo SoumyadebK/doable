@@ -447,9 +447,10 @@ $styleArray = [
 $objPHPExcel->getActiveSheet()->getStyle('A' . $line . ':K' . $line)->applyFromArray($styleArray);
 
 $line++;
+
 $cell_no = "A" . $line;
 $objPHPExcel->getActiveSheet()->mergeCells('A' . $line . ':B' . $line);
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Contact");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getRowDimension($line)->setRowHeight(35);
@@ -607,12 +608,8 @@ foreach ($PERIOD as $key => $val) {
     $objPHPExcel->getActiveSheet()->getRowDimension($line)->setRowHeight(20);
 
     $cell_no = 'A' . $line;
+    $objPHPExcel->getActiveSheet()->mergeCells('A' . $line . ':B' . $line);
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($val);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-    $cell_no = 'B' . $line;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($CONTACT[$key]);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
