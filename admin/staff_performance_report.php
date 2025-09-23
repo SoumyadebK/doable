@@ -83,18 +83,20 @@ if ($type === 'export') {
         'line_items' => $line_item,
     ];
 
-    $url = constant('ami_api_url') . '/api/v1/reports';
-    $post_data = callArturMurrayApi($url, $data, $authorization);
+    $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'staff_performance_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
+    if ($report_details->RecordCount() > 0) {
+        $url = constant('ami_api_url') . '/api/v1/reports/' . $report_details->fields['ID'];
+        $post_data = callArturMurrayApi($url, $data, $authorization);
 
-    $response = json_decode($post_data);
-
-    if (isset($response->error) || isset($response->errors)) {
-        $report_details = $db_account->Execute("SELECT * FROM `DOA_REPORT_EXPORT_DETAILS` WHERE `REPORT_TYPE` = 'staff_performance_report' AND `YEAR` = '$YEAR' AND `WEEK_NUMBER` = " . $week_number);
-        if ($report_details->RecordCount() > 0) {
-            $error_message = 'This report has already been exported on ' . date('m/d/Y H:i A', strtotime($report_details->fields['SUBMISSION_DATE']));
-        }
+        $response = json_decode($post_data);
     } else {
+        $url = constant('ami_api_url') . '/api/v1/reports';
+        $post_data = callArturMurrayApi($url, $data, $authorization);
+
+        $response = json_decode($post_data);
+
         $REPORT_DATA['REPORT_TYPE'] = 'staff_performance_report';
+        $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
         $REPORT_DATA['WEEK_NUMBER'] = $week_number;
         $REPORT_DATA['YEAR'] = $YEAR;
         $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
