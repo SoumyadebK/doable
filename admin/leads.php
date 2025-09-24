@@ -87,6 +87,7 @@ if (empty($_GET['id'])) {
                         <div class="card">
                             <div class="card-body">
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= $_GET['id'] ?>" />
 
                                     <div class="col-4">
                                         <div class="form-group">
@@ -196,12 +197,13 @@ if (empty($_GET['id'])) {
 
 <script>
     function createCustomer() {
+        let PK_LEADS = $('#PK_LEADS').val();
         let PK_LOCATION = $('#PK_LOCATION').val();
         let FIRST_NAME = $('#FIRST_NAME').val();
         let LAST_NAME = $('#LAST_NAME').val();
         let PHONE = $('#PHONE').val();
         let EMAIL_ID = $('#EMAIL_ID').val();
-        window.location.href = `customer.php?PK_LOCATION=${PK_LOCATION}&FIRST_NAME=${FIRST_NAME}&LAST_NAME=${LAST_NAME}&PHONE=${PHONE}&EMAIL_ID=${EMAIL_ID}`;
+        window.location.href = `customer.php?PK_LOCATION=${PK_LOCATION}&FIRST_NAME=${FIRST_NAME}&LAST_NAME=${LAST_NAME}&PHONE=${PHONE}&EMAIL_ID=${EMAIL_ID}&PK_LEADS=${PK_LEADS}`;
     }
 </script>
 

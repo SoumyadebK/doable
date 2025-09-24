@@ -500,7 +500,7 @@ if ($help->RecordCount() > 0) {
                                                 </div>
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white ">Submit</button>
-                                            <button type="button" onclick="window.location.href='all_services.php'" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                            <button type="button" onclick="window.location.href='all_service_codes.php'" class="btn btn-inverse waves-effect waves-light">Cancel</button>
                                         </form>
                                     </div>
                                 </div>
@@ -608,7 +608,7 @@ if ($help->RecordCount() > 0) {
         }
 
         $(document).on('click', '#cancel_button', function() {
-            window.location.href = 'all_services.php'
+            window.location.href = 'all_service_codes.php'
         });
 
         $(document).on('submit', '#service_info_form', function(event) {

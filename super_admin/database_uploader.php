@@ -1755,6 +1755,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                     <option value="AMSE" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSE') ? 'selected' : '' ?>>AMSE</option>
 
                                     <option value="AMEV" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMEV') ? 'selected' : '' ?>>AMEV</option>
+
+                                    <option value="AMSO" <?= ($_SESSION['MIGRATION_DB_NAME'] == 'AMSO') ? 'selected' : '' ?>>AMSO</option>
                                 </select>
                             </div>
                         </div>
