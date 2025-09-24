@@ -466,6 +466,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
+                                                            <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
                                                             <div class="p-20">
                                                                 <div class="row">
                                                                     <div class="col-4">
@@ -3086,6 +3087,7 @@ if ($PK_USER_MASTER > 0) {
 
     function getPaymentRegisterData() {
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+
         $.ajax({
             url: "pagination/payment_register.php",
             type: "GET",
@@ -3095,9 +3097,21 @@ if ($PK_USER_MASTER > 0) {
             async: false,
             cache: false,
             success: function(result) {
+                // Replace HTML
                 $('#payment_register_list').html(result);
 
-                var table = $('#paymentRegisterTable').DataTable({
+                // Destroy existing DataTable if exists
+                if ($.fn.DataTable.isDataTable('#paymentRegisterTable')) {
+                    $('#paymentRegisterTable').DataTable().clear().destroy();
+                    $('#paymentRegisterTable').off(); // remove old events
+                }
+
+                // Remove old custom filters to avoid stacking
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                    return fn.name !== "dateRangeFilter";
+                });
+
+                let table = $('#paymentRegisterTable').DataTable({
                     order: [
                         [0, 'desc']
                     ],
@@ -3105,48 +3119,49 @@ if ($PK_USER_MASTER > 0) {
                         type: 'date',
                         targets: 0
                     }],
-                    dom: '<"d-flex justify-content-between align-items-center"l<"date-filter">fB>rtip', // Add export buttons
+                    dom: '<"d-flex justify-content-between align-items-center"l<"date-filter">fB>rtip',
                     buttons: [{
                         extend: 'excelHtml5',
                         text: 'Export to Excel',
-                        title: 'Payment Register', // Excel file name
+                        title: 'Payment Register',
                         exportOptions: {
-                            columns: ':visible' // export only visible columns
+                            columns: ':visible'
                         }
                     }]
                 });
 
                 $("div.date-filter").html(`
-                    <div class="input-group">
-                        <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date">
-                        <input type="text" id="END_DATE" class="form-control form-control-sm ms-2" placeholder="To Date">
-                    </div>
-                `);
+                <div class="input-group">
+                    <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date">
+                    <input type="text" id="END_DATE" class="form-control form-control-sm ms-2" placeholder="To Date">
+                </div>
+            `);
 
-                startDate = $("#START_DATE").datepicker({
+                // Init datepickers
+                $("#START_DATE").datepicker({
                     numberOfMonths: 1,
                     onSelect: function(selected) {
                         $("#END_DATE").datepicker("option", "minDate", selected);
-                        $("#START_DATE, #END_DATE").trigger("change");
+                        table.draw();
                     }
                 });
+
                 $("#END_DATE").datepicker({
                     numberOfMonths: 1,
                     onSelect: function(selected) {
                         $("#START_DATE").datepicker("option", "maxDate", selected);
-                        $("#START_DATE, #END_DATE").trigger("change");
+                        table.draw();
                     }
                 });
 
-                // Custom filtering function for date range
-                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                // Custom filtering function for date range (named for easy removal)
+                function dateRangeFilter(settings, data, dataIndex) {
                     var min = $('#START_DATE').val();
                     var max = $('#END_DATE').val();
-                    var date = data[0]; // Date is in the first column
+                    var date = data[0]; // first column
 
-                    if (!date) return true; // Skip empty
+                    if (!date) return true;
 
-                    // Convert to comparable date
                     var tableDate = new Date(date);
 
                     if ((min === "" && max === "") ||
@@ -3156,20 +3171,21 @@ if ($PK_USER_MASTER > 0) {
                         return true;
                     }
                     return false;
-                });
+                }
+                dateRangeFilter.name = "dateRangeFilter"; // label it
+                $.fn.dataTable.ext.search.push(dateRangeFilter);
 
                 // Event listener for inputs
-                $('#START_DATE').on('change keyup', function() {
-                    table.draw();
-                });
-
-                $('#END_DATE').on('change keyup', function() {
+                $('#START_DATE, #END_DATE').on('change keyup', function() {
                     table.draw();
                 });
             }
         });
+
         window.scrollTo(0, 0);
     }
+
+
 
     function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
         let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');

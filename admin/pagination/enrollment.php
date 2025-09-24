@@ -172,7 +172,11 @@ while (!$enrollment_data->EOF) {
 
                             if (($type == 'completed') && ($serviceCodeData->fields['PK_SERVICE_CLASS'] == 5)) {
                                 $TOTAL_PAID_SESSION = $NUMBER_OF_SESSION;
-                                $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                if ($serviceCodeData->fields['STATUS'] == 'C') {
+                                    $TOTAL_AMOUNT_PAID = is_null($serviceCodeData->fields['TOTAL_AMOUNT_PAID']) ? 0 : $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
+                                } else {
+                                    $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['FINAL_AMOUNT'];
+                                }
                             } else {
                                 $TOTAL_PAID_SESSION = ($PRICE_PER_SESSION <= 0) ? $NUMBER_OF_SESSION : number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2);
                                 $TOTAL_AMOUNT_PAID = $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
@@ -218,7 +222,7 @@ while (!$enrollment_data->EOF) {
                 <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
                 <?php }
-                if ($amount_to_pay > 0 && $unpaid_count <= 0) { ?>
+                if (($amount_to_pay > 0 && $unpaid_count <= 0) && $enrollment_data->fields['STATUS'] != 'C') { ?>
                     <br><br>
                     <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
                     <p style="color:red;">$<?= number_format($amount_to_pay, 2) ?></p>
