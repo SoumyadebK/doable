@@ -85,8 +85,10 @@ foreach ($resultsArray as $key => $result) {
                                     <th style="width:50%; text-align: center; font-weight: bold" colspan="3">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                                 <tr>
+                                    <th style="width:10%; text-align: center">Date</th>
                                     <th style="width:10%; text-align: center">Student</th>
                                     <th style="width:10%; text-align: center">Amount of Sale</th>
+                                    <th style="width:10%; text-align: center">Enrollment Name</th>
                                     <th style="width:10%; text-align: center">Services</th>
                                     <th style="width:10%; text-align: center">Executive</th>
                                     <th style="width:12%; text-align: center"><?= $service_provider_title ?> 1</th>
@@ -130,8 +132,10 @@ foreach ($resultsArray as $key => $result) {
 
                                 ?>
                                     <tr>
-                                        <td><?= $row->fields['CLIENT'] ?></td>
+                                        <td style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
+                                        <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
                                         <td style="text-align: right">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
+                                        <td style="text-align: center"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
                                         <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
                                         <td style="text-align: center"><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>
                                         <td style="text-align: center"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '' ?></td>
