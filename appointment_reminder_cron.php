@@ -42,6 +42,7 @@ while (!$all_location->EOF) {
             $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $APPOINTMENT_DATA->fields['CUSTOMER_ID']);
 
             $message = 'This is a friendly reminder for your ' . date('m/d/Y', strtotime($APPOINTMENT_DATA->fields['DATE'])) . ' appointment with ' . $all_location->fields['LOCATION_NAME'] . ' at the following time: ' . date('h:i A', strtotime($APPOINTMENT_DATA->fields['START_TIME'])) . '. Please do not respond to this message. Thank You!';
+            echo $message . "<br>";
             try {
                 $client = new Client($SID, $TOKEN);
                 $response = $client->messages->create(
@@ -51,9 +52,19 @@ while (!$all_location->EOF) {
                         'body' => $message //$msg->fields['CONTENT']
                     ]
                 );
+                $IS_ERROR = 0;
+                $ERROR_MESSAGE = '';
             } catch (\Twilio\Exceptions\TwilioException $e) {
-                echo 'Error : ' . $e->getMessage() . "<br>";
+                //echo 'Error : ' . $e->getMessage() . "<br>";
+                $IS_ERROR = 1;
+                $ERROR_MESSAGE = $e->getMessage();
             } finally {
+                $PK_LOCATION = $PK_LOCATION;
+                $PK_USER_MASTER = $APPOINTMENT_DATA->fields['CUSTOMER_ID'];
+                $PHONE_NUMBER = $customer_phone_number->fields['PHONE'];
+                $MESSAGE = $message;
+                $TRIGGER_TIME = date('Y-m-d H:i:s');
+                $db1->Execute("INSERT INTO DOA_SMS_LOG (IS_ERROR, ERROR_MESSAGE, PK_LOCATION, PK_USER_MASTER, PHONE_NUMBER, MESSAGE, TRIGGER_TIME) VALUES ($IS_ERROR, '" . addslashes($ERROR_MESSAGE) . "', $PK_LOCATION, $PK_USER_MASTER, '$PHONE_NUMBER', '" . addslashes($MESSAGE) . "', '$TRIGGER_TIME')");
                 $db1->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_REMINDER_SEND = 1, PK_APPOINTMENT_STATUS = 7 WHERE `PK_APPOINTMENT_MASTER` = " . $APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER']);
             }
 

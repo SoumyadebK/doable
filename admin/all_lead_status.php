@@ -108,7 +108,7 @@ foreach ($lead_status as $key => $value) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'" . $search . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_LEAD_STATUS'] ?>);"><?= $i; ?></td>

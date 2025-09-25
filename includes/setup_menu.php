@@ -81,6 +81,14 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="dropdown-item" href="../admin/all_orders.php">Orders</a>
                             </div>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Logs
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="../admin/sms_logs.php">SMS Logs</a>
+                            </div>
+                        </li>
                     </ul>
                     <div style="margin-left: 15%;">
                         <?php
@@ -132,6 +140,10 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                             <ul class="nav nav-pills justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_products.php') ? 'active' : '' ?>" href="../admin/all_products.php">Products</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_orders.php') ? 'active' : '' ?>" href="../admin/all_orders.php">Orders</a></li>
+                            </ul>
+                        <?php } elseif ($address == "sms_logs.php") { ?>
+                            <ul class="nav nav-pills justify-content-center">
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'sms_logs.php') ? 'active' : '' ?>" href="../admin/sms_logs.php">SMS Logs</a></li>
                             </ul>
                         <?php } ?>
                     </div>

@@ -3131,11 +3131,11 @@ if ($PK_USER_MASTER > 0) {
                 });
 
                 $("div.date-filter").html(`
-                <div class="input-group">
-                    <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date">
-                    <input type="text" id="END_DATE" class="form-control form-control-sm ms-2" placeholder="To Date">
-                </div>
-            `);
+                    <div class="input-group">
+                        <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date">
+                        <input type="text" id="END_DATE" class="form-control form-control-sm ms-2" placeholder="To Date">
+                    </div>
+                `);
 
                 // Init datepickers
                 $("#START_DATE").datepicker({
