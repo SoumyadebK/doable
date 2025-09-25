@@ -193,7 +193,7 @@ if (isset($_POST['SUBMIT'])) {
 
 
 
-    for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
+    /* for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
         $PK_ENROLLMENT_SERVICE = $_POST['PK_ENROLLMENT_SERVICE'][$i];
 
         // Get price per session for this service
@@ -223,7 +223,7 @@ if (isset($_POST['SUBMIT'])) {
         $CANCEL_DATA['CANCEL_DATE'] = date('Y-m-d');
         pre_r($CANCEL_DATA);
         db_perform_account('DOA_ENROLLMENT_CANCEL', $CANCEL_DATA, 'insert');
-    }
+    } */
 
 
 
