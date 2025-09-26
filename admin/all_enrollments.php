@@ -111,7 +111,7 @@ if (isset($_POST['SUBMIT'])) {
     $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
 
     for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
-        $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
+        $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION, FINAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
         if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
@@ -125,6 +125,13 @@ if (isset($_POST['SUBMIT'])) {
         }
         $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'];
         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update', " PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
+
+        $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+        $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_SERVICE'] = $_POST['PK_ENROLLMENT_SERVICE'][$i];
+        $CANCEL_ENROLLMENT_DATA['ACTUAL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'];
+        $CANCEL_ENROLLMENT_DATA['CANCEL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'] - $ENR_SERVICE_UPDATE['FINAL_AMOUNT'];
+        $CANCEL_ENROLLMENT_DATA['CANCEL_DATE'] = date('Y-m-d H:i:s');
+        db_perform_account('DOA_ENROLLMENT_CANCEL', $CANCEL_ENROLLMENT_DATA, 'insert');
     }
 
     /*if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
@@ -167,100 +174,6 @@ if (isset($_POST['SUBMIT'])) {
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
         $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
-        $PK_ENROLLMENT_SERVICE = $_POST['PK_ENROLLMENT_SERVICE'][$i];
-
-        // Get price per session for this service
-        $service_data = $db_account->Execute("SELECT PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
-
-        // Decide number of sessions depending on cancel type
-        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
-            $NUMBER_OF_SESSION = getSessionCompletedCount($PK_ENROLLMENT_SERVICE);
-        } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
-            $NUMBER_OF_SESSION = getPaidSessionCount($PK_ENROLLMENT_SERVICE);
-        } else {
-            $NUMBER_OF_SESSION = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE);
-        }
-
-        // Actual = original price * total sessions created
-        $ACTUAL_AMOUNT = $NUMBER_OF_SESSION * $service_data->fields['PRICE_PER_SESSION'];
-
-        // Cancel = what you want to refund or adjust (same as FINAL_AMOUNT logic)
-        $CANCEL_AMOUNT = $ACTUAL_AMOUNT;
-
-        // Insert into cancel table
-        $CANCEL_DATA = [];
-        $CANCEL_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $CANCEL_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
-        $CANCEL_DATA['ACTUAL_AMOUNT'] = $ACTUAL_AMOUNT;
-        $CANCEL_DATA['CANCEL_AMOUNT'] = $CANCEL_AMOUNT;
-        $CANCEL_DATA['CANCEL_DATE'] = date('Y-m-d');
-        pre_r($CANCEL_DATA);
-        db_perform_account('DOA_ENROLLMENT_CANCEL', $CANCEL_DATA, 'insert');
-    } */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     if ($TOTAL_POSITIVE_BALANCE >= 0) {

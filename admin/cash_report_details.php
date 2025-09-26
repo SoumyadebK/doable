@@ -140,6 +140,7 @@ foreach ($resultsArray as $key => $result) {
                                                         <th style="width:8%; text-align: center">Type</th>
                                                         <th style="width:5%; text-align: center">ENR ID</th>
                                                         <th style="width:10%; text-align: center">Enrollment</th>
+                                                        <th style="width:10%; text-align: center">Enrollment Type</th>
                                                         <th style="width:10%; text-align: center">Units/Total Cost</th>
                                                         <th style="width:8%; text-align: center">Portion</th>
                                                         <th style="width:5%; text-align: center">%</th>
@@ -166,6 +167,7 @@ foreach ($resultsArray as $key => $result) {
                                                             <td style="text-align: center"><?= $row->fields['PAYMENT_TYPE'] ?></td>
                                                             <td style="text-align: center"><?= $row->fields['ENROLLMENT_ID'] ?></td>
                                                             <td style="text-align: center"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                                            <td style="text-align: center"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
                                                             <td style="text-align: center"><?= $units . '/$' . $row->fields['TOTAL_AMOUNT'] ?></td>
                                                             <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
                                                             <td style="text-align: center"><?= number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0) ?></td>
@@ -183,6 +185,7 @@ foreach ($resultsArray as $key => $result) {
                                                                 <td style="text-align: center; color: red"><?= '(Refund) ' . $row->fields['PAYMENT_TYPE'] ?></td>
                                                                 <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_ID'] ?></td>
                                                                 <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                                                <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
                                                                 <td style="text-align: center; color: red"><?= $units . '/$' . $row->fields['TOTAL_AMOUNT'] ?></td>
                                                                 <td style="text-align: center; color: red">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
                                                                 <td style="text-align: center; color: red"><?= number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0) ?></td>

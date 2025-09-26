@@ -356,19 +356,13 @@ function getSessionCountForMigration($PK_ENROLLMENT_SERVICE, $TYPE = null)
 function getPaidSessionCount($PK_ENROLLMENT_SERVICE)
 {
     global $db_account;
-    $enrollmentServiceData = $db_account->Execute("SELECT DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
-    if ($enrollmentServiceData->fields['IS_GROUP'] == 1) {
-        $TYPE = 'GROUP';
-    } else {
-        $TYPE = 'NORMAL';
-    }
-
-    if ($TYPE == 'NORMAL') {
-        $session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE (PK_APPOINTMENT_STATUS = 1 OR IS_CHARGED = 1) AND IS_PAID = 1 AND APPOINTMENT_TYPE = 'NORMAL' AND `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-        return ($session_created->RecordCount() > 0 && $session_created->fields['SESSION_CREATED'] != NULL) ? $session_created->fields['SESSION_CREATED'] : 0;
-    } elseif ($TYPE == 'GROUP') {
-        $group_session_created = $db_account->Execute("SELECT SUM(DOA_SCHEDULING_CODE.UNIT) AS SESSION_CREATED FROM `DOA_APPOINTMENT_MASTER` LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE INNER JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
-        return ($group_session_created->RecordCount() > 0 && $group_session_created->fields['SESSION_CREATED'] != NULL) ? $group_session_created->fields['SESSION_CREATED'] : 0;
+    $enrollmentServiceData = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'");
+    if ($enrollmentServiceData->RecordCount() > 0) {
+        if ($enrollmentServiceData->fields['PRICE_PER_SESSION'] > 0) {
+            return $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] / $enrollmentServiceData->fields['PRICE_PER_SESSION'];
+        } else {
+            return $enrollmentServiceData->fields['NUMBER_OF_SESSION'];
+        }
     } else {
         return 0;
     }

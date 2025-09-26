@@ -780,7 +780,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         function showMessage() {
             if (<?= count($LOCATION_ARRAY) ?> === 1) {
-                window.location.href = 'create_appointment.php';
+                let currentDate = new Date(calendar.getDate());
+                window.location.href = 'create_appointment.php?date=' + currentDate;
             } else {
                 swal("Select One Location!", "Only one location can be selected on top of the page in order to schedule an appointment.", "error");
             }
