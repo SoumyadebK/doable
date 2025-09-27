@@ -100,15 +100,104 @@ foreach ($resultsArray as $key => $result) {
                                 <?php
                                 $i = 1;
                                 $total_amount = 0;
-                                $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT, DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" .  date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
+                                $row = $db_account->Execute("
+                                                            SELECT 
+                                                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE AS DATE,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                                DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                                CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                                DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT AS TOTAL_AMOUNT,
+                                                                'PAID' AS STATUS
+                                                            FROM DOA_ENROLLMENT_MASTER
+                                                            INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                                ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                            INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                                ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                            LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                                ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                            LEFT JOIN DOA_ENROLLMENT_BILLING 
+                                                                ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                                                            WHERE DOA_USERS.IS_DELETED = 0 
+                                                            AND DOA_USERS.ACTIVE = 1
+                                                            AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                            AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                                AND '" . date('Y-m-d', strtotime($to_date)) . "'
+
+                                                            UNION ALL
+
+                                                            SELECT 
+                                                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                                MAX(DOA_ENROLLMENT_CANCEL.CANCEL_DATE) AS DATE,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                                DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                                CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                                SUM(DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT) AS TOTAL_AMOUNT,
+                                                                'CANCELLED' AS STATUS
+                                                            FROM DOA_ENROLLMENT_CANCEL
+                                                            INNER JOIN DOA_ENROLLMENT_MASTER 
+                                                                ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_MASTER
+                                                            INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                                ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                            INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                                ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                            LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                                ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                            WHERE DOA_USERS.IS_DELETED = 0 
+                                                            AND DOA_USERS.ACTIVE = 1
+                                                            AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                            AND DOA_ENROLLMENT_CANCEL.CANCEL_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                                AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                            GROUP BY 
+                                                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                                DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                                DOA_USERS.FIRST_NAME, 
+                                                                DOA_USERS.LAST_NAME
+
+                                                            ORDER BY DATE DESC
+                                                        ");
                                 while (!$row->EOF) {
-                                    $total_amount += $row->fields['TOTAL_AMOUNT'];
-                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-                                    $serviceCode = [];
-                                    while (!$serviceCodeData->EOF) {
-                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                        $serviceCodeData->MoveNext();
+                                    $enr_status = $row->fields['STATUS'];
+                                    $name = $row->fields['ENROLLMENT_NAME'];
+                                    $ENROLLMENT_ID = $row->fields['ENROLLMENT_ID'];
+                                    if (empty($name)) {
+                                        $enrollment_name = '';
+                                    } else {
+                                        $enrollment_name = "$name" . " - ";
                                     }
+
+                                    $serviceCode = [];
+                                    if ($enr_status == 'CANCELLED') {
+                                        $total_amount -= $row->fields['TOTAL_AMOUNT'];
+                                        $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED, DOA_ENROLLMENT_CANCEL.ACTUAL_AMOUNT, DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE JOIN DOA_ENROLLMENT_CANCEL ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_SERVICE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                        $serviceCode = [];
+                                        while (!$serviceCodeData->EOF) {
+                                            $total_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? ($serviceCodeData->fields['ACTUAL_AMOUNT'] / $serviceCodeData->fields['PRICE_PER_SESSION']) : 0;
+                                            $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . ($total_session - $serviceCodeData->fields['NUMBER_OF_SESSION']);
+                                            $serviceCodeData->MoveNext();
+                                        }
+                                    } else {
+                                        $total_amount += $row->fields['TOTAL_AMOUNT'];
+                                        $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED, DOA_ENROLLMENT_CANCEL.ACTUAL_AMOUNT, DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_CANCEL ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_SERVICE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                        while (!$serviceCodeData->EOF) {
+                                            if ($serviceCodeData->fields['ACTUAL_AMOUNT'] > 0) {
+                                                $total_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? ($serviceCodeData->fields['ACTUAL_AMOUNT'] / $serviceCodeData->fields['PRICE_PER_SESSION']) : $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                            } else {
+                                                $total_session = $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                            }
+                                            $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $total_session;
+                                            $serviceCodeData->MoveNext();
+                                        }
+                                    }
+
+                                    $executive = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS EXECUTIVE FROM DOA_USERS WHERE PK_USER = " . $row->fields['ENROLLMENT_BY_ID']);
 
                                     $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
                                     $resultsArray = [];
@@ -116,26 +205,14 @@ foreach ($resultsArray as $key => $result) {
                                         $resultsArray[] = $results->fields['SERVICE_PROVIDER'] . ' (' . number_format($results->fields['SERVICE_PROVIDER_PERCENTAGE']) . '%)';
                                         $results->MoveNext();
                                     }
-                                    $totalResults = count($resultsArray);
-                                    $concatenatedResults = "";
-                                    foreach ($resultsArray as $key => $result) {
-                                        // Append the current result to the concatenated string
-                                        $concatenatedResults .= $result;
-
-                                        // If it's not the last result, append a comma
-                                        if ($key < $totalResults - 1) {
-                                            $concatenatedResults .= ", ";
-                                        }
-                                    }
-
-                                    $executive = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS EXECUTIVE FROM DOA_USERS WHERE PK_USER = " . $row->fields['ENROLLMENT_BY_ID']);
-
                                 ?>
-                                    <tr>
-                                        <td style="text-align: center"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
+                                    <tr <?php if ($enr_status == 'CANCELLED') {
+                                            echo 'style="color: #f83e4dff;"';
+                                        } ?>>
+                                        <td style="text-align: center"><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
                                         <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
                                         <td style="text-align: right">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
-                                        <td style="text-align: center"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                        <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
                                         <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
                                         <td style="text-align: center"><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>
                                         <td style="text-align: center"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '' ?></td>

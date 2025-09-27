@@ -107,10 +107,15 @@ while (!$executive_data->EOF) {
                         $total_refund = 0;
                         $total_amount = 0;
                         $total_refund_amount = 0;
+
+                        // $grand_total_amount = 0;
+                        // $grand_total_portion = 0;
+                        // $grand_total_refund = 0;
+                        // $grand_total_refund_amount = 0;
                     ?>
 
                         <div class="table-responsive">
-                            <table id="collapseTable" style="width:100%">
+                            <table id="myTable" class="table table-bordered" data-page-length='50'>
                                 <thead>
                                     <tr>
                                         <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="11"><?= $name->fields['TEACHER'] ?></th>
@@ -123,6 +128,7 @@ while (!$executive_data->EOF) {
                                         <th style="width:8%; text-align: center">Type</th>
                                         <th style="width:5%; text-align: center">ENR ID</th>
                                         <th style="width:10%; text-align: center">Enrollment</th>
+                                        <th style="width:10%; text-align: center">Enrollment Type</th>
                                         <th style="width:10%; text-align: center">Units/Total Cost</th>
                                         <th style="width:8%; text-align: center">Portion</th>
                                         <th style="width:5%; text-align: center">%</th>
@@ -149,6 +155,7 @@ while (!$executive_data->EOF) {
                                             <td style="text-align: center"><?= $row->fields['PAYMENT_TYPE'] ?></td>
                                             <td style="text-align: center"><?= $row->fields['ENROLLMENT_ID'] ?></td>
                                             <td style="text-align: center"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                            <td style="text-align: center"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
                                             <td style="text-align: center"><?= $units . '/$' . $row->fields['TOTAL_AMOUNT'] ?></td>
                                             <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
                                             <td style="text-align: center"><?= number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0) ?></td>
@@ -166,6 +173,7 @@ while (!$executive_data->EOF) {
                                                 <td style="text-align: center; color: red"><?= '(Refund) ' . $row->fields['PAYMENT_TYPE'] ?></td>
                                                 <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_ID'] ?></td>
                                                 <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_NAME'] ?></td>
+                                                <td style="text-align: center; color: red"><?= $row->fields['ENROLLMENT_TYPE'] ?></td>
                                                 <td style="text-align: center; color: red"><?= $units . '/$' . $row->fields['TOTAL_AMOUNT'] ?></td>
                                                 <td style="text-align: center; color: red">$<?= number_format($row->fields['AMOUNT'] * ($row->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
                                                 <td style="text-align: center; color: red"><?= number_format($row->fields['SERVICE_PROVIDER_PERCENTAGE'], 0) ?></td>
@@ -174,6 +182,19 @@ while (!$executive_data->EOF) {
                                         <?php } ?>
                                     <?php $row->MoveNext();
                                     }
+
+                                    // Store service provider summary for later use
+                                    $service_provider_summaries[] = array(
+                                        'name' => $name->fields['TEACHER'],
+                                        'total_amount' => $total_amount - $total_refund_amount,
+                                        'total_portion' => $total_portion - $total_refund
+                                    );
+
+                                    // Add to grand totals
+                                    // $grand_total_amount += ($total_amount - $total_refund_amount);
+                                    // $grand_total_portion += ($total_portion - $total_refund);
+                                    // $grand_total_refund_amount += $total_refund_amount;
+                                    // $grand_total_refund += $total_refund;
                                     ?>
                                     <tr>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>

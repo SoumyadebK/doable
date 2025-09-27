@@ -219,33 +219,6 @@ foreach ($resultsArray as $key => $result) {
                                     <?php
                                         $each_service_provider->MoveNext();
                                     } ?>
-                                    <!-- Service Provider Summary Table -->
-                                    <!-- <div class="table-responsive" style="margin-top: 30px;">
-                                    <h4 style="text-align: center; margin-bottom: 20px;">Service Provider Summary</h4>
-                                    <table class="table table-bordered table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th style="text-align: center; font-weight: bold">Service Provider</th>
-                                                <th style="text-align: center; font-weight: bold">Total Amount</th>
-                                                <th style="text-align: center; font-weight: bold">Total Portion</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($service_provider_summaries as $summary): ?>
-                                            <tr>
-                                                <td style="text-align: center"><?= $summary['name'] ?></td>
-                                                <td style="text-align: center">$<?= number_format($summary['total_amount'], 2) ?></td>
-                                                <td style="text-align: center">$<?= number_format($summary['total_portion'], 2) ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <tr style="font-weight: bold; background-color: #f8f9fa;">
-                                                <td style="text-align: center">GRAND TOTAL</td>
-                                                <td style="text-align: center">$<?= number_format($grand_total_amount, 2) ?></td>
-                                                <td style="text-align: center">$<?= number_format($grand_total_portion - $grand_total_refund, 2) ?></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div> -->
                                 </div>
                             </div>
                         </div>
