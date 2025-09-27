@@ -101,7 +101,7 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
                                                     <th style="width:50%; text-align: center; font-weight: bold" colspan="3">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
                                                 <tr>
@@ -245,7 +245,7 @@ foreach ($resultsArray as $key => $result) {
                                                 <tr>
                                                     <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1"></th>
                                                     <th style="text-align: right; vertical-align:auto; font-weight: bold" colspan="1">Total: $<?= number_format($total_amount, 2) ?></th>
-                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="5"></th>
+                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="7"></th>
                                                 </tr>
                                             </tbody>
                                         </table>

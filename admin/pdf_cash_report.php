@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$title = "CASH REPORT";
+$title = "PROVIDER CASH REPORT";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -115,10 +115,10 @@ while (!$executive_data->EOF) {
                     ?>
 
                         <div class="table-responsive">
-                            <table id="myTable" class="table table-bordered" data-page-length='50'>
+                            <table id="collapseTable" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="11"><?= $name->fields['TEACHER'] ?></th>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="12"><?= $name->fields['TEACHER'] ?></th>
                                     </tr>
                                     <tr>
                                         <th style="width:8%; text-align: center">Receipt #</th>
@@ -197,7 +197,7 @@ while (!$executive_data->EOF) {
                                     // $grand_total_refund += $total_refund;
                                     ?>
                                     <tr>
-                                        <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
+                                        <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="9"></th>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion - $total_refund, 2) ?></th>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
                                     </tr>
