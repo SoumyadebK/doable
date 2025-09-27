@@ -225,7 +225,7 @@ foreach ($resultsArray as $key => $result) {
                                 <tr>
                                     <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1"></th>
                                     <th style="text-align: right; vertical-align:auto; font-weight: bold" colspan="1">Total: $<?= number_format($total_amount, 2) ?></th>
-                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="5"></th>
+                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="7"></th>
                                 </tr>
                             </tbody>
                         </table>
