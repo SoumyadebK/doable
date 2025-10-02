@@ -11,8 +11,6 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$type = $_GET['type'];
-
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 $service_provider_id = $_GET['service_provider_id'];

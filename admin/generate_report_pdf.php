@@ -10,7 +10,7 @@ $_SESSION['start_date'] = $_GET['start_date'];
 $_SESSION['end_date'] = $_GET['end_date'];
 $report_type = $_GET['report_type'];
 
-if ($report_type == "royalty_service_report" || $report_type == "payments_made_report") {
+if ($report_type == "royalty_service_report" || $report_type == "payments_made_report" || $report_type == "cash_report") {
     $orientation = "landscape";
 } else {
     $orientation = "portrait";

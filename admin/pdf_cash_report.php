@@ -11,15 +11,12 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$week_number = $_SESSION['week_number'];
-$YEAR = date('Y', strtotime($_SESSION['start_date']));
 
-$from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
-$to_date = date('Y-m-d', strtotime($_SESSION['end_date']));
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
+$to_date = date('Y-m-d', strtotime($_GET['end_date']));
+$service_provider_id = $_GET['service_provider_id'];
 
-$payment_date = "AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
+$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (" . $service_provider_id . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -29,7 +26,6 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
 } else {
     $business_name = '' . $business_name;
 }
-
 
 $location_name = '';
 $results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -48,13 +44,6 @@ foreach ($resultsArray as $key => $result) {
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
     }
-}
-
-$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER > 0 $enrollment_date");
-$executive_id = [];
-while (!$executive_data->EOF) {
-    $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
-    $executive_data->MoveNext();
 }
 ?>
 
@@ -83,19 +72,8 @@ while (!$executive_data->EOF) {
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="row" style="margin-bottom: 20px;">
-                        <div class="col-md-2 text-left">
-                            <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
-                        </div>
-                        <div class="col-md-2 text-center">
-                            <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
-                        </div>
-                        <div class="col-md-5 text-center">
-                            <h5 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $business_name . " (" . $concatenatedResults . ")" ?></h5>
-                        </div>
-                        <div class="col-md-3 text-center">
-                            <h6 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</h6>
-                        </div>
+                    <div>
+                        <h3 class="card-title" style="text-align: center; font-size:medium; font-weight: bold"><?= $title ?></h3>
                     </div>
 
                     <?php
@@ -115,10 +93,14 @@ while (!$executive_data->EOF) {
                     ?>
 
                         <div class="table-responsive">
-                            <table id="myTable" class="table table-bordered" data-page-length='50'>
+                            <table id="collapseTable" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="11"><?= $name->fields['TEACHER'] ?></th>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                        <th style="width:50%; text-align: center; font-weight: bold" colspan="8">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="12"><?= $name->fields['TEACHER'] ?></th>
                                     </tr>
                                     <tr>
                                         <th style="width:8%; text-align: center">Receipt #</th>
@@ -199,11 +181,12 @@ while (!$executive_data->EOF) {
                                     <tr>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="8"></th>
                                         <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1">$<?= number_format($total_portion - $total_refund, 2) ?></th>
-                                        <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
+                                        <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="3"></th>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+                        <br><br><br>
                     <?php
                         $each_service_provider->MoveNext();
                     } ?>
