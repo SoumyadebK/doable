@@ -8,7 +8,7 @@ error_reporting(0);
 
 include('../global/excel/Classes/PHPExcel/IOFactory.php');
 
-$title = "CASH REPORT";
+$title = "PROVIDER CASH REPORT";
 
 $query = '';
 $selected_range = '';
@@ -58,7 +58,7 @@ for ($i = 0; $i <= $total_fields; $i++) {
 }
 
 $inputFileType  = 'Excel2007';
-$outputFileName = 'ACTIVE_ACCOUNT_BALANCE_REPORT.xlsx';
+$outputFileName = 'PROVIDER_CASH_REPORT.xlsx';
 
 $objReader      = PHPExcel_IOFactory::createReader($inputFileType);
 $objReader->setIncludeCharts(TRUE);
@@ -77,7 +77,7 @@ $objPHPExcel->getActiveSheet()->getColumnDimension("I")->setWidth(12);
 $objPHPExcel->getActiveSheet()->getColumnDimension("J")->setWidth(12);
 $objPHPExcel->getActiveSheet()->getColumnDimension("K")->setWidth(20);
 
-$objPHPExcel->getActiveSheet()->mergeCells('A1:K1');
+$objPHPExcel->getActiveSheet()->mergeCells('A1:L1');
 
 $styleArray = [
     'borders' => [
@@ -95,7 +95,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(36);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleArray);
+$objPHPExcel->getActiveSheet()->getStyle('A1:L1')->applyFromArray($styleArray);
 
 $cell_no = "A2";
 $objPHPExcel->getActiveSheet()->mergeCells('A2:G2');
@@ -105,13 +105,13 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "H2";
-$objPHPExcel->getActiveSheet()->mergeCells('H2:K2');
+$objPHPExcel->getActiveSheet()->mergeCells('H2:L2');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-$objPHPExcel->getActiveSheet()->getStyle('A2:K2')->applyFromArray($styleArray);
+$objPHPExcel->getActiveSheet()->getStyle('A2:L2')->applyFromArray($styleArray);
 
 $rowNumber = 5; // Start data at row 4
 $borderRows = [];
@@ -129,11 +129,11 @@ while (!$each_service_provider->EOF) {
     // Write service provider name (merged across all columns)
     $objPHPExcel->getActiveSheet()
         ->setCellValue('A' . $rowNumber, $name->fields['TEACHER'])
-        ->mergeCells('A' . $rowNumber . ':K' . $rowNumber);
+        ->mergeCells('A' . $rowNumber . ':l' . $rowNumber);
 
     // Style the service provider name with borders
     $objPHPExcel->getActiveSheet()
-        ->getStyle('A' . $rowNumber . ':K' . $rowNumber)
+        ->getStyle('A' . $rowNumber . ':L' . $rowNumber)
         ->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -178,7 +178,7 @@ while (!$each_service_provider->EOF) {
         ]
     ];
     $objPHPExcel->getActiveSheet()
-        ->getStyle('A' . $rowNumber . ':K' . $rowNumber)
+        ->getStyle('A' . $rowNumber . ':L' . $rowNumber)
         ->applyFromArray($headerStyle);
 
     $rowNumber++;
@@ -252,7 +252,7 @@ while (!$each_service_provider->EOF) {
 
             // Set the entire refund row's font color to red
             $objPHPExcel->getActiveSheet()
-                ->getStyle('A' . $rowNumber . ':K' . $rowNumber)
+                ->getStyle('A' . $rowNumber . ':L' . $rowNumber)
                 ->getFont()
                 ->setColor(new PHPExcel_Style_Color(PHPExcel_Style_Color::COLOR_RED));
 
@@ -323,7 +323,7 @@ $borderStyle = [
 ];
 
 foreach ($borderRows as $row) {
-    $objPHPExcel->getActiveSheet()->getStyle('A' . $row . ':K' . $row)->applyFromArray($borderStyle);
+    $objPHPExcel->getActiveSheet()->getStyle('A' . $row . ':L' . $row)->applyFromArray($borderStyle);
 }
 
 
