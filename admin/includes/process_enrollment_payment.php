@@ -382,10 +382,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 die();
             }
         } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-            //$LOGIN_ID = '4Y5pCy8Qr'; //$account_data->fields['LOGIN_ID'];
-            //$TRANSACTION_KEY = '8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay'; // $account_data->fields['TRANSACTION_KEY'];
-
-            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             // Product Details
@@ -472,18 +469,18 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         $customerProfile = new AnetAPI\CustomerProfileType();
                         $customerProfile->setMerchantCustomerId(substr("USER_" . $PK_USER, 0, 20));
 
-                        if (!empty($user_data->fields['EMAIL_ID']) && filter_var($user_data->fields['EMAIL_ID'], FILTER_VALIDATE_EMAIL)) {
-                            $customerProfile->setEmail($user_data->fields['EMAIL_ID']);
+                        if (!empty($user_master->fields['EMAIL_ID']) && filter_var($user_master->fields['EMAIL_ID'], FILTER_VALIDATE_EMAIL)) {
+                            $customerProfile->setEmail($user_master->fields['EMAIL_ID']);
                         }
 
                         $billTo = new AnetAPI\CustomerAddressType();
-                        $billTo->setFirstName($user_data->fields['FIRST_NAME']);
-                        $billTo->setLastName($user_data->fields['LAST_NAME']);
-                        $billTo->setAddress("123 Main St");
-                        $billTo->setCity("Seattle");
-                        $billTo->setState("WA");
-                        $billTo->setZip("98101");
-                        $billTo->setCountry("US");
+                        $billTo->setFirstName($user_master->fields['FIRST_NAME']);
+                        $billTo->setLastName($user_master->fields['LAST_NAME']);
+                        $billTo->setAddress($user_master->fields['ADDRESS']);
+                        $billTo->setCity($user_master->fields['CITY']);
+                        $billTo->setState($user_master->fields['STATE_CODE']);
+                        $billTo->setZip($user_master->fields['ZIP']);
+                        $billTo->setCountry($user_master->fields['COUNTRY_CODE']);
 
                         $paymentProfile->setBillTo($billTo);
                         $customerProfile->setPaymentProfiles([$paymentProfile]);

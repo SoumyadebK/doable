@@ -83,7 +83,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
         echo json_encode($RETURN_DATA);
     } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
         $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $PK_USER);
-        $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
+        $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES WHERE DOA_USERS.PK_USER = " . $PK_USER);
 
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
         $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
@@ -142,11 +142,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
                 $billTo = new AnetAPI\CustomerAddressType();
                 $billTo->setFirstName($user_data->fields['FIRST_NAME']);
                 $billTo->setLastName($user_data->fields['LAST_NAME']);
-                $billTo->setAddress("123 Main St");
-                $billTo->setCity("Seattle");
-                $billTo->setState("WA");
-                $billTo->setZip("98101");
-                $billTo->setCountry("US");
+                $billTo->setAddress($user_data->fields['ADDRESS']);
+                $billTo->setCity($user_data->fields['CITY']);
+                $billTo->setState($user_data->fields['STATE_CODE']);
+                $billTo->setZip($user_data->fields['ZIP']);
+                $billTo->setCountry($user_data->fields['COUNTRY_CODE']);
 
                 $paymentProfile->setBillTo($billTo);
                 $customerProfile->setPaymentProfiles([$paymentProfile]);
