@@ -54,7 +54,16 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
             $i = 1;
             while (!$walletTransaction->EOF) {
                 $RECEIPT_NUMBER = $walletTransaction->fields['RECEIPT_NUMBER'];
-                $receiptData = $db_account->Execute("SELECT `PK_ENROLLMENT_MASTER`, `PK_ENROLLMENT_LEDGER` FROM `DOA_ENROLLMENT_PAYMENT` WHERE `RECEIPT_NUMBER` = '$RECEIPT_NUMBER' LIMIT 1");
+                $paymentData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_CUSTOMER_WALLET = " . $walletTransaction->fields['PK_CUSTOMER_WALLET']);
+
+                $payment_details = '';
+                if ($paymentData->fields['PK_PAYMENT_TYPE'] == '2') {
+                    $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
+                    $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                } elseif (in_array($paymentData->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                    $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
+                    $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                }
             ?>
                 <tr class="accordion-toggle" data-bs-toggle="collapse" data-bs-target="#row<?= $i ?>-details">
                     <td class="text-center">
@@ -62,12 +71,12 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                     </td>
                     <td><?= date('m/d/Y h:i A', strtotime($walletTransaction->fields['CREATED_ON'])) ?></td>
                     <td><?= $walletTransaction->fields['RECEIPT_NUMBER'] ?></td>
-                    <td><?= $walletTransaction->fields['DESCRIPTION'] ?></td>
+                    <td><?= $walletTransaction->fields['DESCRIPTION'] . ' ' . $payment_details ?></td>
                     <td><?= $walletTransaction->fields['CREDIT'] ?></td>
                     <td><?= $walletTransaction->fields['BALANCE_LEFT'] ?></td>
                     <td>
                         <?php if ($RECEIPT_NUMBER != '') { ?>
-                            <a class="btn btn-info waves-effect waves-light text-white btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $receiptData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $receiptData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
+                            <a class="btn btn-info waves-effect waves-light text-white btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank">Receipt</a>
                         <?php }
                         if (($walletTransaction->fields['CREDIT'] == $walletTransaction->fields['BALANCE_LEFT']) && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
                             <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" onclick="deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)"><i class="ti-trash"></i></a>

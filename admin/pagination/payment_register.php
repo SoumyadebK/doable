@@ -14,12 +14,12 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
             <th style="text-align: center;">Receipt</th>
             <th style="text-align: center;">Method</th>
             <th style="text-align: center;">Enrollment</th>
-            <th style="text-align: left;">Memo</th>
+            <th style="text-align: center;" width="20%">Memo</th>
         </tr>
     </thead>
     <tbody>
         <?php
-        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
+        $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' OR DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
         if ($payment_details->RecordCount() > 0) {
             while (!$payment_details->EOF) {
                 if ($payment_details->fields['TYPE'] == 'Move') {
@@ -46,7 +46,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
                 } else {
                     $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                 } ?>
-                <tr style="border-style: hidden;">
+                <tr style="border-style: hidden; color: <?= ($payment_details->fields['TYPE'] == 'Refund') ? 'red' : 'black' ?>;">
                     <td style="text-align: center;"><?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?></td>
                     <td style="text-align: center;">$<?= number_format($payment_details->fields['AMOUNT'], 2) ?></td>
                     <td style="text-align: center;">

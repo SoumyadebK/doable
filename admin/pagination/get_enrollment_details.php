@@ -155,6 +155,9 @@ while (!$serviceCodeData->EOF) {
                             if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
                                 $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
                                 $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                            } elseif (in_array($receipt_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
                             } else {
                                 $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
                             }

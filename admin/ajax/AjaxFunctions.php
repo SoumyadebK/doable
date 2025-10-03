@@ -2519,7 +2519,7 @@ function moveToWallet($RESPONSE_DATA): void
     }
 
     $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : $TYPE;;
-    if ($PK_PAYMENT_TYPE == 1) {
+    if ($PK_PAYMENT_TYPE == 1 || $PK_PAYMENT_TYPE == 14) {
 
         $payment_gateway_data = getPaymentGatewayData();
 
