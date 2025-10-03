@@ -932,8 +932,10 @@ if ($PK_USER_MASTER > 0) {
                                                                 <? } ?>
                                                             </div>
                                                             <div class="form-group">
-                                                                <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
+                                                                    <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php } ?>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -944,7 +946,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <div class="p-20">
-                                                                <div class="row">
+                                                                <!-- <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
@@ -955,6 +957,18 @@ if ($PK_USER_MASTER > 0) {
                                                                         </div>
                                                                         <span id="lblError" style="color: red"></span>
 
+                                                                    </div>
+                                                                </div> -->
+
+                                                                <div class="row">
+                                                                    <div class="col-6">
+                                                                        <div class="form-group">
+                                                                            <label class="col-md-12">User Email</label>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" readonly>
+                                                                            </div>
+                                                                        </div>
+                                                                        <span id="lblError" style="color: red"></span>
                                                                     </div>
                                                                 </div>
 
@@ -1031,8 +1045,10 @@ if ($PK_USER_MASTER > 0) {
                                                                 <? } ?>
                                                             </div>
                                                             <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php } ?>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -1350,8 +1366,10 @@ if ($PK_USER_MASTER > 0) {
 
                                                             <div id="add_more_family_member"></div>
                                                             <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php } ?>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -1463,8 +1481,10 @@ if ($PK_USER_MASTER > 0) {
                                                             </div>
 
                                                             <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
+                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+                                                                <?php } ?>
                                                             </div>
                                                         </form>
                                                     </div>

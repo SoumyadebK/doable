@@ -290,11 +290,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 <label class="form-label">Expiration Date</label>
                                                                 <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                                                                     <option value="">Select Expiration Date</option>
-                                                                    <option value="1" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
-                                                                    <option value="2" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
-                                                                    <option value="3" <?= ($months == 3) ? 'selected' : '' ?>>90 days</option>
-                                                                    <option value="6" <?= ($months == 6) ? 'selected' : '' ?>>180 days</option>
-                                                                    <option value="12" <?= ($months == 12) ? 'selected' : '' ?>>365 days</option>
+                                                                    <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
+                                                                    <option value="2" data-expiry_date="60" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
+                                                                    <option value="3" data-expiry_date="90" <?= ($months == 3) ? 'selected' : '' ?>>90 days</option>
+                                                                    <option value="6" data-expiry_date="180" <?= ($months == 6) ? 'selected' : '' ?>>180 days</option>
+                                                                    <option value="12" data-expiry_date="365" <?= ($months == 12) ? 'selected' : '' ?>>365 days</option>
                                                                 </select>
                                                             </div>
                                                         <?php } else { ?>
@@ -302,7 +302,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                                                     echo 'disabled_div';
                                                                                                 } ?>" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                                 <label class="form-label">Expiration Date</label>
-                                                                <input type="text" class="form-control datepicker-future" name="EXPIRATION_DATE" id="EXPIRATION_DATE" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
+                                                                <input type="text" class="form-control datepicker-future" name="EXPIRY_DATE" id="EXPIRY_DATE" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
                                                             </div>
                                                         <?php } ?>
 
@@ -1560,7 +1560,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             TOTAL_AMOUNT += parseFloat($(this).val());
                         });
                         $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
-                        $('#EXPIRY_DATE').val(EXPIRY_DATE / 30);
+                        $('#EXPIRY_DATE option').each(function() {
+                            if ($(this).data('expiry_date') == EXPIRY_DATE) {
+                                $(this).prop('selected', true);
+                            }
+                        });
                     }
                 });
             } else {
