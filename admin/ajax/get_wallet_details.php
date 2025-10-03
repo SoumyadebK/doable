@@ -57,12 +57,14 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                 $paymentData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_CUSTOMER_WALLET = " . $walletTransaction->fields['PK_CUSTOMER_WALLET']);
 
                 $payment_details = '';
-                if ($paymentData->fields['PK_PAYMENT_TYPE'] == '2') {
-                    $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
-                    $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                } elseif (in_array($paymentData->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
-                    $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
-                    $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                if ($paymentData->RecordCount() > 0) {
+                    if ($paymentData->fields['PK_PAYMENT_TYPE'] == '2') {
+                        $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
+                        $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                    } elseif (in_array($paymentData->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                        $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
+                        $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                    }
                 }
             ?>
                 <tr class="accordion-toggle" data-bs-toggle="collapse" data-bs-target="#row<?= $i ?>-details">

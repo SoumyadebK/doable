@@ -117,7 +117,7 @@ if (isset($_POST['SUBMIT'])) {
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         } else {
-            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getAllSessionCreatedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
 
         if ($TOTAL_POSITIVE_BALANCE >= 0) {

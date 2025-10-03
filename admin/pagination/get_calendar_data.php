@@ -258,30 +258,12 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
             }
         }
 
-        if (($LOCATION_OPEN_TIME < $USER_OPEN_TIME) && ($USER_OPEN_TIME != '00:00:00' && $USER_OPEN_TIME != '')) {
+        if ($USER_OPEN_TIME == '00:00:00' && $USER_CLOSE_TIME == '00:00:00') {
             $appointment_array[] = [
                 'id' => $i++,
                 'resourceId' => $PK_USER,
-                'title' => 'Not Available',
+                'title' => 'Not Available (Holiday)',
                 'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_OPEN_TIME)),
-                'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_OPEN_TIME)),
-                'color' => 'gray',
-                'type' => 'not_available',
-                /*'status' => $special_appointment_data->fields['STATUS_CODE'],
-                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
-                'comment' => '',
-                'internal_comment' => '',
-                'statusCode' => '',
-                'duration' => '',
-            ];
-        }
-
-        if (($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) && ($USER_CLOSE_TIME != '00:00:00' && $USER_CLOSE_TIME != '')) {
-            $appointment_array[] = [
-                'id' => $i++,
-                'resourceId' => $PK_USER,
-                'title' => 'Not Available',
-                'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_CLOSE_TIME)),
                 'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_CLOSE_TIME)),
                 'color' => 'gray',
                 'type' => 'not_available',
@@ -292,6 +274,42 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
                 'statusCode' => '',
                 'duration' => '',
             ];
+        } else {
+            if (($LOCATION_OPEN_TIME < $USER_OPEN_TIME) && ($USER_OPEN_TIME != '00:00:00' && $USER_OPEN_TIME != '')) {
+                $appointment_array[] = [
+                    'id' => $i++,
+                    'resourceId' => $PK_USER,
+                    'title' => 'Not Available',
+                    'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_OPEN_TIME)),
+                    'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_OPEN_TIME)),
+                    'color' => 'gray',
+                    'type' => 'not_available',
+                    /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                    'comment' => '',
+                    'internal_comment' => '',
+                    'statusCode' => '',
+                    'duration' => '',
+                ];
+            }
+
+            if (($LOCATION_CLOSE_TIME > $USER_CLOSE_TIME) && ($USER_CLOSE_TIME != '00:00:00' && $USER_CLOSE_TIME != '')) {
+                $appointment_array[] = [
+                    'id' => $i++,
+                    'resourceId' => $PK_USER,
+                    'title' => 'Not Available',
+                    'start' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($USER_CLOSE_TIME)),
+                    'end' => date("Y-m-d", strtotime($START_DATE)) . 'T' . date("H:i:s", strtotime($LOCATION_CLOSE_TIME)),
+                    'color' => 'gray',
+                    'type' => 'not_available',
+                    /*'status' => $special_appointment_data->fields['STATUS_CODE'],
+                'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
+                    'comment' => '',
+                    'internal_comment' => '',
+                    'statusCode' => '',
+                    'duration' => '',
+                ];
+            }
         }
 
         $service_provider_data->MoveNext();
