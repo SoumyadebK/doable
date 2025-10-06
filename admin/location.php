@@ -353,12 +353,13 @@ if (!empty($_POST)) {
 
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
         unset($_POST['FUNCTION_NAME']);
-        $db_account->Execute("DELETE FROM `DOA_HOLIDAY_LIST` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+        $db->Execute("DELETE FROM `DOA_LOCATION_HOLIDAY_LIST` WHERE `PK_LOCATION` = " . $PK_LOCATION);
         for ($i = 0; $i < count($_POST['HOLIDAY_DATE']); $i++) {
-            $HOLIDAY_LIST_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+            $HOLIDAY_LIST_DATA['PK_LOCATION'] = $PK_LOCATION;
             $HOLIDAY_LIST_DATA['HOLIDAY_DATE'] = date('Y-m-d', strtotime($_POST['HOLIDAY_DATE'][$i]));
             $HOLIDAY_LIST_DATA['HOLIDAY_NAME'] = $_POST['HOLIDAY_NAME'][$i];
-            db_perform_account('DOA_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
+            db_perform('DOA_LOCATION_HOLIDAY_LIST', $HOLIDAY_LIST_DATA, 'insert');
         }
     }
 
@@ -1140,7 +1141,7 @@ if (!empty($_POST)) {
                                     <div class="tab-pane" id="operational_hours" role="tabpanel">
                                         <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
-                                            <div class="p-20" id="holiday_list_div">
+                                            <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-3">
                                                         <div class="form-group" style="text-align: center;">
@@ -1260,6 +1261,7 @@ if (!empty($_POST)) {
                                     <div class="tab-pane" id="holiday_list" role="tabpanel">
                                         <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
+                                            <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
                                             <div class="p-20" id="holiday_list_section">
                                                 <div class="row">
                                                     <div class="col-3">
@@ -1277,7 +1279,7 @@ if (!empty($_POST)) {
                                                     </div>
                                                 </div>
                                                 <?php
-                                                $holiday_list = $db_account->Execute("SELECT * FROM DOA_HOLIDAY_LIST WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                $holiday_list = $db->Execute("SELECT * FROM DOA_LOCATION_HOLIDAY_LIST WHERE PK_LOCATION = " . $PK_LOCATION);
                                                 if ($holiday_list->RecordCount() > 0) {
                                                     while (!$holiday_list->EOF) { ?>
                                                         <div class="row">
@@ -1514,6 +1516,10 @@ if (!empty($_POST)) {
 </body>
 
 <script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
     $('.time-picker').timepicker({
         timeFormat: 'hh:mm p',
         interval: 30,
@@ -1613,24 +1619,24 @@ if (!empty($_POST)) {
 
     function addMoreHoliday() {
         $('#holiday_list_section').append(`<div class="row">
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <div class="col-md-12">
-                                                    <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="HOLIDAY_DATE[]" class="form-control datepicker-normal">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <div class="col-md-12">
-                                                    <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                            <div class="col-3">
+                                                <div class="form-group">
+                                                    <div class="col-md-12">
+                                                        <input type="text" name="HOLIDAY_NAME[]" class="form-control">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="col-3" style="padding-top: 5px;">
-                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                        </div>
-                                    </div>`);
+                                            <div class="col-3" style="padding-top: 5px;">
+                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                            </div>
+                                        </div>`);
 
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',

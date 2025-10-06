@@ -47,55 +47,16 @@ $page_first_result = ($page - 1) * $results_per_page;
 <html lang="en">
 <?php require_once('../includes/header.php'); ?>
 <style>
-    .pagination {
-        display: inline-block;
+    table th {
+        font-weight: bold;
     }
 
-    .pagination a {
-        color: black;
-        float: left;
-        padding: 8px 16px;
-        text-decoration: none;
-        transition: background-color .3s;
-        border: 1px solid #ddd;
-        margin: 0 4px;
+    .sortable.asc::after {
+        content: " ▲";
     }
 
-    .pagination a.active {
-        background-color: #39B54A;
-        color: white;
-        border: 1px solid #39B54A;
-    }
-
-    .pagination a:hover:not(.active) {
-        background-color: #ddd;
-    }
-
-    /* Table sort indicators */
-
-    th.sortable {
-        position: relative;
-        cursor: pointer;
-    }
-
-    th.sortable::after {
-        font-family: FontAwesome;
-        content: "\f0dc";
-        position: absolute;
-        right: 8px;
-        color: #999;
-    }
-
-    th.sortable.asc::after {
-        content: "\f0d8";
-    }
-
-    th.sortable.desc::after {
-        content: "\f0d7";
-    }
-
-    th.sortable:hover::after {
-        color: #333;
+    .sortable.desc::after {
+        content: " ▼";
     }
 </style>
 
@@ -197,9 +158,9 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Event Name</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Type</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
-                                                <th data-type="date mm:dd:yyyy" class="sortable" style="cursor: pointer">Start Date</th>
+                                                <th data-date data-order class="sortable" style="cursor: pointer">Start Date</th>
                                                 <th data-type="time" class="sortable" style="cursor: pointer">Start Time</th>
-                                                <th data-type="datetime" class="sortable" style="cursor: pointer">End Date</th>
+                                                <th data-date data-order class="sortable" style="cursor: pointer">End Date</th>
                                                 <th data-type="time" class="sortable" style="cursor: pointer">End Time</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -275,7 +236,6 @@ $page_first_result = ($page - 1) * $results_per_page;
 
     <script>
         $(function() {
-
             startDate = $("#START_DATE").datepicker({
                 changeMonth: true,
                 changeYear: true,
@@ -293,70 +253,49 @@ $page_first_result = ($page - 1) * $results_per_page;
                     $("#START_DATE").datepicker("option", "maxDate", selected)
                 }
             });
-
-            $("#myTable").dataTable({
-                "searching": true,
-                "columnDefs": [{
-                    "targets": [3, 5],
-                    "type": "date-eu"
-                }],
-            });
-
-            var table = $('#myTable').DataTable();
-
-            $("#filterTable_filter.dataTables_filter").append($("#PK_EVENT_TYPE"));
-            var typeIndex = 2;
-            var statusIndex = 7;
-
-            /*var startDateIndex = 3;
-            var endDateIndex = 5;*/
-
-            $.fn.dataTable.ext.search.push(
-                function(settings, data, dataIndex) {
-
-                    var eventType = $('#PK_EVENT_TYPE').val();
-                    var eventStatus = $('#PK_EVENT_STATUS').val();
-
-                    var eventTypeVal = data[typeIndex];
-                    var eventStatusVal = data[statusIndex];
-
-                    var startDate = $('#START_DATE').val();
-                    var endDate = $('#END_DATE').val();
-
-                    var startedAt = data[3] || 0;
-                    var endedAt = data[5] || 0;
-
-                    /*var startDateVal = data[startDateIndex];
-                    var endDateVal = data[endDateIndex];*/
-                    if (
-                        (eventType === "" || eventTypeVal.includes(eventType)) &&
-                        (eventStatus === "" || eventStatusVal.includes(eventStatus)) &&
-                        (startDate == "" || moment(startedAt).isSameOrAfter(startDate)) &&
-                        (endDate == "" || moment(endedAt).isSameOrBefore(endDate))
-                    ) {
-                        return true;
-                    }
-                    return false;
-                }
-            );
-
-            $("#PK_EVENT_TYPE, #PK_EVENT_STATUS, #START_DATE").change(function(e) {
-                table.draw();
-            });
-
-            $('#START_DATE, #END_DATE').on('input', function(e) {
-                table.draw();
-            });
-
-            table.draw();
-
         });
 
-        function ConfirmDelete(anchor) {
-            let conf = confirm("Are you sure you want to delete?");
-            if (conf)
-                window.location = anchor.attr("href");
-        }
+        $(document).ready(function() {
+            $(".sortable").on("click", function() {
+                var table = $(this).closest("table");
+                var tbody = table.find("tbody");
+                var rows = tbody.find("tr").toArray();
+                var index = $(this).index();
+                var asc = !$(this).hasClass("asc");
+                var isDate = $(this).is("[data-date]");
+                var type = $(this).data("type");
+
+                // Remove old sorting indicators
+                table.find(".sortable").removeClass("asc desc");
+                $(this).addClass(asc ? "asc" : "desc");
+
+                rows.sort(function(a, b) {
+                    var A = $(a).children("td").eq(index).text().trim();
+                    var B = $(b).children("td").eq(index).text().trim();
+
+                    // Handle data type
+                    if (isDate) {
+                        A = new Date(A);
+                        B = new Date(B);
+                    } else if (type === "number") {
+                        A = parseFloat(A.replace(/[^0-9.\-]/g, "")) || 0;
+                        B = parseFloat(B.replace(/[^0-9.\-]/g, "")) || 0;
+                    } else {
+                        A = A.toLowerCase();
+                        B = B.toLowerCase();
+                    }
+
+                    if (A < B) return asc ? -1 : 1;
+                    if (A > B) return asc ? 1 : -1;
+                    return 0;
+                });
+
+                // Append sorted rows
+                $.each(rows, function(i, row) {
+                    tbody.append(row);
+                });
+            });
+        });
 
         function editpage(id) {
             window.location.href = "event.php?id=" + id;
@@ -367,222 +306,6 @@ $page_first_result = ($page - 1) * $results_per_page;
             window.location.href = "all_events.php?event_status=" + status;
         }
     </script>
-
-    // start sorting
-    <script>
-        $(function() {
-            const ths = $("th");
-            let sortOrder = 1;
-
-            ths.on("click", function() {
-                const rows = sortRows(this);
-                rebuildTbody(rows);
-                //updateClassName(this);
-                sortOrder *= -1; //反転
-            })
-
-            function sortRows(th) {
-                const rows = $.makeArray($('tbody > tr'));
-                const col = th.cellIndex;
-                const type = th.dataset.type;
-                rows.sort(function(a, b) {
-                    return compare(a, b, col, type) * sortOrder;
-                });
-                return rows;
-            }
-
-            function compare(a, b, col, type) {
-                let _a = a.children[col].textContent;
-                let _b = b.children[col].textContent;
-                if (type === "number") {
-                    _a *= 1;
-                    _b *= 1;
-                } else if (type === "string") {
-                    //全て小文字に揃えている。toLowerCase()
-                    _a = _a.toLowerCase();
-                    _b = _b.toLowerCase();
-                }
-
-                if (_a < _b) {
-                    return -1;
-                }
-                if (_a > _b) {
-                    return 1;
-                }
-                return 0;
-            }
-
-            function rebuildTbody(rows) {
-                const tbody = $("tbody");
-                while (tbody.firstChild) {
-                    tbody.remove(tbody.firstChild);
-                }
-
-                let j;
-                for (j = 0; j < rows.length; j++) {
-                    tbody.append(rows[j]);
-                }
-            }
-
-            /*function updateClassName(th) {
-                let k;
-                for (k=0; k<ths.length; k++) {
-                    ths[k].className = "";
-                }
-                th.className = sortOrder === 1 ? "asc" : "desc";
-            }*/
-
-        });
-    </script>
-    <script>
-        function Checktrim(str) {
-            str = str.replace(/^\s+/, '');
-            for (var i = str.length - 1; i >= 0; i--) {
-                if (/\S/.test(str.charAt(i))) {
-                    str = str.substring(0, i + 1);
-                    break;
-                }
-            }
-            return str;
-        }
-
-        function stringMonth(month) {
-
-            if (month == "jan" || month == "Jan") {
-                month = 01;
-            } else if (month == "feb" || month == "Feb") {
-                month = 02;
-            } else if (month == "mar" || month == "Mar") {
-                month = 03;
-            } else if (month == "apr" || month == "Apr") {
-                month = 04;
-            } else if (month == "may" || month == "May") {
-                month = 05;
-            } else if (month == "jun" || month == "Jun") {
-                month = 06;
-            } else if (month == "jul" || month == "Jul") {
-                month = 07;
-            } else if (month == "aug" || month == "Aug") {
-                month = 08;
-            } else if (month == "sep" || month == "Sep") {
-                month = 09;
-            } else if (month == "oct" || month == "Oct") {
-                month = 10;
-            } else if (month == "nov" || month == "Nov") {
-                month = 11;
-            } else {
-                month = 12;
-            }
-
-
-            return month;
-        }
-
-        function dateHeight(dateStr) {
-
-
-            if (Checktrim(dateStr) != '' && Checktrim(dateStr) != '(none)' && (Checktrim(dateStr)).indexOf(',') > -1) {
-
-                var frDateParts = Checktrim(dateStr).split(',');
-
-                var day = frDateParts[0].substring(3) * 60 * 24;
-                var strMonth = frDateParts[0].substring(0, 3);
-                var month = stringMonth(strMonth) * 60 * 24 * 31;
-                var year = (frDateParts[1].trim()).substring(0, 4) * 60 * 24 * 366;
-
-                var x = day + month + year;
-
-
-            } else {
-                var x = 0; //highest value posible
-            }
-
-            return x;
-        }
-
-        jQuery.fn.dataTableExt.oSort['data-date-asc'] = function(a, b) {
-            var x = dateHeight(a) === 0 ? dateHeight(b) + 1 : dateHeight(a);
-            var y = dateHeight(b) === 0 ? dateHeight(a) + 1 : dateHeight(b);
-            var z = ((x < y) ? -1 : ((x > y) ? 1 : 0));
-            return z;
-        };
-
-        jQuery.fn.dataTableExt.oSort['data-date-desc'] = function(a, b) {
-            var x = dateHeight(a);
-            var y = dateHeight(b);
-            var z = ((x < y) ? 1 : ((x > y) ? -1 : 0));
-            return z;
-        };
-
-        var aoColumns = [];
-
-        var $tableTh = $(".data-table th , .dataTable th");
-        if ($tableTh.length) {
-            $tableTh.each(function(index, elem) {
-                if ($(elem).hasClass('sortable-false')) {
-                    aoColumns.push({
-                        "bSortable": false
-                    });
-                } else if ($(elem).attr('data-date') !== undefined) {
-                    aoColumns.push({
-                        "sType": "data-date"
-                    });
-                } else {
-                    aoColumns.push(null);
-                }
-            });
-
-
-        };
-
-        if (aoColumns.length > 0) {
-
-            var indexProperty = 0;
-            var valueProperty = 'asc';
-            $('.data-table').find('th').each(function(index) {
-
-
-                if ($(this).attr('data-order') !== undefined) {
-                    indexProperty = index;
-                    valueProperty = $(this).attr('data-order') !== undefined ? $(this).attr('data-order') : valueProperty;
-                }
-            });
-
-
-
-            $('.data-table').dataTable({
-                "aoColumns": aoColumns,
-                "order": [
-                    [indexProperty, valueProperty]
-                ],
-                "oLanguage": {
-                    "sSearch": "Keyword Search"
-                },
-                "dom": '<"top"<"row"<"component-4"<"dataTableAction">><"component-4"<"dataTableLength"l<"clear">>> <"component-4"<"dataTableFilter"f<"clear">>>>>rt<"bottom"ip<"clear">>',
-                "fnDrawCallback": function() {
-                    DataTableTruncate.initTrigger();
-                }
-            });
-        }
-    </script>
-    <script>
-        var sortable = $('.sortable');
-
-        sortable.on('click', function() {
-
-            var sort = $(this);
-            var asc = sort.hasClass('asc');
-            var desc = sort.hasClass('desc');
-            sortable.removeClass('asc').removeClass('desc');
-            if (desc || (!asc && !desc)) {
-                sort.addClass('asc');
-            } else {
-                sort.addClass('desc');
-            }
-
-        });
-    </script>
-    //end sorting
 </body>
 
 </html>
