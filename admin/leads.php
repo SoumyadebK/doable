@@ -144,7 +144,7 @@ if (empty($_GET['id'])) {
                                         <div class="form-group">
                                             <select class="form-control" name="PK_LEAD_STATUS" id="PK_LEAD_STATUS" required>
                                                 <?php
-                                                $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE PK_ACCOUNT_MASTER = 0 OR `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                                $row = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DISPLAY_ORDER ASC");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?php echo $row->fields['PK_LEAD_STATUS']; ?>" <?= ($row->fields['PK_LEAD_STATUS'] == $PK_LEAD_STATUS) ? 'selected' : '' ?>><?= $row->fields['LEAD_STATUS'] ?></option>
                                                 <?php $row->MoveNext();

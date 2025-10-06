@@ -2992,6 +2992,7 @@ if ($PK_USER_MASTER > 0) {
             },
             cache: false,
             success: function(result) {
+                $("#load-marker").text("No data available");
                 if (result && result.trim() !== "") {
                     // Insert new content ABOVE the marker
                     $('#load-marker').before(result);

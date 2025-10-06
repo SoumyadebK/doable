@@ -134,59 +134,13 @@ $page_first_result = ($page - 1) * $results_per_page;
     table th {
         font-weight: bold;
     }
-</style>
-<style>
-    .fc-basic-view .fc-day-number {
-        display: table-cell;
+
+    .sortable.asc::after {
+        content: " ▲";
     }
 
-    .modal-header {
-        display: block;
-    }
-
-    .modal-dialog {
-        max-width: 1200px;
-        width: 1100px;
-        margin: 2rem auto;
-    }
-
-    .fc-time-grid .fc-slats td {
-        height: 2.5em;
-    }
-
-    .SumoSelect {
-        width: 100%;
-    }
-
-    #add_buttons {
-        z-index: 500;
-    }
-
-    /* Table sort indicators */
-
-    th.sortable {
-        position: relative;
-        cursor: pointer;
-    }
-
-    th.sortable::after {
-        font-family: FontAwesome;
-        content: "\f0dc";
-        position: absolute;
-        right: 8px;
-        color: #999;
-    }
-
-    th.sortable.asc::after {
-        content: "\f0d8";
-    }
-
-    th.sortable.desc::after {
-        content: "\f0d7";
-    }
-
-    th.sortable:hover::after {
-        color: #333;
+    .sortable.desc::after {
+        content: " ▼";
     }
 </style>
 <html lang="en">
@@ -398,68 +352,48 @@ $page_first_result = ($page - 1) * $results_per_page;
                     $("#START_DATE").datepicker("option", "maxDate", selected)
                 }
             });
+        });
 
-            const ths = $("th");
-            let sortOrder = 1;
+        $(document).ready(function() {
+            $(".sortable").on("click", function() {
+                var table = $(this).closest("table");
+                var tbody = table.find("tbody");
+                var rows = tbody.find("tr").toArray();
+                var index = $(this).index();
+                var asc = !$(this).hasClass("asc");
+                var isDate = $(this).is("[data-date]");
+                var type = $(this).data("type");
 
-            ths.on("click", function() {
-                const rows = sortRows(this);
-                rebuildTbody(rows);
-                //updateClassName(this);
-                sortOrder *= -1; //反転
-            })
+                // Remove old sorting indicators
+                table.find(".sortable").removeClass("asc desc");
+                $(this).addClass(asc ? "asc" : "desc");
 
-            function sortRows(th) {
-                const rows = $.makeArray($('tbody > tr'));
-                const col = th.cellIndex;
-                const type = th.dataset.type;
                 rows.sort(function(a, b) {
-                    return compare(a, b, col, type) * sortOrder;
+                    var A = $(a).children("td").eq(index).text().trim();
+                    var B = $(b).children("td").eq(index).text().trim();
+
+                    // Handle data type
+                    if (isDate) {
+                        A = new Date(A);
+                        B = new Date(B);
+                    } else if (type === "number") {
+                        A = parseFloat(A.replace(/[^0-9.\-]/g, "")) || 0;
+                        B = parseFloat(B.replace(/[^0-9.\-]/g, "")) || 0;
+                    } else {
+                        A = A.toLowerCase();
+                        B = B.toLowerCase();
+                    }
+
+                    if (A < B) return asc ? -1 : 1;
+                    if (A > B) return asc ? 1 : -1;
+                    return 0;
                 });
-                return rows;
-            }
 
-            function compare(a, b, col, type) {
-                let _a = a.children[col].textContent;
-                let _b = b.children[col].textContent;
-                if (type === "number") {
-                    _a *= 1;
-                    _b *= 1;
-                } else if (type === "string") {
-                    //全て小文字に揃えている。toLowerCase()
-                    _a = _a.toLowerCase();
-                    _b = _b.toLowerCase();
-                }
-
-                if (_a < _b) {
-                    return -1;
-                }
-                if (_a > _b) {
-                    return 1;
-                }
-                return 0;
-            }
-
-            function rebuildTbody(rows) {
-                const tbody = $("tbody");
-                while (tbody.firstChild) {
-                    tbody.remove(tbody.firstChild);
-                }
-
-                let j;
-                for (j = 0; j < rows.length; j++) {
-                    tbody.append(rows[j]);
-                }
-            }
-
-            /*function updateClassName(th) {
-                let k;
-                for (k=0; k<ths.length; k++) {
-                    ths[k].className = "";
-                }
-                th.className = sortOrder === 1 ? "asc" : "desc";
-            }*/
-
+                // Append sorted rows
+                $.each(rows, function(i, row) {
+                    tbody.append(row);
+                });
+            });
         });
 
         function showMessage() {
@@ -470,159 +404,7 @@ $page_first_result = ($page - 1) * $results_per_page;
             }
         }
     </script>
-    <script>
-        function Checktrim(str) {
-            str = str.replace(/^\s+/, '');
-            for (var i = str.length - 1; i >= 0; i--) {
-                if (/\S/.test(str.charAt(i))) {
-                    str = str.substring(0, i + 1);
-                    break;
-                }
-            }
-            return str;
-        }
 
-        function stringMonth(month) {
-
-            if (month == "jan" || month == "Jan") {
-                month = 01;
-            } else if (month == "feb" || month == "Feb") {
-                month = 02;
-            } else if (month == "mar" || month == "Mar") {
-                month = 03;
-            } else if (month == "apr" || month == "Apr") {
-                month = 04;
-            } else if (month == "may" || month == "May") {
-                month = 05;
-            } else if (month == "jun" || month == "Jun") {
-                month = 06;
-            } else if (month == "jul" || month == "Jul") {
-                month = 07;
-            } else if (month == "aug" || month == "Aug") {
-                month = 08;
-            } else if (month == "sep" || month == "Sep") {
-                month = 09;
-            } else if (month == "oct" || month == "Oct") {
-                month = 10;
-            } else if (month == "nov" || month == "Nov") {
-                month = 11;
-            } else {
-                month = 12;
-            }
-
-
-            return month;
-        }
-
-        function dateHeight(dateStr) {
-
-
-            if (Checktrim(dateStr) != '' && Checktrim(dateStr) != '(none)' && (Checktrim(dateStr)).indexOf(',') > -1) {
-
-                var frDateParts = Checktrim(dateStr).split(',');
-
-                var day = frDateParts[0].substring(3) * 60 * 24;
-                var strMonth = frDateParts[0].substring(0, 3);
-                var month = stringMonth(strMonth) * 60 * 24 * 31;
-                var year = (frDateParts[1].trim()).substring(0, 4) * 60 * 24 * 366;
-
-                var x = day + month + year;
-
-
-            } else {
-                var x = 0; //highest value posible
-            }
-
-            return x;
-        }
-
-        jQuery.fn.dataTableExt.oSort['data-date-asc'] = function(a, b) {
-            var x = dateHeight(a) === 0 ? dateHeight(b) + 1 : dateHeight(a);
-            var y = dateHeight(b) === 0 ? dateHeight(a) + 1 : dateHeight(b);
-            var z = ((x < y) ? -1 : ((x > y) ? 1 : 0));
-            return z;
-        };
-
-        jQuery.fn.dataTableExt.oSort['data-date-desc'] = function(a, b) {
-            var x = dateHeight(a);
-            var y = dateHeight(b);
-            var z = ((x < y) ? 1 : ((x > y) ? -1 : 0));
-            return z;
-        };
-
-
-
-
-        var aoColumns = [];
-
-        var $tableTh = $(".data-table th , .dataTable th");
-        if ($tableTh.length) {
-            $tableTh.each(function(index, elem) {
-                if ($(elem).hasClass('sortable-false')) {
-                    aoColumns.push({
-                        "bSortable": false
-                    });
-                } else if ($(elem).attr('data-date') !== undefined) {
-                    aoColumns.push({
-                        "sType": "data-date"
-                    });
-                } else {
-                    aoColumns.push(null);
-                }
-            });
-
-
-        };
-
-
-
-        if (aoColumns.length > 0) {
-
-            var indexProperty = 0;
-            var valueProperty = 'asc';
-            $('.data-table').find('th').each(function(index) {
-
-
-                if ($(this).attr('data-order') !== undefined) {
-                    indexProperty = index;
-                    valueProperty = $(this).attr('data-order') !== undefined ? $(this).attr('data-order') : valueProperty;
-                }
-            });
-
-
-
-            $('.data-table').dataTable({
-                "aoColumns": aoColumns,
-                "order": [
-                    [indexProperty, valueProperty]
-                ],
-                "oLanguage": {
-                    "sSearch": "Keyword Search"
-                },
-                "dom": '<"top"<"row"<"component-4"<"dataTableAction">><"component-4"<"dataTableLength"l<"clear">>> <"component-4"<"dataTableFilter"f<"clear">>>>>rt<"bottom"ip<"clear">>',
-                "fnDrawCallback": function() {
-                    DataTableTruncate.initTrigger();
-                }
-            });
-        }
-    </script>
-    <script>
-        var sortable = $('.sortable');
-
-        sortable.on('click', function() {
-
-            var sort = $(this);
-            var asc = sort.hasClass('asc');
-            var desc = sort.hasClass('desc');
-            sortable.removeClass('asc').removeClass('desc');
-            if (desc || (!asc && !desc)) {
-                sort.addClass('asc');
-            } else {
-                sort.addClass('desc');
-            }
-
-        });
-    </script>
     <script>
         function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
             let $nextRows = $(param).nextUntil('tr.header');
