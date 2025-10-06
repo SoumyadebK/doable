@@ -17,7 +17,27 @@ $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 $service_provider_id = $_GET['service_provider_id'];
 
-$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (" . $service_provider_id . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
+$selected_service_provider = [];
+$selected_service_provider_name = [];
+$selected_service_provider_row = $db->Execute("SELECT DISTINCT DOA_USERS.`PK_USER`, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM `DOA_USERS` LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.PK_USER IN (" . $service_provider_id . ") AND DOA_USER_ROLES.`PK_ROLES` = 5");
+while (!$selected_service_provider_row->EOF) {
+    $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
+    $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
+    $selected_service_provider_row->MoveNext();
+}
+
+$row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE ACTIVE = 1 AND PK_USER IN (" . implode(',', $selected_service_provider) . ")");
+$totalResults = count($selected_service_provider_name);
+$concatenatedServiceProviders = "";
+foreach ($selected_service_provider_name as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedServiceProviders .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedServiceProviders .= ", ";
+    }
+}
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -101,7 +121,7 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
                                                     <th style="width:50%; text-align: center; font-weight: bold" colspan="3">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>
                                                 <tr>
@@ -111,78 +131,92 @@ foreach ($resultsArray as $key => $result) {
                                                     <th style="width:10%; text-align: center">Enrollment Name</th>
                                                     <th style="width:10%; text-align: center">Services</th>
                                                     <th style="width:10%; text-align: center">Executive</th>
-                                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 1</th>
-                                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 2</th>
-                                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 3</th>
+                                                    <th style="width:12%; text-align: center">Teacher 1</th>
+                                                    <th style="width:12%; text-align: center">Teacher 2</th>
+                                                    <th style="width:12%; text-align: center">Teacher 3</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
                                                 $i = 1;
                                                 $total_amount = 0;
+
+                                                // Build the service provider filter condition
+                                                $service_provider_filter = "";
+                                                if (!empty($service_provider_id)) {
+                                                    $service_provider_filter = "AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IN (
+                                                        SELECT DISTINCT PK_ENROLLMENT_MASTER 
+                                                        FROM DOA_ENROLLMENT_SERVICE_PROVIDER 
+                                                        WHERE SERVICE_PROVIDER_ID IN (" . $service_provider_id . ")
+                                                    )";
+                                                }
+
                                                 $row = $db_account->Execute("
-                                                                                    SELECT 
-                                                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE AS DATE,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
-                                                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
-                                                                                        DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT AS TOTAL_AMOUNT,
-                                                                                        'PAID' AS STATUS
-                                                                                    FROM DOA_ENROLLMENT_MASTER
-                                                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
-                                                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                                                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
-                                                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                                                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
-                                                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                                                                                    LEFT JOIN DOA_ENROLLMENT_BILLING 
-                                                                                        ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                                                                                    WHERE DOA_USERS.IS_DELETED = 0 
-                                                                                    AND DOA_USERS.ACTIVE = 1
-                                                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                                                                    AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
-                                                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                    SELECT 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE AS DATE,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                        DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT AS TOTAL_AMOUNT,
+                                                        'PAID' AS STATUS
+                                                    FROM DOA_ENROLLMENT_MASTER
+                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                    LEFT JOIN DOA_ENROLLMENT_BILLING 
+                                                        ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                                                    WHERE DOA_USERS.IS_DELETED = 0 
+                                                    AND DOA_USERS.ACTIVE = 1
+                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                    $service_provider_filter
 
-                                                                                    UNION ALL
+                                                    UNION ALL
 
-                                                                                    SELECT 
-                                                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                                                                        MAX(DOA_ENROLLMENT_CANCEL.CANCEL_DATE) AS DATE,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
-                                                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
-                                                                                        SUM(DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT) AS TOTAL_AMOUNT,
-                                                                                        'CANCELLED' AS STATUS
-                                                                                    FROM DOA_ENROLLMENT_CANCEL
-                                                                                    INNER JOIN DOA_ENROLLMENT_MASTER 
-                                                                                        ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_MASTER
-                                                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
-                                                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                                                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
-                                                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                                                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
-                                                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                                                                                    WHERE DOA_USERS.IS_DELETED = 0 
-                                                                                    AND DOA_USERS.ACTIVE = 1
-                                                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                                                                    AND DOA_ENROLLMENT_CANCEL.CANCEL_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
-                                                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                                                                                    GROUP BY 
-                                                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
-                                                                                        DOA_USERS.FIRST_NAME, 
-                                                                                        DOA_USERS.LAST_NAME
+                                                    SELECT 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        MAX(DOA_ENROLLMENT_CANCEL.CANCEL_DATE) AS DATE,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                        SUM(DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT) AS TOTAL_AMOUNT,
+                                                        'CANCELLED' AS STATUS
+                                                    FROM DOA_ENROLLMENT_CANCEL
+                                                    INNER JOIN DOA_ENROLLMENT_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_MASTER
+                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                    WHERE DOA_USERS.IS_DELETED = 0 
+                                                    AND DOA_USERS.ACTIVE = 1
+                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND DOA_ENROLLMENT_CANCEL.CANCEL_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                    $service_provider_filter
+                                                    GROUP BY 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        DOA_USERS.FIRST_NAME, 
+                                                        DOA_USERS.LAST_NAME
 
-                                                                                    ORDER BY DATE DESC
-                                                                                ");
+                                                    ORDER BY DATE DESC
+                                                ");
+
                                                 while (!$row->EOF) {
                                                     $enr_status = $row->fields['STATUS'];
                                                     $name = $row->fields['ENROLLMENT_NAME'];
@@ -243,9 +277,9 @@ foreach ($resultsArray as $key => $result) {
                                                     $i++;
                                                 } ?>
                                                 <tr>
-                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="1"></th>
+                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
                                                     <th style="text-align: right; vertical-align:auto; font-weight: bold" colspan="1">Total: $<?= number_format($total_amount, 2) ?></th>
-                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="7"></th>
+                                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="6"></th>
                                                 </tr>
                                             </tbody>
                                         </table>

@@ -75,6 +75,7 @@ if (!empty($_GET['NAME'])) {
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
+                                                    <option value="active_customers_enrollment_report">ACTIVE CUSTOMERS ENROLLMENT REPORT</option>
                                                 </select>
                                             </div>
                                         </div>

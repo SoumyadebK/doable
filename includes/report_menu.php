@@ -32,7 +32,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'customer_summary_report.php') ? 'active' : '' ?>" href="../admin/customer_summary_report.php">Customer Summary Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'student_mailing_list.php') ? 'active' : '' ?>" href="../admin/student_mailing_list.php">Student Mailing List</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'total_open_liability.php') ? 'active' : '' ?>" href="../admin/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin/active_account_balance_report.php">Active Account Balance Report</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin/active_account_balance_report.php">Active Accounts Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'cash_report.php') ? 'active' : '' ?>" href="../admin/cash_report.php">Provider Cash Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'sales_report.php') ? 'active' : '' ?>" href="../admin/sales_report.php">Sales Report</a></li>
                             </ul>

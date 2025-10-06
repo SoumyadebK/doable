@@ -212,7 +212,11 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                         </li>-->
                     <?php } ?>
 
-                    <?php if ($_SESSION['PK_ROLES'] == 4) { ?>
+                    <?php if ($_SESSION['PK_ROLES'] == 4) {
+                        $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
+                        $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
+                        $selected_user_id = $customer_data->fields['PK_USER'];
+                    ?>
                         <li>
                             <a class="nav-link <?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>" href="../customer/all_schedules.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
@@ -238,7 +242,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                             </a>
                         </li>
                         <li>
-                            <a class="nav-link <?= (('billing.php' === $current_address) ? 'active' : '') ?>" href="../customer/billing.php" aria-expanded="false">
+                            <a class="nav-link <?= (('billing.php' === $current_address) ? 'active' : '') ?>" href="../customer/billing.php?id=<?= $selected_user_id ?>&master_id=<?= $selected_customer_id ?>&tab=profile" aria-expanded="false">
                                 <i class="icon-note"></i>
                                 <span class="hide-menu">Enrollments</span>
                             </a>

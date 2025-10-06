@@ -7,18 +7,37 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-if (!empty($_GET['SELECTED_DATE'])) {
-    $type = isset($_GET['view']) ? 'view' : 'generate_excel';
-    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $SELECTED_DATE = $_GET['SELECTED_DATE'];
-    $SELECTED_RANGE = $_GET['SELECTED_RANGE'];
-    if ($generate_excel === 1) {
-        $report_name = 'active_account_balance_report';
-        header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
-    } else {
-        header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+if (!empty($_GET['NAME'])) {
+    if ($_GET['NAME'] == 'active_account_balance_report') {
+        $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+        $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        $SELECTED_DATE = $_GET['SELECTED_DATE'];
+        $SELECTED_RANGE = $_GET['SELECTED_RANGE'];
+        if ($generate_excel === 1) {
+            $report_name = 'active_account_balance_report';
+            header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
+        } else {
+            header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+        }
+    } else if ($_GET['NAME'] == 'active_customers_enrollment_report') {
+        $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+        $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        if ($generate_excel === 1) {
+            $report_name = 'active_customers_enrollment_report';
+            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
+        } else {
+            header('location:active_customers_enrollment_report.php?type=' . $type);
+        }
+    } else if ($_GET['NAME'] == 'active_customers_no_enrollment_report') {
+        $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+        $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        if ($generate_excel === 1) {
+            $report_name = 'active_customers_no_enrollment_report';
+            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
+        } else {
+            header('location:active_customers_no_enrollment_report.php?type=' . $type);
+        }
     }
-    //header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
 }
 ?>
 
@@ -51,12 +70,22 @@ if (!empty($_GET['SELECTED_DATE'])) {
                                 <form class="form-material form-horizontal" action="" method="get">
                                     <input type="hidden" name="selected_date" id="selected_date">
                                     <div class="row">
-                                        <div class="col-2">
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="selectReport(this);">
+                                                    <option value="">Select Report</option>
+                                                    <option value="active_account_balance_report">ACTIVE ACCOUNT BALANCE REPORT</option>
+                                                    <option value="active_customers_enrollment_report">ACTIVE CUSTOMERS ENROLLMENT REPORT</option>
+                                                    <option value="active_customers_no_enrollment_report">ACTIVE CUSTOMERS NO ENROLLMENT REPORT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 selected_date" style="display: none;">
                                             <div class="form-group">
                                                 <input type="text" id="SELECTED_DATE" name="SELECTED_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?= !empty($_GET['SELECTED_DATE']) ? $_GET['SELECTED_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-2 selected_range" style="display: none;">
                                             <div class="form-group">
                                                 <select class="form-control" name="SELECTED_RANGE" id="SELECTED_RANGE">
                                                     <option value="">Select Range</option>
@@ -88,5 +117,34 @@ if (!empty($_GET['SELECTED_DATE'])) {
 <script>
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
+    });
+
+    function selectReport(param) {
+        let selectedReport = $(param).val();
+
+        // Hide both fields first
+        $('.selected_date').hide();
+        $('.selected_range').hide();
+
+        // Show fields based on selected report
+        if (selectedReport === 'active_account_balance_report') {
+            $('.selected_date').slideDown();
+            $('.selected_range').slideDown();
+        } else if (selectedReport === 'active_customers_enrollment_report' || selectedReport === 'active_customers_no_enrollment_report') {
+            $('.selected_date').hide();
+            $('.selected_range').hide();
+        }
+    }
+
+    // Initialize on page load
+    $(document).ready(function() {
+        // Hide fields initially
+        $('.selected_date').hide();
+        $('.selected_range').hide();
+
+        // If there's already a selected value, trigger the change
+        if ($('#NAME').val()) {
+            selectReport(document.getElementById('NAME'));
+        }
     });
 </script>
