@@ -19,23 +19,23 @@ if (!empty($_GET['NAME'])) {
         } else {
             header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
         }
-    } else if ($_GET['NAME'] == 'active_customers_enrollment_report') {
+    } else if ($_GET['NAME'] == 'nfa_active_customers_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
         if ($generate_excel === 1) {
-            $report_name = 'active_customers_enrollment_report';
+            $report_name = 'nfa_active_customers_report';
             header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
         } else {
-            header('location:active_customers_enrollment_report.php?type=' . $type);
+            header('location:nfa_active_customers_report.php?type=' . $type);
         }
-    } else if ($_GET['NAME'] == 'active_customers_no_enrollment_report') {
+    } else if ($_GET['NAME'] == 'nfa_active_no_enrollments_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
         if ($generate_excel === 1) {
-            $report_name = 'active_customers_no_enrollment_report';
+            $report_name = 'nfa_active_no_enrollments_report';
             header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
         } else {
-            header('location:active_customers_no_enrollment_report.php?type=' . $type);
+            header('location:nfa_active_no_enrollments_report.php?type=' . $type);
         }
     }
 }
@@ -75,8 +75,8 @@ if (!empty($_GET['NAME'])) {
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="selectReport(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="active_account_balance_report">ACTIVE ACCOUNT BALANCE REPORT</option>
-                                                    <option value="active_customers_enrollment_report">ACTIVE CUSTOMERS ENROLLMENT REPORT</option>
-                                                    <option value="active_customers_no_enrollment_report">ACTIVE CUSTOMERS NO ENROLLMENT REPORT</option>
+                                                    <option value="nfa_active_customers_report">NFA ACTIVE CUSTOMERS REPORT</option>
+                                                    <option value="nfa_active_no_enrollments_report">NFA ACTIVE NO ENROLLMENTS REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -120,19 +120,22 @@ if (!empty($_GET['NAME'])) {
     });
 
     function selectReport(param) {
-        let selectedReport = $(param).val();
+        let selectedReport = $('#NAME').val();
 
-        // Hide both fields first
-        $('.selected_date').hide();
-        $('.selected_range').hide();
+        // Remove required attributes first
+        $('#SELECTED_DATE').prop('required', false);
+        $('#SELECTED_RANGE').prop('required', false);
 
-        // Show fields based on selected report
+        // Hide both fields
+        $('.selected_date').addClass('hidden');
+        $('.selected_range').addClass('hidden');
+
+        // Show fields only for active_account_balance_report
         if (selectedReport === 'active_account_balance_report') {
-            $('.selected_date').slideDown();
-            $('.selected_range').slideDown();
-        } else if (selectedReport === 'active_customers_enrollment_report' || selectedReport === 'active_customers_no_enrollment_report') {
-            $('.selected_date').hide();
-            $('.selected_range').hide();
+            $('.selected_date').removeClass('hidden');
+            $('.selected_range').removeClass('hidden');
+            $('#SELECTED_DATE').prop('required', true);
+            $('#SELECTED_RANGE').prop('required', true);
         }
     }
 
