@@ -10,12 +10,16 @@ $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 $appointment_time = ' ';
+$order_by = " ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
 if ($status_check == 'previous') {
     $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE < '" . date('Y-m-d') . "'";
 } elseif ($status_check == 'future') {
     $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE > '" . date('Y-m-d') . "'";
 } elseif (empty($_GET['START_DATE']) && empty($_GET['END_DATE']) && empty($_GET['search_text'])) {
     $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE = '" . date('Y-m-d') . "'";
+} elseif (empty($_GET['START_DATE']) && empty($_GET['END_DATE']) && !empty($_GET['search_text'])) {
+    $appointment_time = " AND DOA_APPOINTMENT_MASTER.DATE >= '" . date('Y-m-d') . "'";
+    $order_by = " ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 }
 
 $appointment_status = empty($_GET['appointment_status']) ? '1, 2, 3, 5, 7, 8' : $_GET['appointment_status'];
@@ -112,7 +116,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         $appointment_time
                         $search
                         $standing_group
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC";
+                        $order_by";
 
 $query = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
