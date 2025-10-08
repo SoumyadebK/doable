@@ -265,7 +265,7 @@ foreach ($resultsArray as $key => $result) {
                                                         } ?>>
                                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
                                                         <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
-                                                        <td style="text-align: right">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
+                                                        <td style="text-align: right">$<?= number_format($row->fields['TOTAL_AMOUNT'], 2) ?></td>
                                                         <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
                                                         <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
                                                         <td style="text-align: center"><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>

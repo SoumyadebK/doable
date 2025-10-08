@@ -1015,6 +1015,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         </div>
                                                                     </div>
                                                                     <div class="row">
+                                                                        <input type="hidden" id="password_strength" value="0">
                                                                         <div class="col-2">
                                                                             Password Strength:
                                                                         </div>
@@ -1028,7 +1029,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">New Password</label>
-                                                                                    <input type="password" name="PASSWORD" class="form-control" id="PASSWORD">
+                                                                                    <input type="password" name="PASSWORD" class="form-control" id="PASSWORD" onkeyup="isGood(this.value)">
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-1" style="padding-top: 22px; width: 4%;">
@@ -1037,14 +1038,28 @@ if ($PK_USER_MASTER > 0) {
                                                                             <div class="col-3">
                                                                                 <div class="form-group">
                                                                                     <label class="form-label">Confirm New Password</label>
-                                                                                    <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD">
+                                                                                    <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-1" style="padding-top: 22px; width: 4%;">
                                                                                 <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
                                                                             </div>
+                                                                            <b id="password_error" style="color: red;"></b>
+                                                                            <div class="row" id="password_note">
+                                                                                <div class="col-12">
+                                                                                    <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="row">
+                                                                                <input type="hidden" id="password_strength" value="0">
+                                                                                <div class="col-2">
+                                                                                    Password Strength:
+                                                                                </div>
+                                                                                <div class="col-3">
+                                                                                    <small id="password-text"></small>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                        <b id="password_error" style="color: red;"></b>
                                                                     </div>
                                                                 <?php } ?>
                                                             </div>
@@ -2436,14 +2451,17 @@ if ($PK_USER_MASTER > 0) {
             case 2:
                 strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
                 $('#password_note').slideDown();
+                $('#password_strength').val(0);
                 break;
             case 3:
                 strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
                 $('#password_note').slideDown();
+                $('#password_strength').val(0);
                 break;
             case 4:
                 strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
                 $('#password_note').slideUp();
+                $('#password_strength').val(1);
                 break;
 
         }
@@ -2822,60 +2840,67 @@ if ($PK_USER_MASTER > 0) {
         event.preventDefault();
         let PASSWORD = $('#PASSWORD').val();
         let CONFIRM_PASSWORD = $('#CONFIRM_PASSWORD').val();
-        if (PASSWORD === CONFIRM_PASSWORD) {
-            let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
-            let OLD_PASSWORD = $('#OLD_PASSWORD').val();
-            if (SAVED_OLD_PASSWORD) {
-                $.ajax({
-                    url: "ajax/check_old_password.php",
-                    type: 'POST',
-                    data: {
-                        ENTERED_PASSWORD: OLD_PASSWORD,
-                        SAVED_PASSWORD: SAVED_OLD_PASSWORD
-                    },
-                    success: function(data) {
-                        if (data == 0) {
-                            $('#password_error').text('Old Password not matched');
-                        } else {
-                            let form_data = $('#login_form').serialize();
-                            $.ajax({
-                                url: "ajax/AjaxFunctions.php",
-                                type: 'POST',
-                                data: form_data,
-                                success: function(data) {
-                                    $('.PK_USER').val(data);
-                                    if (PK_USER == 0) {
-                                        $('#family_tab_link')[0].click();
-                                    } else {
-                                        let PK_USER = $('.PK_USER').val();
-                                        let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            } else {
-                let form_data = $('#login_form').serialize();
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: form_data,
-                    success: function(data) {
-                        $('.PK_USER').val(data);
-                        if (PK_USER == 0) {
-                            $('#family_tab_link')[0].click();
-                        } else {
-                            let PK_USER = $('.PK_USER').val();
-                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
-                        }
-                    }
-                });
-            }
+        let password_strength = $('#password_strength').val();
+        if (password_strength == 0) {
+            $('#password_error').text('Password is not strong enough');
+            return false;
         } else {
-            $('#password_error').text('Password and Confirm Password not matched');
+            $('#password_error').text('');
+            if (PASSWORD === CONFIRM_PASSWORD) {
+                let SAVED_OLD_PASSWORD = $('#SAVED_OLD_PASSWORD').val();
+                let OLD_PASSWORD = $('#OLD_PASSWORD').val();
+                if (SAVED_OLD_PASSWORD) {
+                    $.ajax({
+                        url: "ajax/check_old_password.php",
+                        type: 'POST',
+                        data: {
+                            ENTERED_PASSWORD: OLD_PASSWORD,
+                            SAVED_PASSWORD: SAVED_OLD_PASSWORD
+                        },
+                        success: function(data) {
+                            if (data == 0) {
+                                $('#password_error').text('Old Password not matched');
+                            } else {
+                                let form_data = $('#login_form').serialize();
+                                $.ajax({
+                                    url: "ajax/AjaxFunctions.php",
+                                    type: 'POST',
+                                    data: form_data,
+                                    success: function(data) {
+                                        $('.PK_USER').val(data);
+                                        if (PK_USER == 0) {
+                                            $('#family_tab_link')[0].click();
+                                        } else {
+                                            let PK_USER = $('.PK_USER').val();
+                                            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    let form_data = $('#login_form').serialize();
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: form_data,
+                        success: function(data) {
+                            $('.PK_USER').val(data);
+                            if (PK_USER == 0) {
+                                $('#family_tab_link')[0].click();
+                            } else {
+                                let PK_USER = $('.PK_USER').val();
+                                let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                            }
+                        }
+                    });
+                }
+            } else {
+                $('#password_error').text('Password and Confirm Password not matched');
+            }
         }
     });
 
