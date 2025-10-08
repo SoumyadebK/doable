@@ -80,7 +80,7 @@ foreach ($resultsArray as $key => $result) {
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
                                             <tr>
-                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="7"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
                                             </tr>
                                             <tr>
                                                 <th style="text-align: center;">Customer Name</th>
@@ -88,6 +88,8 @@ foreach ($resultsArray as $key => $result) {
                                                 <th style="text-align: center;">Total</th>
                                                 <th style="text-align: center;">Session Left</th>
                                                 <th style="text-align: center;">Service Provider</th>
+                                                <th style="text-align: center;">Last Appointment Date</th>
+                                                <th style="text-align: center;">Service Provider in the Last Appointment</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -95,43 +97,52 @@ foreach ($resultsArray as $key => $result) {
                                             $i = 1;
 
                                             $row = $db_account->Execute("SELECT 
+                                                                            DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
                                                                             DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE,
                                                                             DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION,
                                                                             CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME,
                                                                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                                                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                                                            GROUP_CONCAT(CONCAT(SP.FIRST_NAME, ' ', SP.LAST_NAME) SEPARATOR ', ') AS SERVICE_PROVIDER_NAMES
+                                                                            DOA_ENROLLMENT_MASTER.ENROLLMENT_ID
                                                                         FROM DOA_ENROLLMENT_SERVICE 
                                                                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
                                                                         JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
                                                                         JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER 
                                                                         JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                                                                         JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER                                                                            
-                                                                        LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ESP ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = ESP.PK_ENROLLMENT_MASTER
-                                                                        LEFT JOIN DOA_USERS SP ON ESP.SERVICE_PROVIDER_ID = SP.PK_USER
                                                                         WHERE 
                                                                             DOA_ENROLLMENT_MASTER.STATUS = 'A'  AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                                             AND DOA_SERVICE_CODE.IS_GROUP = 0  
                                                                             AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0
                                                                             AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 
-                                                                        GROUP BY 
-                                                                            DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                                                            CUSTOMER_NAME,
-                                                                            DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME
+                                                                        
                                                                         ORDER BY CUSTOMER_NAME");
                                             while (!$row->EOF) {
-                                                $NUMBER_OF_SESSION = getSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE']);
+                                                $appointment = $db_account->Execute("SELECT PK_APPOINTMENT_MASTER FROM DOA_APPOINTMENT_MASTER WHERE DATE > CURDATE() AND PK_APPOINTMENT_STATUS = 1 AND PK_ENROLLMENT_SERVICE = " . $row->fields['PK_ENROLLMENT_SERVICE']);
+                                                if ($appointment->RecordCount() == 0) {
 
-                                                if ($row->fields['NUMBER_OF_SESSION'] > $NUMBER_OF_SESSION) {
+                                                    $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                                    $resultsArray = [];
+                                                    while (!$results->EOF) {
+                                                        $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
+                                                        $results->MoveNext();
+                                                    }
+
+                                                    $last_data = $db_account->Execute("SELECT DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER WHERE PK_APPOINTMENT_STATUS = 2 AND PK_ENROLLMENT_SERVICE = " . $row->fields['PK_ENROLLMENT_SERVICE'] . " ORDER BY DATE DESC, START_TIME DESC LIMIT 1");
+
+                                                    $NUMBER_OF_SESSION = getSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE']);
+                                                    if ($row->fields['NUMBER_OF_SESSION'] > $NUMBER_OF_SESSION) {
                                             ?>
-                                                    <tr>
-                                                        <td style="text-align: center;"><?= $row->fields['CUSTOMER_NAME'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['ENROLLMENT_NAME'] . " / " . $row->fields['ENROLLMENT_ID'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['SERVICE_PROVIDER_NAMES'] ?></td>
-                                                    </tr>
+                                                        <tr>
+                                                            <td style="text-align: center;"><?= $row->fields['CUSTOMER_NAME'] ?></td>
+                                                            <td style="text-align: center;"><?= $row->fields['ENROLLMENT_NAME'] . " / " . $row->fields['ENROLLMENT_ID'] ?></td>
+                                                            <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] ?></td>
+                                                            <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION ?></td>
+                                                            <td style="text-align: center;"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : ''  ?></td>
+                                                            <td style="text-align: center;"><?= isset($last_data->fields['DATE']) ? date('m-d-Y', strtotime($last_data->fields['DATE'])) : '' ?></td>
+                                                            <td style="text-align: center;"><?= isset($last_data->fields['SERVICE_PROVIDER']) ? $last_data->fields['SERVICE_PROVIDER'] : '' ?></td>
+                                                        </tr>
                                             <?php
+                                                    }
                                                 }
                                                 $row->MoveNext();
                                                 $i++;

@@ -7,33 +7,39 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-if (!empty($_GET['start_date'])) {
+if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'generate_excel';
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $report_name = 'cash_report';
-    $START_DATE = $_GET['start_date'];
-    $END_DATE = $_GET['end_date'];
+    $report_name = $_GET['NAME'];
+    $START_DATE = $_GET['START_DATE'];
+    $END_DATE = $_GET['END_DATE'];
     $selectedProviders = $_GET['SERVICE_PROVIDER_ID'];
     $SERVICE_PROVIDER_ID = implode(', ', $selectedProviders);
 
-    if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
-    } elseif ($generate_excel === 1) {
-        header('location:excel_' . $report_name . '.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
-    } else {
-        if ($report_name == 'payments_made_report') {
-            header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
-        } elseif ($report_name == 'royalty_service_report') {
-            header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($report_name == 'summary_of_studio_business_report') {
-            header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($report_name == 'staff_performance_report') {
-            header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($report_name == 'summary_of_staff_member_report') {
-            header('location:summary_of_staff_member_report.php?start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($report_name == 'cash_report') {
+    if ($_GET['NAME'] == 'cash_report') {
+        if ($generate_pdf === 1) {
+            header('location:generate_report_pdf.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        } elseif ($generate_excel === 1) {
+            header('location:excel_' . $report_name . '.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        } else {
             header('location:cash_report_details.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        }
+    } else if ($_GET['NAME'] == 'lessons_taught_by_department_report') {
+        if ($generate_pdf === 1) {
+            header('location:generate_report_pdf.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        } elseif ($generate_excel === 1) {
+            header('location:excel_' . $report_name . '.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        } else {
+            header('location:lessons_taught_by_department_report.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        }
+    } else if ($_GET['NAME'] == 'sales_by_enrollment_report') {
+        if ($generate_pdf === 1) {
+            header('location:generate_report_pdf.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        } elseif ($generate_excel === 1) {
+            header('location:excel_' . $report_name . '.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        } else {
+            header('location:sales_by_enrollment_report.php?service_provider_id=' . $SERVICE_PROVIDER_ID . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
     }
 }
@@ -74,22 +80,22 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     <div class="col-12">
                         <div class="card">
                             <div class="row" style="padding: 15px 35px 35px 35px;">
-                                <div class="col-md-3 col-sm-3 mt-3">
+                                <!-- <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Cash Report</h4>
-                                </div>
+                                </div> -->
 
                                 <form class="form-material form-horizontal" action="" method="get">
-                                    <input type="hidden" name="start_date" id="start_date">
-                                    <input type="hidden" name="end_date" id="end_date">
                                     <div class="row">
-                                        <!-- <div class="col-2">
+                                        <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <select class="form-control" required name="NAME" id="NAME">
                                                     <option value="">Select Report</option>
                                                     <option value="cash_report">CASH REPORT</option>
+                                                    <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
+                                                    <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
                                                 </select>
                                             </div>
-                                        </div> -->
+                                        </div>
                                         <div class="col-2">
                                             <div>
                                                 <select name="SERVICE_PROVIDER_ID[]" class="SERVICE_PROVIDER_ID multi_sumo_select" id="SERVICE_PROVIDER_ID" multiple>
@@ -141,6 +147,10 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 
 </html>
 <script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
     $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select Service Provider',
         selectAll: true,
@@ -230,4 +240,59 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
             }
         });
     }
+
+
+    // function selectReport(param) {
+    //     let selectedReport = $(param).val();
+
+    //     // Hide all fields first
+    //     $('.service_provider_div').hide();
+    //     $('.start_date').hide();
+    //     $('.end_date').hide();
+    //     $('.selected_date').hide();
+    //     $('.selected_range').hide();
+
+    //     // Remove required attributes first
+    //     $('#START_DATE').prop('required', false);
+    //     $('#END_DATE').prop('required', false);
+    //     $('#SELECTED_DATE').prop('required', false);
+    //     $('#SELECTED_RANGE').prop('required', false);
+
+    //     // Show fields based on selected report
+    //     if (selectedReport === 'cash_report') {
+    //         // For CASH REPORT: show service provider, start date, end date
+    //         $('.service_provider_div').show();
+    //         $('.start_date').show();
+    //         $('.end_date').show();
+    //         $('#START_DATE').prop('required', true);
+    //         $('#END_DATE').prop('required', true);
+    //     } else if (selectedReport === 'lessons_taught_by_department_report' || selectedReport === 'sales_by_enrollment_report') {
+    //         // For other two reports: show service provider, selected date, range
+    //         $('.service_provider_div').show();
+    //         $('.selected_date').show();
+    //         $('.selected_range').show();
+    //         $('#SELECTED_DATE').prop('required', true);
+    //         $('#SELECTED_RANGE').prop('required', true);
+    //     }
+    // }
+
+    // // Initialize on page load
+    // $(document).ready(function() {
+    //     // Hide all fields initially
+    //     $('.service_provider_div').hide();
+    //     $('.start_date').hide();
+    //     $('.end_date').hide();
+    //     $('.selected_date').hide();
+    //     $('.selected_range').hide();
+
+    //     // If there's already a selected value, trigger the change
+    //     if ($('#NAME').val()) {
+    //         selectReport(document.getElementById('NAME'));
+    //     }
+
+    //     // Also bind the change event properly
+    //     $('#NAME').on('change', function() {
+    //         selectReport(this);
+    //     });
+    // });
 </script>

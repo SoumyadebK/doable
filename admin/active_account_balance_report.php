@@ -120,20 +120,20 @@ if (!empty($_GET['NAME'])) {
     });
 
     function selectReport(param) {
-        let selectedReport = $('#NAME').val();
+        let selectedReport = $(param).val();
 
         // Remove required attributes first
         $('#SELECTED_DATE').prop('required', false);
         $('#SELECTED_RANGE').prop('required', false);
 
         // Hide both fields
-        $('.selected_date').addClass('hidden');
-        $('.selected_range').addClass('hidden');
+        $('.selected_date').hide();
+        $('.selected_range').hide();
 
         // Show fields only for active_account_balance_report
         if (selectedReport === 'active_account_balance_report') {
-            $('.selected_date').removeClass('hidden');
-            $('.selected_range').removeClass('hidden');
+            $('.selected_date').show();
+            $('.selected_range').show();
             $('#SELECTED_DATE').prop('required', true);
             $('#SELECTED_RANGE').prop('required', true);
         }
@@ -149,5 +149,10 @@ if (!empty($_GET['NAME'])) {
         if ($('#NAME').val()) {
             selectReport(document.getElementById('NAME'));
         }
+
+        // Also bind the change event properly
+        $('#NAME').on('change', function() {
+            selectReport(this);
+        });
     });
 </script>
