@@ -211,7 +211,7 @@ while (!$enrollment_data->EOF) {
                             <td style="text-align: right;"><?= number_format($total_scheduled_amount, 2) ?></td>
                             <td style="text-align: right; color:<?= ($total_amount - $total_paid_amount < -0.05) ? 'red' : 'black' ?>;"><?= number_format((abs($total_amount - $total_paid_amount <= 0.05) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
                             <td style="text-align: right;">$<?= number_format($total_paid_amount, 2) ?></td>
-                            <td style="text-align: right; color:<?= ($total_paid_amount - $total_used_amount < -0.05) ? 'red' : 'black' ?>;"><?= number_format((abs($total_paid_amount - $total_used_amount) <= 0.05) ? 0 : ($total_paid_amount - $total_used_amount), 2) ?></td>
+                            <td style="text-align: right; color:<?= ($total_paid_amount - $total_used_amount < -0.99) ? 'red' : 'black' ?>;"><?= number_format((abs($total_paid_amount - $total_used_amount) <= 0.99) ? 0 : ($total_paid_amount - $total_used_amount), 2) ?></td>
                         </tr>
                     </tbody>
                 </table>
