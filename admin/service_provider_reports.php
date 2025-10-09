@@ -22,16 +22,12 @@ if (!empty($_GET['NAME'])) {
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
     } else {
-        if ($_GET['NAME'] == 'payments_made_report') {
-            header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'royalty_service_report') {
-            header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'summary_of_studio_business_report') {
-            header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'staff_performance_report') {
-            header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
-        } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
+        if ($_GET['NAME'] == 'summary_of_staff_member_report') {
             header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&PK_USER=' . implode(',', $PK_USER));
+        } elseif ($_GET['NAME'] == 'lessons_taught_by_department_report') {
+            header('location:lessons_taught_by_department_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
+        } elseif ($_GET['NAME'] == 'sales_by_enrollment_report') {
+            header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
         }
     }
 }
@@ -75,6 +71,8 @@ if (!empty($_GET['NAME'])) {
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
+                                                    <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
+                                                    <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
                                                 </select>
                                             </div>
                                         </div>

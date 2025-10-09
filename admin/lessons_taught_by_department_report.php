@@ -116,22 +116,23 @@ foreach ($resultsArray as $key => $result) {
                                                 <tr>
                                                     <th style="text-align: center;">Service Provider</th>
                                                     <th style="text-align: center;">Total Private Services</th>
-                                                    <th style="text-align: center;">Front End Services</th>
-                                                    <th style="text-align: center;">Back End Services</th>
+                                                    <th style="text-align: center;">Pvt Intv (Front)</th>
+                                                    <th style="text-align: center;">Pvt Ren (Back)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
                                                 $i = 1;
+                                                $total_private_services = 0;
+                                                $total_front_end_services = 0;
+                                                $total_back_end_services = 0;
 
-                                                $row = $db_account->Execute("SELECT
+                                                $row = $db_account->Execute(
+                                                    "SELECT
                                                                                 CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS SERVICE_PROVIDER_NAME,
                                                                                 COUNT(r.PK_APPOINTMENT_MASTER) AS TOTAL_PRIVATE_SERVICES,
                                                                                 SUM(CASE WHEN r.lesson_number <= 12 THEN 1 ELSE 0 END) AS FRONT_END_SERVICES,
-                                                                                SUM(CASE WHEN r.lesson_number > 12 THEN 1 ELSE 0 END) AS BACK_END_SERVICES,
-                                                                                SUM(r.UNIT) AS TOTAL_UNITS_TAUGHT,
-                                                                                MIN(r.DATE) AS FIRST_SERVICE_DATE,
-                                                                                MAX(r.DATE) AS LAST_SERVICE_DATE
+                                                                                SUM(CASE WHEN r.lesson_number > 12 THEN 1 ELSE 0 END) AS BACK_END_SERVICES
                                                                             FROM (
                                                                                 SELECT
                                                                                     t.PK_APPOINTMENT_MASTER,
@@ -141,11 +142,21 @@ foreach ($resultsArray as $key => $result) {
                                                                                     t.PK_APPOINTMENT_STATUS,
                                                                                     t.UNIT,
                                                                                     t.PK_USER,
-                                                                                    
-                                                                                    (@rn := IF(@prev_user = t.PK_USER_MASTER, @rn + 1, 1)) AS lesson_number,
-                                                                                    (@prev_user := t.PK_USER_MASTER) AS prev_marker
+                                                                                    (SELECT COUNT(*) 
+                                                                                    FROM DOA_APPOINTMENT_MASTER apm2
+                                                                                    JOIN DOA_APPOINTMENT_CUSTOMER ac2 ON apm2.PK_APPOINTMENT_MASTER = ac2.PK_APPOINTMENT_MASTER
+                                                                                    JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp2 ON apm2.PK_APPOINTMENT_MASTER = asp2.PK_APPOINTMENT_MASTER
+                                                                                    JOIN DOA_SCHEDULING_CODE sc2 ON apm2.PK_SCHEDULING_CODE = sc2.PK_SCHEDULING_CODE
+                                                                                    JOIN DOA_SERVICE_CODE svc2 ON apm2.PK_SERVICE_CODE = svc2.PK_SERVICE_CODE
+                                                                                    WHERE svc2.IS_GROUP = 0
+                                                                                    AND apm2.PK_APPOINTMENT_STATUS = 2 
+                                                                                    AND apm2.STATUS = 'A'
+                                                                                    AND ac2.PK_USER_MASTER = t.PK_USER_MASTER
+                                                                                    AND asp2.PK_USER = t.PK_USER
+                                                                                    AND apm2.DATE <= t.DATE
+                                                                                    AND apm2.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                                                    ) AS lesson_number
                                                                                 FROM (
-                                                                                    
                                                                                     SELECT
                                                                                         apm.PK_APPOINTMENT_MASTER,
                                                                                         ac.PK_USER_MASTER,
@@ -172,12 +183,16 @@ foreach ($resultsArray as $key => $result) {
                                                                                         AND apm.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                                                     ORDER BY ac.PK_USER_MASTER, apm.DATE
                                                                                 ) AS t
-                                                                                CROSS JOIN (SELECT @rn := 0, @prev_user := NULL) AS vars_init
                                                                             ) AS r
                                                                             LEFT JOIN DOA_MASTER.DOA_USERS u ON r.PK_USER = u.PK_USER
                                                                             GROUP BY r.PK_USER
-                                                                            ORDER BY TOTAL_PRIVATE_SERVICES DESC");
-                                                while (!$row->EOF) { ?>
+                                                                            ORDER BY TOTAL_PRIVATE_SERVICES DESC"
+                                                );
+                                                while (!$row->EOF) {
+                                                    $total_private_services += $row->fields['TOTAL_PRIVATE_SERVICES'];
+                                                    $total_front_end_services += $row->fields['FRONT_END_SERVICES'];
+                                                    $total_back_end_services += $row->fields['BACK_END_SERVICES'];
+                                                ?>
                                                     <tr>
                                                         <td style="text-align: center;"><?= $row->fields['SERVICE_PROVIDER_NAME'] ?></td>
                                                         <td style="text-align: center;"><?= $row->fields['TOTAL_PRIVATE_SERVICES'] ?></td>
@@ -187,6 +202,11 @@ foreach ($resultsArray as $key => $result) {
                                                 <?php $row->MoveNext();
                                                     $i++;
                                                 } ?>
+                                                <tr>
+                                                    <th style="text-align: center;">Total</th>
+                                                    <th style="text-align: center;"><?= $total_private_services ?></th>
+                                                    <th style="text-align: center;"><?= $total_front_end_services ?></th>
+                                                    <th style="text-align: center;"><?= $total_back_end_services ?></th>
                                             </tbody>
                                         </table>
                                     </div>
