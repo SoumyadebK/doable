@@ -735,12 +735,14 @@ else
             let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
             $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
             $('#REMAINING_AMOUNT').val(0);
+            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
         } else {
             let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
             $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
             $('#PARTIAL_AMOUNT').val(0);
             $('#REMAINING_AMOUNT').val(0);
             $('.partial_payment_div').slideUp();
+            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
         }
     }
 
