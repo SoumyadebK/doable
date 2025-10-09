@@ -376,8 +376,6 @@ while (!$serviceCodeData->EOF) {
                     $NUMBER_OF_SESSION = $per_session_price->fields['NUMBER_OF_SESSION'];
                 }
 
-
-
                 if (!isset($total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']])) {
                     $total_amount_paid_array[$appointment_data->fields['SERVICE_CODE']] = $per_session_price->fields['TOTAL_AMOUNT_PAID'];
                 }

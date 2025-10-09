@@ -267,7 +267,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <select class="form-control PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                                                                 <option value="">Select Package</option>
                                                                 <?php
-                                                                $row = $db_account->Execute("SELECT DISTINCT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME, DOA_PACKAGE.EXPIRY_DATE FROM DOA_PACKAGE WHERE DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 ORDER BY SORT_ORDER ASC");
+                                                                $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND IS_DELETED = 0 ORDER BY SORT_ORDER ASC");
                                                                 while (!$row->EOF) { ?>
                                                                     <option value="<?php echo $row->fields['PK_PACKAGE']; ?>" data-expiry_date="<?= $row->fields['EXPIRY_DATE'] ?>" <?= ($row->fields['PK_PACKAGE'] == $PK_PACKAGE) ? 'selected' : '' ?>><?= $row->fields['PACKAGE_NAME'] ?></option>
                                                                 <?php $row->MoveNext();
@@ -377,7 +377,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <div class="row <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
                                                                 <div class="col-2">
                                                                     <div class="form-group">
-                                                                        <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                                                                        <select class="form-control PK_SERVICE_MASTER" onchange="selectThisService(this)" required>
                                                                             <option>Select Service</option>
                                                                             <?php
                                                                             $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND ACTIVE = 1 AND IS_DELETED = 0 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
@@ -390,7 +390,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
+                                                                        <select class="form-control PK_SERVICE_CODE" onchange="selectThisServiceCode(this)" required>
                                                                             <?php
                                                                             $row = $db_account->Execute("SELECT * FROM `DOA_SERVICE_CODE` WHERE `PK_SERVICE_MASTER` = " . $enrollment_service_data->fields['PK_SERVICE_MASTER']);
                                                                             while (!$row->EOF) { ?>
@@ -402,27 +402,27 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-2">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" value="<?= $enrollment_service_data->fields['SERVICE_DETAILS'] ?>">
+                                                                        <input type="text" class="form-control SERVICE_DETAILS" value="<?= $enrollment_service_data->fields['SERVICE_DETAILS'] ?>">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?= $enrollment_service_data->fields['NUMBER_OF_SESSION'] ?>" onkeyup="calculateServiceTotal(this)">
+                                                                        <input type="text" class="form-control NUMBER_OF_SESSION" value="<?= $enrollment_service_data->fields['NUMBER_OF_SESSION'] ?>" onkeyup="calculateServiceTotal(this)" required>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" onkeyup="calculateServiceTotal(this)">
+                                                                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" onkeyup="calculateServiceTotal(this)" required>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control TOTAL" name="TOTAL[]" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" onkeyup="calculateServiceTotal(this)" readonly>
+                                                                        <input type="text" class="form-control TOTAL" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" onkeyup="calculateServiceTotal(this)" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
+                                                                        <select class="form-control DISCOUNT_TYPE" onchange="calculateServiceTotal(this)">
                                                                             <option value="">Select</option>
                                                                             <option value="1" <?= ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 1) ? 'selected' : '' ?>>Fixed</option>
                                                                             <option value="2" <?= ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 2) ? 'selected' : '' ?>>Percent</option>
@@ -431,12 +431,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?= $enrollment_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateServiceTotal(this)">
+                                                                        <input type="text" class="form-control DISCOUNT" value="<?= $enrollment_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateServiceTotal(this)">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?= $enrollment_service_data->fields['FINAL_AMOUNT'] ?>" readonly>
+                                                                        <input type="text" class="form-control FINAL_AMOUNT" value="<?= $enrollment_service_data->fields['FINAL_AMOUNT'] ?>" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1" style="width: 5%;">
@@ -451,7 +451,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <div class="row individual_service_div">
                                                             <div class="col-2">
                                                                 <div class="form-group">
-                                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)" required>
                                                                         <option>Select</option>
                                                                         <?php
                                                                         $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME ASC");
@@ -464,7 +464,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group">
-                                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
+                                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)" required>
                                                                         <option value="">Select</option>
                                                                     </select>
                                                                 </div>
@@ -476,12 +476,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group">
-                                                                    <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)">
+                                                                    <input type="text" class="form-control NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" required>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
                                                                 <div class="form-group">
-                                                                    <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);">
+                                                                    <input type="text" class="form-control PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" required>
                                                                 </div>
                                                             </div>
                                                             <div class="col-1">
@@ -591,14 +591,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
-                                                    <div class="col-6">
+                                                    <div class="col-5">
                                                         <div class="row">
                                                             <div class="col-4">
                                                                 <div class="form-group">
                                                                     <label class="form-label"><?= $service_provider_title ?></label>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-3">
+                                                            <div class="col-8">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Percentage</label>
                                                                 </div>
@@ -611,7 +611,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             while (!$enrollment_service_provider_data->EOF) { ?>
                                                                 <div class="row individual_service_provider_div" style="margin-top: -25px">
                                                                     <div class="row">
-                                                                        <div class="col-4">
+                                                                        <div class="col-5">
                                                                             <div class="form-group">
                                                                                 <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                                                     <option value="">Select</option>
@@ -624,7 +624,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                                 </select>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-4">
+                                                                        <div class="col-5">
                                                                             <div class="input-group">
                                                                                 <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?= number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '') ?>">
                                                                                 <span class="form-control input-group-text">%</span>
@@ -641,34 +641,35 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             } ?>
                                                         <?php } else { ?>
                                                             <div class="row individual_service_provider_div" style="margin-top: -25px">
-                                                                <div class="col-4">
+                                                                <div class="col-5">
                                                                     <div class="form-group">
                                                                         <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                                             <option value=" ">Select</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-4">
+                                                                <div class="col-5">
                                                                     <div class="input-group">
                                                                         <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
                                                                         <span class="form-control input-group-text">%</span>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-1">
+                                                                <div class="col-2">
                                                                     <div class="form-group">
                                                                         <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-2">
-                                                                    <div class="form-group" style="float: left;">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceProviders();">Add More</a>
-                                                                    </div>
-                                                                </div>
+
                                                             </div>
                                                         <?php } ?>
 
                                                         <div id="append_service_provider_div">
 
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-1" style="margin-top: 1%;">
+                                                        <div class="form-group" style="float: left;">
+                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreServiceProviders();">Add More</a>
                                                         </div>
                                                     </div>
 
@@ -1396,7 +1397,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             $('#append_service_div').append(`<div class="row individual_service_div">
                                             <div class="col-2">
                                                 <div class="form-group">
-                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)">
+                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)" required>
                                                         <option>Select</option>
                                                         <?php
                                                         $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
@@ -1409,7 +1410,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)">
+                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)" required>
                                                         <option value="">Select</option>
                                                     </select>
                                                 </div>
@@ -1421,12 +1422,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control NUMBER_OF_SESSION" value="${value}" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type}>
+                                                    <input type="text" class="form-control NUMBER_OF_SESSION" value="${value}" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} required>
                                                 </div>
                                             </div>
                                             <div class="col-1">
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control PRICE_PER_SESSION" value="${value}" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" ${type}>
+                                                    <input type="text" class="form-control PRICE_PER_SESSION" value="${value}" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" ${type} required>
                                                 </div>
                                             </div>
                                             <div class="col-1">
@@ -1463,7 +1464,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         function addMoreServiceProviders() {
             $('#append_service_provider_div').append(`<div class="row individual_service_provider_div" style="margin_top: -25px">
-                                                        <div class="col-4">
+                                                        <div class="col-5">
                                                             <div class="form-group">
                                                                 <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
                                                                     <option value="">Select</option>
@@ -1476,13 +1477,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-4">
+                                                        <div class="col-5">
                                                             <div class="input-group">
                                                                 <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
                                                                 <span class="form-control input-group-text">%</span>
                                                             </div>
                                                         </div>
-                                                        <div class="col-1">
+                                                        <div class="col-2">
                                                         <div class="form-group">
                                                             <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                         </div>
