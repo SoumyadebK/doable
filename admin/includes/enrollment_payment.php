@@ -75,7 +75,7 @@
                                         <select class="form-control PAYMENT_TYPE ENROLLMENT_PAYMENT_TYPE" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this, 'enrollment')">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (8, 9, 10, 11) AND ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
                                             <?php $row->MoveNext();
@@ -208,7 +208,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Check Number</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="CHECK_NUMBER" class="form-control">
+                                        <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -216,7 +216,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Check Date</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
+                                        <input type="text" name="CHECK_DATE" id="CHECK_DATE" class="form-control datepicker-normal">
                                     </div>
                                 </div>
                             </div>
@@ -280,7 +280,7 @@
                                         <select class="form-control" name="PK_PAYMENT_TYPE_PARTIAL" id="PK_PAYMENT_TYPE_PARTIAL" onchange="selectPartialPaymentType(this)">
                                             <option value="">Select</option>
                                             <?php
-                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (1, 7, 8, 9, 10, 11, 13, 14) AND ACTIVE = 1");
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (1, 2, 7, 8, 9, 10, 11, 13, 14) AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
                                                 <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
                                             <?php $row->MoveNext();
@@ -517,34 +517,50 @@ else
         event.preventDefault();
         let paymentType = parseInt($('#PK_PAYMENT_TYPE').val());
         let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
 
-        if (paymentType == 14 && PAYMENT_METHOD_ID == '') {
-            $('#payment_status').html(`<p class="alert alert-danger">Please Select a Card to Process</p>`);
+        if (isNaN(AMOUNT_TO_PAY) || AMOUNT_TO_PAY <= 0) {
+            $('#payment_status').html(`<p class="alert alert-danger">Amount tp pay must be grater then 0</p>`);
             $('#enr-payment-btn').prop('disabled', false);
         } else {
-            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-            if (PAYMENT_GATEWAY == 'Square') {
-                let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
-                if (PAYMENT_METHOD_ID == '') {
-                    addSquareTokenOnForm();
-                    sleep(3000).then(() => {
-                        submitEnrollmentPaymentForm();
-                    });
-                } else {
-                    submitEnrollmentPaymentForm();
-                }
-            } else if (PAYMENT_GATEWAY == 'Clover') {
-                let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
-                if (PAYMENT_METHOD_ID == '') {
-                    addCloverTokenOnForm();
-                    sleep(3000).then(() => {
-                        submitEnrollmentPaymentForm();
-                    });
+            if (paymentType == 7) {
+                let WALLET_BALANCE = $('#PK_CUSTOMER_WALLET').find(':selected').data('balance_left');
+                if (AMOUNT_TO_PAY > WALLET_BALANCE) {
+                    $('#payment_status').html(`<p class="alert alert-danger">Amount to pay can't grater then the Wallet Balance.</p>`);
+                    $('#enr-payment-btn').prop('disabled', false);
                 } else {
                     submitEnrollmentPaymentForm();
                 }
             } else {
-                submitEnrollmentPaymentForm();
+                if (paymentType == 14 && PAYMENT_METHOD_ID == '') {
+                    $('#payment_status').html(`<p class="alert alert-danger">Please Select a Card to Process</p>`);
+                    $('#enr-payment-btn').prop('disabled', false);
+                } else {
+                    let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+                    if (PAYMENT_GATEWAY == 'Square') {
+                        let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+                        if (PAYMENT_METHOD_ID == '') {
+                            addSquareTokenOnForm();
+                            sleep(3000).then(() => {
+                                submitEnrollmentPaymentForm();
+                            });
+                        } else {
+                            submitEnrollmentPaymentForm();
+                        }
+                    } else if (PAYMENT_GATEWAY == 'Clover') {
+                        let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+                        if (PAYMENT_METHOD_ID == '') {
+                            addCloverTokenOnForm();
+                            sleep(3000).then(() => {
+                                submitEnrollmentPaymentForm();
+                            });
+                        } else {
+                            submitEnrollmentPaymentForm();
+                        }
+                    } else {
+                        submitEnrollmentPaymentForm();
+                    }
+                }
             }
         }
     });
@@ -615,6 +631,8 @@ else
         $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
         $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
         $(param).closest('.payment_modal').find('#PK_CUSTOMER_WALLET').prop('required', false);
+        $(param).closest('.payment_modal').find('#CHECK_NUMBER').prop('required', false);
+        $(param).closest('.payment_modal').find('#CHECK_DATE').prop('required', false);
 
         switch (paymentType) {
             case 1:
@@ -660,6 +678,8 @@ else
 
             case 2:
                 $(param).closest('.payment_modal').find('#check_payment').slideDown();
+                $(param).closest('.payment_modal').find('#CHECK_NUMBER').prop('required', true);
+                $(param).closest('.payment_modal').find('#CHECK_DATE').prop('required', true);
                 break;
 
             case 7:
@@ -684,6 +704,8 @@ else
                 $(param).closest('.payment_modal').find('#partial_payment_div').slideUp();
                 $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
                 $(param).closest('.payment_modal').find('#PK_CUSTOMER_WALLET').prop('required', false);
+                $(param).closest('.payment_modal').find('#CHECK_NUMBER').prop('required', false);
+                $(param).closest('.payment_modal').find('#CHECK_DATE').prop('required', false);
                 break;
         }
     }
@@ -701,6 +723,28 @@ else
                 $('#card_list_wallet').slideDown().html(data);
             }
         });
+    }
+
+    function showPartialPaymentDiv(param) {
+        if ($(param).is(':checked')) {
+            $('.partial_payment_div').slideDown();
+            let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
+            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+            $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
+            $('#REMAINING_AMOUNT').val(0);
+            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
+        } else {
+            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
+            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
+            $('#PARTIAL_AMOUNT').val(0);
+            $('#REMAINING_AMOUNT').val(0);
+            $('.partial_payment_div').slideUp();
+            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
+            let paymentType = parseInt($('#PK_PAYMENT_TYPE').val());
+            if (paymentType == 7) {
+                selectThisReceipt();
+            }
+        }
     }
 
     function selectPartialPaymentType(param) {
@@ -725,24 +769,6 @@ else
             default:
                 $('.partial_payment_type_div').slideUp();
                 break;
-        }
-    }
-
-    function showPartialPaymentDiv(param) {
-        if ($(param).is(':checked')) {
-            $('.partial_payment_div').slideDown();
-            let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-            $('#PARTIAL_AMOUNT').val(ACTUAL_AMOUNT - AMOUNT_TO_PAY);
-            $('#REMAINING_AMOUNT').val(0);
-            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', true);
-        } else {
-            let ACTUAL_AMOUNT = $('#ACTUAL_AMOUNT').val();
-            $('#AMOUNT_TO_PAY').val(ACTUAL_AMOUNT);
-            $('#PARTIAL_AMOUNT').val(0);
-            $('#REMAINING_AMOUNT').val(0);
-            $('.partial_payment_div').slideUp();
-            $(param).closest('.payment_modal').find('#PK_PAYMENT_TYPE_PARTIAL').prop('required', false);
         }
     }
 

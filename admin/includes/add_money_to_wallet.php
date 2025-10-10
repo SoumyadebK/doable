@@ -151,7 +151,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Check Number</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="CHECK_NUMBER" class="form-control">
+                                        <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control">
                                     </div>
                                 </div>
                             </div>

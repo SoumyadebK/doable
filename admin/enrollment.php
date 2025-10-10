@@ -1313,13 +1313,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             searchText: 'Search...'
         });
 
-        $('.datepicker-future').datepicker({
-            format: 'mm/dd/yyyy',
-            minDate: 0
+        $('.datepicker-normal').datepicker({
+            dateFormat: 'mm/dd/yy'
         });
 
-        $('.datepicker-normal').datepicker({
-            format: 'mm/dd/yyyy',
+        $('.datepicker-future').datepicker({
+            dateFormat: 'mm/dd/yy',
+            beforeShow: function(input, inst) {
+                var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+                if (selectedDate) {
+                    var nextDay = new Date(selectedDate.getTime());
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    $(this).datepicker('option', 'minDate', nextDay);
+                } else {
+                    $(this).datepicker('option', 'minDate', 0);
+                }
+            }
         });
 
 
@@ -1689,8 +1698,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                         </div>`);
                 $('.datepicker-future').datepicker({
-                    format: 'mm/dd/yyyy',
-                    minDate: 0
+                    dateFormat: 'mm/dd/yy',
+                    beforeShow: function(input, inst) {
+                        var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+                        if (selectedDate) {
+                            var nextDay = new Date(selectedDate.getTime());
+                            nextDay.setDate(nextDay.getDate() + 1);
+                            $(this).datepicker('option', 'minDate', nextDay);
+                        } else {
+                            $(this).datepicker('option', 'minDate', 0);
+                        }
+                    }
                 });
             } else {
                 alert('Total Bill Amount Exceed');
@@ -1779,6 +1797,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
             let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
             $('#BALANCE_PAYABLE').val(parseFloat(total_bill - down_payment).toFixed(2));
+            calculateBalancePayable();
             calculatePaymentPlans();
         }
 
@@ -1821,7 +1840,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
             let total_flexible_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
             $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
-                total_flexible_payment += parseFloat($(this).val());
+                total_flexible_payment += parseFloat(($(this).val()) ? $(this).val() : 0);
             });
             total_flexible_payment = isNaN(total_flexible_payment) ? 0 : total_flexible_payment;
             $('#BALANCE_PAYABLE').val(parseFloat(total_bill - total_flexible_payment).toFixed(2));
@@ -1847,6 +1866,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         $(document).on('submit', '#billing_form', function(event) {
             event.preventDefault();
+            calculateBalancePayable();
+            calculatePaymentPlans();
             let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
             let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
             let total_flexible_payment = 0;
@@ -1858,7 +1879,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                 let payment_method = $('.PAYMENT_METHOD:checked').val();
                 if (payment_method == 'Flexible Payments' && balance_payable > 0) {
-                    swal("Balance Payable!", "Balance Payable must be 0", "error");
+                    swal("Balance Payable!", "Balance Payable must be distributed between next payments date.", "error");
                 } else {
                     let number_of_payment = $('#NUMBER_OF_PAYMENT').val();
                     if (Number.isInteger(Number(number_of_payment))) {

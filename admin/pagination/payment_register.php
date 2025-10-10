@@ -34,12 +34,17 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
                     $receipt_number_array = explode(',', $payment_details->fields['RECEIPT_NUMBER']);
                     $payment_type_array = [];
                     foreach ($receipt_number_array as $receipt_number) {
-                        $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-                        if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                            $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                        } else {
-                            $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                        $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE IS_ORIGINAL_RECEIPT = 1 AND PK_ENROLLMENT_MASTER = 0 AND DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                        if ($receipt_payment_details->RecordCount() > 0) {
+                            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
+                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                            } elseif (in_array($receipt_payment_details->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
+                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
+                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                            } else {
+                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                            }
                         }
                     }
                     $payment_type = implode(', ', $payment_type_array);
