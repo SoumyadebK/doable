@@ -405,7 +405,7 @@ function saveEnrollmentData($RESPONSE_DATA)
     $DEFAULT_ENROLLMENT_SERVICE = 0;
     $is_default_service_code_selected = 0;
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0) {
-        //$db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
         $final_amount = 0;
         for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_CODE']); $i++) {
             $PRICE_PER_SESSION = (($RESPONSE_DATA['FINAL_AMOUNT'][$i] == 0) ? 0 : (($RESPONSE_DATA['FINAL_AMOUNT'][$i] > 0) ? ($RESPONSE_DATA['FINAL_AMOUNT'][$i] / $RESPONSE_DATA['NUMBER_OF_SESSION'][$i]) : $RESPONSE_DATA['PRICE_PER_SESSION'][$i]));

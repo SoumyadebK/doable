@@ -12,12 +12,12 @@ $enrollment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_EN
 while (!$enrollment_data->EOF) {
     $PK_ENROLLMENT_MASTER = $enrollment_data->fields['PK_ENROLLMENT_MASTER'];
 
-    $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+    /* $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
     $ENR_UPDATE_DATA['STATUS'] = 'A';
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
     db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER); */
 
     $enrollment_service_count = $db_account->Execute("SELECT COUNT(PK_ENROLLMENT_SERVICE) AS TOTAL_SERVICE FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     $TOTAL_SERVICE = $enrollment_service_count->fields['TOTAL_SERVICE'];

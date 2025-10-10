@@ -89,14 +89,16 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                 $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
                 $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
                 $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
+                $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
                 $enrollment_payment->MoveNext();
             }
         } else {
-            $wallet_data = $db_account->Execute("SELECT DOA_CUSTOMER_WALLET.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+            $wallet_data = $db_account->Execute("SELECT DOA_CUSTOMER_WALLET.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_CUSTOMER_WALLET.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
             $PAYMENT_METHOD = $wallet_data->fields['PAYMENT_TYPE'];
             $TOTAL_AMOUNT = ($wallet_data->fields['CREDIT'] > 0) ? $wallet_data->fields['CREDIT'] : $wallet_data->fields['DEBIT'];
             $DETAILS_AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
-            $TYPE = $enrollment_payment->fields['TYPE'];
+            $TYPE = 'Wallet';
+            $PAYMENT_DATE = date('m-d-Y', strtotime($wallet_data->fields['CREATED_ON']));
         }
 
         $BUSINESS_NAME = $business_details->fields['BUSINESS_NAME'];
@@ -110,7 +112,6 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
         $PHONE = $user_data->fields['PHONE'];
         $AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
         $TOTAL = '$' . number_format($TOTAL_AMOUNT, 2);
-        $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
         ?>
 
         <table style="margin-left: auto; margin-right: auto; width:70%;">

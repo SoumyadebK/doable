@@ -103,7 +103,7 @@ while (!$enrollment_data->EOF) {
         <div class="row enrollment_div" style="font-size: 15px; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p><?= $enrollment_data->fields['LOCATION_NAME'] ?></p>
-                <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= ($enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></a>
+                <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></a>
                 <p><?= implode(' || ', $serviceMaster) ?></p>
                 <p><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>

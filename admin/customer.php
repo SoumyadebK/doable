@@ -1903,7 +1903,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="row">
                                                                 <div class="col-md-6">
                                                                     <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) AS WALLET_BALANCE_LEFT FROM DOA_CUSTOMER_WALLET WHERE CUSTOMER_WALLET_PARENT = 0 AND BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
-                                                                    <h3 id="wallet_balance_span">Wallet Balance : $<?= ($wallet_data->RecordCount() > 0) ? $wallet_data->fields['WALLET_BALANCE_LEFT'] : 0.00 ?></h3>
+                                                                    <h3 id="wallet_balance_span">Wallet Balance : $<?= ($wallet_data->fields['WALLET_BALANCE_LEFT'] != null) ? $wallet_data->fields['WALLET_BALANCE_LEFT'] : 0.00 ?></h3>
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>

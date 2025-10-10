@@ -60,10 +60,10 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                 if ($paymentData->RecordCount() > 0) {
                     if ($paymentData->fields['PK_PAYMENT_TYPE'] == '2') {
                         $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
-                        $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                        $payment_details = " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
                     } elseif (in_array($paymentData->fields['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                         $payment_info = json_decode($paymentData->fields['PAYMENT_INFO']);
-                        $payment_details = $paymentData->fields['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
+                        $payment_details = " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
                     }
                 }
             ?>
