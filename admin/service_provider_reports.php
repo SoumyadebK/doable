@@ -45,6 +45,10 @@ if (!empty($_GET['NAME'])) {
     .menu-list li {
         margin: 10px;
     }
+
+    .export-buttons {
+        display: none;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -68,7 +72,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                                     <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
@@ -101,8 +105,10 @@ if (!empty($_GET['NAME'])) {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <span class="export-buttons" id="exportButtons">
+                                                    <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                    <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                </span>
                                                 <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
                                         </div>
@@ -132,6 +138,24 @@ if (!empty($_GET['NAME'])) {
         placeholder: 'Select Service Provider',
         selectAll: true,
         triggerChangeCombined: true
+    });
+
+    // Function to toggle Export and PDF buttons visibility
+    function toggleExportButtons(selectElement) {
+        var selectedValue = selectElement.value;
+        var exportButtons = document.getElementById('exportButtons');
+
+        if (selectedValue === 'summary_of_staff_member_report') {
+            exportButtons.style.display = 'inline';
+        } else {
+            exportButtons.style.display = 'none';
+        }
+    }
+
+    // Initialize button visibility on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        var reportSelect = document.getElementById('NAME');
+        toggleExportButtons(reportSelect);
     });
 
     $(".week-picker").datepicker({
@@ -198,7 +222,6 @@ if (!empty($_GET['NAME'])) {
         $('#reportForm').on('submit', function() {
             // Get selected service provider values
             var selectedProviders = $('#service_provider_select').val();
-            //alert(selectedProviders);
 
             // If no providers selected, show alert and prevent submission
             if (!selectedProviders || selectedProviders.length === 0) {

@@ -173,102 +173,100 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $i = 5;
 
-$total_private_services = 0;
-$total_front_end_services = 0;
-$total_back_end_services = 0;
+$total_units = 0;
+$total_interview = 0;
+$total_renewal = 0;
 
-$row = $db_account->Execute("SELECT
-                                CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS SERVICE_PROVIDER_NAME,
-                                COUNT(r.PK_APPOINTMENT_MASTER) AS TOTAL_PRIVATE_SERVICES,
-                                SUM(CASE WHEN r.lesson_number <= 12 THEN 1 ELSE 0 END) AS FRONT_END_SERVICES,
-                                SUM(CASE WHEN r.lesson_number > 12 THEN 1 ELSE 0 END) AS BACK_END_SERVICES,
-                                SUM(r.UNIT) AS TOTAL_UNITS_TAUGHT,
-                                MIN(r.DATE) AS FIRST_SERVICE_DATE,
-                                MAX(r.DATE) AS LAST_SERVICE_DATE
-                            FROM (
-                                SELECT
-                                    t.PK_APPOINTMENT_MASTER,
-                                    t.PK_USER_MASTER,
-                                    t.PK_SCHEDULING_CODE,
-                                    t.DATE,
-                                    t.PK_APPOINTMENT_STATUS,
-                                    t.UNIT,
-                                    t.PK_USER,
-                                    (SELECT COUNT(*) 
-                                    FROM DOA_APPOINTMENT_MASTER apm2
-                                    JOIN DOA_APPOINTMENT_CUSTOMER ac2 ON apm2.PK_APPOINTMENT_MASTER = ac2.PK_APPOINTMENT_MASTER
-                                    JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp2 ON apm2.PK_APPOINTMENT_MASTER = asp2.PK_APPOINTMENT_MASTER
-                                    JOIN DOA_SCHEDULING_CODE sc2 ON apm2.PK_SCHEDULING_CODE = sc2.PK_SCHEDULING_CODE
-                                    JOIN DOA_SERVICE_CODE svc2 ON apm2.PK_SERVICE_CODE = svc2.PK_SERVICE_CODE
-                                    WHERE svc2.IS_GROUP = 0
-                                    AND apm2.PK_APPOINTMENT_STATUS = 2 
-                                    AND apm2.STATUS = 'A'
-                                    AND ac2.PK_USER_MASTER = t.PK_USER_MASTER
-                                    AND asp2.PK_USER = t.PK_USER
-                                    AND apm2.DATE <= t.DATE
-                                    AND apm2.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                    ) AS lesson_number
-                                FROM (
-                                    SELECT
-                                        apm.PK_APPOINTMENT_MASTER,
-                                        ac.PK_USER_MASTER,
-                                        apm.PK_SCHEDULING_CODE,
-                                        apm.DATE,
-                                        apm.PK_APPOINTMENT_STATUS,
-                                        sc.UNIT,
-                                        asp.PK_USER
-                                    FROM DOA_APPOINTMENT_MASTER apm
-                                    JOIN DOA_APPOINTMENT_CUSTOMER ac
-                                        ON apm.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
-                                    JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp
-                                        ON apm.PK_APPOINTMENT_MASTER = asp.PK_APPOINTMENT_MASTER
-                                    JOIN DOA_SCHEDULING_CODE sc
-                                        ON apm.PK_SCHEDULING_CODE = sc.PK_SCHEDULING_CODE
-                                    JOIN DOA_SERVICE_CODE svc
-                                        ON apm.PK_SERVICE_CODE = svc.PK_SERVICE_CODE
-                                    WHERE
-                                        svc.IS_GROUP = 0
-                                        AND apm.PK_APPOINTMENT_STATUS = 2 
-                                        AND apm.STATUS = 'A'
-                                        AND apm.DATE BETWEEN '$from_date' AND '$to_date'
-                                        AND asp.PK_USER IN ($service_provider_id)
-                                        AND apm.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                    ORDER BY ac.PK_USER_MASTER, apm.DATE
-                                ) AS t
-                            ) AS r
-                            LEFT JOIN DOA_MASTER.DOA_USERS u ON r.PK_USER = u.PK_USER
-                            GROUP BY r.PK_USER
-                            ORDER BY TOTAL_PRIVATE_SERVICES DESC
-                        ");
-while (!$row->EOF) {
-    $total_private_services += $row->fields['TOTAL_PRIVATE_SERVICES'];
-    $total_front_end_services += $row->fields['FRONT_END_SERVICES'];
-    $total_back_end_services += $row->fields['BACK_END_SERVICES'];
+// Get data for each service provider using UNIT-BASED calculation (matching Studio Business and Web Report)
+if ($service_provider_id) {
+    $providers = explode(',', $service_provider_id);
 
-    $cell_no = "A" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['SERVICE_PROVIDER_NAME']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+    foreach ($providers as $provider_id) {
+        // Get provider name
+        $provider_info = $db->Execute("SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_USER = $provider_id");
+        $provider_name = $provider_info->fields['NAME'] ?? 'Unknown';
 
-    $cell_no = "B" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['TOTAL_PRIVATE_SERVICES']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        // USE UNIT-BASED CALCULATION (Same as Studio Business Report)
+        $provider_query = "SELECT 
+            CONCAT(
+                COALESCE(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END), 0),
+                '/',
+                COALESCE(SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END), 0)
+            ) AS INTERVIEW_RENEWAL_COUNT,
+            COALESCE(SUM(W.total_units), 0) as total_units
+        FROM (
+            SELECT 
+                AC.PK_USER_MASTER,
+                SUM(SC.UNIT) AS total_lessons,
+                SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date 
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+            WHERE AM.STATUS = 'A' 
+                AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC')
+                AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+            GROUP BY AC.PK_USER_MASTER 
+            HAVING total_lessons >= 12
+        ) AS M 
+        RIGHT JOIN (
+            SELECT 
+                AC.PK_USER_MASTER,
+                AM.DATE,
+                SUM(SC.UNIT) AS total_units
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+            INNER JOIN DOA_SERVICE_CODE SVC ON AM.PK_SERVICE_CODE = SVC.PK_SERVICE_CODE
+            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON AM.PK_APPOINTMENT_MASTER = ASP.PK_APPOINTMENT_MASTER
+            WHERE AM.STATUS = 'A' 
+                AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                AND SVC.IS_GROUP = 0
+                AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                AND AM.DATE BETWEEN '$from_date' AND '$to_date'
+                AND ASP.PK_USER = $provider_id
+            GROUP BY AC.PK_USER_MASTER, AM.DATE
+        ) AS W USING (PK_USER_MASTER)";
 
-    $cell_no = "C" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['FRONT_END_SERVICES']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $provider_result = $db_account->Execute($provider_query);
+        $provider_counts = explode('/', $provider_result->fields['INTERVIEW_RENEWAL_COUNT'] ?? '0/0');
 
-    $cell_no = "D" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['BACK_END_SERVICES']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $provider_interview = intval($provider_counts[0] ?? 0);
+        $provider_renewal = intval($provider_counts[1] ?? 0);
+        $provider_total = $provider_interview + $provider_renewal;
+        $provider_units = $provider_result->fields['total_units'] ?? 0;
 
-    $row->MoveNext();
-    $i++;
+        // Write to Excel
+        $cell_no = "A" . $i;
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($provider_name);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+
+        $cell_no = "B" . $i;
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($provider_units);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        $cell_no = "C" . $i;
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($provider_interview);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        $cell_no = "D" . $i;
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($provider_renewal);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        $total_units += $provider_units;
+        $total_interview += $provider_interview;
+        $total_renewal += $provider_renewal;
+
+        $i++;
+    }
 }
 
+// Update totals row
 $cell_no = "A" . $i;
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Total");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
@@ -276,19 +274,19 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "B" . $i;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_private_services);
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_units);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "C" . $i;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_front_end_services);
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_interview);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "D" . $i;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_back_end_services);
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_renewal);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
