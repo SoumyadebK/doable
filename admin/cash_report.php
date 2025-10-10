@@ -91,8 +91,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                                 <select class="form-control" required name="NAME" id="NAME">
                                                     <option value="">Select Report</option>
                                                     <option value="cash_report">CASH REPORT</option>
-                                                    <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
-                                                    <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
+                                                    <!-- <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
+                                                    <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option> -->
                                                 </select>
                                             </div>
                                         </div>

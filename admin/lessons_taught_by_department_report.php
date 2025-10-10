@@ -12,14 +12,12 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $type = $_GET['type'];
-
 $service_provider_id = $_GET['service_provider_id'];
-
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
-$service_provider_id = $_GET['service_provider_id'];
 
-$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (" . $service_provider_id . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
+// Use the same date format as Studio Business Report
+$date_condition = "'$from_date' AND '$to_date'";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -40,12 +38,88 @@ while (!$results->EOF) {
 $totalResults = count($resultsArray);
 $concatenatedResults = "";
 foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
     $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
+    }
+}
+
+// Get data for each service provider using UNIT-BASED calculation (matching Studio Business)
+$provider_data = [];
+$lessons_total = 0;
+$interview_total = 0;
+$renewal_total = 0;
+
+if ($service_provider_id) {
+    $providers = explode(',', $service_provider_id);
+
+    foreach ($providers as $provider_id) {
+        // Get provider name
+        $provider_info = $db->Execute("SELECT CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS WHERE PK_USER = $provider_id");
+        $provider_name = $provider_info->fields['NAME'] ?? 'Unknown';
+
+        // USE UNIT-BASED CALCULATION (Same as Studio Business Report)
+        $provider_query = "SELECT 
+            CONCAT(
+                COALESCE(SUM(CASE WHEN W.DATE <= M.twelfth_date OR M.twelfth_date IS NULL THEN W.total_units ELSE 0 END), 0),
+                '/',
+                COALESCE(SUM(CASE WHEN W.DATE > M.twelfth_date THEN W.total_units ELSE 0 END), 0)
+            ) AS INTERVIEW_RENEWAL_COUNT,
+            COALESCE(SUM(W.total_units), 0) as total_units
+        FROM (
+            SELECT 
+                AC.PK_USER_MASTER,
+                SUM(SC.UNIT) AS total_lessons,
+                SUBSTRING_INDEX(SUBSTRING_INDEX(GROUP_CONCAT(AM.DATE ORDER BY AM.DATE SEPARATOR ','), ',', 12), ',', -1) AS twelfth_date 
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+            WHERE AM.STATUS = 'A' 
+                AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC')
+                AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+            GROUP BY AC.PK_USER_MASTER 
+            HAVING total_lessons >= 12
+        ) AS M 
+        RIGHT JOIN (
+            SELECT 
+                AC.PK_USER_MASTER,
+                AM.DATE,
+                SUM(SC.UNIT) AS total_units
+            FROM DOA_APPOINTMENT_CUSTOMER AC 
+            INNER JOIN DOA_APPOINTMENT_MASTER AM ON AC.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER 
+            INNER JOIN DOA_SCHEDULING_CODE SC ON AM.PK_SCHEDULING_CODE = SC.PK_SCHEDULING_CODE 
+            INNER JOIN DOA_SERVICE_CODE SVC ON AM.PK_SERVICE_CODE = SVC.PK_SERVICE_CODE
+            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ASP ON AM.PK_APPOINTMENT_MASTER = ASP.PK_APPOINTMENT_MASTER
+            WHERE AM.STATUS = 'A' 
+                AND AM.PK_APPOINTMENT_STATUS IN (1,2,3,5,7,8) 
+                AND AM.APPOINTMENT_TYPE IN ('NORMAL','AD-HOC') 
+                AND SVC.IS_GROUP = 0
+                AND AM.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                AND AM.DATE BETWEEN $date_condition
+                AND ASP.PK_USER = $provider_id
+            GROUP BY AC.PK_USER_MASTER, AM.DATE
+        ) AS W USING (PK_USER_MASTER)";
+
+        $provider_result = $db_account->Execute($provider_query);
+        $provider_counts = explode('/', $provider_result->fields['INTERVIEW_RENEWAL_COUNT'] ?? '0/0');
+
+        $provider_interview = intval($provider_counts[0] ?? 0);
+        $provider_renewal = intval($provider_counts[1] ?? 0);
+        $provider_total = $provider_interview + $provider_renewal;
+        $provider_units = $provider_result->fields['total_units'] ?? 0;
+
+        $provider_data[] = [
+            'name' => $provider_name,
+            'total' => $provider_total,
+            'interview' => $provider_interview,
+            'renewal' => $provider_renewal,
+            'units' => $provider_units
+        ];
+
+        $lessons_total += $provider_total;
+        $interview_total += $provider_interview;
+        $renewal_total += $provider_renewal;
     }
 }
 ?>
@@ -75,22 +149,9 @@ foreach ($resultsArray as $key => $result) {
                     </div>
                 </div>
 
-                <?php
-                if ($type === 'export') {
-                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                    /*$data = json_decode($post_data);
-                if (isset($data->error)) {
-                    echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->error_description.'</div>';
-                } elseif (isset($data->errors)) {
-                    if (isset($data->errors->errors[0])) {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $data->errors->errors[0] . '</div>';
-                    } else {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">'.$data->message.'</div>';
-                    }
-                } else {
-                    echo "<h3>Data export to Arthur Murray API Successfully</h3>";
-                }*/
-                } else { ?>
+                <?php if ($type === 'export') { ?>
+                    <h3>Data export to Arthur Murray API Successfully</h3>
+                <?php } else { ?>
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -111,82 +172,33 @@ foreach ($resultsArray as $key => $result) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="7"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="5">
+                                                        <?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?>
+                                                    </th>
                                                 </tr>
                                                 <tr>
                                                     <th style="text-align: center;">Service Provider</th>
-                                                    <th style="text-align: center;">Total Private Services</th>
-                                                    <th style="text-align: center;">Front End Services</th>
-                                                    <th style="text-align: center;">Back End Services</th>
+                                                    <th style="text-align: center;">Total Units</th>
+                                                    <th style="text-align: center;">Pvt Intv (Front)</th>
+                                                    <th style="text-align: center;">Pvt Ren (Back)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php
-                                                $i = 1;
-
-                                                $row = $db_account->Execute("SELECT
-                                                                                CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS SERVICE_PROVIDER_NAME,
-                                                                                COUNT(r.PK_APPOINTMENT_MASTER) AS TOTAL_PRIVATE_SERVICES,
-                                                                                SUM(CASE WHEN r.lesson_number <= 12 THEN 1 ELSE 0 END) AS FRONT_END_SERVICES,
-                                                                                SUM(CASE WHEN r.lesson_number > 12 THEN 1 ELSE 0 END) AS BACK_END_SERVICES,
-                                                                                SUM(r.UNIT) AS TOTAL_UNITS_TAUGHT,
-                                                                                MIN(r.DATE) AS FIRST_SERVICE_DATE,
-                                                                                MAX(r.DATE) AS LAST_SERVICE_DATE
-                                                                            FROM (
-                                                                                SELECT
-                                                                                    t.PK_APPOINTMENT_MASTER,
-                                                                                    t.PK_USER_MASTER,
-                                                                                    t.PK_SCHEDULING_CODE,
-                                                                                    t.DATE,
-                                                                                    t.PK_APPOINTMENT_STATUS,
-                                                                                    t.UNIT,
-                                                                                    t.PK_USER,
-                                                                                    
-                                                                                    (@rn := IF(@prev_user = t.PK_USER_MASTER, @rn + 1, 1)) AS lesson_number,
-                                                                                    (@prev_user := t.PK_USER_MASTER) AS prev_marker
-                                                                                FROM (
-                                                                                    
-                                                                                    SELECT
-                                                                                        apm.PK_APPOINTMENT_MASTER,
-                                                                                        ac.PK_USER_MASTER,
-                                                                                        apm.PK_SCHEDULING_CODE,
-                                                                                        apm.DATE,
-                                                                                        apm.PK_APPOINTMENT_STATUS,
-                                                                                        sc.UNIT,
-                                                                                        asp.PK_USER
-                                                                                    FROM DOA_APPOINTMENT_MASTER apm
-                                                                                    JOIN DOA_APPOINTMENT_CUSTOMER ac
-                                                                                        ON apm.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
-                                                                                    JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp
-                                                                                        ON apm.PK_APPOINTMENT_MASTER = asp.PK_APPOINTMENT_MASTER
-                                                                                    JOIN DOA_SCHEDULING_CODE sc
-                                                                                        ON apm.PK_SCHEDULING_CODE = sc.PK_SCHEDULING_CODE
-                                                                                    JOIN DOA_SERVICE_CODE svc
-                                                                                        ON apm.PK_SERVICE_CODE = svc.PK_SERVICE_CODE
-                                                                                    WHERE
-                                                                                        svc.IS_GROUP = 0
-                                                                                        AND apm.PK_APPOINTMENT_STATUS = 2 
-                                                                                        AND apm.STATUS = 'A'
-                                                                                        AND apm.DATE BETWEEN '$from_date' AND '$to_date'
-                                                                                        AND asp.PK_USER IN ($service_provider_id)
-                                                                                        AND apm.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                                                                    ORDER BY ac.PK_USER_MASTER, apm.DATE
-                                                                                ) AS t
-                                                                                CROSS JOIN (SELECT @rn := 0, @prev_user := NULL) AS vars_init
-                                                                            ) AS r
-                                                                            LEFT JOIN DOA_MASTER.DOA_USERS u ON r.PK_USER = u.PK_USER
-                                                                            GROUP BY r.PK_USER
-                                                                            ORDER BY TOTAL_PRIVATE_SERVICES DESC");
-                                                while (!$row->EOF) { ?>
+                                                <?php foreach ($provider_data as $provider): ?>
                                                     <tr>
-                                                        <td style="text-align: center;"><?= $row->fields['SERVICE_PROVIDER_NAME'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['TOTAL_PRIVATE_SERVICES'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['FRONT_END_SERVICES'] ?></td>
-                                                        <td style="text-align: center;"><?= $row->fields['BACK_END_SERVICES'] ?></td>
+                                                        <td style="text-align: center;"><?= $provider['name'] ?></td>
+                                                        <td style="text-align: center;"><?= $provider['units'] ?></td>
+                                                        <td style="text-align: center;"><?= $provider['interview'] ?></td>
+                                                        <td style="text-align: center;"><?= $provider['renewal'] ?></td>
                                                     </tr>
-                                                <?php $row->MoveNext();
-                                                    $i++;
-                                                } ?>
+                                                <?php endforeach; ?>
+
+                                                <tr style="background-color: #f8f9fa;">
+                                                    <th style="text-align: center;">Total</th>
+                                                    <th style="text-align: center;"><?= array_sum(array_column($provider_data, 'units')) ?></th>
+                                                    <th style="text-align: center;"><?= $interview_total ?></th>
+                                                    <th style="text-align: center;"><?= $renewal_total ?></th>
+                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
