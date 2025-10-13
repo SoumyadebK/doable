@@ -1879,7 +1879,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
                 let payment_method = $('.PAYMENT_METHOD:checked').val();
                 if (payment_method == 'Flexible Payments' && balance_payable > 0) {
-                    swal("Balance Payable!", "Balance Payable must be distributed between next payments date.", "error");
+                    swal("Balance Payable!", "Remaining Balance Payable must be fully allocated between Next Payment Dates.", "error");
                 } else {
                     let number_of_payment = $('#NUMBER_OF_PAYMENT').val();
                     if (Number.isInteger(Number(number_of_payment))) {

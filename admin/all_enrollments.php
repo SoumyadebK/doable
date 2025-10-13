@@ -237,13 +237,33 @@ if (isset($_POST['SUBMIT'])) {
                     $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
                 }
                 $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                $INSERT_DATA['DEBIT'] = 0;
                 $INSERT_DATA['CREDIT'] = $BALANCE;
                 $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
                 $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $INSERT_DATA['PK_PAYMENT_TYPE'] = 0;
                 $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $INSERT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
                 $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+                $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
+
+                $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+                $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 0;
+                $PAYMENT_DATA['AMOUNT'] = $BALANCE;
+                $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
+                $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+                $PAYMENT_DATA['TYPE'] = 'Wallet';
+                $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                $PAYMENT_DATA['PAYMENT_INFO'] = '';
+                $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+                db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
             } elseif ($PK_PAYMENT_TYPE_REFUND == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
                 $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);

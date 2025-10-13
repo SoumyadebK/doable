@@ -194,9 +194,9 @@ if (count($LOCATIONS) == 1) {
                                 $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
                                 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
                                 $selected_user_id = $customer_data->fields['PK_USER'];
-                                ?>
+                            ?>
                                 <li>
-                                    <a href="../customer/customer.php?id=<?=$selected_user_id?>&master_id=<?=$selected_customer_id?>&tab=profile" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
+                                    <a href="../customer/customer.php?id=<?= $selected_user_id ?>&master_id=<?= $selected_customer_id ?>&tab=profile" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
                                 </li>
                             <?php } elseif ($_SESSION["PK_ROLES"] == 5) { ?>
                                 <li>

@@ -57,7 +57,7 @@
                 <td style="text-align: center;"><?= $service_code['USED'] ?></td>
                 <td style="text-align: center;"><?= $service_code['SCHEDULED'] ?></td>
                 <td style="text-align: center;"><?= $service_code['REMAIN'] ?></td>
-                <td style="text-align: center; color:<?= ($service_code['BALANCE'] < 0) ? 'red' : 'black' ?>;"><?= $service_code['BALANCE'] ?></td>
+                <td style="text-align: center; color:<?= ($service_code['BALANCE'] < -0.10) ? 'red' : 'black' ?>;"><?= ($service_code['BALANCE'] < -0.10) ? '0.00' : number_format(abs($service_code['BALANCE'])) ?></td>
                 <td style="text-align: center;">$<?= number_format($service_code['PAID'], 2) ?></td>
             </tr>
         <?php } ?>

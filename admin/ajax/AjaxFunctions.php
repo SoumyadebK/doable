@@ -432,7 +432,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         }
     }
 
-    if ($final_amount <= 0) {
+    if ($final_amount <= 0 && isset($RESPONSE_DATA['FINAL_AMOUNT'])) {
         $ENROLLMENT_MASTER_UPDATE_DATA['ENROLLMENT_ID'] = 'Complimentary Enrollment';
         $ENROLLMENT_MASTER_UPDATE_DATA['MISC_ID'] = 'Complimentary Enrollment';
         $ENROLLMENT_MASTER_UPDATE_DATA['IS_SALE'] = 'N';
