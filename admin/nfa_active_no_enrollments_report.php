@@ -80,7 +80,7 @@ foreach ($resultsArray as $key => $result) {
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
                                             <tr>
-                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="7"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
                                             </tr>
                                             <tr>
                                                 <th style="width:10%; text-align: left">Student</th>
@@ -108,52 +108,80 @@ foreach ($resultsArray as $key => $result) {
                                             }
 
                                             $row = $db_account->Execute("
-                                                    SELECT
-                                                        CONCAT(
-                                                            DOA_USERS.FIRST_NAME,
-                                                            ' ',
-                                                            DOA_USERS.LAST_NAME
-                                                        ) AS CLIENT,
-                                                            DOA_USERS.USER_ID,
-                                                        DOA_USERS.PHONE,
-                                                        DOA_USERS.EMAIL_ID,
-                                                        DOA_USERS.ADDRESS,
-                                                        'No Active Enrollment / No Future Appointment' AS STATUS
-                                                    FROM
-                                                        $master_database.DOA_USERS AS DOA_USERS
-                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
-                                                        ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER
-                                                    INNER JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION
-                                                        ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER    
-                                                    LEFT JOIN DOA_ENROLLMENT_MASTER 
-                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                                                        AND DOA_ENROLLMENT_MASTER.STATUS = 'A'
-                                                    LEFT JOIN DOA_APPOINTMENT_MASTER 
-                                                        ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                                                        AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
-                                                    WHERE
-                                                        DOA_USERS.IS_DELETED = 0 
-                                                        AND DOA_USERS.ACTIVE = 1 
-                                                        AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                                        AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IS NULL 
-                                                        AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER IS NULL
+                                                SELECT
+                                                    CONCAT(
+                                                        DOA_USERS.FIRST_NAME,
+                                                        ' ',
+                                                        DOA_USERS.LAST_NAME
+                                                    ) AS CLIENT,
+                                                    DOA_USERS.USER_ID,
+                                                    DOA_USERS.PK_USER,
+                                                    DOA_USERS.PHONE,
+                                                    DOA_USERS.EMAIL_ID,
+                                                    DOA_USERS.ADDRESS,
+                                                    'No Active Enrollment / No Future Appointment' AS STATUS,
+                                                    
+                                                    (
+                                                        SELECT am.DATE 
+                                                        FROM DOA_APPOINTMENT_MASTER am
+                                                        INNER JOIN DOA_ENROLLMENT_MASTER em ON am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                                        INNER JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                        WHERE em.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                        AND am.DATE <= CURDATE()
+                                                        AND sc.IS_GROUP = 0 
+                                                        AND am.PK_APPOINTMENT_STATUS = 2  
+                                                        ORDER BY am.DATE DESC
+                                                        LIMIT 1
+                                                    ) AS LAST_PRIVATE_APPOINTMENT_DATE
+                                                FROM
+                                                    $master_database.DOA_USERS AS DOA_USERS
+                                                INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
+                                                    ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER
+                                                INNER JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION
+                                                    ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER    
+                                                LEFT JOIN DOA_ENROLLMENT_MASTER 
+                                                    ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                    AND DOA_ENROLLMENT_MASTER.STATUS = 'A'
+                                                LEFT JOIN DOA_APPOINTMENT_MASTER 
+                                                    ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                                                    AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
+                                                WHERE
+                                                    DOA_USERS.IS_DELETED = 0 
+                                                    AND DOA_USERS.ACTIVE = 1 
+                                                    AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IS NULL 
+                                                    AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER IS NULL
+                                                ORDER BY CLIENT ASC
+                                            ");
 
-                                                    ORDER BY CLIENT ASC
-                                                ");
                                             while (!$row->EOF) {
+                                                $last_appointment_date = $row->fields['LAST_PRIVATE_APPOINTMENT_DATE'];
+                                                $days_since_last = '';
+
+                                                if (!empty($last_appointment_date)) {
+                                                    $last_date = new DateTime($last_appointment_date);
+                                                    $today_date = new DateTime();
+                                                    $interval = $today_date->diff($last_date);
+                                                    $days_since_last = $interval->days;
+                                                }
+
+                                                // Format the date for display
+                                                $formatted_date = !empty($last_appointment_date) ? date('m/d/Y', strtotime($last_appointment_date)) : 'No Previous Appointment';
                                             ?>
                                                 <tr>
                                                     <td style="text-align: left"><?= $row->fields['CLIENT'] ?></td>
                                                     <td style="text-align: center"><?= $row->fields['PHONE'] ?></td>
                                                     <td style="text-align: center"><?= $row->fields['EMAIL_ID'] ?></td>
                                                     <td style="text-align: center"><?= $row->fields['ADDRESS'] ?></td>
-                                                    <td style="text-align: center"></td>
-                                                    <td style="text-align: center"></td>
+                                                    <td style="text-align: center"><?= $formatted_date ?></td>
+                                                    <td style="text-align: center"><?= !empty($days_since_last) ? $days_since_last . ' days' : 'N/A' ?></td>
                                                     <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
                                                 </tr>
-                                            <?php $row->MoveNext();
+                                            <?php
+                                                $row->MoveNext();
                                                 $i++;
-                                            } ?>
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div>

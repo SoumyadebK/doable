@@ -96,11 +96,11 @@ foreach ($resultsArray as $key => $result) {
                                     <?php
                                     // Get all selected service providers
                                     $each_service_provider = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID 
-    FROM DOA_ENROLLMENT_MASTER 
-    INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
-    WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-    AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
-    GROUP BY SERVICE_PROVIDER_ID");
+                                        FROM DOA_ENROLLMENT_MASTER 
+                                        INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
+                                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                                        AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
+                                        GROUP BY SERVICE_PROVIDER_ID");
 
                                     $all_providers_data = [];
                                     $all_enrollments_with_providers = []; // Track which enrollments have which providers
@@ -127,26 +127,27 @@ foreach ($resultsArray as $key => $result) {
                                         ];
 
                                         foreach ($enrollment_types as $type_id => $type_name) {
-                                            // Get enrollments with details
+                                            // Get enrollments with details and percentage
                                             $enrollments_query = $db_account->Execute("
-            SELECT 
-                em.PK_ENROLLMENT_MASTER,
-                em.ENROLLMENT_DATE,
-                em.PK_ENROLLMENT_TYPE,
-                COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS UNITS
-            FROM DOA_ENROLLMENT_MASTER em
-            INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
-            INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
-            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
-            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-            WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-            AND eb.TOTAL_AMOUNT > 0
-            AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
-            AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
-            AND em.PK_ENROLLMENT_TYPE = $type_id
-            AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-            GROUP BY em.PK_ENROLLMENT_MASTER
-        ");
+                                                SELECT 
+                                                    em.PK_ENROLLMENT_MASTER,
+                                                    em.ENROLLMENT_DATE,
+                                                    em.PK_ENROLLMENT_TYPE,
+                                                    COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS,
+                                                    esp.SERVICE_PROVIDER_PERCENTAGE
+                                                FROM DOA_ENROLLMENT_MASTER em
+                                                INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+                                                INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
+                                                LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                                                LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                AND eb.TOTAL_AMOUNT > 0
+                                                AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
+                                                AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
+                                                AND em.PK_ENROLLMENT_TYPE = $type_id
+                                                AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+                                                GROUP BY em.PK_ENROLLMENT_MASTER, esp.SERVICE_PROVIDER_PERCENTAGE
+                                            ");
 
                                             $enrollment_count = 0;
                                             $total_units = 0;
@@ -154,17 +155,25 @@ foreach ($resultsArray as $key => $result) {
 
                                             while (!$enrollments_query->EOF) {
                                                 $enrollment_id = $enrollments_query->fields['PK_ENROLLMENT_MASTER'];
-                                                $units = $enrollments_query->fields['UNITS'];
+                                                $total_units_for_enrollment = $enrollments_query->fields['TOTAL_UNITS'];
+                                                $provider_percentage = $enrollments_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
+
+                                                // Calculate units based on provider percentage
+                                                $provider_units = $total_units_for_enrollment * ($provider_percentage / 100);
 
                                                 $enrollment_count++;
-                                                $total_units += $units;
-                                                $enrollment_list[] = $enrollment_id;
+                                                $total_units += $provider_units;
+                                                $enrollment_list[] = $enrollment_id . " (" . $provider_percentage . "%)";
 
                                                 // Track which providers are associated with each enrollment
                                                 if (!isset($all_enrollments_with_providers[$enrollment_id])) {
                                                     $all_enrollments_with_providers[$enrollment_id] = [];
                                                 }
-                                                $all_enrollments_with_providers[$enrollment_id][] = $provider_name;
+                                                $all_enrollments_with_providers[$enrollment_id][] = [
+                                                    'provider' => $provider_name,
+                                                    'percentage' => $provider_percentage,
+                                                    'units' => $provider_units
+                                                ];
 
                                                 $enrollments_query->MoveNext();
                                             }
@@ -197,18 +206,68 @@ foreach ($resultsArray as $key => $result) {
                                     }
                                     ?>
 
-                                    <!-- Display each provider's table WITH enrollment IDs -->
+                                    <!-- Debug Section: Show enrollments with multiple providers -->
+                                    <!-- <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-sm" style="background-color: #fff3cd;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="4" style="text-align: center; font-weight: bold; font-size: 14px;">DEBUG: ENROLLMENTS WITH MULTIPLE PROVIDERS</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="text-align: center">Enrollment ID</th>
+                                                    <th style="text-align: center">Number of Providers</th>
+                                                    <th style="text-align: center">Assigned Providers</th>
+                                                    <th style="text-align: center">Total Units Split</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($multi_provider_enrollments)): ?>
+                                                    <?php foreach ($multi_provider_enrollments as $enrollment_id => $providers): ?>
+                                                        <tr>
+                                                            <td style="text-align: center"><?= $enrollment_id ?></td>
+                                                            <td style="text-align: center"><?= count($providers) ?></td>
+                                                            <td style="text-align: center">
+                                                                <?php
+                                                                $provider_list = [];
+                                                                foreach ($providers as $provider) {
+                                                                    $provider_list[] = $provider['provider'] . " (" . $provider['percentage'] . "%)";
+                                                                }
+                                                                echo implode(', ', $provider_list);
+                                                                ?>
+                                                            </td>
+                                                            <td style="text-align: center">
+                                                                <?php
+                                                                $unit_list = [];
+                                                                foreach ($providers as $provider) {
+                                                                    $unit_list[] = number_format($provider['units'], 2);
+                                                                }
+                                                                echo implode(' + ', $unit_list);
+                                                                ?>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="4" style="text-align: center">No enrollments found with multiple providers</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div> -->
+
+                                    <!-- Display each provider's table -->
                                     <?php foreach ($all_providers_data as $provider_data): ?>
                                         <div class="table-responsive mt-4">
                                             <table class="table table-bordered" data-page-length='50'>
                                                 <thead>
-                                                    <tr>
+                                                    <tr style="background-color: #f8f8f8;">
                                                         <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= $provider_data['name'] ?></th>
                                                     </tr>
                                                     <tr>
                                                         <th style="width:8%; text-align: center">Enrollment Type</th>
                                                         <th style="width:8%; text-align: center">Total Enrollments</th>
                                                         <th style="width:8%; text-align: center">Total Units Sold</th>
+                                                        <!-- <th style="width:26%; text-align: center">Enrollment IDs (% Split)</th> -->
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -217,6 +276,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Pre Original</td>
                                                         <td style="text-align: center"><?= $provider_data['pre_original']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['pre_original']['units'], 2) ?></td>
+                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                            <?= !empty($provider_data['pre_original']['enrollments']) ? implode(', ', $provider_data['pre_original']['enrollments']) : 'None' ?>
+                                                        </td> -->
                                                     </tr>
 
                                                     <!-- Original -->
@@ -224,6 +286,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Original</td>
                                                         <td style="text-align: center"><?= $provider_data['original']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['original']['units'], 2) ?></td>
+                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                            <?= !empty($provider_data['original']['enrollments']) ? implode(', ', $provider_data['original']['enrollments']) : 'None' ?>
+                                                        </td> -->
                                                     </tr>
 
                                                     <!-- Extension -->
@@ -231,6 +296,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Extension</td>
                                                         <td style="text-align: center"><?= $provider_data['extension']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['extension']['units'], 2) ?></td>
+                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                            <?= !empty($provider_data['extension']['enrollments']) ? implode(', ', $provider_data['extension']['enrollments']) : 'None' ?>
+                                                        </td> -->
                                                     </tr>
 
                                                     <!-- Renewal -->
@@ -238,10 +306,13 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Renewal</td>
                                                         <td style="text-align: center"><?= $provider_data['renewal']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['renewal']['units'], 2) ?></td>
+                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                            <?= !empty($provider_data['renewal']['enrollments']) ? implode(', ', $provider_data['renewal']['enrollments']) : 'None' ?>
+                                                        </td> -->
                                                     </tr>
 
                                                     <!-- Provider Totals -->
-                                                    <tr style="background-color: #f8f9fa;">
+                                                    <!-- <tr style="background-color: #f8f9fa;">
                                                         <td style="text-align: center; font-weight: bold">Service Provider Total</td>
                                                         <td style="text-align: center; font-weight: bold">
                                                             <?= $provider_data['pre_original']['sold'] + $provider_data['original']['sold'] + $provider_data['extension']['sold'] + $provider_data['renewal']['sold'] ?>
@@ -249,11 +320,44 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center; font-weight: bold">
                                                             <?= number_format($provider_data['pre_original']['units'] + $provider_data['original']['units'] + $provider_data['extension']['units'] + $provider_data['renewal']['units'], 2) ?>
                                                         </td>
-                                                    </tr>
+                                                        <td style="text-align: center; font-weight: bold">
+                                                            Total Unique: <?= count(array_unique(array_merge(
+                                                                                $provider_data['pre_original']['enrollments'],
+                                                                                $provider_data['original']['enrollments'],
+                                                                                $provider_data['extension']['enrollments'],
+                                                                                $provider_data['renewal']['enrollments']
+                                                                            ))) ?>
+                                                        </td>
+                                                    </tr> -->
                                                 </tbody>
                                             </table>
                                         </div>
                                     <?php endforeach; ?>
+
+                                    <!-- Summary Statistics -->
+                                    <!-- <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-sm" style="background-color: #e9ecef;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align: center; font-weight: bold; font-size: 14px;">SUMMARY STATISTICS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style="text-align: right; font-weight: bold">Total Unique Enrollments:</td>
+                                                    <td style="text-align: left"><?= $grand_total_enrollments ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: right; font-weight: bold">Enrollments with Multiple Providers:</td>
+                                                    <td style="text-align: left"><?= count($multi_provider_enrollments) ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: right; font-weight: bold">Total Units (All Providers):</td>
+                                                    <td style="text-align: left"><?= number_format($grand_total_units, 2) ?></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>

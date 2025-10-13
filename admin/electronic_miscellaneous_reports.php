@@ -93,7 +93,7 @@ if (!empty($_GET['NAME'])) {
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                     <option value="">Select a package</option>
                                                     <?php
-                                                    $row = $db_account->Execute("SELECT PK_PACKAGE, PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
+                                                    $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_SERVICE.PK_PACKAGE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_PACKAGE.ACTIVE = 1");
                                                     while (!$row->EOF) { ?>
                                                         <option value="<?= $row->fields['PK_PACKAGE'] ?>"><?= $row->fields['PACKAGE_NAME'] ?></option>
                                                     <?php $row->MoveNext();
