@@ -267,6 +267,13 @@ if (isset($_POST['SUBMIT'])) {
         }
     }
 
+    $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_ENROLLMENT_MASTER = 0, PK_ENROLLMENT_SERVICE = 0, APPOINTMENT_TYPE = 'AD-HOC' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+
     markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     header('location:all_enrollments.php');
 }
