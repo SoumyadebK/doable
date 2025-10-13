@@ -87,6 +87,8 @@ foreach ($resultsArray as $key => $result) {
                                                 <th style="width:10%; text-align: center">Phone</th>
                                                 <th style="width:10%; text-align: center">Email</th>
                                                 <th style="width:10%; text-align: center">Address</th>
+                                                <th style="width:10%; text-align: center">Date of the Last Private Appointment</th>
+                                                <th style="width:10%; text-align: center">Total Days Since the Last One</th>
                                                 <th style="width:10%; text-align: center">Status</th>
                                             </tr>
                                         </thead>
@@ -145,6 +147,8 @@ foreach ($resultsArray as $key => $result) {
                                                     <td style="text-align: center"><?= $row->fields['PHONE'] ?></td>
                                                     <td style="text-align: center"><?= $row->fields['EMAIL_ID'] ?></td>
                                                     <td style="text-align: center"><?= $row->fields['ADDRESS'] ?></td>
+                                                    <td style="text-align: center"></td>
+                                                    <td style="text-align: center"></td>
                                                     <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
                                                 </tr>
                                             <?php $row->MoveNext();
