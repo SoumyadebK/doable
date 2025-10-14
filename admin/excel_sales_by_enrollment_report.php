@@ -106,120 +106,152 @@ $objPHPExcel->getActiveSheet()->getStyle('A2:C3')->applyFromArray($styleArray);
 $rowNumber = 5; // Start data at row 5
 $borderRows = [];
 
-$each_service_provider = $db_account->Execute("SELECT distinct DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date);
+// Get all selected service providers
+$each_service_provider = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID 
+                                        FROM DOA_ENROLLMENT_MASTER 
+                                        INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
+                                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                                        AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
+                                        GROUP BY SERVICE_PROVIDER_ID");
+
+$all_providers_data = [];
+$all_enrollments_with_providers = []; // Track which enrollments have which providers
+
+// First, let's collect ALL enrollment data to analyze
 while (!$each_service_provider->EOF) {
-    $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = " . $each_service_provider->fields['SERVICE_PROVIDER_ID']);
     $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
+    $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = " . $service_provider_id_per_table);
+    $provider_name = $name->fields['TEACHER'];
 
-    // Write service provider name (merged across all columns)
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, $name->fields['TEACHER'])
-        ->mergeCells('A' . $rowNumber . ':C' . $rowNumber);
-
-    // Style the service provider name with borders
-    $objPHPExcel->getActiveSheet()
-        ->getStyle('A' . $rowNumber . ':C' . $rowNumber)
-        ->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'size' => 12
-            ],
-            'alignment' => [
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER
-            ],
-            'borders' => [
-                'allborders' => [
-                    'style' => PHPExcel_Style_Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000']
-                ]
-            ]
-        ]);
-
-    $rowNumber++; // Move to next row for headers
-    $borderRows[] = $rowNumber; // Add header row to border array
-
-    // Write headers
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, 'Enrollment Type')
-        ->setCellValue('B' . $rowNumber, 'Total Enrollments')
-        ->setCellValue('C' . $rowNumber, 'Total Units Sold');
-
-    // Style headers - bold and center-aligned
-    $headerStyle = [
-        'font' => [
-            'bold' => true
-        ],
-        'alignment' => [
-            'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER
-        ]
+    $provider_data = [
+        'name' => $provider_name,
+        'pre_original' => ['sold' => 0, 'units' => 0, 'enrollments' => []],
+        'original' => ['sold' => 0, 'units' => 0, 'enrollments' => []],
+        'extension' => ['sold' => 0, 'units' => 0, 'enrollments' => []],
+        'renewal' => ['sold' => 0, 'units' => 0, 'enrollments' => []]
     ];
-    $objPHPExcel->getActiveSheet()
-        ->getStyle('A' . $rowNumber . ':C' . $rowNumber)
-        ->applyFromArray($headerStyle);
 
-    $rowNumber++;
-
-    // Define the four enrollment types with their IDs and names
     $enrollment_types = [
-        5 => 'Pre Original',
-        2 => 'Original',
-        9 => 'Extension',
-        13 => 'Renewal'
+        5 => 'pre_original',
+        2 => 'original',
+        9 => 'extension',
+        13 => 'renewal'
     ];
 
-    // Pre Original
-    $pre_original_sold = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 5 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
-    $pre_original_units = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 5 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+    foreach ($enrollment_types as $type_id => $type_name) {
+        // Get enrollments with details and percentage
+        $enrollments_query = $db_account->Execute("
+                                                SELECT 
+                                                    em.PK_ENROLLMENT_MASTER,
+                                                    em.ENROLLMENT_DATE,
+                                                    em.PK_ENROLLMENT_TYPE,
+                                                    COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS,
+                                                    esp.SERVICE_PROVIDER_PERCENTAGE
+                                                FROM DOA_ENROLLMENT_MASTER em
+                                                INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+                                                INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
+                                                LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                                                LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                AND eb.TOTAL_AMOUNT > 0
+                                                AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
+                                                AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
+                                                AND em.PK_ENROLLMENT_TYPE = $type_id
+                                                AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+                                                GROUP BY em.PK_ENROLLMENT_MASTER, esp.SERVICE_PROVIDER_PERCENTAGE
+                                            ");
 
-    // Original
-    $original_sold = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 2 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
-    $original_units = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 2 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+        $enrollment_count = 0;
+        $total_units = 0;
+        $enrollment_list = [];
 
-    // Extension
-    $extension_sold = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 9 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
-    $extension_units = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 9 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+        while (!$enrollments_query->EOF) {
+            $enrollment_id = $enrollments_query->fields['PK_ENROLLMENT_MASTER'];
+            $total_units_for_enrollment = $enrollments_query->fields['TOTAL_UNITS'];
+            $provider_percentage = $enrollments_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
 
-    // Renewal
-    $renewal_sold = $db_account->Execute("SELECT COUNT(DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
-    $renewal_units = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS UNITS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = $service_provider_id_per_table AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+            // Calculate units based on provider percentage
+            $provider_units = $total_units_for_enrollment * ($provider_percentage / 100);
 
-    // Write data rows for each enrollment type
-    // Pre Original
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, 'Pre Original')
-        ->setCellValue('B' . $rowNumber, $pre_original_sold->fields['SOLD'] ?? 0)
-        ->setCellValue('C' . $rowNumber, $pre_original_units->fields['UNITS'] ?? 0);
-    $borderRows[] = $rowNumber;
-    $rowNumber++;
+            $enrollment_count++;
+            $total_units += $provider_units;
+            $enrollment_list[] = $enrollment_id . " (" . $provider_percentage . "%)";
 
-    // Original
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, 'Original')
-        ->setCellValue('B' . $rowNumber, $original_sold->fields['SOLD'] ?? 0)
-        ->setCellValue('C' . $rowNumber, $original_units->fields['UNITS'] ?? 0);
-    $borderRows[] = $rowNumber;
-    $rowNumber++;
+            // Track which providers are associated with each enrollment
+            if (!isset($all_enrollments_with_providers[$enrollment_id])) {
+                $all_enrollments_with_providers[$enrollment_id] = [];
+            }
+            $all_enrollments_with_providers[$enrollment_id][] = [
+                'provider' => $provider_name,
+                'percentage' => $provider_percentage,
+                'units' => $provider_units
+            ];
 
-    // Extension
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, 'Extension')
-        ->setCellValue('B' . $rowNumber, $extension_sold->fields['SOLD'] ?? 0)
-        ->setCellValue('C' . $rowNumber, $extension_units->fields['UNITS'] ?? 0);
-    $borderRows[] = $rowNumber;
-    $rowNumber++;
+            $enrollments_query->MoveNext();
+        }
 
-    // Renewal
-    $objPHPExcel->getActiveSheet()
-        ->setCellValue('A' . $rowNumber, 'Renewal')
-        ->setCellValue('B' . $rowNumber, $renewal_sold->fields['SOLD'] ?? 0)
-        ->setCellValue('C' . $rowNumber, $renewal_units->fields['UNITS'] ?? 0);
-    $borderRows[] = $rowNumber;
-    $rowNumber++;
+        $provider_data[$type_name]['sold'] = $enrollment_count;
+        $provider_data[$type_name]['units'] = $total_units;
+        $provider_data[$type_name]['enrollments'] = $enrollment_list;
+    }
 
-    // Add blank rows between service providers
-    $rowNumber += 2;
+    $all_providers_data[] = $provider_data;
     $each_service_provider->MoveNext();
 }
+
+// Calculate grand totals
+$grand_total_enrollments = count($all_enrollments_with_providers);
+$grand_total_units = 0;
+
+foreach ($all_providers_data as $provider) {
+    foreach (['pre_original', 'original', 'extension', 'renewal'] as $type) {
+        $grand_total_units += $provider[$type]['units'];
+    }
+}
+
+// Identify enrollments with multiple providers
+$multi_provider_enrollments = [];
+foreach ($all_enrollments_with_providers as $enrollment_id => $providers) {
+    if (count($providers) > 1) {
+        $multi_provider_enrollments[$enrollment_id] = $providers;
+    }
+}
+
+foreach ($all_providers_data as $provider_data):
+    $objPHPExcel->getActiveSheet()->setCellValue('A' . $rowNumber, $provider_data['name']);
+    $objPHPExcel->getActiveSheet()->getStyle('A' . $rowNumber)->getFont()->setBold(true);
+    $borderRows[] = $rowNumber;
+    $rowNumber++;
+
+    $headers = ['Enrollment Type', 'Total Enrollments', 'Total Units Sold',];
+    $col = 0;
+    foreach ($headers as $header) {
+        $objPHPExcel->getActiveSheet()->setCellValue($cell[$col] . $rowNumber, $header);
+        $objPHPExcel->getActiveSheet()->getStyle($cell[$col] . $rowNumber)->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle($cell[$col] . $rowNumber)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $col++;
+    }
+    $borderRows[] = $rowNumber;
+    $rowNumber++;
+
+    $enrollment_types = [
+        'Pre-Original' => 'pre_original',
+        'Original' => 'original',
+        'Extension' => 'extension',
+        'Renewal' => 'renewal'
+    ];
+
+    foreach ($enrollment_types as $type_label => $type_key) {
+        $objPHPExcel->getActiveSheet()->setCellValue('A' . $rowNumber, $type_label);
+        $objPHPExcel->getActiveSheet()->setCellValue('B' . $rowNumber, $provider_data[$type_key]['sold']);
+        $objPHPExcel->getActiveSheet()->setCellValue('C' . $rowNumber, number_format($provider_data[$type_key]['units'], 2));
+        $borderRows[] = $rowNumber;
+        $rowNumber++;
+    }
+
+    // Add an empty row after each provider
+    $rowNumber++;
+endforeach;
 
 // Apply borders only to header and data rows
 $borderStyle = [
