@@ -202,7 +202,7 @@ $row = $db_account->Execute("SELECT
                             JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER                                                                            
                             WHERE 
                                 DOA_ENROLLMENT_MASTER.STATUS = 'A'  AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                AND DOA_SERVICE_CODE.IS_GROUP = 0  
+                                AND DOA_SERVICE_CODE.IS_GROUP = 0  AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'
                                 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0
                                 AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 
                             
