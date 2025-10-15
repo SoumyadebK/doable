@@ -267,7 +267,7 @@ foreach ($resultsArray as $key => $result) {
                                                         <th style="width:8%; text-align: center">Enrollment Type</th>
                                                         <th style="width:8%; text-align: center">Total Enrollments</th>
                                                         <th style="width:8%; text-align: center">Total Units Sold</th>
-                                                        <!-- <th style="width:26%; text-align: center">Enrollment IDs (% Split)</th> -->
+                                                        <th style="width:26%; text-align: center">Enrollment IDs (% Split)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -276,9 +276,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Pre Original</td>
                                                         <td style="text-align: center"><?= $provider_data['pre_original']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['pre_original']['units'], 2) ?></td>
-                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                        <td style="text-align: center; font-size: 11px;">
                                                             <?= !empty($provider_data['pre_original']['enrollments']) ? implode(', ', $provider_data['pre_original']['enrollments']) : 'None' ?>
-                                                        </td> -->
+                                                        </td>
                                                     </tr>
 
                                                     <!-- Original -->
@@ -286,9 +286,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Original</td>
                                                         <td style="text-align: center"><?= $provider_data['original']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['original']['units'], 2) ?></td>
-                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                        <td style="text-align: center; font-size: 11px;">
                                                             <?= !empty($provider_data['original']['enrollments']) ? implode(', ', $provider_data['original']['enrollments']) : 'None' ?>
-                                                        </td> -->
+                                                        </td>
                                                     </tr>
 
                                                     <!-- Extension -->
@@ -296,9 +296,9 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Extension</td>
                                                         <td style="text-align: center"><?= $provider_data['extension']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['extension']['units'], 2) ?></td>
-                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                        <td style="text-align: center; font-size: 11px;">
                                                             <?= !empty($provider_data['extension']['enrollments']) ? implode(', ', $provider_data['extension']['enrollments']) : 'None' ?>
-                                                        </td> -->
+                                                        </td>
                                                     </tr>
 
                                                     <!-- Renewal -->
@@ -306,13 +306,13 @@ foreach ($resultsArray as $key => $result) {
                                                         <td style="text-align: center">Renewal</td>
                                                         <td style="text-align: center"><?= $provider_data['renewal']['sold'] ?></td>
                                                         <td style="text-align: center"><?= number_format($provider_data['renewal']['units'], 2) ?></td>
-                                                        <!-- <td style="text-align: center; font-size: 11px;">
+                                                        <td style="text-align: center; font-size: 11px;">
                                                             <?= !empty($provider_data['renewal']['enrollments']) ? implode(', ', $provider_data['renewal']['enrollments']) : 'None' ?>
-                                                        </td> -->
+                                                        </td>
                                                     </tr>
 
                                                     <!-- Provider Totals -->
-                                                    <!-- <tr style="background-color: #f8f9fa;">
+                                                    <tr style="background-color: #f8f9fa;">
                                                         <td style="text-align: center; font-weight: bold">Service Provider Total</td>
                                                         <td style="text-align: center; font-weight: bold">
                                                             <?= $provider_data['pre_original']['sold'] + $provider_data['original']['sold'] + $provider_data['extension']['sold'] + $provider_data['renewal']['sold'] ?>
@@ -328,14 +328,14 @@ foreach ($resultsArray as $key => $result) {
                                                                                 $provider_data['renewal']['enrollments']
                                                                             ))) ?>
                                                         </td>
-                                                    </tr> -->
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div>
                                     <?php endforeach; ?>
 
                                     <!-- Summary Statistics -->
-                                    <!-- <div class="table-responsive mt-4">
+                                    <div class="table-responsive mt-4">
                                         <table class="table table-bordered table-sm" style="background-color: #e9ecef;">
                                             <thead>
                                                 <tr>
@@ -357,7 +357,7 @@ foreach ($resultsArray as $key => $result) {
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div> -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
