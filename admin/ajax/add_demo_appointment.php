@@ -30,14 +30,18 @@ if (empty($_GET['PK_USER'])) {
     $PK_USER = $_GET['PK_USER'];
 }
 
-if (!empty($_GET['date']) && !empty($_GET['time'])) {
+if (!empty($_GET['date'])) {
     $date = $_GET['date'];
-    $time = $_GET['time'];
     $DATE_ARR[0] = date("Y", strtotime($date));
     $DATE_ARR[1] = date("m", strtotime($date)) - 1;
     $DATE_ARR[2] = date("d", strtotime($date));
 } else {
     $date = '';
+}
+
+if (!empty($_GET['time'])) {
+    $time = $_GET['time'];
+} else {
     $time = '';
 }
 

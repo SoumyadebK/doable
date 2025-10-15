@@ -3,11 +3,15 @@ require_once('../../global/config.php');
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-if (!empty($_GET['date']) && !empty($_GET['time'])) {
+if (!empty($_GET['date'])) {
     $date = $_GET['date'];
-    $time = $_GET['time'];
 } else {
     $date = '';
+}
+
+if (!empty($_GET['time'])) {
+    $time = $_GET['time'];
+} else {
     $time = '';
 }
 
