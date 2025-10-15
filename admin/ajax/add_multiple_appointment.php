@@ -11,11 +11,15 @@ if (empty($_GET['PK_USER_MASTER'])) {
     $PK_USER_MASTER = $_GET['PK_USER_MASTER'];
 }
 
-if (!empty($_GET['date']) && !empty($_GET['time'])) {
+if (!empty($_GET['date'])) {
     $date = $_GET['date'];
-    $time = $_GET['time'];
 } else {
     $date = '';
+}
+
+if (!empty($_GET['time'])) {
+    $time = $_GET['time'];
+} else {
     $time = '';
 }
 
@@ -26,12 +30,12 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
 }
 
 if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
-    $header = 'customer.php?id='.$_GET['id_customer'].'&master_id='.$_GET['PK_USER_MASTER'].'&tab=appointment';
+    $header = 'customer.php?id=' . $_GET['id_customer'] . '&master_id=' . $_GET['PK_USER_MASTER'] . '&tab=appointment';
 } else {
     $header = 'all_schedules.php';
 }
 
-$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = ".$DEFAULT_LOCATION_ID);
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = " . $DEFAULT_LOCATION_ID);
 if ($location_operational_hour->RecordCount() > 0) {
     $minTime = $location_operational_hour->fields['OPEN_TIME'];
     $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
@@ -68,10 +72,11 @@ $AND_PK_USER = '';
                     <select class="multi_select" required name="CUSTOMER_ID[]" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                         <option value="">Select Customer</option>
                         <?php
-                        $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (".$_SESSION['DEFAULT_LOCATION_ID'].") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
+                        $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
                         while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_USER_MASTER'];?>"  <?=($PK_USER_MASTER == $row->fields['PK_USER_MASTER'])?'selected':''?>><?=$row->fields['NAME'].' ('.$row->fields['USER_NAME'].')'.' ('.$row->fields['PHONE'].')'?></option>
-                        <?php $row->MoveNext(); } ?>
+                            <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?= ($PK_USER_MASTER == $row->fields['PK_USER_MASTER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
                     </select>
                 </div>
             </div>
@@ -93,9 +98,9 @@ $AND_PK_USER = '';
             </div>
             <div class="col-3">
                 <div class="form-group">
-                    <label class="form-label"><?=$service_provider_title?><span class="text-danger">*</span></label>
+                    <label class="form-label"><?= $service_provider_title ?><span class="text-danger">*</span></label>
                     <select required name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                        <option value="">Select <?=$service_provider_title?></option>
+                        <option value="">Select <?= $service_provider_title ?></option>
                     </select>
                 </div>
             </div>
@@ -107,13 +112,13 @@ $AND_PK_USER = '';
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Starting On<span class="text-danger">*</span></label><br>
-                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?=$date?>" required>
+                    <input class="form-control datepicker-normal" type="text" name="STARTING_ON" value="<?= $date ?>" required>
                 </div>
             </div>
             <div class="col-2">
                 <div class="form-group">
                     <label class="form-label">Time<span class="text-danger">*</span></label><br>
-                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?=$time?>" required>
+                    <input class="form-control timepicker-normal" type="text" name="START_TIME" value="<?= $time ?>" required>
                 </div>
             </div>
             <div class="col-2">
@@ -148,7 +153,7 @@ $AND_PK_USER = '';
             </div>
         </div>
 
-        <?php if ($time_zone == 1){ ?>
+        <?php if ($time_zone == 1) { ?>
             <div class="form-group" style="margin-top: 25px;">
                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">SAVE</button>
                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
@@ -164,11 +169,14 @@ $AND_PK_USER = '';
 <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(document).ready(function() {
         $('#SELECT_CUSTOMER').trigger("change");
     });
 
-    $('.multi_select').SumoSelect({search: true, searchText: 'Search...'});
+    $('.multi_select').SumoSelect({
+        search: true,
+        searchText: 'Search...'
+    });
 
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
@@ -176,36 +184,40 @@ $AND_PK_USER = '';
 
     $('.timepicker-normal').timepicker({
         timeFormat: 'hh:mm p',
-        maxTime: '<?=$maxTime?>',
-        minTime: '<?=$minTime?>'
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>'
     });
 
-    $('.DAYS').on('change', function(){
-       if ($('.DAYS').is(':checked')){
-           $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
-           $('.occurrence_div').addClass('disable-div');
-       } else {
-           $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
-           $('.occurrence_div').removeClass('disable-div');
-       }
+    $('.DAYS').on('change', function() {
+        if ($('.DAYS').is(':checked')) {
+            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+            $('.occurrence_div').addClass('disable-div');
+        } else {
+            $("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+            $('.occurrence_div').removeClass('disable-div');
+        }
     });
 
-    $('#SERVICE_PROVIDER_ID').SumoSelect({placeholder: 'Select <?=$service_provider_title?>', search: true, searchText: 'Search...'});
+    $('#SERVICE_PROVIDER_ID').SumoSelect({
+        placeholder: 'Select <?= $service_provider_title ?>',
+        search: true,
+        searchText: 'Search...'
+    });
 
-    function set_time(id, start_time, end_time){
+    function set_time(id, start_time, end_time) {
         $('#START_TIME').val(start_time);
         $('#END_TIME').val(end_time);
-        let slot_btn  = $(".slot_btn");
-        slot_btn.each(function (index) {
+        let slot_btn = $(".slot_btn");
+        slot_btn.each(function(index) {
             if ($(this).data('is_disable') == 0) {
                 $(this).css('background-color', 'greenyellow');
             }
         })
-        document.getElementById('slot_btn_'+id).style.setProperty('background-color', 'orange', 'important');
+        document.getElementById('slot_btn_' + id).style.setProperty('background-color', 'orange', 'important');
     }
 
-    $(document).on('click', '#cancel_button', function () {
-        window.location.href='all_schedules.php'
+    $(document).on('click', '#cancel_button', function() {
+        window.location.href = 'all_schedules.php'
     });
 
     function selectThisEnrollment(param) {
@@ -213,10 +225,12 @@ $AND_PK_USER = '';
         $.ajax({
             url: "ajax/get_scheduling_codes.php",
             type: "POST",
-            data: {PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER},
+            data: {
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+            },
             async: false,
             cache: false,
-            success: function (result) {
+            success: function(result) {
                 $('#PK_SCHEDULING_CODE').empty();
                 $('#PK_SCHEDULING_CODE').append(result);
                 $('#PK_SCHEDULING_CODE')[0].sumo.reload();
@@ -227,10 +241,12 @@ $AND_PK_USER = '';
         $.ajax({
             url: "ajax/get_instructor.php",
             type: "POST",
-            data: {LOCATION_ID: location_id},
+            data: {
+                LOCATION_ID: location_id
+            },
             async: false,
             cache: false,
-            success: function (result) {
+            success: function(result) {
                 $('#SERVICE_PROVIDER_ID').empty().append(result);
                 $('#SERVICE_PROVIDER_ID')[0].sumo.reload();
                 $('#SERVICE_PROVIDER_ID')[0].sumo.selectItem(SELECTED_SERVICE_PROVIDER_ID);
@@ -245,17 +261,17 @@ $AND_PK_USER = '';
         $('#DURATION').val(duration);
     }
 
-    $(document).on('submit', '#multi_appointment_form', function (event) {
+    $(document).on('submit', '#multi_appointment_form', function(event) {
         event.preventDefault();
         let form_data = $('#multi_appointment_form').serialize();
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
-            success:function (data) {
+            success: function(data) {
                 if (data > 0) {
                     let conf = confirm(`According to the number of classes in the enrollment, ${data} appointments will generate as appointment.`);
-                    if(conf) {
+                    if (conf) {
                         submitAppointmentForm();
                     }
                 } else {
@@ -273,8 +289,8 @@ $AND_PK_USER = '';
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
-            success:function (data) {
-                window.location.href='<?=$header?>';
+            success: function(data) {
+                window.location.href = '<?= $header ?>';
             }
         });
     }

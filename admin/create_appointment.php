@@ -29,6 +29,7 @@ if (!empty($_GET['SERVICE_PROVIDER_ID'])) {
     $PK_USER = $_GET['SERVICE_PROVIDER_ID'];
 } else {
     $PK_USER = '';
+    $time = '';
 }
 
 if (empty($_GET['master_id_customer'])) {
