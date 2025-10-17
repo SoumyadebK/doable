@@ -39,33 +39,35 @@ while (!$all_location->EOF) {
 
         $APPOINTMENT_DATA = $db1->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DATE, START_TIME, CAST(CONCAT(DATE, ' ', START_TIME) AS DATETIME) AS APPOINTMENT_TIME, DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER AS CUSTOMER_ID FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND `SERVICE_CODE` LIKE '%PRI%' AND (APPOINTMENT_TYPE = 'NORMAL' || APPOINTMENT_TYPE = 'AD-HOC') AND PK_APPOINTMENT_STATUS = 1 AND IS_REMINDER_SEND = 0 AND STATUS = 'A' AND DOA_APPOINTMENT_CUSTOMER.IS_PARTNER = 0 AND DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER > 0 HAVING (APPOINTMENT_TIME <= '$REMIND_TIME' AND APPOINTMENT_TIME > '" . date('Y-m-d H:i:s', strtotime('-1 days')) . "') ORDER BY APPOINTMENT_TIME ASC");
         while (!$APPOINTMENT_DATA->EOF) {
-            $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $APPOINTMENT_DATA->fields['CUSTOMER_ID']);
+            $customer_phone_number = $db->Execute("SELECT DOA_USERS.PHONE FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_MASTER.PK_USER_MASTER = " . $APPOINTMENT_DATA->fields['CUSTOMER_ID']);
 
-            $message = 'This is a friendly reminder for your ' . date('m/d/Y', strtotime($APPOINTMENT_DATA->fields['DATE'])) . ' appointment with ' . $all_location->fields['LOCATION_NAME'] . ' at the following time: ' . date('h:i A', strtotime($APPOINTMENT_DATA->fields['START_TIME'])) . '. Please do not respond to this message. Thank You!';
-            //echo $message . "<br>";
-            try {
-                $client = new Client($SID, $TOKEN);
-                $response = $client->messages->create(
-                    '+1' . $customer_phone_number->fields['PHONE'],
-                    [
-                        'from' => $TWILIO_PHONE_NO,
-                        'body' => $message //$msg->fields['CONTENT']
-                    ]
-                );
-                $IS_ERROR = 0;
-                $ERROR_MESSAGE = '';
-            } catch (\Twilio\Exceptions\TwilioException $e) {
-                echo 'Error : ' . $e->getMessage() . "<br>";
-                $IS_ERROR = 1;
-                $ERROR_MESSAGE = $e->getMessage();
-            } finally {
-                $PK_LOCATION = $PK_LOCATION;
-                $PK_USER_MASTER = $APPOINTMENT_DATA->fields['CUSTOMER_ID'];
-                $PHONE_NUMBER = $customer_phone_number->fields['PHONE'];
-                $MESSAGE = $message;
-                $TRIGGER_TIME = date('Y-m-d H:i:s');
-                $db1->Execute("INSERT INTO DOA_SMS_LOG (IS_ERROR, ERROR_MESSAGE, PK_LOCATION, PK_USER_MASTER, PHONE_NUMBER, MESSAGE, TRIGGER_TIME) VALUES ($IS_ERROR, '" . addslashes($ERROR_MESSAGE) . "', $PK_LOCATION, $PK_USER_MASTER, '$PHONE_NUMBER', '" . addslashes($MESSAGE) . "', '$TRIGGER_TIME')");
-                $db1->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_REMINDER_SEND = 1, PK_APPOINTMENT_STATUS = 7 WHERE `PK_APPOINTMENT_MASTER` = " . $APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER']);
+            if ($customer_phone_number->RecordCount() > 0) {
+                $message = 'This is a friendly reminder for your ' . date('m/d/Y', strtotime($APPOINTMENT_DATA->fields['DATE'])) . ' appointment with ' . $all_location->fields['LOCATION_NAME'] . ' at the following time: ' . date('h:i A', strtotime($APPOINTMENT_DATA->fields['START_TIME'])) . '. Please do not respond to this message. Thank You!';
+                //echo $message . "<br>";
+                try {
+                    $client = new Client($SID, $TOKEN);
+                    $response = $client->messages->create(
+                        '+1' . $customer_phone_number->fields['PHONE'],
+                        [
+                            'from' => $TWILIO_PHONE_NO,
+                            'body' => $message //$msg->fields['CONTENT']
+                        ]
+                    );
+                    $IS_ERROR = 0;
+                    $ERROR_MESSAGE = '';
+                } catch (\Twilio\Exceptions\TwilioException $e) {
+                    echo 'Error : ' . $e->getMessage() . "<br>";
+                    $IS_ERROR = 1;
+                    $ERROR_MESSAGE = $e->getMessage();
+                } finally {
+                    $PK_LOCATION = $PK_LOCATION;
+                    $PK_USER_MASTER = $APPOINTMENT_DATA->fields['CUSTOMER_ID'];
+                    $PHONE_NUMBER = $customer_phone_number->fields['PHONE'];
+                    $MESSAGE = $message;
+                    $TRIGGER_TIME = date('Y-m-d H:i:s');
+                    $db1->Execute("INSERT INTO DOA_SMS_LOG (IS_ERROR, ERROR_MESSAGE, PK_LOCATION, PK_USER_MASTER, PHONE_NUMBER, MESSAGE, TRIGGER_TIME) VALUES ($IS_ERROR, '" . addslashes($ERROR_MESSAGE) . "', $PK_LOCATION, $PK_USER_MASTER, '$PHONE_NUMBER', '" . addslashes($MESSAGE) . "', '$TRIGGER_TIME')");
+                    $db1->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET IS_REMINDER_SEND = 1, PK_APPOINTMENT_STATUS = 7 WHERE `PK_APPOINTMENT_MASTER` = " . $APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER']);
+                }
             }
 
             //echo $APPOINTMENT_DATA->fields['PK_APPOINTMENT_MASTER'] . " Reminder Sent to " . $customer_phone_number->fields['PHONE'] . "<br>";
