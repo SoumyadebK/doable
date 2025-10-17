@@ -394,7 +394,22 @@ function getSessionCompletedCountOfEnrollment($PK_ENROLLMENT_MASTER)
 function getAppointmentPosition($PK_ENROLLMENT_SERVICE, $PK_APPOINTMENT_MASTER)
 {
     global $db_account;
-    $appointment_position = $db_account->Execute("SELECT position FROM (SELECT PK_APPOINTMENT_MASTER, ROW_NUMBER() OVER (PARTITION BY PK_ENROLLMENT_SERVICE ORDER BY DATE ASC, START_TIME ASC) AS position FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND PK_APPOINTMENT_STATUS NOT IN (6,4)) ranked WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+    $appointment_position = $db_account->Execute("SELECT position
+                                                        FROM (
+                                                            SELECT 
+                                                                dam.PK_APPOINTMENT_MASTER,
+                                                                SUM(dsc.UNIT) OVER (
+                                                                    PARTITION BY dam.PK_ENROLLMENT_SERVICE 
+                                                                    ORDER BY dam.DATE ASC, dam.START_TIME ASC
+                                                                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                                                                ) AS position
+                                                            FROM DOA_APPOINTMENT_MASTER dam
+                                                            INNER JOIN DOA_SCHEDULING_CODE dsc 
+                                                                ON dam.PK_SCHEDULING_CODE = dsc.PK_SCHEDULING_CODE
+                                                            WHERE dam.PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE'
+                                                            AND dam.PK_APPOINTMENT_STATUS NOT IN (6,4)
+                                                        ) ranked
+                                                        WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
 
     if ($appointment_position->RecordCount() > 0) {
         return $appointment_position->fields['position'];

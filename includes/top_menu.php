@@ -85,6 +85,13 @@ if (count($LOCATIONS) == 1) {
                             $selected_location = [];
                             if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 11) {
                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                            } elseif ($_SESSION["PK_ROLES"] == 4) {
+                                $selected_location_row = $db->Execute("SELECT `PRIMARY_LOCATION_ID` FROM `DOA_USER_MASTER` WHERE `PK_USER` = " . $_SESSION['PK_USER']);
+                                while (!$selected_location_row->EOF) {
+                                    $selected_location[] = $selected_location_row->fields['PRIMARY_LOCATION_ID'];
+                                    $selected_location_row->MoveNext();
+                                }
+                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . implode(',', $selected_location) . ")");
                             } else {
                                 $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $_SESSION['PK_USER']);
                                 while (!$selected_location_row->EOF) {
