@@ -299,7 +299,7 @@ if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
     $CHOOSE_DATE = date("Y-m-d");
 }
 
-$interval = $db->Execute("SELECT TIME_SLOT_INTERVAL FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
+$interval = $db->Execute("SELECT TIME_SLOT_INTERVAL FROM DOA_LOCATION WHERE PK_LOCATION=" . $LOCATION_ARRAY[0]);
 if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     $INTERVAL = "00:15:00";
 } else {

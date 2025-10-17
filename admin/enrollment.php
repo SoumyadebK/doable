@@ -302,7 +302,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                                                     echo 'disabled_div';
                                                                                                 } ?>" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                                 <label class="form-label">Expiration Date</label>
-                                                                <input type="text" class="form-control datepicker-future" name="EXPIRY_DATE" id="EXPIRY_DATE" value="<?= date('m/d/y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
+                                                                <input type="text" class="form-control datepicker-future" name="EXPIRATION_DATE" id="EXPIRATION_DATE" value="<?= date('m/d/Y', strtotime($res->fields['EXPIRY_DATE'])) ?>">
                                                             </div>
                                                         <?php } ?>
 
