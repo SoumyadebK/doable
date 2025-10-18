@@ -16,6 +16,7 @@ if (!empty($_GET['NAME'])) {
     $START_DATE = $_GET['start_date'];
     $END_DATE = $_GET['end_date'];
     $PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
+    $include_no_provider = isset($_GET['include_no_provider']) ? 1 : 0;
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
@@ -27,7 +28,7 @@ if (!empty($_GET['NAME'])) {
         } elseif ($_GET['NAME'] == 'lessons_taught_by_department_report') {
             header('location:lessons_taught_by_department_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
         } elseif ($_GET['NAME'] == 'sales_by_enrollment_report') {
-            header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
+            header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
         }
     }
 }
@@ -48,6 +49,16 @@ if (!empty($_GET['NAME'])) {
 
     .export-buttons {
         display: none;
+    }
+
+    .no-provider-checkbox {
+        margin-top: 10px;
+        display: none;
+    }
+
+    .no-provider-checkbox label {
+        font-weight: normal;
+        margin-left: 5px;
     }
 </style>
 
@@ -72,7 +83,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                                     <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
@@ -90,6 +101,10 @@ if (!empty($_GET['NAME'])) {
                                                     <?php $row->MoveNext();
                                                     } ?>
                                                 </select>
+                                            </div>
+                                            <div class="no-provider-checkbox" id="no_provider_checkbox">
+                                                <input type="checkbox" id="include_no_provider" name="include_no_provider" value="1" <?= isset($_GET['include_no_provider']) && $_GET['include_no_provider'] == 1 ? 'checked' : '' ?>>
+                                                <label for="include_no_provider">With No Service Provider</label>
                                             </div>
                                         </div>
                                         <div class="col-2">
@@ -152,10 +167,25 @@ if (!empty($_GET['NAME'])) {
         }
     }
 
-    // Initialize button visibility on page load
+    // Function to toggle "With No Service Provider" checkbox
+    function toggleNoProviderOption(selectElement) {
+        var selectedValue = selectElement.value;
+        var noProviderCheckbox = document.getElementById('no_provider_checkbox');
+
+        if (selectedValue === 'sales_by_enrollment_report') {
+            noProviderCheckbox.style.display = 'block';
+        } else {
+            noProviderCheckbox.style.display = 'none';
+            // Uncheck the checkbox when switching to other reports
+            document.getElementById('include_no_provider').checked = false;
+        }
+    }
+
+    // Initialize visibility on page load
     document.addEventListener('DOMContentLoaded', function() {
         var reportSelect = document.getElementById('NAME');
         toggleExportButtons(reportSelect);
+        toggleNoProviderOption(reportSelect);
     });
 
     $(".week-picker").datepicker({
@@ -220,13 +250,23 @@ if (!empty($_GET['NAME'])) {
 
         // Handle form submission to ensure PK_USER values are properly sent
         $('#reportForm').on('submit', function() {
-            // Get selected service provider values
+            var selectedReport = $('#NAME').val();
             var selectedProviders = $('#service_provider_select').val();
+            var includeNoProvider = $('#include_no_provider').is(':checked');
 
-            // If no providers selected, show alert and prevent submission
-            if (!selectedProviders || selectedProviders.length === 0) {
-                alert('Please select at least one service provider.');
-                return false;
+            // For sales by enrollment report, allow submission even if no providers are selected
+            // when "Include Enrollments With No Service Provider" is checked
+            if (selectedReport === 'sales_by_enrollment_report') {
+                if ((!selectedProviders || selectedProviders.length === 0) && !includeNoProvider) {
+                    alert('Please select at least one service provider or check "Include Enrollments With No Service Provider".');
+                    return false;
+                }
+            } else {
+                // For other reports, require at least one service provider
+                if (!selectedProviders || selectedProviders.length === 0) {
+                    alert('Please select at least one service provider.');
+                    return false;
+                }
             }
 
             return true;
