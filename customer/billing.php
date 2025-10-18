@@ -249,7 +249,7 @@ if ($PK_USER_MASTER > 0) {
                     <div class="col-md-7 align-self-center">
                         <ul class="nav nav-pills" role="tablist">
                             <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('normal')" role="tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                            <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
+                            <!-- <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li> -->
                         </ul>
                     </div>
                 </div>

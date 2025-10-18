@@ -605,7 +605,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                             <div class="card-body row" style="margin-bottom: -30px;">
                                 <div class="col-2">
-                                    <div class="row">
+                                    <!-- <div class="row">
                                         <div class="clearfix col-auto d-flex align-items-center gap-3">
                                             <div class="box d-flex align-items-center gap-2">
                                                 <button type="button" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">D</button>
@@ -616,13 +616,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                 <div id="week-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
 
                                 <div class="col-8">
                                     <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
                                         <div class="row">
-                                            <div class="col-2">
+                                            <!-- <div class="col-2">
                                                 <div class="form-material form-horizontal">
                                                     <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
                                                         <option value="">Select Status</option>
@@ -653,12 +653,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                                 } ?>>Event</option>
                                                     </select>
                                                 </div>
-                                            </div>
-                                            <div class="col-3">
+                                            </div> -->
+                                            <div class="col-4" style="margin-left: 33%;">
                                                 <input type="hidden" id="IS_SELECTED" value="0">
                                                 <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?= ($_GET['date']) ?? '' ?>">
                                             </div>
-                                            <div class="col-5">
+                                            <!-- <div class="col-5">
                                                 <div class="search-container">
                                                     <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
                                                         <?php
@@ -670,7 +670,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                     </select>
                                                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="height: 37px"><i class="fa fa-search"></i></button>
                                                 </div>
-                                            </div>
+                                            </div> -->
 
 
                                         </div>
@@ -1101,7 +1101,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     }
                 },
                 eventClick: function(info) {
-                    clickCount++;
+                    /* clickCount++;
                     let singleClickTimer;
                     if (clickCount === 1 && is_editable) {
                         singleClickTimer = setTimeout(function() {
@@ -1141,13 +1141,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 }
                             }
                         }
-                    }
+                    } */
                 },
                 eventDrop: function(info) {
-                    modifyAppointment(info);
+                    //modifyAppointment(info);
+                    calendar.refetchEvents();
                 },
                 dateClick: function(data) {
-                    let date = data.date;
+                    /* let date = data.date;
                     let resource_id = (data.resource) ? data.resource.id : $('#SERVICE_PROVIDER_ID').val()[0];
                     console.log(resource_id);
                     clickCount++;
@@ -1183,7 +1184,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         } else {
                             swal("Select One Service Provider!", "Please select any one Service Provider to continue", "error");
                         }
-                    }
+                    } */
                 },
                 loading: function(isLoading) {
                     if (isLoading === true) {
@@ -1368,7 +1369,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             });
         }
 
-        function modifyAppointment(info) {
+        /* function modifyAppointment(info) {
             let OLD_SERVICE_PROVIDER_ID = (info.oldResource) ? info.oldResource.id : 0;
             let event_data = info.event.extendedProps;
             let TYPE = event_data.type;
@@ -1396,7 +1397,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     calendar.refetchEvents();
                 }
             });
-        }
+        } */
 
         function getServiceProviderCount() {
             let currentDate = new Date(calendar.getDate());

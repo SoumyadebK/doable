@@ -229,7 +229,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <span class="hide-menu">Appointments</span>
                             </a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a class="nav-link <?= (('all_products.php' === $current_address) ? 'active' : '') ?>" href="../customer/all_products.php" aria-expanded="false">
                                 <b class="icons-Add-Cart"></b>
                                 <span class="hide-menu">Shop</span>
@@ -240,19 +240,19 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <i class="icons-Gift-Box"></i>
                                 <span class="hide-menu">Gift Cards</span>
                             </a>
-                        </li>
+                        </li> -->
                         <li>
                             <a class="nav-link <?= (('billing.php' === $current_address) ? 'active' : '') ?>" href="../customer/billing.php?id=<?= $selected_user_id ?>&master_id=<?= $selected_customer_id ?>&tab=profile" aria-expanded="false">
                                 <i class="icon-note"></i>
                                 <span class="hide-menu">Enrollments</span>
                             </a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a class="nav-link <?= (('accounts.php' === $current_address) ? 'active' : '') ?>" href="../customer/accounts.php" aria-expanded="false">
                                 <i class="icons-Receipt"></i>
                                 <span class="hide-menu">Accounts</span>
                             </a>
-                        </li>
+                        </li> -->
                     <?php } ?>
 
                     <?php if ($_SESSION['PK_ROLES'] == 5) { ?>
