@@ -559,7 +559,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-9">
+                                                                    <!-- <div class="col-9">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Reminder Options</label>
                                                                             <div class="row m-t-10">
@@ -574,7 +574,7 @@ if ($PK_USER_MASTER > 0) {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
+                                                                    </div> -->
                                                                 </div>
 
                                                                 <div class="row">
@@ -905,7 +905,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <div class="p-20">
-                                                                <!-- <div class="row">
+                                                                <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
@@ -917,7 +917,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         <span id="lblError" style="color: red"></span>
 
                                                                     </div>
-                                                                </div> -->
+                                                                </div>
 
                                                                 <div class="row">
                                                                     <div class="col-6">
@@ -1020,9 +1020,9 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
                                                             <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div class="row" style="margin-bottom: 25px;">
+                                                            <!-- <div class="row" style="margin-bottom: 25px;">
                                                                 <a href="javascript:;" style="float: right; margin-left: 91%; margin-top: 10px; color: green;" onclick="addMoreFamilyMember();"><b><i class="ti-plus"></i> New</b></a>
-                                                            </div>
+                                                            </div> -->
                                                             <?php
                                                             $family_member_details = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DETAILS WHERE PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND IS_PRIMARY = 0");
                                                             if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {

@@ -77,11 +77,11 @@ while (!$serviceCodeData->EOF) {
             <th style="text-align: center;">Paid Amount</th>
             <th style="text-align: center;">Payment Type</th>
             <th style="text-align: center;">Balance</th>
-            <!-- <th style="text-align: center;">
-            <?php if ($paid_count > 0) { ?>
+            <th style="text-align: center;">
+                <!-- <?php if ($paid_count > 0) { ?>
                 <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?= $PK_ENROLLMENT_MASTER ?>" onclick="toggleEnrollmentCheckboxes(<?= $PK_ENROLLMENT_MASTER ?>)"/><button type="button" class="btn btn-info m-l-10 text-white pay_selected_btn" onclick="paySelected(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $ENROLLMENT_ID ?>')" disabled> Pay Selected</button>
-            <?php } ?>
-        </th> -->
+            <?php } ?> -->
+            </th>
         </tr>
     </thead>
 
@@ -109,16 +109,16 @@ while (!$serviceCodeData->EOF) {
                 <td></td>
                 <td style="text-align: center;"></td>
                 <td style="text-align: right;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/ ?><?php /*=number_format((float)$balance, 2, '.', '')*/ ?></td>
-                <!-- <td style="text-align: right;">
-                <?php if ($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
-                    if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
+                <td style="text-align: right;">
+                    <!-- <?php if ($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
+                                if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $billing_details->fields['AMOUNT_REMAIN'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                     <?php } else { ?>
                         <label><input type="checkbox" name="PK_ENROLLMENT_LEDGER[]" class="pay_now_check PK_ENROLLMENT_LEDGER PAYMENT_CHECKBOX_<?= $PK_ENROLLMENT_MASTER ?>" data-billed_amount="<?= $billing_details->fields['BILLED_AMOUNT'] ?>" value="<?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>"></label>
                         <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light m-l-10 text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $billing_details->fields['BILLED_AMOUNT'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                     <?php }
-                } ?>
-            </td> -->
+                            } ?> -->
+                </td>
             </tr>
             <?php
             $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = " . $billing_details->fields['PK_ENROLLMENT_LEDGER']);
@@ -177,16 +177,16 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: right;"><?= $payment_details->fields['AMOUNT'] ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right;"><?= ($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : number_format((float)$refund_balance, 2, '.', '') ?></td>
-                        <!-- <td style="text-align: right;">
-                        <?php if (($payment_details->fields['IS_REFUNDED'] == 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
+                        <td style="text-align: right;">
+                            <!-- <?php if (($payment_details->fields['IS_REFUNDED'] == 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
                             <a class="btn btn-info waves-effect waves-light text-white <?= ($payment_details->fields['IS_REFUNDED'] == 1) ? 'disabled' : '' ?>" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= $payment_details->fields['AMOUNT'] ?>, 'active', 'Move', <?= $p ?>)">Move</a>
                             <a class="btn btn-info waves-effect waves-light text-white <?= ($payment_details->fields['IS_REFUNDED'] == 1) ? 'disabled' : '' ?>" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= $payment_details->fields['AMOUNT'] ?>, 'active', 'Refund', <?= $p ?>)">Refund</a>
                         <?php } elseif (($payment_details->fields['IS_REFUNDED'] == 1 && $billing_details->fields['AMOUNT_REMAIN'] > 0) && ($billing_details->fields['STATUS'] == 'A') && ($payment_details->fields['TYPE'] == 'Payment')) { ?>
                             <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Move', <?= $p ?>)">Move</a>
                             <a class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Refund', <?= $p ?>)">Refund</a>
-                        <?php } ?>
-                        <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
-                    </td> -->
+                        <?php } ?> -->
+                            <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                        </td>
                     </tr>
             <?php $payment_details->MoveNext();
                 }
@@ -250,9 +250,9 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: right;"><?= $cancelled_enrollment_payment_details->fields['AMOUNT'] ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right;"></td>
-                        <!-- <td style="text-align: right;">
-                        <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
-                    </td> -->
+                        <td style="text-align: right;">
+                            <a class="btn btn-info waves-effect waves-light text-white" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                        </td>
                     </tr>
         <?php $cancelled_enrollment_payment_details->MoveNext();
                 }

@@ -63,10 +63,10 @@ if (isset($_GET['standing'])) {
 }
 
 if ($standing == 1) {
-    $title = "All Standing Appointment";
+    $title = "Standing Appointments";
     $appointment_time = ' ';
 } else {
-    $title = "Today's Appointment";
+    $title = "Today's Appointments";
 }
 
 $ALL_APPOINTMENT_QUERY = "SELECT
@@ -79,6 +79,9 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.DATE,
                             DOA_APPOINTMENT_MASTER.START_TIME,
                             DOA_APPOINTMENT_MASTER.END_TIME,
+                            DOA_APPOINTMENT_MASTER.COMMENT,
+                            DOA_APPOINTMENT_MASTER.IMAGE,
+                            DOA_APPOINTMENT_MASTER.VIDEO,
                             DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
@@ -184,21 +187,21 @@ $page_first_result = ($page - 1) * $results_per_page;
                             <?php } ?>
                         </div>
 
-                        <?php if (empty($_GET['status']) || $status_check == 'future') { ?>
-                            <div class="col-md-2 align-self-center">
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous Appointments</button>
-                            </div>
-                        <?php } elseif ($status_check == 'previous') { ?>
-                            <div class="col-md-2 align-self-center">
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future Appointments</button>
-                            </div>
-                        <?php } ?>
+
+                        <div class="col-md-1 align-self-center">
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=previous'">Previous</button>
+                        </div>
+
+                        <div class="col-md-1 align-self-center">
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?status=future'">Future</button>
+                        </div>
+
 
                         <div class="col-md-1 align-self-center">
                             <?php if ($standing == 0) { ?>
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Show Standing</button>
+                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php?standing=1'">Standing</button>
                             <?php } else { ?>
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Show Normal</button>
+                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='appointment_list.php'">Normal</button>
                             <?php } ?>
                         </div>
 
@@ -253,8 +256,17 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             $i = $page_first_result + 1;
                                             $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY, $page_first_result . ',' . $results_per_page);
                                             while (!$appointment_data->EOF) {
-                                                if ($standing == 0) { ?>
-                                                    <tr>
+                                                if ($standing == 0) {
+                                                    $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER']);
+                                                    $CHANGED_BY = '';
+                                                    while (!$status_data->EOF) {
+                                                        $CHANGED_BY .= "(" . $status_data->fields['APPOINTMENT_STATUS'] . " by " . $status_data->fields['NAME'] . " at " . date('m-d-Y H:i:s A', strtotime($status_data->fields['TIME_STAMP'])) . ")<br>";
+                                                        $status_data->MoveNext();
+                                                    }
+                                                    $IMAGE_LINK = $appointment_data->fields['IMAGE'];
+                                                    $VIDEO_LINK = $appointment_data->fields['VIDEO'];
+                                            ?>
+                                                    <tr onclick="$(this).next().slideToggle();">
                                                     <?php } else { ?>
                                                     <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $appointment_data->fields['STANDING_ID'] ?>, <?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>)" style="cursor: pointer;">
                                                     <?php } ?>
@@ -290,6 +302,46 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                             <i class="ti-money"></i>
                                                         <?php } ?>
                                                     </td>
+                                                    </tr>
+
+                                                    <tr style="display: none">
+                                                        <td style="vertical-align: middle; text-align: center;" colspan="13">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <textarea class="form-control" name="COMMENT" rows="3"><?= $appointment_data->fields['COMMENT'] ?></textarea><span><?= $CHANGED_BY ?></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <a href="<?= $IMAGE_LINK ?>" target="_blank">
+                                                                            <img src="<?= $IMAGE_LINK ?>" style="margin-top: 15px; max-width: 150px; height: auto;">
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div class="form-group">
+                                                                        <a href="<?= $VIDEO_LINK ?>" target="_blank">
+                                                                            <?php if ($VIDEO_LINK != '') { ?>
+                                                                                <video width="240" height="135" controls>
+                                                                                    <source src="<?= $VIDEO_LINK ?>" type="video/mp4">
+                                                                                </video>
+                                                                            <?php } ?>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+
+                                                            <?php /*=$appointment_data->fields['COMMENT']*/ ?><!--
+                    <?php /*if ($IMAGE_LINK != '' && $IMAGE_LINK != null) { */ ?>
+                        (<a href="<?php /*=$IMAGE_LINK*/ ?>" target="_blank">View Image</a>)
+                    <?php /*} */ ?>
+                    <?php /*if ($VIDEO_LINK != '' && $VIDEO_LINK != null) { */ ?>
+                        (<a href="<?php /*=$VIDEO_LINK*/ ?>" target="_blank">View Video</a>)
+                    <?php /*} */ ?>
+                    <br><span><?php /*=$CHANGED_BY*/ ?></span>-->
+                                                        </td>
                                                     </tr>
                                                 <?php $appointment_data->MoveNext();
                                                 $i++;
