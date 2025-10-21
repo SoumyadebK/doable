@@ -31,7 +31,7 @@ $PK_PACKAGE = '';
 $TOTAL = '';
 $FINAL_AMOUNT = '';
 $PK_AGREEMENT_TYPE = '';
-$PK_DOCUMENT_LIBRARY = '';
+$PK_DOCUMENT_LIBRARY = 1;
 $AGREEMENT_PDF_LINK = '';
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
 $ENROLLMENT_BY_PERCENTAGE = '';
@@ -89,7 +89,7 @@ if (!empty($_GET['id'])) {
     $CHARGE_TYPE = $res->fields['CHARGE_TYPE'];
     $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
-    $PK_DOCUMENT_LIBRARY = $res->fields['PK_DOCUMENT_LIBRARY'];
+    $PK_DOCUMENT_LIBRARY = is_null($res->fields['PK_DOCUMENT_LIBRARY']) ? 1 : $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
