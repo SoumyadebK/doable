@@ -15,7 +15,7 @@ $all_location = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCA
 while (!$all_location->EOF) {
     date_default_timezone_set($all_location->fields['TIMEZONE']);
     $currentHour = (int)date('G');
-    if ($currentHour > 7 || $currentHour < 21) {
+    if ($currentHour > 8 || $currentHour < 17) {
         $DB_NAME = $all_location->fields['DB_NAME'];
         $db1 = new queryFactory();
         if ($_SERVER['HTTP_HOST'] == 'localhost') {

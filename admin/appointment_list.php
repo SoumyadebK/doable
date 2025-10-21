@@ -111,7 +111,6 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null) 
                         AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                         AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN ($appointment_status)
-                        AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         $standing_cond
                         $appointment_time
                         $search

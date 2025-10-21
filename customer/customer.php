@@ -402,53 +402,10 @@ if ($PK_USER_MASTER > 0) {
                 <div class="row page-titles" style="width: 90%;">
                     <div class="col-md-9 align-self-center">
                         <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 121%; margin-left: 13%">
-                            <?php if (in_array('Customers Profile View Only', $PERMISSION_ARRAY)) { ?>
-                                <?php if (in_array('Profile', $TAB_PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                <?php } ?>
-                                <li id="login_info_tab" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                <?php if (in_array('Family', $TAB_PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
-                                <?php } ?>
-                            <?php } ?>
-                            <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
-
-                            <?php if (!empty($_GET['id'])) { ?>
-                                <?php if (in_array('Customers Profile View Only', $PERMISSION_ARRAY)) { ?>
-                                    <?php if (in_array('Documents', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Active Enrollments', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                                    <?php } ?>
-
-                                    <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-
-                                    <?php if (in_array('Payment Register', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" onclick="getPaymentRegisterData()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Appointments', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('For Record Only', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
-                                    <?php } ?>
-                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
-                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                                    <?php if (in_array('Comments', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Credit Card', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" onclick="getSavedCreditCardList()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <?php } ?>
-                                    <?php if (in_array('Wallet', $TAB_PERMISSION_ARRAY)) { ?>
-                                        <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
-                                    <?php } ?>
-                                <?php } ?>
-                                <?php if (in_array('Customers Delete', $PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
-                                <?php } ?>
-                            <?php } ?>
+                            <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
+                            <li id="login_info_tab" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
+                            <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
+                            <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
                         </ul>
                     </div>
                 </div>
@@ -508,7 +465,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 </div>
 
                                                                 <div class="row">
-                                                                    <div class="col-3">
+                                                                    <div class="col-4">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
@@ -516,10 +473,10 @@ if ($PK_USER_MASTER > 0) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-1">
+                                                                    <!-- <div class="col-1">
                                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
-                                                                    </div>
-                                                                    <div class="col-3">
+                                                                    </div> -->
+                                                                    <div class="col-4">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Email<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
@@ -527,9 +484,9 @@ if ($PK_USER_MASTER > 0) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-1">
+                                                                    <!-- <div class="col-1">
                                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
-                                                                    </div>
+                                                                    </div> -->
                                                                     <!--<div class="col-2">
                                                                     <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?php /*=($CREATE_LOGIN == 1)?'checked':''*/ ?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
                                                                 </div>-->
@@ -555,9 +512,9 @@ if ($PK_USER_MASTER > 0) {
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div class="col-2" style="padding-top: 25px;">
+                                                                                    <!-- <div class="col-2" style="padding-top: 25px;">
                                                                                         <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                    </div>
+                                                                                    </div> -->
                                                                                 </div>
                                                                             <?php $customer_phone->MoveNext();
                                                                             } ?>
@@ -714,7 +671,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="row">
+                                                                <!-- <div class="row">
                                                                     <div class="col-6">
                                                                         <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
                                                                         <div class="custom-select" style="margin-bottom: 15px;">
@@ -754,7 +711,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             </select>
                                                                         </div>
                                                                     </div>
-                                                                </div>
+                                                                </div> -->
 
                                                                 <div class="row">
                                                                     <div class="col-12">
@@ -767,7 +724,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 </div>
 
-                                                                <hr>
+                                                                <!-- <hr>
                                                                 <div class="row">
                                                                     <div class="col-2" style="margin-left: 80%">
                                                                         <div class="form-group">
@@ -931,7 +888,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                         </div>
                                                                     </div>
-                                                                <? } ?>
+                                                                <? } ?> -->
                                                             </div>
                                                             <div class="form-group">
                                                                 <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
