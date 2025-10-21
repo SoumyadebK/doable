@@ -11,12 +11,11 @@ include('../global/excel/Classes/PHPExcel/IOFactory.php');
 $title = "SALES BY ENROLLMENT REPORT";
 
 $type = $_GET['type'];
+$include_no_provider = isset($_GET['include_no_provider']) ? $_GET['include_no_provider'] : 0;
 
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
-$service_provider_id = $_GET['PK_USER'];
-
-$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (" . $service_provider_id . ") GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE DESC";
+$service_provider_id = $_GET['service_provider_id'];
 
 $account_data = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
@@ -31,43 +30,22 @@ while (!$results->EOF) {
 $totalResults = count($resultsArray);
 $concatenatedResults = "";
 foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
     $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
     }
 }
 
-$cell1  = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
-define('EOL', (PHP_SAPI == 'cli') ? PHP_EOL : '<br />');
+// Create new PHPExcel object
+$objPHPExcel = new PHPExcel();
+$objPHPExcel->setActiveSheetIndex(0);
+$sheet = $objPHPExcel->getActiveSheet();
 
-$total_fields = 70;
-for ($i = 0; $i <= $total_fields; $i++) {
-    if ($i <= 25)
-        $cell[] = $cell1[$i];
-    else {
-        $j = floor($i / 26) - 1;
-        $k = ($i % 26);
-        //echo $j."--".$k."<br />";
-        $cell[] = $cell1[$j] . $cell1[$k];
-    }
-}
-
-$inputFileType  = 'Excel2007';
-$outputFileName = 'SALES_BY_ENROLLMENT_REPORT.xlsx';
-
-$objReader      = PHPExcel_IOFactory::createReader($inputFileType);
-$objReader->setIncludeCharts(TRUE);
-$objPHPExcel     = new PHPExcel();
-$objWriter         = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-
-$objPHPExcel->getActiveSheet()->getColumnDimension("A")->setWidth(20);
-$objPHPExcel->getActiveSheet()->getColumnDimension("B")->setWidth(20);
-$objPHPExcel->getActiveSheet()->getColumnDimension("C")->setWidth(20);
-
-$objPHPExcel->getActiveSheet()->mergeCells('A1:C1');
+// Set column widths
+$sheet->getColumnDimension("A")->setWidth(25);
+$sheet->getColumnDimension("B")->setWidth(15);
+$sheet->getColumnDimension("C")->setWidth(15);
+$sheet->getColumnDimension("D")->setWidth(40);
 
 $styleArray = [
     'borders' => [
@@ -78,46 +56,74 @@ $styleArray = [
     ]
 ];
 
-$cell_no = "A1";
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($title);
-$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18); // Set font size to 16
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(36);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle('A1:C1')->applyFromArray($styleArray);
+$rowNumber = 1;
 
-$cell_no = "A2";
-$objPHPExcel->getActiveSheet()->mergeCells('A2:C2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($business_name . " (" . $concatenatedResults . ")");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+// Title
+$sheet->mergeCells('A1:D1');
+$sheet->setCellValue('A1', $title);
+$sheet->getStyle('A1')->getFont()->setSize(18);
+$sheet->getStyle('A1')->getFont()->setBold(true);
+$sheet->getRowDimension(1)->setRowHeight(36);
+$sheet->getStyle('A1')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$sheet->getStyle('A1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('A1:D1')->applyFromArray($styleArray);
 
-$cell_no = "A3";
-$objPHPExcel->getActiveSheet()->mergeCells('A3:C3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+// Business Name
+$rowNumber = 2;
+$sheet->mergeCells('A2:D2');
+$sheet->setCellValue('A2', $business_name . " (" . $concatenatedResults . ")");
+$sheet->getStyle('A2')->getFont()->setBold(true);
+$sheet->getStyle('A2')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$sheet->getStyle('A2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('A2:D2')->applyFromArray($styleArray);
 
-$objPHPExcel->getActiveSheet()->getStyle('A2:C3')->applyFromArray($styleArray);
+// Date Range
+$rowNumber = 3;
+$sheet->mergeCells('A3:D3');
+$sheet->setCellValue('A3', date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)));
+$sheet->getStyle('A3')->getFont()->setBold(true);
+$sheet->getStyle('A3')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$sheet->getStyle('A3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('A3:D3')->applyFromArray($styleArray);
 
-$rowNumber = 5; // Start data at row 5
-$borderRows = [];
+$rowNumber = 5;
 
 // Get all selected service providers
 $each_service_provider = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID 
-                                        FROM DOA_ENROLLMENT_MASTER 
-                                        INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
-                                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                                        AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
-                                        GROUP BY SERVICE_PROVIDER_ID");
+    FROM DOA_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
+    WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
+    GROUP BY SERVICE_PROVIDER_ID");
 
 $all_providers_data = [];
-$all_enrollments_with_providers = []; // Track which enrollments have which providers
+$all_enrollments_with_providers = [];
+$enrollment_units_data = [];
 
-// First, let's collect ALL enrollment data to analyze
+// First, get total units for each enrollment
+$enrollment_units_query = $db_account->Execute("
+    SELECT 
+        em.PK_ENROLLMENT_MASTER,
+        COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS
+    FROM DOA_ENROLLMENT_MASTER em
+    LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+    GROUP BY em.PK_ENROLLMENT_MASTER
+");
+
+while (!$enrollment_units_query->EOF) {
+    $enrollment_id = $enrollment_units_query->fields['PK_ENROLLMENT_MASTER'];
+    $total_units = $enrollment_units_query->fields['TOTAL_UNITS'];
+    $enrollment_units_data[$enrollment_id] = $total_units;
+    $enrollment_units_query->MoveNext();
+}
+
+$total_all_units = array_sum($enrollment_units_data);
+
+// Process each service provider
 while (!$each_service_provider->EOF) {
     $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
     $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = " . $service_provider_id_per_table);
@@ -139,27 +145,22 @@ while (!$each_service_provider->EOF) {
     ];
 
     foreach ($enrollment_types as $type_id => $type_name) {
-        // Get enrollments with details and percentage
         $enrollments_query = $db_account->Execute("
-                                                SELECT 
-                                                    em.PK_ENROLLMENT_MASTER,
-                                                    em.ENROLLMENT_DATE,
-                                                    em.PK_ENROLLMENT_TYPE,
-                                                    COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS,
-                                                    esp.SERVICE_PROVIDER_PERCENTAGE
-                                                FROM DOA_ENROLLMENT_MASTER em
-                                                INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
-                                                INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
-                                                LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
-                                                LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-                                                WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                                AND eb.TOTAL_AMOUNT > 0
-                                                AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
-                                                AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
-                                                AND em.PK_ENROLLMENT_TYPE = $type_id
-                                                AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-                                                GROUP BY em.PK_ENROLLMENT_MASTER, esp.SERVICE_PROVIDER_PERCENTAGE
-                                            ");
+            SELECT 
+                em.PK_ENROLLMENT_MASTER,
+                em.ENROLLMENT_DATE,
+                em.PK_ENROLLMENT_TYPE,
+                esp.SERVICE_PROVIDER_PERCENTAGE
+            FROM DOA_ENROLLMENT_MASTER em
+            INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+            INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
+            WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+            AND eb.TOTAL_AMOUNT > 0
+            AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
+            AND em.PK_ENROLLMENT_TYPE = $type_id
+            AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+            GROUP BY em.PK_ENROLLMENT_MASTER
+        ");
 
         $enrollment_count = 0;
         $total_units = 0;
@@ -167,23 +168,21 @@ while (!$each_service_provider->EOF) {
 
         while (!$enrollments_query->EOF) {
             $enrollment_id = $enrollments_query->fields['PK_ENROLLMENT_MASTER'];
-            $total_units_for_enrollment = $enrollments_query->fields['TOTAL_UNITS'];
-            $provider_percentage = $enrollments_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
+            $percentage = $enrollments_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
 
-            // Calculate units based on provider percentage
-            $provider_units = $total_units_for_enrollment * ($provider_percentage / 100);
+            $total_enrollment_units = isset($enrollment_units_data[$enrollment_id]) ? $enrollment_units_data[$enrollment_id] : 0;
+            $provider_units = $total_enrollment_units * ($percentage / 100);
 
             $enrollment_count++;
             $total_units += $provider_units;
-            $enrollment_list[] = $enrollment_id . " (" . $provider_percentage . "%)";
+            $enrollment_list[] = $enrollment_id . " (" . number_format($provider_units, 2) . " units)";
 
-            // Track which providers are associated with each enrollment
             if (!isset($all_enrollments_with_providers[$enrollment_id])) {
                 $all_enrollments_with_providers[$enrollment_id] = [];
             }
             $all_enrollments_with_providers[$enrollment_id][] = [
-                'provider' => $provider_name,
-                'percentage' => $provider_percentage,
+                'provider_name' => $provider_name,
+                'percentage' => $percentage,
                 'units' => $provider_units
             ];
 
@@ -199,74 +198,87 @@ while (!$each_service_provider->EOF) {
     $each_service_provider->MoveNext();
 }
 
-// Calculate grand totals
-$grand_total_enrollments = count($all_enrollments_with_providers);
-$grand_total_units = 0;
-
-foreach ($all_providers_data as $provider) {
-    foreach (['pre_original', 'original', 'extension', 'renewal'] as $type) {
-        $grand_total_units += $provider[$type]['units'];
-    }
-}
-
-// Identify enrollments with multiple providers
-$multi_provider_enrollments = [];
-foreach ($all_enrollments_with_providers as $enrollment_id => $providers) {
-    if (count($providers) > 1) {
-        $multi_provider_enrollments[$enrollment_id] = $providers;
-    }
-}
-
-foreach ($all_providers_data as $provider_data):
-    $objPHPExcel->getActiveSheet()->setCellValue('A' . $rowNumber, $provider_data['name']);
-    $objPHPExcel->getActiveSheet()->getStyle('A' . $rowNumber)->getFont()->setBold(true);
-    $borderRows[] = $rowNumber;
+// EXPORT SERVICE PROVIDERS DATA
+foreach ($all_providers_data as $provider_data) {
+    // Provider Header
+    $sheet->setCellValue('A' . $rowNumber, $provider_data['name']);
+    $sheet->mergeCells('A' . $rowNumber . ':D' . $rowNumber);
+    $sheet->getStyle('A' . $rowNumber)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('E8E8E8');
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->applyFromArray($styleArray);
     $rowNumber++;
 
-    $headers = ['Enrollment Type', 'Total Enrollments', 'Total Units Sold',];
+    // Headers
+    $headers = ['Enrollment Type', 'Total Enrollments', 'Total Units Sold', 'Enrollment IDs (with units)'];
     $col = 0;
     foreach ($headers as $header) {
-        $objPHPExcel->getActiveSheet()->setCellValue($cell[$col] . $rowNumber, $header);
-        $objPHPExcel->getActiveSheet()->getStyle($cell[$col] . $rowNumber)->getFont()->setBold(true);
-        $objPHPExcel->getActiveSheet()->getStyle($cell[$col] . $rowNumber)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->setCellValueByColumnAndRow($col, $rowNumber, $header);
+        $sheet->getStyleByColumnAndRow($col, $rowNumber)->getFont()->setBold(true);
+        $sheet->getStyleByColumnAndRow($col, $rowNumber)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyleByColumnAndRow($col, $rowNumber)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('F0F0F0');
         $col++;
     }
-    $borderRows[] = $rowNumber;
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->applyFromArray($styleArray);
     $rowNumber++;
 
+    // Enrollment Types Data
     $enrollment_types = [
-        'Pre-Original' => 'pre_original',
+        'Pre Original' => 'pre_original',
         'Original' => 'original',
         'Extension' => 'extension',
         'Renewal' => 'renewal'
     ];
 
     foreach ($enrollment_types as $type_label => $type_key) {
-        $objPHPExcel->getActiveSheet()->setCellValue('A' . $rowNumber, $type_label);
-        $objPHPExcel->getActiveSheet()->setCellValue('B' . $rowNumber, $provider_data[$type_key]['sold']);
-        $objPHPExcel->getActiveSheet()->setCellValue('C' . $rowNumber, number_format($provider_data[$type_key]['units'], 2));
-        $borderRows[] = $rowNumber;
+        $sheet->setCellValue('A' . $rowNumber, $type_label);
+        $sheet->setCellValue('B' . $rowNumber, $provider_data[$type_key]['sold']);
+        $sheet->setCellValue('C' . $rowNumber, number_format($provider_data[$type_key]['units'], 2));
+        $sheet->setCellValue('D' . $rowNumber, !empty($provider_data[$type_key]['enrollments']) ? implode(', ', $provider_data[$type_key]['enrollments']) : 'None');
+        $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->applyFromArray($styleArray);
         $rowNumber++;
     }
 
-    // Add an empty row after each provider
-    $rowNumber++;
-endforeach;
+    // Provider Totals
+    $provider_total_enrollments = $provider_data['pre_original']['sold'] + $provider_data['original']['sold'] + $provider_data['extension']['sold'] + $provider_data['renewal']['sold'];
+    $provider_total_units = $provider_data['pre_original']['units'] + $provider_data['original']['units'] + $provider_data['extension']['units'] + $provider_data['renewal']['units'];
 
-// Apply borders only to header and data rows
-$borderStyle = [
-    'borders' => [
-        'allborders' => [
-            'style' => PHPExcel_Style_Border::BORDER_THIN,
-            'color' => ['rgb' => '000000']
-        ]
-    ]
-];
-
-foreach ($borderRows as $row) {
-    $objPHPExcel->getActiveSheet()->getStyle('A' . $row . ':C' . $row)->applyFromArray($borderStyle);
+    $sheet->setCellValue('A' . $rowNumber, 'Provider Total');
+    $sheet->setCellValue('B' . $rowNumber, $provider_total_enrollments);
+    $sheet->setCellValue('C' . $rowNumber, number_format($provider_total_units, 2));
+    $sheet->setCellValue('D' . $rowNumber, '');
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('E8F4FF');
+    $sheet->getStyle('A' . $rowNumber . ':D' . $rowNumber)->applyFromArray($styleArray);
+    $rowNumber += 2; // Add extra space between providers
 }
 
-$objWriter->save($outputFileName);
-$objPHPExcel->disconnectWorksheets();
-header("location:" . $outputFileName);
+// Add some basic summary if no providers found
+if (empty($all_providers_data)) {
+    $sheet->setCellValue('A' . $rowNumber, 'No data found for the selected criteria.');
+    $sheet->mergeCells('A' . $rowNumber . ':D' . $rowNumber);
+    $sheet->getStyle('A' . $rowNumber)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $rowNumber)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+    $rowNumber++;
+}
+
+// Save the file
+$outputFileName = 'SALES_BY_ENROLLMENT_REPORT_' . date('Y-m-d') . '.xlsx';
+$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+
+// Clear any previous output
+if (ob_get_length()) {
+    ob_clean();
+}
+
+// Set headers for download
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="' . $outputFileName . '"');
+header('Cache-Control: max-age=0');
+header('Cache-Control: max-age=1');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+header('Cache-Control: cache, must-revalidate');
+header('Pragma: public');
+
+$objWriter->save('php://output');
+exit;

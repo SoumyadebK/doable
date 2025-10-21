@@ -559,7 +559,7 @@ if ($PK_USER_MASTER > 0) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-9">
+                                                                    <!-- <div class="col-9">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Reminder Options</label>
                                                                             <div class="row m-t-10">
@@ -574,7 +574,7 @@ if ($PK_USER_MASTER > 0) {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
+                                                                    </div> -->
                                                                 </div>
 
                                                                 <div class="row">
@@ -905,7 +905,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <div class="p-20">
-                                                                <!-- <div class="row">
+                                                                <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="form-group">
                                                                             <label class="col-md-12">User Name</label>
@@ -917,7 +917,7 @@ if ($PK_USER_MASTER > 0) {
                                                                         <span id="lblError" style="color: red"></span>
 
                                                                     </div>
-                                                                </div> -->
+                                                                </div>
 
                                                                 <div class="row">
                                                                     <div class="col-6">
@@ -991,7 +991,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                 <?php } ?>
 
-                                                                <?php if (!empty($_GET['id'])) { ?>
+                                                                <!-- <?php if (!empty($_GET['id'])) { ?>
                                                                     <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
                                                                         <div class="col-md-1">
                                                                             <label class="form-label">Active : </label>
@@ -1001,13 +1001,13 @@ if ($PK_USER_MASTER > 0) {
                                                                             <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                         </div>
                                                                     </div>
-                                                                <? } ?>
+                                                                <? } ?> -->
                                                             </div>
                                                             <div class="form-group">
-                                                                <?php if (in_array('Customer Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                    <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                                <?php } ?>
+
+                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
+                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
+
                                                             </div>
                                                         </form>
                                                     </div>
@@ -1020,9 +1020,9 @@ if ($PK_USER_MASTER > 0) {
                                                             <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
                                                             <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div class="row" style="margin-bottom: 25px;">
+                                                            <!-- <div class="row" style="margin-bottom: 25px;">
                                                                 <a href="javascript:;" style="float: right; margin-left: 91%; margin-top: 10px; color: green;" onclick="addMoreFamilyMember();"><b><i class="ti-plus"></i> New</b></a>
-                                                            </div>
+                                                            </div> -->
                                                             <?php
                                                             $family_member_details = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DETAILS WHERE PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND IS_PRIMARY = 0");
                                                             if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
@@ -1480,11 +1480,11 @@ if ($PK_USER_MASTER > 0) {
                                                                                         <input type="hidden" name="FILE_PATH_URL[]" value="<?= $row->fields['FILE_PATH'] ?>">
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="col-2">
+                                                                                <!-- <div class="col-2">
                                                                                     <div class="form-group" style="margin-top: 30px;">
                                                                                         <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
                                                                                     </div>
-                                                                                </div>
+                                                                                </div> -->
                                                                             </div>
                                                                         <?php $row->MoveNext();
                                                                             $user_doc_count++;
@@ -1504,16 +1504,16 @@ if ($PK_USER_MASTER > 0) {
                                                                                     <input type="file" name="FILE_PATH[]" class="form-control">
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-2">
+                                                                            <!-- <div class="col-2">
                                                                                 <div class="form-group" style="margin-top: 30px;">
                                                                                     <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
                                                                                 </div>
-                                                                            </div>
+                                                                            </div> -->
                                                                         </div>
                                                                     <?php } ?>
                                                                 </div>
                                                             </div>
-                                                            <div class="row">
+                                                            <!-- <div class="row">
                                                                 <div class="col-11">
                                                                     <div class="form-group">
                                                                         <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
@@ -1523,7 +1523,7 @@ if ($PK_USER_MASTER > 0) {
                                                             <div class="form-group">
                                                                 <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
                                                                 <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
+                                                            </div> -->
                                                         </form>
                                                     </div>
 
