@@ -1584,7 +1584,6 @@ function getServiceProviderCount($RESPONSE_DATA)
                             WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
                             AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
                             AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                            AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
                             AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` = '$date' GROUP BY DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER";
     $service_provider_appointment_count = $db_account->Execute($ALL_APPOINTMENT_QUERY);
@@ -1604,7 +1603,6 @@ function getServiceProviderCount($RESPONSE_DATA)
                             WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
                             AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
                             AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                            AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
                             AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` = '$date'");
 
@@ -1619,7 +1617,6 @@ function getServiceProviderCount($RESPONSE_DATA)
                             WHERE (CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)
                             AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
                             AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
-                            AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
                             AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` BETWEEN '$start_date' AND '$end_date'");
 
