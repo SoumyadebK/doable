@@ -165,6 +165,8 @@ if ($type === 'export') {
                                     <div>
                                         <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
                                         <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
+                                        <?php $package = $db_account->Execute("SELECT PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_PACKAGE = " . $PK_PACKAGE); ?>
+                                        <h5 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $package->fields['PACKAGE_NAME'] ?></h5>
                                     </div>
 
                                     <div class="table-responsive">
@@ -182,12 +184,13 @@ if ($type === 'export') {
                                                     <th style="width:10%; text-align: center">Total Charges Due</th>
                                                     <th style="width:10%; text-align: center">Amount of Payment</th>
                                                     <th style="width:10%; text-align: center">Reported on Week</th>
+                                                    <th style="width:10%; text-align: center">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
                                                 $i = 1;
-                                                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = " . $PK_PACKAGE . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") ORDER BY PAYMENT_DATE ");
+                                                $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT, DOA_ENROLLMENT_MASTER.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment') AND DOA_ENROLLMENT_MASTER.PK_PACKAGE = " . $PK_PACKAGE . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") ORDER BY PAYMENT_DATE ");
                                                 $total = 0;
                                                 $unique_id = [];
                                                 while (!$row->EOF) {
@@ -214,6 +217,7 @@ if ($type === 'export') {
                                                         <td style="text-align: center">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
                                                         <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'], 2) ?></td>
                                                         <td style="text-align: center">#<?= $weekNumber ?></td>
+                                                        <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
                                                     </tr>
                                                 <?php $row->MoveNext();
                                                     $i++;

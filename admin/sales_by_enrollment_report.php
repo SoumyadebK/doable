@@ -78,41 +78,51 @@ foreach ($resultsArray as $key => $result) {
                 </div>
 
                 <div class="row">
-                    <div class="col-12">
+                    <!-- <div class="col-12">
                         <div class="card">
                             <div class="card-body">
                                 <form class="form-material form-horizontal" action="" method="get" id="reportForm">
                                     <input type="hidden" name="start_date" id="start_date">
                                     <input type="hidden" name="end_date" id="end_date">
                                     <div class="row">
-                                        <!-- <div class="col-2">
-                                            <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this);">
-                                                    <option value="">Select Report</option>
-                                                    <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
-                                                    <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
-                                                    <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
-                                                </select>
-                                            </div>
-                                        </div> -->
                                         <div class="col-2">
                                             <div id="location" style="width: 100%;">
                                                 <select class="multi_select_service_provider" multiple id="service_provider_select" name="PK_USER[]">
                                                     <?php
-                                                    $selected_service_provider = [];
-                                                    if (!empty($_GET['id'])) {
-                                                        $selected_service_provider_row = $db->Execute("SELECT `PK_USER` FROM `DOA_USERS` WHERE `PK_USER` = '$service_provider_id'");
-                                                        while (!$selected_service_provider_row->EOF) {
-                                                            $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
-                                                            $selected_service_provider_row->MoveNext();
-                                                        }
+                                                    // Convert service_provider_id string to array for selection check
+                                                    $selected_provider_ids = [];
+                                                    if (!empty($service_provider_id) && $service_provider_id != '0') {
+                                                        $selected_provider_ids = explode(',', $service_provider_id);
                                                     }
-                                                    $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                    while (!$row->EOF) {
+
+                                                    // Fixed query with proper session variable handling
+                                                    $query = "SELECT DISTINCT DU.PK_USER, CONCAT(DU.FIRST_NAME, ' ', DU.LAST_NAME) AS NAME 
+                      FROM DOA_USERS DU
+                      INNER JOIN DOA_USER_ROLES DUR ON DU.PK_USER = DUR.PK_USER 
+                      INNER JOIN DOA_USER_LOCATION DUL ON DU.PK_USER = DUL.PK_USER 
+                      WHERE DU.ACTIVE = 1 
+                      AND DUR.PK_ROLES = 5 
+                      AND DUL.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                      AND DU.PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'
+                      ORDER BY DU.FIRST_NAME, DU.LAST_NAME";
+
+                                                    $row = $db->Execute($query);
+
+                                                    if ($row && $row->RecordCount() > 0) {
+                                                        while (!$row->EOF) {
+                                                            $user_id = $row->fields['PK_USER'];
+                                                            $selected = in_array($user_id, $selected_provider_ids) ? 'selected' : '';
                                                     ?>
-                                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= in_array($row->fields['PK_USER'], $selected_service_provider) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
+                                                            <option value="<?php echo $user_id; ?>" <?= $selected ?>>
+                                                                <?= htmlspecialchars($row->fields['NAME']) ?>
+                                                            </option>
+                                                    <?php
+                                                            $row->MoveNext();
+                                                        }
+                                                    } else {
+                                                        echo '<option value="">No Service Providers Found</option>';
+                                                    }
+                                                    ?>
                                                 </select>
                                             </div>
                                         </div>
@@ -135,25 +145,13 @@ foreach ($resultsArray as $key => $result) {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <!-- <span class="export-buttons" id="exportButtons">
-                                                    <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                    <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                </span>
-                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                             <?php } ?>
-                                        </div>
-                                        <div class="col-4">
-                                            <p id="last_export_message" style="color: red; margin-top: 9px;"></p>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-4" id="export_log">
                                         </div>
                                     </div>
                                 </form>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <?php if ($type === 'export') { ?>
                         <h3>Data export to Arthur Murray API Successfully</h3>
@@ -178,43 +176,108 @@ foreach ($resultsArray as $key => $result) {
                                         </div>
 
                                         <?php
+                                        // Get total sold counts from studio summary report (matching the studio business report logic)
+                                        $weekly_pre_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 AND IS_SALE = 'Y' AND PK_ENROLLMENT_TYPE = 5 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+
+                                        $weekly_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 AND IS_SALE = 'Y' AND PK_ENROLLMENT_TYPE = 2 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+
+                                        $weekly_extension_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 AND IS_SALE = 'Y' AND PK_ENROLLMENT_TYPE = 9 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+
+                                        $weekly_renewal_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 AND IS_SALE = 'Y' AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'");
+
+                                        // Store the total sold counts
+                                        $total_pre_original_sold = $weekly_pre_original_sold->fields['SOLD'] > 0 ? $weekly_pre_original_sold->fields['SOLD'] : 0;
+                                        $total_original_sold = $weekly_original_sold->fields['SOLD'] > 0 ? $weekly_original_sold->fields['SOLD'] : 0;
+                                        $total_extension_sold = $weekly_extension_sold->fields['SOLD'] > 0 ? $weekly_extension_sold->fields['SOLD'] : 0;
+                                        $total_renewal_sold = $weekly_renewal_sold->fields['SOLD'] > 0 ? $weekly_renewal_sold->fields['SOLD'] : 0;
+                                        $total_all_sold = $total_pre_original_sold + $total_original_sold + $total_extension_sold + $total_renewal_sold;
+
+                                        // Get total units from studio summary report (EXACT MATCH with Studio Business Report)
+                                        $weekly_pre_original_units = $db_account->Execute("
+    SELECT COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS 
+    FROM DOA_ENROLLMENT_MASTER em 
+    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER 
+    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE 
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND eb.TOTAL_AMOUNT > 0 
+    AND em.PK_ENROLLMENT_TYPE = 5 
+    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL) 
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+");
+
+                                        $weekly_original_units = $db_account->Execute("
+    SELECT COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS 
+    FROM DOA_ENROLLMENT_MASTER em 
+    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER 
+    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE 
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND eb.TOTAL_AMOUNT > 0 
+    AND em.PK_ENROLLMENT_TYPE = 2 
+    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL) 
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+");
+
+                                        $weekly_extension_units = $db_account->Execute("
+    SELECT COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS 
+    FROM DOA_ENROLLMENT_MASTER em 
+    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER 
+    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE 
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND eb.TOTAL_AMOUNT > 0 
+    AND em.PK_ENROLLMENT_TYPE = 9 
+    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL) 
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+");
+
+                                        $weekly_renewal_units = $db_account->Execute("
+    SELECT COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS 
+    FROM DOA_ENROLLMENT_MASTER em 
+    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER 
+    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE 
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND eb.TOTAL_AMOUNT > 0 
+    AND em.PK_ENROLLMENT_TYPE = 13 
+    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL) 
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+");
+
+                                        // Store the total units
+                                        $total_pre_original_units = $weekly_pre_original_units->fields['TOTAL_UNITS'] > 0 ? $weekly_pre_original_units->fields['TOTAL_UNITS'] : 0;
+                                        $total_original_units = $weekly_original_units->fields['TOTAL_UNITS'] > 0 ? $weekly_original_units->fields['TOTAL_UNITS'] : 0;
+                                        $total_extension_units = $weekly_extension_units->fields['TOTAL_UNITS'] > 0 ? $weekly_extension_units->fields['TOTAL_UNITS'] : 0;
+                                        $total_renewal_units = $weekly_renewal_units->fields['TOTAL_UNITS'] > 0 ? $weekly_renewal_units->fields['TOTAL_UNITS'] : 0;
+                                        $total_all_units_studio = $total_pre_original_units + $total_original_units + $total_extension_units + $total_renewal_units;
+
+                                        // Get all enrollments (including non-sales) for comparison
+                                        $all_enrollments_query = $db_account->Execute("
+    SELECT COUNT(DISTINCT em.PK_ENROLLMENT_MASTER) AS TOTAL_ENROLLMENTS
+    FROM DOA_ENROLLMENT_MASTER em
+    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+    AND eb.TOTAL_AMOUNT > 0
+    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+");
+                                        $total_all_enrollments = $all_enrollments_query->fields['TOTAL_ENROLLMENTS'] ?? 0;
+
                                         // Get all selected service providers
                                         $each_service_provider = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID 
     FROM DOA_ENROLLMENT_MASTER 
     INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER 
+    INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER
     WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0
+    AND DOA_ENROLLMENT_MASTER.IS_SALE = 'Y'
     AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN ($service_provider_id) 
     GROUP BY SERVICE_PROVIDER_ID");
 
                                         $all_providers_data = [];
                                         $all_enrollments_with_providers = []; // Track which enrollments have which providers
-                                        $enrollment_units_data = []; // Store total units per enrollment
 
-                                        // First, get total units for each enrollment
-                                        $enrollment_units_query = $db_account->Execute("
-                                        SELECT 
-                                            em.PK_ENROLLMENT_MASTER,
-                                            COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_UNITS
-                                        FROM DOA_ENROLLMENT_MASTER em
-                                        LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
-                                        LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-                                        WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                        AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
-                                        AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-                                        GROUP BY em.PK_ENROLLMENT_MASTER
-                                    ");
-
-                                        while (!$enrollment_units_query->EOF) {
-                                            $enrollment_id = $enrollment_units_query->fields['PK_ENROLLMENT_MASTER'];
-                                            $total_units = $enrollment_units_query->fields['TOTAL_UNITS'];
-                                            $enrollment_units_data[$enrollment_id] = $total_units;
-                                            $enrollment_units_query->MoveNext();
-                                        }
-
-                                        // Calculate total units across all enrollments for percentage calculations
-                                        $total_all_units = array_sum($enrollment_units_data);
-
-                                        // Process each service provider
+                                        // Process each service provider (only for sold enrollments)
                                         while (!$each_service_provider->EOF) {
                                             $service_provider_id_per_table = $each_service_provider->fields['SERVICE_PROVIDER_ID'];
                                             $name = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM DOA_USERS WHERE DOA_USERS.PK_USER = " . $service_provider_id_per_table);
@@ -236,41 +299,55 @@ foreach ($resultsArray as $key => $result) {
                                             ];
 
                                             foreach ($enrollment_types as $type_id => $type_name) {
-                                                // Get enrollments with service provider percentage
-                                                $enrollments_query = $db_account->Execute("
-            SELECT 
-                em.PK_ENROLLMENT_MASTER,
-                em.ENROLLMENT_DATE,
-                em.PK_ENROLLMENT_TYPE,
-                esp.SERVICE_PROVIDER_PERCENTAGE
+                                                // QUERY 1: Get sold enrollments count for this provider and type
+                                                $sold_enrollments_query = $db_account->Execute("
+            SELECT COUNT(DISTINCT em.PK_ENROLLMENT_MASTER) AS SOLD_COUNT
             FROM DOA_ENROLLMENT_MASTER em
             INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
             INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
             WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-            AND eb.TOTAL_AMOUNT > 0
+            AND eb.TOTAL_AMOUNT > 0 
+            AND em.IS_SALE = 'Y'
             AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
             AND em.PK_ENROLLMENT_TYPE = $type_id
             AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-            GROUP BY em.PK_ENROLLMENT_MASTER
         ");
 
-                                                $enrollment_count = 0;
+                                                $sold_count = $sold_enrollments_query->fields['SOLD_COUNT'] ?? 0;
+
+                                                // QUERY 2: Get total units for this provider and type (using percentage allocation)
+                                                $units_query = $db_account->Execute("
+            SELECT 
+                em.PK_ENROLLMENT_MASTER,
+                esp.SERVICE_PROVIDER_PERCENTAGE,
+                COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS TOTAL_ENROLLMENT_UNITS
+            FROM DOA_ENROLLMENT_MASTER em
+            INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+            INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
+            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+            AND eb.TOTAL_AMOUNT > 0 
+            AND em.IS_SALE = 'Y'
+            AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
+            AND em.PK_ENROLLMENT_TYPE = $type_id
+            AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
+            AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+            GROUP BY em.PK_ENROLLMENT_MASTER, esp.SERVICE_PROVIDER_PERCENTAGE
+        ");
+
                                                 $total_units = 0;
                                                 $enrollment_list = [];
 
-                                                while (!$enrollments_query->EOF) {
-                                                    $enrollment_id = $enrollments_query->fields['PK_ENROLLMENT_MASTER'];
-                                                    $percentage = $enrollments_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
+                                                while (!$units_query->EOF) {
+                                                    $enrollment_id = $units_query->fields['PK_ENROLLMENT_MASTER'];
+                                                    $percentage = $units_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
+                                                    $enrollment_units = $units_query->fields['TOTAL_ENROLLMENT_UNITS'];
 
-                                                    // Calculate units based on percentage
-                                                    $total_enrollment_units = isset($enrollment_units_data[$enrollment_id]) ? $enrollment_units_data[$enrollment_id] : 0;
-                                                    $provider_units = $total_enrollment_units * ($percentage / 100);
-
-                                                    // Calculate fractional enrollment count based on percentage
-                                                    $fractional_enrollment_count = $percentage / 100;
-
-                                                    $enrollment_count += $fractional_enrollment_count;
+                                                    // Calculate provider's share of units based on percentage
+                                                    $provider_units = $enrollment_units * ($percentage / 100);
                                                     $total_units += $provider_units;
+
                                                     $enrollment_list[] = $enrollment_id . " (" . number_format($provider_units, 2) . " units - " . $percentage . "%)";
 
                                                     // Track which providers are associated with each enrollment
@@ -281,13 +358,35 @@ foreach ($resultsArray as $key => $result) {
                                                         'provider_name' => $provider_name,
                                                         'percentage' => $percentage,
                                                         'units' => $provider_units,
-                                                        'fractional_count' => $fractional_enrollment_count
+                                                        'fractional_count' => $percentage / 100
                                                     ];
 
-                                                    $enrollments_query->MoveNext();
+                                                    $units_query->MoveNext();
                                                 }
 
-                                                $provider_data[$type_name]['sold'] = $enrollment_count;
+                                                // Calculate fractional enrollment count based on percentage
+                                                $fractional_enrollment_count = 0;
+                                                $enrollments_with_percentage_query = $db_account->Execute("
+            SELECT esp.SERVICE_PROVIDER_PERCENTAGE
+            FROM DOA_ENROLLMENT_MASTER em
+            INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+            INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON em.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
+            WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+            AND eb.TOTAL_AMOUNT > 0 
+            AND em.IS_SALE = 'Y'
+            AND esp.SERVICE_PROVIDER_ID = $service_provider_id_per_table
+            AND em.PK_ENROLLMENT_TYPE = $type_id
+            AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+            GROUP BY em.PK_ENROLLMENT_MASTER, esp.SERVICE_PROVIDER_PERCENTAGE
+        ");
+
+                                                while (!$enrollments_with_percentage_query->EOF) {
+                                                    $percentage = $enrollments_with_percentage_query->fields['SERVICE_PROVIDER_PERCENTAGE'];
+                                                    $fractional_enrollment_count += ($percentage / 100);
+                                                    $enrollments_with_percentage_query->MoveNext();
+                                                }
+
+                                                $provider_data[$type_name]['sold'] = $fractional_enrollment_count;
                                                 $provider_data[$type_name]['units'] = $total_units;
                                                 $provider_data[$type_name]['enrollments'] = $enrollment_list;
                                             }
@@ -297,8 +396,8 @@ foreach ($resultsArray as $key => $result) {
                                         }
 
                                         // Calculate grand totals
-                                        $grand_total_enrollments = count($enrollment_units_data);
-                                        $grand_total_units = array_sum($enrollment_units_data);
+                                        $grand_total_enrollments = $total_all_sold;
+                                        $grand_total_units = $total_all_units_studio;
 
                                         // Identify enrollments with multiple providers
                                         $multi_provider_enrollments = [];
@@ -319,15 +418,17 @@ foreach ($resultsArray as $key => $result) {
                                         ];
 
                                         if ($include_no_provider == 1) {
-                                            // First, get all enrollment IDs that have service providers in our selected providers
+                                            // First, get all enrollment IDs that have service providers in our selected providers (only sold enrollments)
                                             $enrollments_with_providers_query = $db_account->Execute("
-        SELECT DISTINCT esp.PK_ENROLLMENT_MASTER
-        FROM DOA_ENROLLMENT_SERVICE_PROVIDER esp
-        INNER JOIN DOA_ENROLLMENT_MASTER em ON esp.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
-        WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-        AND esp.SERVICE_PROVIDER_ID IN ($service_provider_id)
-        AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-    ");
+                                                SELECT DISTINCT esp.PK_ENROLLMENT_MASTER
+                                                FROM DOA_ENROLLMENT_SERVICE_PROVIDER esp
+                                                INNER JOIN DOA_ENROLLMENT_MASTER em ON esp.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                                INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+                                                WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                AND eb.TOTAL_AMOUNT > 0 AND em.IS_SALE = 'Y'  -- Match studio summary report logic
+                                                AND esp.SERVICE_PROVIDER_ID IN ($service_provider_id)
+                                                AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+                                            ");
 
                                             $enrollments_with_providers = [];
                                             while (!$enrollments_with_providers_query->EOF) {
@@ -343,24 +444,25 @@ foreach ($resultsArray as $key => $result) {
                                             ];
 
                                             foreach ($enrollment_types as $type_id => $type_name) {
-                                                // Get ALL enrollments of this type in our date range
+                                                // Get ALL enrollments of this type in our date range (only sold enrollments)
                                                 $all_enrollments_query = $db_account->Execute("
-            SELECT 
-                em.PK_ENROLLMENT_MASTER,
-                em.ENROLLMENT_DATE,
-                em.PK_ENROLLMENT_TYPE,
-                COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS UNITS
-            FROM DOA_ENROLLMENT_MASTER em
-            INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
-            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
-            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-            WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-            AND eb.TOTAL_AMOUNT > 0
-            AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
-            AND em.PK_ENROLLMENT_TYPE = $type_id
-            AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
-            GROUP BY em.PK_ENROLLMENT_MASTER
-        ");
+                                                    SELECT 
+                                                        em.PK_ENROLLMENT_MASTER,
+                                                        em.ENROLLMENT_DATE,
+                                                        em.PK_ENROLLMENT_TYPE,
+                                                        COALESCE(SUM(es.NUMBER_OF_SESSION), 0) AS UNITS
+                                                    FROM DOA_ENROLLMENT_MASTER em
+                                                    INNER JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
+                                                    LEFT JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                                                    LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                    WHERE em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND eb.TOTAL_AMOUNT > 0 
+                                                    AND em.IS_SALE = 'Y'  -- Match studio summary report logic
+                                                    AND (sc.IS_GROUP = 0 OR sc.IS_GROUP IS NULL)
+                                                    AND em.PK_ENROLLMENT_TYPE = $type_id
+                                                    AND em.ENROLLMENT_DATE BETWEEN '$from_date' AND '$to_date'
+                                                    GROUP BY em.PK_ENROLLMENT_MASTER
+                                                ");
 
                                                 $enrollment_count = 0;
                                                 $total_units = 0;
@@ -392,6 +494,40 @@ foreach ($resultsArray as $key => $result) {
                                             $no_provider_data['total_percentage'] = $total_all_units > 0 ? ($no_provider_total_units / $total_all_units) * 100 : 0;
                                         }
                                         ?>
+
+                                        <!-- NEW SECTION: Total Sold Counts from Studio Summary Report -->
+                                        <!-- <div class="table-responsive mt-4">
+                                            <table class="table table-bordered table-sm" style="background-color: #d4edda;">
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="6" style="text-align: center; font-weight: bold; font-size: 14px;">TOTAL SOLD COUNTS (Studio Summary Report)</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="text-align: center">Enrollment Type</th>
+                                                        <th style="text-align: center">Pre Original</th>
+                                                        <th style="text-align: center">Original</th>
+                                                        <th style="text-align: center">Extension</th>
+                                                        <th style="text-align: center">Renewal</th>
+                                                        <th style="text-align: center">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="text-align: center; font-weight: bold">Total Sold</td>
+                                                        <td style="text-align: center"><?= $total_pre_original_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_original_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_extension_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_renewal_sold ?></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $total_all_sold ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="text-align: center; font-weight: bold">Total All Enrollments</td>
+                                                        <td style="text-align: center" colspan="4"></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $total_all_enrollments ?></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div> -->
 
                                         <!-- Debug Section: Show enrollments with multiple providers -->
                                         <div class="table-responsive mt-4">
@@ -520,8 +656,140 @@ foreach ($resultsArray as $key => $result) {
                                             </div>
                                         <?php endforeach; ?>
 
-                                        <!-- Update Summary Statistics to use fractional counts -->
+                                        <?php
+                                        // NEW SECTION: Table for Enrollments Without Service Providers
+                                        if ($include_no_provider == 1 && ($no_provider_data['total_units'] > 0 || $total_enrollments_without_providers > 0)): ?>
+                                            <div class="table-responsive mt-4">
+                                                <table class="table table-bordered" data-page-length='50'>
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4">ENROLLMENTS WITHOUT SERVICE PROVIDERS</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="width:8%; text-align: center">Enrollment Type</th>
+                                                            <th style="width:8%; text-align: center">Total Enrollments</th>
+                                                            <th style="width:8%; text-align: center">Total Units Sold</th>
+                                                            <th style="width:26%; text-align: center">Enrollment IDs (with units)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- Pre Original Without Provider -->
+                                                        <tr>
+                                                            <td style="text-align: center">Pre Original</td>
+                                                            <td style="text-align: center"><?= $no_provider_data['pre_original']['sold'] ?></td>
+                                                            <td style="text-align: center"><?= number_format($no_provider_data['pre_original']['units'], 2) ?></td>
+                                                            <td style="text-align: center; font-size: 11px;">
+                                                                <?= !empty($no_provider_data['pre_original']['enrollments']) ? implode(', ', $no_provider_data['pre_original']['enrollments']) : 'None' ?>
+                                                            </td>
+                                                        </tr>
+
+                                                        <!-- Original Without Provider -->
+                                                        <tr>
+                                                            <td style="text-align: center">Original</td>
+                                                            <td style="text-align: center"><?= $no_provider_data['original']['sold'] ?></td>
+                                                            <td style="text-align: center"><?= number_format($no_provider_data['original']['units'], 2) ?></td>
+                                                            <td style="text-align: center; font-size: 11px;">
+                                                                <?= !empty($no_provider_data['original']['enrollments']) ? implode(', ', $no_provider_data['original']['enrollments']) : 'None' ?>
+                                                            </td>
+                                                        </tr>
+
+                                                        <!-- Extension Without Provider -->
+                                                        <tr>
+                                                            <td style="text-align: center">Extension</td>
+                                                            <td style="text-align: center"><?= $no_provider_data['extension']['sold'] ?></td>
+                                                            <td style="text-align: center"><?= number_format($no_provider_data['extension']['units'], 2) ?></td>
+                                                            <td style="text-align: center; font-size: 11px;">
+                                                                <?= !empty($no_provider_data['extension']['enrollments']) ? implode(', ', $no_provider_data['extension']['enrollments']) : 'None' ?>
+                                                            </td>
+                                                        </tr>
+
+                                                        <!-- Renewal Without Provider -->
+                                                        <tr>
+                                                            <td style="text-align: center">Renewal</td>
+                                                            <td style="text-align: center"><?= $no_provider_data['renewal']['sold'] ?></td>
+                                                            <td style="text-align: center"><?= number_format($no_provider_data['renewal']['units'], 2) ?></td>
+                                                            <td style="text-align: center; font-size: 11px;">
+                                                                <?= !empty($no_provider_data['renewal']['enrollments']) ? implode(', ', $no_provider_data['renewal']['enrollments']) : 'None' ?>
+                                                            </td>
+                                                        </tr>
+
+                                                        <!-- No Provider Totals -->
+                                                        <tr style="background-color: #f8d7da;">
+                                                            <td style="text-align: center; font-weight: bold">No Provider Total</td>
+                                                            <td style="text-align: center; font-weight: bold">
+                                                                <?= $no_provider_data['pre_original']['sold'] + $no_provider_data['original']['sold'] + $no_provider_data['extension']['sold'] + $no_provider_data['renewal']['sold'] ?>
+                                                            </td>
+                                                            <td style="text-align: center; font-weight: bold">
+                                                                <?= number_format($no_provider_data['total_units'], 2) ?>
+                                                            </td>
+                                                            <td style="text-align: center; font-weight: bold">
+                                                                Total Unique: <?= count(array_unique(array_merge(
+                                                                                    array_map(function ($e) {
+                                                                                        return explode(' ', $e)[0];
+                                                                                    }, $no_provider_data['pre_original']['enrollments']),
+                                                                                    array_map(function ($e) {
+                                                                                        return explode(' ', $e)[0];
+                                                                                    }, $no_provider_data['original']['enrollments']),
+                                                                                    array_map(function ($e) {
+                                                                                        return explode(' ', $e)[0];
+                                                                                    }, $no_provider_data['extension']['enrollments']),
+                                                                                    array_map(function ($e) {
+                                                                                        return explode(' ', $e)[0];
+                                                                                    }, $no_provider_data['renewal']['enrollments'])
+                                                                                ))) ?>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <!-- Update Summary Statistics to use consistent unit calculations -->
                                         <div class="table-responsive mt-4">
+                                            <table class="table table-bordered table-sm" style="background-color: #d4edda;">
+                                                <thead>
+                                                    <tr>
+                                                        <th colspan="6" style="text-align: center; font-weight: bold; font-size: 14px;">TOTAL SOLD COUNTS & UNITS</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="text-align: center">Enrollment Type</th>
+                                                        <th style="text-align: center">Pre Original</th>
+                                                        <th style="text-align: center">Original</th>
+                                                        <th style="text-align: center">Extension</th>
+                                                        <th style="text-align: center">Renewal</th>
+                                                        <th style="text-align: center">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Sold Row -->
+                                                    <tr>
+                                                        <td style="text-align: center; font-weight: bold">Total Sold</td>
+                                                        <td style="text-align: center"><?= $total_pre_original_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_original_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_extension_sold ?></td>
+                                                        <td style="text-align: center"><?= $total_renewal_sold ?></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $total_all_sold ?></td>
+                                                    </tr>
+                                                    <!-- Units Row -->
+                                                    <tr>
+                                                        <td style="text-align: center; font-weight: bold">Total Units</td>
+                                                        <td style="text-align: center"><?= number_format($total_pre_original_units, 2) ?></td>
+                                                        <td style="text-align: center"><?= number_format($total_original_units, 2) ?></td>
+                                                        <td style="text-align: center"><?= number_format($total_extension_units, 2) ?></td>
+                                                        <td style="text-align: center"><?= number_format($total_renewal_units, 2) ?></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= number_format($total_all_units_studio, 2) ?></td>
+                                                    </tr>
+                                                    <!-- <tr>
+                                                        <td style="text-align: center; font-weight: bold">Total All Enrollments</td>
+                                                        <td style="text-align: center" colspan="4"></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $total_all_enrollments ?></td>
+                                                    </tr> -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Update the Summary Statistics to use the studio report totals -->
+                                        <!-- <div class="table-responsive mt-4">
                                             <table class="table table-bordered table-sm" style="background-color: #e9ecef;">
                                                 <thead>
                                                     <tr>
@@ -530,79 +798,34 @@ foreach ($resultsArray as $key => $result) {
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    // Calculate total enrollments with providers (using fractional counts)
+                                                    // Calculate totals from provider data
                                                     $total_enrollments_with_providers = 0;
+                                                    $total_provider_units = 0;
                                                     foreach ($all_providers_data as $provider) {
                                                         $total_enrollments_with_providers += $provider['pre_original']['sold'] + $provider['original']['sold'] + $provider['extension']['sold'] + $provider['renewal']['sold'];
+                                                        $total_provider_units += $provider['pre_original']['units'] + $provider['original']['units'] + $provider['extension']['units'] + $provider['renewal']['units'];
                                                     }
 
-                                                    // Calculate total enrollments without providers
-                                                    $total_enrollments_without_providers = 0;
-                                                    if ($include_no_provider == 1) {
-                                                        $total_enrollments_without_providers = $no_provider_data['pre_original']['sold'] + $no_provider_data['original']['sold'] + $no_provider_data['extension']['sold'] + $no_provider_data['renewal']['sold'];
-                                                    }
-
-                                                    // Total ALL enrollments (with providers + without providers)
-                                                    $total_all_enrollments = $total_enrollments_with_providers + $total_enrollments_without_providers;
-
-                                                    // Calculate actual unique enrollment count (not fractional)
-                                                    $all_unique_enrollment_ids = array_keys($enrollment_units_data);
-                                                    $actual_unique_enrollment_count = count($all_unique_enrollment_ids);
+                                                    // Use studio report totals for comparison
+                                                    $total_units_all_sold = $total_all_units_studio;
+                                                    $total_covered_units = $total_provider_units + $total_no_provider_units;
+                                                    $coverage_percentage = $total_units_all_sold > 0 ? ($total_covered_units / $total_units_all_sold) * 100 : 0;
                                                     ?>
 
+                                                    // Your existing summary rows... 
                                                     <tr>
-                                                        <td style="text-align: right; font-weight: bold">Total Enrollments with Service Providers:</td>
-                                                        <td style="text-align: left"><?= number_format($total_enrollments_with_providers, 2) ?></td>
-                                                    </tr>
-                                                    <?php if ($include_no_provider == 1): ?>
-                                                        <tr>
-                                                            <td style="text-align: right; font-weight: bold">Total Enrollments without Service Providers:</td>
-                                                            <td style="text-align: left"><?= $total_enrollments_without_providers ?></td>
-                                                        </tr>
-                                                    <?php endif; ?>
-                                                    <tr>
-                                                        <td style="text-align: right; font-weight: bold">Total ALL Enrollments (Fractional):</td>
-                                                        <td style="text-align: left"><?= number_format($total_all_enrollments, 2) ?></td>
+                                                        <td style="text-align: right; font-weight: bold">Total Units (Studio Summary):</td>
+                                                        <td style="text-align: left"><?= number_format($total_units_all_sold, 2) ?></td>
                                                     </tr>
                                                     <tr>
-                                                        <td style="text-align: right; font-weight: bold">Actual Unique Enrollments:</td>
-                                                        <td style="text-align: left; font-weight: bold"><?= $actual_unique_enrollment_count ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="text-align: right; font-weight: bold">Enrollments with Multiple Service Providers:</td>
-                                                        <td style="text-align: left"><?= count($multi_provider_enrollments) ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="text-align: right; font-weight: bold">Total Service Provider Units (by %):</td>
-                                                        <td style="text-align: left">
-                                                            <?php
-                                                            $total_allocated_units = 0;
-                                                            foreach ($all_providers_data as $provider) {
-                                                                $total_allocated_units += $provider['pre_original']['units'] + $provider['original']['units'] + $provider['extension']['units'] + $provider['renewal']['units'];
-                                                            }
-                                                            echo number_format($total_allocated_units, 2);
-                                                            ?>
+                                                        <td style="text-align: right; font-weight: bold">Total Units Covered:</td>
+                                                        <td style="text-align: left; font-weight: bold">
+                                                            <?= number_format($total_covered_units, 2) . " (" . number_format($coverage_percentage, 2) . "%)" ?>
                                                         </td>
                                                     </tr>
-                                                    <?php if ($include_no_provider == 1): ?>
-                                                        <tr>
-                                                            <td style="text-align: right; font-weight: bold">Total No Service Provider Units:</td>
-                                                            <td style="text-align: left"><?= number_format($no_provider_data['total_units'], 2) ?></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="text-align: right; font-weight: bold">Total Units:</td>
-                                                            <td style="text-align: left; font-weight: bold">
-                                                                <?php
-                                                                $total_coverage_units = $total_allocated_units + $no_provider_data['total_units'];
-                                                                $coverage_percentage = $grand_total_units > 0 ? ($total_coverage_units / $grand_total_units) * 100 : 0;
-                                                                echo number_format($total_coverage_units, 2) . " (" . number_format($coverage_percentage, 2) . "%)";
-                                                                ?>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endif; ?>
                                                 </tbody>
                                             </table>
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                             </div>
@@ -617,9 +840,34 @@ foreach ($resultsArray as $key => $result) {
 </html>
 
 <script>
-    $('.multi_select_service_provider').SumoSelect({
-        placeholder: 'Select Service Provider',
-        selectAll: true,
-        triggerChangeCombined: true
+    $(document).ready(function() {
+        $('.multi_select_service_provider').SumoSelect({
+            placeholder: 'Select Service Provider',
+            selectAll: true,
+            triggerChangeCombined: true,
+            search: true,
+            searchText: 'Search Service Providers...'
+        });
+
+        // Also update hidden date fields when form dates change
+        $('#START_DATE, #END_DATE').change(function() {
+            var startDate = $('#START_DATE').val();
+            var endDate = $('#END_DATE').val();
+
+            if (startDate) {
+                $('#start_date').val(formatDateForSubmit(startDate));
+            }
+            if (endDate) {
+                $('#end_date').val(formatDateForSubmit(endDate));
+            }
+        });
+
+        function formatDateForSubmit(dateString) {
+            var parts = dateString.split('/');
+            if (parts.length === 3) {
+                return parts[2] + '-' + parts[0] + '-' + parts[1]; // YYYY-MM-DD
+            }
+            return dateString;
+        }
     });
 </script>

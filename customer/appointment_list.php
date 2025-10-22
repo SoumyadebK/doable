@@ -246,6 +246,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Day</th>
                                                 <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Time</th>
+                                                <th data-type="string" class="sortable" style="cursor: pointer">Comment & Uploads</th>
                                                 <th>Paid</th>
                                                 <th style="width: 8%;">Status</th>
                                             </tr>
@@ -295,6 +296,9 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     <?php } ?>
 
                                                     <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
+                                                    <td style="cursor: pointer; vertical-align: middle; text-align: center;"><?php if ($appointment_data->fields['COMMENT'] != '' || $IMAGE_LINK != '' || $VIDEO_LINK != '' || $CHANGED_BY != '') { ?>
+                                                            <button class="btn btn-info waves-effect waves-light m-r-10 text-white">View</button> <?php } ?>
+                                                    </td>
                                                     <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
                                                     <td style="text-align: left; color: <?= $appointment_data->fields['APPOINTMENT_COLOR'] ?>">
                                                         <?= $appointment_data->fields['APPOINTMENT_STATUS'] ?>&nbsp;
