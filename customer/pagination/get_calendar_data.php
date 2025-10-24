@@ -298,8 +298,8 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $PK_USER_MASTER = $appointment_data->fields['PK_USER_MASTER'];
         $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
 
-        if ($SESSION_PK_USER_MASTER == $PK_USER_MASTER) {
-            $customerName = $appointment_data->fields['CUSTOMER_NAME'];
+        if (($SESSION_PK_USER_MASTER == $PK_USER_MASTER) || ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP')) {
+            /* $customerName = $appointment_data->fields['CUSTOMER_NAME'];
             $partnerName = '';
 
             if ($appointment_data->fields['APPOINTMENT_TYPE'] != 'GROUP') {
@@ -338,11 +338,12 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
                     $selected_customer->MoveNext();
                 }
                 $customerName = implode(', ', $customerNameArray);
-            }
+            } */
 
             $appointment_number = '';
             $paid_status = '';
             $title = ' || ';
+            $customerName = '';
 
             $appointment_array[] = [
                 'id' => $PK_APPOINTMENT_MASTER,
@@ -357,7 +358,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
                 'type' => $type,
                 'status' => $appointment_data->fields['STATUS_CODE'],
                 'statusColor' => $appointment_data->fields['APPOINTMENT_COLOR'],
-                'comment' => $appointment_data->fields['COMMENT'],
+                'comment' => ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP') ? '' : $appointment_data->fields['COMMENT'],
                 'internal_comment' => $appointment_data->fields['INTERNAL_COMMENT'],
                 'statusCode' => $appointment_data->fields['SCHEDULING_CODE'],
                 'duration' => $appointment_data->fields['DURATION'],

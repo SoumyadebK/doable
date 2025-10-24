@@ -93,7 +93,7 @@ while (!$serviceCodeData->EOF) {
         $p = 0;
         $billed_amount = 0;
         $balance = 0;
-        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE " . $ledger_condition . " AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE ((STATUS IN ('C','CA') AND IS_PAID = 1) OR STATUS IN ('A','CO')) AND " . $ledger_condition . " AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER . " AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
         while (!$billing_details->EOF) {
             $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
             $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
