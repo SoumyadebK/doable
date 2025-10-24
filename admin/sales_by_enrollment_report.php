@@ -50,6 +50,26 @@ foreach ($resultsArray as $key => $result) {
         $concatenatedResults .= ", ";
     }
 }
+
+if (!empty($_GET['START_DATE'])) {
+    $type = isset($_GET['view']) ? 'view' : 'export';
+    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $report_name = 'sales_by_enrollment_report';
+    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $START_DATE = date('Y-m-d', strtotime($_GET['START_DATE']));
+    $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
+    $PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
+    $include_no_provider = isset($_GET['include_no_provider']) ? 1 : 0;
+
+    if ($generate_pdf === 1) {
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
+    } elseif ($generate_excel === 1) {
+        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
+    } else {
+        header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -78,7 +98,7 @@ foreach ($resultsArray as $key => $result) {
                 </div>
 
                 <div class="row">
-                    <!-- <div class="col-12">
+                    <div class="col-12">
                         <div class="card">
                             <div class="card-body">
                                 <form class="form-material form-horizontal" action="" method="get" id="reportForm">
@@ -151,7 +171,7 @@ foreach ($resultsArray as $key => $result) {
                                 </form>
                             </div>
                         </div>
-                    </div> -->
+                    </div>
 
                     <?php if ($type === 'export') { ?>
                         <h3>Data export to Arthur Murray API Successfully</h3>
@@ -466,6 +486,7 @@ foreach ($resultsArray as $key => $result) {
 
                                                 $enrollment_count = 0;
                                                 $total_units = 0;
+                                                $total_all_units = $total_all_units_studio; // Use previously calculated total units
                                                 $enrollment_list = [];
 
                                                 while (!$all_enrollments_query->EOF) {
@@ -849,25 +870,36 @@ foreach ($resultsArray as $key => $result) {
             searchText: 'Search Service Providers...'
         });
 
-        // Also update hidden date fields when form dates change
-        $('#START_DATE, #END_DATE').change(function() {
+        // Initialize datepickers
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Form validation
+        $('#reportForm').on('submit', function(e) {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
 
-            if (startDate) {
-                $('#start_date').val(formatDateForSubmit(startDate));
+            // Validate dates are filled
+            if (!startDate || !endDate) {
+                alert('Please select both start date and end date.');
+                e.preventDefault();
+                return false;
             }
-            if (endDate) {
-                $('#end_date').val(formatDateForSubmit(endDate));
-            }
-        });
 
-        function formatDateForSubmit(dateString) {
-            var parts = dateString.split('/');
-            if (parts.length === 3) {
-                return parts[2] + '-' + parts[0] + '-' + parts[1]; // YYYY-MM-DD
+            // Validate date range
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+
+            if (start > end) {
+                alert('Start date cannot be after end date.');
+                e.preventDefault();
+                return false;
             }
-            return dateString;
-        }
+
+            return true;
+        });
     });
 </script>
