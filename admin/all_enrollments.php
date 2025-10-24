@@ -464,11 +464,11 @@ if (isset($_POST['SUBMIT'])) {
                                                             <a href="enrollment.php?id_customer=<?= $row->fields['PK_USER'] ?>&master_id_customer=<?= $row->fields['PK_USER_MASTER'] ?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php } ?>
                                                         <?php
-                                                        $res = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT_PAID) AS TOTAL_PAID, SUM(SESSION_COMPLETED) AS COMPLETED FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-                                                        if ($res->fields['TOTAL_PAID'] == 0 && $res->fields['COMPLETED'] == 0) {
+                                                        $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
+                                                        if ($payment_data->RecordCount() == 0) {
                                                         ?>
                                                             <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                                                                <a href="all_enrollments.php?type=del&id=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>" onclick='javascript:ConfirmDelete(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);return false;' title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                             <?php } ?>
                                                         <?php } ?>
                                                     </td>
