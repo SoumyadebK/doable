@@ -298,7 +298,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
         $PK_USER_MASTER = $appointment_data->fields['PK_USER_MASTER'];
         $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
 
-        if ($SESSION_PK_USER_MASTER == $PK_USER_MASTER) {
+        if (($SESSION_PK_USER_MASTER == $PK_USER_MASTER) || ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP')) {
             $customerName = $appointment_data->fields['CUSTOMER_NAME'];
             $partnerName = '';
 

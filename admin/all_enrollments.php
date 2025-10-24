@@ -33,11 +33,14 @@ if ($not_billed_enrollment->RecordCount() > 0) {
 
 $START_DATE = ' ';
 $END_DATE = ' ';
+$ORDER_BY = ' DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC ';
 if (!empty($_GET['FROM_DATE'])) {
     $START_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= '" . date('Y-m-d', strtotime($_GET['FROM_DATE'])) . "'";
+    $ORDER_BY = ' DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC ';
 }
 if (!empty($_GET['END_DATE'])) {
     $END_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . date('Y-m-d', strtotime($_GET['END_DATE'])) . "'";
+    $ORDER_BY = ' DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE DESC ';
 }
 
 $search_text = '';
@@ -59,7 +62,7 @@ if (!empty($_GET['search_text'])) {
     $search = ' ';
 }*/
 
-$query = $db_account->Execute("SELECT count(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TOTAL_RECORDS FROM  DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")" . $search);
+$query = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER)) AS TOTAL_RECORDS FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search);
 
 $number_of_result = ($query->RecordCount() > 0) ? $query->fields['TOTAL_RECORDS'] : 1;
 $number_of_page = ceil($number_of_result / $results_per_page);
@@ -397,7 +400,7 @@ if (isset($_POST['SUBMIT'])) {
                                         <tbody>
                                             <?php
                                             $i = $page_first_result + 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search . " ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT " . $page_first_result . ',' . $results_per_page);
+                                            $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search . " ORDER BY " . $ORDER_BY . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                             while (!$row->EOF) {
                                                 $name = $row->fields['ENROLLMENT_NAME'];
                                                 if ($row->fields['MISC_TYPE']) {
@@ -498,21 +501,21 @@ if (isset($_POST['SUBMIT'])) {
                                         <div class="pagination outer">
                                             <ul>
                                                 <?php if ($page > 1) { ?>
-                                                    <li><a href="all_enrollments.php?page=1">&laquo;</a></li>
-                                                    <li><a href="all_enrollments.php?page=<?= ($page - 1) ?>">&lsaquo;</a></li>
+                                                    <li><a href="all_enrollments.php?page=1<?= ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&laquo;</a></li>
+                                                    <li><a href="all_enrollments.php?page=<?= ($page - 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&lsaquo;</a></li>
                                                 <?php }
                                                 for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
                                                     if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     } elseif ($page_count == ($number_of_page - 1)) {
                                                         echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                     } else {
-                                                        echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     }
                                                 }
                                                 if ($page < $number_of_page) { ?>
-                                                    <li><a href="all_enrollments.php?page=<?= ($page + 1) ?>">&rsaquo;</a></li>
-                                                    <li><a href="all_enrollments.php?page=<?= $number_of_page ?>">&raquo;</a></li>
+                                                    <li><a href="all_enrollments.php?page=<?= ($page + 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&rsaquo;</a></li>
+                                                    <li><a href="all_enrollments.php?page=<?= $number_of_page . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&raquo;</a></li>
                                                 <?php } ?>
                                             </ul>
                                         </div>
