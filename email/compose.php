@@ -277,27 +277,44 @@ if ($default_selected_cus)
                                                                     <label>Recipients/To</label>
                                                                 </div>
                                                                 <div class="span9 col-md-10">
-                                                                    <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
-                                                                        <option value="1" <?= (in_array(1, $replay_user_array) ? 'selected' : '') ?>>Super Admin</option>
-                                                                        <?php
-                                                                        if ($_SESSION['PK_ROLES'] == 4) {
-                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN (3, 5) AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
-                                                                        } else {
-                                                                            $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (" . implode(',', $replay_user_array) . ")");
-                                                                        }
-                                                                        while (!$res_type->EOF) {
-                                                                            $PK_USER = $res_type->fields['PK_USER'];
-                                                                            $selected = '';
-                                                                            if ($id != '') {
-                                                                                if (in_array($PK_USER, $replay_user_array))
+                                                                    <?php if ($_SESSION['PK_ROLES'] == 4) { ?>
+                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
+                                                                            <?php
+                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN (3, 5) AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
+
+                                                                            while (!$res_type->EOF) {
+                                                                                $PK_USER = $res_type->fields['PK_USER'];
+                                                                                $selected = '';
+                                                                                if ($id != '') {
+                                                                                    if (in_array($PK_USER, $replay_user_array))
+                                                                                        $selected = 'selected';
+                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
                                                                                     $selected = 'selected';
-                                                                            } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
-                                                                                $selected = 'selected';
-                                                                        ?>
-                                                                            <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
-                                                                        <?php $res_type->MoveNext();
-                                                                        } ?>
-                                                                    </select>
+                                                                            ?>
+                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
+                                                                            <?php $res_type->MoveNext();
+                                                                            } ?>
+                                                                        </select>
+                                                                    <?php } else { ?>
+                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
+                                                                            <option value="1" <?= (in_array(1, $replay_user_array) ? 'selected' : '') ?>>Super Admin</option>
+                                                                            <?php
+                                                                            $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (" . implode(',', $replay_user_array) . ")");
+
+                                                                            while (!$res_type->EOF) {
+                                                                                $PK_USER = $res_type->fields['PK_USER'];
+                                                                                $selected = '';
+                                                                                if ($id != '') {
+                                                                                    if (in_array($PK_USER, $replay_user_array))
+                                                                                        $selected = 'selected';
+                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
+                                                                                    $selected = 'selected';
+                                                                            ?>
+                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
+                                                                            <?php $res_type->MoveNext();
+                                                                            } ?>
+                                                                        </select>
+                                                                    <?php } ?>
                                                                 </div>
                                                             </div>
 
