@@ -13,10 +13,10 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-if(!empty($_GET['selected_range'])) {
+if (!empty($_GET['selected_range'])) {
     $selected_range = $_GET['selected_range'];
     $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-    $query = "SELECT DISTINCT DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER LEFT JOIN DOA_MASTER.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE =1 AND DOA_USERS.IS_DELETED = 0 AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")  AND DOA_APPOINTMENT_MASTER.DATE >= DATE_SUB('".$selected_date."', INTERVAL ".$selected_range." MONTH) AND DOA_APPOINTMENT_MASTER.DATE <= '".$selected_date."'";
+    $query = "SELECT DISTINCT DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER LEFT JOIN DOA_MASTER.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE =1 AND DOA_USERS.IS_DELETED = 0 AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")  AND DOA_APPOINTMENT_MASTER.DATE >= DATE_SUB('" . $selected_date . "', INTERVAL " . $selected_range . " MONTH) AND DOA_APPOINTMENT_MASTER.DATE <= '" . $selected_date . "'";
 } else {
     $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
     $query = "SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN DOA_MASTER.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE =1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE = '" . date('Y-m-d', strtotime($selected_date)) . "'";
@@ -73,6 +73,20 @@ $API_KEY                = $payment_gateway_data->fields['API_KEY'];
 $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date'] . "&type=view";
+
+if (!empty($_GET['SELECTED_DATE'])) {
+    $report_name = 'active_account_balance_report';
+    $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $SELECTED_DATE = $_GET['SELECTED_DATE'];
+    $SELECTED_RANGE = $_GET['SELECTED_RANGE'];
+    if ($generate_excel === 1) {
+
+        header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
+    } else {
+        header('location:active_account_balance_report_details.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -96,6 +110,41 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                                 <li class="breadcrumb-item"><a href="active_account_balance_report.php">Select Date & Range</a></li>
                                 <li class="breadcrumb-item active"><a href="active_account_balance_report_details.php"><?= $title ?></a></li>
                             </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="row" style="padding: 15px 0px 0px 15px;">
+                                <form class="form-material form-horizontal" action="" method="get">
+                                    <input type="hidden" name="selected_date" id="selected_date">
+                                    <div class="row">
+                                        <div class="col-2 selected_date">
+                                            <div class="form-group">
+                                                <input type="text" id="SELECTED_DATE" name="SELECTED_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?= !empty($_GET['selected_date']) ? date('m/d/Y', strtotime($_GET['selected_date'])) : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 selected_range">
+                                            <div class="form-group">
+                                                <select class="form-control" name="SELECTED_RANGE" id="SELECTED_RANGE">
+                                                    <option value="">Select Range</option>
+                                                    <option value="1" <?= (isset($_GET['selected_range']) && $_GET['selected_range'] == '1') ? 'selected' : '' ?>>1 Month Prior</option>
+                                                    <option value="3" <?= (isset($_GET['selected_range']) && $_GET['selected_range'] == '3') ? 'selected' : '' ?>>3 Months Prior</option>
+                                                    <option value="6" <?= (isset($_GET['selected_range']) && $_GET['selected_range'] == '6') ? 'selected' : '' ?>>6 Months Prior</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -125,90 +174,90 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                                         <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
                                     </div>
 
-                                <?php
-                                $service_data = $db_account->Execute($query);
+                                    <?php
+                                    $service_data = $db_account->Execute($query);
 
-                                while (!$service_data->EOF) {
-                                    $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $service_data->fields['PK_USER_MASTER']);
+                                    while (!$service_data->EOF) {
+                                        $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $service_data->fields['PK_USER_MASTER']);
                                     ?>
-                                    <div class="border" style="margin: 10px;">
-                                        <div class="row enrollment_div" style="font-size: 15px; padding: 8px;">
-                                            <div class="col-2" style="text-align: center; margin-top: 1.5%;">
-                                                <p><strong><?= $customer->fields['CUSTOMER_NAME'] ?></strong></p>
-                                                <!-- <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= ($enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></a> -->
-                                            </div>
-                                            <div class="col-10">
-                                                <table id="myTable" class="table table-striped border" style="margin: auto; ">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="text-align: center;">Service Code</th>
-                                                            <th style="text-align: center;">Enroll</th>
-                                                            <th style="text-align: center;">Used</th>
-                                                            <th style="text-align: center;">Scheduled</th>
-                                                            <th style="text-align: center;">Remain</th>
-                                                            <th style="text-align: center;">Balance</th>
-                                                            <th style="text-align: center;">Paid</th>
-                                                        </tr>
-                                                    </thead>
-
-                                                    <tbody>
-                                                        <?php
-                                                        $pending_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $service_data->fields['PK_USER_MASTER']);
-                                                        $pending_service_code_array = [];
-                                                        while (!$pending_service_data->EOF) {
-                                                            if ($pending_service_data->fields['CHARGE_TYPE'] == 'Membership') {
-                                                                $NUMBER_OF_SESSION = getSessionCreatedCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
-                                                            } else {
-                                                                $NUMBER_OF_SESSION = $pending_service_data->fields['NUMBER_OF_SESSION'];
-                                                            }
-                                                            $SESSION_SCHEDULED = getSessionScheduledCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
-                                                            $SESSION_COMPLETED = getSessionCompletedCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
-                                                            $PRICE_PER_SESSION = $pending_service_data->fields['PRICE_PER_SESSION'];
-                                                            $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($pending_service_data->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
-                                                            $remain_session = $NUMBER_OF_SESSION - ($SESSION_COMPLETED + $SESSION_SCHEDULED);
-                                                            $ps_balance = $paid_session - $SESSION_COMPLETED;
-
-                                                            //if ($remain_session > 0) {
-                                                            if (isset($pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']])) {
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] += $NUMBER_OF_SESSION;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] += $remain_session;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] += $pending_service_data->fields['TOTAL_AMOUNT_PAID'];
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] += $SESSION_COMPLETED;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['SCHEDULED'] += $SESSION_SCHEDULED;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] += $ps_balance;
-                                                            } else {
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] = $NUMBER_OF_SESSION;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] = $remain_session;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] = $pending_service_data->fields['TOTAL_AMOUNT_PAID'];
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] = $SESSION_COMPLETED;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['SCHEDULED'] = $SESSION_SCHEDULED;
-                                                                $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance;
-                                                            }
-                                                            //}
-
-                                                            $pending_service_data->MoveNext();
-                                                        } ?>
-                                                        <?php foreach ($pending_service_code_array as $service_code) { ?>
+                                        <div class="border" style="margin: 10px;">
+                                            <div class="row enrollment_div" style="font-size: 15px; padding: 8px;">
+                                                <div class="col-2" style="text-align: center; margin-top: 1.5%;">
+                                                    <p><strong><?= $customer->fields['CUSTOMER_NAME'] ?></strong></p>
+                                                    <!-- <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= ($enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></a> -->
+                                                </div>
+                                                <div class="col-10">
+                                                    <table id="myTable" class="table table-striped border" style="margin: auto; ">
+                                                        <thead>
                                                             <tr>
-                                                                <td style="text-align: center;"><?= $service_code['CODE'] ?></td>
-                                                                <td style="text-align: center;"><?= $service_code['ENROLL'] ?></td>
-                                                                <td style="text-align: center;"><?= $service_code['USED'] ?></td>
-                                                                <td style="text-align: center;"><?= $service_code['SCHEDULED'] ?></td>
-                                                                <td style="text-align: center;"><?= $service_code['REMAIN'] ?></td>
-                                                                <td style="text-align: center; color:<?= ($service_code['BALANCE'] < 0) ? 'red' : 'black' ?>;"><?= $service_code['BALANCE'] ?></td>
-                                                                <td style="text-align: center;">$<?= number_format($service_code['PAID'], 2) ?></td>
+                                                                <th style="text-align: center;">Service Code</th>
+                                                                <th style="text-align: center;">Enroll</th>
+                                                                <th style="text-align: center;">Used</th>
+                                                                <th style="text-align: center;">Scheduled</th>
+                                                                <th style="text-align: center;">Remain</th>
+                                                                <th style="text-align: center;">Balance</th>
+                                                                <th style="text-align: center;">Paid</th>
                                                             </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            <?php
+                                                            $pending_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $service_data->fields['PK_USER_MASTER']);
+                                                            $pending_service_code_array = [];
+                                                            while (!$pending_service_data->EOF) {
+                                                                if ($pending_service_data->fields['CHARGE_TYPE'] == 'Membership') {
+                                                                    $NUMBER_OF_SESSION = getSessionCreatedCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                                                } else {
+                                                                    $NUMBER_OF_SESSION = $pending_service_data->fields['NUMBER_OF_SESSION'];
+                                                                }
+                                                                $SESSION_SCHEDULED = getSessionScheduledCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                                                $SESSION_COMPLETED = getSessionCompletedCount($pending_service_data->fields['PK_ENROLLMENT_SERVICE']);
+                                                                $PRICE_PER_SESSION = $pending_service_data->fields['PRICE_PER_SESSION'];
+                                                                $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($pending_service_data->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
+                                                                $remain_session = $NUMBER_OF_SESSION - ($SESSION_COMPLETED + $SESSION_SCHEDULED);
+                                                                $ps_balance = $paid_session - $SESSION_COMPLETED;
+
+                                                                //if ($remain_session > 0) {
+                                                                if (isset($pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']])) {
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] += $NUMBER_OF_SESSION;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] += $remain_session;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] += $pending_service_data->fields['TOTAL_AMOUNT_PAID'];
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] += $SESSION_COMPLETED;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['SCHEDULED'] += $SESSION_SCHEDULED;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] += $ps_balance;
+                                                                } else {
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['CODE'] = $pending_service_data->fields['SERVICE_CODE'];
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['ENROLL'] = $NUMBER_OF_SESSION;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['REMAIN'] = $remain_session;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['PAID'] = $pending_service_data->fields['TOTAL_AMOUNT_PAID'];
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['USED'] = $SESSION_COMPLETED;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['SCHEDULED'] = $SESSION_SCHEDULED;
+                                                                    $pending_service_code_array[$pending_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance;
+                                                                }
+                                                                //}
+
+                                                                $pending_service_data->MoveNext();
+                                                            } ?>
+                                                            <?php foreach ($pending_service_code_array as $service_code) { ?>
+                                                                <tr>
+                                                                    <td style="text-align: center;"><?= $service_code['CODE'] ?></td>
+                                                                    <td style="text-align: center;"><?= $service_code['ENROLL'] ?></td>
+                                                                    <td style="text-align: center;"><?= $service_code['USED'] ?></td>
+                                                                    <td style="text-align: center;"><?= $service_code['SCHEDULED'] ?></td>
+                                                                    <td style="text-align: center;"><?= $service_code['REMAIN'] ?></td>
+                                                                    <td style="text-align: center; color:<?= ($service_code['BALANCE'] < 0) ? 'red' : 'black' ?>;"><?= $service_code['BALANCE'] ?></td>
+                                                                    <td style="text-align: center;">$<?= number_format($service_code['PAID'], 2) ?></td>
+                                                                </tr>
+                                                            <?php } ?>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                <?php
-                                    $service_data->MoveNext();
-                                } ?>
+                                    <?php
+                                        $service_data->MoveNext();
+                                    } ?>
                                 </div>
                             </div>
                         </div>
@@ -319,5 +368,11 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                 })
                 .catch(error => console.error('Error:', error));
         });
+    });
+</script>
+
+<script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
     });
 </script>

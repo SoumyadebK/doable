@@ -120,6 +120,27 @@ while (!$executive_data->EOF) {
     $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
     $executive_data->MoveNext();
 }
+
+if (!empty($_GET['START_DATE'])) {
+    $type = isset($_GET['view']) ? 'view' : 'export';
+    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $report_name = 'payments_made_report';
+    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $START_DATE = date('Y-m-d', strtotime($_GET['START_DATE']));
+    $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
+    $PK_USER = empty($_GET['PK_USER']) ? 0 : $_GET['PK_USER'];
+    $include_no_provider = isset($_GET['include_no_provider']) ? 1 : 0;
+
+    if ($generate_pdf === 1) {
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+    } elseif ($generate_excel === 1) {
+        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+    } else {
+        header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -143,6 +164,39 @@ while (!$executive_data->EOF) {
                                 <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
                                 <li class="breadcrumb-item active"><a href="customer_summary_report.php"><?= $title ?></a></li>
                             </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 align-self-center">
+                        <div class="card">
+                            <div class="card-body" style="padding-bottom: 0px !important;">
+                                <form class="form-material form-horizontal" action="" method="get" id="reportForm">
+                                    <input type="hidden" name="start_date" id="start_date">
+                                    <input type="hidden" name="end_date" id="end_date">
+                                    <div class="row justify-content-start">
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['start_date']) ? date('m/d/Y', strtotime($_GET['start_date'])) : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['end_date']) ? date('m/d/Y', strtotime($_GET['end_date'])) : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <!-- <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;"> -->
+                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -448,3 +502,39 @@ while (!$executive_data->EOF) {
 </body>
 
 </html>
+
+<script>
+    $(document).ready(function() {
+        // Initialize datepickers
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Form validation
+        $('#reportForm').on('submit', function(e) {
+            var startDate = $('#START_DATE').val();
+            var endDate = $('#END_DATE').val();
+
+            // Validate dates are filled
+            if (!startDate || !endDate) {
+                alert('Please select both start date and end date.');
+                e.preventDefault();
+                return false;
+            }
+
+            // Validate date range
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+
+            if (start > end) {
+                alert('Start date cannot be after end date.');
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
+    });
+</script>

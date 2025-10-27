@@ -239,6 +239,23 @@ if ($type === 'export') {
         }
     }
 }
+
+if (!empty($_GET['WEEK_NUMBER'])) {
+    $type = isset($_GET['view']) ? 'view' : 'export';
+    $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $report_name = $_GET['NAME'];
+    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $START_DATE = $_GET['start_date'];
+
+    if ($generate_pdf === 1) {
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+    } elseif ($generate_excel === 1) {
+        header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+    } else {
+        header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -265,6 +282,33 @@ if ($type === 'export') {
                                 <li class="breadcrumb-item active"><a href="customer_summary_report.php"><?= $title ?></a></li>
                             </ol>
 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 align-self-center">
+                        <div class="card">
+                            <div class="card-body" style="padding-bottom: 0px !important;">
+                                <form class="form-material form-horizontal" action="" method="get" id="reportForm">
+                                    <input type="hidden" name="start_date" id="start_date">
+                                    <input type="hidden" name="NAME" id="NAME" value="summary_of_studio_business_report">
+                                    <div class="row justify-content-start">
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -699,25 +743,53 @@ if ($type === 'export') {
 
     <?php require_once('../includes/footer.php'); ?>
 
-    <script>
-        // $(function () {
-        //     $('#myTable').DataTable({
-        //         "columnDefs": [
-        //             { "targets": [0,2,5], "searchable": false }
-        //         ]
-        //     });
-        // });
-        function ConfirmDelete(anchor) {
-            let conf = confirm("Are you sure you want to delete?");
-            if (conf)
-                window.location = anchor.attr("href");
-        }
-        // function editpage(id, master_id){
-        //     window.location.href = "customer.php?id="+id+"&master_id="+master_id;
-        //
-        // }
-    </script>
-
 </body>
 
 </html>
+
+<script>
+    $(".week-picker").datepicker({
+        showWeek: true,
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true,
+        calculateWeek: wk,
+        beforeShowDay: function(date) {
+            if (date.getDay() === 0) {
+                return [true, ''];
+            }
+            return [false, ''];
+        },
+        onSelect: function(dateText, inst) {
+            let d = new Date(dateText);
+            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+            $(this).closest('form').find('#start_date').val(start_date);
+            d.setDate(d.getDate() - 363);
+            let week_number = $.datepicker.iso8601Week(d);
+            let report_type = $(this).closest('form').find('#NAME').val();
+            $(this).val("Week Number " + week_number);
+            /* $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    FUNCTION_NAME: 'getReportDetails',
+                    REPORT_TYPE: report_type,
+                    WEEK_NUMBER: week_number,
+                    YEAR: (d.getFullYear() + 1)
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $('#last_export_message').text(result);
+                }
+            }); */
+        }
+    });
+
+    function wk(d) {
+        var d = new Date(d);
+        d.setDate(d.getDate() - 363);
+        return '#' + $.datepicker.iso8601Week(d);
+    }
+</script>
