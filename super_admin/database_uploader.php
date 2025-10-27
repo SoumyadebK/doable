@@ -1576,8 +1576,16 @@ if (!empty($_POST)) {
             $allCustomers = getAllCustomers();
             while (!$allCustomers->EOF) {
                 $user_id = $allCustomers->fields['customer_id'];
-                $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($allCustomers->fields['inquiry_date']));
-                db_perform('DOA_USERS', $USER_DATA, 'update', " USER_ID = '$user_id'");
+                $inquiry_date = $allCustomers->fields['inquiry_date'];
+
+                // Check if inquiry_date is valid
+                if (!empty($inquiry_date) && strtotime($inquiry_date) !== false) {
+                    $USER_DATA['JOINING_DATE'] = date("Y-m-d", strtotime($inquiry_date));
+                } else {
+                    $USER_DATA['JOINING_DATE'] = null;
+                }
+
+                db_perform('DOA_USERS', $USER_DATA, 'update', " PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
                 $allCustomers->MoveNext();
             }
             break;
@@ -1792,6 +1800,8 @@ function checkSessionCount($PK_LOCATION, $SESSION_COUNT, $PK_ENROLLMENT_MASTER, 
                                 <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
 
                                 <option value="ENR_IS_SALE">ENR_IS_SALE</option>-->
+
+                                    <option value="USER_JOINING_DATE">USER_JOINING_DATE</option>
 
                                     <option value="MARK_APPOINTMENT_PAID" <?= ($_SESSION['TABLE_NAME'] == 'MARK_APPOINTMENT_PAID') ? 'selected' : '' ?>>MARK_APPOINTMENT_PAID</option>
                                     <option value="UPDATE_TAX_ID" <?= ($_SESSION['TABLE_NAME'] == 'UPDATE_TAX_ID') ? 'selected' : '' ?>>UPDATE_TAX_ID</option>

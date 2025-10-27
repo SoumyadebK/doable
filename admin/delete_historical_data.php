@@ -22,10 +22,6 @@ while (!$user_list->EOF) {
         $PK_ENROLLMENT_MASTER = $enrollment_data->fields['PK_ENROLLMENT_MASTER'];
 
         markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-        markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-        markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-        markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-        markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
 
         $enrollment_data->MoveNext();
     }
