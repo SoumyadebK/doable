@@ -107,7 +107,7 @@ while (!$enrollment_data->EOF) {
                 <p><?= implode(' || ', $serviceMaster) ?></p>
                 <p><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                    <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank">View Agreement</a>
+                    <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank">View Agreement</a><br>
                 <?php } ?>
                 <button class="btn btn-danger m-l-10 text-white" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')" style="background-color: #f44336; margin-top: 20px">View Payment Schedule</button>
             </div>
