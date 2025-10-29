@@ -109,7 +109,7 @@ if (!empty($_POST)) {
         </script>
 <?php } else {
         if ($_POST['DRAFT'] == 0)
-            header("location:email.php");
+            header("location:email.php?type=inbox");
         else
             header("location:email.php?type=draft");
     }
@@ -143,7 +143,7 @@ if (!empty($id)) {
         }
     }
     if ($res->RecordCount() == 0) {
-        header("location:email.php");
+        header("location:email.php?type=inbox");
         exit;
     }
 
@@ -227,7 +227,7 @@ if ($default_selected_cus)
                                     </div>
                                 </div>
                                 <div class="span10 col-md-10">
-                                    <div class="card">
+                                    <div class="card" style="border-radius: 12px;">
                                         <div class="card-body">
                                             <div class="widget">
                                                 <div class="widget-content">
@@ -280,7 +280,7 @@ if ($default_selected_cus)
                                                                     <?php if ($_SESSION['PK_ROLES'] == 4) { ?>
                                                                         <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
                                                                             <?php
-                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES IN (3, 5) AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
+                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.IS_RECIPIENT = 1 AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
 
                                                                             while (!$res_type->EOF) {
                                                                                 $PK_USER = $res_type->fields['PK_USER'];

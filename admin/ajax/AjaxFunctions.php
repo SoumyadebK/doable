@@ -2968,3 +2968,13 @@ function deleteLeads()
     $db->Execute("DELETE FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS);
     echo 1;
 }
+
+function changeShowAsRecipient($RESPONSE_DATA)
+{
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $IS_RECIPIENT = $RESPONSE_DATA['IS_RECIPIENT'] ?? 0;
+
+    $UPDATE_DATA['IS_RECIPIENT'] = $IS_RECIPIENT;
+    db_perform('DOA_USERS', $UPDATE_DATA, 'update', " PK_USER = " . $PK_USER);
+    echo 1;
+}
