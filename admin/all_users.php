@@ -79,6 +79,7 @@ if ($header_data->RecordCount() > 0) {
                                                 <th>Roles</th>
                                                 <th>Location</th>
                                                 <th>Email Id</th>
+                                                <th>Show as Recipient</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -96,7 +97,7 @@ if ($header_data->RecordCount() > 0) {
                                             if (empty($location_ids)) {
                                                 $location_ids = '0';
                                             }
-                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN ($location_ids) AND DOA_USER_ROLES.PK_ROLES NOT IN (1, 4) AND DOA_USERS.ACTIVE = '$status' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
+                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE, DOA_USERS.IS_RECIPIENT FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN ($location_ids) AND DOA_USER_ROLES.PK_ROLES NOT IN (1, 4) AND DOA_USERS.ACTIVE = '$status' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
                                             while (!$row->EOF) {
                                                 $selected_roles = [];
                                                 $selected_location = [];
@@ -121,6 +122,12 @@ if ($header_data->RecordCount() > 0) {
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= implode(', ', $selected_roles) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= implode(', ', $selected_location) ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_USER'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
+                                                    <td style="text-align: center" onclick="changeShowAsRecipient(<?= $row->fields['PK_USER'] ?>);">
+                                                        <label class="switch">
+                                                            <input type="checkbox" <?= ($row->fields['IS_RECIPIENT'] == 1) ? 'checked' : '' ?>>
+                                                            <span class="slider"></span>
+                                                        </label>
+                                                    </td>
                                                     <td>
                                                         <a href="user.php?id=<?= $row->fields['PK_USER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
@@ -158,6 +165,24 @@ if ($header_data->RecordCount() > 0) {
 
         function editpage(id) {
             window.location.href = "user.php?id=" + id;
+        }
+
+        function changeShowAsRecipient(PK_USER) {
+            var checkbox = event.target;
+            var isRecipient = checkbox.checked ? 1 : 0;
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'changeShowAsRecipient',
+                    PK_USER: PK_USER,
+                    IS_RECIPIENT: isRecipient
+                },
+                success: function(data) {
+
+                }
+            });
         }
     </script>
 </body>

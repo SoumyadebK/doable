@@ -120,9 +120,24 @@ if (count($LOCATIONS) == 1) {
 
 
                 <li class="nav-item" style="margin-top: 4px;">
-                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../email/email.php" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../email/email.php?type=inbox" aria-haspopup="true" aria-expanded="false">
                         <img src="../assets/images/mail_icon.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
-                        <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
+                        <?php
+                        $count_inbox = $db->Execute("SELECT COUNT(DOA_EMAIL.PK_EMAIL) AS totalrows 
+                                FROM DOA_EMAIL_RECEPTION 
+                                INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL 
+                                WHERE PK_USER = '$_SESSION[PK_USER]' 
+                                AND VIWED = 0 
+                                AND DRAFT = 0 
+                                AND DOA_EMAIL.ACTIVE = 1 
+                                AND DOA_EMAIL_RECEPTION.DELETED = 0");
+                        $inbox_count = ($count_inbox->RecordCount() > 0) ? $count_inbox->fields['totalrows'] : 0;
+                        if ($inbox_count > 0) { ?>
+                            <div class="notify">
+                                <span class="heartbit"></span>
+                                <span class="point"></span>
+                            </div>
+                        <?php } ?>
                     </a>
                 </li>
 
