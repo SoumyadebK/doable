@@ -455,7 +455,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
                                             <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                 <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Electronic Connection to Merchant Service</b>
 
                                                     <div class="row">
                                                         <div class="col-6">

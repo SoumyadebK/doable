@@ -152,8 +152,18 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $report_name = $_GET['NAME'];
-    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
-    $START_DATE = $_GET['start_date'];
+
+    // Extract week number from "Week Number X" format
+    $week_parts = explode(' ', $_GET['WEEK_NUMBER']);
+    $WEEK_NUMBER = end($week_parts);
+
+    // Calculate start date from week number
+    $year = date('Y');
+    $date = new DateTime();
+    $date->setISODate($year, $WEEK_NUMBER);
+    $date->modify('-1 day'); // Get Sunday instead of Monday
+
+    $START_DATE = $date->format('Y-m-d');
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
@@ -162,6 +172,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     } else {
         header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
     }
+    exit;
 }
 ?>
 
@@ -200,7 +211,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                     <div class="row justify-content-start">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="" required>
+                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>" required>
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -321,7 +332,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                     $executive_showcase_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'SHOWCASE' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $row->fields['PK_USER'] . " $enrollment_date");
                                                     $executive_general_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'GENERAL' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $row->fields['PK_USER'] . " $enrollment_date");
 
-                                                    $executive_interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (13,16) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $row->fields['PK_USER'] . " $enrollment_date");
+                                                    $executive_interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE  DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $row->fields['PK_USER'] . " $enrollment_date");
                                                     $executive_renewal_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS RENEWAL_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 13 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $row->fields['PK_USER'] . " $enrollment_date");
                                                 ?>
                                                     <tr>
@@ -355,48 +366,85 @@ if (!empty($_GET['WEEK_NUMBER'])) {
 </html>
 
 <script>
-    $(".week-picker").datepicker({
-        showWeek: true,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        changeMonth: true,
-        changeYear: true,
-        calculateWeek: wk,
-        beforeShowDay: function(date) {
-            if (date.getDay() === 0) {
-                return [true, ''];
-            }
-            return [false, ''];
-        },
-        onSelect: function(dateText, inst) {
-            let d = new Date(dateText);
-            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
-            $(this).closest('form').find('#start_date').val(start_date);
-            d.setDate(d.getDate() - 363);
-            let week_number = $.datepicker.iso8601Week(d);
-            let report_type = $(this).closest('form').find('#NAME').val();
-            $(this).val("Week Number " + week_number);
-            /* $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: "POST",
-                data: {
-                    FUNCTION_NAME: 'getReportDetails',
-                    REPORT_TYPE: report_type,
-                    WEEK_NUMBER: week_number,
-                    YEAR: (d.getFullYear() + 1)
-                },
-                async: false,
-                cache: false,
-                success: function(result) {
-                    $('#last_export_message').text(result);
-                }
-            }); */
+    $(document).ready(function() {
+        // Function to calculate week number (simplified)
+        function getWeekNumber(date) {
+            var d = new Date(date);
+            // Copy date so don't modify original
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            // Set to nearest Thursday: current date + 4 - current day of week
+            // Make Sunday's day number 7
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            // Get first day of year
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            // Calculate full weeks to nearest Thursday
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
         }
-    });
 
-    function wk(d) {
-        var d = new Date(d);
-        d.setDate(d.getDate() - 363);
-        return '#' + $.datepicker.iso8601Week(d);
-    }
+        // Initialize week picker
+        $(".week-picker").datepicker({
+            showWeek: true,
+            firstDay: 0, // Start week on Sunday
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            changeMonth: true,
+            changeYear: true,
+            beforeShowDay: function(date) {
+                // Only allow selection of Sundays
+                if (date.getDay() === 0) {
+                    return [true, 'ui-state-sunday', ''];
+                }
+                return [false, '', ''];
+            },
+            onSelect: function(dateText, inst) {
+                let selectedDate = new Date(dateText);
+
+                // Set the start date (selected Sunday)
+                let start_date = selectedDate.getFullYear() + '-' +
+                    String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(selectedDate.getDate()).padStart(2, '0');
+
+                // Calculate week number
+                let week_number = getWeekNumber(selectedDate);
+                let year = selectedDate.getFullYear();
+
+                // Set hidden field values
+                $('#start_date').val(start_date);
+
+                // Update display value
+                $(this).val("Week Number " + week_number);
+
+                console.log('Selected:', {
+                    dateText: dateText,
+                    start_date: start_date,
+                    week_number: week_number,
+                    year: year
+                });
+            }
+        });
+
+        // Set initial value based on PHP variables
+        <?php if (!empty($week_number)): ?>
+            $('#WEEK_NUMBER1').val("Week Number <?= $week_number ?>");
+            $('#start_date').val("<?= $from_date ?>");
+        <?php endif; ?>
+
+        // Form submission handler for better debugging
+        $('#reportForm').on('submit', function(e) {
+            let startDate = $('#start_date').val();
+            let weekInput = $('#WEEK_NUMBER1').val();
+
+            console.log('Form submission:', {
+                start_date: startDate,
+                week_input: weekInput
+            });
+
+            if (!startDate) {
+                alert('Please select a valid week first');
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
 </script>

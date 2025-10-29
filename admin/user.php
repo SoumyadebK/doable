@@ -104,6 +104,72 @@ if (!empty($_GET['id'])) {
         height: 18px !important;
     }
 </style>
+<style>
+    /* Ensure container doesn't clip */
+    .col-4,
+    .form-group,
+    label {
+        overflow: visible !important;
+    }
+
+    /* Tooltip wrapper next to icon */
+    .tooltip-bubble {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        color: #39B54A;
+    }
+
+    /* Actual tooltip element inside DOM */
+    .tooltip-bubble .tooltip-text {
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%) translateY(0);
+        min-width: 160px;
+        max-width: 260px;
+        background: #39B54A;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        line-height: 1.2;
+        text-align: center;
+        white-space: normal;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .18s ease, transform .18s ease;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    /* little arrow */
+    .tooltip-bubble .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: #39B54A transparent transparent transparent;
+    }
+
+    /* show on hover or focus */
+    .tooltip-bubble:hover .tooltip-text,
+    .tooltip-bubble:focus-within .tooltip-text {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-4px);
+        pointer-events: auto;
+    }
+
+    /* Make it keyboard accessible (if icon is focusable) */
+    .tooltip-bubble .ti-help-alt {
+        outline: none;
+    }
+</style>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
 <body class="skin-default-dark fixed-layout">
@@ -194,7 +260,7 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-2">
-                                                                        <label class="form-label">Roles<span class="text-danger">*</span></label>
+                                                                        <label class="form-label">Staff Member Position and Access<span class="text-danger">*</span></label>
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                                 <?php
@@ -230,14 +296,14 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-2">
-                                                                        <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
+                                                                        <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);">Select to Create Login for Client</label>
                                                                     </div>
                                                                     <div class="col-2">
-                                                                        <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?= ($APPEAR_IN_CALENDAR == 1) ? 'checked' : '' ?> style="margin-top: 30px;"> Appear In Calendar</label>
+                                                                        <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?= ($APPEAR_IN_CALENDAR == 1) ? 'checked' : '' ?> style="margin-top: 30px;">Select to show on Calendar</label>
                                                                     </div>
                                                                     <div id="display_order" class="col-2">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Display Order</label>
+                                                                            <label class="form-label">Calendar Position from Left to Right</label>
                                                                             <div class="col-md-12">
                                                                                 <input type="text" id="DISPLAY_ORDER" name="DISPLAY_ORDER" class="form-control" placeholder="Enter Display Order" value="<?= $DISPLAY_ORDER ?>">
                                                                             </div>
@@ -347,7 +413,7 @@ if (!empty($_GET['id'])) {
 
                                                                 <div class="row">
                                                                     <div class="col-6">
-                                                                        <label class="form-label">Location</label>
+                                                                        <label class="form-label">Primary Location Access</label>
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                                 <?php
@@ -446,7 +512,14 @@ if (!empty($_GET['id'])) {
 
                                                                 <div class="row m-b-20">
                                                                     <div class="col-md-2">
-                                                                        <label class="form-label">Can Edit Enrollment : </label>
+                                                                        <label class="form-label">Can Edit Enrollment :
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Allows this User to Edit some fields on Enrollments
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                     <div class="col-md-4">
                                                                         <label><input type="radio" name="CAN_EDIT_ENROLLMENT" id="CAN_EDIT_ENROLLMENT" value="1" <?php if ($CAN_EDIT_ENROLLMENT == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -456,7 +529,14 @@ if (!empty($_GET['id'])) {
 
                                                                 <div class="row m-b-20">
                                                                     <div class="col-md-2">
-                                                                        <label class="form-label">Can Create Support Tickets : </label>
+                                                                        <label class="form-label">Can Create Support Tickets :
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Allows this User to send System Errors to Doable Team
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                     <div class="col-md-4">
                                                                         <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

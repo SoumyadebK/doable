@@ -265,8 +265,18 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $report_name = $_GET['NAME'];
-    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
-    $START_DATE = $_GET['start_date'];
+
+    // Extract week number from "Week Number X" format
+    $week_parts = explode(' ', $_GET['WEEK_NUMBER']);
+    $WEEK_NUMBER = end($week_parts);
+
+    // Calculate start date from week number
+    $year = date('Y');
+    $date = new DateTime();
+    $date->setISODate($year, $WEEK_NUMBER);
+    $date->modify('-1 day'); // Get Sunday instead of Monday
+
+    $START_DATE = $date->format('Y-m-d');
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
@@ -275,6 +285,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     } else {
         header('location:royalty_service_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
     }
+    exit;
 }
 ?>
 
@@ -316,7 +327,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                     <div class="row justify-content-start">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="" required>
+                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>" required>
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -733,48 +744,44 @@ if (!empty($_GET['WEEK_NUMBER'])) {
 
 </html>
 <script>
-    $(".week-picker").datepicker({
-        showWeek: true,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        changeMonth: true,
-        changeYear: true,
-        calculateWeek: wk,
-        beforeShowDay: function(date) {
-            if (date.getDay() === 0) {
-                return [true, ''];
-            }
-            return [false, ''];
-        },
-        onSelect: function(dateText, inst) {
-            let d = new Date(dateText);
-            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
-            $(this).closest('form').find('#start_date').val(start_date);
+    $(document).ready(function() {
+        // Function to calculate week number
+        function wk(d) {
+            var d = new Date(d);
             d.setDate(d.getDate() - 363);
-            let week_number = $.datepicker.iso8601Week(d);
-            let report_type = $(this).closest('form').find('#NAME').val();
-            $(this).val("Week Number " + week_number);
-            /* $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: "POST",
-                data: {
-                    FUNCTION_NAME: 'getReportDetails',
-                    REPORT_TYPE: report_type,
-                    WEEK_NUMBER: week_number,
-                    YEAR: (d.getFullYear() + 1)
-                },
-                async: false,
-                cache: false,
-                success: function(result) {
-                    $('#last_export_message').text(result);
-                }
-            }); */
+            return '#' + $.datepicker.iso8601Week(d);
         }
-    });
 
-    function wk(d) {
-        var d = new Date(d);
-        d.setDate(d.getDate() - 363);
-        return '#' + $.datepicker.iso8601Week(d);
-    }
+        // Initialize week picker
+        $(".week-picker").datepicker({
+            showWeek: true,
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            changeMonth: true,
+            changeYear: true,
+            calculateWeek: wk,
+            beforeShowDay: function(date) {
+                if (date.getDay() === 0) {
+                    return [true, ''];
+                }
+                return [false, ''];
+            },
+            onSelect: function(dateText, inst) {
+                let d = new Date(dateText);
+                let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+                $(this).closest('form').find('#start_date').val(start_date);
+                d.setDate(d.getDate() - 363);
+                let week_number = $.datepicker.iso8601Week(d);
+                let report_type = $(this).closest('form').find('#NAME').val();
+
+                // Set the display value to show the selected week
+                $(this).val("Week Number " + week_number);
+            }
+        });
+
+        // Set initial value based on PHP variables
+        <?php if (!empty($week_number)): ?>
+            $('#WEEK_NUMBER1').val("Week Number <?= $week_number ?>");
+        <?php endif; ?>
+    });
 </script>

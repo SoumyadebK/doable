@@ -797,7 +797,7 @@ if (!empty($_POST)) {
                                                 </div> -->
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label for="example-text">Time Slot Interval</label>
+                                                            <label for="example-text">Time Interval for Calendar Rows</label>
                                                             <div>
                                                                 <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
                                                                     <option value="">Select</option>
@@ -818,36 +818,17 @@ if (!empty($_POST)) {
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Service Provider Title</label>
+                                                            <label class="col-md-12">Title for Service Provider</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
+                                                                <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Title for Service Provider" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Operation Tab Title</label>
+                                                            <label class="col-md-12">Name of the Tab for Charging Services</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Enrollment Id Character</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Id Character" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Enrollment Id Number</label>
-                                                            <div class="col-md-12">
-                                                                <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
+                                                                <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Name of the Tab for Charging Services" value="<?php echo $OPERATION_TAB_TITLE ?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -856,17 +837,36 @@ if (!empty($_POST)) {
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Miscellaneous Id Character</label>
+                                                            <label class="col-md-12">Enrollment Prefix</label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
+                                                                <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Prefix" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Miscellaneous Id Number</label>
+                                                            <label class="col-md-12">Starting Enrollment Number</label>
                                                             <div class="col-md-12">
-                                                                <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
+                                                                <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Starting Enrollment Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Misc Enrollment Prefix</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Misc Enrollment Prefix" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="col-md-12">Starting Misc Enrollment Number</label>
+                                                            <div class="col-md-12">
+                                                                <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Starting Misc Enrollment Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -893,9 +893,9 @@ if (!empty($_POST)) {
                                                     </div>
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
+                                                            <label class="col-md-12" for="example-text">Receipt Prefix<span class="text-danger">*</span></label>
                                                             <div class="col-md-12">
-                                                                <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?= $RECEIPT_CHARACTER ?>">
+                                                                <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Prefix" required value="<?= $RECEIPT_CHARACTER ?>">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -985,7 +985,7 @@ if (!empty($_POST)) {
 
                                                 <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                     <div class="row" style="margin-top: 30px;">
-                                                        <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
+                                                        <b class="btn btn-light" style="margin-bottom: 20px;">Electronic Connection to Merchant Service</b>
                                                         <div class="row">
                                                             <div class="col-6">
                                                                 <div class="form-group">
@@ -1072,7 +1072,7 @@ if (!empty($_POST)) {
                                                 <?php } ?>
 
                                                 <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Email Connection</b>
                                                     <div class="col-3">
                                                         <div class="form-group">
                                                             <label class="form-label">SMTP HOST</label>

@@ -108,6 +108,72 @@ if ($help->RecordCount() > 0) {
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <?php require_once('../includes/header.php'); ?>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
+<style>
+    /* Ensure container doesn't clip */
+    .col-4,
+    .form-group,
+    label {
+        overflow: visible !important;
+    }
+
+    /* Tooltip wrapper next to icon */
+    .tooltip-bubble {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        color: #39B54A;
+    }
+
+    /* Actual tooltip element inside DOM */
+    .tooltip-bubble .tooltip-text {
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%) translateY(0);
+        min-width: 160px;
+        max-width: 260px;
+        background: #39B54A;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        line-height: 1.2;
+        text-align: center;
+        white-space: normal;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .18s ease, transform .18s ease;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    /* little arrow */
+    .tooltip-bubble .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: #39B54A transparent transparent transparent;
+    }
+
+    /* show on hover or focus */
+    .tooltip-bubble:hover .tooltip-text,
+    .tooltip-bubble:focus-within .tooltip-text {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-4px);
+        pointer-events: auto;
+    }
+
+    /* Make it keyboard accessible (if icon is focusable) */
+    .tooltip-bubble .ti-help-alt {
+        outline: none;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -167,7 +233,14 @@ if ($help->RecordCount() > 0) {
                                                             </div>
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label class="form-label">Service Code<span class="text-danger">*</span></label>
+                                                                    <label class="form-label">Service Code<span class="text-danger">*</span>
+                                                                        <span class="tooltip-bubble" tabindex="0">
+                                                                            <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                            <span class="tooltip-text">
+                                                                                Short Code to show on Calendar
+                                                                            </span>
+                                                                        </span>
+                                                                    </label>
                                                                     <input type="text" id="SERVICE_CODE" name="SERVICE_CODE" class="form-control" placeholder="Enter Service Code" required value="<?php echo $SERVICE_CODE ?>">
                                                                 </div>
                                                             </div>
@@ -178,7 +251,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label>Is Chargeable?</label>
+                                                                        <label>Is Chargeable?
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Is this Service used to create an Enrollement and deduct from account upon Service delivery?
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-6">
@@ -194,7 +274,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-6">
                                                                     <div class="form-group">
-                                                                        <label>Is Chargeable?</label>
+                                                                        <label>Is Chargeable?
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Is this Service used to create an Enrollement and deduct from account upon Service delivery?
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-6">
@@ -211,7 +298,14 @@ if ($help->RecordCount() > 0) {
                                                         <div class="row service_price" style="display: <?= ($IS_CHARGEABLE == 0) ? 'none' : '' ?>">
                                                             <div class="col-6">
                                                                 <div class="form-group">
-                                                                    <label>Price</label>
+                                                                    <label>Price
+                                                                        <span class="tooltip-bubble" tabindex="0">
+                                                                            <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                            <span class="tooltip-text">
+                                                                                Amount to charge for this Service
+                                                                            </span>
+                                                                        </span>
+                                                                    </label>
                                                                 </div>
                                                             </div>
                                                             <div class="col-6">
@@ -228,7 +322,14 @@ if ($help->RecordCount() > 0) {
 
                                                         <div class="row">
                                                             <div class="col-12">
-                                                                <label class="form-label">Location</label>
+                                                                <label class="form-label">Location
+                                                                    <span class="tooltip-bubble" tabindex="0">
+                                                                        <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                        <span class="tooltip-text">
+                                                                            Location for this Code to be Active
+                                                                        </span>
+                                                                    </span>
+                                                                </label>
                                                                 <div class="col-12">
                                                                     <div class="form-group">
                                                                         <select class="form-control PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
@@ -274,7 +375,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Service Class</label>
+                                                                        <label>Service Class
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    How is this Service to be Enrolled
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
@@ -312,7 +420,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Scheduling Code</label>
+                                                                        <label>Scheduling Code
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Scheduling Codes to show and to be allowed to book for this
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
@@ -340,7 +455,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Is Group?</label>
+                                                                        <label>Is Group?
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Is this Code a Group Class and allow Multiple Clients in it?
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
@@ -369,7 +491,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Is Sundry?</label>
+                                                                        <label>Is Sundry?
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Is this a Product not a Service?
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
@@ -384,7 +513,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Count on Calendar?</label>
+                                                                        <label>Count on Calendar?
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Is this Service to be counted on Calendar Counter?
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
@@ -399,7 +535,14 @@ if ($help->RecordCount() > 0) {
                                                             <div class="row">
                                                                 <div class="col-4">
                                                                     <div class="form-group">
-                                                                        <label>Sort Order</label>
+                                                                        <label>Sort Order
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    What order is this Schedule to appear in Drop Down Menus
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-8">
