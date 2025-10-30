@@ -1,6 +1,10 @@
 <?php
+
+use FontLib\Table\Type\glyf;
+
 require_once('../global/config.php');
 global $db;
+global $AMI_ENABLE;
 
 $userType = "Users";
 $order = $db->Execute("SELECT SORT_ORDER FROM DOA_ROLES WHERE ACTIVE='1' AND PK_ROLES = " . $_SESSION['PK_ROLES']);
@@ -312,14 +316,16 @@ if (!empty($_GET['id'])) {
                                                                 </div>
 
                                                                 <div class="row">
-                                                                    <div class="col-md-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Arthur Murray ID</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="ARTHUR_MURRAY_ID" name="ARTHUR_MURRAY_ID" class="form-control" placeholder="Arthur Murray ID" value="<?= $ARTHUR_MURRAY_ID ?>">
+                                                                    <?php if ($AMI_ENABLE == 1) { ?>
+                                                                        <div class="col-md-3">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label">Arthur Murray ID</label>
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" id="ARTHUR_MURRAY_ID" name="ARTHUR_MURRAY_ID" class="form-control" placeholder="Arthur Murray ID" value="<?= $ARTHUR_MURRAY_ID ?>">
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
+                                                                    <?php } ?>
                                                                     <div class="col-md-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Gender</label>
@@ -331,7 +337,7 @@ if (!empty($_GET['id'])) {
                                                                             </select>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-md-6">
+                                                                    <div class="col-md-3">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Date of Birth</label>
                                                                             <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB) ? date('m/d/Y', strtotime($DOB)) : '' ?>">

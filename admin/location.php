@@ -5,6 +5,7 @@ require_once("../global/stripe-php/init.php");
 global $db;
 global $db_account;
 global $upload_path;
+global $AMI_ENABLE;
 
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
@@ -635,15 +636,17 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Arthur Murray Franchise ?</label>
-                                                            <div class="col-md-12">
-                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
+                                                    <?php if ($AMI_ENABLE == 1) { ?>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                                <div class="col-md-12">
+                                                                    <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                    <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    <?php } ?>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-6">
@@ -1099,23 +1102,23 @@ if (!empty($_POST)) {
                                                     </div>
                                                 </div>
 
-
-                                                <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">User Name</label>
-                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
+                                                <?php if ($AMI_ENABLE == 1) { ?>
+                                                    <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
+                                                        <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">User Name</label>
+                                                                <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Password</label>
+                                                                <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Password</label>
-                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
+                                                <?php } ?>
 
                                                 <?php if (!empty($_GET['id'])) { ?>
                                                     <div class="row" style="margin-bottom: 15px;">

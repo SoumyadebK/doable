@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+global $AMI_ENABLE;
 $title = "Reports";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
@@ -59,7 +60,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" <?= ($AMI_ENABLE == 1) ? 'onchange = "showReportLog(this);"' : '' ?>>
                                                     <option value="">Select Report</option>
                                                     <option value="royalty_service_report">ROYALTY / SERVICE REPORT</option>
                                                     <option value="summary_of_studio_business_report">SUMMARY OF STUDIO BUSINESS REPORT</option>
@@ -75,7 +76,9 @@ if (!empty($_GET['NAME'])) {
                                         <div class="col-4">
                                             <?php /*if(in_array('Reports Create', $PERMISSION_ARRAY)){ */ ?>
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php if ($AMI_ENABLE == 1) { ?>
+                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php /*} */ ?>
