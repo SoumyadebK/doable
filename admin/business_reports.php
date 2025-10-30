@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+global $AMI_ENABLE;
 $title = "Business Reports";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
@@ -79,7 +80,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" <?= ($AMI_ENABLE == 1) ? 'onchange = "showReportLog(this);"' : '' ?>>
                                                     <option value="">Select Report</option>
                                                     <option value="payments_made_report">PAYMENTS MADE REPORT</option>
                                                 </select>
@@ -98,7 +99,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php if ($AMI_ENABLE == 1) { ?>
+                                                    <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php } ?>
                                                 <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
                                                 <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
@@ -109,6 +112,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                     </div>
                                     <div class="row">
                                         <div class="col-4" id="export_log">
+
                                         </div>
                                     </div>
                                 </form>
@@ -192,6 +196,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     }
 
     function showReportLog(param) {
+        $('#export_log').html('<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');
+
         let report_type = $(param).closest('form').find('#NAME').val();
         $.ajax({
             url: "includes/get_report_details.php",

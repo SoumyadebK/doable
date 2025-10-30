@@ -1,5 +1,6 @@
 <?php
 require_once('../global/config.php');
+global $AMI_ENABLE;
 $title = "Electronic Miscellaneous Reports";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
@@ -90,7 +91,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
+                                                <select class="form-control" required name="NAME" id="NAME">
                                                     <option value="">Select a package</option>
                                                     <?php
                                                     $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_SERVICE.PK_PACKAGE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_PACKAGE.ACTIVE = 1");
@@ -117,7 +118,9 @@ if (!empty($_GET['NAME'])) {
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php if ($AMI_ENABLE == 1) { ?>
+                                                    <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php } ?>
                                                 <!-- <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                                 <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
@@ -186,21 +189,5 @@ if (!empty($_GET['NAME'])) {
         var d = new Date(d);
         d.setDate(d.getDate() - 363);
         return '#' + $.datepicker.iso8601Week(d);
-    }
-
-    function showReportLog(param) {
-        let report_type = $(param).closest('form').find('#NAME').val();
-        $.ajax({
-            url: "includes/get_report_details.php",
-            type: "POST",
-            data: {
-                REPORT_TYPE: report_type
-            },
-            async: false,
-            cache: false,
-            success: function(result) {
-                $(param).closest('form').find('#export_log').html(result);
-            }
-        });
     }
 </script>
