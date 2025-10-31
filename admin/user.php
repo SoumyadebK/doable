@@ -264,7 +264,13 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-2">
-                                                                        <label class="form-label">Staff Member Position and Access<span class="text-danger">*</span></label>
+                                                                        <label class="form-label">Roles<span class="text-danger">*</span>
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Staff Member position and Access
+                                                                                </span>
+                                                                            </span></label>
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_roles" name="PK_ROLES[]" id="PK_ROLES" onchange="showServiceProviderTabs(this)" required multiple>
                                                                                 <?php
@@ -300,14 +306,35 @@ if (!empty($_GET['id'])) {
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-2">
-                                                                        <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);">Select to Create Login for Client</label>
+                                                                        <label class="col-md-12"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);">Create Login
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Select to create Login for client
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                     <div class="col-2">
-                                                                        <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?= ($APPEAR_IN_CALENDAR == 1) ? 'checked' : '' ?> style="margin-top: 30px;">Select to show on Calendar</label>
+                                                                        <label class="col-md-12"><input type="checkbox" id="APPEAR_IN_CALENDAR" name="APPEAR_IN_CALENDAR" class="form-check-inline" <?= ($APPEAR_IN_CALENDAR == 1) ? 'checked' : '' ?> style="margin-top: 30px;">Appear In Calendar
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Select to show on calendar
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                     </div>
                                                                     <div id="display_order" class="col-2">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Calendar Position from Left to Right</label>
+                                                                            <label class="form-label">Display Order
+                                                                                <span class="tooltip-bubble" tabindex="0">
+                                                                                    <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                    <span class="tooltip-text">
+                                                                                        Calendar position from Left to Right
+                                                                                    </span>
+                                                                                </span>
+                                                                            </label>
                                                                             <div class="col-md-12">
                                                                                 <input type="text" id="DISPLAY_ORDER" name="DISPLAY_ORDER" class="form-control" placeholder="Enter Display Order" value="<?= $DISPLAY_ORDER ?>">
                                                                             </div>
@@ -419,7 +446,14 @@ if (!empty($_GET['id'])) {
 
                                                                 <div class="row">
                                                                     <div class="col-6">
-                                                                        <label class="form-label">Primary Location Access</label>
+                                                                        <label class="form-label">Location
+                                                                            <span class="tooltip-bubble" tabindex="0">
+                                                                                <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                <span class="tooltip-text">
+                                                                                    Primary Location access
+                                                                                </span>
+                                                                            </span>
+                                                                        </label>
                                                                         <div class="col-md-12 multiselect-box">
                                                                             <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
                                                                                 <?php

@@ -255,7 +255,7 @@ if ($help->RecordCount() > 0) {
                                                                             <span class="tooltip-bubble" tabindex="0">
                                                                                 <i class="ti-help-alt" aria-hidden="true"></i>
                                                                                 <span class="tooltip-text">
-                                                                                    Is this Service used to create an Enrollement and deduct from account upon Service delivery?
+                                                                                    Is this Service used to create an enrollement and deduct from account upon Service delivery?
                                                                                 </span>
                                                                             </span>
                                                                         </label>
@@ -278,7 +278,7 @@ if ($help->RecordCount() > 0) {
                                                                             <span class="tooltip-bubble" tabindex="0">
                                                                                 <i class="ti-help-alt" aria-hidden="true"></i>
                                                                                 <span class="tooltip-text">
-                                                                                    Is this Service used to create an Enrollement and deduct from account upon Service delivery?
+                                                                                    Is this Service used to create an enrollement and deduct from account upon Service delivery?
                                                                                 </span>
                                                                             </span>
                                                                         </label>
@@ -379,7 +379,7 @@ if ($help->RecordCount() > 0) {
                                                                             <span class="tooltip-bubble" tabindex="0">
                                                                                 <i class="ti-help-alt" aria-hidden="true"></i>
                                                                                 <span class="tooltip-text">
-                                                                                    How is this Service to be Enrolled
+                                                                                    How is this Service to be enrolled
                                                                                 </span>
                                                                             </span>
                                                                         </label>
