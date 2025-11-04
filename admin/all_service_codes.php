@@ -159,7 +159,7 @@ if ($header_data->RecordCount() > 0) {
                         PK_SERVICE_MASTER: PK_SERVICE_MASTER
                     },
                     success: function(data) {
-                        window.location.href = `all_services.php`;
+                        window.location.href = `all_service_codes.php`;
                     }
                 });
             }

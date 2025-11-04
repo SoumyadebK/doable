@@ -433,7 +433,7 @@ if ($help->RecordCount() > 0) {
                                                                 <div class="col-8">
                                                                     <div class="col-md-12 multiselect-box">
                                                                         <label for="PK_SCHEDULING_CODE"></label>
-                                                                        <select class="multi_select" required id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
+                                                                        <select class="multi_select" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE[]" multiple>
                                                                             <?php
                                                                             $selected_scheduling_code  = [];
                                                                             if (!empty($_GET['id'])) {
@@ -688,10 +688,10 @@ if ($help->RecordCount() > 0) {
         $(document).on('change', '.IS_CHARGEABLE', function() {
             if ($(this).val() == 1) {
                 $('.service_price').slideDown();
-                $('#PRICE').removeAttr('required');
+                $("#PRICE").attr("required", "required");
             } else {
                 $('.service_price').slideUp();
-                $("#PRICE").attr("required", "required");
+                $('#PRICE').removeAttr('required');
             }
         });
 
