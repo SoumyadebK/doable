@@ -19,7 +19,7 @@
             if ($completed_service_data->fields['CHARGE_TYPE'] == 'Membership') {
                 $NUMBER_OF_SESSION = getSessionCreatedCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
             } else {
-                $NUMBER_OF_SESSION = $completed_service_data->fields['NUMBER_OF_SESSION'];
+                $NUMBER_OF_SESSION = ($completed_service_data->fields['NUMBER_OF_SESSION'] > 0) ? $completed_service_data->fields['NUMBER_OF_SESSION'] : 0;
             }
             $SESSION_SCHEDULED = getSessionScheduledCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
             $SESSION_COMPLETED = getSessionCompletedCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
