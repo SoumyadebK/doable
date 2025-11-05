@@ -87,7 +87,7 @@ $sheet->getStyle('A2:I2')->applyFromArray($styleArray);
 // Business Name & Location
 $rowNumber = 3;
 $sheet->mergeCells('A3:I3');
-$sheet->setCellValue('A3', ($account_data->fields['FRANCHISE'] == 1 ? 'Franchisee: ' : '') . $business_name . " (" . $concatenatedResults . ")");
+$sheet->setCellValue('A3', ($account_data->fields['FRANCHISE'] == 1 ? 'Franchisee: ' : '') . " (" . $concatenatedResults . ")");
 $sheet->getStyle('A3')->getFont()->setBold(true);
 $sheet->getStyle('A3')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $sheet->getStyle('A3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);

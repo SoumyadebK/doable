@@ -78,7 +78,7 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $concatenatedResults ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                     <th style="width:20%; text-align: center; font-weight: bold">Week # <?= $week_number ?></th>
                                 </tr>
