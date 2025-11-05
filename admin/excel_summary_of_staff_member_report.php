@@ -49,6 +49,25 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
     $business_name = 'Franchisee: ' . $business_name;
 }
 
+$location_name = '';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
+
 if ($type === 'export') {
     $access_token = getAccessToken();
     $authorization = "Authorization: Bearer " . $access_token;
@@ -190,14 +209,14 @@ while (!$selected_service_provider_row->EOF) {
 
 $row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE ACTIVE = 1 AND PK_USER IN (" . implode(',', $selected_service_provider) . ")");
 $totalResults = count($selected_service_provider_name);
-$concatenatedResults = "";
+$concatenatedServiceProviders = "";
 foreach ($selected_service_provider_name as $key => $result) {
     // Append the current result to the concatenated string
-    $concatenatedResults .= $result;
+    $concatenatedServiceProviders .= $result;
 
     // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
-        $concatenatedResults .= ", ";
+        $concatenatedServiceProviders .= ", ";
     }
 }
 
@@ -249,7 +268,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "A2";
 $objPHPExcel->getActiveSheet()->mergeCells('A2:F2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($business_name . " (" . $concatenatedResults . ")");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(" (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(36);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);

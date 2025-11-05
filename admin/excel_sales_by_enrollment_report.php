@@ -92,7 +92,7 @@ $sheet->getStyle('A1:D1')->applyFromArray($styleArray);
 // Business Name
 $rowNumber = 2;
 $sheet->mergeCells('A2:D2');
-$sheet->setCellValue('A2', $business_name . " (" . $concatenatedResults . ")");
+$sheet->setCellValue('A2', " (" . $concatenatedResults . ")");
 $sheet->getStyle('A2')->getFont()->setBold(true);
 $sheet->getStyle('A2')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $sheet->getStyle('A2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);

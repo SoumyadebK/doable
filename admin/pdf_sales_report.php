@@ -101,7 +101,7 @@ foreach ($resultsArray as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
+                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
                                     <th style="width:50%; text-align: center; font-weight: bold" colspan="5">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                                 <tr>

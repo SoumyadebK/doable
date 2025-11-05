@@ -385,7 +385,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= $concatenatedResults ?></th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 1</th>
                                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                 </tr>

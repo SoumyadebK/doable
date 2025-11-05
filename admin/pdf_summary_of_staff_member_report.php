@@ -231,7 +231,7 @@ foreach ($selected_service_provider_name as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $concatenatedResults ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                             </thead>

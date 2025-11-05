@@ -30,6 +30,25 @@ if (!empty($_GET['week_number'])) {
 $account_data = $db->Execute("SELECT BUSINESS_NAME, FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
 
+$location_name = '';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
+
 $cell1  = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
 define('EOL', (PHP_SAPI == 'cli') ? PHP_EOL : '<br />');
 
@@ -78,7 +97,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 $objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(20);
 $cell_no = "A2";
 $objPHPExcel->getActiveSheet()->mergeCells('A2:F2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($business_name);
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($concatenatedResults);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);

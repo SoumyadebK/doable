@@ -116,7 +116,7 @@ $objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(20);
 
 $cell_no = "A2";
 $objPHPExcel->getActiveSheet()->mergeCells('A2:B2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($business_name . " (" . $concatenatedResults . ")");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' . " (" . $concatenatedResults . ")");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);

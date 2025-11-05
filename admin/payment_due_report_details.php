@@ -117,7 +117,7 @@ $header = "payment_due_report_details.php?selected_date=" . $_GET['selected_date
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="3"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="3"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" ?></th>
                                                     <th style="width:50%; text-align: center; font-weight: bold" colspan="2">Previous Pending Payments on or before <?= date('m/d/Y', strtotime($selected_date)) ?></th>
                                                 </tr>
                                                 <tr>

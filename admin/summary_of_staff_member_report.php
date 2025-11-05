@@ -366,7 +366,7 @@ if (!empty($_GET['START_DATE'])) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:40%; text-align: center; vertical-align:auto; font-weight: bold"><?= $concatenatedResults ?></th>
                                                     <th style="width:20%; text-align: center; font-weight: bold">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                                     <!--<th style="width:20%; text-align: center; font-weight: bold">Week # <?php /*=$week_number*/ ?></th>-->
                                                 </tr>
