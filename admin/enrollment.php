@@ -26,6 +26,7 @@ if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
 $PK_ENROLLMENT_MASTER = 0;
 $ENROLLMENT_NAME = '';
 $ENROLLMENT_DATE = date('m/d/Y');
+$PK_ENROLLMENT_TYPE = '';
 $PK_LOCATION = '';
 $PK_PACKAGE = '';
 $TOTAL = '';
@@ -84,6 +85,7 @@ if (!empty($_GET['id'])) {
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
     $ENROLLMENT_DATE = date('m/d/Y', strtotime($res->fields['ENROLLMENT_DATE']));
+    $PK_ENROLLMENT_TYPE = $res->fields['PK_ENROLLMENT_TYPE'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
     $CHARGE_TYPE = $res->fields['CHARGE_TYPE'];
@@ -246,16 +248,28 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-3">
+                                                    <div class="col-2">
                                                         <div class="form-group">
                                                             <label class="form-label">Enrollment Name</label>
                                                             <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?= $ENROLLMENT_NAME ?>">
                                                         </div>
                                                     </div>
-                                                    <div class="col-3">
+                                                    <div class="col-2">
                                                         <div class="form-group">
                                                             <label class="form-label">Enrollment Date</label>
                                                             <input type="text" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" class="form-control datepicker-normal" placeholder="Enter Enrollment Date" value="<?= $ENROLLMENT_DATE ?>" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Enrollment Type</label>
+                                                            <select class="form-control" name="PK_ENROLLMENT_TYPE" id="PK_ENROLLMENT_TYPE">
+                                                                <option value="">Select Enrollment Type</option>
+                                                                <option value="5" <?= ($PK_ENROLLMENT_TYPE == 5) ? 'selected' : '' ?>>PORI</option>
+                                                                <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>ORI</option>
+                                                                <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>EXT</option>
+                                                                <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>REN</option>
+                                                            </select>
                                                         </div>
                                                     </div>
                                                 </div>

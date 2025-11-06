@@ -24,7 +24,8 @@
             $SESSION_SCHEDULED = getSessionScheduledCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
             $SESSION_COMPLETED = getSessionCompletedCount($completed_service_data->fields['PK_ENROLLMENT_SERVICE']);
             $PRICE_PER_SESSION = $completed_service_data->fields['PRICE_PER_SESSION'];
-            $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($completed_service_data->fields['TOTAL_AMOUNT_PAID'] / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
+            $TOTAL_AMOUNT_PAID = ($completed_service_data->fields['TOTAL_AMOUNT_PAID'] > 0) ? $completed_service_data->fields['TOTAL_AMOUNT_PAID'] : 0;
+            $paid_session = ($PRICE_PER_SESSION > 0) ? number_format($TOTAL_AMOUNT_PAID / $PRICE_PER_SESSION, 2) : $NUMBER_OF_SESSION;
             $remain_session = $NUMBER_OF_SESSION - ($SESSION_COMPLETED + $SESSION_SCHEDULED);
             $ps_balance = $paid_session - $SESSION_COMPLETED;
 
@@ -33,7 +34,7 @@
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['CODE'] = $completed_service_data->fields['SERVICE_CODE'];
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['ENROLL'] += $NUMBER_OF_SESSION;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['REMAIN'] += $remain_session;
-                $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['PAID'] += $completed_service_data->fields['TOTAL_AMOUNT_PAID'];
+                $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['PAID'] += $TOTAL_AMOUNT_PAID;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['USED'] += $SESSION_COMPLETED;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['SCHEDULED'] += $SESSION_SCHEDULED;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['BALANCE'] += $ps_balance;
@@ -41,7 +42,7 @@
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['CODE'] = $completed_service_data->fields['SERVICE_CODE'];
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['ENROLL'] = $NUMBER_OF_SESSION;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['REMAIN'] = $remain_session;
-                $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['PAID'] = $completed_service_data->fields['TOTAL_AMOUNT_PAID'];
+                $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['PAID'] = $TOTAL_AMOUNT_PAID;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['USED'] = $SESSION_COMPLETED;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['SCHEDULED'] = $SESSION_SCHEDULED;
                 $completed_service_code_array[$completed_service_data->fields['SERVICE_CODE']]['BALANCE'] = $ps_balance;
