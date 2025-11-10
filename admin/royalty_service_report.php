@@ -214,10 +214,29 @@ if ($type === 'export') {
                 $url = constant('ami_api_url') . '/api/v1/reports/' . $report_details->fields['ID'];
                 $post_data = callArturMurrayApi($url, $data, $authorization, 'PUT');
             } else {
-                $url = constant('ami_api_url') . '/api/v1/reports';
-                $post_data = callArturMurrayApi($url, $data, $authorization);
+                $get_url = constant('ami_api_url') . '/api/v1/reports';
+                $get_data = [
+                    'type' => 'royalty',
+                    'week_number' => $week_number,
+                    'week_year' => $YEAR
+                ];
+                $post_get_data = callArturMurrayApiGet($get_url, $get_data, $authorization);
+                $return_data_get = json_decode($post_get_data, true);
 
-                $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
+                if (!empty($return_data_get) && isset($return_data_get[0]['id'])) {
+                    $report_id = $return_data_get[0]['id'];
+
+                    $url = constant('ami_api_url') . '/api/v1/reports/' . $report_id;
+                    $post_data = callArturMurrayApi($url, $data, $authorization, 'PUT');
+                } else {
+                    $url = constant('ami_api_url') . '/api/v1/reports';
+                    $post_data = callArturMurrayApi($url, $data, $authorization);
+
+                    $response = json_decode($post_data);
+                    $report_id = isset($response->id) ? $response->id : '';
+                }
+
+                $REPORT_DATA['ID'] = $report_id;
                 $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
                 db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA, "update", " PK_REPORT_EXPORT_DETAILS = " . $report_details->fields['PK_REPORT_EXPORT_DETAILS']);
             }
@@ -229,13 +248,39 @@ if ($type === 'export') {
 
             $response = json_decode($post_data);
 
-            $REPORT_DATA['REPORT_TYPE'] = 'royalty_service_report';
-            $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
-            $REPORT_DATA['ID'] = isset($response->id) ? $response->id : '';
-            $REPORT_DATA['WEEK_NUMBER'] = $week_number;
-            $REPORT_DATA['YEAR'] = $YEAR;
-            $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
-            db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA);
+            if (isset($response->error) || isset($response->errors)) {
+                $get_url = constant('ami_api_url') . '/api/v1/reports';
+                $get_data = [
+                    'type' => 'royalty',
+                    'week_number' => $week_number,
+                    'week_year' => $YEAR
+                ];
+                $post_get_data = callArturMurrayApiGet($get_url, $get_data, $authorization);
+                $return_data_get = json_decode($post_get_data, true);
+
+                if (!empty($return_data_get) && isset($return_data_get[0]['id'])) {
+                    $report_id = $return_data_get[0]['id'];
+
+                    $url = constant('ami_api_url') . '/api/v1/reports/' . $report_id;
+                    $post_data = callArturMurrayApi($url, $data, $authorization, 'PUT');
+
+                    $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
+                    $REPORT_DATA['REPORT_TYPE'] = 'royalty_service_report';
+                    $REPORT_DATA['YEAR'] = $YEAR;
+                    $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+                    $REPORT_DATA['ID'] = $report_id;
+                    $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+                    db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA, "insert");
+                }
+            } else {
+                $REPORT_DATA['PK_LOCATION'] = $DEFAULT_LOCATION_ID;
+                $REPORT_DATA['REPORT_TYPE'] = 'royalty_service_report';
+                $REPORT_DATA['YEAR'] = $YEAR;
+                $REPORT_DATA['WEEK_NUMBER'] = $week_number;
+                $REPORT_DATA['ID'] = $response->id;
+                $REPORT_DATA['SUBMISSION_DATE'] = date('Y-m-d H:i:s');
+                db_perform_account('DOA_REPORT_EXPORT_DETAILS', $REPORT_DATA, "insert");
+            }
         }
     }
 }
@@ -317,32 +362,35 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-12 align-self-center">
-                        <div class="card">
-                            <div class="card-body" style="padding-bottom: 0px !important;">
-                                <form class="form-material form-horizontal" action="" method="get" id="reportForm">
-                                    <input type="hidden" name="start_date" id="start_date">
-                                    <input type="hidden" name="NAME" id="NAME" value="royalty_service_report">
-                                    <div class="row justify-content-start">
-                                        <div class="col-2">
-                                            <div class="form-group">
-                                                <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>" required>
+                <?php
+                if ($type != 'export') { ?>
+                    <div class="row">
+                        <div class="col-12 align-self-center">
+                            <div class="card">
+                                <div class="card-body" style="padding-bottom: 0px !important;">
+                                    <form class="form-material form-horizontal" action="" method="get" id="reportForm">
+                                        <input type="hidden" name="start_date" id="start_date">
+                                        <input type="hidden" name="NAME" id="NAME" value="royalty_service_report">
+                                        <div class="row justify-content-start">
+                                            <div class="col-2">
+                                                <div class="form-group">
+                                                    <input type="text" id="WEEK_NUMBER1" name="WEEK_NUMBER" class="form-control week-picker" placeholder="Select Week" value="<?= !empty($_GET['WEEK_NUMBER']) ? htmlspecialchars($_GET['WEEK_NUMBER']) : (!empty($week_number) ? 'Week Number ' . $week_number : '') ?>" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                    <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                    <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                    <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php } ?>
                                             </div>
                                         </div>
-                                        <div class="col-3">
-                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
-                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <?php } ?>
-                                        </div>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                <?php } ?>
 
                 <?php
                 if ($type === 'export') {
