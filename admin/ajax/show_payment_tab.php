@@ -20,13 +20,13 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                 <label class="form-label" for="example-text" style="float: right;margin-top: 10px;">Enrollment Number</label>
             </div>
             <div class="col-md-4">
-                <input type="text" class="form-control" value="<?=$enrollment_data->fields['ENROLLMENT_ID']?>" disabled>
+                <input type="text" class="form-control" value="<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>" disabled>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card-body" id="append_service_div" style="margin-top: -25px;">
+<div class="card-body" id="append_service_div" style="margin-top: -25px; margin-bottom: -25px;">
     <div class="row">
         <div class="col-2">
             <div class="form-group">
@@ -85,7 +85,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
     $enrollment_service_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     while (!$enrollment_service_data->EOF) {
         $total += $enrollment_service_data->fields['FINAL_AMOUNT']; ?>
-        <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?=$enrollment_service_data->fields['PK_ENROLLMENT_SERVICE']?>">
+        <input type="hidden" name="PK_ENROLLMENT_SERVICE[]" value="<?= $enrollment_service_data->fields['PK_ENROLLMENT_SERVICE'] ?>">
         <div class="row" style="margin-top: -20px;">
             <div class="col-2">
                 <div class="form-group">
@@ -94,8 +94,9 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                         <?php
                         $row = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE ACTIVE = 1 ORDER BY SERVICE_NAME");
                         while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER'];?>" <?=($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER'])?'selected':''?>><?=$row->fields['SERVICE_NAME']?></option>
-                            <?php $row->MoveNext(); } ?>
+                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" <?= ($row->fields['PK_SERVICE_MASTER'] == $enrollment_service_data->fields['PK_SERVICE_MASTER']) ? 'selected' : '' ?>><?= $row->fields['SERVICE_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
                     </select>
                 </div>
             </div>
@@ -104,16 +105,17 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     <select class="form-control PK_SERVICE_CODE" onchange="selectThisServiceCode(this)" disabled>
                         <option value="">Select</option>
                         <?php
-                        $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = ".$enrollment_service_data->fields['PK_SERVICE_MASTER']);
+                        $row = $db_account->Execute("SELECT * FROM DOA_SERVICE_CODE WHERE PK_SERVICE_MASTER = " . $enrollment_service_data->fields['PK_SERVICE_MASTER']);
                         while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_SERVICE_CODE'];?>" data-service_details="<?=$row->fields['DESCRIPTION']?>" data-price="<?=$row->fields['PRICE']?>" <?=($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE'])?'selected':''?>><?=$row->fields['SERVICE_CODE']?></option>
-                            <?php $row->MoveNext(); } ?>
+                            <option value="<?php echo $row->fields['PK_SERVICE_CODE']; ?>" data-service_details="<?= $row->fields['DESCRIPTION'] ?>" data-price="<?= $row->fields['PRICE'] ?>" <?= ($row->fields['PK_SERVICE_CODE'] == $enrollment_service_data->fields['PK_SERVICE_CODE']) ? 'selected' : '' ?>><?= $row->fields['SERVICE_CODE'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
                     </select>
                 </div>
             </div>
             <div class="col-2">
                 <div class="form-group">
-                    <input type="text" class="form-control SERVICE_DETAILS" value="<?=$enrollment_service_data->fields['SERVICE_DETAILS']?>" disabled>
+                    <input type="text" class="form-control SERVICE_DETAILS" value="<?= $enrollment_service_data->fields['SERVICE_DETAILS'] ?>" disabled>
                 </div>
             </div>
             <div class="col-1">
@@ -123,47 +125,49 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                         <?php
                         $row = $db_account->Execute("SELECT `PK_SCHEDULING_CODE`, `SCHEDULING_CODE`, `SCHEDULING_NAME` FROM `DOA_SCHEDULING_CODE` WHERE `ACTIVE` = 1");
                         while (!$row->EOF) { ?>
-                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE'];?>" <?=($row->fields['PK_SCHEDULING_CODE'] == $enrollment_service_data->fields['PK_SCHEDULING_CODE'])?'selected':''?>><?=$row->fields['SCHEDULING_CODE'].' ('.$row->fields['SCHEDULING_CODE'].')'?></option>
-                            <?php $row->MoveNext(); } ?>
+                            <option value="<?php echo $row->fields['PK_SCHEDULING_CODE']; ?>" <?= ($row->fields['PK_SCHEDULING_CODE'] == $enrollment_service_data->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_CODE'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
                     </select>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control NUMBER_OF_SESSION" value="<?=$enrollment_service_data->fields['NUMBER_OF_SESSION']?>" disabled>
+                    <input type="text" class="form-control NUMBER_OF_SESSION" value="<?= $enrollment_service_data->fields['NUMBER_OF_SESSION'] ?>" disabled>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?=($enrollment_service_data->fields['TOTAL']/$enrollment_service_data->fields['NUMBER_OF_SESSION'])?>" disabled>
+                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" disabled>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control TOTAL" value="<?=$enrollment_service_data->fields['TOTAL']?>" disabled>
+                    <input type="text" class="form-control TOTAL" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" disabled>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
                     <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateDiscount(this)">
                         <option value="">Select</option>
-                        <option value="1" <?=($enrollment_service_data->fields['DISCOUNT_TYPE'] == 1)?'selected':''?>>Fixed</option>
-                        <option value="2" <?=($enrollment_service_data->fields['DISCOUNT_TYPE'] == 2)?'selected':''?>>Percent</option>
+                        <option value="1" <?= ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 1) ? 'selected' : '' ?>>Fixed</option>
+                        <option value="2" <?= ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 2) ? 'selected' : '' ?>>Percent</option>
                     </select>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?=$enrollment_service_data->fields['DISCOUNT']?>" onkeyup="calculateDiscount(this)">
+                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" value="<?= $enrollment_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateDiscount(this)">
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?=$enrollment_service_data->fields['FINAL_AMOUNT']?>" readonly>
+                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?= $enrollment_service_data->fields['FINAL_AMOUNT'] ?>" readonly>
                 </div>
             </div>
         </div>
-    <?php $enrollment_service_data->MoveNext(); } ?>
+    <?php $enrollment_service_data->MoveNext();
+    } ?>
 
     <div class="col-3" style="margin-left: 75%; margin-top: -15px;">
         <div class="form-group">
@@ -172,7 +176,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
                     <label class="form-label" style="float: right; margin-top: 10px;">Total</label>
                 </div>
                 <div class="col-md-8">
-                    <input type="text" class="form-control TOTAL_AMOUNT" name="TOTAL_AMOUNT" id="total_bill" value="<?=number_format((float)$total, 2, '.', '');?>" readonly>
+                    <input type="text" class="form-control TOTAL_AMOUNT" name="TOTAL_AMOUNT" id="total_bill" value="<?= number_format((float)$total, 2, '.', ''); ?>" readonly>
                 </div>
             </div>
         </div>

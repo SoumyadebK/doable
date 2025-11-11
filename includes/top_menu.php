@@ -3,6 +3,31 @@
         z-index: 100;
     }
 </style>
+
+<style>
+    .blink-mail {
+        height: 35px;
+        width: 35px;
+        background-color: white;
+        animation: blink-bg 1s infinite;
+        border-radius: 5px;
+        /* optional: makes edges smoother */
+    }
+
+    @keyframes blink-bg {
+        0% {
+            background-color: white;
+        }
+
+        50% {
+            background-color: #fa3e3e;
+        }
+
+        100% {
+            background-color: white;
+        }
+    }
+</style>
 <?php
 $LOCATIONS = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 if (count($LOCATIONS) == 1) {
@@ -121,7 +146,6 @@ if (count($LOCATIONS) == 1) {
 
                 <li class="nav-item" style="margin-top: 4px;">
                     <a class="nav-link dropdown-toggle waves-effect waves-dark" href="../email/email.php?type=inbox" aria-haspopup="true" aria-expanded="false">
-                        <img src="../assets/images/mail_icon.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                         <?php
                         $count_inbox = $db->Execute("SELECT COUNT(DOA_EMAIL.PK_EMAIL) AS totalrows 
                                 FROM DOA_EMAIL_RECEPTION 
@@ -133,10 +157,9 @@ if (count($LOCATIONS) == 1) {
                                 AND DOA_EMAIL_RECEPTION.DELETED = 0");
                         $inbox_count = ($count_inbox->RecordCount() > 0) ? $count_inbox->fields['totalrows'] : 0;
                         if ($inbox_count > 0) { ?>
-                            <div class="notify">
-                                <span class="heartbit"></span>
-                                <span class="point"></span>
-                            </div>
+                            <img src="../assets/images/mail_icon.png" alt="Mail" class="blink-mail">
+                        <?php } else { ?>
+                            <img src="../assets/images/mail_icon.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
                         <?php } ?>
                     </a>
                 </li>
@@ -145,7 +168,7 @@ if (count($LOCATIONS) == 1) {
                     <li class="nav-item" style="margin-top: 4px;">
                         <a class="nav-link dropdown-toggle waves-effect waves-dark" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $FOCUSBIZ_ACCESS_TOKEN ?>" aria-haspopup="true" aria-expanded="false" title="Create Support Tickets">
                             <img src="../assets/images/icon/ticket.png" alt="Mail" style="height: 35px; width: 35px; background-color: white;">
-                            <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
+                            <!-- <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div> -->
                         </a>
                     </li>
                 <?php endif; ?>

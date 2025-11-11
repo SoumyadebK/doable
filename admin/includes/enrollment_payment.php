@@ -98,7 +98,14 @@
 
                                     </div>
 
-                                    <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group d-flex align-items-center mt-3 ms-2">
+                                                <input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="me-2">
+                                                <label for="SAVE_FOR_FUTURE" class="form-check-label mb-0">Save this card details for future use</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
@@ -188,7 +195,15 @@
                                     </div>
                                 </div>
 
-                                <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group d-flex align-items-center mt-3 ms-2">
+                                            <input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="me-2">
+                                            <label for="SAVE_FOR_FUTURE" class="form-check-label mb-0">Save this card details for future use</label>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Clover') { ?>
                             <div class="row" id="card_list">
@@ -250,8 +265,9 @@
 
                         <div class="row">
                             <div class="col-12 partial_payment">
-                                <div class="form-group">
-                                    <label class="col-md-12 mt-3"><input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="form-check-inline" onchange="showPartialPaymentDiv(this)"> Multiple Payment Type</label>
+                                <div class="form-group d-flex align-items-center mt-3 ms-2">
+                                    <input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="me-2" onchange="showPartialPaymentDiv(this)">
+                                    <label for="PARTIAL_PAYMENT" class="form-check-label mb-0">Multiple Payment Type</label>
                                 </div>
                             </div>
                         </div>
@@ -566,6 +582,12 @@ else
     });
 
     function submitEnrollmentPaymentForm() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        if (PK_USER_MASTER == '') {
+            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+            $('#PK_USER_MASTER').val(PK_USER_MASTER);
+        }
+
         let form_data = $('#enrollment_payment_form').serialize();
         $.ajax({
             url: "includes/process_enrollment_payment.php",
@@ -607,7 +629,6 @@ else
         $(param).closest('.payment_modal').find('#enrollment-card-container').remove();
         $('#save_card').hide();
         $('#SAVE_FOR_FUTURE').prop('checked', true);
-
     }
 
     $(document).on('click', '.credit-card', function() {

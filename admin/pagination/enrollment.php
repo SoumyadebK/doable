@@ -80,7 +80,7 @@ if ($page == 1) {
 } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -217,6 +217,15 @@ while (!$enrollment_data->EOF) {
                 </table>
             </div>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
+                <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD_ID']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
+                    <div>Auto Pay</div>
+                    <label class="switch" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);">
+                        <input type="checkbox" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
+                        <span class="slider"></span>
+                    </label>
+                    <br><br>
+                <?php } ?>
+
                 <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] == $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
                     <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
                 <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
@@ -451,6 +460,24 @@ if ($page == 1) { ?>
                             }
                         }
                     });
+                }
+            });
+        }
+
+        function changeEnrollmentAutoPay(PK_ENROLLMENT_MASTER) {
+            var checkbox = event.target;
+            var isRecipient = checkbox.checked ? 1 : 0;
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'changeEnrollmentAutoPay',
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                    ACTIVE_AUTO_PAY: isRecipient
+                },
+                success: function(data) {
+
                 }
             });
         }

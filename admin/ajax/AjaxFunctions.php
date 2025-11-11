@@ -277,6 +277,13 @@ function savePackageInfoData($RESPONSE_DATA)
     }
 }
 
+function getEnrollmentCount($RESPONSE_DATA)
+{
+    global $db_account;
+    $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE STATUS IN ('A', 'CO') AND PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_LOCATION = " . $RESPONSE_DATA['PK_LOCATION'] . " AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
+    echo (int)$enrollment_count_data->RecordCount();
+}
+
 
 /*Saving Data from Enrollment Page*/
 
@@ -331,7 +338,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = " . $RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
         $PK_ENROLLMENT_TYPE = 0;
         if ($misc_service_data->RecordCount() > 0) {
-            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (16) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
+            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE STATUS IN ('A', 'CO') AND PK_ENROLLMENT_TYPE IN (16) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
             $PK_ENROLLMENT_TYPE = 16;
             $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'] . ' - ' . ($enrollment_count + 1);
@@ -345,7 +352,7 @@ function saveEnrollmentData($RESPONSE_DATA)
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }*/
         } else {
-            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
+            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE STATUS IN ('A', 'CO') AND PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
             switch ($enrollment_count) {
                 case 0:
@@ -354,7 +361,7 @@ function saveEnrollmentData($RESPONSE_DATA)
                 case 1:
                     $PK_ENROLLMENT_TYPE = 2;
                     break;
-                case 3:
+                case 2:
                     $PK_ENROLLMENT_TYPE = 9;
                     break;
                 default:
@@ -712,6 +719,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
+    $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $RESPONSE_DATA['AUTO_PAY_PAYMENT_METHOD_ID'];
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
@@ -721,6 +730,17 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     echo json_encode($return_data);
 }
 
+function changeEnrollmentAutoPay($RESPONSE_DATA)
+{
+    global $db_account;
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $ACTIVE_AUTO_PAY = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
+
+    $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $ACTIVE_AUTO_PAY;
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+
+    echo 'Success';
+}
 /**
  * @throws MpdfException
  */

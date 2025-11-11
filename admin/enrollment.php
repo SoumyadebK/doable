@@ -38,6 +38,7 @@ $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
 $ENROLLMENT_BY_PERCENTAGE = '';
 $MEMO = '';
 $ACTIVE = '';
+$ACTIVE_AUTO_PAY = 0;
 
 $PK_ENROLLMENT_BILLING = '';
 $BILLING_REF = '';
@@ -97,6 +98,7 @@ if (!empty($_GET['id'])) {
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $ACTIVE_AUTO_PAY = $res->fields['ACTIVE_AUTO_PAY'];
 
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
@@ -842,174 +844,185 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <!--Data coming from ajax-->
                                                         </div>
 
-                                                        <div class="row" style="margin-top: -55px;">
-                                                            <h4><b>Payment Plans</b></h4>
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Billing Ref #</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control" value="<?= $BILLING_REF ?>">
-                                                                    </div>
+                                                        <h4><b>Payment Plans</b></h4>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Billing Ref #</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control" value="<?= $BILLING_REF ?>">
                                                                 </div>
                                                             </div>
+                                                        </div>
 
 
-                                                            <div class="row">
-                                                                <div class="col-6" style="margin-top: -15px">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Payment Method</label>
-                                                                        <div class="col-md-12">
-                                                                            <div class="row">
-                                                                                <div class="col-md-3 one_time">
-                                                                                    <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?= ($PAYMENT_METHOD == 'One Time') ? 'checked' : '' ?> required>One Time</label>
-                                                                                </div>
-                                                                                <div class="col-md-4 payment_plans">
-                                                                                    <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'checked' : '' ?> required>Payment Plans</label>
-                                                                                </div>
-                                                                                <div class="col-md-5 flexible_payments">
-                                                                                    <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?= ($PAYMENT_METHOD == 'Flexible Payments') ? 'checked' : '' ?> required>Flexible Payments</label>
-                                                                                </div>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Payment Method</label>
+                                                                    <div class="col-md-12">
+                                                                        <div class="row">
+                                                                            <div class="col-md-3 one_time">
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?= ($PAYMENT_METHOD == 'One Time') ? 'checked' : '' ?> required>One Time</label>
+                                                                            </div>
+                                                                            <div class="col-md-4 payment_plans">
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'checked' : '' ?> required>Payment Plans</label>
+                                                                            </div>
+                                                                            <div class="col-md-5 flexible_payments">
+                                                                                <label><input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?= ($PAYMENT_METHOD == 'Flexible Payments') ? 'checked' : '' ?> required>Flexible Payments</label>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <!--<div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Amount</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" id="AMOUNT_SHOW" value="<?php /*=$INSTALLMENT_AMOUNT*/ ?>" class="form-control">
-                                                                    </div>
-                                                                </div>
-                                                            </div>-->
                                                             </div>
-                                                            <div class="row" style="margin-top: -15px">
-                                                                <div class="col-6">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Billing Date</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control datepicker-normal">
+
+                                                            <div class="col-6" id="auto-pay-div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans' || $PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>;">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Active auto-pay for this enrollment : </label>
+                                                                    <div class="col-md-12">
+                                                                        <div class="row">
+                                                                            <div class="col-md-2">
+                                                                                <label><input type="radio" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" <?= ($ACTIVE_AUTO_PAY == '1') ? 'checked' : '' ?> />&nbsp;Yes</label>
+                                                                            </div>
+                                                                            <div class="col-md-2">
+                                                                                <label><input type="radio" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_NO" value="0" <?= ($ACTIVE_AUTO_PAY == '0') ? 'checked' : '' ?> />&nbsp;No</label>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <div id="selected_card_span" style="color:red;"></div>
+                                                                                <input type="hidden" name="AUTO_PAY_PAYMENT_METHOD_ID" id="AUTO_PAY_PAYMENT_METHOD_ID" value="">
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-3" id="down_payment_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? 'none' : '' ?>">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Billing Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control datepicker-normal">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3" id="down_payment_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? 'none' : '' ?>">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Down Payment</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Balance Payable</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>" class="form-control" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
+                                                            <div class="row">
+                                                                <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Down Payment</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
-                                                                        </div>
+                                                                        <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
+                                                                        <select class="form-control installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <option value="">Select</option>
+                                                                            <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
+                                                                            <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-3">
                                                                     <div class="form-group">
-                                                                        <label class="form-label">Balance Payable</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>" class="form-control" readonly>
-                                                                        </div>
+                                                                        <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
+                                                                        <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
+                                                                        <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Installment Amount</label>
+                                                                        <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
 
-                                                            <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
+                                                        <div class="row payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
+                                                            <div class="row">
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Next Payment Dates</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Amount</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3" style="margin-top: -30px;">
+                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePayments();">Add More</a>
+                                                                </div>
+                                                            </div>
+                                                            <?php
+                                                            if (!empty($_GET['id'])) {
+                                                                $i = 0;
+                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                                while (!$flexible_payment_data->EOF) {
+                                                                    if ($DOWN_PAYMENT > 0 && $i > 0) { ?>
+                                                                        <div class="row">
+                                                                            <div class="col-3">
+                                                                                <div class="form-group">
+                                                                                    <div class="col-md-12">
+                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-3">
+                                                                                <div class="form-group">
+                                                                                    <div class="col-md-12">
+                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-3" style="padding-top: 5px;">
+                                                                                <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            </div>
+                                                                        </div>
+                                                                <?php }
+                                                                    $i++;
+                                                                    $flexible_payment_data->MoveNext();
+                                                                } ?>
+                                                            <?php } else { ?>
                                                                 <div class="row">
                                                                     <div class="col-3">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
-                                                                            <select class="form-control installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                                <option value="">Select</option>
-                                                                                <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
-                                                                                <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
-                                                                            </select>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-3">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
-                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);">
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
-                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Installment Amount</label>
-                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                        </div>
+                                                                    <div class="col-3" style="padding-top: 5px;">
+                                                                        <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-
-                                                            <div class="row payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
-                                                                <div class="row">
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Next Payment Dates</label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Amount</label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-3" style="margin-top: -30px;">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePayments();">Add More</a>
-                                                                    </div>
-                                                                </div>
-                                                                <?php
-                                                                if (!empty($_GET['id'])) {
-                                                                    $i = 0;
-                                                                    $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                                                                    while (!$flexible_payment_data->EOF) {
-                                                                        if ($DOWN_PAYMENT > 0 && $i > 0) { ?>
-                                                                            <div class="row">
-                                                                                <div class="col-3">
-                                                                                    <div class="form-group">
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-3">
-                                                                                    <div class="form-group">
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-3" style="padding-top: 5px;">
-                                                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                    <?php }
-                                                                        $i++;
-                                                                        $flexible_payment_data->MoveNext();
-                                                                    } ?>
-                                                                <?php } else { ?>
-                                                                    <div class="row">
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3" style="padding-top: 5px;">
-                                                                            <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } ?>
-                                                            </div>
+                                                            <?php } ?>
                                                         </div>
 
 
@@ -1175,6 +1188,50 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     <!--Payment Model-->
     <?php include('includes/enrollment_payment.php'); ?>
+
+
+    <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Select Credit Card for Auto-Pay</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#credit_card_modal').modal('hide');"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="tab-pane" id="credit_card" role="tabpanel">
+                        <div class="p-20">
+                            <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                <div class="alert alert-danger">
+                                    Payment Gateway is Not set Yet
+                                </div>
+                            <?php } else { ?>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div id="add_credit_card_div" style="display: none; width: 150%;">
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" id="saved_credit_card_list" style="display: none; padding-left: 6%;">
+
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                    <input type="hidden" id="TEMP_PAYMENT_METHOD_ID">
+                    <input type="hidden" id="TEMP_LAST4">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
+                    <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="addAutoPayCardDetails()">Process</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 
 
     <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
@@ -1365,6 +1422,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         showEnrollmentInstructor();
                     }
                     showEnrollmentBy();
+                    getEnrollmentCount();
                 }
             });
         }
@@ -1402,6 +1460,41 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $('.SERVICE_PROVIDER_ID').empty().append(result);
                 }
             });
+        }
+
+        function getEnrollmentCount() {
+            let PK_ENROLLMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+            let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+            let PK_LOCATION = $('#PK_LOCATION').val();
+            if (PK_USER_MASTER > 0 && PK_LOCATION > 0 && PK_ENROLLMENT_MASTER == 0) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: "POST",
+                    data: {
+                        PK_USER_MASTER: PK_USER_MASTER,
+                        PK_LOCATION: PK_LOCATION,
+                        FUNCTION_NAME: 'getEnrollmentCount'
+                    },
+                    async: false,
+                    cache: false,
+                    success: function(result) {
+                        switch (parseInt(result)) {
+                            case 0:
+                                $('#PK_ENROLLMENT_TYPE').val(5);
+                                break;
+                            case 1:
+                                $('#PK_ENROLLMENT_TYPE').val(2);
+                                break;
+                            case 2:
+                                $('#PK_ENROLLMENT_TYPE').val(9);
+                                break;
+                            default:
+                                $('#PK_ENROLLMENT_TYPE').val(13);
+                                break;
+                        }
+                    }
+                });
+            }
         }
 
         function addMoreServices() {
@@ -1819,6 +1912,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             $('.payment_method_div').slideUp();
             $('#down_payment_div').slideDown();
             $('#FIRST_DUE_DATE').prop('required', false);
+            $('#auto-pay-div').slideUp();
             //$('#IS_ONE_TIME_PAY').val(0);
             if ($(this).val() == 'One Time') {
                 let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
@@ -1836,6 +1930,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             if ($(this).val() == 'Payment Plans') {
                 $('#FIRST_DUE_DATE').prop('required', true);
                 $('#payment_plans_div').slideDown();
+                $('#auto-pay-div').slideDown();
             }
             if ($(this).val() == 'Flexible Payments') {
                 $('#flexible_plans_div').slideDown();
@@ -1845,10 +1940,77 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 $('#down_payment_div').slideDown();
                 $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
                 $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
+                $('#auto-pay-div').slideDown();
                 //$('#payment_confirmation_form_div').slideDown();
                 //$('#enrollment_payment_modal').modal('show');
             }
         });
+
+        $(document).on('click', '.ACTIVE_AUTO_PAY', function() {
+            if ($(this).val() == '1') {
+                $('#credit_card_modal').modal('show');
+                getSavedCreditCardListAutoPay();
+            } else {
+                $('#TEMP_PAYMENT_METHOD_ID').val('');
+                $('#TEMP_LAST4').val('');
+                $('#AUTO_PAY_PAYMENT_METHOD_ID').val('');
+                $('#selected_card_span').css('color', 'red').text('Auto Pay is not active');
+            }
+        });
+
+        function getSavedCreditCardListAutoPay() {
+            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+            $.ajax({
+                url: "ajax/get_credit_card_list.php",
+                type: 'POST',
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    call_from: 'enrollment_auto_pay'
+                },
+                success: function(data) {
+                    $('#saved_credit_card_list').slideDown().html(data);
+                    addCreditCardAutoPay();
+                }
+            });
+        }
+
+        function selectAutoPayCreditCard(param) {
+            let payment_id = $(param).attr('id');
+            let last4 = $(param).data('last4');
+
+            $('.credit-card-div').css("opacity", "1");
+            $(param).css("opacity", "0.6");
+
+            $('#TEMP_PAYMENT_METHOD_ID').val(payment_id);
+            $('#TEMP_LAST4').val(last4);
+        }
+
+        function addAutoPayCardDetails() {
+            let payment_id = $('#TEMP_PAYMENT_METHOD_ID').val();
+            let last4 = $('#TEMP_LAST4').val();
+
+            $('#AUTO_PAY_PAYMENT_METHOD_ID').val(payment_id);
+            $('#selected_card_span').css('color', 'green').html('Card ending in <b>' + last4 + '</b> selected for Auto Pay');
+            $('#credit_card_modal').modal('hide');
+        }
+
+        function addCreditCardAutoPay() {
+            let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+            $.ajax({
+                url: "includes/save_credit_card.php",
+                type: 'POST',
+                data: {
+                    PK_USER: PK_USER,
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    call_from: 'enrollment_auto_pay'
+                },
+                success: function(data) {
+                    $('#add_credit_card_div').slideDown().html(data);
+                    addCreditCard();
+                }
+            });
+        }
 
         function calculateBalancePayable() {
             let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
@@ -1912,7 +2074,30 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 }
                             });
                         } else {
-                            submitBillingForm();
+                            if (payment_method == 'Flexible Payments' || payment_method == 'Payment Plans') {
+                                let ACTIVE_AUTO_PAY = $('.ACTIVE_AUTO_PAY:checked').val();
+                                let AUTO_PAY_PAYMENT_METHOD_ID = $('#AUTO_PAY_PAYMENT_METHOD_ID').val();
+                                if (ACTIVE_AUTO_PAY == '1' && AUTO_PAY_PAYMENT_METHOD_ID == '') {
+                                    Swal.fire({
+                                        title: "Are you sure?",
+                                        text: "You selected to active Auto Pay but no credit card selected. Do you want to proceed without Auto Pay?",
+                                        icon: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonColor: "#3085d6",
+                                        cancelButtonColor: "#d33",
+                                        confirmButtonText: "Yes, proceed!"
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            $('#ACTIVE_AUTO_PAY_NO').prop('checked', true);
+                                            submitBillingForm();
+                                        }
+                                    });
+                                } else {
+                                    submitBillingForm();
+                                }
+                            } else {
+                                submitBillingForm();
+                            }
                         }
                     } else {
                         $('#number_of_payment_error').slideUp();
@@ -1975,8 +2160,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 }
             });
         }
-
-
 
         function payNow(PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
             $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);

@@ -9,6 +9,8 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
 
 $payment_gateway_data = getPaymentGatewayData();
 
+$call_from = (isset($_POST['call_from'])) ? $_POST['call_from'] : '';
+
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
 $GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
 
@@ -30,11 +32,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 ?>
 
 <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
-    <div class="row m-b-20">
-        <div class="col-md-8">
-            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+    <?php if ($call_from != 'enrollment_auto_pay') { ?>
+        <div class="row m-b-20">
+            <div class="col-md-8">
+                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+            </div>
         </div>
-    </div>
+    <?php } ?>
 
     <form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
         <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
@@ -128,11 +132,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
     </script>
 <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
-    <div class="row m-b-20">
-        <div class="col-md-8">
-            <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+    <?php if ($call_from != 'enrollment_auto_pay') { ?>
+        <div class="row m-b-20">
+            <div class="col-md-8">
+                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+            </div>
         </div>
-    </div>
+    <?php } ?>
     <form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
         <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
         <input type="hidden" name="PK_USER" id="PK_USER" value="<?= $PK_USER ?>">
@@ -214,6 +220,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     $(document).on('submit', '#save_credit_card_form', function(event) {
         $('#save-card-btn').prop('disabled', true);
         event.preventDefault();
+        let call_from = '<?= $call_from ?>';
         let form_data = $('#save_credit_card_form').serialize();
         $.ajax({
             url: "includes/process_save_credit_card.php",
@@ -222,12 +229,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             dataType: 'json',
             success: function(data) {
                 if (data.STATUS) {
-                    $('#save_message').html(`<p class="alert alert-success">Credit Card Added, Page will refresh automatically.</p>`);
-                    setTimeout(function() {
-                        let PK_USER = $('#PK_USER').val();
-                        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=credit_card';
-                    }, 5000);
+                    if (call_from == 'enrollment_auto_pay') {
+                        getSavedCreditCardList();
+                    } else {
+                        $('#save_message').html(`<p class="alert alert-success">Credit Card Added, Page will refresh automatically.</p>`);
+                        setTimeout(function() {
+                            let PK_USER = $('#PK_USER').val();
+                            let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=credit_card';
+                        }, 5000);
+                    }
                 } else {
                     $('#save-card-btn').prop('disabled', false);
                     $('#save_message').html(`<p class="alert alert-danger">` + data.MESSAGE + `</p>`);
