@@ -7,6 +7,11 @@ global $db_account;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
+use Square\Environment;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
+
 require_once('../../global/authorizenet/autoload.php');
 
 use net\authorize\api\contract\v1 as AnetAPI;
@@ -74,6 +79,83 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveCreditCard
             $STATUS = true;
             $MESSAGE = "Credit Card Added Successfully";
         } catch (ApiErrorException $e) {
+            $STATUS = false;
+            $MESSAGE = $e->getMessage();
+        }
+
+        $RETURN_DATA['STATUS'] = $STATUS;
+        $RETURN_DATA['MESSAGE'] = $MESSAGE;
+        echo json_encode($RETURN_DATA);
+    } elseif ($PAYMENT_GATEWAY == 'Square') {
+        require_once("../../global/vendor/autoload.php");
+
+        if ($GATEWAY_MODE == 'live') {
+            $client = new SquareClient([
+                'accessToken' => $SQUARE_ACCESS_TOKEN,
+                'environment' => Environment::PRODUCTION,
+            ]);
+        } else {
+            $client = new SquareClient([
+                'accessToken' => $SQUARE_ACCESS_TOKEN,
+                'environment' => Environment::SANDBOX,
+            ]);
+        }
+
+        $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES WHERE DOA_USERS.PK_USER = '$PK_USER'");
+        // Get or create Square customer
+        $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $PK_USER);
+        if ($customer_payment_info->RecordCount() > 0) {
+            $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+        } else {
+            try {
+                $address = new \Square\Models\Address();
+                $address->setAddressLine1($user_master->fields['ADDRESS']);
+                $address->setAddressLine2($user_master->fields['ADDRESS_1']);
+                $address->setLocality($user_master->fields['CITY']);
+                $address->setAdministrativeDistrictLevel1($user_master->fields['STATE_CODE']);
+                $address->setPostalCode($user_master->fields['ZIP']);
+                $address->setCountry('US');
+
+                $body = new \Square\Models\CreateCustomerRequest();
+                $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                $body->setFamilyName($user_master->fields['FIRST_NAME']);
+                $body->setEmailAddress($user_master->fields['EMAIL_ID']);
+                $body->setAddress($address);
+                $body->setPhoneNumber($user_master->fields['PHONE']);
+                $body->setReferenceId('N/A');
+                $body->setNote($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . " from Doable");
+
+                $api_response = $client->getCustomersApi()->createCustomer($body);
+            } catch (\Square\Exceptions\ApiException $e) {
+                $RETURN_DATA['STATUS'] = false;
+                $RETURN_DATA['MESSAGE'] = $e->getMessage();
+                echo json_encode($RETURN_DATA);
+                die();
+            }
+
+            $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+
+            $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+            $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+            $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
+            $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+        }
+
+        $square_token = $_POST['square_token'];
+
+        try {
+            // Save the new card for future use
+            $card = new \Square\Models\Card();
+            $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+            $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+
+            $body = new \Square\Models\CreateCardRequest(uniqid(), $square_token, $card);
+            $api_response = $client->getCardsApi()->createCard($body);
+
+            $STATUS = true;
+            $MESSAGE = "Credit Card Added Successfully";
+        } catch (\Square\Exceptions\ApiException $e) {
             $STATUS = false;
             $MESSAGE = $e->getMessage();
         }

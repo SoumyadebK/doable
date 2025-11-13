@@ -243,6 +243,112 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                 echo json_encode($RETURN_DATA);
                 die();
             }
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+            require_once("../../global/vendor/autoload.php");
+
+            if ($GATEWAY_MODE == 'live') {
+                $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::PRODUCTION,
+                ]);
+            } else {
+                $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::SANDBOX,
+                ]);
+            }
+
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            // Get or create Square customer
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
+            if ($customer_payment_info->RecordCount() > 0) {
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+            } else {
+                $address = new \Square\Models\Address();
+                $address->setAddressLine1($user_master->fields['ADDRESS']);
+                $address->setAddressLine2($user_master->fields['ADDRESS_1']);
+                $address->setLocality($user_master->fields['CITY']);
+                $address->setAdministrativeDistrictLevel1($user_master->fields['STATE_CODE']);
+                $address->setPostalCode($user_master->fields['ZIP']);
+                $address->setCountry('US');
+
+                $body = new \Square\Models\CreateCustomerRequest();
+                $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                $body->setFamilyName($user_master->fields['FIRST_NAME']);
+                $body->setEmailAddress($user_master->fields['EMAIL_ID']);
+                $body->setAddress($address);
+                $body->setPhoneNumber($user_master->fields['PHONE']);
+                $body->setReferenceId('N/A');
+                $body->setNote($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . " from Doable");
+
+                try {
+                    $api_response = $client->getCustomersApi()->createCustomer($body);
+                } catch (\Square\Exceptions\ApiException $e) {
+                    $RETURN_DATA['STATUS'] = 'Failed';
+                    $RETURN_DATA['PAYMENT_INFO'] = $e->getMessage();
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+
+                $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+
+                $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
+                $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+            }
+
+            $sourceId = $_POST['token'];
+
+            // Determine which card source to use
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                $CUSTOMER_CARD_ID = $_POST['PAYMENT_METHOD_ID'];
+            } else {
+                $CUSTOMER_CARD_ID = $sourceId;
+            }
+
+            // Create money object
+            $money = new Money();
+            $money->setAmount($AMOUNT * 100);
+            $money->setCurrency('USD');
+
+            // Create payment request
+            $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
+            $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
+
+            // Create payment using the Square API
+            $paymentsApi = $client->getPaymentsApi();
+            try {
+                $response = $paymentsApi->createPayment($paymentRequest);
+                if ($response->isSuccess()) {
+                    $paymentId = $response->getResult()->getPayment()->getId();
+                    $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
+
+                    $PAYMENT_STATUS = 'Success';
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+            } catch (\Square\Exceptions\ApiException $e) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            }
         } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);

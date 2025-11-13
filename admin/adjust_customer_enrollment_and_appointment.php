@@ -19,7 +19,7 @@ while (!$enrollment_data->EOF) {
     db_perform_account('DOA_ENROLLMENT_SERVICE', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     db_perform_account('DOA_ENROLLMENT_LEDGER', ['STATUS' => $ENR_UPDATE_DATA['STATUS']], 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER); */
 
-    $enrollment_service_count = $db_account->Execute("SELECT COUNT(PK_ENROLLMENT_SERVICE) AS TOTAL_SERVICE FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    /* $enrollment_service_count = $db_account->Execute("SELECT COUNT(PK_ENROLLMENT_SERVICE) AS TOTAL_SERVICE FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     $TOTAL_SERVICE = $enrollment_service_count->fields['TOTAL_SERVICE'];
     if ($TOTAL_SERVICE > 1) {
         $max_session_service = $db_account->Execute("SELECT es.NUMBER_OF_SESSION, sc.IS_GROUP FROM DOA_ENROLLMENT_SERVICE es INNER JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE WHERE es.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY es.NUMBER_OF_SESSION DESC LIMIT 1");
@@ -37,7 +37,7 @@ while (!$enrollment_data->EOF) {
                 $enrollment_service_data->MoveNext();
             }
         }
-    }
+    } */
 
     //echo $PK_ENROLLMENT_MASTER . "<br>";
 

@@ -131,6 +131,90 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             });
         }
     </script>
+<?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+    <?php if ($call_from != 'enrollment_auto_pay') { ?>
+        <div class="row m-b-20">
+            <div class="col-md-8">
+                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+            </div>
+        </div>
+    <?php } ?>
+
+    <form class="form-material form-horizontal" id="save_credit_card_form" action="" method="post" enctype="multipart/form-data" style="display: none;">
+        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+        <input type="hidden" name="square_token" id="square_token">
+        <input type="hidden" name="PK_USER" id="PK_USER" value="<?= $PK_USER ?>">
+        <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+        <div class="row">
+            <div class="col-8">
+                <div class="form-group" id="card_div">
+                    <div id="save-card-container"></div>
+                </div>
+                <div id="save-card-status-container"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-8" id="save_message">
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-8">
+                <button type="button" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addSquareTokenForSaveCard()" style="float: right;">Save</a>
+            </div>
+        </div>
+    </form>
+    <?php
+    if ($GATEWAY_MODE == 'live')
+        $SQ_URL = "https://connect.squareup.com";
+    else
+        $SQ_URL = "https://connect.squareupsandbox.com";
+
+    if ($GATEWAY_MODE == 'live')
+        $URL = "https://web.squarecdn.com/v1/square.js";
+    else
+        $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+    ?>
+    <script src="<?= $URL ?>"></script>
+    <script type="text/javascript">
+        var square_save_card;
+
+        async function addCreditCard() {
+            $('#save_credit_card_form').slideDown();
+            let square_appId = '<?= $SQUARE_APP_ID ?>';
+            let square_locationId = '<?= $SQUARE_LOCATION_ID ?>';
+            const payments = Square.payments(square_appId, square_locationId);
+            square_save_card = await payments.card();
+            $('#save-card-container').text('');
+            await square_save_card.attach('#save-card-container');
+        }
+
+        async function addSquareTokenForSaveCard() {
+            const statusContainer = document.getElementById('save-card-status-container');
+
+            try {
+                const result = await square_save_card.tokenize();
+                if (result.status === 'OK') {
+                    $('#save-card-btn').prop('disabled', true);
+                    $('#square_token').val(result.token);
+                    console.log(`Payment token is ${result.token}`);
+                    sleep(3000).then(() => {
+                        $('#save_credit_card_form').submit();
+                    });
+                } else {
+                    // Handle tokenization errors
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+            }
+        }
+    </script>
 <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
     <?php if ($call_from != 'enrollment_auto_pay') { ?>
         <div class="row m-b-20">
@@ -228,9 +312,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             data: form_data,
             dataType: 'json',
             success: function(data) {
+                console.log('asd', data);
                 if (data.STATUS) {
                     if (call_from == 'enrollment_auto_pay') {
-                        getSavedCreditCardList();
+                        getSavedCreditCardListAutoPay();
                     } else {
                         $('#save_message').html(`<p class="alert alert-success">Credit Card Added, Page will refresh automatically.</p>`);
                         setTimeout(function() {

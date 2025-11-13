@@ -7,6 +7,11 @@ global $db_account;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
+use Square\Environment;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
+
 require_once('../../global/authorizenet/autoload.php');
 
 use net\authorize\api\contract\v1 as AnetAPI;
@@ -62,6 +67,70 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     $RETURN_DATA['STATUS'] = $STATUS;
     $RETURN_DATA['MESSAGE'] = $MESSAGE;
     echo json_encode($RETURN_DATA);
+} elseif ($PAYMENT_GATEWAY == 'Square') {
+    $card_id = $_POST['card_id'];
+
+    echo $url = $GATEWAY_MODE == 'live'
+        ? "https://connect.squareup.com/v2/cards/$card_id"
+        : "https://connect.squareupsandbox.com/v2/cards/$card_id";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer $SQUARE_ACCESS_TOKEN",
+        "Content-Type: application/json"
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if ($httpcode == 200) {
+        $STATUS = true;
+        $MESSAGE = 'Credit card deleted successfully.';
+    } else {
+        $STATUS = false;
+        $MESSAGE = "Failed to disable card (HTTP $httpcode):<br>$response";
+    }
+    $RETURN_DATA['STATUS'] = $STATUS;
+    $RETURN_DATA['MESSAGE'] = $MESSAGE;
+    echo json_encode($RETURN_DATA);
+
+    /* 
+
+    require_once("../../global/vendor/autoload.php");
+
+    if ($GATEWAY_MODE == 'live') {
+        $client = new SquareClient([
+            'accessToken' => $SQUARE_ACCESS_TOKEN,
+            'environment' => Environment::PRODUCTION,
+        ]);
+    } else {
+        $client = new SquareClient([
+            'accessToken' => $SQUARE_ACCESS_TOKEN,
+            'environment' => Environment::SANDBOX,
+        ]);
+    }
+
+    $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $PK_USER);
+
+    if ($customer_payment_info->RecordCount() > 0) {
+        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+        try {
+            // Delete the customer payment method
+            $api_response = $client->getCardsApi()->disableCard($_POST['card_id']);
+            $STATUS = true;
+            $MESSAGE = 'Credit card deleted successfully.';
+        } catch (ApiErrorException $e) {
+            $STATUS = false;
+            $MESSAGE = 'Error deleting credit card: ' . $e->getMessage();
+        }
+    } else {
+        $STATUS = false;
+        $MESSAGE = 'No credit card found for this user.';
+    }
+    $RETURN_DATA['STATUS'] = $STATUS;
+    $RETURN_DATA['MESSAGE'] = $MESSAGE;
+    echo json_encode($RETURN_DATA); */
 } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
     $customer_payment_info = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $PK_USER);
     if ($customer_payment_info->RecordCount() > 0) {

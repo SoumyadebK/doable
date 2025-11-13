@@ -60,7 +60,7 @@
                                 <div class="row" style="margin: auto;" id="card_list_wallet">
                                 </div>
                                 <div class="col-12">
-                                    <div class="form-group" id="card-container">
+                                    <div class="form-group" id="card_div">
 
                                     </div>
                                 </div>
@@ -193,6 +193,24 @@
 <script>
     $(document).on('submit', '#wallet_payment_form', function(event) {
         event.preventDefault();
+        $('#wallet-payment-btn').prop('disabled', true);
+        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+        if (PAYMENT_GATEWAY == 'Square') {
+            let PAYMENT_METHOD_ID_WALLET = $('#PAYMENT_METHOD_ID_WALLET').val();
+            if (PAYMENT_METHOD_ID_WALLET == '') {
+                addSquareTokenOnForm();
+                sleep(3000).then(() => {
+                    submitWalletPaymentForm();
+                });
+            } else {
+                submitWalletPaymentForm();
+            }
+        } else {
+            submitWalletPaymentForm();
+        }
+    });
+
+    function submitWalletPaymentForm() {
         let form_data = $('#wallet_payment_form').serialize();
         $.ajax({
             url: "includes/process_wallet_payment.php",
@@ -221,5 +239,5 @@
                 console.log(data);
             }
         });
-    });
+    }
 </script>

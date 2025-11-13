@@ -277,38 +277,40 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 ]);
             }
 
-            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            // Get or create Square customer
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
-
             if ($customer_payment_info->RecordCount() > 0) {
                 $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
             } else {
-                $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-
                 $address = new \Square\Models\Address();
-                $address->setAddressLine1('500 Electric Ave');
-                $address->setAddressLine2('Suite 600');
-                $address->setLocality('New York');
-                $address->setAdministrativeDistrictLevel1('NY');
-                $address->setPostalCode('10003');
+                $address->setAddressLine1($user_master->fields['ADDRESS']);
+                $address->setAddressLine2($user_master->fields['ADDRESS_1']);
+                $address->setLocality($user_master->fields['CITY']);
+                $address->setAdministrativeDistrictLevel1($user_master->fields['STATE_CODE']);
+                $address->setPostalCode($user_master->fields['ZIP']);
                 $address->setCountry('US');
 
                 $body = new \Square\Models\CreateCustomerRequest();
                 $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                $body->setFamilyName('Earhart');
+                $body->setFamilyName($user_master->fields['FIRST_NAME']);
                 $body->setEmailAddress($user_master->fields['EMAIL_ID']);
                 $body->setAddress($address);
                 $body->setPhoneNumber($user_master->fields['PHONE']);
-                $body->setReferenceId('YOUR_REFERENCE_ID');
-                $body->setNote('a customer');
+                $body->setReferenceId('N/A');
+                $body->setNote($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . " from Doable");
 
                 try {
                     $api_response = $client->getCustomersApi()->createCustomer($body);
                 } catch (\Square\Exceptions\ApiException $e) {
-                    pre_r($e->getMessage());
+                    $RETURN_DATA['STATUS'] = 'Failed';
+                    $RETURN_DATA['PAYMENT_INFO'] = $e->getMessage();
+                    echo json_encode($RETURN_DATA);
+                    die();
                 }
 
                 $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+
                 $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
                 $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                 $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
@@ -316,40 +318,45 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
             }
 
-            if (empty($_POST['PAYMENT_METHOD_ID'])) {
-                $sourceId = $_POST['sourceId'];
+            $sourceId = $_POST['sourceId'];
 
-                $card = new \Square\Models\Card();
-                $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                //$card->setBillingAddress($billing_address);
-                $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-                //$card->setReferenceId('user-id-1');
-
-                $body = new \Square\Models\CreateCardRequest(
-                    uniqid(),
-                    $sourceId,
-                    $card
-                );
-
-                $api_response = $client->getCardsApi()->createCard($body);
-
-                $result = $api_response->getResult();
-                $card = $result->getCard();
-
-                $CUSTOMER_CARD_ID = $card->getId();
-            } else {
+            // Determine which card source to use
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                // Use existing saved card
                 $CUSTOMER_CARD_ID = $_POST['PAYMENT_METHOD_ID'];
+            } elseif (isset($_POST['SAVE_FOR_FUTURE'])) {
+                try {
+                    // Save the new card for future use
+                    $card = new \Square\Models\Card();
+                    $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
+                    $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+
+                    $body = new \Square\Models\CreateCardRequest(uniqid(), $sourceId, $card);
+
+                    $api_response = $client->getCardsApi()->createCard($body);
+                    $result = $api_response->getResult();
+                    $CUSTOMER_CARD_ID = $result->getCard()->getId();
+                } catch (\Square\Exceptions\ApiException $e) {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+            } else {
+                $CUSTOMER_CARD_ID = $sourceId;
             }
 
-            // Create a money object (amount in cents)
+            // Create money object
             $money = new Money();
-            $money->setAmount($AMOUNT_TO_PAY * 100);  // amount in cents
-            $money->setCurrency('USD'); // Currency type (USD, EUR, etc.)
+            $money->setAmount($AMOUNT_TO_PAY * 100);
+            $money->setCurrency('USD');
 
-            // Create the payment request
+            // Create payment request
             $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
-
-            // Add the customer ID to the payment request
             $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
 
             // Create payment using the Square API

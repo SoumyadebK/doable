@@ -112,13 +112,21 @@
                             <div class="row" id="card_list">
                             </div>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
                                     </div>
+                                    <div id="payment-status-container"></div>
+
+                                    <div class="row" style="margin-top: -30px;">
+                                        <div class="col-12">
+                                            <div class="form-group d-flex align-items-center mt-3 ms-2">
+                                                <input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="me-2">
+                                                <label for="SAVE_FOR_FUTURE" class="form-check-label mb-0">Save this card details for future use</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="payment-status-container"></div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
                             $customer_id = isset($PK_USER_MASTER) ? $PK_USER_MASTER : '';
@@ -360,18 +368,6 @@
     </div>
 </div>
 
-<?php
-if ($GATEWAY_MODE == 'live')
-    $SQ_URL = "https://connect.squareup.com";
-else
-    $SQ_URL = "https://connect.squareupsandbox.com";
-
-if ($GATEWAY_MODE == 'live')
-    $URL = "https://web.squarecdn.com/v1/square.js";
-else
-    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
-?>
-
 <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
     <script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript">
@@ -442,7 +438,17 @@ else
     </script>
 <?php } ?>
 
-<?php if ($PAYMENT_GATEWAY == 'Square') { ?>
+<?php if ($PAYMENT_GATEWAY == 'Square') {
+    if ($GATEWAY_MODE == 'live')
+        $SQ_URL = "https://connect.squareup.com";
+    else
+        $SQ_URL = "https://connect.squareupsandbox.com";
+
+    if ($GATEWAY_MODE == 'live')
+        $URL = "https://web.squarecdn.com/v1/square.js";
+    else
+        $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
     <script src="<?= $URL ?>"></script>
     <script type="text/javascript">
         let square_card;
@@ -465,6 +471,7 @@ else
                 if (result.status === 'OK') {
                     // Add the token to the hidden input field
                     $('#enrollment_sourceId').val(result.token);
+                    $('#wallet_token').val(result.token);
                     console.log(`Payment token is ${result.token}`);
 
                     // Submit the form after adding the token
@@ -666,7 +673,7 @@ else
                 }
 
                 if (PAYMENT_GATEWAY == 'Square') {
-                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="enrollment-card-container"></div>`);
+                    $(param).closest('.payment_modal').find('#card_div').html(`<div id="${type}-card-container"></div>`);
                     $('#' + type + '-card-container').text('Loading......');
                     squarePaymentFunction(type);
                 }
