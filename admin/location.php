@@ -31,13 +31,23 @@ if ($help->RecordCount() > 0) {
     $help_description = $help->fields['DESCRIPTION'];
 }
 
+$SA_PAYMENT_GATEWAY_TYPE = '';
+$SA_GATEWAY_MODE = '';
 $SA_SECRET_KEY = '';
 $SA_PUBLISHABLE_KEY = '';
+$SA_ACCESS_TOKEN = '';
+$SA_SQUARE_APP_ID = '';
+$SA_SQUARE_LOCATION_ID = '';
 
 $payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 if ($payment_gateway_setting->RecordCount() > 0) {
+    $SA_PAYMENT_GATEWAY_TYPE = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
+    $SA_GATEWAY_MODE = $payment_gateway_setting->fields['GATEWAY_MODE'];
     $SA_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
     $SA_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+    $SA_ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
+    $SA_SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
+    $SA_SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
 }
 
 if (empty($_GET['id'])) {
@@ -364,56 +374,6 @@ if (!empty($_POST)) {
         }
     }
 
-    if ($_POST['FUNCTION_NAME'] == 'saveBillingData') {
-        $LOCATION_DATA['PAYMENT_FROM'] = $_POST['PAYMENT_FROM'];
-        db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_POST[PK_LOCATION]'");
-
-        if (isset($_POST['stripe_token'])) {
-            $stripe = new StripeClient($SA_SECRET_KEY);
-
-            $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = '$PK_USER'");
-
-            $STRIPE_TOKEN = $_POST['stripe_token'];
-            $PAYMENT_ID = '';
-            if ($user_payment_info->RecordCount() > 0) {
-                $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
-            } else {
-                try {
-                    $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
-
-                    $customer = $stripe->customers->create([
-                        'email' => $user_data->fields['EMAIL_ID'],
-                        'name' => $user_data->fields['FIRST_NAME'] . ' ' . $user_data->fields['LAST_NAME'],
-                        'phone' => $user_data->fields['PHONE'],
-                        'description' => 'Add Credit Card',
-                    ]);
-                    $PAYMENT_ID = $customer->id;
-                } catch (ApiErrorException $e) {
-                    $STATUS = false;
-                    echo $MESSAGE = $e->getMessage();
-                    die;
-                }
-
-                $USER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
-                $USER_PAYMENT_DETAILS['PAYMENT_ID'] = $PAYMENT_ID;
-                $USER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                $USER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_USER_PAYMENT_INFO', $USER_PAYMENT_DETAILS, 'insert');
-            }
-            try {
-                $card = $stripe->customers->createSource($PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
-                $stripe->customers->update($PAYMENT_ID, ['default_source' => $card->id]);
-
-                $STATUS = true;
-                $MESSAGE = "Credit Card Added Successfully";
-            } catch (ApiErrorException $e) {
-                $STATUS = false;
-                echo $MESSAGE = $e->getMessage();
-                die;
-            }
-        }
-    }
-
     if ($_POST['FUNCTION_NAME'] == 'savePermissionData') {
         $PK_LOCATION = (int)$_POST['PK_LOCATION'];
 
@@ -589,7 +549,7 @@ if (!empty($_POST)) {
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" id="billing_link" href="#billing" role="tab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
@@ -1409,100 +1369,152 @@ if (!empty($_POST)) {
                                         </form>
                                     </div>
 
-                                    <div class="tab-pane p-20" id="billing" role="tabpanel">
-                                        <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
-                                            <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
-                                            <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                            <div class="p-20">
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Subscription Start Date</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
+                                    <div class="tab-pane" id="billing" role="tabpanel" style="margin-top: 20px;">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <form class="form-material form-horizontal" id="location_payment_form" method="post" enctype="multipart/form-data">
+                                                    <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                                    <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                    <div class="p-20">
+                                                        <div class="row">
+                                                            <div class="col-5">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Subscription Start Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Next Renewal Date</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
+                                                            <div class="col-5">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Next Renewal Date</label>
+                                                                    <div class="col-md-12">
+                                                                        <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Status</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row" style="margin-bottom: 15px;">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                            <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                            <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <div class="form-group">
-                                                                <label class="col-md-12">Amount</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
+                                                            <div class="col-2">
+                                                                <div class="form-group">
+                                                                    <label class="col-md-12">Status</label>
+                                                                    <div class="col-md-12">
+                                                                        <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
 
-                                                    <div class="row" id="credit_card_payment">
-                                                        <div class="col-6">
-                                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                        <div class="row" style="margin-bottom: 15px;">
                                                             <div class="col-12">
-                                                                <div class="form-group" id="card_div">
-                                                                    <label class="col-md-12">Card Details</label>
-                                                                    <div id="card-element"></div>
-                                                                    <p id="card-errors" role="alert"></p>
+                                                                <div class="form-group">
+                                                                    <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
+                                                                    <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                    <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div class="form-group">
+                                                                        <label class="col-md-12">Amount</label>
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
+                                                                            <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= $AMOUNT ?>">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+                                                                    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+                                                                        <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                                        <div class="row">
+                                                                            <div class="col-12">
+                                                                                <div class="form-group" id="card_div">
+
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row" id="card_list_div">
+                                                                        </div>
+                                                                    <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
+                                                                        <input type="hidden" name="square_token" id="square_token" value="">
+                                                                        <div class="row">
+                                                                            <div class="col-12">
+                                                                                <div id="payment-card-container"></div>
+                                                                                <div id="payment-status-container"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row" id="card_list_div">
+                                                                        </div>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row" id="location_payment_status"></div>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <button type="submit" id="location-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
+                                                        </div>
                                                     </div>
+                                                </form>
+                                            </div>
 
-                                                    <div class="row card_list_div" style="display: none;">
-                                                    </div>
-                                                </div>
+                                            <div class="col-6">
+                                                <h4 style="text-align: center; margin-bottom: 20px;">Payment History</h4>
+                                                <table id="payment_table" class="table table-striped border">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="text-align: center;">Date</th>
+                                                            <th style="text-align: center;">Status</th>
+                                                            <th style="text-align: center;">Amount</th>
+                                                            <th style="text-align: center;">Info</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE CLASS = 'location' AND PK_VALUE = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
+                                                        if ($location_payments->RecordCount() > 0) {
+                                                            while (!$location_payments->EOF) {
+                                                                $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
+                                                                $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
+                                                                <tr>
+                                                                    <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
+                                                                    <td style="text-align: center;"><?= $location_payments->fields['PAYMENT_STATUS'] ?></td>
+                                                                    <td style="text-align: center;">$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
+                                                                    <td style="text-align: center;"><?= $payment_type ?></td>
+                                                                </tr>
+                                                            <?php $location_payments->MoveNext();
+                                                            } ?>
+                                                        <?php } else { ?>
+                                                            <tr>
+                                                                <td colspan="4" style="text-align: center;">No payment records found.</td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
 
-
-                                                <div class="form-group">
-                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
-                                                </div>
-                                        </form>
                                     </div>
 
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <h4 class="col-md-12" STYLE="text-align: center">
-                                    <?= $help_title ?>
-                                </h4>
-                                <div class="col-md-12">
-                                    <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                    <div class="col-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <h4 class="col-md-12" STYLE="text-align: center">
+                                        <?= $help_title ?>
+                                    </h4>
+                                    <div class="col-md-12">
+                                        <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1511,11 +1523,8 @@ if (!empty($_POST)) {
             </div>
         </div>
     </div>
-    </div>
 
     <?php require_once('../includes/footer.php'); ?>
-
-    <?php require_once('includes/location_payment.php'); ?>
 </body>
 
 <script>
@@ -1667,7 +1676,12 @@ if (!empty($_POST)) {
     }
 
     function getSavedCreditCardList() {
-        stripePaymentFunction();
+        let payment_gateway_type = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+        if (payment_gateway_type == 'Square') {
+            squarePaymentFunction();
+        } else if (payment_gateway_type == 'Stripe') {
+            stripePaymentFunction();
+        }
         $.ajax({
             url: "ajax/get_credit_card_list_from_master.php",
             type: 'POST',
@@ -1675,71 +1689,192 @@ if (!empty($_POST)) {
                 PK_LOCATION: '<?= $PK_LOCATION ?>',
             },
             success: function(data) {
-                $('.card_list_div').slideDown().html(data);
+                $('#card_list_div').slideDown().html(data);
             }
         });
     }
 </script>
 
-<script src="https://js.stripe.com/v3/"></script>
+
+<?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+        var stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
+        var elements = stripe.elements();
+
+        var style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        // Create an instance of the card Element.
+        var stripe_card = elements.create('card', {
+            style: style
+        });
+        var pay_type = '';
+
+        function stripePaymentFunction() {
+            if (($('#card-element')).length > 0) {
+                stripe_card.mount('#card-element');
+            }
+            // Handle real-time validation errors from the card Element.
+            stripe_card.addEventListener('change', function(event) {
+                var displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                    addStripeTokenOnForm();
+                }
+            });
+        }
+
+        function addStripeTokenOnForm() {
+            //event.preventDefault();
+            stripe.createToken(stripe_card).then(function(result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    let errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    $('#stripe_token').val(result.token.id);
+                }
+            });
+        }
+    </script>
+<?php } ?>
+
+<?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Square') {
+    if ($SA_GATEWAY_MODE == 'live')
+        $SQ_URL = "https://connect.squareup.com";
+    else
+        $SQ_URL = "https://connect.squareupsandbox.com";
+
+    if ($SA_GATEWAY_MODE == 'live')
+        $URL = "https://web.squarecdn.com/v1/square.js";
+    else
+        $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
+    <script src="<?= $URL ?>"></script>
+    <script type="text/javascript">
+        let square_card;
+
+        async function squarePaymentFunction() {
+            let square_appId = '<?= $SA_SQUARE_APP_ID ?>';
+            let square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
+            const payments = Square.payments(square_appId, square_locationId);
+            square_card = await payments.card();
+            $('#payment-card-container').text('');
+            await square_card.attach('#payment-card-container');
+        }
+
+        async function addSquareTokenOnForm() {
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                // Tokenize the card details
+                const result = await square_card.tokenize();
+                if (result.status === 'OK') {
+                    // Add the token to the hidden input field
+                    $('#square_token').val(result.token);
+                } else {
+                    // Handle tokenization errors
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+            }
+        }
+    </script>
+<?php } ?>
+
+
 <script type="text/javascript">
-    var stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
-    var elements = stripe.elements();
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-    var style = {
-        base: {
-            height: '34px',
-            padding: '6px 12px',
-            fontSize: '14px',
-            lineHeight: '1.42857143',
-            color: '#555',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            '::placeholder': {
-                color: '#ddd'
+    function getPaymentMethodId(param) {
+        $('.credit-card-div').css("opacity", "1");
+        $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        $(param).css("opacity", "0.6");
+    }
+
+    $(document).on('submit', '#location_payment_form', function(event) {
+        event.preventDefault();
+        $('#location-payment-btn').prop('disabled', true);
+        let PAYMENT_GATEWAY = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+        if (PAYMENT_GATEWAY == 'Square') {
+            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+            if (PAYMENT_METHOD_ID == '') {
+                addSquareTokenOnForm();
+                sleep(3000).then(() => {
+                    submitLocationPaymentForm();
+                });
+            } else {
+                submitLocationPaymentForm();
             }
-        },
-        invalid: {
-            color: '#fa755a',
-            iconColor: '#fa755a'
+        } else {
+            submitLocationPaymentForm();
         }
-    };
-
-    // Create an instance of the card Element.
-    var stripe_card = elements.create('card', {
-        style: style
     });
-    var pay_type = '';
 
-    function stripePaymentFunction() {
-        if (($('#card-element')).length > 0) {
-            stripe_card.mount('#card-element');
-        }
-        stripe_card.addEventListener('change', function(event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-                addStripeTokenOnForm();
+    function submitLocationPaymentForm() {
+        let form_data = $('#location_payment_form').serialize();
+        $.ajax({
+            url: "includes/process_location_payment.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json',
+            success: function(data) {
+                if (data.STATUS === 'Failed') {
+                    $('#location_payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
+                    $('#location-payment-btn').prop('disabled', false);
+                } else {
+                    $('#location_payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
+                }
             }
         });
     }
 
-    function addStripeTokenOnForm() {
-        stripe.createToken(stripe_card).then(function(result) {
-            if (result.error) {
-                // Inform the user if there was an error.
-                let errorElement = document.getElementById('card-errors');
-                errorElement.textContent = result.error.message;
-            } else {
-                // Send the token to your server.
-                $('#stripe_token').val(result.token.id);
-            }
-        });
-    }
+    $('#payment_table').DataTable({
+        order: [
+            [0, 'desc']
+        ],
+        columnDefs: [{
+            type: 'date',
+            targets: 0
+        }],
+    });
+</script>
 
+
+<script type="text/javascript">
     function changeTabPermission(PK_LOCATION_CUSTOMER_TAB) {
         var checkbox = event.target;
         var countOnPermission = checkbox.checked ? 1 : 0;

@@ -393,7 +393,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             // Product Details
-            $itemName = $_POST['PK_ENROLLMENT_MASTER'];
+            $itemName = "Receipt# " . $RECEIPT_NUMBER_ORIGINAL;
             $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
             $itemPrice = $AMOUNT_TO_PAY;
             $currency = "USD";
@@ -587,7 +587,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     echo json_encode($RETURN_DATA);
                     die();
                 }
-            } catch (\Square\Exceptions\ApiException $e) {
+            } catch (Exception $e) {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $e->getMessage();
 
@@ -831,6 +831,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
     //header('location:'.$header);
 }
+
 function savePercentageData($PK_ENROLLMENT_MASTER, $AMOUNT)
 {
     global $db_account;

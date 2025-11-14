@@ -160,7 +160,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     $BILLING_DETAILS['NOT_AM_AMOUNT'] = $_POST['NOT_AM_AMOUNT'];
     $BILLING_DETAILS['RENEWAL_INTERVAL'] = $_POST['RENEWAL_INTERVAL'];
     db_perform('DOA_ACCOUNT_MASTER', $BILLING_DETAILS, 'update', " PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
-    header("location:account.php?id=" . $PK_ACCOUNT_MASTER);
+
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
 }
 
 /* if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {

@@ -14,7 +14,8 @@ require_once('../../global/authorizenet/autoload.php');
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
-$PK_USER = $_SESSION['PK_USER'];
+$PK_LOCATION = $_POST['PK_LOCATION'];
+
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -27,40 +28,38 @@ $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
-$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
-
 if ($PAYMENT_GATEWAY == "Stripe") {
-    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = '$PK_USER'");
-    if ($SECRET_KEY != '' && $user_payment_info->RecordCount() > 0) {
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = 'location' AND PK_VALUE = '$PK_LOCATION'");
+    if ($SECRET_KEY != '' && $location_payment_info->RecordCount() > 0) {
         $stripe = new \Stripe\StripeClient($SECRET_KEY);
-        $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
+        $CUSTOMER_PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
 
         $all_cards = $stripe->customers->allSources(
-            $PAYMENT_ID,
+            $CUSTOMER_PAYMENT_ID,
             ['object' => 'card']
         );
 
         foreach ($all_cards->data as $card_details) {
-            $card_type = getCardTypeDetails($card_details->brand);
-?>
-            <div class="credit-card-div" id="<?php echo $card_details->id; ?>" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                <div class="credit-card <?= $card_type ?> selectable">
-                    <div class="credit-card-last4">
-                        <?= $card_details->last4 ?>
-                    </div>
-                    <div class="credit-card-expiry">
-                        <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
+            $card_type = getCardTypeDetails($card_details->brand); ?>
+
+            <div style="position: relative; display: inline-block;">
+                <!-- Credit Card Box -->
+                <div class="credit-card-div" id="<?= $card_details->id; ?>" onclick="getPaymentMethodId(this)">
+                    <div class="credit-card <?= $card_type ?> selectable">
+                        <div class="credit-card-last4">
+                            <?= $card_details->last4 ?>
+                        </div>
+                        <div class="credit-card-expiry">
+                            <?= $card_details->exp_month . '/' . $card_details->exp_year ?>
+                        </div>
                     </div>
                 </div>
             </div>
-<?php }
+        <?php }
     }
 } elseif ($PAYMENT_GATEWAY == "Square") {
-    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND PK_USER = '$PK_USER'");
-
-    if ($user_payment_info->RecordCount() > 0) {
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = 'location' AND PK_VALUE = '$PK_LOCATION'");
+    if ($location_payment_info->RecordCount() > 0) {
         require_once("../../global/vendor/autoload.php");
 
         if ($GATEWAY_MODE == 'live') {
@@ -75,91 +74,33 @@ if ($PAYMENT_GATEWAY == "Stripe") {
             ]);
         }
 
-        $PAYMENT_ID = $user_payment_info->fields['PAYMENT_ID'];
+        $CUSTOMER_PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
         try {
-            $card = new \Square\Models\Card();
-            $card->setCustomerId($PAYMENT_ID);
-            $all_payment_methods = $client->getCardsApi()->listCards();
-            $all_payment_methods_array = json_decode($all_payment_methods->getBody());
+            $api_response = $client->getCardsApi()->listCards(null, $CUSTOMER_PAYMENT_ID, 'DESC');
+            $all_cards = $api_response->getResult()->getCards();
         } catch (Exception $e) {
-            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            echo 'Caught exception: ', $e->getMessage(), "\n";
         }
 
-        $card_list = '';
-        foreach ($all_payment_methods_array->cards as $all_payment_methods_data) {
-            $card_type = getCardTypeDetails($all_payment_methods_data->card_brand);
+        foreach ($all_cards as $card_details) {
+            $card_type = getCardTypeDetails($card_details->getCardBrand()); ?>
 
-            $card_list .= '<div class="credit-card-div" id="' . $all_payment_methods_data->id . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                            <div class="credit-card ' . $card_type . ' selectable">
-                                <div class="credit-card-last4">
-                                    ' . $all_payment_methods_data->last_4 . '
-                                </div>
-                                <div class="credit-card-expiry">
-                                    ' . $all_payment_methods_data->exp_month . '/' . $all_payment_methods_data->exp_year . '
-                                </div>
-                            </div>
-                        </div>';
-        }
-        echo $card_list;
+            <div style="position: relative; display: inline-block;">
+                <!-- Credit Card Box -->
+                <div class="credit-card-div" id="<?= $card_details->getId(); ?>" onclick="getPaymentMethodId(this)">
+                    <div class="credit-card <?= $card_type ?> selectable">
+                        <div class="credit-card-last4">
+                            <?= $card_details->getLast4() ?>
+                        </div>
+                        <div class="credit-card-expiry">
+                            <?= $card_details->getExpMonth() . '/' . $card_details->getExpYear() ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<?php   }
     }
-} elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
-    $user_payment_info = $db->Execute("SELECT * FROM `DOA_USER_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = '$PK_USER'");
-
-    if ($user_payment_info->RecordCount() > 0) {
-        // Your API credentials
-        $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-        $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
-        $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
-
-        // Customer Profile ID (from your DB or after creating profile)
-        $customerProfileId = $user_payment_info->fields['PAYMENT_ID'];
-
-        // Prepare the request
-        $request = new AnetAPI\GetCustomerProfileRequest();
-        $request->setMerchantAuthentication($merchantAuthentication);
-        $request->setCustomerProfileId($customerProfileId);
-
-        // Execute the API call
-        $controller = new AnetController\GetCustomerProfileController($request);
-
-        if ($GATEWAY_MODE == 'live')
-            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
-        else
-            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
-
-        //$response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX); // or PRODUCTION
-
-        // Handle response
-        if (($response != null) && ($response->getMessages()->getResultCode() == "Ok")) {
-            $paymentProfiles = $response->getProfile()->getPaymentProfiles();
-
-            $card_list = '';
-            foreach ($paymentProfiles as $profile) {
-                $card = $profile->getPayment()->getCreditCard();
-                $card_type = getCardTypeDetails($card->getCardType());
-
-                $card_list .= '<div class="credit-card-div" id="' . $profile->getCustomerPaymentProfileId() . '" onclick="getPaymentMethodId(this)" style="width: 303px;">
-                            <div class="credit-card ' . $card_type . ' selectable">
-                                <div class="credit-card-last4">
-                                    ' . $card->getCardNumber() . '
-                                </div>
-                                <div class="credit-card-expiry">
-                                    ' . $card->getExpirationDate() . '
-                                </div>
-                            </div>
-                        </div>';
-            }
-            echo $card_list;
-        } else {
-            echo "Error fetching payment profiles.\n";
-            $errorMessages = $response->getMessages()->getMessage();
-            foreach ($errorMessages as $error) {
-                echo "Error: " . $error->getCode() . " - " . $error->getText() . "\n";
-            }
-        }
-    }
-} ?>
-
+}  ?>
 <?php
 function getCardTypeDetails($brand)
 {
