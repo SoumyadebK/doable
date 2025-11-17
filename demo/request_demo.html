@@ -166,7 +166,7 @@
 	        <div class="clearfix"></div>
           <br>
 			<input type="hidden" name="token" value="FsWga4&@f6aw" />
-	        <button type="submit" class="btn btn-dark theme_doable_btn uppercase">Send Message</button>
+	        <a href="#myModal" data-toggle="modal" type="submit" class="btn btn-dark theme_doable_btn uppercase">Send Message</a>
 	        
     	</form>	
         
@@ -256,6 +256,25 @@
   <!--end site wrapper--> 
 </div>
 <!--end wrapper boxed--> 
+
+<!-- Modal HTML -->
+<div id="myModal" class="modal fade">
+	<div class="modal-dialog modal-confirm">
+		<div class="modal-content">
+			<div class="modal-header justify-content-center">
+				<div class="icon-box">
+					<i class="fa fa-check"></i>
+				</div>
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			</div>
+			<div class="modal-body text-center">
+				<h4>Great!</h4>	
+				<p>Your request has been sent successfully.</p>
+				<!-- <button class="btn btn-success" data-dismiss="modal"><span>Start Exploring</span> <i class="fa fa-chevron-right"></i></button> -->
+			</div>
+		</div>
+	</div>
+</div> 
 
 <!-- Scripts --> 
 <script src="js/jquery/jquery.js"></script> 
