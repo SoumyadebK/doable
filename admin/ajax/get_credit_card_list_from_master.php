@@ -14,7 +14,8 @@ require_once('../../global/authorizenet/autoload.php');
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 
-$PK_LOCATION = $_POST['PK_LOCATION'];
+$PK_VALUE = $_POST['PK_VALUE'];
+$CLASS = $_POST['class'];
 
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
@@ -29,7 +30,7 @@ $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
 if ($PAYMENT_GATEWAY == "Stripe") {
-    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = 'location' AND PK_VALUE = '$PK_LOCATION'");
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = '$CLASS' AND PK_VALUE = '$PK_VALUE'");
     if ($SECRET_KEY != '' && $location_payment_info->RecordCount() > 0) {
         $stripe = new \Stripe\StripeClient($SECRET_KEY);
         $CUSTOMER_PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
@@ -58,7 +59,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
         <?php }
     }
 } elseif ($PAYMENT_GATEWAY == "Square") {
-    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = 'location' AND PK_VALUE = '$PK_LOCATION'");
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = '$CLASS' AND PK_VALUE = '$PK_VALUE'");
     if ($location_payment_info->RecordCount() > 0) {
         require_once("../../global/vendor/autoload.php");
 

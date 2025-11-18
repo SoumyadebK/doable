@@ -1686,7 +1686,8 @@ if (!empty($_POST)) {
             url: "ajax/get_credit_card_list_from_master.php",
             type: 'POST',
             data: {
-                PK_LOCATION: '<?= $PK_LOCATION ?>',
+                PK_VALUE: '<?= $PK_LOCATION ?>',
+                class: 'location'
             },
             success: function(data) {
                 $('#card_list_div').slideDown().html(data);

@@ -24,13 +24,23 @@ if ($help->RecordCount() > 0) {
     $help_description = $help->fields['DESCRIPTION'];
 }
 
+$SA_PAYMENT_GATEWAY_TYPE = '';
+$SA_GATEWAY_MODE = '';
 $SA_SECRET_KEY = '';
 $SA_PUBLISHABLE_KEY = '';
+$SA_ACCESS_TOKEN = '';
+$SA_SQUARE_APP_ID = '';
+$SA_SQUARE_LOCATION_ID = '';
 
 $payment_gateway_setting = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 if ($payment_gateway_setting->RecordCount() > 0) {
+    $SA_PAYMENT_GATEWAY_TYPE = $payment_gateway_setting->fields['PAYMENT_GATEWAY_TYPE'];
+    $SA_GATEWAY_MODE = $payment_gateway_setting->fields['GATEWAY_MODE'];
     $SA_SECRET_KEY = $payment_gateway_setting->fields['SECRET_KEY'];
     $SA_PUBLISHABLE_KEY = $payment_gateway_setting->fields['PUBLISHABLE_KEY'];
+    $SA_ACCESS_TOKEN = $payment_gateway_setting->fields['ACCESS_TOKEN'];
+    $SA_SQUARE_APP_ID = $payment_gateway_setting->fields['APP_ID'];
+    $SA_SQUARE_LOCATION_ID = $payment_gateway_setting->fields['LOCATION_ID'];
 }
 
 if (empty($_GET['id'])) {
@@ -247,7 +257,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="corporation_tab_link" data-bs-toggle="tab" href="#corporation" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">Corporation </span></a> </li>
-                                    <!-- <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li> -->
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -565,105 +575,33 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                             <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
                                             <div class="p-20">
                                                 <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Subscription Start Date</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Next Renewal Date</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Status</label>
-                                                            <div class="col-md-12">
-                                                                <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    <div class="col-12">
+                                                        <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+                                                        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+                                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div class="form-group" id="card_div">
 
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="row">
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">AM Location Count</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $am_location_count ?>" disabled>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">Non AM Location Count</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= $non_am_location_count ?>" disabled>
-                                                                    </div>
+                                                            <div class="row" id="card_list_div">
+                                                            </div>
+                                                        <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
+                                                            <input type="hidden" name="square_token" id="square_token" value="">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div id="payment-card-container"></div>
+                                                                    <div id="payment-status-container"></div>
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                            <div class="row" id="card_list_div">
+                                                            </div>
+                                                        <?php } ?>
                                                     </div>
                                                 </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="row">
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">AM Amount</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= '$' . number_format($AM_AMOUNT * $am_location_count, 2) ?>" disabled>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">Non AM Amount</label>
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" class="form-control" value="<?= '$' . number_format($NOT_AM_AMOUNT * $non_am_location_count, 2) ?>" disabled>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Total Amount</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" class="form-control" value="<?= '$' . number_format(($am_location_count * $AM_AMOUNT) + ($non_am_location_count * $NOT_AM_AMOUNT), 2) ?>" disabled>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-
-                                                <div class="row" id="credit_card_payment">
-                                                    <div class="col-6">
-                                                        <input type="hidden" name="token" id="token" value="">
-                                                        <div class="col-12">
-                                                            <div class="form-group" id="card_div">
-                                                                <label class="col-md-12">Card Details</label>
-                                                                <div id="card-element"></div>
-                                                                <p id="card-errors" role="alert"></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row card_list_div" style="display: none;">
-                                                </div>
+                                                <div class="row" id="location_payment_status"></div>
 
                                                 <div class="form-group">
                                                     <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
@@ -750,78 +688,136 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
     }
 
     function getSavedCreditCardList() {
-        stripePaymentFunction();
+        let payment_gateway_type = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+        if (payment_gateway_type == 'Square') {
+            squarePaymentFunction();
+        } else if (payment_gateway_type == 'Stripe') {
+            stripePaymentFunction();
+        }
         $.ajax({
             url: "ajax/get_credit_card_list_from_master.php",
             type: 'POST',
-            data: {},
+            data: {
+                PK_VALUE: '<?= $PK_CORPORATION  ?>',
+                class: 'corporation'
+            },
             success: function(data) {
-                $('.card_list_div').slideDown().html(data);
+                $('#card_list_div').slideDown().html(data);
             }
         });
     }
 </script>
 
 
+<?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+        var stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
+        var elements = stripe.elements();
 
-
-
-<script src="https://js.stripe.com/v3/"></script>
-<script type="text/javascript">
-    var stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
-    var elements = stripe.elements();
-
-    var style = {
-        base: {
-            height: '34px',
-            padding: '6px 12px',
-            fontSize: '14px',
-            lineHeight: '1.42857143',
-            color: '#555',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            '::placeholder': {
-                color: '#ddd'
+        var style = {
+            base: {
+                height: '34px',
+                padding: '6px 12px',
+                fontSize: '14px',
+                lineHeight: '1.42857143',
+                color: '#555',
+                backgroundColor: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                '::placeholder': {
+                    color: '#ddd'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
             }
-        },
-        invalid: {
-            color: '#fa755a',
-            iconColor: '#fa755a'
-        }
-    };
+        };
 
-    // Create an instance of the card Element.
-    var stripe_card = elements.create('card', {
-        style: style
-    });
-    var pay_type = '';
-
-    function stripePaymentFunction() {
-        if (($('#card-element')).length > 0) {
-            stripe_card.mount('#card-element');
-        }
-        stripe_card.addEventListener('change', function(event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-                addStripeTokenOnForm();
-            }
+        // Create an instance of the card Element.
+        var stripe_card = elements.create('card', {
+            style: style
         });
-    }
+        var pay_type = '';
 
-    function addStripeTokenOnForm() {
-        stripe.createToken(stripe_card).then(function(result) {
-            if (result.error) {
-                // Inform the user if there was an error.
-                let errorElement = document.getElementById('card-errors');
-                errorElement.textContent = result.error.message;
-            } else {
-                // Send the token to your server.
-                $('#token').val(result.token.id);
+        function stripePaymentFunction() {
+            if (($('#card-element')).length > 0) {
+                stripe_card.mount('#card-element');
             }
-        });
-    }
-</script>
+            // Handle real-time validation errors from the card Element.
+            stripe_card.addEventListener('change', function(event) {
+                var displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                    addStripeTokenOnForm();
+                }
+            });
+        }
+
+        function addStripeTokenOnForm() {
+            //event.preventDefault();
+            stripe.createToken(stripe_card).then(function(result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    let errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    $('#stripe_token').val(result.token.id);
+                }
+            });
+        }
+    </script>
+<?php } ?>
+
+<?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Square') {
+    if ($SA_GATEWAY_MODE == 'live')
+        $SQ_URL = "https://connect.squareup.com";
+    else
+        $SQ_URL = "https://connect.squareupsandbox.com";
+
+    if ($SA_GATEWAY_MODE == 'live')
+        $URL = "https://web.squarecdn.com/v1/square.js";
+    else
+        $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+?>
+    <script src="<?= $URL ?>"></script>
+    <script type="text/javascript">
+        let square_card;
+
+        async function squarePaymentFunction() {
+            let square_appId = '<?= $SA_SQUARE_APP_ID ?>';
+            let square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
+            const payments = Square.payments(square_appId, square_locationId);
+            square_card = await payments.card();
+            $('#payment-card-container').text('');
+            await square_card.attach('#payment-card-container');
+        }
+
+        async function addSquareTokenOnForm() {
+            const statusContainer = document.getElementById('payment-status-container');
+
+            try {
+                // Tokenize the card details
+                const result = await square_card.tokenize();
+                if (result.status === 'OK') {
+                    // Add the token to the hidden input field
+                    $('#square_token').val(result.token);
+                } else {
+                    // Handle tokenization errors
+                    let errorMessage = `Tokenization failed with status: ${result.status}`;
+                    if (result.errors) {
+                        errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (e) {
+                console.error(e);
+                statusContainer.innerHTML = `<p class="alert alert-danger">Payment Failed: ${e.message}</p>`;
+            }
+        }
+    </script>
+<?php } ?>
