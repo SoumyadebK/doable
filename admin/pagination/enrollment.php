@@ -80,7 +80,7 @@ if ($page == 1) {
 } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -217,45 +217,49 @@ while (!$enrollment_data->EOF) {
                 </table>
             </div>
             <div class="col-2" style="font-weight: bold; text-align: center; margin-top: 1.5%;">
-                <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD_ID']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
+                <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
                     <div>Auto Pay</div>
-                    <label class="switch" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);">
-                        <input type="checkbox" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
-                        <span class="slider"></span>
-                    </label>
-                    <br><br>
-                <?php } ?>
+                    <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
+                        <label class="switch" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);">
+                        <?php } else { ?>
+                            <label class="switch" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);">
+                            <?php } ?>
+                            <input type="checkbox" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
+                            <span class="slider"></span>
+                            </label>
+                            <br><br>
+                        <?php } ?>
 
-                <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] == $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
-                    <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
-                <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
-                    <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
-                <?php }
-                if (($amount_to_pay > 0 && $unpaid_count <= 0) && $enrollment_data->fields['STATUS'] != 'C') { ?>
-                    <br><br>
-                    <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
-                    <p style="color:red;">$<?= number_format($amount_to_pay, 2) ?></p>
-                <?php } elseif ($amount_to_return > 0 && isSevenYearsExpired($enrollment_data->fields['ENROLLMENT_DATE'])) { ?>
-                    <br><br>
-                    <button class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, 0, <?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $PK_USER_MASTER ?>, <?= $amount_to_return ?>, 'completed', 'Move', 0)">Move to Wallet</button><br><br>
-                    <p style="color:green;">$<?= number_format($amount_to_return, 2) ?></p>
-                <?php } ?>
-                <?php
-                if ($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>
-                    <p style="color: red; margin-top: 25%;">Cancelled</p>
-                <?php } ?>
-                <?php
-                if ($enrollment_data->fields['STATUS'] === 'CA') {
-                    if ($total_paid_amount - $total_used_amount > 0) { ?>
-                        <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
-                    <?php } elseif ($total_paid_amount - $total_used_amount < 0) { ?>
-                        <p style="color: red; margin-top: 20%;">Balance Owed</p>
-                    <?php } ?>
-                <?php } ?>
+                        <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] == $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                            <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
+                        <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
+                            <i class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></i>
+                        <?php }
+                        if (($amount_to_pay > 0 && $unpaid_count <= 0) && $enrollment_data->fields['STATUS'] != 'C') { ?>
+                            <br><br>
+                            <button id="payNow" class="pay_now_button btn btn-info waves-effect waves-light text-white" onclick="payNow(<?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $amount_to_pay ?>, '<?= $ENROLLMENT_ID ?>');">Adjust</button><br><br>
+                            <p style="color:red;">$<?= number_format($amount_to_pay, 2) ?></p>
+                        <?php } elseif ($amount_to_return > 0 && isSevenYearsExpired($enrollment_data->fields['ENROLLMENT_DATE'])) { ?>
+                            <br><br>
+                            <button class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, 0, <?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $PK_USER_MASTER ?>, <?= $amount_to_return ?>, 'completed', 'Move', 0)">Move to Wallet</button><br><br>
+                            <p style="color:green;">$<?= number_format($amount_to_return, 2) ?></p>
+                        <?php } ?>
+                        <?php
+                        if ($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>
+                            <p style="color: red; margin-top: 25%;">Cancelled</p>
+                        <?php } ?>
+                        <?php
+                        if ($enrollment_data->fields['STATUS'] === 'CA') {
+                            if ($total_paid_amount - $total_used_amount > 0) { ?>
+                                <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
+                            <?php } elseif ($total_paid_amount - $total_used_amount < 0) { ?>
+                                <p style="color: red; margin-top: 20%;">Balance Owed</p>
+                            <?php } ?>
+                        <?php } ?>
 
-                <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                    <!-- <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a> -->
-                <?php } ?>
+                        <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
+                            <!-- <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a> -->
+                        <?php } ?>
             </div>
         </div>
 
@@ -513,5 +517,54 @@ if ($page == 1) { ?>
                 }
             });
         });
+
+        function addEnrollmentAutoPay(PK_ENROLLMENT_MASTER) {
+            $('#AUTO_PAY_ENROLLMENT_ID').val(PK_ENROLLMENT_MASTER);
+            getSavedCreditCardListAutoPay();
+        }
+
+        function getSavedCreditCardListAutoPay() {
+            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+            $('#credit_card_modal').modal('show');
+            $.ajax({
+                url: "ajax/get_credit_card_list.php",
+                type: 'POST',
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    call_from: 'enrollment_auto_pay'
+                },
+                success: function(data) {
+                    $('#saved_credit_card_list_auto_pay').slideDown().html(data);
+                    addCreditCardAutoPay();
+                }
+            });
+        }
+
+        function selectAutoPayCreditCard(param) {
+            let payment_id = $(param).attr('id');
+
+            $('.credit-card-div').css("opacity", "1");
+            $(param).css("opacity", "0.6");
+
+            $('#AUTO_PAY_PAYMENT_METHOD_ID').val(payment_id);
+        }
+
+        function addCreditCardAutoPay() {
+            let PK_USER = $('.PK_USER').val();
+            let PK_USER_MASTER = $('.PK_USER_MASTER').val();
+            $.ajax({
+                url: "includes/save_credit_card.php",
+                type: 'POST',
+                data: {
+                    PK_USER: PK_USER,
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    call_from: 'enrollment_auto_pay'
+                },
+                success: function(data) {
+                    $('#add_credit_card_div_auto_pay').slideDown().html(data);
+                    addCreditCard();
+                }
+            });
+        }
     </script>
 <?php } ?>

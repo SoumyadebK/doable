@@ -312,7 +312,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             data: form_data,
             dataType: 'json',
             success: function(data) {
-                console.log('asd', data);
                 if (data.STATUS) {
                     if (call_from == 'enrollment_auto_pay') {
                         getSavedCreditCardListAutoPay();

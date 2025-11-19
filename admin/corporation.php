@@ -570,9 +570,8 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
 
 
                                     <div class="tab-pane p-20" id="billing" role="tabpanel">
-                                        <form class="form-material form-horizontal" id="billingForm" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveBillingData">
-                                            <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                        <form class="form-material form-horizontal" id="credit_card_form" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="PK_CORPORATION" id="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
                                             <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-12">
@@ -601,10 +600,10 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                         <?php } ?>
                                                     </div>
                                                 </div>
-                                                <div class="row" id="location_payment_status"></div>
+                                                <div class="row" id="corporation_payment_status"></div>
 
                                                 <div class="form-group">
-                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
+                                                    <button type="submit" id="corporation-pay-button" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
                                                 </div>
                                         </form>
                                     </div>
@@ -821,3 +820,50 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
         }
     </script>
 <?php } ?>
+
+<script>
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    $(document).on('submit', '#credit_card_form', function(event) {
+        $('#corporation-pay-button').prop('disabled', true);
+        event.preventDefault();
+        let PAYMENT_GATEWAY = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+        if (PAYMENT_GATEWAY == 'Square') {
+            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+            if (PAYMENT_METHOD_ID == '') {
+                addSquareTokenOnForm();
+                sleep(3000).then(() => {
+                    submitCreditCardForm();
+                });
+            } else {
+                submitCreditCardForm();
+            }
+        } else {
+            submitCreditCardForm();
+        }
+    });
+
+    function submitCreditCardForm() {
+        let form_data = $('#credit_card_form').serialize();
+        $.ajax({
+            url: "includes/save_corporation_credit_card.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json',
+            success: function(data) {
+                if (data.STATUS == false) {
+                    $('#corporation_payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
+                    $('#corporation-pay-button').prop('disabled', false);
+                } else {
+                    $('#corporation_payment_status').html(`<p class="alert alert-success">Credit Card Successfully Saved.</p>`);
+
+                    /* setTimeout(function() {
+                        location.reload();
+                    }, 3000); */
+                }
+            }
+        });
+    }
+</script>

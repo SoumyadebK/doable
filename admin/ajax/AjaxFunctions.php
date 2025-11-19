@@ -741,6 +741,19 @@ function changeEnrollmentAutoPay($RESPONSE_DATA)
 
     echo 'Success';
 }
+
+function addEnrollmentAutoPay($RESPONSE_DATA)
+{
+    global $db_account;
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+    $PAYMENT_METHOD_ID = $RESPONSE_DATA['PAYMENT_METHOD_ID'];
+
+    $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = 1;
+    $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $PAYMENT_METHOD_ID;
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+
+    echo true;
+}
 /**
  * @throws MpdfException
  */

@@ -2138,6 +2138,47 @@ if ($PK_USER_MASTER > 0) {
 
             </div>
 
+            <!--Auto-pay Credit Card Modal-->
+            <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4><b>Select Credit Card for Auto-Pay</b></h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#credit_card_modal').modal('hide');"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tab-pane" id="credit_card" role="tabpanel">
+                                <div class="p-20">
+                                    <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                        <div class="alert alert-danger">
+                                            Payment Gateway is Not set Yet
+                                        </div>
+                                    <?php } else { ?>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div id="add_credit_card_div_auto_pay" style="display: none; width: 150%;">
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="saved_credit_card_list_auto_pay" style="display: none; padding-left: 6%;">
+
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <input type="hidden" name="AUTO_PAY_ENROLLMENT_ID" id="AUTO_PAY_ENROLLMENT_ID">
+                            <input type="hidden" name="AUTO_PAY_PAYMENT_METHOD_ID" id="AUTO_PAY_PAYMENT_METHOD_ID">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
+                            <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="addEnrollmentAutoPayCreditCard()">Process</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!--Verify Password Model-->
             <div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
@@ -3517,12 +3558,12 @@ if ($PK_USER_MASTER > 0) {
             success: function(data) {
                 $('#saved_credit_card_list').slideDown().html(data);
                 $('#credit_card_loader').hide();
-                addCreditCard();
+                saveCreditCard();
             }
         });
     }
 
-    function addCreditCard() {
+    function saveCreditCard() {
         let PK_USER = $('.PK_USER').val();
         let PK_USER_MASTER = $('.PK_USER_MASTER').val();
         $.ajax({
@@ -3725,7 +3766,40 @@ if ($PK_USER_MASTER > 0) {
     }
 </script>
 
-
+<script>
+    function addEnrollmentAutoPayCreditCard() {
+        let PK_ENROLLMENT_MASTER = $('#AUTO_PAY_ENROLLMENT_ID').val();
+        let PAYMENT_METHOD_ID = $('#AUTO_PAY_PAYMENT_METHOD_ID').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'addEnrollmentAutoPay',
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                PAYMENT_METHOD_ID: PAYMENT_METHOD_ID
+            },
+            success: function(data) {
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Auto Pay Added for this Enrollment.",
+                        icon: "success",
+                        timer: 2000,
+                    }).then((result) => {
+                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Something went wrong, please try again.",
+                        icon: "error",
+                        timer: 3000,
+                    });
+                }
+            }
+        });
+    }
+</script>
 
 
 

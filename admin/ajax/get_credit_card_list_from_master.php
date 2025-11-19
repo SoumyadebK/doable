@@ -56,7 +56,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                     </div>
                 </div>
             </div>
-        <?php }
+            <?php }
     }
 } elseif ($PAYMENT_GATEWAY == "Square") {
     $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = '$CLASS' AND PK_VALUE = '$PK_VALUE'");
@@ -83,23 +83,28 @@ if ($PAYMENT_GATEWAY == "Stripe") {
             echo 'Caught exception: ', $e->getMessage(), "\n";
         }
 
-        foreach ($all_cards as $card_details) {
-            $card_type = getCardTypeDetails($card_details->getCardBrand()); ?>
+        if (!empty($all_cards)) {
 
-            <div style="position: relative; display: inline-block;">
-                <!-- Credit Card Box -->
-                <div class="credit-card-div" id="<?= $card_details->getId(); ?>" onclick="getPaymentMethodId(this)">
-                    <div class="credit-card <?= $card_type ?> selectable">
-                        <div class="credit-card-last4">
-                            <?= $card_details->getLast4() ?>
-                        </div>
-                        <div class="credit-card-expiry">
-                            <?= $card_details->getExpMonth() . '/' . $card_details->getExpYear() ?>
+            foreach ($all_cards as $card_details) {
+                $card_type = getCardTypeDetails($card_details->getCardBrand()); ?>
+
+                <div style="position: relative; display: inline-block;">
+                    <!-- Credit Card Box -->
+                    <div class="credit-card-div" id="<?= $card_details->getId(); ?>" onclick="getPaymentMethodId(this)">
+                        <div class="credit-card <?= $card_type ?> selectable">
+                            <div class="credit-card-last4">
+                                <?= $card_details->getLast4() ?>
+                            </div>
+                            <div class="credit-card-expiry">
+                                <?= $card_details->getExpMonth() . '/' . $card_details->getExpYear() ?>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-<?php   }
+<?php       }
+        } else {
+            echo "<p>No saved credit cards found.</p>";
+        }
     }
 }  ?>
 <?php
