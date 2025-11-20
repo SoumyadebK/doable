@@ -55,6 +55,10 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                         </div>
                     </div>
                 </div>
+                <!-- <a href="javascript:;" onclick="deleteThisCreditCard('<?= $card_details->id ?>');" title="Delete"
+                    style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                    <i class="ti-trash"></i>
+                </a> -->
             </div>
             <?php }
     }
@@ -100,6 +104,10 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                             </div>
                         </div>
                     </div>
+                    <!-- <a href="javascript:;" onclick="deleteThisCreditCard('<?= $card_details->getId() ?>');" title="Delete"
+                        style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                        <i class="ti-trash"></i>
+                    </a> -->
                 </div>
 <?php       }
         } else {

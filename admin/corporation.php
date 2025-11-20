@@ -216,7 +216,7 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
     header("location:all_corporations.php");
 }
 
-if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingData') {
+if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_cardData') {
 
     header("location:all_corporations.php");
 }
@@ -257,7 +257,8 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="corporation_tab_link" data-bs-toggle="tab" href="#corporation" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">Corporation </span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -568,8 +569,44 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                         </form>
                                     </div>
 
+                                    <div class="tab-pane p-20" id="payment_register" role="tabpanel" style="margin-top: 15px;">
+                                        <h4 style="text-align: center; margin-bottom: 20px;">Payment History</h4>
+                                        <table id="payment_table" class="table table-striped border">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center;">Date</th>
+                                                    <th style="text-align: center;">Status</th>
+                                                    <th style="text-align: center;">Amount</th>
+                                                    <th style="text-align: center;">Info</th>
+                                                    <th style="text-align: center;">For Location</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                $corporation_payments = $db->Execute("SELECT DOA_PAYMENT_DETAILS.*, DOA_LOCATION.LOCATION_NAME FROM DOA_PAYMENT_DETAILS INNER JOIN DOA_LOCATION ON DOA_PAYMENT_DETAILS.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_PAYMENT_DETAILS.PAYMENT_FROM = 'corporation' AND DOA_PAYMENT_DETAILS.PK_CORPORATION = " . $PK_CORPORATION . " ORDER BY DOA_PAYMENT_DETAILS.DATE_TIME DESC");
+                                                if ($corporation_payments->RecordCount() > 0) {
+                                                    while (!$corporation_payments->EOF) {
+                                                        $payment_info = json_decode($corporation_payments->fields['PAYMENT_INFO']);
+                                                        $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
+                                                        <tr style="color : <?= ($corporation_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'red' : 'black' ?>">
+                                                            <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($corporation_payments->fields['DATE_TIME'])) ?></td>
+                                                            <td style="text-align: center;"><?= $corporation_payments->fields['PAYMENT_STATUS'] ?></td>
+                                                            <td style="text-align: center;">$<?= number_format($corporation_payments->fields['AMOUNT'], 2) ?></td>
+                                                            <td style="text-align: center;"><?= $payment_type ?></td>
+                                                            <td style="text-align: center;"><?= $corporation_payments->fields['LOCATION_NAME'] ?></td>
+                                                        </tr>
+                                                    <?php $corporation_payments->MoveNext();
+                                                    } ?>
+                                                <?php } else { ?>
+                                                    <tr>
+                                                        <td colspan="5" style="text-align: center;">No payment records found.</td>
+                                                    </tr>
+                                                <?php } ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-                                    <div class="tab-pane p-20" id="billing" role="tabpanel">
+                                    <div class="tab-pane p-20" id="credit_card" role="tabpanel">
                                         <form class="form-material form-horizontal" id="credit_card_form" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="PK_CORPORATION" id="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
                                             <div class="p-20">
@@ -607,6 +644,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                                                 </div>
                                         </form>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -859,9 +897,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveBillingDa
                 } else {
                     $('#corporation_payment_status').html(`<p class="alert alert-success">Credit Card Successfully Saved.</p>`);
 
-                    /* setTimeout(function() {
+                    setTimeout(function() {
                         location.reload();
-                    }, 3000); */
+                    }, 3000);
                 }
             }
         });
