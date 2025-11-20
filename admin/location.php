@@ -549,8 +549,10 @@ if (!empty($_POST)) {
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" id="billing_link" href="#billing" role="tab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
+
+                                        <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
                                 </ul>
@@ -1369,135 +1371,151 @@ if (!empty($_POST)) {
                                         </form>
                                     </div>
 
+                                    <div class="tab-pane p-20" id="payment_register" role="tabpanel" style="margin-top: 15px;">
+                                        <h4 style="text-align: center; margin-bottom: 20px;">Payment History</h4>
+                                        <table id="payment_table" class="table table-striped border">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center;">Date</th>
+                                                    <th style="text-align: center;">Status</th>
+                                                    <th style="text-align: center;">Amount</th>
+                                                    <th style="text-align: center;">Info</th>
+                                                    <th style="text-align: center;">Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE PK_LOCATION = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
+                                                if ($location_payments->RecordCount() > 0) {
+                                                    while (!$location_payments->EOF) {
+                                                        $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
+                                                        $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
+                                                        <tr style="color : <?= ($location_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'red' : 'black' ?>">
+                                                            <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
+                                                            <td style="text-align: center;"><?= $location_payments->fields['PAYMENT_STATUS'] ?></td>
+                                                            <td style="text-align: center;">$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
+                                                            <td style="text-align: center;"><?= $payment_type ?></td>
+                                                            <td style="text-align: center;">
+                                                                <?php if ($location_payments->fields['PAYMENT_FROM'] == 'corporation') {
+                                                                    echo 'Payment from Corporation';
+                                                                } else {
+                                                                    echo 'Payment from Location';
+                                                                } ?>
+                                                            </td>
+                                                        </tr>
+                                                    <?php $location_payments->MoveNext();
+                                                    } ?>
+                                                <?php } else { ?>
+                                                    <tr>
+                                                        <td colspan="5" style="text-align: center;">No payment records found.</td>
+                                                    </tr>
+                                                <?php } ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
                                     <div class="tab-pane" id="billing" role="tabpanel" style="margin-top: 20px;">
                                         <div class="row">
-                                            <div class="col-6">
-                                                <form class="form-material form-horizontal" id="location_payment_form" method="post" enctype="multipart/form-data">
-                                                    <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
-                                                    <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                                    <div class="p-20">
-                                                        <div class="row">
-                                                            <div class="col-5">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">Subscription Start Date</label>
-                                                                    <div class="col-md-12">
-                                                                        <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-5">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">Next Renewal Date</label>
-                                                                    <div class="col-md-12">
-                                                                        <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <div class="form-group">
-                                                                    <label class="col-md-12">Status</label>
-                                                                    <div class="col-md-12">
-                                                                        <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
-                                                                    </div>
+                                            <form class="form-material form-horizontal" id="location_payment_form" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                                <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                <input type="hidden" class="PK_CORPORATION" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
+                                                <div class="p-20">
+                                                    <div class="row">
+                                                        <div class="col-5">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Subscription Start Date</label>
+                                                                <div class="col-md-12">
+                                                                    <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        <div class="row" style="margin-bottom: 15px;">
-                                                            <div class="col-12">
-                                                                <div class="form-group">
-                                                                    <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                                    <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                                    <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                        <div class="col-5">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Next Renewal Date</label>
+                                                                <div class="col-md-12">
+                                                                    <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
-                                                            <div class="row">
-                                                                <div class="col-12">
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-12">Amount</label>
-                                                                        <div class="col-md-12">
-                                                                            <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
-                                                                            <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= $AMOUNT ?>">
-                                                                        </div>
-                                                                    </div>
+                                                        <div class="col-2">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Status</label>
+                                                                <div class="col-md-12">
+                                                                    <p><?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?></p>
                                                                 </div>
                                                             </div>
-                                                            <div class="row">
-                                                                <div class="col-12">
-                                                                    <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
-                                                                    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
-                                                                        <input type="hidden" name="stripe_token" id="stripe_token" value="">
-                                                                        <div class="row">
-                                                                            <div class="col-12">
-                                                                                <div class="form-group" id="card_div">
-
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row" id="card_list_div">
-                                                                        </div>
-                                                                    <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
-                                                                        <input type="hidden" name="square_token" id="square_token" value="">
-                                                                        <div class="row">
-                                                                            <div class="col-12">
-                                                                                <div id="payment-card-container"></div>
-                                                                                <div id="payment-status-container"></div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row" id="card_list_div">
-                                                                        </div>
-                                                                    <?php } ?>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row" id="location_payment_status"></div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <button type="submit" id="location-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
                                                         </div>
                                                     </div>
-                                                </form>
-                                            </div>
 
-                                            <div class="col-6">
-                                                <h4 style="text-align: center; margin-bottom: 20px;">Payment History</h4>
-                                                <table id="payment_table" class="table table-striped border">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="text-align: center;">Date</th>
-                                                            <th style="text-align: center;">Status</th>
-                                                            <th style="text-align: center;">Amount</th>
-                                                            <th style="text-align: center;">Info</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php
-                                                        $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE CLASS = 'location' AND PK_VALUE = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
-                                                        if ($location_payments->RecordCount() > 0) {
-                                                            while (!$location_payments->EOF) {
-                                                                $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
-                                                                $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
-                                                                <tr>
-                                                                    <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
-                                                                    <td style="text-align: center;"><?= $location_payments->fields['PAYMENT_STATUS'] ?></td>
-                                                                    <td style="text-align: center;">$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
-                                                                    <td style="text-align: center;"><?= $payment_type ?></td>
-                                                                </tr>
-                                                            <?php $location_payments->MoveNext();
-                                                            } ?>
-                                                        <?php } else { ?>
-                                                            <tr>
-                                                                <td colspan="4" style="text-align: center;">No payment records found.</td>
-                                                            </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                    <div class="row" style="margin-bottom: 15px;">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="col-md-12">Amount</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
+                                                                    <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= $AMOUNT ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+                                                    <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+                                                                    <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                                    <div class="row">
+                                                                        <div class="col-12">
+                                                                            <div class="form-group" id="card_div">
+
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row" id="card_list_div">
+                                                                    </div>
+                                                                <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
+                                                                    <input type="hidden" name="square_token" id="square_token" value="">
+                                                                    <div class="row">
+                                                                        <div class="col-12">
+                                                                            <div id="payment-card-container"></div>
+                                                                            <div id="payment-status-container"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row" id="card_list_div">
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? '' : 'none' ?>;">
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="row" id="corporation_card_list">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row" id="location_payment_status"></div>
+
+                                                    <div class="form-group">
+                                                        <button type="submit" id="location-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white">Process</button>
+                                                    </div>
+                                                </div>
+                                            </form>
                                         </div>
-
                                     </div>
 
                                 </div>
@@ -1670,8 +1688,12 @@ if (!empty($_POST)) {
     function changePaymentFrom(param) {
         if ($(param).val() == 'corporation') {
             $('#payment_details_div').slideUp();
+            $('#corporation_card_div').slideDown();
+            getCorporationSavedCreditCardList();
         } else {
+            $('#corporation_card_div').slideUp();
             $('#payment_details_div').slideDown();
+            getSavedCreditCardList();
         }
     }
 
@@ -1691,6 +1713,20 @@ if (!empty($_POST)) {
             },
             success: function(data) {
                 $('#card_list_div').slideDown().html(data);
+            }
+        });
+    }
+
+    function getCorporationSavedCreditCardList() {
+        $.ajax({
+            url: "ajax/get_credit_card_list_from_master.php",
+            type: 'POST',
+            data: {
+                PK_VALUE: '<?= $PK_CORPORATION ?>',
+                class: 'corporation'
+            },
+            success: function(data) {
+                $('#corporation_card_list').slideDown().html(data);
             }
         });
     }

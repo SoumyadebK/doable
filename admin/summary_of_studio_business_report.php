@@ -382,6 +382,11 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     }
     exit;
 }
+
+function roundToNearestFiveCents($num)
+{
+    return round($num / 0.05) * 0.05;
+}
 ?>
 
 <!DOCTYPE html>
@@ -499,9 +504,9 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                     $misc_data = $db_account->Execute(sprintf($misc_data_query, $weekly_date_condition));
                                                     ?>
                                                     <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                                    <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format($regular_data->fields['REGULAR_TOTAL'] + $other_payment_data->fields['OTHER_TOTAL'], 2) ?></th>
-                                                    <th style="width:25%; text-align: center; font-weight: normal !important">$<?= number_format($misc_data->fields['MISC_TOTAL'], 2) ?></th>
-                                                    <th style="width:25%; text-align: center; font-weight: normal !important"><b>$<?= number_format($regular_data->fields['REGULAR_TOTAL'] + $other_payment_data->fields['OTHER_TOTAL'] + $misc_data->fields['MISC_TOTAL'], 2) ?></b></th>
+                                                    <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format(roundToNearestFiveCents($regular_data->fields['REGULAR_TOTAL']) + roundToNearestFiveCents($other_payment_data->fields['OTHER_TOTAL']), 2) ?></th>
+                                                    <th style="width:25%; text-align: center; font-weight: normal !important">$<?= number_format(roundToNearestFiveCents($misc_data->fields['MISC_TOTAL']), 2) ?></th>
+                                                    <th style="width:25%; text-align: center; font-weight: normal !important"><b>$<?= number_format(roundToNearestFiveCents($regular_data->fields['REGULAR_TOTAL']) + roundToNearestFiveCents($other_payment_data->fields['OTHER_TOTAL']) + roundToNearestFiveCents($misc_data->fields['MISC_TOTAL']), 2) ?></b></th>
                                                 </tr>
                                                 <tr>
                                                     <?php

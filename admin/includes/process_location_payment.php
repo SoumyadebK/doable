@@ -13,6 +13,9 @@ global $db;
 global $db_account;
 
 $PK_LOCATION = $_POST['PK_LOCATION'];
+$PK_CORPORATION = $_POST['PK_CORPORATION'];
+$PAYMENT_FROM = $_POST['PAYMENT_FROM'];
+$PK_VALUE = ($PAYMENT_FROM == 'corporation') ? $PK_CORPORATION : $PK_LOCATION;
 $AMOUNT = $_POST['AMOUNT'];
 
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
@@ -36,7 +39,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     $STRIPE_TOKEN = $_POST['stripe_token'];
 
     $PAYMENT_ID = '';
-    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = 'location' AND PK_VALUE = '$PK_VALUE'");
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = '$PAYMENT_FROM' AND PK_VALUE = '$PK_VALUE'");
     if ($location_payment_info->RecordCount() > 0) {
         $PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
     } else {
@@ -52,7 +55,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
             $PAYMENT_ID = $customer->id;
 
             $LOCATION_PAYMENT_DETAILS['PK_VALUE'] = $PK_VALUE;
-            $LOCATION_PAYMENT_DETAILS['CLASS'] = 'location';
+            $LOCATION_PAYMENT_DETAILS['CLASS'] = $PAYMENT_FROM;
             $LOCATION_PAYMENT_DETAILS['PAYMENT_ID'] = $PAYMENT_ID;
             $LOCATION_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Stripe';
             $LOCATION_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
@@ -60,11 +63,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         } catch (\Stripe\Exception\InvalidRequestException $e) {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = $e->getMessage();
-
-            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            echo json_encode($RETURN_DATA);
-            die();
+            goto FINALIZE_PAYMENT;
         }
     }
 
@@ -86,35 +85,12 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         } else {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = 'Payment could not be processed. Please try again.';
-
-            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            echo json_encode($RETURN_DATA);
-            die();
+            goto FINALIZE_PAYMENT;
         }
     } catch (\Stripe\Exception\CardException $e) {
         $PAYMENT_STATUS = 'Failed';
         $PAYMENT_INFO = $e->getMessage();
-
-        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        echo json_encode($RETURN_DATA);
-        die();
-    }
-
-    if ($PAYMENT_STATUS == 'Success') {
-        $PAYMENT_DETAILS['PK_VALUE'] = $PK_LOCATION;
-        $PAYMENT_DETAILS['CLASS'] = 'location';
-        $PAYMENT_DETAILS['AMOUNT'] = $AMOUNT;
-        $PAYMENT_DETAILS['PAYMENT_STATUS'] = $PAYMENT_STATUS;
-        $PAYMENT_DETAILS['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
-        $PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
-        db_perform('DOA_PAYMENT_DETAILS', $PAYMENT_DETAILS, 'insert');
-
-        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
-        echo json_encode($RETURN_DATA);
-        die();
+        goto FINALIZE_PAYMENT;
     }
 } elseif ($PAYMENT_GATEWAY == 'Square') {
     require_once("../../global/vendor/autoload.php");
@@ -134,7 +110,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     $location_data = $db->Execute("SELECT DOA_LOCATION.*, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE FROM DOA_LOCATION LEFT JOIN DOA_COUNTRY ON DOA_LOCATION.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_LOCATION.PK_STATES = DOA_STATES.PK_STATES WHERE PK_LOCATION = " . $PK_LOCATION);
 
     $PAYMENT_ID = '';
-    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = 'location' AND PK_VALUE = '$PK_LOCATION'");
+    $location_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = '$PAYMENT_FROM' AND PK_VALUE = '$PK_VALUE'");
     if ($location_payment_info->RecordCount() > 0) {
         $PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
     } else {
@@ -160,8 +136,8 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
 
             $PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
 
-            $LOCATION_PAYMENT_DETAILS['PK_VALUE'] = $PK_LOCATION;
-            $LOCATION_PAYMENT_DETAILS['CLASS'] = 'location';
+            $LOCATION_PAYMENT_DETAILS['PK_VALUE'] = $PK_VALUE;
+            $LOCATION_PAYMENT_DETAILS['CLASS'] = $PAYMENT_FROM;
             $LOCATION_PAYMENT_DETAILS['PAYMENT_ID'] = $PAYMENT_ID;
             $LOCATION_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Square';
             $LOCATION_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
@@ -169,11 +145,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         } catch (\Square\Exceptions\ApiException $e) {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = $e->getMessage();
-
-            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            echo json_encode($RETURN_DATA);
-            die();
+            goto FINALIZE_PAYMENT;
         }
     }
 
@@ -191,16 +163,17 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
 
             $api_response = $client->getCardsApi()->createCard($body);
             $result = $api_response->getResult();
-            $CUSTOMER_CARD_ID = $result->getCard()->getId();
+            if ($api_response->isError()) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = 'Error saving card: ' . $api_response->getErrors()[0]->getDetail();
+                goto FINALIZE_PAYMENT;
+            } else {
+                $CUSTOMER_CARD_ID = $result->getCard()->getId();
+            }
         } catch (\Square\Exceptions\ApiException $e) {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = $e->getMessage();
-
-            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-
-            echo json_encode($RETURN_DATA);
-            die();
+            goto FINALIZE_PAYMENT;
         }
     }
 
@@ -227,34 +200,26 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         } else {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
-
-            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-            echo json_encode($RETURN_DATA);
-            die();
+            goto FINALIZE_PAYMENT;
         }
     } catch (\Square\Exceptions\ApiException $e) {
         $PAYMENT_STATUS = 'Failed';
         $PAYMENT_INFO = $e->getMessage();
-
-        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        echo json_encode($RETURN_DATA);
-        die();
-    }
-
-    if ($PAYMENT_STATUS == 'Success') {
-        $PAYMENT_DETAILS['PK_VALUE'] = $PK_LOCATION;
-        $PAYMENT_DETAILS['CLASS'] = 'location';
-        $PAYMENT_DETAILS['AMOUNT'] = $AMOUNT;
-        $PAYMENT_DETAILS['PAYMENT_STATUS'] = $PAYMENT_STATUS;
-        $PAYMENT_DETAILS['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
-        $PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
-        db_perform('DOA_PAYMENT_DETAILS', $PAYMENT_DETAILS, 'insert');
-
-        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
-        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
-        echo json_encode($RETURN_DATA);
-        die();
+        goto FINALIZE_PAYMENT;
     }
 }
+
+FINALIZE_PAYMENT:
+$PAYMENT_DETAILS['PK_LOCATION'] = $PK_LOCATION;
+$PAYMENT_DETAILS['PK_CORPORATION'] = $PK_CORPORATION;
+$PAYMENT_DETAILS['PAYMENT_FROM'] = $PAYMENT_FROM;
+$PAYMENT_DETAILS['AMOUNT'] = $AMOUNT;
+$PAYMENT_DETAILS['PAYMENT_STATUS'] = $PAYMENT_STATUS;
+$PAYMENT_DETAILS['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;
+$PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+db_perform('DOA_PAYMENT_DETAILS', $PAYMENT_DETAILS, 'insert');
+
+$RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+$RETURN_DATA['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;
+echo json_encode($RETURN_DATA);
+die();

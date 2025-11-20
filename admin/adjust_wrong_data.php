@@ -42,7 +42,7 @@ if (!empty($_POST)) {
         $NEW_PK_SERVICE_CODE = $existing_data->fields['PK_SERVICE_CODE'] ?? 0;
         $NEW_PK_SERVICE_MASTER = $existing_data->fields['PK_SERVICE_MASTER'] ?? 0;
 
-        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_SERVICE_CODE = $NEW_PK_SERVICE_CODE, PK_SERVICE_MASTER = $NEW_PK_SERVICE_MASTER WHERE PK_SERVICE_MASTER = $PK_SERVICE_MASTER AND PK_SERVICE_CODE = $PK_SERVICE_CODE AND PK_LOCATION = '$location_2'");
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_SERVICE_CODE = $NEW_PK_SERVICE_CODE, PK_SERVICE_MASTER = $NEW_PK_SERVICE_MASTER WHERE (PK_SERVICE_MASTER = $PK_SERVICE_MASTER OR PK_SERVICE_CODE = $PK_SERVICE_CODE) AND PK_LOCATION = '$location_2'");
         $db_account->Execute("UPDATE DOA_ENROLLMENT_SERVICE S
                                 JOIN DOA_ENROLLMENT_MASTER M 
                                     ON S.PK_ENROLLMENT_MASTER = M.PK_ENROLLMENT_MASTER
@@ -50,9 +50,7 @@ if (!empty($_POST)) {
                                     S.PK_SERVICE_MASTER = $NEW_PK_SERVICE_MASTER,
                                     S.PK_SERVICE_CODE   = $NEW_PK_SERVICE_CODE
                                 WHERE 
-                                    M.PK_LOCATION = $location_2
-                                    AND S.PK_SERVICE_MASTER = $PK_SERVICE_MASTER
-                                    AND S.PK_SERVICE_CODE = $PK_SERVICE_CODE");
+                                    M.PK_LOCATION = $location_2 AND (S.PK_SERVICE_MASTER = $PK_SERVICE_MASTER OR S.PK_SERVICE_CODE = $PK_SERVICE_CODE)");
 
         $service_code_data->MoveNext();
     }
@@ -75,9 +73,9 @@ if (!empty($_POST)) {
 
 <h3>Enter Location Id's</h3>
 <form method="POST" action="">
-    <input type="text" name="location_1" placeholder="Location Id 1" required>
+    <input type="text" name="location_1" placeholder="From which location data come" required>
     <br><br>
-    <input type="text" name="location_2" placeholder="Location Id 2" required>
+    <input type="text" name="location_2" placeholder="Which location have to adjust" required>
     <br><br>
     <input type="submit" value="Submit">
 </form>
