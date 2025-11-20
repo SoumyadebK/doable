@@ -276,9 +276,12 @@ if (!empty($_GET['NAME'])) {
                                             <tbody>
                                                 <?php
                                                 $i = 1;
+                                                $total_charges_due = 0;
+                                                $total_payment_amount = 0;
+                                                $processed_enrollments = []; // Track which enrollments we've already processed for charges due
+
                                                 $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, TOTAL_AMOUNT, BALANCE_PAYABLE, PAYMENT_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME_OF_PARTICIPANT, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, RECEIPT_NUMBER, AMOUNT, DOA_ENROLLMENT_MASTER.STATUS FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment') AND DOA_ENROLLMENT_MASTER.PK_PACKAGE = " . $PK_PACKAGE . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") ORDER BY PAYMENT_DATE ");
-                                                $total = 0;
-                                                $unique_id = [];
+
                                                 while (!$row->EOF) {
                                                     $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
                                                     $partner = $db_account->Execute("SELECT CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME, ATTENDING_WITH FROM DOA_CUSTOMER_DETAILS WHERE PK_USER_MASTER = " . $row->fields['PK_USER_MASTER']);
@@ -287,12 +290,23 @@ if (!empty($_GET['NAME'])) {
                                                     } else {
                                                         $NAME = $row->fields['NAME_OF_PARTICIPANT'];
                                                     }
-                                                    $date = $row->fields['PAYMENT_DATE']; // Example date
+                                                    $date = $row->fields['PAYMENT_DATE'];
                                                     $weekNumber = date("W", strtotime($date));
-                                                    if (!in_array($row->fields['PK_ENROLLMENT_MASTER'], $unique_id)) {
-                                                        $total += $row->fields['TOTAL_AMOUNT'];
-                                                        $unique_id[] = $row->fields['PK_ENROLLMENT_MASTER'];
+
+                                                    // Calculate totals - CRITICAL FIX:
+                                                    // Only add TOTAL_AMOUNT once per unique enrollment ID
+                                                    // But add PAYMENT AMOUNT for every payment record
+
+                                                    $enrollment_id = $row->fields['PK_ENROLLMENT_MASTER'];
+
+                                                    // If we haven't processed this enrollment yet, add its TOTAL_AMOUNT
+                                                    if (!in_array($enrollment_id, $processed_enrollments)) {
+                                                        $total_charges_due += $row->fields['TOTAL_AMOUNT'];
+                                                        $processed_enrollments[] = $enrollment_id;
                                                     }
+
+                                                    // Always add the payment amount (since there can be multiple payments per enrollment)
+                                                    $total_payment_amount += $row->fields['AMOUNT'];
                                                 ?>
                                                     <tr>
                                                         <td style="text-align: center"><?= $row->fields['RECEIPT_NUMBER'] ?></td>
@@ -300,26 +314,27 @@ if (!empty($_GET['NAME'])) {
                                                         <td style="text-align: center"><?= $NAME ?></td>
                                                         <td style="text-align: center"><?= $service_provider->fields['TEACHER'] ?></td>
                                                         <td style="text-align: center"><?= $row->fields['PK_ENROLLMENT_MASTER'] ?></td>
-                                                        <td style="text-align: center">$<?= $row->fields['TOTAL_AMOUNT'] ?></td>
+                                                        <td style="text-align: center">$<?= number_format($row->fields['TOTAL_AMOUNT'], 2) ?></td>
                                                         <td style="text-align: center">$<?= number_format($row->fields['AMOUNT'], 2) ?></td>
                                                         <td style="text-align: center">#<?= $weekNumber ?></td>
                                                         <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
                                                     </tr>
-                                                <?php $row->MoveNext();
+                                                <?php
+                                                    $row->MoveNext();
                                                     $i++;
                                                 } ?>
                                             </tbody>
-                                            <?php
-                                            $row = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = " . $PK_PACKAGE . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")");
-                                            ?>
+
+                                            <!-- Totals Row -->
                                             <tr>
                                                 <th style="width:10%; text-align: center"></th>
                                                 <th style="width:10%; text-align: center"></th>
                                                 <th style="width:20%; text-align: center"></th>
                                                 <th style="width:20%; text-align: center"></th>
                                                 <th style="width:10%; text-align: center">Totals :</th>
-                                                <th style="width:10%; text-align: center">$<?= number_format($total, 2) ?></th>
-                                                <th style="width:10%; text-align: center">$<?= number_format($row->fields['TOTAL_PAID_AMOUNT'], 2) ?></th>
+                                                <th style="width:10%; text-align: center">$<?= number_format($total_charges_due, 2) ?></th>
+                                                <th style="width:10%; text-align: center">$<?= number_format($total_payment_amount, 2) ?></th>
+                                                <th style="width:10%; text-align: center"></th>
                                                 <th style="width:10%; text-align: center"></th>
                                             </tr>
                                         </table>
@@ -337,10 +352,10 @@ if (!empty($_GET['NAME'])) {
                                                 <?php
                                                 $row = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_PACKAGE = " . $PK_PACKAGE . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") ");
                                                 $TOTAL_DEDUCTION = $PACKAGE_COSTS + $TRANSPORTATION_CHARGES;
-                                                $TOTAL_SUBJECT_TO_ROYALTY = $total - $TOTAL_DEDUCTION;
+                                                $TOTAL_SUBJECT_TO_ROYALTY = $total_charges_due - $TOTAL_DEDUCTION;
                                                 ?>
                                                 <tr>
-                                                    <td style="text-align: center">$<?= number_format($total, 2) ?></td>
+                                                    <td style="text-align: center">$<?= number_format($total_charges_due, 2) ?></td>
                                                     <td style="text-align: center">$<?= number_format($TRANSPORTATION_CHARGES, 2) ?></td>
                                                     <td style="text-align: center">$<?= number_format($PACKAGE_COSTS, 2) ?></td>
                                                     <td style="text-align: center">$<?= number_format($TOTAL_DEDUCTION, 2) ?></td>
