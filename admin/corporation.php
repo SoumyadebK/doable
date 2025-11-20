@@ -587,7 +587,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                 if ($corporation_payments->RecordCount() > 0) {
                                                     while (!$corporation_payments->EOF) {
                                                         $payment_info = json_decode($corporation_payments->fields['PAYMENT_INFO']);
-                                                        $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
+                                                        $payment_type = (isset($payment_info->LAST4)) ? 'Credit Card' . " # " . $payment_info->LAST4 : $corporation_payments->fields['PAYMENT_INFO']; ?>
                                                         <tr style="color : <?= ($corporation_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'red' : 'black' ?>">
                                                             <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($corporation_payments->fields['DATE_TIME'])) ?></td>
                                                             <td style="text-align: center;"><?= $corporation_payments->fields['PAYMENT_STATUS'] ?></td>

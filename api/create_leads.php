@@ -50,6 +50,8 @@ if (!empty($postData)) {
     $LEADS_DATA['PK_LEAD_STATUS'] = $lead_status_data->fields['PK_LEAD_STATUS'];
 
     if (empty($_GET['id'])) {
+        $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
+        $LEADS_DATA['IP_ADDRESS'] = getUserIP();
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = 0;
         $LEADS_DATA['CREATED_ON']  = date("Y-m-d H:i");
@@ -69,4 +71,24 @@ if (!empty($postData)) {
     $return_data['message'] = 'No data provided';
     echo json_encode($return_data);
     exit;
+}
+
+
+function getUserIP()
+{
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        // IP from shared internet
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // IP passed from proxy
+        $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ipArray[0]); // first IP is the real one
+    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        // Nginx real IP header
+        $ip = $_SERVER['HTTP_X_REAL_IP'];
+    } else {
+        // Default
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    return $ip;
 }

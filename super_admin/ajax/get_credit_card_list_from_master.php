@@ -157,3 +157,18 @@ function getCardTypeDetails($brand)
     return $card_type;
 }
 ?>
+
+<style>
+    #card_list_div {
+        display: flex;
+        flex-wrap: wrap;
+        /* cards will move to next line if needed */
+        gap: 15px;
+        /* spacing between cards */
+        align-items: flex-start;
+    }
+
+    .credit-card-div {
+        cursor: pointer;
+    }
+</style>

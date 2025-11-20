@@ -552,7 +552,7 @@ if (!empty($_POST)) {
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
 
                                         <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="$('.PAYMENT_FROM').trigger('click');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
                                 </ul>
@@ -1389,7 +1389,7 @@ if (!empty($_POST)) {
                                                 if ($location_payments->RecordCount() > 0) {
                                                     while (!$location_payments->EOF) {
                                                         $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
-                                                        $payment_type = 'Credit Card' . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : ''); ?>
+                                                        $payment_type = (isset($payment_info->LAST4)) ? 'Credit Card' . " # " . $payment_info->LAST4 : $location_payments->fields['PAYMENT_INFO']; ?>
                                                         <tr style="color : <?= ($location_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'red' : 'black' ?>">
                                                             <td style="text-align: center;"><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
                                                             <td style="text-align: center;"><?= $location_payments->fields['PAYMENT_STATUS'] ?></td>
@@ -1452,8 +1452,8 @@ if (!empty($_POST)) {
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" id="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
                                                             </div>
                                                         </div>
                                                     </div>
