@@ -16,7 +16,7 @@ $PK_LOCATION = $_POST['PK_LOCATION'];
 $PK_CORPORATION = $_POST['PK_CORPORATION'];
 $PAYMENT_FROM = $_POST['PAYMENT_FROM'];
 $PK_VALUE = ($PAYMENT_FROM == 'corporation') ? $PK_CORPORATION : $PK_LOCATION;
-$AMOUNT = $_POST['AMOUNT'];
+$AMOUNT = $_POST['SUBSCRIPTION_AMOUNT'];
 
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
@@ -30,11 +30,13 @@ $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
 $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-
+$LOCATION_DATA['SUBSCRIPTION_AMOUNT'] = $_POST['SUBSCRIPTION_AMOUNT'];
+$LOCATION_DATA['SUBSCRIPTION_START_DATE'] = date('Y-m-d', strtotime($_POST['SUBSCRIPTION_START_DATE']));
+$LOCATION_DATA['NEXT_RENEWAL_DATE'] = date('Y-m-d', strtotime($_POST['NEXT_RENEWAL_DATE']));
 $LOCATION_DATA['PAYMENT_FROM'] = $_POST['PAYMENT_FROM'];
 db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION = '$_POST[PK_LOCATION]'");
 
-if ($PAYMENT_GATEWAY == 'Stripe') {
+if ($PAYMENT_GATEWAY == 'Stripe' && (!empty($_POST['PAYMENT_METHOD_ID']) || !empty($_POST['stripe_token']))) {
     $stripe = new StripeClient($SECRET_KEY);
     $STRIPE_TOKEN = $_POST['stripe_token'];
 
@@ -92,7 +94,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         $PAYMENT_INFO = $e->getMessage();
         goto FINALIZE_PAYMENT;
     }
-} elseif ($PAYMENT_GATEWAY == 'Square') {
+} elseif ($PAYMENT_GATEWAY == 'Square' && (!empty($_POST['PAYMENT_METHOD_ID']) || !empty($_POST['square_token']))) {
     require_once("../../global/vendor/autoload.php");
 
     if ($GATEWAY_MODE == 'live') {
@@ -210,14 +212,19 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
 }
 
 FINALIZE_PAYMENT:
-$PAYMENT_DETAILS['PK_LOCATION'] = $PK_LOCATION;
-$PAYMENT_DETAILS['PK_CORPORATION'] = $PK_CORPORATION;
-$PAYMENT_DETAILS['PAYMENT_FROM'] = $PAYMENT_FROM;
-$PAYMENT_DETAILS['AMOUNT'] = $AMOUNT;
-$PAYMENT_DETAILS['PAYMENT_STATUS'] = $PAYMENT_STATUS;
-$PAYMENT_DETAILS['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;
-$PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
-db_perform('DOA_PAYMENT_DETAILS', $PAYMENT_DETAILS, 'insert');
+if (!empty($_POST['PAYMENT_METHOD_ID']) || !empty($_POST['square_token'])) {
+    $PAYMENT_DETAILS['PK_LOCATION'] = $PK_LOCATION;
+    $PAYMENT_DETAILS['PK_CORPORATION'] = $PK_CORPORATION;
+    $PAYMENT_DETAILS['PAYMENT_FROM'] = $PAYMENT_FROM;
+    $PAYMENT_DETAILS['AMOUNT'] = $AMOUNT;
+    $PAYMENT_DETAILS['PAYMENT_STATUS'] = $PAYMENT_STATUS;
+    $PAYMENT_DETAILS['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;
+    $PAYMENT_DETAILS['DATE_TIME'] = date('Y-m-d H:i');
+    db_perform('DOA_PAYMENT_DETAILS', $PAYMENT_DETAILS, 'insert');
+} else {
+    $PAYMENT_STATUS = 'Success';
+    $PAYMENT_INFO_JSON = 'Saved';
+}
 
 $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
 $RETURN_DATA['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;

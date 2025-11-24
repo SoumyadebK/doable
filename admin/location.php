@@ -114,6 +114,9 @@ if (empty($_GET['id'])) {
 
     $START_DATE = '';
     $PAYMENT_FROM = '';
+    $SUBSCRIPTION_START_DATE = '';
+    $NEXT_RENEWAL_DATE = '';
+    $SUBSCRIPTION_AMOUNT = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -184,6 +187,9 @@ if (empty($_GET['id'])) {
 
     $START_DATE = $res->fields['CREATED_ON'];
     $PAYMENT_FROM = $res->fields['PAYMENT_FROM'];
+    $SUBSCRIPTION_START_DATE = $res->fields['SUBSCRIPTION_START_DATE'];
+    $NEXT_RENEWAL_DATE = $res->fields['NEXT_RENEWAL_DATE'];
+    $SUBSCRIPTION_AMOUNT = $res->fields['SUBSCRIPTION_AMOUNT'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -1426,7 +1432,7 @@ if (!empty($_POST)) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Subscription Start Date</label>
                                                                 <div class="col-md-12">
-                                                                    <p><?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?></p>
+                                                                    <p><?= (($SUBSCRIPTION_START_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))) : date('m/d/Y', strtotime($SUBSCRIPTION_START_DATE))) ?></p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1434,7 +1440,7 @@ if (!empty($_POST)) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Next Renewal Date</label>
                                                                 <div class="col-md-12">
-                                                                    <p><?= ($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))) ?></p>
+                                                                    <p><?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?></p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1463,8 +1469,8 @@ if (!empty($_POST)) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Amount</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control" value="<?= '$' . $AMOUNT ?>" disabled>
-                                                                    <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= $AMOUNT ?>">
+                                                                    <input type="text" class="form-control" value="<?= '$' . (($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT) ?>" disabled>
+                                                                    <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1483,7 +1489,7 @@ if (!empty($_POST)) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="row" id="card_list_div">
+                                                                    <div id="card_list_div">
                                                                     </div>
                                                                 <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
                                                                     <input type="hidden" name="square_token" id="square_token" value="">
@@ -1493,7 +1499,7 @@ if (!empty($_POST)) {
                                                                             <div id="payment-status-container"></div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="row" id="card_list_div">
+                                                                    <div id="card_list_div">
                                                                     </div>
                                                                 <?php } ?>
                                                             </div>
@@ -1503,7 +1509,7 @@ if (!empty($_POST)) {
                                                     <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? '' : 'none' ?>;">
                                                         <div class="row">
                                                             <div class="col-12">
-                                                                <div class="row" id="corporation_card_list">
+                                                                <div id="corporation_card_list">
                                                                 </div>
                                                             </div>
                                                         </div>

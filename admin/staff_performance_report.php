@@ -28,6 +28,32 @@ $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
 
+$location_name = '';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
+
+$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ENROLLMENT_MASTER > 0 $enrollment_date");
+$executive_id = [];
+while (!$executive_data->EOF) {
+    $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
+    $executive_data->MoveNext();
+}
+
 if ($type === 'export') {
     $location_array = explode(",", $DEFAULT_LOCATION_ID);
     if (count($location_array) > 1) {
@@ -79,6 +105,37 @@ if ($type === 'export') {
             );
 
             $staff_data->MoveNext();
+        }
+
+        $executive_data = $db->Execute("SELECT DISTINCT (PK_USER) AS PK_USER, FIRST_NAME, LAST_NAME FROM DOA_USERS WHERE PK_USER IN (" . implode(',', $executive_id) . ")");
+        while (!$executive_data->EOF) {
+            $staff_member = getStaffCode($authorization, $executive_data->fields['FIRST_NAME'], $executive_data->fields['LAST_NAME']);
+            $staff_type = 'EXECUTIVE';
+            $number_guests = 0;
+
+            $last_name = empty($row->fields['LAST_NAME']) ? '' : $row->fields['LAST_NAME'] . ',';
+
+            $executive_dor_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'DOR' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $executive_data->fields['PK_USER'] . " $enrollment_date");
+            $executive_showcase_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'SHOWCASE' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $executive_data->fields['PK_USER'] . " $enrollment_date");
+            $executive_general_misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 16 AND DOA_ENROLLMENT_MASTER.MISC_TYPE = 'GENERAL' AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $executive_data->fields['PK_USER'] . " $enrollment_date");
+
+            $executive_interview_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS INTERVIEW_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (13,16) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $executive_data->fields['PK_USER'] . " $enrollment_date");
+            $executive_renewal_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT) AS RENEWAL_TOTAL FROM DOA_ENROLLMENT_BILLING JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = 13 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = " . $executive_data->fields['PK_USER'] . " $enrollment_date");
+
+            $line_item[] = array(
+                "staff_member" => ($staff_member == '') ? '628c15c18f29984a7d5f30e7' : $staff_member,
+                "staff_type" => $staff_type,
+                "number_guests" => 0,
+                "private_lessons" => 0,
+                "number_in_class" => 0,
+                "dor_sanct_competition" => $executive_dor_misc_data->fields['MISC_TOTAL'] ?? 0,
+                "showcase_medal_ball" => $executive_showcase_misc_data->fields['MISC_TOTAL'] ?? 0,
+                "party_time_non_unit" => $executive_general_misc_data->fields['MISC_TOTAL'] ?? 0,
+                "interview_department" => $executive_interview_data->fields['INTERVIEW_TOTAL'] ?? 0,
+                "renewal_department" => $executive_renewal_data->fields['RENEWAL_TOTAL'] ?? 0,
+            );
+
+            $executive_data->MoveNext();
         }
 
         $data = [
@@ -164,32 +221,6 @@ if ($type === 'export') {
             }
         }
     }
-}
-
-$location_name = '';
-$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$resultsArray = [];
-while (!$results->EOF) {
-    $resultsArray[] = $results->fields['LOCATION_NAME'];
-    $results->MoveNext();
-}
-$totalResults = count($resultsArray);
-$concatenatedResults = "";
-foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
-    $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
-    if ($key < $totalResults - 1) {
-        $concatenatedResults .= ", ";
-    }
-}
-
-$executive_data = $db_account->Execute("SELECT DISTINCT(ENROLLMENT_BY_ID) AS ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ENROLLMENT_MASTER > 0 $enrollment_date");
-$executive_id = [];
-while (!$executive_data->EOF) {
-    $executive_id[] = $executive_data->fields['ENROLLMENT_BY_ID'];
-    $executive_data->MoveNext();
 }
 
 if (!empty($_GET['WEEK_NUMBER'])) {

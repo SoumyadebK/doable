@@ -622,7 +622,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="row" id="card_list_div">
+                                                            <div id="card_list_div">
                                                             </div>
                                                         <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
                                                             <input type="hidden" name="square_token" id="square_token" value="">
@@ -632,7 +632,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                     <div id="payment-status-container"></div>
                                                                 </div>
                                                             </div>
-                                                            <div class="row" id="card_list_div">
+                                                            <div id="card_list_div">
                                                             </div>
                                                         <?php } ?>
                                                     </div>

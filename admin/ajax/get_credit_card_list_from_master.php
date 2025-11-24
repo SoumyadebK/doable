@@ -43,7 +43,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
         foreach ($all_cards->data as $card_details) {
             $card_type = getCardTypeDetails($card_details->brand); ?>
 
-            <div style="position: relative;">
+            <div style="position: relative; display: inline-block;">
                 <!-- Credit Card Box -->
                 <div class="credit-card-div" id="<?= $card_details->id; ?>" onclick="getPaymentMethodId(this)">
                     <div class="credit-card <?= $card_type ?> selectable">
@@ -92,7 +92,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
             foreach ($all_cards as $card_details) {
                 $card_type = getCardTypeDetails($card_details->getCardBrand()); ?>
 
-                <div style="position: relative;">
+                <div style="position: relative; display: inline-block;">
                     <!-- Credit Card Box -->
                     <div class="credit-card-div" id="<?= $card_details->getId(); ?>" onclick="getPaymentMethodId(this)">
                         <div class="credit-card <?= $card_type ?> selectable">

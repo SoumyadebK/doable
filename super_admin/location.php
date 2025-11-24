@@ -40,6 +40,9 @@ if ($location_data->RecordCount() > 0) {
     $PK_CORPORATION = $location_data->fields['PK_CORPORATION'];
     $START_DATE = $location_data->fields['CREATED_ON'];
     $ACTIVE = $location_data->fields['ACTIVE'];
+    $SUBSCRIPTION_START_DATE = $location_data->fields['SUBSCRIPTION_START_DATE'];
+    $NEXT_RENEWAL_DATE = $location_data->fields['NEXT_RENEWAL_DATE'];
+    $SUBSCRIPTION_AMOUNT = $location_data->fields['SUBSCRIPTION_AMOUNT'];
     $PAYMENT_FROM = $location_data->fields['PAYMENT_FROM'];
     $FRANCHISE = $location_data->fields['FRANCHISE'];
 
@@ -260,7 +263,7 @@ if ($location_data->RecordCount() > 0) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Subscription Start Date</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control datepicker-normal" name="START_DATE" id="START_DATE" value="<?= ($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE)) ?>" disabled>
+                                                                    <input type="text" class="form-control datepicker-normal" name="SUBSCRIPTION_START_DATE" id="SUBSCRIPTION_START_DATE" value="<?= (($SUBSCRIPTION_START_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))) : date('m/d/Y', strtotime($SUBSCRIPTION_START_DATE))) ?>">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -268,7 +271,7 @@ if ($location_data->RecordCount() > 0) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Next Renewal Date</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control datepicker-normal" name="NEXT_RENEWAL_DATE" id="NEXT_RENEWAL_DATE" value="<?= ($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE)))) ?>">
+                                                                    <input type="text" class="form-control datepicker-normal" name="NEXT_RENEWAL_DATE" id="NEXT_RENEWAL_DATE" value="<?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -300,7 +303,7 @@ if ($location_data->RecordCount() > 0) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Amount</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control" name="AMOUNT" value="<?= $AMOUNT ?>">
+                                                                    <input type="text" class="form-control" name="SUBSCRIPTION_AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -319,7 +322,7 @@ if ($location_data->RecordCount() > 0) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="row" id="card_list_div">
+                                                                    <div id="card_list_div">
                                                                     </div>
                                                                 <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
                                                                     <input type="hidden" name="square_token" id="square_token" value="">
@@ -329,7 +332,7 @@ if ($location_data->RecordCount() > 0) {
                                                                             <div id="payment-status-container"></div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="row" id="card_list_div">
+                                                                    <div id="card_list_div">
                                                                     </div>
                                                                 <?php } ?>
                                                             </div>
@@ -339,7 +342,7 @@ if ($location_data->RecordCount() > 0) {
                                                     <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? '' : 'none' ?>;">
                                                         <div class="row">
                                                             <div class="col-12">
-                                                                <div class="row" id="corporation_card_list">
+                                                                <div id="corporation_card_list">
                                                                 </div>
                                                             </div>
                                                         </div>

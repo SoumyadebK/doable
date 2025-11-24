@@ -582,4 +582,18 @@
         }
     </style>
 
+    <style>
+        #card_list_div #corporation_card_list {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 20px !important;
+            margin-bottom: 20px !important;
+        }
+
+        #card_list_div>div {
+            display: inline-block !important;
+            width: auto !important;
+        }
+    </style>
+
 </head>
