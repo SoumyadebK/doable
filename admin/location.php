@@ -1867,6 +1867,7 @@ if (!empty($_POST)) {
     $(document).on('submit', '#location_payment_form', function(event) {
         event.preventDefault();
         $('#location-payment-btn').prop('disabled', true);
+        $('#location-payment-btn').html(`<span class="spinner-border spinner-border-sm"></span> Processing...`);
         let PAYMENT_GATEWAY = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
         if (PAYMENT_GATEWAY == 'Square') {
             let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
@@ -1894,6 +1895,7 @@ if (!empty($_POST)) {
                 if (data.STATUS === 'Failed') {
                     $('#location_payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
                     $('#location-payment-btn').prop('disabled', false);
+                    $('#location-payment-btn').html(`Process`);
                 } else {
                     $('#location_payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
 

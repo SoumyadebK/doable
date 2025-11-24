@@ -511,7 +511,7 @@ if (!empty($_POST)) {
                                                 </div> -->
                                                     <div class="col-6">
                                                         <div class="form-group">
-                                                            <label for="example-text">Time Slot Interval</label>
+                                                            <label for="example-text">Time Slot Interval <span class="text-danger">*</span></label>
                                                             <div>
                                                                 <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
                                                                     <option value="">Select</option>
@@ -653,20 +653,20 @@ if (!empty($_POST)) {
                                                 <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                                     <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
-                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                            <div class="form-group">
+                                                                <label class="form-label">How many hours before the appointment ?</label>
+                                                                <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
-                                                        <div class="form-group">
-                                                            <label class="form-label">How many hours before the appointment ?</label>
-                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                     <div class="col-4">
                                                         <div class="form-group">
                                                             <label class="col-md-12" for="example-text">SID</label>
@@ -1196,23 +1196,23 @@ if (!empty($_POST)) {
         });
     </script>
     <script>
-    function showTwilioAccountSetting(param) {
-        if ($(param).val() === '1') {
-            $('#twilio_account_type').slideDown();
-        } else {
-            $('#twilio_account_type').slideUp();
-            $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
-            $('#twilio_setting_div').slideUp();
+        function showTwilioAccountSetting(param) {
+            if ($(param).val() === '1') {
+                $('#twilio_account_type').slideDown();
+            } else {
+                $('#twilio_account_type').slideUp();
+                $('#TWILIO_ACCOUNT_TYPE_0').prop('checked', true);
+                $('#twilio_setting_div').slideUp();
+            }
         }
-    }
 
-    function showTwilioSetting(param) {
-        if ($(param).val() === '1') {
-            $('#twilio_setting_div').slideDown();
-        } else {
-            $('#twilio_setting_div').slideUp();
+        function showTwilioSetting(param) {
+            if ($(param).val() === '1') {
+                $('#twilio_setting_div').slideDown();
+            } else {
+                $('#twilio_setting_div').slideUp();
+            }
         }
-    }
 
         function showArthurMurraySetup(param) {
             if ($(param).val() === '1') {

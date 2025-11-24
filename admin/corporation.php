@@ -257,8 +257,10 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="corporation_tab_link" data-bs-toggle="tab" href="#corporation" role="tab"><span class="hidden-sm-up"><i class="ti-folder"></i></span> <span class="hidden-xs-down">Corporation </span></a> </li>
-                                    <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                    <?php if (!empty($_GET['id'])) { ?>
+                                        <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                    <?php } ?>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -866,6 +868,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
 
     $(document).on('submit', '#credit_card_form', function(event) {
         $('#corporation-pay-button').prop('disabled', true);
+        $('#corporation-pay-button').html(`<span class="spinner-border spinner-border-sm"></span> Processing...`);
         event.preventDefault();
         let PAYMENT_GATEWAY = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
         if (PAYMENT_GATEWAY == 'Square') {
@@ -892,8 +895,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
             dataType: 'json',
             success: function(data) {
                 if (data.STATUS == false) {
-                    $('#corporation_payment_status').html(`<p class="alert alert-danger">${data.PAYMENT_INFO}</p>`);
+                    $('#corporation_payment_status').html(`<p class="alert alert-danger">${data.MESSAGE}</p>`);
                     $('#corporation-pay-button').prop('disabled', false);
+                    $('#corporation-pay-button').html(`Process`);
                 } else {
                     $('#corporation_payment_status').html(`<p class="alert alert-success">Credit Card Successfully Saved.</p>`);
 

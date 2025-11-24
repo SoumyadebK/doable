@@ -159,29 +159,39 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
 
     $square_token = $_POST['square_token'];
 
-    try {
-        // Save the new card for future use
-        $card = new \Square\Models\Card();
-        $card->setCardholderName($corporation_data->fields['CORPORATION_NAME']);
-        $card->setCustomerId($PAYMENT_ID);
-
-        $body = new \Square\Models\CreateCardRequest(uniqid(), $square_token, $card);
-        $api_response = $client->getCardsApi()->createCard($body);
-
-        $STATUS = true;
-        $MESSAGE = "Credit Card Added Successfully";
-
-        $RETURN_DATA['STATUS'] = $STATUS;
-        $RETURN_DATA['MESSAGE'] = $MESSAGE;
-        echo json_encode($RETURN_DATA);
-        die();
-    } catch (\Square\Exceptions\ApiException $e) {
+    if (empty($square_token)) {
         $STATUS = false;
-        $MESSAGE = $e->getMessage();
+        $MESSAGE = "Please provide a valid credit card.";
 
         $RETURN_DATA['STATUS'] = $STATUS;
         $RETURN_DATA['MESSAGE'] = $MESSAGE;
         echo json_encode($RETURN_DATA);
         die();
+    } else {
+        try {
+            // Save the new card for future use
+            $card = new \Square\Models\Card();
+            $card->setCardholderName($corporation_data->fields['CORPORATION_NAME']);
+            $card->setCustomerId($PAYMENT_ID);
+
+            $body = new \Square\Models\CreateCardRequest(uniqid(), $square_token, $card);
+            $api_response = $client->getCardsApi()->createCard($body);
+
+            $STATUS = true;
+            $MESSAGE = "Credit Card Added Successfully";
+
+            $RETURN_DATA['STATUS'] = $STATUS;
+            $RETURN_DATA['MESSAGE'] = $MESSAGE;
+            echo json_encode($RETURN_DATA);
+            die();
+        } catch (\Square\Exceptions\ApiException $e) {
+            $STATUS = false;
+            $MESSAGE = $e->getMessage();
+
+            $RETURN_DATA['STATUS'] = $STATUS;
+            $RETURN_DATA['MESSAGE'] = $MESSAGE;
+            echo json_encode($RETURN_DATA);
+            die();
+        }
     }
 }
