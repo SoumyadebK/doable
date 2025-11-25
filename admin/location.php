@@ -559,6 +559,7 @@ if (!empty($_POST)) {
 
                                         <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="$('.PAYMENT_FROM').trigger('click');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList('save_card');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
                                 </ul>
@@ -1489,19 +1490,16 @@ if (!empty($_POST)) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div id="card_list_div">
-                                                                    </div>
                                                                 <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
-                                                                    <input type="hidden" name="square_token" id="square_token" value="">
+                                                                    <input type="hidden" name="square_token" class="square_token" value="">
                                                                     <div class="row">
                                                                         <div class="col-12">
                                                                             <div id="payment-card-container"></div>
                                                                             <div id="payment-status-container"></div>
                                                                         </div>
                                                                     </div>
-                                                                    <div id="card_list_div">
-                                                                    </div>
                                                                 <?php } ?>
+                                                                <div class="card_list_div"></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1522,6 +1520,40 @@ if (!empty($_POST)) {
                                                 </div>
                                             </form>
                                         </div>
+                                    </div>
+
+                                    <div class="tab-pane p-20" id="credit_card" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="credit_card_form" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="PK_LOCATION" id="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                            <input type="hidden" name="FROM" value="location">
+                                            <div class="p-20">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
+                                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div class="form-group" id="card_div"></div>
+                                                                </div>
+                                                            </div>
+                                                        <?php } elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square') { ?>
+                                                            <input type="hidden" name="square_token" class="square_token" value="">
+                                                            <div class="row">
+                                                                <div class="col-12">
+                                                                    <div id="save_card-card-container"></div>
+                                                                    <div id="save_card-status-container"></div>
+                                                                </div>
+                                                            </div>
+                                                        <?php } ?>
+                                                        <div class="row" id="save_card_payment_status"></div>
+                                                        <div class="form-group">
+                                                            <button type="submit" id="save_card-pay-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                                                        </div>
+                                                        <div class="card_list_div" style="margin-bottom: 25px;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
                                     </div>
 
                                 </div>
@@ -1699,16 +1731,16 @@ if (!empty($_POST)) {
         } else {
             $('#corporation_card_div').slideUp();
             $('#payment_details_div').slideDown();
-            getSavedCreditCardList();
+            getSavedCreditCardList('payment');
         }
     }
 
-    function getSavedCreditCardList() {
+    function getSavedCreditCardList(type) {
         let payment_gateway_type = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
         if (payment_gateway_type == 'Square') {
-            squarePaymentFunction();
+            squarePaymentFunction(type);
         } else if (payment_gateway_type == 'Stripe') {
-            stripePaymentFunction();
+            stripePaymentFunction(type);
         }
         $.ajax({
             url: "ajax/get_credit_card_list_from_master.php",
@@ -1718,7 +1750,7 @@ if (!empty($_POST)) {
                 class: 'location'
             },
             success: function(data) {
-                $('#card_list_div').slideDown().html(data);
+                $('.card_list_div').slideDown().html(data);
             }
         });
     }
@@ -1771,7 +1803,7 @@ if (!empty($_POST)) {
         });
         var pay_type = '';
 
-        function stripePaymentFunction() {
+        function stripePaymentFunction(type) {
             if (($('#card-element')).length > 0) {
                 stripe_card.mount('#card-element');
             }
@@ -1818,24 +1850,24 @@ if (!empty($_POST)) {
     <script type="text/javascript">
         let square_card;
 
-        async function squarePaymentFunction() {
+        async function squarePaymentFunction(type) {
             let square_appId = '<?= $SA_SQUARE_APP_ID ?>';
             let square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
             const payments = Square.payments(square_appId, square_locationId);
             square_card = await payments.card();
-            $('#payment-card-container').text('');
-            await square_card.attach('#payment-card-container');
+            $('#' + type + '-card-container').text('');
+            await square_card.attach('#' + type + '-card-container');
         }
 
-        async function addSquareTokenOnForm() {
-            const statusContainer = document.getElementById('payment-status-container');
+        async function addSquareTokenOnForm(type) {
+            const statusContainer = document.getElementById(type + '-status-container');
 
             try {
                 // Tokenize the card details
                 const result = await square_card.tokenize();
                 if (result.status === 'OK') {
                     // Add the token to the hidden input field
-                    $('#square_token').val(result.token);
+                    $('.square_token').val(result.token);
                 } else {
                     // Handle tokenization errors
                     let errorMessage = `Tokenization failed with status: ${result.status}`;
@@ -1872,7 +1904,7 @@ if (!empty($_POST)) {
         if (PAYMENT_GATEWAY == 'Square') {
             let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
             if (PAYMENT_METHOD_ID == '') {
-                addSquareTokenOnForm();
+                addSquareTokenOnForm('payment');
                 sleep(3000).then(() => {
                     submitLocationPaymentForm();
                 });
@@ -1898,6 +1930,49 @@ if (!empty($_POST)) {
                     $('#location-payment-btn').html(`Process`);
                 } else {
                     $('#location_payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
+                }
+            }
+        });
+    }
+
+    $(document).on('submit', '#credit_card_form', function(event) {
+        $('#save_card-pay-button').prop('disabled', true);
+        $('#save_card-pay-button').html(`<span class="spinner-border spinner-border-sm"></span> Processing...`);
+        event.preventDefault();
+        let PAYMENT_GATEWAY = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+        if (PAYMENT_GATEWAY == 'Square') {
+            let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+            if (PAYMENT_METHOD_ID == '') {
+                addSquareTokenOnForm('save_card');
+                sleep(3000).then(() => {
+                    submitCreditCardForm();
+                });
+            } else {
+                submitCreditCardForm();
+            }
+        } else {
+            submitCreditCardForm();
+        }
+    });
+
+    function submitCreditCardForm() {
+        let form_data = $('#credit_card_form').serialize();
+        $.ajax({
+            url: "includes/save_corporation_credit_card.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json',
+            success: function(data) {
+                if (data.STATUS == false) {
+                    $('#save_card_payment_status').html(`<p class="alert alert-danger">${data.MESSAGE}</p>`);
+                    $('#save_card-pay-button').prop('disabled', false);
+                    $('#save_card-pay-button').html(`Save`);
+                } else {
+                    $('#save_card_payment_status').html(`<p class="alert alert-success">Credit Card Successfully Saved.</p>`);
 
                     setTimeout(function() {
                         location.reload();

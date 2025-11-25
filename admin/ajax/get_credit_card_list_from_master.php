@@ -43,7 +43,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
         foreach ($all_cards->data as $card_details) {
             $card_type = getCardTypeDetails($card_details->brand); ?>
 
-            <div style="position: relative; display: inline-block;">
+            <div style="position: relative; display: inline-block; margin-right: 25px;">
                 <!-- Credit Card Box -->
                 <div class="credit-card-div" id="<?= $card_details->id; ?>" onclick="getPaymentMethodId(this)">
                     <div class="credit-card <?= $card_type ?> selectable">
@@ -56,7 +56,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                     </div>
                 </div>
                 <!-- <a href="javascript:;" onclick="deleteThisCreditCard('<?= $card_details->id ?>');" title="Delete"
-                    style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                    style="position: absolute; top: 15px; right: -15px; color: red; font-size: 18px; z-index: 10;">
                     <i class="ti-trash"></i>
                 </a> -->
             </div>
@@ -92,7 +92,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
             foreach ($all_cards as $card_details) {
                 $card_type = getCardTypeDetails($card_details->getCardBrand()); ?>
 
-                <div style="position: relative; display: inline-block;">
+                <div style="position: relative; display: inline-block; margin-right: 25px;">
                     <!-- Credit Card Box -->
                     <div class="credit-card-div" id="<?= $card_details->getId(); ?>" onclick="getPaymentMethodId(this)">
                         <div class="credit-card <?= $card_type ?> selectable">
@@ -105,7 +105,7 @@ if ($PAYMENT_GATEWAY == "Stripe") {
                         </div>
                     </div>
                     <!-- <a href="javascript:;" onclick="deleteThisCreditCard('<?= $card_details->getId() ?>');" title="Delete"
-                        style="position: absolute; top: 15px; right: 5px; color: red; font-size: 18px; z-index: 10;">
+                        style="position: absolute; top: 15px; right: -15px; color: red; font-size: 18px; z-index: 10;">
                         <i class="ti-trash"></i>
                     </a> -->
                 </div>

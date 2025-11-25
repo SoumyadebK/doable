@@ -255,7 +255,7 @@ while (!$account_payment_info->EOF) {
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#location" role="tab" id="location_tab"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Location List</span></a> </li>
                                     <?php } ?>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <!-- <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billingtab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li> -->
                                 </ul>
 
                                 <!-- Tab panes -->

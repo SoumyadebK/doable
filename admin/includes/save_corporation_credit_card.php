@@ -13,7 +13,12 @@ require_once("../../global/stripe-php/init.php");
 global $db;
 global $db_account;
 
-$PK_CORPORATION = $_POST['PK_CORPORATION'];
+$FROM = isset($_POST['FROM']) ? $_POST['FROM'] : '';
+if ($FROM == 'location') {
+    $PK_VALUE = $_POST['PK_LOCATION'];
+} elseif ($FROM == 'corporation') {
+    $PK_VALUE = $_POST['PK_CORPORATION'];
+}
 
 $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
@@ -33,7 +38,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     $STRIPE_TOKEN = $_POST['stripe_token'];
 
     $PAYMENT_ID = '';
-    $corporation_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = 'corporation' AND PK_VALUE = '$PK_CORPORATION'");
+    $corporation_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Stripe' AND CLASS = 'corporation' AND PK_VALUE = '$PK_VALUE'");
 
     if ($corporation_payment_info->RecordCount() > 0) {
         $PAYMENT_ID = $location_payment_info->fields['PAYMENT_ID'];
@@ -103,45 +108,74 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
     }
 
     $PAYMENT_ID = '';
-    $corporation_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = 'corporation' AND PK_VALUE = '$PK_CORPORATION'");
-    $corporation_data = $db->Execute("SELECT * FROM DOA_CORPORATION WHERE PK_CORPORATION = " . $PK_CORPORATION);
-
+    $corporation_payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = '$FROM' AND PK_VALUE = '$PK_VALUE'");
     if ($corporation_payment_info->RecordCount() > 0) {
         $PAYMENT_ID = $corporation_payment_info->fields['PAYMENT_ID'];
     } else {
         try {
-            $account_master_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_STATES.STATE_CODE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_STATES ON DOA_ACCOUNT_MASTER.PK_STATES = DOA_STATES.PK_STATES WHERE PK_ACCOUNT_MASTER = " . $corporation_data->fields['PK_ACCOUNT_MASTER']);
+            if ($FROM == 'corporation') {
+                $corporation_data = $db->Execute("SELECT * FROM DOA_CORPORATION WHERE PK_CORPORATION = " . $PK_VALUE);
+                $account_master_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.*, DOA_STATES.STATE_CODE FROM DOA_ACCOUNT_MASTER LEFT JOIN DOA_STATES ON DOA_ACCOUNT_MASTER.PK_STATES = DOA_STATES.PK_STATES WHERE PK_ACCOUNT_MASTER = " . $corporation_data->fields['PK_ACCOUNT_MASTER']);
+                try {
+                    $address = new \Square\Models\Address();
+                    $address->setAddressLine1($account_master_data->fields['ADDRESS']);
+                    $address->setAddressLine2($account_master_data->fields['ADDRESS_1']);
+                    $address->setLocality($account_master_data->fields['CITY']);
+                    $address->setAdministrativeDistrictLevel1($account_master_data->fields['STATE_CODE']);
+                    $address->setPostalCode($account_master_data->fields['ZIP']);
+                    $address->setCountry('US');
 
-            try {
-                $address = new \Square\Models\Address();
-                $address->setAddressLine1($account_master_data->fields['ADDRESS']);
-                $address->setAddressLine2($account_master_data->fields['ADDRESS_1']);
-                $address->setLocality($account_master_data->fields['CITY']);
-                $address->setAdministrativeDistrictLevel1($account_master_data->fields['STATE_CODE']);
-                $address->setPostalCode($account_master_data->fields['ZIP']);
-                $address->setCountry('US');
+                    $body = new \Square\Models\CreateCustomerRequest();
+                    $body->setGivenName($corporation_data->fields['CORPORATION_NAME']);
+                    $body->setFamilyName($corporation_data->fields['CORPORATION_NAME']);
+                    $body->setEmailAddress($account_master_data->fields['EMAIL']);
+                    $body->setAddress($address);
+                    $body->setPhoneNumber($account_master_data->fields['PHONE']);
+                    $body->setReferenceId('N/A');
+                    $body->setNote($corporation_data->fields['CORPORATION_NAME'] . " from Doable");
 
-                $body = new \Square\Models\CreateCustomerRequest();
-                $body->setGivenName($corporation_data->fields['CORPORATION_NAME']);
-                $body->setFamilyName($corporation_data->fields['CORPORATION_NAME']);
-                $body->setEmailAddress($account_master_data->fields['EMAIL']);
-                $body->setAddress($address);
-                $body->setPhoneNumber($account_master_data->fields['PHONE']);
-                $body->setReferenceId('N/A');
-                $body->setNote($corporation_data->fields['CORPORATION_NAME'] . " from Doable");
+                    $api_response = $client->getCustomersApi()->createCustomer($body);
+                } catch (\Square\Exceptions\ApiException $e) {
+                    $RETURN_DATA['STATUS'] = false;
+                    $RETURN_DATA['MESSAGE'] = $e->getMessage();
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+            } elseif ($FROM == 'location') {
+                $location_data = $db->Execute("SELECT DOA_LOCATION.*, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE FROM DOA_LOCATION LEFT JOIN DOA_COUNTRY ON DOA_LOCATION.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_LOCATION.PK_STATES = DOA_STATES.PK_STATES WHERE PK_LOCATION = " . $PK_VALUE);
+                try {
+                    $address = new \Square\Models\Address();
+                    $address->setAddressLine1($location_data->fields['ADDRESS']);
+                    $address->setAddressLine2($location_data->fields['ADDRESS_1']);
+                    $address->setLocality($location_data->fields['CITY']);
+                    $address->setAdministrativeDistrictLevel1($location_data->fields['STATE_CODE']);
+                    $address->setPostalCode($location_data->fields['ZIP_CODE']);
+                    $address->setCountry('US');
 
-                $api_response = $client->getCustomersApi()->createCustomer($body);
-            } catch (\Square\Exceptions\ApiException $e) {
-                $RETURN_DATA['STATUS'] = false;
-                $RETURN_DATA['MESSAGE'] = $e->getMessage();
-                echo json_encode($RETURN_DATA);
-                die();
+                    pre_r($address);
+
+                    $body = new \Square\Models\CreateCustomerRequest();
+                    $body->setGivenName($location_data->fields['LOCATION_NAME']);
+                    $body->setFamilyName($location_data->fields['LOCATION_CODE']);
+                    $body->setEmailAddress($location_data->fields['EMAIL']);
+                    $body->setAddress($address);
+                    $body->setPhoneNumber($location_data->fields['PHONE']);
+                    $body->setReferenceId('N/A');
+                    $body->setNote($location_data->fields['LOCATION_NAME'] . " from Doable");
+
+                    $api_response = $client->getCustomersApi()->createCustomer($body);
+                } catch (\Square\Exceptions\ApiException $e) {
+                    $RETURN_DATA['STATUS'] = false;
+                    $RETURN_DATA['MESSAGE'] = $e->getMessage();
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
             }
 
             $PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
 
-            $PAYMENT_DETAILS['PK_VALUE'] = $PK_CORPORATION;
-            $PAYMENT_DETAILS['CLASS'] = 'corporation';
+            $PAYMENT_DETAILS['PK_VALUE'] = $PK_VALUE;
+            $PAYMENT_DETAILS['CLASS'] = $FROM;
             $PAYMENT_DETAILS['PAYMENT_ID'] = $PAYMENT_ID;
             $PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Square';
             $PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
@@ -169,9 +203,11 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
         die();
     } else {
         try {
+            $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $_SESSION['PK_USER']);
+            $CARD_HOLDER_NAME = $user_data->fields['FIRST_NAME'] . ' ' . $user_data->fields['LAST_NAME'];
             // Save the new card for future use
             $card = new \Square\Models\Card();
-            $card->setCardholderName($corporation_data->fields['CORPORATION_NAME']);
+            $card->setCardholderName($CARD_HOLDER_NAME);
             $card->setCustomerId($PAYMENT_ID);
 
             $body = new \Square\Models\CreateCardRequest(uniqid(), $square_token, $card);
