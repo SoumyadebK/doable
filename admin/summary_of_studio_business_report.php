@@ -704,15 +704,15 @@ function roundToNearestFiveCents($num)
                                                 ?>
                                                 <tr>
                                                     <th style="width:5%; text-align: center; vertical-align:center; font-weight: bold" rowspan="3">Week</th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_pre_original_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= ($weekly_customer_count + $weekly_leads_data->fields['LEADS_COUNT']) ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_original_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_pre_original_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_original_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_extension_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_original_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_extension_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_renewal_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_extension_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_renewal_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_pre_original_tried->fields['TRIED'] + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= ($weekly_customer_count + $weekly_leads_data->fields['LEADS_COUNT']) + $weekly_pre_original_sold->fields['SOLD'] + $weekly_original_sold->fields['SOLD'] + $weekly_extension_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] + $weekly_original_sold->fields['SOLD'] + $weekly_extension_sold->fields['SOLD'] + $weekly_renewal_sold->fields['SOLD'] ?></th>
                                                 </tr>
                                                 <tr>
