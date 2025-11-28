@@ -878,7 +878,49 @@ function getStaffCode($access_token, $first_name, $last_name)
     $response = curl_exec($curl);
     $data = json_decode($response, true);
 
-    return $data[0]['id'] ?? '';
+    if (isset($data[0]) && isset($data[0]['id'])) {
+        foreach ($data[0]['studios'] as $studio) {
+            $AMI_STUDIO_ID[] = $studio['id'];
+        }
+        $_SESSION['AMI_STUDIO_ID'] = $AMI_STUDIO_ID;
+        return $data[0]['id'];
+    } else {
+        $url = constant('ami_api_url') . '/api/v1/staff';
+
+        $user_details = [
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'studios' => $_SESSION['AMI_STUDIO_ID']
+        ];
+
+        $curl = curl_init();
+
+        $param = http_build_query($user_details);
+
+        /* echo $url . "<br>" . $param . "<br>" . $access_token;
+        die(); */
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POST => false,
+            CURLOPT_POSTFIELDS => $param,
+            CURLOPT_HTTPHEADER => array(
+                $access_token
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        $data = json_decode($response, true);
+
+        return $data['id'] ?? '';
+    }
 }
 
 function callArturMurrayApi(string $url, array $data, string $access_token, $method = 'POST')

@@ -11,6 +11,14 @@ if (!empty($_POST)) {
 
 
 if (!empty($postData)) {
+    $IP_ADDRESS = getUserIP();
+    if ($IP_ADDRESS == '35.161.112.234') {
+        $return_data['success'] = 0;
+        $return_data['message'] = 'Action not allowed from this IP';
+        echo json_encode($return_data);
+        exit;
+    }
+
     if (empty($postData['LOCATION_ID']) || $postData['LOCATION_ID'] == '') {
         $location_data = $db->Execute("SELECT PK_LOCATION, PK_ACCOUNT_MASTER FROM DOA_LOCATION WHERE LOCATION_NAME LIKE '%" . $postData['LOCATION_NAME'] . "%'");
         if ($location_data->RecordCount() > 0) {
@@ -51,7 +59,7 @@ if (!empty($postData)) {
 
     if (empty($_GET['id'])) {
         $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
-        $LEADS_DATA['IP_ADDRESS'] = getUserIP();
+        $LEADS_DATA['IP_ADDRESS'] = $IP_ADDRESS;
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = 0;
         $LEADS_DATA['CREATED_ON']  = date("Y-m-d H:i");
