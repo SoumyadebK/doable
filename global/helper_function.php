@@ -919,7 +919,7 @@ function getStaffCode($access_token, $first_name, $last_name)
         $response = curl_exec($curl);
         $data = json_decode($response, true);
 
-        return $data['id'] ?? '';
+        return $data[0]['id'];
     }
 }
 
