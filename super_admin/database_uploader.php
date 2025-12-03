@@ -1585,7 +1585,7 @@ if (!empty($_POST)) {
                     $USER_DATA['JOINING_DATE'] = null;
                 }
 
-                db_perform('DOA_USERS', $USER_DATA, 'update', " PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id'");
+                db_perform('DOA_USERS', $USER_DATA, 'update', " (PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND USER_ID = '$user_id')");
                 $allCustomers->MoveNext();
             }
             break;

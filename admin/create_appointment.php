@@ -241,6 +241,7 @@ if ($FUNCTION_NAME == 'saveGroupClassData') {
         unset($_POST['END_TIME']);
     }
 
+    $PK_USER_MASTER = 0;
     $SCHEDULING_CODE = explode(',', $_POST['PK_SCHEDULING_CODE']);
     $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
     $DURATION = $SCHEDULING_CODE[1];
@@ -311,8 +312,9 @@ if ($FUNCTION_NAME == 'saveGroupClassData') {
 
             $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
             for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
+                $PK_USER_MASTER = $_POST['CUSTOMER_ID'][$k];
                 $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-                $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
+                $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
                 db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
             }
         }
@@ -320,6 +322,16 @@ if ($FUNCTION_NAME == 'saveGroupClassData') {
         //updateSessionCreatedCount($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
     }
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
+
+    if ($PK_USER_MASTER > 0) {
+        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER am JOIN DOA_APPOINTMENT_CUSTOMER ac ON am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER SET am.PK_ENROLLMENT_MASTER = 0, am.PK_ENROLLMENT_SERVICE = 0, am.APPOINTMENT_TYPE = 'AD-HOC' WHERE am.APPOINTMENT_TYPE = 'NORMAL' AND ac.PK_USER_MASTER = '$PK_USER_MASTER'");
+        $enrollment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY ENROLLMENT_DATE ASC");
+        while (!$enrollment_data->EOF) {
+            $PK_ENROLLMENT_MASTER = $enrollment_data->fields['PK_ENROLLMENT_MASTER'];
+            markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+            $enrollment_data->MoveNext();
+        }
+    }
 
     //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 

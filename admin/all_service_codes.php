@@ -120,7 +120,7 @@ if ($header_data->RecordCount() > 0) {
                                                     <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SORT_ORDER'] ?></td>
                                                     <td style="text-align: center">
                                                         <a href="service_codes.php?id=<?= $row->fields['PK_SERVICE_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="all_services.php?type=del&id=<?= $row->fields['PK_SERVICE_MASTER'] ?>" onclick="ConfirmDelete(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
                                                         <?php } else { ?>

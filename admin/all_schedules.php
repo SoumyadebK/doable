@@ -760,8 +760,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $(window).on('load', function() {
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
-                let currentDate = new Date(redirect_date);
-                currentDate.setDate(currentDate.getDate() + 1);
+                let parts = redirect_date.split('-'); // "YYYY-MM-DD"
+                let currentDate = new Date(parts[0], parts[1] - 1, parts[2]); // Local date
                 renderCalendar(currentDate);
             }
         });
