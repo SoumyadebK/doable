@@ -309,17 +309,21 @@ if (!empty($_GET['WEEK_NUMBER'])) {
 
                 <?php
                 if ($type === 'export') {
-                    $response = json_decode($post_data);
-                    if (isset($response->error)) {
-                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->error_description . '</div>';
-                    } elseif (isset($response->errors)) {
-                        if (isset($response->errors->errors[0])) {
-                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->errors->errors[0] . '</div>';
-                        } else {
-                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->message . '</div>';
-                        }
+                    if (isset($error_message)) {
+                        echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $error_message . '</div>';
                     } else {
-                        echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
+                        $response = json_decode($post_data);
+                        if (isset($response->error)) {
+                            echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->error_description . '</div>';
+                        } elseif (isset($response->errors)) {
+                            if (isset($response->errors->errors[0])) {
+                                echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->errors->errors[0] . '</div>';
+                            } else {
+                                echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->message . '</div>';
+                            }
+                        } else {
+                            echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
+                        }
                     }
                 } else { ?>
                     <div class="row">
