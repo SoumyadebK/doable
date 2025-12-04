@@ -533,9 +533,9 @@ if ($PK_USER_MASTER > 0) {
                                                                     </div>
                                                                     <div class="col-3">
                                                                         <div class="form-group">
-                                                                            <label class="form-label">Email<span class="text-danger">*</span></label>
+                                                                            <label class="form-label">Email <?php if (empty($_GET['id'])) { ?> <span class="text-danger">*</span><?php } ?></label>
                                                                             <div class="col-md-12">
-                                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>" required>
+                                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>" <?= (empty($_GET['id'])) ? 'required' : '' ?>>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -3355,7 +3355,7 @@ if ($PK_USER_MASTER > 0) {
                 }
             }
         });
-        window.scrollTo(0, 0);
+        //window.scrollTo(0, 0);
     }
 
     function showDemoAppointment(page) {

@@ -31,10 +31,10 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $START_DATE = ' ';
 $END_DATE = ' ';
-if (!empty($_GET['START_DATE'])) {
+if (!empty($_GET['START_DATE']) && $_GET['START_DATE'] != '') {
     $START_DATE = " AND DOA_APPOINTMENT_MASTER.DATE >= '" . date('Y-m-d', strtotime($_GET['START_DATE'])) . "'";
 }
-if (!empty($_GET['END_DATE'])) {
+if (!empty($_GET['END_DATE']) && $_GET['END_DATE'] != '') {
     $END_DATE = " AND DOA_APPOINTMENT_MASTER.DATE <= '" . date('Y-m-d', strtotime($_GET['END_DATE'])) . "'";
 }
 
@@ -231,8 +231,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <thead>
                                             <tr>
                                                 <th data-type="number" class="sortable" style="cursor: pointer">No</th>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">Service Name</th>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">Class Name</th>
+                                                <th data-type="string" class="sortable" style="cursor: pointer">Service Name</th>
+                                                <th data-type="string" class="sortable" style="cursor: pointer">Class Name</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Enrollment ID</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer"><?= $service_provider_title ?></th>
@@ -308,21 +308,21 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <div class="pagination outer">
                                             <ul>
                                                 <?php if ($page > 1) { ?>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=1">&laquo;</a></li>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page - 1) ?>">&lsaquo;</a></li>
+                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=1<?= ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&laquo;</a></li>
+                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page - 1) ?><?= ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&lsaquo;</a></li>
                                                 <?php }
                                                 for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
                                                     if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="appointment_list.php?status=' . $status_check . '&appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="appointment_list.php?status=' . $status_check . '&appointment_status=' . $appointment_status . '&page=' . $page_count . ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     } elseif ($page_count == ($number_of_page - 1)) {
                                                         echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                                     } else {
-                                                        echo '<li><a class="hidden" href="appointment_list.php?status=' . $status_check . 'appointment_status=' . $appointment_status . '&page=' . $page_count . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                                        echo '<li><a class="hidden" href="appointment_list.php?status=' . $status_check . 'appointment_status=' . $appointment_status . '&page=' . $page_count . ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
                                                     }
                                                 }
                                                 if ($page < $number_of_page) { ?>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page + 1) ?>">&rsaquo;</a></li>
-                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= $number_of_page ?>">&raquo;</a></li>
+                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= ($page + 1) ?><?= ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&rsaquo;</a></li>
+                                                    <li><a href="appointment_list.php?status=<?= $status_check ?>&appointment_status=<?= $appointment_status ?>&page=<?= $number_of_page ?><?= ((empty($_GET['START_DATE'])) ? '' : '&START_DATE=' . $_GET['START_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&raquo;</a></li>
                                                 <?php } ?>
                                             </ul>
                                         </div>
