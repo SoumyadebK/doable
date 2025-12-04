@@ -28,7 +28,7 @@ $return_data = json_decode($post_data, true);
 //pre_r($return_data);
 
 if ($report_type == 'miscellaneous') {
-    //echo 'Last Report Exported On: ' . date('m/d/Y h:i A', strtotime($return_data[0]['created_at'])) . '<br>';
+    echo 'Last Report Exported On: ' . date('m/d/Y h:i A', strtotime($return_data[0]['created_at'])) . '<br>';
 } else {
 ?>
     <table class="table">

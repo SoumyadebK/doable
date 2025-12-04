@@ -91,7 +91,7 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this);">
                                                     <option value="">Select a package</option>
                                                     <?php
                                                     $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_SERVICE.PK_PACKAGE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_PACKAGE.ACTIVE = 1");
@@ -189,5 +189,22 @@ if (!empty($_GET['NAME'])) {
         var d = new Date(d);
         d.setDate(d.getDate() - 363);
         return '#' + $.datepicker.iso8601Week(d);
+    }
+
+    function showReportLog(param) {
+        //let report_type = $(param).closest('form').find('#NAME').val();
+        let report_type = 'miscellaneous_service_summary_report';
+        $.ajax({
+            url: "includes/get_report_details.php",
+            type: "POST",
+            data: {
+                REPORT_TYPE: report_type
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $(param).closest('form').find('#export_log').html(result);
+            }
+        });
     }
 </script>
