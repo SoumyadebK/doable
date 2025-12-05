@@ -192,18 +192,18 @@ if (!empty($_GET['NAME'])) {
     }
 
     function showReportLog(param) {
-        //let report_type = $(param).closest('form').find('#NAME').val();
-        let report_type = 'miscellaneous_service_summary_report';
+        $('#export_log').html(
+            '<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>'
+        );
+
         $.ajax({
             url: "includes/get_report_details.php",
             type: "POST",
             data: {
-                REPORT_TYPE: report_type
+                REPORT_TYPE: 'miscellaneous_service_summary_report'
             },
-            async: false,
-            cache: false,
             success: function(result) {
-                $(param).closest('form').find('#export_log').html(result);
+                $('#export_log').html(result);
             }
         });
     }

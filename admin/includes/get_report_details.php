@@ -27,9 +27,28 @@ $return_data = json_decode($post_data, true);
 
 //pre_r($return_data);
 
-if ($report_type == 'miscellaneous') {
-    echo 'Last Report Exported On: ' . date('m/d/Y h:i A', strtotime($return_data[0]['created_at'])) . '<br>';
-} else {
+if ($report_type == 'miscellaneous') { ?>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="text-align: center;">Transmitted By</th>
+                <th style="text-align: center;">Exported On</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach (array_reverse($return_data) as $key => $value) { ?>
+                <tr style="text-align: center;">
+                    <td>
+                        <?= $value['last_transmitted_client'] ?>
+                    </td>
+                    <td>
+                        <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+<?php } else {
 ?>
     <table class="table">
         <thead>
