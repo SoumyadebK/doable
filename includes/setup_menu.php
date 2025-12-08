@@ -51,6 +51,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="dropdown-item" href="../admin/all_event_types.php">Event Types</a>
                                 <a class="dropdown-item" href="../admin/all_inquiry_methods.php">Inquiry Method</a>
                                 <a class="dropdown-item" href="../admin/all_lead_status.php">Lead Status</a>
+                                <a class="dropdown-item" href="../admin/default_call_setting.php">Default Call Setting</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">

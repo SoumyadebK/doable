@@ -2226,6 +2226,15 @@ function deleteCustomer($RESPONSE_DATA)
     echo 1;
 }
 
+function deleteDefaultCallSettingData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_DEFAULT_CALL_SETTING = $RESPONSE_DATA['PK_DEFAULT_CALL_SETTING'];
+    $db_account->Execute("DELETE FROM `DOA_DEFAULT_CALL_SETTING` WHERE `PK_DEFAULT_CALL_SETTING` = " . $PK_DEFAULT_CALL_SETTING);
+    echo 1;
+}
+
 function updateAppointmentData($RESPONSE_DATA)
 {
     global $db_account;
