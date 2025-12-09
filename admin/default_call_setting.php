@@ -9,31 +9,66 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 if (!empty($_POST)) {
-    $DEFAUL_CALL_SETTING_DATA = $_POST;
-    //$DEFAUL_CALL_SETTING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $db_account->Execute("TRUNCATE TABLE DOA_DEFAULT_CALL_SETTING");
-    $DEFAUL_CALL_SETTING_DATA['ACTIVE'] = 1;
-    $DEFAUL_CALL_SETTING_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
-    $DEFAUL_CALL_SETTING_DATA['CREATED_ON']  = date("Y-m-d H:i");
-    //pre_r($DEFAUL_CALL_SETTING_DATA);
-    db_perform_account('DOA_DEFAULT_CALL_SETTING', $DEFAUL_CALL_SETTING_DATA, 'insert');
+
+    foreach ($_POST['PK_USER'] as $loc_id => $pk_user_val) {
+
+        // Check if row exists for this location
+        $check = $db->Execute("
+            SELECT PK_LOCATION 
+            FROM DOA_DEFAULT_CALL_SETTING 
+            WHERE PK_LOCATION = $loc_id
+        ");
+
+        // Prepare data
+        $data = [];
+        $data['PK_LOCATION']        = $loc_id;
+        $data['PK_USER']            = $_POST['PK_USER'][$loc_id];
+        $data['PK_SERVICE_MASTER']  = $_POST['PK_SERVICE_MASTER'][$loc_id];
+        $data['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'][$loc_id];
+        $data['SCRIPT_1']           = $_POST['SCRIPT_1'][$loc_id];
+        $data['SCRIPT_2']           = $_POST['SCRIPT_2'][$loc_id];
+        $data['END_SCRIPT']         = $_POST['END_SCRIPT'][$loc_id];
+        $data['ACTIVE']             = 1;
+
+        if ($check->RecordCount() > 0) {
+            // UPDATE
+            $data['EDITED_BY'] = $_SESSION['PK_USER'];
+            $data['EDITED_ON'] = date("Y-m-d H:i");
+
+            db_perform('DOA_DEFAULT_CALL_SETTING', $data, 'update', " PK_LOCATION = $loc_id ");
+        } else {
+            // INSERT
+            $data['CREATED_BY'] = $_SESSION['PK_USER'];
+            $data['CREATED_ON'] = date("Y-m-d H:i");
+
+            db_perform('DOA_DEFAULT_CALL_SETTING', $data, 'insert');
+        }
+    }
 
     header("location:default_call_setting.php");
 }
 
 
-$PK_USER = '';
-$PK_SERVICE_MASTER = '';
-$PK_SCHEDULING_CODE = '';
-$ACTIVE = '';
-$res = $db_account->Execute("SELECT * FROM `DOA_DEFAULT_CALL_SETTING`");
 
-if ($res->RecordCount() > 0) {
+$DEFAULT_CALL_SETTING = [];
 
-    $PK_USER = $res->fields['PK_USER'];
-    $PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
-    $PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
-    $ACTIVE = $res->fields['ACTIVE'];
+$res = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING");
+
+while (!$res->EOF) {
+
+    $loc = $res->fields['PK_LOCATION']; // location ID
+
+    $DEFAULT_CALL_SETTING[$loc] = [
+        'PK_USER'            => $res->fields['PK_USER'],
+        'PK_SERVICE_MASTER'  => $res->fields['PK_SERVICE_MASTER'],
+        'PK_SCHEDULING_CODE' => $res->fields['PK_SCHEDULING_CODE'],
+        'SCRIPT_1'           => $res->fields['SCRIPT_1'],
+        'SCRIPT_2'           => $res->fields['SCRIPT_2'],
+        'END_SCRIPT'         => $res->fields['END_SCRIPT'],
+        'ACTIVE'             => $res->fields['ACTIVE'],
+    ];
+
+    $res->MoveNext();
 }
 
 
@@ -64,78 +99,176 @@ if ($res->RecordCount() > 0) {
                     </div>
                 </div>
 
+                <?php
+                // Fetch all locations for this account
+                $locations = $db->Execute("
+    SELECT PK_LOCATION, LOCATION_NAME 
+    FROM DOA_LOCATION 
+    WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " 
+      AND ACTIVE = 1
+");
+                ?>
+
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
+
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                    <div class="row">
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label" for="PK_USER">Service Provider<span class="text-danger">*</span></label><br>
-                                                <select id="PK_USER" name="PK_USER" class="form-control" required>
-                                                    <option value="">Select <?= $service_provider_title ?></option>
-                                                    <?php
-                                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $row->fields['PK_USER'] == $PK_USER ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label" for="PK_SERVICE_MASTER">Service<span class="text-danger">*</span></label><br>
-                                                <select id="PK_SERVICE_MASTER" name="PK_SERVICE_MASTER" class="form-control" required>
-                                                    <option value="">Select Service</option>
-                                                    <?php
-                                                    $row = $db_account->Execute("SELECT DISTINCT(DOA_SERVICE_MASTER.PK_SERVICE_MASTER), DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE=1 AND PK_SERVICE_CLASS = 2 ORDER BY SERVICE_NAME");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" <?= $row->fields['PK_SERVICE_MASTER'] == $PK_SERVICE_MASTER ? "selected" : "" ?>><?= $row->fields['SERVICE_NAME'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label" for="PK_SCHEDULING_CODE">Scheduling Code<span class="text-danger">*</span></label><br>
-                                                <select id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" class="form-control" required>
-                                                    <option value="">Select Scheduling Code</option>
-                                                    <?php
-                                                    $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
-                                                    while (!$row->EOF) { ?>
-                                                        <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= $row->fields['PK_SCHEDULING_CODE'] == $PK_SCHEDULING_CODE ? "selected" : "" ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php while (!$locations->EOF) {
+                                        $loc_id   = $locations->fields['PK_LOCATION'];
+                                        $loc_name = $locations->fields['LOCATION_NAME'];
+                                    ?>
 
-                                    <?php if (!empty($_GET['id'])) { ?>
-                                        <div class="row" style="margin-bottom: 15px;">
-                                            <div class="col-6">
-                                                <div class="col-md-2">
-                                                    <label>Active</label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                        <!-- ============ LOCATION HEADER ============ -->
+                                        <h4 class="bg-light p-2 mb-3 mt-3">
+                                            <b><?= $loc_name ?></b>
+                                        </h4>
+
+                                        <div class="row">
+                                            <!-- SERVICE PROVIDER -->
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label class="form-label">Service Provider</label>
+                                                    <select name="PK_USER[<?= $loc_id ?>]" class="form-control" required>
+                                                        <option value="">Select Service Provider</option>
+
+                                                        <?php
+                                                        $sp = $db->Execute(
+                                                            "
+                                            SELECT DISTINCT U.PK_USER, CONCAT(U.FIRST_NAME, ' ', U.LAST_NAME) AS NAME
+                                            FROM DOA_USERS U
+                                            LEFT JOIN DOA_USER_ROLES R ON U.PK_USER = R.PK_USER
+                                            LEFT JOIN DOA_USER_LOCATION UL ON U.PK_USER = UL.PK_USER
+                                            WHERE UL.PK_LOCATION = $loc_id
+                                              AND R.PK_ROLES = 5
+                                              AND U.ACTIVE = 1
+                                              AND U.IS_DELETED = 0
+                                              AND U.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']
+                                                        );
+
+                                                        while (!$sp->EOF) { ?>
+                                                            <option value="<?= $sp->fields['PK_USER'] ?>"
+                                                                <?= isset($DEFAULT_CALL_SETTING[$loc_id]) && $DEFAULT_CALL_SETTING[$loc_id]['PK_USER'] == $sp->fields['PK_USER'] ? "selected" : "" ?>>
+                                                                <?= $sp->fields['NAME'] ?>
+                                                            </option>
+
+                                                        <?php $sp->MoveNext();
+                                                        } ?>
+                                                    </select>
                                                 </div>
                                             </div>
-                                        </div>
-                                    <? } ?>
 
-                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                    <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_inquiry_methods.php'">Cancel</button>
+                                            <!-- SERVICE -->
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label class="form-label">Service</label>
+                                                    <select name="PK_SERVICE_MASTER[<?= $loc_id ?>]" class="form-control" required>
+                                                        <option value="">Select Service</option>
+
+                                                        <?php
+                                                        $svc = $db_account->Execute("
+                                            SELECT PK_SERVICE_MASTER, SERVICE_NAME 
+                                            FROM DOA_SERVICE_MASTER 
+                                            WHERE PK_LOCATION = $loc_id 
+                                              AND ACTIVE = 1 
+                                              AND PK_SERVICE_CLASS = 2
+                                            ORDER BY SERVICE_NAME
+                                        ");
+
+                                                        while (!$svc->EOF) { ?>
+                                                            <option value="<?= $svc->fields['PK_SERVICE_MASTER'] ?>"
+                                                                <?= isset($DEFAULT_CALL_SETTING[$loc_id]) && $DEFAULT_CALL_SETTING[$loc_id]['PK_SERVICE_MASTER'] == $svc->fields['PK_SERVICE_MASTER'] ? "selected" : "" ?>>
+                                                                <?= $svc->fields['SERVICE_NAME'] ?>
+                                                            </option>
+
+                                                        <?php $svc->MoveNext();
+                                                        } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- SCHEDULING CODE -->
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label class="form-label">Scheduling Code</label>
+                                                    <select name="PK_SCHEDULING_CODE[<?= $loc_id ?>]" class="form-control" required>
+                                                        <option value="">Select Scheduling Code</option>
+
+                                                        <?php
+                                                        $sch = $db_account->Execute("
+                                            SELECT PK_SCHEDULING_CODE, SCHEDULING_CODE, SCHEDULING_NAME, DURATION 
+                                            FROM DOA_SCHEDULING_CODE 
+                                            WHERE PK_LOCATION = $loc_id 
+                                              AND ACTIVE = 1
+                                            ORDER BY 
+                                              CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, 
+                                              SORT_ORDER
+                                        ");
+
+                                                        $saved_sched = isset($DEFAULT_CALL_SETTING[$loc_id]['PK_SCHEDULING_CODE'])
+                                                            ? $DEFAULT_CALL_SETTING[$loc_id]['PK_SCHEDULING_CODE']
+                                                            : '';
+
+                                                        while (!$sch->EOF) { ?>
+                                                            <option value="<?= $sch->fields['PK_SCHEDULING_CODE'] . ',' . $sch->fields['DURATION'] ?>"
+                                                                <?= $saved_sched == $sch->fields['PK_SCHEDULING_CODE'] ? "selected" : "" ?>>
+                                                                <?= $sch->fields['SCHEDULING_CODE'] . ' - ' . $sch->fields['SCHEDULING_NAME'] . ' (' . $sch->fields['DURATION'] . ' mins)' ?>
+                                                            </option>
+
+                                                        <?php $sch->MoveNext();
+                                                        } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- SCRIPTS -->
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 1</label>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
+<?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1'] : '' ?>
+</textarea>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 2</label>
+                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
+<?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2'] : '' ?>
+</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>End Script</label>
+                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
+<?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT'] : '' ?>
+</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    <?php
+                                        $locations->MoveNext();
+                                    } ?>
+
+                                    <button type="submit" class="btn btn-info text-white">Submit</button>
+                                    <button type="button" class="btn btn-inverse" onclick="window.location.href='setup.php'">Cancel</button>
+
                                 </form>
+
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
