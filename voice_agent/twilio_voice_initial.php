@@ -16,9 +16,77 @@ $locationSettings = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.
 $locationName = $locationSettings->fields['LOCATION_NAME'] ?? 'our location';
 ?>
 
+
+<?php
+$today = new DateTime();
+
+// Month name (e.g., December)
+$month = $today->format('F');
+
+// Day in words (e.g., 20 → twenty)
+$dayNumber = (int)$today->format('j');
+$dayWords = convert_number_to_words($dayNumber);
+
+// Converts 1–31 into spoken words
+function convert_number_to_words($number)
+{
+    $words = [
+        1 => "one",
+        2 => "two",
+        3 => "three",
+        4 => "four",
+        5 => "five",
+        6 => "six",
+        7 => "seven",
+        8 => "eight",
+        9 => "nine",
+        10 => "ten",
+        11 => "eleven",
+        12 => "twelve",
+        13 => "thirteen",
+        14 => "fourteen",
+        15 => "fifteen",
+        16 => "sixteen",
+        17 => "seventeen",
+        18 => "eighteen",
+        19 => "nineteen",
+        20 => "twenty",
+        21 => "twenty one",
+        22 => "twenty two",
+        23 => "twenty three",
+        24 => "twenty four",
+        25 => "twenty five",
+        26 => "twenty six",
+        27 => "twenty seven",
+        28 => "twenty eight",
+        29 => "twenty nine",
+        30 => "thirty",
+        31 => "thirty one"
+    ];
+    return $words[$number];
+}
+?>
+
+<?php
+function renderTemplate($template, $data)
+{
+    foreach ($data as $key => $value) {
+        $template = str_replace('{{' . $key . '}}', $value, $template);
+    }
+    return $template;
+}
+
+$template = "Hello, this is {{agentName}} from {{companyName}}. Am I speaking with {{firstName}}?";
+
+$data = [
+    'agentName'   => 'Robert',
+    'companyName' => $locationName,
+    'firstName'   => 'Robert Melgoza'
+];
+?>
 <Response>
     <Say voice="Polly.Joanna-Neural">
-        Hello, this is Robert from <?= $locationName ?>. Am I speaking with Robert Melgoza?
+        <?= renderTemplate($template, $data) ?>
         <break time="400ms" />
         I'm reaching out because you recently visited our website looking for information about learning to dance. Does that ring a bell?
     </Say>
@@ -28,7 +96,7 @@ $locationName = $locationSettings->fields['LOCATION_NAME'] ?? 'our location';
         input="speech dtmf"
         speechTimeout="auto"
         timeout="6">
-        <Say voice="Polly.Joanna-Neural">Please say a date like December twenty.</Say>
+        <Say voice="Polly.Joanna-Neural">Please say a date like <?= $month . ' ' . $dayWords ?>.</Say>
     </Gather>
 
     <Say voice="Polly.Joanna-Neural">We did not receive your response. Goodbye.</Say>
