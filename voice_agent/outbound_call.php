@@ -28,7 +28,6 @@ if (!empty($_POST) && !empty($_POST['phone_number'])) {
         );
         $callSid = $call->sid;
 
-
         if ($callSid && $PK_LEADS) {
             $CALL_DETAILS['PK_LEADS'] = $PK_LEADS;
             $CALL_DETAILS['TO_NUMBER'] = $to;

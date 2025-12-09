@@ -220,7 +220,6 @@ function parseTimeFromSpeech($s)
     return null;
 }
 
-
 /** Convert 'ten'|'two' etc to hour number 1..12 or null */
 function wordsToHour($w)
 {
