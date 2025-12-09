@@ -10,7 +10,6 @@ global $db;
 $PK_LEADS = $_GET['PK_LEADS'] ?? 37;
 
 if (!empty($_POST) && !empty($_POST['phone_number'])) {
-
     // Customer number & callback URL (the webhook Twilio will request when call is answered)
     $to = '+1' . preg_replace('/\D/', '', $_POST['phone_number']);
     $answerUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php'; // public HTTPS
