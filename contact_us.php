@@ -79,6 +79,7 @@ require_once('global/config.php');
   }
 </style>
 
+
 <body>
   <div class="over-loader loader-live">
     <div class="loader">
@@ -157,7 +158,7 @@ require_once('global/config.php');
       <!--end header section -->
 
 
-      <section class="sec-padding">
+      <section class="sec-padding-2">
         <div class="container">
           <div class="row">
 
@@ -170,7 +171,7 @@ require_once('global/config.php');
 
 
                   <div id="form_status"></div>
-                  <form type="POST" id="gsr-contact" onSubmit="return valid_datas( this );">
+                  <form method="POST" id="gsr-contact" action="contact_mail.php">
                     <label class="label">Full Name <em>*</em></label>
                     <label class="input">
                       <input type="text" name="name" id="name">
@@ -209,103 +210,116 @@ require_once('global/config.php');
 
                     <div class="clearfix"></div>
                     <br>
-                    <input type="hidden" name="token" value="FsWga4&@f6aw" />
-                    <a href="#myModal" data-toggle="modal" type="submit"
-                      class="btn btn-dark theme_doable_btn uppercase">Send Message</a>
-                    <div class="clearfix"></div>
-                    <a class="text-white" target="_blank" href="terms_of_use.php">*Terms of Use</a>
 
-                  </form>
-
-
+                    <!-- ✅ CONSENT CHECKBOX -->
+                    <!-- CONSENT CHECKBOX FIXED -->
+                    <!-- ✅ CONSENT CHECKBOX -->
+                    <div class="row">
+                      <div class="col-md-12">
+                        <label>
+                          <div class="col-md-1" style="margin-left: -20px;">
+                            <input type="checkbox" id="sms_consent" name="sms_consent">
+                          </div>
+                          <div class="col-md-11" style="margin-left: -25px; width: 97%;">
+                            I Consent to Receive SMS Notifications, Alerts from Doable LLP.
+                            Message frequency varies. Message and data rates may apply. You can reply STOP to unsubscribe at any
+                            time. For more information please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a>.
+                          </div>
+                        </label>
+                      </div>
+                    </div>
                 </div>
 
+                <input type="hidden" name="token" value="FsWga4&@f6aw" />
+                <button type="submit" class="btn btn-dark theme_doable_btn uppercase">Send Message</button>
+                <div class="clearfix"></div>
+                </form>
               </div>
 
             </div>
-            <!--end item-->
-
-
 
           </div>
+          <!--end item-->
+
+
+
         </div>
-      </section>
-      <div class="clearfix"></div>
-      <!-- end section -->
+    </div>
+    </section>
+    <div class="clearfix"></div>
+    <!-- end section -->
 
-      <div class="section-dark sec-padding">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-3 col-sm-12 colmargin clearfix margin-bottom">
-              <div class="fo-map">
-                <div class="footer-logo"><img src="assets/homepage/images/doable_logo.png" width="80" alt="" /></div>
-                <p class="text-light">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Suspendisse et justo.
-                  Praesent mattis commodo </p>
-                <p class="text-light">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Suspendisse et justo.
-                  Praesent mattis commodo </p>
-              </div>
+    <div class="section-dark sec-padding">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3 col-sm-12 colmargin clearfix margin-bottom">
+            <div class="fo-map">
+              <div class="footer-logo"><img src="assets/homepage/images/doable_logo.png" width="80" alt="" /></div>
+              <p class="text-light">Running a business is hard enough. You love what you do, but hate what you don't.</p>
+              <p class="text-light">DOable makes it easy to run your business the way you want.</p>
             </div>
-            <!--end item-->
-
-            <div class="col-md-3 col-xs-12 clearfix margin-bottom">
-              <h4 class="text-white less-mar3 font-weight-5">About Us</h4>
-              <div class="clearfix"></div>
-            </div>
-            <!--end item-->
-
-            <div class="col-md-3 col-xs-12 clearfix margin-bottom">
-              <h4 class="text-white less-mar3 font-weight-5">Quick Links</h4>
-              <a class="text-white" target="_blank" href="terms_of_use.php">Terms of Use</a>
-              <div class="clearfix"></div>
-              <a class="text-white" target="_blank" href="privacy_policy.php">Privacy Policy</a>
-              <div class="clearfix"></div>
-            </div>
-            <!--end item-->
-
-            <div class="col-md-3 col-xs-12 clearfix margin-bottom">
-              <h4 class="text-white less-mar3 font-weight-5">Contact Us</h4>
-              <div class="clearfix"></div>
-              <br />
-              <address class="text-light">
-                <strong class="text-white">Address:</strong> <br>
-                No.28 - 63739 street lorem ipsum, <br>
-                ipsum City, Country
-              </address>
-              <span class="text-light"><strong class="text-white">Phone:</strong> + 1 (234) 567 8901</span><br>
-              <span class="text-light"><strong class="text-white">Email:</strong> xyz@abc.com </span><br>
-              <span class="text-light"><strong class="text-white">Fax:</strong> + 1 (234) 567 8901</span>
-              <ul class="footer-social-icons white left-align icons-plain text-center">
-                <li><a class="twitter" href="javascript:void(0);"><i class="fa fa-twitter"></i></a></li>
-                <li><a href="javascript:void(0);"><i class="fa fa-facebook"></i></a></li>
-                <li><a class="active" href="javascript:void(0);"><i class="fa fa-google-plus"></i></a></li>
-                <li><a href="javascript:void(0);"><i class="fa fa-linkedin"></i></a></li>
-                <li><a href="javascript:void(0);"><i class="fa fa-dribbble"></i></a></li>
-              </ul>
-            </div>
-            <!--end item-->
-
           </div>
+          <!--end item-->
+
+          <div class="col-md-3 col-xs-12 clearfix margin-bottom">
+            <h4 class="text-white less-mar3 font-weight-5">About Us</h4>
+            <div class="clearfix"></div>
+          </div>
+          <!--end item-->
+
+          <div class="col-md-3 col-xs-12 clearfix margin-bottom">
+            <h4 class="text-white less-mar3 font-weight-5">Quick Links</h4>
+            <a class="text-white" target="_blank" href="terms_of_use.php">Terms of Use</a>
+            <div class="clearfix"></div>
+            <a class="text-white" target="_blank" href="privacy_policy.php">Privacy Policy</a>
+            <div class="clearfix"></div>
+          </div>
+          <!--end item-->
+
+          <div class="col-md-3 col-xs-12 clearfix margin-bottom">
+            <h4 class="text-white less-mar3 font-weight-5">Contact Us</h4>
+            <div class="clearfix"></div>
+            <br />
+            <address class="text-light">
+              <strong class="text-white">Address:</strong> <br>
+              No.28 - 63739 street lorem ipsum, <br>
+              ipsum City, Country
+            </address>
+            <span class="text-light"><strong class="text-white">Phone:</strong> + 1 (234) 567 8901</span><br>
+            <span class="text-light"><strong class="text-white">Email:</strong> xyz@abc.com </span><br>
+            <span class="text-light"><strong class="text-white">Fax:</strong> + 1 (234) 567 8901</span>
+            <ul class="footer-social-icons white left-align icons-plain text-center">
+              <li><a class="twitter" href="javascript:void(0);"><i class="fa fa-twitter"></i></a></li>
+              <li><a href="javascript:void(0);"><i class="fa fa-facebook"></i></a></li>
+              <li><a class="active" href="javascript:void(0);"><i class="fa fa-google-plus"></i></a></li>
+              <li><a href="javascript:void(0);"><i class="fa fa-linkedin"></i></a></li>
+              <li><a href="javascript:void(0);"><i class="fa fa-dribbble"></i></a></li>
+            </ul>
+          </div>
+          <!--end item-->
+
         </div>
       </div>
-      <div class="clearfix"></div>
-      <!-- end section -->
-
-      <section class="sec-padding-6 section-medium-dark">
-        <div class="container">
-          <div class="row">
-            <div class="fo-copyright-holder text-center"> Copyright © 2025 l Topcone. All rights reserved. </div>
-          </div>
-        </div>
-      </section>
-      <div class="clearfix"></div>
-      <!-- end section -->
-
-
-
-      <a href="#" class="scrollup"></a><!-- end scroll to top of the page-->
-
     </div>
-    <!--end site wrapper-->
+    <div class="clearfix"></div>
+    <!-- end section -->
+
+    <section class="sec-padding-6 section-medium-dark">
+      <div class="container">
+        <div class="row">
+          <div class="fo-copyright-holder text-center"> Copyright © 2025 l Topcone. All rights reserved. </div>
+        </div>
+      </div>
+    </section>
+    <div class="clearfix"></div>
+    <!-- end section -->
+
+
+
+    <a href="#" class="scrollup"></a><!-- end scroll to top of the page-->
+
+  </div>
+  <!--end site wrapper-->
   </div>
   <!--end wrapper boxed-->
 
