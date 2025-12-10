@@ -51,6 +51,31 @@
     <!-- Skin stylesheet -->
 
 </head>
+<style>
+    a:link {
+        color: green;
+        background-color: transparent;
+        text-decoration: none;
+    }
+
+    a:visited {
+        color: pink;
+        background-color: transparent;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: red;
+        background-color: transparent;
+        text-decoration: underline;
+    }
+
+    a:active {
+        color: yellow;
+        background-color: transparent;
+        text-decoration: underline;
+    }
+</style>
 
 <body>
     <div class="over-loader loader-live">
@@ -85,7 +110,7 @@
                                                 <li class="mega-menu active"> <a href="index.html">Home</a></li>
                                                 <li> <a href="about.html">About</a></li>
                                                 <li> <a href="javascript:void(0);">Services</a></li>
-                                                <li> <a target="_blank" href="https://smartsolutionwebsites.com/contact-us.php">Contact</a></li>
+                                                <li> <a href="terms_of_use.php">Contact</a></li>
                                                 <li class="login-doable-btn"><a class="theme_doable_btn capitalize login-button" href="login.php"><span class="text-black">log</span> <span class="text-white">in</span></a></li>
                                             </ul>
                                         </div>
@@ -1177,7 +1202,9 @@
 
                         <div class="col-md-3 col-xs-12 clearfix margin-bottom">
                             <h4 class="text-white less-mar3 font-weight-5">Quick Links</h4>
-                            <a class="text-white" target="_blank" href="https://smartsolutionwebsites.com/privacy-policy.php">Privacy Policy</a>
+                            <a class="text-white" target="_blank" href="terms_of_use.php">Terms of Use</a>
+                            <div class="clearfix"></div>
+                            <a class="text-white" target="_blank" href="privacy_policy.php">Privacy Policy</a>
                             <div class="clearfix"></div>
                         </div>
                         <!--end item-->
