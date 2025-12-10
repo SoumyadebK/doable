@@ -1,3 +1,8 @@
+<?php
+global $db;
+require_once('global/config.php');
+?>
+
 <!DOCTYPE html>
 <html>
 
@@ -106,10 +111,10 @@
                     </ul>
                     <div id="menu" class="collapse">
                       <ul class="nav navbar-nav">
-                        <li class="mega-menu active"> <a href="javascript:void(0);">Home</a></li>
+                        <li class="mega-menu"> <a href="index.php">Home</a></li>
                         <li> <a href="about.html">About</a></li>
                         <li> <a href="javascript:void(0);">Services</a></li>
-                        <li> <a href="terms_of_use.php">Contact</a></li>
+                        <li class="active"> <a href="contact_us.php">Contact Us</a></li>
                       </ul>
                     </div>
                   </div>
@@ -136,7 +141,7 @@
                 <div class="header-inner single-head">
                   <div class="overlay">
                     <div class="text text-center">
-                      <h3 class="uppercase text-white less-mar-1 title">request demo</h3>
+                      <h3 class="uppercase text-white less-mar-1 title">CONTACT US</h3>
                       <div class="ce-title-line align-center theme-title-line"></div>
                     </div>
                   </div>
@@ -188,12 +193,17 @@
 
                     <div class="clearfix"></div>
 
-                    <label class="label">Industry <em>*</em></label>
+                    <label class="label">Business Type <em>*</em></label>
                     <div class="select-box-2">
-                      <select>
-                        <option>First select</option>
-                        <option>Option 1</option>
-                        <option>Option 2</option>
+                      <select class="form-control" name="PK_BUSINESS_TYPE" id="PK_BUSINESS_TYPE">
+                        <option value="">Select Business Type</option>
+                        <?php
+                        $row = $db->Execute("SELECT PK_BUSINESS_TYPE, BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE = 1");
+                        while (!$row->EOF) { ?>
+                          <option value="<?php echo $row->fields['PK_BUSINESS_TYPE']; ?>"><?= $row->fields['BUSINESS_TYPE'] ?></option>
+                        <?php
+                          $row->MoveNext();
+                        } ?>
                       </select>
                     </div>
 
@@ -202,6 +212,8 @@
                     <input type="hidden" name="token" value="FsWga4&@f6aw" />
                     <a href="#myModal" data-toggle="modal" type="submit"
                       class="btn btn-dark theme_doable_btn uppercase">Send Message</a>
+                    <div class="clearfix"></div>
+                    <a class="text-white" target="_blank" href="terms_of_use.php">*Terms of Use</a>
 
                   </form>
 
@@ -337,13 +349,12 @@
 
 
   <script>
-    $(window).load(function () {
-      setTimeout(function () {
+    $(window).load(function() {
+      setTimeout(function() {
 
         $('.loader-live').fadeOut();
       }, 1000);
     })
-
   </script>
   <script src="assets/homepage/js/functions/functions.js"></script>
 

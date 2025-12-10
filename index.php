@@ -110,7 +110,7 @@
                                                 <li class="mega-menu active"> <a href="index.html">Home</a></li>
                                                 <li> <a href="about.html">About</a></li>
                                                 <li> <a href="javascript:void(0);">Services</a></li>
-                                                <li> <a href="terms_of_use.php">Contact</a></li>
+                                                <li> <a href="contact_us.php">Contact Us</a></li>
                                                 <li class="login-doable-btn"><a class="theme_doable_btn capitalize login-button" href="login.php"><span class="text-black">log</span> <span class="text-white">in</span></a></li>
                                             </ul>
                                         </div>
@@ -238,7 +238,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-2" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -346,7 +346,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-3" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -454,7 +454,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-4" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -562,7 +562,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-5" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -670,7 +670,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-6" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -778,7 +778,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
                                 <li data-index="rs-7" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                                     <!-- MAIN IMAGE -->
@@ -882,7 +882,7 @@
                                         data-paddingbottom="[30,30,30,30]"
                                         data-paddingleft="[30,30,30,30]"
 
-                                        style="z-index: 7;"><a class="theme_doable_btn" href="request_demo.html">REQUEST DEMO</a> </div>
+                                        style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
                                 </li>
 
                             </ul>
@@ -917,7 +917,7 @@
                             <div class="row m-0 align-items-center">
                                 <div class="col-md-3">
                                     <div class="text-left">
-                                        <a class="btn btn-dark theme_doable_btn uppercase" href="request_demo.html">request demo</a>
+                                        <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
                                     </div>
                                 </div>
                                 <div class="col-md-9">
@@ -1051,7 +1051,7 @@
                                 </div>
                                 <!--end item-->
                                 <p class="font-18">DOable makes it easy to run your business the way you want.</p><br>
-                                <a class="btn btn-dark uppercase theme_doable_btn" href="request_demo.html">REQUEST DEMO</a>
+                                <a class="btn btn-dark uppercase theme_doable_btn" href="contact_us.php">CONTACT US</a>
                             </div>
                             <!--end item-->
                             <div class="clearfix"></div>
@@ -1093,7 +1093,7 @@
                                 </div>
                                 <!--end item-->
                                 <p class="font-18">It's time you check out what DOable can do for you and your business.</p><br>
-                                <a class="btn btn-dark theme_doable_btn uppercase" href="request_demo.html">REQUEST DEMO</a>
+                                <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
                             </div>
                             <!--end item-->
                             <div class="clearfix"></div>
@@ -1167,7 +1167,7 @@
                                     Connect your favorite payment platforms like Quickbooks, Stripe, Authorize and Square.</p>
                                 <p class="font-18">Our job is to make your job EASIER.</p><br>
                                 <!--end item-->
-                                <a class="btn btn-dark theme_doable_btn uppercase" href="request_demo.html">REQUEST DEMO</a>
+                                <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
                             </div>
                             <!--end item-->
                             <div class="clearfix"></div>

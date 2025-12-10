@@ -112,7 +112,7 @@
                                                 <li class="mega-menu"> <a href="index.php">Home</a></li>
                                                 <li> <a href="about.html">About</a></li>
                                                 <li> <a href="javascript:void(0);">Services</a></li>
-                                                <li class="active"> <a href="terms_of_use.php">Contact</a></li>
+                                                <li class="active"> <a href="contact_us.php">Contact Us</a></li>
                                                 <!-- <li class="login-doable-btn"><a class="theme_doable_btn capitalize" href="https://doable.net/login.php">log in</a></li> -->
                                             </ul>
                                         </div>
@@ -277,7 +277,7 @@
 
                             <h5>Contact.</h5>
 
-                            <p>If you have any questions about these Terms or otherwise need to contact us for any reason, you can reach us at <a href="info@doable.net">info@doable.net</a>.</p>
+                            <p>If you have any questions about these Terms or otherwise need to contact us for any reason, you can reach us at <a>info@doable.net</a>.</p>
 
                             <!-- <h5 class="font-weight-5 Roboto less-mar-1 line-height-3 ce-title-top-text">Robert Melgoza<br/>Arthur Murray Woodland Hills<br/>Arthur Murray Thousand Oaks<br/>Floating Rain, Inc</h5> -->
                             <!-- <br/>
