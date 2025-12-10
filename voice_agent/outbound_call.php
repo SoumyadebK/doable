@@ -1,11 +1,17 @@
 <?php
-require_once("/var/www/html/global/config.php");
-require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    require_once("../global/config.php");
+    require_once("detect_user_slot.php");
+    require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
+} else {
+    require_once("/var/www/html/global/config.php");
+    require_once("/var/www/html/voice_agent/detect_user_slot.php");
+    require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
+}
 
 use Twilio\Rest\Client;
 
 global $db;
-
 
 $PK_LEADS = $_GET['PK_LEADS'] ?? 37;
 

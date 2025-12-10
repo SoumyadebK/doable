@@ -309,3 +309,170 @@ function timeToMinutes($t)
     // if am/pm missing, we still convert assuming given hour (could be ambiguous)
     return $h * 60 + $m;
 }
+
+
+
+
+function getLocationSlotDetails($PK_LOCATION, $DATE)
+{
+    global $db;
+    $location_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $DB_NAME = $location_data->fields['DB_NAME'];
+    $db_account = new queryFactory();
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+        $conn1 = $db_account->connect('localhost', 'root', '', $DB_NAME);
+        $http_path = 'http://localhost/doable/';
+    } else {
+        $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
+        $http_path = 'https://doable.net/';
+    }
+    if ($db_account->error_number) {
+        die("Connection Error");
+    }
+
+    $callSettingData = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING WHERE PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $PK_USER = $callSettingData->fields['PK_USER'] ?? null;
+    $PK_SCHEDULING_CODE = $callSettingData->fields['PK_SCHEDULING_CODE'] ?? null;
+
+    $schedulingCodeData = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . addslashes($PK_SCHEDULING_CODE) . " LIMIT 1");
+    $SLOT_DURATION = $schedulingCodeData->fields['DURATION'] ?? '00:30:00';
+
+    $available_slots = getAvailableSlots($db_account, $PK_USER, $PK_LOCATION, $DATE, '00:' . $SLOT_DURATION . ':00');
+
+    return $available_slots;
+}
+
+function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot_duration)
+{
+
+    $provider_id   = (int)$provider_id;
+    $location_id   = (int)$location_id;
+    $date          = addslashes($date);
+    $slot_duration = addslashes($slot_duration);
+
+    // Get provider working hours for the day
+    $day_name = strtoupper(substr(date('l', strtotime($date)), 0, 3));
+    $dayNumber = date('N', strtotime($date));
+
+    $sql_hours = "
+        SELECT 
+            {$day_name}_START_TIME AS WORK_START,
+            {$day_name}_END_TIME AS WORK_END
+        FROM DOA_SERVICE_PROVIDER_LOCATION_HOURS
+        WHERE PK_USER = $provider_id AND PK_LOCATION = $location_id
+    ";
+
+    $hours_data = $db_account->Execute($sql_hours);
+    $hours = $hours_data->fields;
+
+    if (!$hours || !$hours['WORK_START'] || !$hours['WORK_END']) return [];
+
+    $location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME FROM DOA_OPERATIONAL_HOUR WHERE DAY_NUMBER = '$dayNumber' AND PK_LOCATION = $location_id");
+    $LOCATION_SLOT_START = $location_operational_hour->fields['OPEN_TIME'] ?? '00:00:00';
+    $LOCATION_SLOT_END = $location_operational_hour->fields['CLOSE_TIME'] ?? '23:00:00';
+
+    if ($LOCATION_SLOT_START > $hours['WORK_START']) {
+        $hours['WORK_START'] = $LOCATION_SLOT_START;
+    } else {
+        $hours['WORK_START'] = $hours['WORK_START'];
+    }
+
+    if ($LOCATION_SLOT_END > $hours['WORK_END']) {
+        $hours['WORK_END'] = $hours['WORK_END'];
+    } else {
+        $hours['WORK_END'] = $LOCATION_SLOT_END;
+    }
+
+    $work_start = strtotime("$date " . $hours['WORK_START']);
+    $work_end   = strtotime("$date " . $hours['WORK_END']);
+    $duration   = strtotime("1970-01-01 $slot_duration UTC") - strtotime("1970-01-01 00:00:00 UTC");
+
+    // Get all booked slots
+    $sql_booked = "
+        SELECT START_TIME, END_TIME
+        FROM DOA_APPOINTMENT_MASTER a
+        LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER sp
+            ON a.PK_APPOINTMENT_MASTER = sp.PK_APPOINTMENT_MASTER
+        WHERE a.PK_LOCATION = $location_id
+            AND a.PK_APPOINTMENT_STATUS NOT IN (2,6)
+            AND sp.PK_USER = $provider_id
+            AND a.DATE = '$date'
+        UNION ALL
+        SELECT START_TIME, END_TIME
+        FROM DOA_SPECIAL_APPOINTMENT sa
+        LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER sau
+            ON sa.PK_SPECIAL_APPOINTMENT = sau.PK_SPECIAL_APPOINTMENT
+        WHERE sa.PK_LOCATION = $location_id
+            AND sa.PK_APPOINTMENT_STATUS NOT IN (2,6)
+            AND sau.PK_USER = $provider_id
+            AND sa.DATE = '$date'
+    ";
+
+    $booked_data = $db_account->Execute($sql_booked);
+    $booked_slots = [];
+    while (!$booked_data->EOF) {
+        $booked_slots[] = [
+            'start' => strtotime("$date " . $booked_data->fields['START_TIME']),
+            'end'   => strtotime("$date " . $booked_data->fields['END_TIME'])
+        ];
+        $booked_data->MoveNext();
+    }
+
+    // Sort booked slots by start time
+    usort($booked_slots, function ($a, $b) {
+        return $a['start'] - $b['start'];
+    });
+
+    $available_slots = [];
+    $current = $work_start;
+
+    foreach ($booked_slots as $b) {
+        // If there is free time before this booked slot
+        if ($current + $duration <= $b['start']) {
+            $slot_start = $current;
+            while ($slot_start + $duration <= $b['start']) {
+                $available_slots[] = [
+                    'slot_start_time' => date('H:i:s', $slot_start),
+                    'slot_end_time'   => date('H:i:s', $slot_start + $duration)
+                ];
+                $slot_start += $duration;
+            }
+        }
+        // Move current time after booked slot ends
+        if ($current < $b['end']) {
+            $current = $b['end'];
+        }
+    }
+
+    // Check for any free slots after last booked slot until work_end
+    while ($current + $duration <= $work_end) {
+        $available_slots[] = [
+            'slot_start_time' => date('H:i:s', $current),
+            'slot_end_time'   => date('H:i:s', $current + $duration)
+        ];
+        $current += $duration;
+    }
+
+    return $available_slots;
+}
+
+function getTimeSlot($interval, $start_time, $end_time): array
+{
+    $start = new DateTime($start_time);
+    $end = new DateTime($end_time);
+    $startTime = $start->format('H:i');
+    $endTime = $end->format('H:i');
+    $i = 0;
+    $time = [];
+    while ((strtotime($startTime) <= strtotime($endTime)) && ((strtotime($endTime) - strtotime($startTime) >= ($interval * 60)))) {
+        $start = $startTime;
+        $end = date('H:i', strtotime('+' . $interval . ' minutes', strtotime($startTime)));
+        $startTime = date('H:i', strtotime('+' . $interval . ' minutes', strtotime($startTime)));
+        $i++;
+        if (strtotime($startTime) <= strtotime($endTime)) {
+            $time[$i]['slot_start_time'] = $start;
+            $time[$i]['slot_end_time'] = $end;
+        }
+    }
+    return $time;
+}
