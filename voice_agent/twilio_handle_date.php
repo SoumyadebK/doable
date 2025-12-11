@@ -1,6 +1,9 @@
 <?php
 require_once("/var/www/html/global/config.php");
+require_once("/var/www/html/voice_agent/detect_user_slot.php");
 global $db;
+
+$handleDateUrl = "https://doable.net/voice_agent/twilio_handle_date.php";
 
 // twilio_handle_date.php
 header("Content-Type: text/xml");
@@ -8,6 +11,13 @@ header("Content-Type: text/xml");
 $speech = $_POST['SpeechResult'] ?? '';
 $digits = $_POST['Digits'] ?? '';
 $callSid = $_POST['CallSid'] ?? '';
+
+$call_details = $db->Execute("SELECT * FROM DOA_CALL_DETAILS WHERE CALL_SID = '" . $callSid . "' LIMIT 1");
+$date = $call_details->fields['SELECTED_DATE'] ?? null;
+$PK_LEADS = $call_details->fields['PK_LEADS'] ?? null;
+
+$locationSettings = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.LOCATION_NAME FROM DOA_LOCATION INNER JOIN DOA_LEADS ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION WHERE DOA_LEADS.PK_LEADS = " . $PK_LEADS . " LIMIT 1");
+$PK_LOCATION = $locationSettings->fields['PK_LOCATION'] ?? null;
 
 function parse_date_from_text($text)
 {
@@ -17,65 +27,59 @@ function parse_date_from_text($text)
     return date('Y-m-d', $time);
 }
 
-$date = null;
-if (!empty($speech)) {
-    $date = parse_date_from_text($speech);
-} elseif (!empty($digits)) {
-    // Optionally map digits to date if you use a keypad date input scheme.
-    $date = null;
+if ($date == '0000-00-00') {
+    if (!empty($speech)) {
+        $date = parse_date_from_text($speech);
+    } elseif (!empty($digits)) {
+        // Optionally map digits to date if you use a keypad date input scheme.
+        $date = null;
+    }
 }
+
+$CALL_DETAILS['STEP'] = 'date_received';
+$CALL_DETAILS['SELECTED_DATE'] = $date;
+$CALL_DETAILS['SPEECH'] = $speech;
+$CALL_DETAILS['DIGITS'] = $digits;
+db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 
 if (!$date) {
     // ask to repeat/clarify
-    $retryUrl = "https://doable.net/voice_agent/twilio_voice_initial.php";
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Joanna-Neural">
+        <Say voice="Polly.Amy-Neural">
             Sorry,
             <break time="400ms" />
             I didn't understand that date. Please say the date again.
         </Say>
-        <Redirect><?php echo $retryUrl; ?></Redirect>
+        <Redirect><?php echo $handleDateUrl; ?></Redirect>
     </Response>
 <?php
     exit;
 }
 
-// Save date to your conversation store (DB) keyed by CallSid
-// e.g. saveConversationState($callSid, ['date'=>$date]);
-
-
-// Call your app API to get available slots
-/* $slotsApi = "https://yourdomain.com/api/available-slots?date={$date}";
-$slotsJson = file_get_contents($slotsApi);
-$slots = json_decode($slotsJson, true);
- */
-
-$CALL_DETAILS['STEP'] = 'date_received';
-$CALL_DETAILS['SELECTED_DATE'] = $date;
-db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
-
-$slots = [
-    ["id" => 1, "label" => "10:00 AM"],
-    ["id" => 2, "label" => "11:30 AM"],
-    ["id" => 3, "label" => "12:00 PM"],
-    ["id" => 4, "label" => "01:30 PM"],
-    ["id" => 5, "label" => "02:00 PM"],
-    ["id" => 6, "label" => "03:30 PM"],
-]; // Example slots
+$slotsData = getLocationSlotDetails($PK_LOCATION, $date);
+$slots = [];
+foreach ($slotsData as $key => $slot) {
+    $slots[$key + 1] = [
+        'id' => $key + 1,
+        'label' => date('h:i A', strtotime($slot['slot_start_time']))
+    ];
+}
 
 // If no slots
 if (empty($slots)) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    $CALL_DETAILS['SELECTED_DATE'] = '0000-00-00';
+    db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 ?>
     <Response>
-        <Say voice="Polly.Joanna-Neural">
+        <Say voice="Polly.Amy-Neural">
             Sorry,
             <break time="400ms" />
             there are no available slots on <?php echo date('F j, Y', strtotime($date)); ?>. Would you like to try another date?
         </Say>
-        <Redirect>https://doable.net/voice_agent/twilio_voice_initial.php</Redirect>
+        <Redirect><?php echo $handleDateUrl; ?></Redirect>
     </Response>
 <?php
     exit;
@@ -88,7 +92,7 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
 <Response>
     <!-- Intro Line -->
-    <Say voice="Polly.Joanna-Neural">
+    <Say voice="Polly.Amy-Neural">
         Here are the available time slots for
         <?php echo date('F j, Y', strtotime($date)); ?>.
         <break time="300ms" />
@@ -106,7 +110,7 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         <?php
         $i = 1;
         foreach ($slots as $slot) {
-            echo '<Say voice="Polly.Joanna-Neural">'
+            echo '<Say voice="Polly.Amy-Neural">'
                 . 'Option ' . $i . '. '
                 . $slot['label']
                 . '. <break time="200ms"/>'
@@ -116,13 +120,13 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         }
         ?>
 
-        <Say voice="Polly.Joanna-Neural">
+        <Say voice="Polly.Amy-Neural">
             Please say the option number or press the corresponding digit on your keypad to select your preferred time slot.
         </Say>
     </Gather>
 
     <!-- Fallback -->
-    <Say voice="Polly.Joanna-Neural">
+    <Say voice="Polly.Amy-Neural">
         I did not receive a selection.
         <break time="300ms" />
         Ending the call now. Goodbye.

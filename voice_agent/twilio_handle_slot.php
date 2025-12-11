@@ -10,41 +10,41 @@ $callSid = $_POST['CallSid'] ?? '';
 $speech = $_POST['SpeechResult'] ?? '';
 $digits = $_POST['Digits'] ?? '';
 
-$call_details = $db->Execute("SELECT * FROM DOA_CALL_DETAILS WHERE CALL_SID = '" . $callSid . "' LIMIT 1");
-$date = $call_details->fields['SELECTED_DATE'] ?? null;
+$callDetails = $db->Execute("SELECT * FROM DOA_CALL_DETAILS WHERE CALL_SID = '" . $callSid . "' LIMIT 1");
+$date = $callDetails->fields['SELECTED_DATE'] ?? null;
+$PK_LEADS = $callDetails->fields['PK_LEADS'] ?? null;
 
+$locationSettings = $db->Execute("SELECT PK_LOCATION FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS . " LIMIT 1");
+$PK_LOCATION = $locationSettings->fields['PK_LOCATION'] ?? null;
 
 $CALL_DETAILS['STEP'] = 'start_slot_selection';
 $CALL_DETAILS['SPEECH'] = $speech;
 $CALL_DETAILS['DIGITS'] = $digits;
 db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 
-
-$state['options'] = [
-    1 => ["id" => 1, "label" => "10:00 AM"],
-    2 => ["id" => 2, "label" => "11:30 AM"],
-    3 => ["id" => 3, "label" => "12:00 PM"],
-    4 => ["id" => 4, "label" => "01:30 PM"],
-    5 => ["id" => 5, "label" => "02:00 PM"],
-    6 => ["id" => 6, "label" => "03:30 PM"],
-]; // Example slots
-
-$options = $state['options'];
+$slotsData = getLocationSlotDetails($PK_LOCATION, $date);
+$slots = [];
+foreach ($slotsData as $key => $slot) {
+    $slots[$key + 1] = [
+        'id' => $key + 1,
+        'label' => date('h:i A', strtotime($slot['slot_start_time']))
+    ];
+}
 
 $choiceIndex = null;
 if (!empty($digits)) {
     $choiceIndex = intval($digits);
 } elseif (!empty($speech)) {
-    $choiceIndex = detectUserChoiceAdvanced($speech, $digits, $options);
+    $choiceIndex = detectUserChoiceAdvanced($speech, $digits, $slots);
 }
 
-if (!$choiceIndex || !isset($state['options'][$choiceIndex])) {
+if (!$choiceIndex || !isset($slots[$choiceIndex])) {
     // Ask again
-    $retryUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php';
+    $retryUrl = 'https://doable.net/voice_agent/twilio_handle_date.php';
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Joanna-Neural">
+        <Say voice="Polly.Amy-Neural">
             I'm sorry, I didn't quite get that.
             <break time="300ms" />
             Let's try again.
@@ -55,7 +55,7 @@ if (!$choiceIndex || !isset($state['options'][$choiceIndex])) {
     exit;
 }
 
-$chosen = $state['options'][$choiceIndex];
+$chosen = $slots[$choiceIndex];
 
 $CALL_DETAILS['STEP'] = 'end_slot_selection';
 $CALL_DETAILS['SELECTED_SLOT_ID'] = $chosen['id'];
@@ -90,7 +90,7 @@ if (!$resp || empty($resp['success'])) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Joanna-Neural">
+        <Say voice="Polly.Amy-Neural">
             I'm sorry, we couldn't complete your booking at this moment.
             <break time="300ms" />
             Please try again later, or contact our support team for help.
@@ -103,19 +103,31 @@ if (!$resp || empty($resp['success'])) {
     exit;
 }
 
+$callSettingData = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING WHERE PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+$endScript = $callSettingData->fields['END_SCRIPT'] ?? '';
+
+function renderTemplate($template, $data)
+{
+    foreach ($data as $key => $value) {
+        $template = str_replace('{{' . $key . '}}', $value, $template);
+    }
+    return $template;
+}
+
+$template = $endScript;
+
+$data = [
+    'dateTime' => date('F j, Y', strtotime($date)) . " at " . $chosen['label']
+];
+
 // Success — respond with confirmation
-$confirmText = "Excellent, I appreciate you committing to that. And just to confirm, you're locked in for,"
-    . date('F j, Y', strtotime($date))
-    . " at " . $chosen['label']
-    . ". A confirmation email will be sent to you shortly. We look forward to seeing you soon. Have a great day.";
+$confirmText = renderTemplate($template, $data);
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 <Response>
-    <Say voice="Polly.Joanna-Neural">
+    <Say voice="Polly.Amy-Neural">
         <?php echo $confirmText; ?>
-        <break time="300ms" />
-        We look forward to seeing you.
     </Say>
     <Hangup />
 </Response>
