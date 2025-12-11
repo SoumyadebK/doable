@@ -116,6 +116,7 @@ require_once('global/config.php');
                         <li> <a href="about.html">About</a></li>
                         <li> <a href="javascript:void(0);">Services</a></li>
                         <li class="active"> <a href="contact_us.php">Contact Us</a></li>
+                        <li class="login-doable-btn"><a class="theme_doable_btn capitalize" href="https://doable.net/login.php">log in</a></li>
                       </ul>
                     </div>
                   </div>
