@@ -112,10 +112,11 @@ require_once('global/config.php');
                     </ul>
                     <div id="menu" class="collapse">
                       <ul class="nav navbar-nav">
-                        <li class="mega-menu"> <a href="index.php">Home</a></li>
+                        <li> <a href="index.php">Home</a></li>
                         <li> <a href="about.html">About</a></li>
                         <li> <a href="javascript:void(0);">Services</a></li>
-                        <li class="active"> <a href="contact_us.php">Contact Us</a></li>
+                        <li class="mega-menu active"> <a href="contact_us.php">Contact Us</a></li>
+                        <li class="login-doable-btn"><a class="theme_doable_btn capitalize login-button" href="login.php"><span class="text-black">log</span> <span class="text-white">in</span></a></li>
                       </ul>
                     </div>
                   </div>

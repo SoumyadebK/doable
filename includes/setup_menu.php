@@ -6,6 +6,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 } else {
     $current_address = $url_array[2];
 }
+$account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
 ?>
 
 <div class="container-fluid body_content p-0" style="margin-top: 67px;">
@@ -51,7 +52,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="dropdown-item" href="../admin/all_event_types.php">Event Types</a>
                                 <a class="dropdown-item" href="../admin/all_inquiry_methods.php">Inquiry Method</a>
                                 <a class="dropdown-item" href="../admin/all_lead_status.php">Lead Status</a>
-                                <a class="dropdown-item" href="../admin/default_call_setting.php">Default Call Setting</a>
+                                <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1) { ?>
+                                    <a class="dropdown-item" href="../admin/default_call_setting.php">Default Call Setting</a>
+                                <?php } ?>
                             </div>
                         </li>
                         <li class="nav-item dropdown">

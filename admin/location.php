@@ -100,6 +100,7 @@ if (empty($_GET['id'])) {
     $SALES_TAX = '';
     $RECEIPT_CHARACTER = '';
     $TEXTING_FEATURE_ENABLED = '';
+    $ENABLE_AI_VOICE_AGENT = '';
     $TWILIO_ACCOUNT_TYPE = '';
     $SID = '';
     $TOKEN = '';
@@ -172,6 +173,7 @@ if (empty($_GET['id'])) {
     $SALES_TAX              = $res->fields['SALES_TAX'];
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
     $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
+    $ENABLE_AI_VOICE_AGENT  = $res->fields['ENABLE_AI_VOICE_AGENT'];
     $TWILIO_ACCOUNT_TYPE    = $res->fields['TWILIO_ACCOUNT_TYPE'];
     $SID                    = $res->fields['SID'];
     $TOKEN                  = $res->fields['TOKEN'];
@@ -893,23 +895,11 @@ if (!empty($_POST)) {
                                                     </div> -->
                                                 </div>
 
-                                                <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Texting Feature Enabled?</label>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;No</label>
-                                                    </div>
-                                                </div>
-
-
-
-                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
+                                                <div class="row twilio_account_type" id="twilio_account_type" style="margin-top: 30px;">
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <div class="form-group">
-                                                                <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
+                                                                <label class="form-label" style="margin-bottom: 10px;">Send an Appointment Reminder Text message.</label><br>
                                                                 <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
                                                                 <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
                                                             </div>
@@ -921,13 +911,39 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 10px;">Texting Feature Enabled?</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" class="form-check-inline" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <label style="margin-right: 70px;"><input type="radio" class="form-check-inline" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1) { ?>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label" style="margin-bottom: 10px;">Enable AI Voice Agent?</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" class="form-check-inline" name="ENABLE_AI_VOICE_AGENT" id="ENABLE_AI_VOICE_AGENT" value="1" <? if ($ENABLE_AI_VOICE_AGENT == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                <label style="margin-right: 70px;"><input type="radio" class="form-check-inline" name="ENABLE_AI_VOICE_AGENT" id="ENABLE_AI_VOICE_AGENT" value="0" <? if ($ENABLE_AI_VOICE_AGENT == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+
+                                                <div class="row">
                                                     <div class="col-md-12">
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 10px;">Which Twilio Account You Want to Use?</label><br>
+                                                            <label style="margin-right: 100px;"><input type="radio" class="form-check-inline" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <label style="margin-right: 100px;"><input type="radio" class="form-check-inline" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
+                                                <div id="twilio_setting_div" class="row" style="display: <?= ($TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
                                                     <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
                                                     <div class="col-4">
                                                         <div class="form-group">
@@ -954,6 +970,10 @@ if (!empty($_POST)) {
                                                         </div>
                                                     </div>
                                                 </div>
+
+
+
+
 
                                                 <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
                                                     <div class="row" style="margin-top: 30px;">

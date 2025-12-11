@@ -107,7 +107,7 @@
                                         </ul>
                                         <div id="menu" class="collapse">
                                             <ul class="nav navbar-nav">
-                                                <li class="mega-menu active"> <a href="index.html">Home</a></li>
+                                                <li class="mega-menu active"> <a href="index.php">Home</a></li>
                                                 <li> <a href="about.html">About</a></li>
                                                 <li> <a href="javascript:void(0);">Services</a></li>
                                                 <li> <a href="contact_us.php">Contact Us</a></li>
