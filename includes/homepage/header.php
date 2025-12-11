@@ -107,11 +107,23 @@
                                         </ul>
                                         <div id="menu" class="collapse">
                                             <ul class="nav navbar-nav">
-                                                <li class="mega-menu active"> <a href="index.php">Home</a></li>
-                                                <li> <a href="about.php">About</a></li>
-                                                <li> <a href="javascript:void(0);">Services</a></li>
-                                                <li> <a href="contact_us.php">Contact Us</a></li>
-                                                <li class="login-doable-btn"><a class="theme_doable_btn capitalize login-button" href="login.php"><span class="text-black">log</span> <span class="text-white">in</span></a></li>
+                                                <li class="mega-menu <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php' || basename($_SERVER['PHP_SELF']) == 'index.html' || basename($_SERVER['PHP_SELF']) == 'home.php' || basename($_SERVER['PHP_SELF']) == '') ? 'active' : ''; ?>">
+                                                    <a href="index.php">Home</a>
+                                                </li>
+                                                <li class="<?php echo (basename($_SERVER['PHP_SELF']) == 'about.php' || basename($_SERVER['PHP_SELF']) == 'about.html') ? 'active' : ''; ?>">
+                                                    <a href="about.php">About</a>
+                                                </li>
+                                                <li class="<?php echo (basename($_SERVER['PHP_SELF']) == 'services.php' || basename($_SERVER['PHP_SELF']) == 'services.html') ? 'active' : ''; ?>">
+                                                    <a href="javascript:void(0)">Services</a>
+                                                </li>
+                                                <li class="<?php echo (basename($_SERVER['PHP_SELF']) == 'contact_us.php' || basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'active' : ''; ?>">
+                                                    <a href="contact_us.php">Contact Us</a>
+                                                </li>
+                                                <li class="login-doable-btn">
+                                                    <a class="theme_doable_btn capitalize login-button" href="login.php">
+                                                        <span class="text-black">log</span> <span class="text-white">in</span>
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>

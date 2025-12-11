@@ -89,30 +89,10 @@ require_once('includes/homepage/header.php');
               <!-- CONSENT CHECKBOX FIXED -->
               <!-- ✅ CONSENT CHECKBOX -->
               <div class="row">
-<<<<<<< HEAD
                 <div class="col-md-12">
                   <label>
                     <div class="col-md-1" style="margin-left: -20px;">
                       <input type="checkbox" id="sms_consent" name="sms_consent">
-=======
-                <div class="col-sm-3"> <a href="index.php" title="" class="logo style-2 mar-4"> <img height="45"
-                      src="assets/homepage/images/doable_logo.png" alt=""> </a> </div>
-                <div class="col-sm-9">
-                  <div class="main-nav">
-                    <ul class="nav navbar-nav top-nav">
-                      <li class="visible-xs menu-icon"> <a href="javascript:void(0)" class="navbar-toggle collapsed"
-                          data-toggle="collapse" data-target="#menu" aria-expanded="false"> <i aria-hidden="true"
-                            class="fa fa-bars"></i> </a> </li>
-                    </ul>
-                    <div id="menu" class="collapse">
-                      <ul class="nav navbar-nav">
-                        <li> <a href="index.php">Home</a></li>
-                        <li> <a href="about.html">About</a></li>
-                        <li> <a href="javascript:void(0);">Services</a></li>
-                        <li class="mega-menu active"> <a href="contact_us.php">Contact Us</a></li>
-                        <li class="login-doable-btn"><a class="theme_doable_btn capitalize login-button" href="login.php"><span class="text-black">log</span> <span class="text-white">in</span></a></li>
-                      </ul>
->>>>>>> 668c23c13021bc5102ad7a377826e0c39ecce077
                     </div>
                     <div class="col-md-11" style="margin-left: -25px; width: 97%;">
                       I Consent to Receive SMS Notifications, Alerts from Doable LLP.
