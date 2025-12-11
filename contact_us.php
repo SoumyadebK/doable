@@ -223,7 +223,7 @@ require_once('global/config.php');
                           <div class="col-md-11" style="margin-left: -25px; width: 97%;">
                             I Consent to Receive SMS Notifications, Alerts from Doable LLP.
                             Message frequency varies. Message and data rates may apply. You can reply STOP to unsubscribe at any
-                            time. For more information please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a>.
+                            time. For more information please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a> and <a href="privacy_policy.php" target="_blank">Privacy Policy</a>.
                           </div>
                         </label>
                       </div>
