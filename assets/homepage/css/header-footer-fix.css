@@ -1,0 +1,74 @@
+/* header-footer-fix.css */
+
+/* Fix for wrapper-boxed width issue */
+.wrapper-boxed {
+    max-width: 100%;
+    margin: 0 auto;
+    overflow-x: hidden;
+}
+
+.site-wrapper {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Ensure containers don't overflow */
+.container,
+.container-fluid {
+    max-width: 100%;
+}
+
+/* Fix for footer width */
+.footer-section {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Curved login button styles */
+.theme_doable_btn {
+    border-radius: 50px !important;
+    padding: 10px 25px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px;
+}
+
+.login-doable-btn {
+    margin-left: 15px;
+}
+
+/* Make sure header doesn't overflow */
+.header-section .container {
+    max-width: 1200px;
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 991px) {
+    .login-doable-btn {
+        margin: 10px auto;
+        text-align: center;
+        display: block;
+    }
+
+    .main-nav #menu {
+        background: rgba(0, 0, 0, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .main-nav ul.navbar-nav li {
+        margin: 5px 0;
+    }
+}
+
+/* Footer fixes */
+.section-dark.sec-padding {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+}
+
+.fo-copyright-holder {
+    padding: 15px 0;
+    font-size: 14px;
+}
