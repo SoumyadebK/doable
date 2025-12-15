@@ -694,7 +694,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
         $PAYMENT_INFO_ARRAY = ['RECEIPT_NUMBER' => $RECEIPT_NUMBER];
         $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
 
-        $isAlreadyExported = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM DOA_ENROLLMENT_PAYMENT WHERE RECEIPT_NUMBER = " . $RECEIPT_NUMBER . " AND PAYMENT_STATUS = 'Success' AND IS_EXPORTED_TO_AMI = 1 LIMIT 1");
+        $isAlreadyExported = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM DOA_ENROLLMENT_PAYMENT WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' AND PAYMENT_STATUS = 'Success' AND IS_EXPORTED_TO_AMI = 1 LIMIT 1");
         if ($isAlreadyExported->RecordCount() > 0) {
             $PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
         }
