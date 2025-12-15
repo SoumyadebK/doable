@@ -2685,6 +2685,7 @@ function moveToWallet($RESPONSE_DATA): void
     $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
     $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
     $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
+    $PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
     db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
     if ($ENROLLMENT_TYPE == 'active' || $ENROLLMENT_TYPE == 'completed') {

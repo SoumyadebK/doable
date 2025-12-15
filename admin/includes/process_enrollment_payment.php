@@ -693,6 +693,11 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
 
         $PAYMENT_INFO_ARRAY = ['RECEIPT_NUMBER' => $RECEIPT_NUMBER];
         $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+
+        $isAlreadyExported = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM DOA_ENROLLMENT_PAYMENT WHERE RECEIPT_NUMBER = " . $RECEIPT_NUMBER . " AND PAYMENT_STATUS = 'Success' AND IS_EXPORTED_TO_AMI = 1 LIMIT 1");
+        if ($isAlreadyExported->RecordCount() > 0) {
+            $PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
+        }
     } else {
         $PAYMENT_INFO_JSON = 'Payment Done.';
     }
@@ -779,25 +784,25 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $PK_ENROLLMENT_LEDGER2 = $db_account->insert_ID();*/
 
             $PAYMENT_INFO_JSON = '';
-            $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
-            $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
-            $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE_PARTIAL'];
-            $PAYMENT_DATA['AMOUNT'] = $PARTIAL_AMOUNT;
-            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
-            $TYPE = ($PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] > 0) ? 'Payment' : 'Adjustment';
+            $PARTIAL_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+            $PARTIAL_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_billing_data->fields['PK_ENROLLMENT_BILLING'];
+            $PARTIAL_PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE_PARTIAL'];
+            $PARTIAL_PAYMENT_DATA['AMOUNT'] = $PARTIAL_AMOUNT;
+            $PARTIAL_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $ENROLLMENT_LEDGER_PARENT_ARRAY[$i];
+            $TYPE = ($PARTIAL_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] > 0) ? 'Payment' : 'Adjustment';
             if ($_POST['PK_PAYMENT_TYPE_PARTIAL'] == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER_PARTIAL'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE_PARTIAL']))];
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             }
-            $PAYMENT_DATA['TYPE'] = $TYPE;
-            $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
-            $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
-            $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
-            $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-            $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER_ORIGINAL;
-            $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
-            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            $PARTIAL_PAYMENT_DATA['TYPE'] = $TYPE;
+            $PARTIAL_PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+            $PARTIAL_PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
+            $PARTIAL_PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+            $PARTIAL_PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO_JSON;
+            $PARTIAL_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+            $PARTIAL_PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER_ORIGINAL;
+            $PARTIAL_PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PARTIAL_PAYMENT_DATA, 'insert');
         }
 
         if ($REMAINING_AMOUNT > 0) {

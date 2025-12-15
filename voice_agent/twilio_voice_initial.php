@@ -25,6 +25,11 @@ $agentData = $db->Execute("SELECT FIRST_NAME, LAST_NAME FROM DOA_USERS WHERE PK_
 $agentFirstName = $agentData->fields['FIRST_NAME'] ?? 'Agent';
 $agentLastName = $agentData->fields['LAST_NAME'] ?? '';
 $agentFullName = trim($agentFirstName . ' ' . $agentLastName);
+
+$leadsData = $db->Execute("SELECT FIRST_NAME, LAST_NAME FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS . " LIMIT 1");
+$leadFirstName = $leadsData->fields['FIRST_NAME'] ?? 'Valued';
+$leadLastName = $leadsData->fields['LAST_NAME'] ?? 'Customer';
+$leadFullName = trim($leadFirstName . ' ' . $leadLastName);
 ?>
 
 <?php
@@ -41,7 +46,7 @@ $template = $script1;
 $data = [
     'agentName'   => $agentFullName,
     'companyName' => $locationName,
-    'firstName'   => 'Robert Melgoza'
+    'firstName'   => $leadFullName
 ];
 ?>
 <Response>

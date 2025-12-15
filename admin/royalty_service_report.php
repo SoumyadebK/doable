@@ -22,68 +22,40 @@ $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 
 $PAYMENT_QUERY = "SELECT 
-                    p.PK_ENROLLMENT_PAYMENT, 
-                    p.AMOUNT, 
-                    p.RECEIPT_NUMBER, 
-                    p.PAYMENT_DATE,
-                    p.PK_ORDER,
-                    pt.PAYMENT_TYPE, 
-                    CONCAT(cust.FIRST_NAME, ' ', cust.LAST_NAME) AS STUDENT_NAME, 
-                    closer.FIRST_NAME AS CLOSER_FIRST_NAME, 
-                    closer.LAST_NAME AS CLOSER_LAST_NAME, 
-                    p.PK_ENROLLMENT_MASTER, 
-                    em.CUSTOMER_ENROLLMENT_NUMBER, 
-                    em.PK_LOCATION
-                FROM DOA_ENROLLMENT_PAYMENT p
-                LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE pt 
-                    ON p.PK_PAYMENT_TYPE = pt.PK_PAYMENT_TYPE
-                LEFT JOIN DOA_ENROLLMENT_MASTER em
-                    ON p.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
-                LEFT JOIN DOA_MASTER.DOA_USERS closer 
-                    ON em.ENROLLMENT_BY_ID = closer.PK_USER
-                LEFT JOIN DOA_ORDER o 
-                    ON p.PK_ORDER = o.PK_ORDER
-                LEFT JOIN DOA_MASTER.DOA_USER_MASTER um 
-                    ON (
-                        CASE 
-                            WHEN p.PK_ORDER IS NULL THEN em.PK_USER_MASTER
-                            ELSE o.PK_USER_MASTER
-                        END
-                    ) = um.PK_USER_MASTER
-                LEFT JOIN DOA_MASTER.DOA_USERS cust 
-                    ON cust.PK_USER = um.PK_USER
-                WHERE cust.IS_DELETED = 0
-                AND p.IS_REFUNDED = 0
-                AND (p.TYPE = 'Payment' OR p.TYPE = 'Adjustment')
-                AND p.PK_PAYMENT_TYPE NOT IN (5)
-                AND p.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
-                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                AND (p.PK_ORDER IS NOT NULL OR em.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . "))
-
-                AND (
-                        -- Case 1: Show only exported rows if any exists in this RECEIPT_NUMBER
-                        (
-                            p.IS_EXPORTED_TO_AMI = 1
-                            AND EXISTS (
-                                SELECT 1
-                                FROM DOA_ENROLLMENT_PAYMENT x
-                                WHERE x.RECEIPT_NUMBER = p.RECEIPT_NUMBER
-                                AND x.IS_EXPORTED_TO_AMI = 1
-                            )
-                        )
-                        OR
-                        -- Case 2: If no record is exported, show all rows
-                        (
-                            NOT EXISTS (
-                                SELECT 1
-                                FROM DOA_ENROLLMENT_PAYMENT y
-                                WHERE y.RECEIPT_NUMBER = p.RECEIPT_NUMBER
-                                AND y.IS_EXPORTED_TO_AMI = 1
-                            )
-                        )
-                    )
-
-                ORDER BY p.PAYMENT_DATE ASC, p.RECEIPT_NUMBER ASC";
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, 
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT, 
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE, 
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME, 
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                FROM DOA_ENROLLMENT_PAYMENT 
+                LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
+                LEFT JOIN DOA_ENROLLMENT_MASTER 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                LEFT JOIN DOA_MASTER.DOA_USERS AS CLOSER 
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER 
+                LEFT JOIN DOA_ORDER 
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER 
+                LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER 
+                    ON (CASE 
+                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
+                                THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER 
+                            ELSE DOA_ORDER.PK_USER_MASTER 
+                        END) = DOA_USER_MASTER.PK_USER_MASTER 
+                LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
+                WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
+                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) 
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) 
+                ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
@@ -120,6 +92,7 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
 }
 
 if ($type === 'export') {
+    $PK_ENROLLMENT_PAYMENT_ARRAY = [];
     $location_array = explode(",", $DEFAULT_LOCATION_ID);
     if (count($location_array) > 1) {
         $error_message = "Please select any one location from top to export data.";
@@ -206,8 +179,7 @@ if ($type === 'export') {
                 "sundry" => $SUNDRY_AMOUNT,
             );
 
-            $UPDATE_PAYMENT_DATA['IS_EXPORTED_TO_AMI'] = 1;
-            db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, "update", " PK_ENROLLMENT_PAYMENT = " . $payment_data->fields['PK_ENROLLMENT_PAYMENT']);
+            $PK_ENROLLMENT_PAYMENT_ARRAY[] = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
 
             $payment_data->MoveNext();
         }
@@ -435,6 +407,10 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                 echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $response->message . '</div>';
                             }
                         } else {
+                            foreach ($PK_ENROLLMENT_PAYMENT_ARRAY as $PK_ENROLLMENT_PAYMENT) {
+                                $UPDATE_PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
+                                db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, "update", " PK_ENROLLMENT_PAYMENT = " . $PK_ENROLLMENT_PAYMENT);
+                            }
                             echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";
                         }
                     }
