@@ -1,11 +1,11 @@
 <?php
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
     require_once("../global/config.php");
-    require_once("voice_agent_helper.php");
+    require_once("detect_user_slot.php");
     require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
 } else {
     require_once("/var/www/html/global/config.php");
-    require_once("/var/www/html/voice_agent/voice_agent_helper.php");
+    require_once("/var/www/html/voice_agent/detect_user_slot.php");
     require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
 }
 
@@ -15,11 +15,9 @@ global $db;
 
 $PK_LEADS = $_GET['PK_LEADS'] ?? 37;
 
-[$PK_USER, $PK_USER_MASTER] = createUserFromLeads($PK_LEADS);
-
 if (!empty($_POST) && !empty($_POST['phone_number'])) {
     // Customer number & callback URL (the webhook Twilio will request when call is answered)
-    $to = '+1' . preg_replace('/\D/', '', $_POST['phone_number']);
+    $to = '+91' . preg_replace('/\D/', '', $_POST['phone_number']);
     $answerUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php'; // public HTTPS
 
 

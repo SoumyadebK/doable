@@ -482,8 +482,8 @@ function createUserFromLeads($PK_LEADS): array
     global $db;
     $leadsData = $db->Execute("SELECT * FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS . " LIMIT 1");
     $PK_LOCATION = $leadsData->fields['PK_LOCATION'] ?? null;
-    $location_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
-    $DB_NAME = $location_data->fields['DB_NAME'];
+    $locationData = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $DB_NAME = $locationData->fields['DB_NAME'];
     $db_account = new queryFactory();
     if ($_SERVER['HTTP_HOST'] == 'localhost') {
         $conn1 = $db_account->connect('localhost', 'root', '', $DB_NAME);
@@ -526,7 +526,7 @@ function createUserFromLeads($PK_LEADS): array
     $PK_USER = $db->insert_ID();
 
     $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
-    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+    db_perform_account_own($db_account, 'DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
 
     $USER_MASTER_DATA['PK_USER'] = $PK_USER;
     $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
@@ -542,16 +542,16 @@ function createUserFromLeads($PK_LEADS): array
     $CUSTOMER_USER_DATA['LAST_NAME'] = $LAST_NAME;
     $CUSTOMER_USER_DATA['PHONE'] = $PHONE;
     $CUSTOMER_USER_DATA['EMAIL'] = $EMAIL_ID;
-    db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+    db_perform_account_own($db_account, 'DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
     $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
     $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
     $CUSTOMER_PHONE['PHONE'] = $PHONE;
-    db_perform_account('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
+    db_perform_account_own($db_account, 'DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
 
     $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
     $CUSTOMER_EMAIL['EMAIL'] = $EMAIL_ID;
-    db_perform_account('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+    db_perform_account_own($db_account, 'DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
 
     $USER_ROLE_DATA['PK_USER'] = $PK_USER;
     $USER_ROLE_DATA['PK_ROLES'] = 4;
@@ -562,4 +562,108 @@ function createUserFromLeads($PK_LEADS): array
     db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
 
     return [$PK_USER, $PK_USER_MASTER];
+}
+
+function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
+{
+    global $db;
+    $leadsData = $db->Execute("SELECT * FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS . " LIMIT 1");
+    $PK_LOCATION = $leadsData->fields['PK_LOCATION'] ?? null;
+    $locationData = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $DB_NAME = $locationData->fields['DB_NAME'];
+    $db_account = new queryFactory();
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+        $conn1 = $db_account->connect('localhost', 'root', '', $DB_NAME);
+        $http_path = 'http://localhost/doable/';
+    } else {
+        $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
+        $http_path = 'https://doable.net/';
+    }
+    if ($db_account->error_number) {
+        die("Connection Error");
+    }
+
+    $callSettingData = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING WHERE PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $PK_USER = $callSettingData->fields['PK_USER'] ?? null;
+    $PK_SERVICE_MASTER = $callSettingData->fields['PK_SERVICE_MASTER'] ?? null;
+    $PK_SCHEDULING_CODE = $callSettingData->fields['PK_SCHEDULING_CODE'] ?? null;
+
+    $schedulingCodeData = $db_account->Execute("SELECT * FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . addslashes($PK_SCHEDULING_CODE) . " LIMIT 1");
+    $SLOT_DURATION = $schedulingCodeData->fields['DURATION'] ?? '30';
+
+    $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+    $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+    $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+    $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_MASTER;
+    $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+    $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
+    $APPOINTMENT_DATA['DATE'] = $DATE;
+    $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
+    $APPOINTMENT_DATA['ACTIVE'] = 1;
+    $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+    $APPOINTMENT_DATA['CREATED_BY'] = $PK_USER;
+    $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+    $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+    $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($START_TIME . ' +' . $SLOT_DURATION . ' minutes'));
+    $APPOINTMENT_DATA['SERIAL_NUMBER'] = 1;
+    db_perform_account_own($db_account, 'DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+    $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+    $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+    $APPOINTMENT_SP_DATA['PK_USER'] = $PK_USER;
+    db_perform_account_own($db_account, 'DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+
+    $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+    $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+    db_perform_account_own($db_account, 'DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+
+    return $PK_APPOINTMENT_MASTER;
+}
+
+
+function db_perform_account_own($db_account, $table, $data, $action = 'insert', $parameters = '')
+{
+    if (!is_array($data)) return false;
+    reset($data);
+    $query = '';
+    if ($action == 'insert') {
+        $query = 'insert into ' . $table . ' (';
+        while (list($columns,) = each($data)) {
+            $query .= $columns . ', ';
+        }
+        $query = substr($query, 0, -2) . ') values (';
+        reset($data);
+        while (list(, $value) = each($data)) {
+            switch ((string)$value) {
+                case 'now()':
+                    $query .= 'now(), ';
+                    break;
+                case 'null':
+                    $query .= 'null, ';
+                    break;
+                default:
+                    $query .= '\'' . db_input($value) . '\', ';
+                    break;
+            }
+        }
+        $query = substr($query, 0, -2) . ')';
+    } elseif ($action == 'update') {
+        $query = 'update ' . $table . ' set ';
+        while (list($columns, $value) = each($data)) {
+            switch ((string)$value) {
+                case 'now()':
+                    $query .= $columns . ' = now(), ';
+                    break;
+                case 'null':
+                    $query .= $columns .= ' = null, ';
+                    break;
+                default:
+                    $query .= $columns . ' = \'' . db_input($value) . '\', ';
+                    break;
+            }
+        }
+        $query = substr($query, 0, -2) . ' where ' . $parameters;
+    }
+    // echo $query . "<br>";
+    return $db_account->Execute($query);
 }

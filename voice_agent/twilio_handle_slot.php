@@ -62,30 +62,10 @@ $CALL_DETAILS['SELECTED_SLOT_ID'] = $chosen['id'];
 $CALL_DETAILS['SELECTED_SLOT_LABEL'] = $chosen['label'];
 db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 
-$resp['success'] = true; // Simulate success
+[$PK_USER, $PK_USER_MASTER] = createUserFromLeads($PK_LEADS);
+$PK_APPOINTMENT_MASTER = createAppointment($PK_LEADS, $PK_USER_MASTER, $data, $chosen['label']);
 
-// Call your booking API
-/* $bookingApi = "https://yourdomain.com/api/book-slot";
-$payload = [
-    'customer_id' => $state['customer_id'], // ensure you track this
-    'slot_id' => $chosen['id'],
-    'date' => $date
-];
-
-$options = [
-    'http' => [
-        'header'  => "Content-type: application/json\r\n",
-        'method'  => 'POST',
-        'content' => json_encode($payload),
-        'timeout' => 10
-    ],
-];
-
-$context  = stream_context_create($options);
-$result = file_get_contents($bookingApi, false, $context);
-$resp = json_decode($result, true); */
-
-if (!$resp || empty($resp['success'])) {
+if ($PK_APPOINTMENT_MASTER <= 0) {
     // Booking failed
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
