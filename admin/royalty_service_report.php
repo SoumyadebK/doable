@@ -408,7 +408,7 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                             }
                         } else {
                             foreach ($PK_ENROLLMENT_PAYMENT_ARRAY as $PK_ENROLLMENT_PAYMENT) {
-                                $UPDATE_PAYMENT_DATA['NOT_EXPORT_TO_AMI'] = 1;
+                                $UPDATE_PAYMENT_DATA['IS_EXPORTED_TO_AMI'] = 1;
                                 db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, "update", " PK_ENROLLMENT_PAYMENT = " . $PK_ENROLLMENT_PAYMENT);
                             }
                             echo "<h3 style='color: green;'>Data export to Arthur Murray API Successfully</h3>";

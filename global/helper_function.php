@@ -882,7 +882,7 @@ function getStaffCode($access_token, $first_name, $last_name)
         foreach ($data[0]['studios'] as $studio) {
             $AMI_STUDIO_ID[] = $studio['id'];
         }
-        $_SESSION['AMI_STUDIO_ID'] = array_unique(array_merge($_SESSION['AMI_STUDIO_ID'], $AMI_STUDIO_ID));
+        $_SESSION['AMI_STUDIO_ID'] = array_unique(array_merge((isset($_SESSION['AMI_STUDIO_ID']) ? $_SESSION['AMI_STUDIO_ID'] : []), $AMI_STUDIO_ID));
         return $data[0]['id'];
     } else {
         $url = constant('ami_api_url') . '/api/v1/staff';
