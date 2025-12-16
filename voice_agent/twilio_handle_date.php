@@ -68,7 +68,7 @@ foreach ($slotsData as $key => $slot) {
 }
 
 // If no slots
-if (empty($slots)) {
+if (empty($slots) && count($slots) == 0) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     $CALL_DETAILS['SELECTED_DATE'] = '0000-00-00';
     db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");

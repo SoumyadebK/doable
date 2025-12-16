@@ -63,7 +63,7 @@ $CALL_DETAILS['SELECTED_SLOT_LABEL'] = $chosen['label'];
 db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 
 [$PK_USER, $PK_USER_MASTER] = createUserFromLeads($PK_LEADS);
-$PK_APPOINTMENT_MASTER = createAppointment($PK_LEADS, $PK_USER_MASTER, $data, $chosen['label']);
+$PK_APPOINTMENT_MASTER = createAppointment($PK_LEADS, $PK_USER_MASTER, $date, $chosen['label']);
 
 if ($PK_APPOINTMENT_MASTER <= 0) {
     // Booking failed
