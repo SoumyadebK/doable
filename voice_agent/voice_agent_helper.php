@@ -502,66 +502,72 @@ function createUserFromLeads($PK_LEADS): array
     $EMAIL_ID = $leadsData->fields['EMAIL_ID'] ?? '';
     $PHONE = $leadsData->fields['PHONE'] ?? '';
 
-    $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-    $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $FIRST_NAME;
-    $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $LAST_NAME;
-    $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $EMAIL_ID;
-    $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $PHONE;
-    $USER_DATA['CREATE_LOGIN'] = 0;
-    $USER_DATA['APPEAR_IN_CALENDAR'] = 0;
-    $USER_DATA['IS_DELETED'] = 0;
-
-    $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
-    if ($row->RecordCount() > 0 && $row->fields['UNIQUE_ID'] > 0) {
-        $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+    $isUserExist = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND PHONE = '" . addslashes($PHONE) . "' OR EMAIL_ID = '" . addslashes($EMAIL_ID) . "' LIMIT 1");
+    if ($isUserExist->RecordCount() > 0) {
+        $userMasterData = $db->Execute("SELECT PK_USER_MASTER FROM DOA_USER_MASTER WHERE PK_USER = " . $isUserExist->fields['PK_USER'] . " LIMIT 1");
+        return [$isUserExist->fields['PK_USER'], $userMasterData->fields['PK_USER_MASTER']];
     } else {
-        $USER_DATA['UNIQUE_ID']  =  300580;
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+        $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $FIRST_NAME;
+        $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $LAST_NAME;
+        $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $EMAIL_ID;
+        $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $PHONE;
+        $USER_DATA['CREATE_LOGIN'] = 0;
+        $USER_DATA['APPEAR_IN_CALENDAR'] = 0;
+        $USER_DATA['IS_DELETED'] = 0;
+
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount() > 0 && $row->fields['UNIQUE_ID'] > 0) {
+            $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+        } else {
+            $USER_DATA['UNIQUE_ID']  =  300580;
+        }
+
+        $USER_DATA['JOINING_DATE'] = date("Y-m-d H:i");
+        $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
+        $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = 0;
+        $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        db_perform('DOA_USERS', $USER_DATA, 'insert');
+        $PK_USER = $db->insert_ID();
+
+        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+        db_perform_account_own($db_account, 'DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+
+        $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+        $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+        $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
+        $USER_MASTER_DATA['CREATED_BY'] = 0;
+        $USER_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+        $PK_USER_MASTER = $db->insert_ID();
+
+        $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
+        $CUSTOMER_USER_DATA['FIRST_NAME'] = $FIRST_NAME;
+        $CUSTOMER_USER_DATA['LAST_NAME'] = $LAST_NAME;
+        $CUSTOMER_USER_DATA['PHONE'] = $PHONE;
+        $CUSTOMER_USER_DATA['EMAIL'] = $EMAIL_ID;
+        db_perform_account_own($db_account, 'DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+        $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
+
+        $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+        $CUSTOMER_PHONE['PHONE'] = $PHONE;
+        db_perform_account_own($db_account, 'DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
+
+        $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+        $CUSTOMER_EMAIL['EMAIL'] = $EMAIL_ID;
+        db_perform_account_own($db_account, 'DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+
+        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+        $USER_ROLE_DATA['PK_ROLES'] = 4;
+        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
+        $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
+        $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+        db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
+
+        return [$PK_USER, $PK_USER_MASTER];
     }
-
-    $USER_DATA['JOINING_DATE'] = date("Y-m-d H:i");
-    $USER_DATA['ACTIVE'] = $USER_DATA_ACCOUNT['ACCOUNT'] = 1;
-    $USER_DATA['CREATED_BY']  = $USER_DATA_ACCOUNT['CREATED_BY'] = 0;
-    $USER_DATA['CREATED_ON']  = date("Y-m-d H:i");
-    db_perform('DOA_USERS', $USER_DATA, 'insert');
-    $PK_USER = $db->insert_ID();
-
-    $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
-    db_perform_account_own($db_account, 'DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
-
-    $USER_MASTER_DATA['PK_USER'] = $PK_USER;
-    $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
-    $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
-    $USER_MASTER_DATA['CREATED_BY'] = 0;
-    $USER_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
-    db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
-    $PK_USER_MASTER = $db->insert_ID();
-
-    $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-    $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
-    $CUSTOMER_USER_DATA['FIRST_NAME'] = $FIRST_NAME;
-    $CUSTOMER_USER_DATA['LAST_NAME'] = $LAST_NAME;
-    $CUSTOMER_USER_DATA['PHONE'] = $PHONE;
-    $CUSTOMER_USER_DATA['EMAIL'] = $EMAIL_ID;
-    db_perform_account_own($db_account, 'DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
-    $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
-
-    $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-    $CUSTOMER_PHONE['PHONE'] = $PHONE;
-    db_perform_account_own($db_account, 'DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
-
-    $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-    $CUSTOMER_EMAIL['EMAIL'] = $EMAIL_ID;
-    db_perform_account_own($db_account, 'DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
-
-    $USER_ROLE_DATA['PK_USER'] = $PK_USER;
-    $USER_ROLE_DATA['PK_ROLES'] = 4;
-    db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
-
-    $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
-    $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
-    db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
-
-    return [$PK_USER, $PK_USER_MASTER];
 }
 
 function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
@@ -603,7 +609,7 @@ function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
     $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
     $APPOINTMENT_DATA['CREATED_BY'] = $PK_USER;
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-    $APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+    $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
     $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($START_TIME . ' +' . $SLOT_DURATION . ' minutes'));
     $APPOINTMENT_DATA['SERIAL_NUMBER'] = 1;
     db_perform_account_own($db_account, 'DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');

@@ -244,6 +244,10 @@ foreach ($lead_status as $key => $value) {
                                                                     <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
                                                                     <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
                                                                 </div>
+
+                                                                <div class="icon-with-pill" style="font-size: 22px;">
+                                                                    <a href="javascript:;" onclick="callToLeads(<?= $leds_user->fields['PK_LEADS'] ?>)" title="AI Call"><i class="fas fas fa-phone-square-alt"></i></a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     <?php $leds_user->MoveNext();
@@ -338,6 +342,38 @@ foreach ($lead_status as $key => $value) {
                             window.location.href = 'all_leads.php';
                         }
                     });
+                }
+            });
+        }
+
+        function callToLeads(PK_LEADS) {
+            $.ajax({
+                url: "../voice_agent/outbound_call.php",
+                type: 'GET',
+                data: {
+                    PK_LEADS: PK_LEADS
+                },
+                success: function(response) {
+                    if (response === 'success') {
+                        Swal.fire(
+                            'Call Initiated!',
+                            'The call to the lead has been initiated successfully.',
+                            'success'
+                        );
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            response,
+                            'error'
+                        );
+                    }
+                },
+                error: function() {
+                    Swal.fire(
+                        'Error!',
+                        'There was an error initiating the call. Please try again.',
+                        'error'
+                    );
                 }
             });
         }
