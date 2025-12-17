@@ -1,11 +1,11 @@
 <?php
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
     require_once("../global/config.php");
-    require_once("detect_user_slot.php");
+    require_once("voice_agent_helper.php");
     require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
 } else {
     require_once("/var/www/html/global/config.php");
-    require_once("/var/www/html/voice_agent/detect_user_slot.php");
+    require_once("/var/www/html/voice_agent/voice_agent_helper.php");
     require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
 }
 
@@ -13,13 +13,13 @@ use Twilio\Rest\Client;
 
 global $db;
 
-$PK_LEADS = $_GET['PK_LEADS'] ?? 1773;
+$PK_LEADS = $_GET['PK_LEADS'] ?? 0;
 
-if (!empty($_POST) && !empty($_POST['phone_number'])) {
-    // Customer number & callback URL (the webhook Twilio will request when call is answered)
-    $to = '+1' . preg_replace('/\D/', '', $_POST['phone_number']);
+if ($PK_LEADS > 0) {
+    $leadsData = $db->Execute("SELECT * FROM DOA_LEADS WHERE PK_LEADS = " . intval($PK_LEADS));
+    $phone_number = $leadsData->fields['PHONE'];
+    $to = '+1' . preg_replace('/\D/', '', $phone_number);
     $answerUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php'; // public HTTPS
-
 
     try {
         $client = new Client($SID, $TOKEN);
@@ -42,28 +42,12 @@ if (!empty($_POST) && !empty($_POST['phone_number'])) {
             db_perform('DOA_CALL_DETAILS', $CALL_DETAILS);
         }
 
-        echo "Call started with call ID: " . $call->sid;
+        echo "success";
+        exit;
     } catch (Exception $e) {
         echo "Error: " . $e->getMessage();
         exit;
     }
+} else {
+    echo "success";
 }
-?>
-
-<html>
-
-<head>
-    <title>AI Call Test</title>
-</head>
-
-<body>
-    <h1>AI Call Test</h1>
-    <form method="POST" action="">
-        <label for="phone_number">Enter Phone Number:</label><br><br>
-        <input type="text" id="phone_number" name="phone_number" style="width: 250px; height: 30px;" required />
-        <br /><br />
-        <input type="submit" value="Initiate Call" style="width: 100px; height: 30px;" />
-    </form>
-</body>
-
-</html>
