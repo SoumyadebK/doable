@@ -3019,7 +3019,10 @@ if ($PK_USER_MASTER > 0) {
 
     $('.datepicker-past').datepicker({
         format: 'mm/dd/yyyy',
-        maxDate: 0
+        maxDate: 0,
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1900:' + new Date().getFullYear(),
     });
 
     function confirmComplete(param) {
