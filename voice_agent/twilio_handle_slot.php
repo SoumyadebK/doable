@@ -12,6 +12,7 @@ $digits = $_POST['Digits'] ?? '';
 
 $callDetails = $db->Execute("SELECT * FROM DOA_CALL_DETAILS WHERE CALL_SID = '" . $callSid . "' LIMIT 1");
 $date = $callDetails->fields['SELECTED_DATE'] ?? null;
+$part = $callDetails->fields['SELECTED_PART'] ?? null;
 $PK_LEADS = $callDetails->fields['PK_LEADS'] ?? null;
 
 $locationSettings = $db->Execute("SELECT PK_LOCATION FROM DOA_LEADS WHERE PK_LEADS = " . $PK_LEADS . " LIMIT 1");
@@ -22,7 +23,7 @@ $CALL_DETAILS['SPEECH'] = $speech;
 $CALL_DETAILS['DIGITS'] = $digits;
 db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 
-$slotsData = getLocationSlotDetails($PK_LOCATION, $date);
+$slotsData = getLocationSlotDetails($PK_LOCATION, $date, $part);
 $slots = [];
 foreach ($slotsData as $key => $slot) {
     $slots[$key + 1] = [
