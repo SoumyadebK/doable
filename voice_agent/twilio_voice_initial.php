@@ -52,7 +52,7 @@ $data = [
 <Response>
     <Say voice="Polly.Amy-Neural">
         <?= renderTemplate($template, $data) ?>
-        <break time="1000ms" />
+        <break time="2000ms" />
         <?= $script2 ?>
     </Say>
 

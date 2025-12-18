@@ -19,6 +19,10 @@ $PK_LEADS = $call_details->fields['PK_LEADS'] ?? null;
 $locationSettings = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.LOCATION_NAME FROM DOA_LOCATION INNER JOIN DOA_LEADS ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION WHERE DOA_LEADS.PK_LEADS = " . $PK_LEADS . " LIMIT 1");
 $PK_LOCATION = $locationSettings->fields['PK_LOCATION'] ?? null;
 
+$callSettingData = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING WHERE PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+$PART_OF_DAY_STR = $callSettingData->fields['PART_OF_DAY'] ?? '';
+$PART_OF_DAY = explode(',', $PART_OF_DAY_STR);
+
 function parse_date_from_text($text)
 {
     // Try to use strtotime. You may improve with a natural language date parser.
@@ -27,13 +31,11 @@ function parse_date_from_text($text)
     return date('Y-m-d', $time);
 }
 
-if ($date == '0000-00-00') {
-    if (!empty($speech)) {
-        $date = parse_date_from_text($speech);
-    } elseif (!empty($digits)) {
-        // Optionally map digits to date if you use a keypad date input scheme.
-        $date = null;
-    }
+if (!empty($speech)) {
+    $date = parse_date_from_text($speech);
+} elseif (!empty($digits)) {
+    // Optionally map digits to date if you use a keypad date input scheme.
+    $date = null;
 }
 
 $CALL_DETAILS['STEP'] = 'date_received';
@@ -58,71 +60,31 @@ if (!$date) {
     exit;
 }
 
-$slotsData = getLocationSlotDetails($PK_LOCATION, $date);
-$slots = [];
-foreach ($slotsData as $key => $slot) {
-    $slots[$key + 1] = [
-        'id' => $key + 1,
-        'label' => date('h:i A', strtotime($slot['slot_start_time']))
-    ];
-}
-
-// If no slots
-if (empty($slots) && count($slots) == 0) {
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    $CALL_DETAILS['SELECTED_DATE'] = '0000-00-00';
-    db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
-?>
-    <Response>
-        <Say voice="Polly.Amy-Neural">
-            Sorry,
-            <break time="400ms" />
-            there are no available slots on <?php echo date('F j, Y', strtotime($date)); ?>. Would you like to try another date?
-        </Say>
-        <Redirect><?php echo $handleDateUrl; ?></Redirect>
-    </Response>
-<?php
-    exit;
-}
-
-// Build a TwiML that lists N options and gathers selection
-$handleSlotUrl = "https://doable.net/voice_agent/twilio_handle_slot.php";
+$handlePartOfDay = "https://doable.net/voice_agent/twilio_handle_part_of_day.php";
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 
 <Response>
     <!-- Intro Line -->
     <Say voice="Polly.Amy-Neural">
-        Here are the available time slots for
-        <?php echo date('F j, Y', strtotime($date)); ?>.
+        Which part of the day works best for you?
         <break time="300ms" />
     </Say>
 
-    <!-- Slot Selection -->
+    <!-- Part Selection -->
     <Gather
         bargeIn="true"
-        action="<?php echo $handleSlotUrl; ?>"
+        action="<?php echo $handlePartOfDay; ?>"
         input="dtmf speech"
         method="POST"
         numDigits="1"
         timeout="8"
         speechTimeout="2">
-        <?php
-        $i = 1;
-        foreach ($slots as $slot) {
-            echo '<Say voice="Polly.Amy-Neural">'
-                . 'Option ' . $i . '. '
-                . $slot['label']
-                . '. <break time="200ms"/>'
-                . '</Say>';
-            $i++;
-            if ($i > 9) break; // DTMF limit
-        }
-        ?>
 
-        <Say voice="Polly.Amy-Neural">
-            Please say the option number or press the corresponding digit on your keypad to select your preferred time slot.
-        </Say>
+        <?php foreach ($PART_OF_DAY as $key => $part) { ?>
+            <Say voice="Polly.Joanna-Neural">For <?= $part ?>, press <?= $key + 1 ?> or say <?= $part ?>.</Say>
+        <?php } ?>
+
     </Gather>
 
     <!-- Fallback -->

@@ -313,7 +313,7 @@ function timeToMinutes($t)
 
 
 
-function getLocationSlotDetails($PK_LOCATION, $DATE)
+function getLocationSlotDetails($PK_LOCATION, $DATE, $PART = null)
 {
     global $db;
     $location_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
@@ -339,7 +339,24 @@ function getLocationSlotDetails($PK_LOCATION, $DATE)
 
     $available_slots = getAvailableSlots($db_account, $PK_USER, $PK_LOCATION, $DATE, '00:' . $SLOT_DURATION . ':00');
 
-    return $available_slots;
+    $dayParts = [
+        'morning' => ['start' => '05:00:00', 'end' => '12:00:00'],
+        'afternoon' => ['start' => '12:00:00', 'end' => '17:00:00'],
+        'evening' => ['start' => '17:00:00', 'end' => '21:00:00'],
+        'night' => ['start' => '21:00:00', 'end' => '23:59:59'],
+    ];
+
+    if (!isset($dayParts[$PART])) {
+        return $available_slots;
+    }
+
+    $start = $dayParts[$PART]['start'];
+    $end   = $dayParts[$PART]['end'];
+
+    return array_values(array_filter($available_slots, function ($slot) use ($start, $end) {
+        return $slot['slot_start_time'] >= $start
+            && $slot['slot_start_time'] < $end;
+    }));
 }
 
 function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot_duration)
@@ -504,8 +521,18 @@ function createUserFromLeads($PK_LEADS): array
 
     $isUserExist = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND PHONE = '" . addslashes($PHONE) . "' OR EMAIL_ID = '" . addslashes($EMAIL_ID) . "' LIMIT 1");
     if ($isUserExist->RecordCount() > 0) {
-        $userMasterData = $db->Execute("SELECT PK_USER_MASTER FROM DOA_USER_MASTER WHERE PK_USER = " . $isUserExist->fields['PK_USER'] . " LIMIT 1");
-        return [$isUserExist->fields['PK_USER'], $userMasterData->fields['PK_USER_MASTER']];
+        $PK_USER = $isUserExist->fields['PK_USER'];
+        $USER_DATA_UPDATE = [];
+        $USER_DATA_UPDATE['FIRST_NAME'] = $FIRST_NAME;
+        $USER_DATA_UPDATE['LAST_NAME'] = $LAST_NAME;
+        $USER_DATA_UPDATE['EMAIL_ID'] = $EMAIL_ID;
+        $USER_DATA_UPDATE['PHONE'] = $PHONE;
+        $USER_DATA_UPDATE['ACTIVE'] = 1;
+        $USER_DATA_UPDATE['IS_DELETED'] = 0;
+        db_perform('DOA_USERS', $USER_DATA_UPDATE, 'update', " PK_USER = " . $PK_USER);
+
+        $userMasterData = $db->Execute("SELECT PK_USER_MASTER FROM DOA_USER_MASTER WHERE PK_USER = " . $PK_USER . " LIMIT 1");
+        return [$PK_USER, $userMasterData->fields['PK_USER_MASTER']];
     } else {
         $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
         $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $FIRST_NAME;
