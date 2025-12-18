@@ -29,6 +29,8 @@ if (!empty($_GET['NAME'])) {
             header('location:lessons_taught_by_department_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
         } elseif ($_GET['NAME'] == 'sales_by_enrollment_report') {
             header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
+        } elseif ($_GET['NAME'] == 'enrollment_details_report') {
+            header('location:enrollment_details_report.php?start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&view=1');
         }
     }
 }
@@ -60,6 +62,15 @@ if (!empty($_GET['NAME'])) {
         font-weight: normal;
         margin-left: 5px;
     }
+
+    /* Add smooth transition for hiding/showing */
+    .service-provider-column {
+        transition: all 0.3s ease;
+    }
+
+    .service-provider-column.hidden {
+        display: none !important;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -83,15 +94,16 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this); toggleServiceProviderVisibility(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                                     <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
                                                     <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
+                                                    <option value="enrollment_details_report">ENROLLMENT TYPE DETAILED REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-2 service-provider-column" id="service_provider_column">
                                             <div id="location" style="width: 100%;">
                                                 <select class="multi_select_service_provider" multiple id="service_provider_select" name="PK_USER[]">
                                                     <?php
@@ -181,11 +193,54 @@ if (!empty($_GET['NAME'])) {
         }
     }
 
+    // Function to toggle Service Provider selection visibility
+    function toggleServiceProviderVisibility(selectElement) {
+        var selectedValue = selectElement.value;
+        var serviceProviderColumn = document.getElementById('service_provider_column');
+
+        if (selectedValue === 'enrollment_details_report') {
+            // Hide the entire service provider column for enrollment details report
+            serviceProviderColumn.classList.add('hidden');
+
+            // Adjust other columns to use the space
+            adjustColumnLayout(true);
+        } else {
+            // Show service provider column for other reports
+            serviceProviderColumn.classList.remove('hidden');
+
+            // Reset column layout
+            adjustColumnLayout(false);
+        }
+    }
+
+    // Function to adjust column layout when hiding/showing service provider column
+    function adjustColumnLayout(hideProviderColumn) {
+        var dateColumns = document.querySelectorAll('.col-2');
+        var actionColumn = document.querySelector('.col-4:last-child');
+
+        // This is a simplified adjustment - you might want to adjust based on your specific layout needs
+        if (hideProviderColumn) {
+            // When hiding provider column, you could expand date columns or action column
+            // For example, you could add a class to make date columns wider
+            dateColumns.forEach(function(col) {
+                if (!col.classList.contains('service-provider-column')) {
+                    col.classList.add('expanded-col');
+                }
+            });
+        } else {
+            // Remove expanded class when showing provider column
+            dateColumns.forEach(function(col) {
+                col.classList.remove('expanded-col');
+            });
+        }
+    }
+
     // Initialize visibility on page load
     document.addEventListener('DOMContentLoaded', function() {
         var reportSelect = document.getElementById('NAME');
         toggleExportButtons(reportSelect);
         toggleNoProviderOption(reportSelect);
+        toggleServiceProviderVisibility(reportSelect);
     });
 
     $(".week-picker").datepicker({
@@ -253,6 +308,12 @@ if (!empty($_GET['NAME'])) {
             var selectedReport = $('#NAME').val();
             var selectedProviders = $('#service_provider_select').val();
             var includeNoProvider = $('#include_no_provider').is(':checked');
+
+            // For enrollment details report, don't require service provider selection
+            if (selectedReport === 'enrollment_details_report') {
+                // Always allow submission - service provider not required
+                return true;
+            }
 
             // For sales by enrollment report, allow submission even if no providers are selected
             // when "Include Enrollments With No Service Provider" is checked
