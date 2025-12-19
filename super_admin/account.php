@@ -812,7 +812,10 @@ while (!$account_payment_info->EOF) {
     <script>
         $('.datepicker-past').datepicker({
             format: 'mm/dd/yyyy',
-            maxDate: 0
+            maxDate: 0,
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1900:' + new Date().getFullYear(),
         });
 
         $('.datepicker-normal').datepicker({

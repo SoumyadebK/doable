@@ -1028,7 +1028,10 @@ if (!empty($_GET['id'])) {
 <script>
     $('.datepicker-past').datepicker({
         format: 'mm/dd/yyyy',
-        maxDate: 0
+        maxDate: 0,
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1900:' + new Date().getFullYear(),
     });
 
     $('#NAME').SumoSelect({

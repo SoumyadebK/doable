@@ -2,29 +2,29 @@
 require_once('../global/config.php');
 $title = "My Profile";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 5){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || $_SESSION['PK_ROLES'] != 5) {
     header("location:../login.php");
     exit;
 }
 $err_msg = '';
 $success_msg = '';
-if(!empty($_POST)){
-    if ($_POST['FORM_TYPE'] == 'change_password_form'){
-        if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']){
+if (!empty($_POST)) {
+    if ($_POST['FORM_TYPE'] == 'change_password_form') {
+        if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']) {
             $result = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
-            if($result->RecordCount() > 0) {
+            if ($result->RecordCount() > 0) {
                 if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
                     $success_msg = "Password Changed Successfilly.";
-                }else{
+                } else {
                     $err_msg = 'Old Password is Wrong.';
                 }
             }
-        }else{
-           $err_msg = 'Password and Confirm Password Not Matched.';
+        } else {
+            $err_msg = 'Password and Confirm Password Not Matched.';
         }
-    }else {
+    } else {
         $USER_DATA['PHONE'] = $_POST['PHONE'];
         if ($_FILES['USER_IMAGE']['name'] != '') {
             $USER_DATA = [];
@@ -72,7 +72,7 @@ if(!empty($_POST)){
 
 $res = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.USER_IMAGE, DOA_USERS.ACTIVE, DOA_USER_PROFILE.GENDER, DOA_USER_PROFILE.DOB, DOA_USER_PROFILE.ADDRESS, DOA_USER_PROFILE.ADDRESS_1, DOA_USER_PROFILE.CITY, DOA_USER_PROFILE.PK_STATES, DOA_USER_PROFILE.ZIP, DOA_USER_PROFILE.PK_COUNTRY, DOA_USERS.PHONE, DOA_USER_PROFILE.FAX, DOA_USER_PROFILE.WEBSITE, DOA_USER_PROFILE.NOTES FROM DOA_USERS LEFT JOIN DOA_USER_PROFILE ON DOA_USERS.PK_USER = DOA_USER_PROFILE.PK_USER WHERE DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
 
-if($res->RecordCount() == 0){
+if ($res->RecordCount() == 0) {
     header("location:../login.php");
     exit;
 }
@@ -99,19 +99,20 @@ $ACTIVE = $res->fields['ACTIVE'];
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
                 </div>
-            </div>
 
                 <div class="row">
 
@@ -124,14 +125,14 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">First Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $FIRST_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $FIRST_NAME ?></label>
                                     </div>
 
                                     <div class="col-2">
                                         <label class="col-md-12" for="example-text">Last Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $LAST_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $LAST_NAME ?></label>
                                     </div>
 
                                     <div class="col-2">
@@ -151,28 +152,28 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">Email Id : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $EMAIL_ID?></label>
+                                        <label style="color: #ff9800; "><?php echo $EMAIL_ID ?></label>
                                     </div>
 
                                     <div class="col-1">
                                         <label class="col-md-12" for="example-text">User Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $USER_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $USER_NAME ?></label>
                                     </div>
                                 </div>
                                 </br>
-                                <?php if ($success_msg) {?>
+                                <?php if ($success_msg) { ?>
                                     <div class="alert alert-success">
-                                        <strong><?=$success_msg;?></strong>
+                                        <strong><?= $success_msg; ?></strong>
                                     </div>
                                 <?php } ?>
                                 <form class="form-material" action="" method="post">
                                     <input type="hidden" name="FORM_TYPE" value="change_password_form">
-                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: <?=($err_msg)?'':'none'?>; margin-top: 10px;">
-                                        <?php if ($err_msg) {?>
+                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: <?= ($err_msg) ? '' : 'none' ?>; margin-top: 10px;">
+                                        <?php if ($err_msg) { ?>
                                             <div class="alert alert-danger">
-                                                <strong><?=$err_msg;?></strong>
+                                                <strong><?= $err_msg; ?></strong>
                                             </div>
                                         <?php } ?>
                                         <div class="col-3">
@@ -209,15 +210,15 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="form-label">Gender</label>
                                                 <select class="form-control" id="GENDER" name="GENDER">
                                                     <option>Select Gender</option>
-                                                    <option value="1" <?php if($GENDER == "1") echo 'selected = "selected"';?>>Male</option>
-                                                    <option value="2" <?php if($GENDER == "2") echo 'selected = "selected"';?>>Female</option>
+                                                    <option value="1" <?php if ($GENDER == "1") echo 'selected = "selected"'; ?>>Male</option>
+                                                    <option value="2" <?php if ($GENDER == "2") echo 'selected = "selected"'; ?>>Female</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="form-label">Date of Birth</label>
-                                                <input type="text" class="form-control datepicker-past"  id="DOB" name="DOB" value="<?=($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
+                                                <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB) ? date('m/d/Y', strtotime($DOB)) : '' ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -229,7 +230,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Address
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS?>">
+                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -238,7 +239,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Apt/Ste
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1?>">
+                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1 ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -255,10 +256,10 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                         <select class="form-control" required name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
                                                             <option>Select Country</option>
                                                             <?php
-                                                            $result_dropdown_query = mysqli_query($conn,"select PK_COUNTRY,COUNTRY_NAME from DOA_COUNTRY WHERE ACTIVE='1' order by PK_COUNTRY");
-                                                            while ($result_dropdown=mysqli_fetch_array($result_dropdown_query,MYSQLI_ASSOC)) { ?>
-                                                                <option value="<?php echo $result_dropdown['PK_COUNTRY'];?>" <?php if($result_dropdown['PK_COUNTRY'] == $PK_COUNTRY) echo 'selected = "selected"';?> ><?=$result_dropdown['COUNTRY_NAME']?></option>
-                                                                <?php
+                                                            $result_dropdown_query = mysqli_query($conn, "select PK_COUNTRY,COUNTRY_NAME from DOA_COUNTRY WHERE ACTIVE='1' order by PK_COUNTRY");
+                                                            while ($result_dropdown = mysqli_fetch_array($result_dropdown_query, MYSQLI_ASSOC)) { ?>
+                                                                <option value="<?php echo $result_dropdown['PK_COUNTRY']; ?>" <?php if ($result_dropdown['PK_COUNTRY'] == $PK_COUNTRY) echo 'selected = "selected"'; ?>><?= $result_dropdown['COUNTRY_NAME'] ?></option>
+                                                            <?php
                                                             }
                                                             ?>
                                                         </select>
@@ -287,7 +288,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">City</span>
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY?>">
+                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -296,7 +297,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Postal / Zip Code</span>
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
+                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -308,7 +309,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Phone
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE?>">
+                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -317,7 +318,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Fax
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/?>">
+                                                    <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/ ?>">
                                                 </div>
                                             </div>
 
@@ -331,7 +332,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Website
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/?>">
+                                                    <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/ ?>">
                                                 </div>
                                             </div>
                                         </div>-->
@@ -341,19 +342,20 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Image Upload
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" > </div>
+                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <?php if($USER_IMAGE!=''){?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery"><img src = "<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                        <?php if ($USER_IMAGE != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery"><img src="<?php echo $USER_IMAGE; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
                                     </div>
 
                                     <div class="form-group">
                                         <label class="col-md-12">Remarks</label>
                                         <div class="col-md-12">
-                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
+                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES ?></textarea>
                                         </div>
                                     </div>
 
@@ -363,89 +365,92 @@ $ACTIVE = $res->fields['ACTIVE'];
                         </div>
                     </div>
                 </div>
+            </div>
         </div>
-    </div>
-    <style>
-
-        .progress-bar {
-            border-radius: 5px;
-            height:18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php');?>
-    <script>
-        $('.datepicker-past').datepicker({
-            format: 'mm/dd/yyyy',
-            maxDate: 0
-        });
-
-
-        function fetch_state(PK_COUNTRY){
-
-            jQuery(document).ready(function($) {
-                var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-
-                var value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache :false,
-                    success: function (result) {
-                        document.getElementById('State_div').innerHTML = result;
-
-                    }
-                }).responseText;
+        <style>
+            .progress-bar {
+                border-radius: 5px;
+                height: 18px !important;
+            }
+        </style>
+        <?php require_once('../includes/footer.php'); ?>
+        <script>
+            $('.datepicker-past').datepicker({
+                format: 'mm/dd/yyyy',
+                maxDate: 0,
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '1900:' + new Date().getFullYear(),
             });
-        }
-    </script>
-    <script>
-        function isGood(password) {
-            //alert(password);
-            var password_strength = document.getElementById("password-text");
 
-            //TextBox left blank.
-            if (password.length == 0) {
-                password_strength.innerHTML = "";
-                return;
+
+            function fetch_state(PK_COUNTRY) {
+
+                jQuery(document).ready(function($) {
+                    var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+
+                    var value = $.ajax({
+                        url: "ajax/state.php",
+                        type: "POST",
+                        data: data,
+                        async: false,
+                        cache: false,
+                        success: function(result) {
+                            document.getElementById('State_div').innerHTML = result;
+
+                        }
+                    }).responseText;
+                });
             }
+        </script>
+        <script>
+            function isGood(password) {
+                //alert(password);
+                var password_strength = document.getElementById("password-text");
 
-            //Regular Expressions.
-            var regex = new Array();
-            regex.push("[A-Z]"); //Uppercase Alphabet.
-            regex.push("[a-z]"); //Lowercase Alphabet.
-            regex.push("[0-9]"); //Digit.
-            regex.push("[$@$!%*#?&]"); //Special Character.
-
-            var passed = 0;
-
-            //Validate for each Regular Expression.
-            for (var i = 0; i < regex.length; i++) {
-                if (new RegExp(regex[i]).test(password)) {
-                    passed++;
+                //TextBox left blank.
+                if (password.length == 0) {
+                    password_strength.innerHTML = "";
+                    return;
                 }
+
+                //Regular Expressions.
+                var regex = new Array();
+                regex.push("[A-Z]"); //Uppercase Alphabet.
+                regex.push("[a-z]"); //Lowercase Alphabet.
+                regex.push("[0-9]"); //Digit.
+                regex.push("[$@$!%*#?&]"); //Special Character.
+
+                var passed = 0;
+
+                //Validate for each Regular Expression.
+                for (var i = 0; i < regex.length; i++) {
+                    if (new RegExp(regex[i]).test(password)) {
+                        passed++;
+                    }
+                }
+
+                //Display status.
+                var strength = "";
+                switch (passed) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                        break;
+                    case 3:
+                        strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                        break;
+                    case 4:
+                        strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                        break;
+
+                }
+                // alert(strength);
+                password_strength.innerHTML = strength;
+
             }
-
-            //Display status.
-            var strength = "";
-            switch (passed) {
-                case 0:
-                case 1:
-                case 2:
-                    strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                    break;
-                case 3:
-                    strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                    break;
-                case 4:
-                    strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                    break;
-
-            }
-            // alert(strength);
-            password_strength.innerHTML = strength;
-
-        }
-    </script>
+        </script>
 </body>
+
 </html>

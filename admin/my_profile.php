@@ -6,7 +6,7 @@ global $upload_path;
 
 $title = "My Profile";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
@@ -14,27 +14,27 @@ if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION
 $err_msg = '';
 $success_msg = '';
 $PK_USER = $_SESSION['PK_USER'];
-if(!empty($_POST)){
-    if ($_POST['FORM_TYPE'] == 'change_password_form'){
-        if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']){
+if (!empty($_POST)) {
+    if ($_POST['FORM_TYPE'] == 'change_password_form') {
+        if ($_POST['NEW_PASSWORD'] == $_POST['CONFIRM_NEW_PASSWORD']) {
             $result = $db->Execute("SELECT PASSWORD FROM `DOA_USERS` WHERE PK_USER = '$_SESSION[PK_USER]'");
-            if($result->RecordCount() > 0) {
+            if ($result->RecordCount() > 0) {
                 if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
                     $success_msg = "Password Changed Successfilly.";
-                }else{
+                } else {
                     $err_msg = 'Old Password is Wrong.';
                 }
             }
-        }else{
-           $err_msg = 'Password and Confirm Password Not Matched.';
+        } else {
+            $err_msg = 'Password and Confirm Password Not Matched.';
         }
-    }else {
+    } else {
         if ($_FILES['USER_IMAGE']['name'] != '') {
-            if (!file_exists('../'.$upload_path.'/user_image/')) {
-                mkdir('../'.$upload_path.'/user_image/', 0777, true);
-                chmod('../'.$upload_path.'/user_image/', 0777);
+            if (!file_exists('../' . $upload_path . '/user_image/')) {
+                mkdir('../' . $upload_path . '/user_image/', 0777, true);
+                chmod('../' . $upload_path . '/user_image/', 0777);
             }
 
             $USER_DATA = [];
@@ -45,7 +45,7 @@ if(!empty($_POST)){
             $extension = strtolower($extn[$iindex]);
 
             if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../'.$upload_path.'/user_image/' . $file11;
+                $image_path = '../' . $upload_path . '/user_image/' . $file11;
                 move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $image_path);
                 $USER_DATA['USER_IMAGE'] = $image_path;
             }
@@ -60,16 +60,16 @@ if(!empty($_POST)){
         $USER_DATA['CITY'] = $_POST['CITY'];
         $USER_DATA['ZIP'] = $_POST['ZIP'];
         $USER_DATA['NOTES'] = $_POST['NOTES'];
-        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = ".$PK_USER);
+        db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = " . $PK_USER);
 
         $USER_DATA_ACCOUNT['PHONE'] = $_POST['PHONE'];
-        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = ".$PK_USER);
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = " . $PK_USER);
     }
 }
 
-$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = ".$PK_USER);
+$res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = " . $PK_USER);
 
-if($res->RecordCount() == 0){
+if ($res->RecordCount() == 0) {
     header("location:../login.php");
     exit;
 }
@@ -100,19 +100,20 @@ $ACTIVE = $res->fields['ACTIVE'];
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php require_once('../includes/header.php'); ?>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid body_content">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
                 </div>
-            </div>
 
                 <div class="row">
 
@@ -125,14 +126,14 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">First Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $FIRST_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $FIRST_NAME ?></label>
                                     </div>
 
                                     <div class="col-2">
                                         <label class="col-md-12" for="example-text">Last Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $LAST_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $LAST_NAME ?></label>
                                     </div>
 
                                     <div class="col-2">
@@ -145,35 +146,35 @@ $ACTIVE = $res->fields['ACTIVE'];
                                         <label class="col-md-12" for="example-text">Role : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?=implode(', ', $selected_roles)?></label>
+                                        <label style="color: #ff9800; "><?= implode(', ', $selected_roles) ?></label>
                                     </div>
 
                                     <div class="col-1">
                                         <label class="col-md-12" for="example-text">Email Id : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $EMAIL_ID?></label>
+                                        <label style="color: #ff9800; "><?php echo $EMAIL_ID ?></label>
                                     </div>
 
                                     <div class="col-1">
                                         <label class="col-md-12" for="example-text">User Name : </label>
                                     </div>
                                     <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $USER_NAME?></label>
+                                        <label style="color: #ff9800; "><?php echo $USER_NAME ?></label>
                                     </div>
                                 </div>
                                 </br>
-                                <?php if ($success_msg) {?>
+                                <?php if ($success_msg) { ?>
                                     <div class="alert alert-success">
-                                        <strong><?=$success_msg;?></strong>
+                                        <strong><?= $success_msg; ?></strong>
                                     </div>
                                 <?php } ?>
                                 <form class="form-material" action="" method="post">
                                     <input type="hidden" name="FORM_TYPE" value="change_password_form">
-                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: <?=($err_msg)?'':'none'?>; margin-top: 10px;">
-                                        <?php if ($err_msg) {?>
+                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: <?= ($err_msg) ? '' : 'none' ?>; margin-top: 10px;">
+                                        <?php if ($err_msg) { ?>
                                             <div class="alert alert-danger">
-                                                <strong><?=$err_msg;?></strong>
+                                                <strong><?= $err_msg; ?></strong>
                                             </div>
                                         <?php } ?>
                                         <div class="col-3">
@@ -210,16 +211,16 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="form-label">Gender</label>
                                                 <select class="form-control" id="GENDER" name="GENDER">
                                                     <option>Select Gender</option>
-                                                    <option value="Male" <?php if($GENDER == "Male") echo 'selected = "selected"';?>>Male</option>
-                                                    <option value="Female" <?php if($GENDER == "Female") echo 'selected = "selected"';?>>Female</option>
-                                                    <option value="Other" <?php if($GENDER == "Other") echo 'selected = "selected"';?>>Other</option>
+                                                    <option value="Male" <?php if ($GENDER == "Male") echo 'selected = "selected"'; ?>>Male</option>
+                                                    <option value="Female" <?php if ($GENDER == "Female") echo 'selected = "selected"'; ?>>Female</option>
+                                                    <option value="Other" <?php if ($GENDER == "Other") echo 'selected = "selected"'; ?>>Other</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="form-label">Date of Birth</label>
-                                                <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?=($DOB)?date('m/d/Y', strtotime($DOB)):''?>">
+                                                <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB) ? date('m/d/Y', strtotime($DOB)) : '' ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -231,7 +232,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Address
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS?>">
+                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -240,7 +241,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Apt/Ste
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1?>">
+                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1 ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -257,8 +258,9 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                         <?php
                                                         $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
                                                         while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_COUNTRY'];?>" <?=($row->fields['PK_COUNTRY'] == $PK_COUNTRY)?"selected":""?>><?=$row->fields['COUNTRY_NAME']?></option>
-                                                        <?php $row->MoveNext(); } ?>
+                                                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                                                        <?php $row->MoveNext();
+                                                        } ?>
                                                     </select>
                                                 </div>
                                             </div>
@@ -284,7 +286,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">City</span>
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY?>">
+                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -293,7 +295,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Postal / Zip Code</span>
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP?>">
+                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -305,7 +307,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Phone
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE?>">
+                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
                                                 </div>
                                             </div>
                                         </div>
@@ -314,7 +316,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Fax
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/?>">
+                                                    <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/ ?>">
                                                 </div>
                                             </div>
 
@@ -328,7 +330,7 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Website
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/?>">
+                                                    <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/ ?>">
                                                 </div>
                                             </div>
                                         </div>-->
@@ -338,23 +340,24 @@ $ACTIVE = $res->fields['ACTIVE'];
                                                 <label class="col-md-12" for="example-text">Image Upload
                                                 </label>
                                                 <div class="col-md-12">
-                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)"> </div>
+                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <?php if($USER_IMAGE!=''){?>
+                                        <?php if ($USER_IMAGE != '') { ?>
                                             <div style="width: 120px;height: 120px;margin-top: 25px;">
-                                            <a class="fancybox" href="<?php echo $USER_IMAGE;?>" data-fancybox-group="gallery">
-                                                <img id="profile-img" src="<?php echo $USER_IMAGE;?>" style="width:120px; height:120px" /></a>
+                                                <a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery">
+                                                    <img id="profile-img" src="<?php echo $USER_IMAGE; ?>" style="width:120px; height:120px" /></a>
                                             </div><?php } ?>
                                     </div>
 
                                     <div class="form-group">
                                         <label class="col-md-12">Remarks</label>
                                         <div class="col-md-12">
-                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES?></textarea>
+                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES ?></textarea>
                                         </div>
                                     </div>
 
@@ -364,101 +367,104 @@ $ACTIVE = $res->fields['ACTIVE'];
                         </div>
                     </div>
                 </div>
+            </div>
         </div>
-    </div>
-    <style>
-
-        .progress-bar {
-            border-radius: 5px;
-            height:18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php');?>
-    <script>
-        $('.datepicker-past').datepicker({
-            format: 'mm/dd/yyyy',
-            maxDate: 0
-        });
-
-        $(document).ready(function() {
-            fetch_state(<?php  echo $PK_COUNTRY; ?>);
-        });
-
-        function fetch_state(PK_COUNTRY){
-            jQuery(document).ready(function($) {
-                var data = "PK_COUNTRY="+PK_COUNTRY+"&PK_STATES=<?=$PK_STATES;?>";
-                var value = $.ajax({
-                    url: "ajax/state.php",
-                    type: "POST",
-                    data: data,
-                    async: false,
-                    cache :false,
-                    success: function (result) {
-                        document.getElementById('State_div').innerHTML = result;
-
-                    }
-                }).responseText;
+        <style>
+            .progress-bar {
+                border-radius: 5px;
+                height: 18px !important;
+            }
+        </style>
+        <?php require_once('../includes/footer.php'); ?>
+        <script>
+            $('.datepicker-past').datepicker({
+                format: 'mm/dd/yyyy',
+                maxDate: 0,
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '1900:' + new Date().getFullYear(),
             });
-        }
 
-        function previewFile(input){
-            let file = $("#USER_IMAGE").get(0).files[0];
-            if(file){
-                let reader = new FileReader();
-                reader.onload = function(){
-                    $("#profile-img").attr("src", reader.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-    </script>
-    <script>
-        function isGood(password) {
-            //alert(password);
-            var password_strength = document.getElementById("password-text");
+            $(document).ready(function() {
+                fetch_state(<?php echo $PK_COUNTRY; ?>);
+            });
 
-            //TextBox left blank.
-            if (password.length == 0) {
-                password_strength.innerHTML = "";
-                return;
+            function fetch_state(PK_COUNTRY) {
+                jQuery(document).ready(function($) {
+                    var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+                    var value = $.ajax({
+                        url: "ajax/state.php",
+                        type: "POST",
+                        data: data,
+                        async: false,
+                        cache: false,
+                        success: function(result) {
+                            document.getElementById('State_div').innerHTML = result;
+
+                        }
+                    }).responseText;
+                });
             }
 
-            //Regular Expressions.
-            var regex = new Array();
-            regex.push("[A-Z]"); //Uppercase Alphabet.
-            regex.push("[a-z]"); //Lowercase Alphabet.
-            regex.push("[0-9]"); //Digit.
-            regex.push("[$@$!%*#?&]"); //Special Character.
-
-            var passed = 0;
-
-            //Validate for each Regular Expression.
-            for (var i = 0; i < regex.length; i++) {
-                if (new RegExp(regex[i]).test(password)) {
-                    passed++;
+            function previewFile(input) {
+                let file = $("#USER_IMAGE").get(0).files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function() {
+                        $("#profile-img").attr("src", reader.result);
+                    }
+                    reader.readAsDataURL(file);
                 }
             }
+        </script>
+        <script>
+            function isGood(password) {
+                //alert(password);
+                var password_strength = document.getElementById("password-text");
 
-            //Display status.
-            var strength = "";
-            switch (passed) {
-                case 0:
-                case 1:
-                case 2:
-                    strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                    break;
-                case 3:
-                    strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                    break;
-                case 4:
-                    strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                    break;
+                //TextBox left blank.
+                if (password.length == 0) {
+                    password_strength.innerHTML = "";
+                    return;
+                }
+
+                //Regular Expressions.
+                var regex = new Array();
+                regex.push("[A-Z]"); //Uppercase Alphabet.
+                regex.push("[a-z]"); //Lowercase Alphabet.
+                regex.push("[0-9]"); //Digit.
+                regex.push("[$@$!%*#?&]"); //Special Character.
+
+                var passed = 0;
+
+                //Validate for each Regular Expression.
+                for (var i = 0; i < regex.length; i++) {
+                    if (new RegExp(regex[i]).test(password)) {
+                        passed++;
+                    }
+                }
+
+                //Display status.
+                var strength = "";
+                switch (passed) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                        break;
+                    case 3:
+                        strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                        break;
+                    case 4:
+                        strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                        break;
+
+                }
+                // alert(strength);
+                password_strength.innerHTML = strength;
 
             }
-            // alert(strength);
-            password_strength.innerHTML = strength;
-
-        }
-    </script>
+        </script>
 </body>
+
 </html>
