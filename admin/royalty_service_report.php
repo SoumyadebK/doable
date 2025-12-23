@@ -27,6 +27,7 @@ $PAYMENT_QUERY = "SELECT
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                     DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
                     DOA_PAYMENT_TYPE.PAYMENT_TYPE, 
                     CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME, 
                     CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
@@ -61,6 +62,7 @@ $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                        DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
                         DOA_PAYMENT_TYPE.PAYMENT_TYPE,
                         CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME,
                         CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
@@ -527,6 +529,14 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                         }
                                                     }
 
+                                                    if ($payment_data->fields['PK_PAYMENT_TYPE'] == '7') {
+                                                        $receipt_number = $payment_data->fields['RECEIPT_NUMBER'];
+                                                        $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
+                                                        $payment_type = $receipt_payment_details->fields['PAYMENT_TYPE'];
+                                                    } else {
+                                                        $payment_type = $payment_data->fields['PAYMENT_TYPE'];
+                                                    }
+
                                                     if ($SUNDRY_AMOUNT > 0) {
                                                         $MISC_AMOUNT = $AMOUNT_PAID - $SUNDRY_AMOUNT;
                                                     }
@@ -549,7 +559,9 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                         <td><?= $payment_data->fields['RECEIPT_NUMBER'] ?></td>
                                                         <td><?= date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE'])) ?></td>
                                                         <td><?= $payment_data->fields['STUDENT_NAME'] ?></td>
-                                                        <td><?= $payment_data->fields['PAYMENT_TYPE'] ?></td>
+
+                                                        <td><?= $payment_type ?></td>
+
                                                         <td><?= $payment_data->fields['CLOSER_FIRST_NAME'] . " " . $payment_data->fields['CLOSER_LAST_NAME'] ?></td>
                                                         <td><?= $teacher_data->fields['TEACHER_NAME'] ?></td>
                                                         <td>

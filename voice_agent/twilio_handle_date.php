@@ -23,13 +23,35 @@ $callSettingData = $db->Execute("SELECT * FROM DOA_DEFAULT_CALL_SETTING WHERE PK
 $PART_OF_DAY_STR = $callSettingData->fields['PART_OF_DAY'] ?? '';
 $PART_OF_DAY = explode(',', $PART_OF_DAY_STR);
 
-function parse_date_from_text($text)
+/* function parse_date_from_text($text)
 {
     // Try to use strtotime. You may improve with a natural language date parser.
     $time = strtotime($text);
     if ($time === false) return null;
     return date('Y-m-d', $time);
+} */
+
+
+function parse_date_from_text($text)
+{
+    $time = strtotime($text);
+
+    if ($time === false) {
+        return null;
+    }
+
+    // Normalize to date only
+    $parsedDate = date('Y-m-d', $time);
+    $today = date('Y-m-d');
+
+    // If parsed date is in the past, move to next year
+    if ($parsedDate < $today) {
+        $time = strtotime("+1 year", $time);
+    }
+
+    return date('Y-m-d', $time);
 }
+
 
 if (!empty($speech)) {
     $date = parse_date_from_text($speech);
@@ -49,10 +71,12 @@ if (!$date) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Amy-Neural">
-            Sorry,
-            <break time="400ms" />
-            I didn't understand that date. Please say the date again.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                Sorry,
+                <break time="400ms" />
+                I didn't understand that date. Please say the date again.
+            </amazon:domain>
         </Say>
         <Redirect><?php echo $handleDateUrl; ?></Redirect>
     </Response>
@@ -66,9 +90,11 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
 <Response>
     <!-- Intro Line -->
-    <Say voice="Polly.Amy-Neural">
-        Which part of the day works best for you?
-        <break time="300ms" />
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            Which part of the day works best for you?
+            <break time="300ms" />
+        </amazon:domain>
     </Say>
 
     <!-- Part Selection -->
@@ -82,16 +108,22 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         speechTimeout="2">
 
         <?php foreach ($PART_OF_DAY as $key => $part) { ?>
-            <Say voice="Polly.Joanna-Neural">For <?= $part ?>, press <?= $key + 1 ?> or say <?= $part ?>.</Say>
+            <Say voice="Polly.Joanna-Neural">
+                <amazon:domain name="conversational">
+                    For <?= $part ?>, press <?= $key + 1 ?> or say <?= $part ?>.
+                </amazon:domain>
+            </Say>
         <?php } ?>
 
     </Gather>
 
     <!-- Fallback -->
-    <Say voice="Polly.Amy-Neural">
-        I did not receive a selection.
-        <break time="300ms" />
-        Ending the call now. Goodbye.
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            I did not receive a selection.
+            <break time="300ms" />
+            Ending the call now. Goodbye.
+        </amazon:domain>
     </Say>
     <Hangup />
 </Response>

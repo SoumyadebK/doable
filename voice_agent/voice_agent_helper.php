@@ -531,6 +531,14 @@ function createUserFromLeads($PK_LEADS): array
         $USER_DATA_UPDATE['IS_DELETED'] = 0;
         db_perform('DOA_USERS', $USER_DATA_UPDATE, 'update', " PK_USER = " . $PK_USER);
 
+        $LEADS_UPDATE_DATA = [];
+        $leadStatus = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE LEAD_STATUS = 'Scheduled' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER . " LIMIT 1");
+        if ($leadStatus->RecordCount() > 0) {
+            $LEADS_UPDATE_DATA['PK_LEAD_STATUS'] = $leadStatus->fields['PK_LEAD_STATUS'];
+        }
+        $LEADS_UPDATE_DATA['IS_CALLED'] = 2;
+        db_perform('DOA_LEADS', $LEADS_UPDATE_DATA, 'update', " PK_LEADS = " . $PK_LEADS);
+
         $userMasterData = $db->Execute("SELECT PK_USER_MASTER FROM DOA_USER_MASTER WHERE PK_USER = " . $PK_USER . " LIMIT 1");
         return [$PK_USER, $userMasterData->fields['PK_USER_MASTER']];
     } else {
@@ -592,6 +600,14 @@ function createUserFromLeads($PK_LEADS): array
         $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
         $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
         db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
+
+        $LEADS_UPDATE_DATA = [];
+        $leadStatus = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE LEAD_STATUS = 'Scheduled' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER . " LIMIT 1");
+        if ($leadStatus->RecordCount() > 0) {
+            $LEADS_UPDATE_DATA['PK_LEAD_STATUS'] = $leadStatus->fields['PK_LEAD_STATUS'];
+        }
+        $LEADS_UPDATE_DATA['IS_CALLED'] = 2;
+        db_perform('DOA_LEADS', $LEADS_UPDATE_DATA, 'update', " PK_LEADS = " . $PK_LEADS);
 
         return [$PK_USER, $PK_USER_MASTER];
     }

@@ -40,6 +40,14 @@ if ($PK_LEADS > 0) {
             $CALL_DETAILS['STEP'] = 'initiated';
             $CALL_DETAILS['CREATED_AT'] = date('Y-m-d H:i:s');
             db_perform('DOA_CALL_DETAILS', $CALL_DETAILS);
+
+            $LEADS_UPDATE_DATA = [];
+            $leadStatus = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE LEAD_STATUS = '1st contact' AND PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER . " LIMIT 1");
+            if ($leadStatus->RecordCount() > 0) {
+                $LEADS_UPDATE_DATA['PK_LEAD_STATUS'] = $leadStatus->fields['PK_LEAD_STATUS'];
+            }
+            $LEADS_UPDATE_DATA['IS_CALLED'] = 1;
+            db_perform('DOA_LEADS', $LEADS_UPDATE_DATA, 'update', " PK_LEADS = " . $PK_LEADS);
         }
 
         echo "success";
