@@ -49,14 +49,64 @@ $data = [
     'firstName'   => $leadFullName
 ];
 ?>
-<Response>
+
+<!-- <Response>
     <Say voice="Polly.Amy-Neural">
+        Voice 1
         <?= renderTemplate($template, $data) ?>
         <break time="2000ms" />
-        <?= $script2 ?>
     </Say>
 
-    <!-- YES / NO Gather -->
+    <Say voice="Polly.Joanna-Neural">
+        Voice 2
+        <?= renderTemplate($template, $data) ?>
+        <break time="2000ms" />
+    </Say>
+
+    <Say voice="Polly.Ivy-Neural">
+        Voice 3
+        <?= renderTemplate($template, $data) ?>
+        <break time="2000ms" />
+    </Say>
+
+    <Say voice="Polly.Kimberly-Neural">
+        Voice 4
+        <?= renderTemplate($template, $data) ?>
+        <break time="2000ms" />
+    </Say>
+
+    <Say voice="Polly.Salli-Neural">
+        Voice 5
+        <?= renderTemplate($template, $data) ?>
+        <break time="2000ms" />
+    </Say>
+
+    <Say voice="Polly.Kendra-Neural">
+        Voice 6
+        <?= renderTemplate($template, $data) ?>
+        <break time="2000ms" />
+    </Say>
+
+    <Say voice="Polly.Joanna-Neural">
+        Voice 7 - Conversational
+        <amazon:domain name="conversational">
+            <?= renderTemplate($template, $data) ?>
+            <break time="2000ms" />
+        </amazon:domain>
+    </Say>
+</Response> -->
+
+
+
+<Response>
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            <?= renderTemplate($template, $data) ?>
+            <break time="2000ms" />
+            <?= $script2 ?>
+        </amazon:domain>
+    </Say>
+
     <Gather
         bargeIn="true"
         action="<?php echo $handleYesNoUrl; ?>"
@@ -65,11 +115,17 @@ $data = [
         numDigits="1"
         timeout="8"
         speechTimeout="2">
-        <Say voice="Polly.Amy-Neural">
-            Please say yes or no, or press 1 for yes, 2 for no.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                Please say yes or no, or press 1 for yes, 2 for no.
+            </amazon:domain>
         </Say>
     </Gather>
 
-    <Say voice="Polly.Amy-Neural">We did not receive your response. Goodbye.</Say>
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            We did not receive your response. Goodbye.
+        </amazon:domain>
+    </Say>
     <Hangup />
 </Response>

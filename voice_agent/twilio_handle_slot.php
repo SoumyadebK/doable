@@ -26,10 +26,12 @@ db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callS
 $slotsData = getLocationSlotDetails($PK_LOCATION, $date, $part);
 $slots = [];
 foreach ($slotsData as $key => $slot) {
-    $slots[$key + 1] = [
-        'id' => $key + 1,
-        'label' => date('h:i A', strtotime($slot['slot_start_time']))
-    ];
+    if ($key <= 1) {
+        $slots[$key + 1] = [
+            'id' => $key + 1,
+            'label' => date('h:i A', strtotime($slot['slot_start_time']))
+        ];
+    }
 }
 
 $choiceIndex = null;
@@ -45,10 +47,12 @@ if (!$choiceIndex || !isset($slots[$choiceIndex])) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Amy-Neural">
-            I'm sorry, I didn't quite get that.
-            <break time="300ms" />
-            Let's try again.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                I'm sorry, I didn't quite get that.
+                <break time="300ms" />
+                Let's try again.
+            </amazon:domain>
         </Say>
         <Redirect><?php echo $retryUrl; ?></Redirect>
     </Response>
@@ -71,12 +75,14 @@ if ($PK_APPOINTMENT_MASTER <= 0) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Amy-Neural">
-            I'm sorry, we couldn't complete your booking at this moment.
-            <break time="300ms" />
-            Please try again later, or contact our support team for help.
-            <break time="300ms" />
-            Goodbye.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                I'm sorry, we couldn't complete your booking at this moment.
+                <break time="300ms" />
+                Please try again later, or contact our support team for help.
+                <break time="300ms" />
+                Goodbye.
+            </amazon:domain>
         </Say>
         <Hangup />
     </Response>
@@ -107,8 +113,10 @@ $confirmText = renderTemplate($template, $data);
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 <Response>
-    <Say voice="Polly.Amy-Neural">
-        <?php echo $confirmText; ?>
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            <?php echo $confirmText; ?>
+        </amazon:domain>
     </Say>
     <Hangup />
 </Response>

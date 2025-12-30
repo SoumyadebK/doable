@@ -141,7 +141,7 @@ if ($isYes) {
 
     // SAY DATE INSTRUCTION
     $say = $response->addChild("Say", "Great! Let's get you scheduled for your first session. Please say a date like $spokenDate.");
-    $say->addAttribute("voice", "Polly.Amy-Neural");
+    $say->addAttribute("voice", "Polly.Joanna-Neural");
 
     $handleDateUrl = "https://doable.net/voice_agent/twilio_handle_date.php";
     // NEW DATE GATHER
@@ -154,13 +154,13 @@ if ($isYes) {
 } elseif ($isNo) {
     // --- USER SAID NO ---
     $response->addChild("Say", "Alright, thank you for your time. Have a great day! Goodbye.")
-        ->addAttribute("voice", "Polly.Amy-Neural");
+        ->addAttribute("voice", "Polly.Joanna-Neural");
     $response->addChild("Hangup");
 } else {
     $handleYesNoUrl = "https://doable.net/voice_agent/twilio_handle_yes_no.php";
     // --- NOT CLEAR ---
     $response->addChild("Say", "Sorry, I didn't quite catch that. Please clearly say yes or no.")
-        ->addAttribute("voice", "Polly.Amy-Neural");
+        ->addAttribute("voice", "Polly.Joanna-Neural");
 
     // REASK (redirect back to yes/no handler)
     $response->addChild("Redirect", $handleYesNoUrl);

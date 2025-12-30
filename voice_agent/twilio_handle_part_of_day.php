@@ -36,10 +36,12 @@ if ($part == null) {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
     <Response>
-        <Say voice="Polly.Amy-Neural">
-            Sorry,
-            <break time="400ms" />
-            I didn't understand that. Please say the date again.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                Sorry,
+                <break time="400ms" />
+                I didn't understand that. Please say the date again.
+            </amazon:domain>
         </Say>
         <Redirect><?php echo $handleDateUrl; ?></Redirect>
     </Response>
@@ -50,10 +52,12 @@ if ($part == null) {
 $slotsData = getLocationSlotDetails($PK_LOCATION, $date, $part);
 $slots = [];
 foreach ($slotsData as $key => $slot) {
-    $slots[$key + 1] = [
-        'id' => $key + 1,
-        'label' => date('h:i A', strtotime($slot['slot_start_time']))
-    ];
+    if ($key <= 1) {
+        $slots[$key + 1] = [
+            'id' => $key + 1,
+            'label' => date('h:i A', strtotime($slot['slot_start_time']))
+        ];
+    }
 }
 
 // If no slots
@@ -63,10 +67,12 @@ if (empty($slots) && count($slots) == 0) {
     db_perform('DOA_CALL_DETAILS', $CALL_DETAILS, "update", " CALL_SID = '" . $callSid . "'");
 ?>
     <Response>
-        <Say voice="Polly.Amy-Neural">
-            Sorry,
-            <break time="400ms" />
-            there are no available slots on <?php echo date('F j, Y', strtotime($date)); ?> at <?= $part ?>. Would you like to try another date?
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                Sorry,
+                <break time="400ms" />
+                there are no available slots on <?php echo date('F j, Y', strtotime($date)); ?> at <?= $part ?>. Would you like to try another date?
+            </amazon:domain>
         </Say>
         <Redirect><?php echo $handleDateUrl; ?></Redirect>
     </Response>
@@ -81,10 +87,12 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
 <Response>
     <!-- Intro Line -->
-    <Say voice="Polly.Amy-Neural">
-        Great! Here are the available time slots for
-        <?php echo date('F j, Y', strtotime($date)); ?> at <?= $part ?>.
-        <break time="300ms" />
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            Great! Here are the available time slots for
+            <?php echo date('F j, Y', strtotime($date)); ?> at <?= $part ?>.
+            <break time="300ms" />
+        </amazon:domain>
     </Say>
 
     <!-- Slot Selection -->
@@ -99,26 +107,30 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         <?php
         $i = 1;
         foreach ($slots as $slot) {
-            echo '<Say voice="Polly.Amy-Neural">'
+            echo '<Say voice="Polly.Joanna-Neural"><amazon:domain name="conversational">'
                 . 'Option ' . $i . '. '
                 . $slot['label']
                 . '. <break time="200ms"/>'
-                . '</Say>';
+                . '</amazon:domain></Say>';
             $i++;
             if ($i > 9) break; // DTMF limit
         }
         ?>
 
-        <Say voice="Polly.Amy-Neural">
-            Please say the option number or press the corresponding digit on your keypad to select your preferred time slot.
+        <Say voice="Polly.Joanna-Neural">
+            <amazon:domain name="conversational">
+                Please say the option number or press the corresponding digit on your keypad to select your preferred time slot.
+            </amazon:domain>
         </Say>
     </Gather>
 
     <!-- Fallback -->
-    <Say voice="Polly.Amy-Neural">
-        I did not receive a selection.
-        <break time="300ms" />
-        Ending the call now. Goodbye.
+    <Say voice="Polly.Joanna-Neural">
+        <amazon:domain name="conversational">
+            I did not receive a selection.
+            <break time="300ms" />
+            Ending the call now. Goodbye.
+        </amazon:domain>
     </Say>
     <Hangup />
 </Response>
