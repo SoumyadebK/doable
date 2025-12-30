@@ -1,1057 +1,753 @@
-<?php require_once 'includes/homepage/header.php'; ?>
-
-<div class="clearfix"></div>
-
-<!-- START REVOLUTION SLIDER 5.0 -->
-<div class="slide-tmargin">
-    <div class="slidermaxwidth">
-        <div class="rev_slider_wrapper">
-            <!-- START REVOLUTION SLIDER 5.0 auto mode -->
-            <div id="rev_slider" class="rev_slider" data-version="5.0">
-                <ul>
-
-                    <!-- slide    -->
-                    <li data-index="rs-1" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/login_image.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['300','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: capitalize;">Everything</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1500"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">is <span class="text-black">DO</span><span class="text-white">able</span></div>
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['430','240','240','200']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">It's time YOU see how easy business can be.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['470','350','370','300']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-2" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_1.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['280','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">
-                            <span><img class="slide-img" src="assets/homepage/images/doable_logo.png" /></span>
-                            <!-- <span class="text-black">DO</span><span class="text-white">able</span> -->
-                            <!-- <span class="theme-grn-color-text">DOable</span> -->
-                        </div>
-
-                        <!-- LAYER NR. 2 -->
-                        <!-- <div class="tp-caption montserrat uppercase fweight-6 text-white tp-resizeme"
-     data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']" 
-     data-y="['top','top','top','top']" data-voffset="['360','150','150','150']" 
-     data-fontsize="['100','60','50','30']"
-     data-lineheight="['170','100','100','50']"
-     data-width="none"
-     data-height="none"
-     data-whitespace="nowrap"
-     data-transform_idle="o:1;"			 
-     data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;" 
-     data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;" 
-     data-mask_in="x:0px;y:0px;" 
-     data-mask_out="x:inherit;y:inherit;" 
-     data-start="1500" 
-     data-splitin="none" 
-     data-splitout="none" 
-     data-responsive_offset="on" 						
-     style="z-index: 7; white-space: nowrap;text-transform: inherit;">&nbsp;</div> -->
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','240','240','200']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">The all in one platform for your service based business.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['400','240','240','200']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-3" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_2.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['280','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">
-                            <span><img class="slide-img" src="assets/homepage/images/doable_logo.png" /></span>
-                            <!-- <span class="text-black">DO</span><span class="text-white">able</span> -->
-                            <!-- <span class="theme-grn-color-text">DOable</span> -->
-                        </div>
-
-                        <!-- LAYER NR. 2 -->
-                        <!-- <div class="tp-caption montserrat uppercase fweight-6 text-white tp-resizeme"
-     data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']" 
-     data-y="['top','top','top','top']" data-voffset="['360','150','150','150']" 
-     data-fontsize="['100','60','50','30']"
-     data-lineheight="['170','100','100','50']"
-     data-width="none"
-     data-height="none"
-     data-whitespace="nowrap"
-     data-transform_idle="o:1;"			 
-     data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;" 
-     data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;" 
-     data-mask_in="x:0px;y:0px;" 
-     data-mask_out="x:inherit;y:inherit;" 
-     data-start="1500" 
-     data-splitin="none" 
-     data-splitout="none" 
-     data-responsive_offset="on" 						
-     style="z-index: 7; white-space: nowrap;text-transform: inherit;">is <span class="theme-grn-color-text">DOABLE</span></div> -->
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">We make technology easy, DOable you do it all!</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['400','240','240','200']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-4" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_3.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['280','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">
-                            <!-- <span class="text-black">DO</span><span class="text-white">able</span> -->
-                            <span><img class="slide-img" src="assets/homepage/images/doable_logo.png" /></span>
-                            <!-- <span class="theme-grn-color-text">DOable</span> -->
-                        </div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1500"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">Why stress about technology?</div>
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['400','240','240','200']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">With DOable make life easy and focus on what really matters.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['440','350','370','300']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-5" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_4.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['280','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">
-                            <span><img class="slide-img" src="assets/homepage/images/doable_logo.png" /></span>
-                            <!-- <span class="text-black">DO</span><span class="text-white">able</span> -->
-                            <!-- <span class="theme-grn-color-text">DOable</span> -->
-                        </div>
-
-                        <!-- LAYER NR. 2 -->
-                        <!-- <div class="tp-caption montserrat uppercase fweight-6 text-white tp-resizeme"
-     data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']" 
-     data-y="['top','top','top','top']" data-voffset="['360','150','150','150']" 
-     data-fontsize="['100','60','50','30']"
-     data-lineheight="['170','100','100','50']"
-     data-width="none"
-     data-height="none"
-     data-whitespace="nowrap"
-     data-transform_idle="o:1;"			 
-     data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;" 
-     data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;" 
-     data-mask_in="x:0px;y:0px;" 
-     data-mask_out="x:inherit;y:inherit;" 
-     data-start="1500" 
-     data-splitin="none" 
-     data-splitout="none" 
-     data-responsive_offset="on" 						
-     style="z-index: 7; white-space: nowrap;text-transform: inherit;">is <span class="theme-grn-color-text">DOABLE</span></div> -->
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">One system to rule them all.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['400','240','240','200']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-6" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_5.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['280','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">
-                            <span><img class="slide-img" src="assets/homepage/images/doable_logo.png" /></span>
-                            <!-- <span class="text-black">DO</span><span class="text-white">able</span> -->
-                            <!-- <span class="theme-grn-color-text">DOable</span> -->
-                        </div>
-
-                        <!-- LAYER NR. 2 -->
-                        <!-- <div class="tp-caption montserrat uppercase fweight-6 text-white tp-resizeme"
-     data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']" 
-     data-y="['top','top','top','top']" data-voffset="['360','150','150','150']" 
-     data-fontsize="['100','60','50','30']"
-     data-lineheight="['170','100','100','50']"
-     data-width="none"
-     data-height="none"
-     data-whitespace="nowrap"
-     data-transform_idle="o:1;"			 
-     data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;" 
-     data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;" 
-     data-mask_in="x:0px;y:0px;" 
-     data-mask_out="x:inherit;y:inherit;" 
-     data-start="1500" 
-     data-splitin="none" 
-     data-splitout="none" 
-     data-responsive_offset="on" 						
-     style="z-index: 7; white-space: nowrap;text-transform: inherit;">is <span class="theme-grn-color-text">DOABLE</span></div> -->
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">We've got your back.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['400','240','240','200']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-                    <li data-index="rs-7" data-transition="slideleft" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="Power4.easeInOut" data-easeout="Power4.easeInOut" data-masterspeed="2000" data-thumb="../../assets/images/pierbg-100x50.jpg" data-rotate="0" data-saveperformance="off" data-title="Intro" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
-                        <!-- MAIN IMAGE -->
-                        <img src="assets/homepage/images/img_6.jpg" alt="" data-bgposition="center center" data-bgfit="cover" data-bgrepeat="no-repeat" data-bgparallax="10" class="rev-slidebg" data-no-retina>
-                        <!-- LAYERS -->
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption tp-shape tp-shapewrapper  "
-                            id="slide-1688-layer-10"
-                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                            data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
-                            data-width="full"
-                            data-height="full"
-                            data-whitespace="nowrap"
-
-                            data-type="shape"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-                            data-responsive="off"
-                            data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":750,"ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"ease":"nothing"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 5;background-color:rgba(0, 0, 0, 0.25);border-color:rgba(0, 0, 0, 0.50);border-width:0px;"> </div>
-
-                        <!-- LAYER NR. 1 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['300','100','100','110']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: capitalize;">Everything</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption raleway uppercase fweight-6 text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['360','150','150','150']"
-                            data-fontsize="['48','60','50','30']"
-                            data-lineheight="['60','100','100','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="1500"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap;text-transform: inherit;">is <span class="text-black">DO</span><span class="text-white">able</span></div>
-
-                        <!-- LAYER NR. 3 -->
-                        <div class="tp-caption raleway white text-white tp-resizeme"
-                            data-x="['left','left','center','center']" data-hoffset="['20','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['430','240','240','200']"
-                            data-fontsize="['21','16','14','14']"
-                            data-lineheight="['30','70','70','50']"
-                            data-width="none"
-                            data-height="none"
-                            data-whitespace="nowrap"
-                            data-transform_idle="o:1;"
-                            data-transform_in="z:0;rX:0deg;rY:0;rZ:0;sX:1.5;sY:1.5;skX:0;skY:0;opacity:0;s:1500;e:Power3.easeInOut;"
-                            data-transform_out="y:[100%];s:1000;e:Power2.easeInOut;s:1000;e:Power2.easeInOut;"
-                            data-mask_in="x:0px;y:0px;"
-                            data-mask_out="x:inherit;y:inherit;"
-                            data-start="2000"
-                            data-splitin="none"
-                            data-splitout="none"
-                            data-responsive_offset="on"
-                            style="z-index: 7; white-space: nowrap; font-size: 45px; line-height: 30px;">It's time YOU see how easy business can be.</div>
-
-                        <!-- LAYER NR. 2 -->
-                        <div class="tp-caption sbut2 h-dark"
-                            data-x="['left','left','center','center']" data-hoffset="['-7','50','0','0']"
-                            data-y="['top','top','top','top']" data-voffset="['470','350','370','300']"
-                            data-whitespace="nowrap"
-                            data-type="text"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"from":"y:[100%];z:0;rX:0deg;rY:0;rZ:0;sX:1;sY:1;skX:0;skY:0;opacity:0;","mask":"x:0px;y:[100%];","speed":2000,"to":"o:1;","delay":2500,"ease":"Power2.easeInOut"},{"delay":"wait","speed":1000,"to":"y:[100%];","mask":"x:inherit;y:inherit;","ease":"Power2.easeInOut"}]'
-                            data-textAlign="['left','left','left','left']"
-                            data-paddingtop="[30,30,30,30]"
-                            data-paddingright="[30,30,30,30]"
-                            data-paddingbottom="[30,30,30,30]"
-                            data-paddingleft="[30,30,30,30]"
-
-                            style="z-index: 7;"><a class="theme_doable_btn" href="contact_us.php">CONTACT US</a> </div>
-                    </li>
-
-                </ul>
-            </div>
-            <!-- END REVOLUTION SLIDER -->
-        </div>
-    </div>
-    <!-- END REVOLUTION SLIDER WRAPPER -->
-</div>
-<div class="clearfix"></div>
-<!-- END OF SLIDER WRAPPER -->
-
-
-
-<section class="section-side-image section-dark sec-padding clearfix">
-    <div class="img-holder col-md-12 col-sm-12 pull-left">
-        <div class="background-imgholder" style="background:url(images/bg_img1.png);"><img class="nodisplay-image" src="assets/homepage/images/bg_img1.png" alt="" /> </div>
-    </div>
-    <div class="container">
-        <div class="row">
-
-            <div class="col-md-12">
-
-                <div class="col-sm-12">
-                    <div class="sec-title-container less-padding-1 text-left bg-theme-transparent">
-                        <h2 class="font-weight-6 less-mar-1 line-height-5 text-white big-fonts">The ALL in ONE Platform for Service Based Business</h2>
-                        <!-- title line -->
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-                <!--end title-->
-                <div class="row m-0 align-items-center">
-                    <div class="col-md-3">
-                        <div class="text-left">
-                            <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="text-center payment-image-section">
-                            <img src="assets/homepage/images/Twilio_logo.png" />
-                            <img src="assets/homepage/images/stripe_icon.png" />
-                            <img src="assets/homepage/images/square_icon.png" />
-                            <img src="assets/homepage/images/authorize.net_icon.png" />
-                        </div>
-                        <div class="coming-soon-section">
-                            <h3 class="font-weight-6 less-mar-1 line-height-5 text-white">Coming Soon :</h3>
-                            <img src="assets/homepage/images/Intuit_QuickBooks_logo.png" />
-                            <h3 class="font-weight-6 less-mar-1 line-height-5 text-white">& Others</h3>
-                        </div>
-                    </div>
-                    <!--end item-->
-                    <div class="clearfix"></div>
-                </div>
-
-                <!--end item-->
-
-
-            </div>
-            <!--end item-->
-
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DOable – Stop Juggling. Start Growing.</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.5.0/css/fontawesome.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --green: #39b54a;
+            --green-dark: #39b54a;
+            --green-soft: #dcfce7;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+        }
+
+        .btn-primary {
+            background: var(--green);
+            border-color: var(--green);
+            font-weight: 600;
+            padding: .75rem 1.25rem;
+            border-radius: .75rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--green-dark);
+            border-color: var(--green-dark);
+        }
+
+        .badge-soft {
+            background: var(--green-soft);
+            color: var(--green-dark);
+            padding: .5rem 1rem;
+            border-radius: 50rem;
+            font-weight: 500;
+        }
+
+        h1 {
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-weight: 800;
+            letter-spacing: -.6px;
+        }
+
+        .text-green {
+            color: var(--green)
+        }
+
+        .text-muted-custom {
+            color: var(--muted)
+        }
+
+        .card {
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .05);
+            border: 0;
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            /* background:var(--green-soft); */
+            background: #39b54a;
+            /* color:var(--green-dark); */
+            color: #fff;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn-gradient {
+            background: #39b54a;
+        }
+
+        .icon-box svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        section {
+            padding: 5rem 0
+        }
+
+        .bg-soft {
+            background: var(--bg)
+        }
+
+        .nav-new {
+            margin: 0 auto;
+            width: 100%;
+            box-shadow: 1px 7px 8px 0px rgba(0, 0, 0, 0.47);
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 9;
+        }
+
+        .quotes-img {
+            position: absolute;
+            top: -15px;
+            left: -10px;
+        }
+
+        .trusted-section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 32px;
+            padding-bottom: 32px;
+            width: 50%;
+            margin: 0 auto;
+        }
+
+        .trusted-title {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .trusted-list {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .trusted-item {
+            font-size: 18px;
+            color: #6b7280;
+            padding: 0 20px;
+            white-space: nowrap;
+        }
+
+        .trusted-divider {
+            width: 1px;
+            height: 16px;
+            background-color: #e5e7eb;
+        }
+
+        .bg-green-light {
+            background-color: #edfdf4;
+        }
+
+        .color-star {
+            color: #facc15;
+        }
+
+        .what-nos li::marker {
+            color: #39b54a;
+            font-weight: 600;
+        }
+
+        .what-nos li {
+            color: #333;
+        }
+
+        .contact-block {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .icon-badge {
+            width: 44px;
+            height: 44px;
+            background-color: #dcfce7;
+            /* light green */
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .contact-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            /* dark heading */
+            margin-bottom: 4px;
+        }
+
+        .contact-subtitle {
+            font-size: 14px;
+            color: #475569;
+            /* muted gray */
+            line-height: 1.5;
+        }
+
+        .form-card {
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        label span {
+            color: #39b54a;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .textarea .input-icon {
+            top: 20%;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select,
+        .input-wrapper textarea {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-wrapper textarea {
+            resize: none;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus,
+        .input-wrapper textarea:focus {
+            border-color: #39b54a;
+        }
+
+        .consent-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background-color: #edfdf4;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 18px;
+        }
+
+        .consent-box input {
+            margin-top: 3px;
+        }
+
+        .consent-box a {
+            color: #39b54a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #39b54a;
+            border: none;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.95;
+        }
+
+        .form-footer {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 14px;
+            line-height: 1.4;
+        }
+
+        .bg-green {
+            background-color: #39b54a;
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 20px;
+            margin-right: 5px;
+            border: 2px solid #39b54a;
+            padding: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="container-fluid d-flex justify-content-between align-items-center py-3 px-5 nav-new">
+        <div class="fw-bold fs-4">
+            <a href="index.php">
+                <img width="150" src="demo1/images/doable_logo.png" />
+            </a>
         </div>
 
-    </div>
-</section>
-<div class=" clearfix"></div>
-<!--end section-->
+        <div class="ms-auto d-flex gap-2">
+            <a href="contact_us.php" class="btn btn-primary">Request Demo</a>
+            <a href="login.php" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
 
+    <!-- HERO -->
+    <section class="text-center">
+        <div class="container">
+            <span class="badge-soft d-inline-block mb-4" style="font-size: 20px;"><span class="bg-green"></span>Limited Time:
+                Book Your Demo
+                Today!</span>
+            <h1 class="display-2 mb-3">Stop Juggling.<br><span class="text-green">Start Growing.</span></h1>
+            <p class="mx-auto mb-4 text-muted-custom" style="max-width:720px">See how DOable transforms your studio, gym, or
+                wellness business with enterprise-level tools that actually work for small businesses.</p>
+            <div class="d-flex justify-content-center gap-4 flex-wrap mt-4 text-muted-custom small pb-4">
+                <span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circle -->
+                        <circle cx="8" cy="8" r="7" stroke="#39b54a" stroke-width="2" />
 
-<section class="section-side-image section-light sec-padding clearfix technology-section">
-    <div class="img-holder col-md-12 col-sm-12 pull-left">
-        <div class="background-imgholder" style="background:url(http://via.placeholder.com/2000x1500);"><img class="nodisplay-image" src="http://via.placeholder.com/2000x1500" alt="" /> </div>
-    </div>
-    <div class="container">
-        <div class="row tech-easy-row">
+                        <!-- Overlapping tick (extends beyond circle) -->
+                        <path d="M4.2 8.7L6.6 11.1L12.6 5.2" stroke="#39b54a" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    30-Minute Live Demo</span>
+                <span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circle -->
+                        <circle cx="8" cy="8" r="7" stroke="#39b54a" stroke-width="2" />
 
-            <div class="col-sm-12">
-                <div class="sec-title-container text-center">
-                    <h2 class="font-weight-6 less-mar-1 line-height-5 text-black text-uppercase heading-big">We make technology easy</h2>
-                    <!-- <div class="ce-title-line"></div>title line -->
-                </div>
+                        <!-- Overlapping tick (extends beyond circle) -->
+                        <path d="M4.2 8.7L6.6 11.1L12.6 5.2" stroke="#39b54a" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg> No Credit Card Required</span>
+                <span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circle -->
+                        <circle cx="8" cy="8" r="7" stroke="#39b54a" stroke-width="2" />
+
+                        <!-- Overlapping tick (extends beyond circle) -->
+                        <path d="M4.2 8.7L6.6 11.1L12.6 5.2" stroke="#39b54a" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg> Personalized Walkthrough</span>
             </div>
-            <div class="clearfix"></div>
-            <!--end title-->
+            <a class="btn btn-success btn-lg rounded-0 btn-gradient border-0" href="contact_us.php">Schedule Your Free Demo
+                →</a>
+        </div>
+    </section>
 
-            <div class="col-md-3 col-sm-12 col-xs-12">
-                <div class="ce-feature-box-15 margin-bottom text-center">
-                    <div class="iconbox-small round outline-gray-2 center icon text-dark"><span class="icon-presentation"></span></div>
-                    <div class="clearfix"></div>
-                    <br />
-                    <h4 class="title nopadding">Analytics<br>you can read</h4>
-                </div>
+    <section class="trusted-section text-center">
+        <div class="container">
+
+            <div class="trusted-title">
+                Trusted by hundreds of service businesses
             </div>
-            <!--end item-->
 
-            <div class="col-md-3 col-sm-12 col-xs-12">
-                <div class="ce-feature-box-15 margin-bottom text-center">
-                    <div class="iconbox-small round outline-gray-2 center icon text-dark"><span class="icon-global"></span></div>
-                    <div class="clearfix"></div>
-                    <br />
-                    <h4 class="title nopadding">Online access<br>anywhere</h4>
-                </div>
+            <div class="d-flex justify-content-center align-items-center trusted-list flex-wrap">
+                <div class="trusted-item">Yoga Studios</div>
+                <div class="trusted-divider"></div>
+                <div class="trusted-item">Dance Schools</div>
+                <div class="trusted-divider"></div>
+                <div class="trusted-item">Fitness Centers</div>
+                <div class="trusted-divider"></div>
+                <div class="trusted-item">Martial Arts</div>
             </div>
-            <!--end item-->
-
-            <div class="col-md-3 col-sm-12 col-xs-12">
-                <div class="ce-feature-box-15 margin-bottom text-center">
-                    <div class="iconbox-small round outline-gray-2 center icon text-dark"><span class="icon-profile-male"></span></div>
-                    <div class="clearfix"></div>
-                    <br />
-                    <h4 class="title nopadding">Connect clients<br>with ease</h4>
-                </div>
-            </div>
-            <!--end item-->
-
-            <div class="col-md-3 col-sm-12 col-xs-12">
-                <div class="ce-feature-box-15 margin-bottom text-center">
-                    <div class="iconbox-small round outline-gray-2 center icon text-dark"><span class="icon-gears"></span></div>
-                    <div class="clearfix"></div>
-                    <br />
-                    <h4 class="title nopadding">All your apps<br>in one place</h4>
-                </div>
-            </div>
-            <!--end item-->
-
-            <div class="clearfix"></div>
-
 
         </div>
-    </div>
-</section>
-<div class=" clearfix"></div>
-<!--end section-->
+    </section>
 
-
-<section class="sec-paddingg">
-    <div class="container-fluid fluid-container-big">
-        <div class="row">
-            <div class="col-md-6 margin-bottom"> <img src="assets/homepage/images/sticky_notes.jpg" alt="" class="img-responsive" /> </div>
-            <!--end item-->
-
-            <div class="col-md-6 margin-bottom animate-in sec-padding" data-anim-type="fade-in-right" data-anim-delay="100">
-                <div class="col-sm-12 nopadding">
-                    <div class="sec-title-container less-padding-4 text-left">
-                        <h2 class="font-weight-6 less-mar-1 line-height-5 text-uppercase heading-big">you do it all.<br>why stress about<br>the tech?</h2>
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-                <!--end title-->
-                <div class="section-content">
-                    <p class="font-18">Running a business is hard enough. You love what you do, but hate what you don't. The wrong software can make it harder. Don't get caught...</p>
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Buying multiple products to solve your business.</div>
-                    </div>
-                    <!--end item-->
-
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Taking too much time to teach yourself how to do it.</div>
-                    </div>
-                    <!--end item-->
-
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Spending extra money because it's too difficult to do yourself.</div>
-                    </div>
-                    <!--end item-->
-                    <p class="font-18">DOable makes it easy to run your business the way you want.</p><br>
-                    <a class="btn btn-dark uppercase theme_doable_btn" href="contact_us.php">CONTACT US</a>
-                </div>
-                <!--end item-->
-                <div class="clearfix"></div>
+    <!-- FEATURES -->
+    <section>
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Everything You Need to <span class="text-green">Succeed</span></h2>
+                <p class="text-muted-custom">See these powerful features in action during your personalized demo</p>
             </div>
-            <!--end item-->
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="3" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg></div>
+                        <h5>Smart Scheduling</h5>
+                        <p class="text-muted-custom">Automated booking that syncs across all services and instructors.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <circle cx="9" cy="8" r="3" />
+                                <circle cx="17" cy="8" r="3" />
+                                <path d="M2 20c0-3 3-5 7-5" />
+                                <path d="M12 20c0-3 3-5 7-5" />
+                            </svg></div>
+                        <h5>Client Management</h5>
+                        <p class="text-muted-custom">Track attendance, progress, and engagement in one dashboard.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <rect x="2" y="5" width="20" height="14" rx="2" />
+                                <line x1="2" y1="10" x2="22" y2="10" />
+                            </svg></div>
+                        <h5>Payments Made Easy</h5>
+                        <p class="text-muted-custom">Accept payments, manage memberships, and automate billing.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <path d="M3 17l6-6 4 4 7-7" />
+                            </svg></div>
+                        <h5>Growth Analytics</h5>
+                        <p class="text-muted-custom">Real-time insights to grow your business and revenue.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 7v5l3 3" />
+                            </svg></div>
+                        <h5>Save 15+ Hours/Week</h5>
+                        <p class="text-muted-custom">Automate repetitive tasks and focus on teaching.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border bg-green-light card p-4 h-100">
+                        <div class="icon-box"><svg viewBox="0 0 24 24">
+                                <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z" />
+                            </svg></div>
+                        <h5>Enterprise Security</h5>
+                        <p class="text-muted-custom">Bank-level security protecting business and client data.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center pt-4">
+                    <a class="btn btn-success btn-lg rounded-0 btn-gradient border-0" href="contact_us.php">See it in Action -
+                        Book Demo</a>
+                </div>
+            </div>
         </div>
-    </div>
-</section>
-<div class="clearfix"></div>
-<!-- end section -->
-<section class="sec-paddingg">
-    <div class="container-fluid fluid-container-big">
-        <div class="row">
-            <div class="col-md-6 margin-bottom animate-in sec-padding" data-anim-type="fade-in-right" data-anim-delay="100">
-                <div class="col-sm-12 nopadding">
-                    <div class="sec-title-container less-padding-4 text-left">
-                        <h2 class="font-weight-6 less-mar-1 line-height-5 text-uppercase heading-big">make life easy and<br>focus on what<br>really matters</h2>
-                    </div>
-                </div>
-                <div class="clearfix"></div>
-                <!--end title-->
-                <div class="section-content">
-                    <p class="font-18">you do what you do because you love it. choosing the right product can help save you time and money in the end. successful owners...</p>
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Choose one product to organize all their service based needs.</div>
-                    </div>
-                    <!--end item-->
+    </section>
 
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Choose a product that takes minutes rather than months to setup.</div>
-                    </div>
-                    <!--end item-->
-
-                    <div class="iconlist-2">
-                        <div class="icon dark"><i class="fa fa-arrow-circle-right"></i></div>
-                        <div class="text font-18">Choose a product that's easy to use saving them from frivolous spending.</div>
-                    </div>
-                    <!--end item-->
-                    <p class="font-18">It's time you check out what DOable can do for you and your business.</p><br>
-                    <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
-                </div>
-                <!--end item-->
-                <div class="clearfix"></div>
+    <!-- TESTIMONIALS -->
+    <section class="bg-soft">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Business Owners Like You <span class="text-green">Love DOable</span></h2>
+                <p class="text-muted-custom">See what happened after their demo</p>
             </div>
-            <!--end item-->
-            <div class="col-md-6 margin-bottom"> <img src="assets/homepage/images/office-work.jpg" alt="" class="img-responsive" /> </div>
-            <!--end item-->
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card p-4 h-100">
+                        <div class="quotes-img">
+                            <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="12" fill="#39b54a" />
+                                <path
+                                    d="M8.4 7.8C7.02 7.8 5.9 8.92 5.9 10.3c0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8H8.4zm6.4 0c-1.38 0-2.5 1.12-2.5 2.5 0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8h-1.8z"
+                                    fill="#FFFFFF" />
+                            </svg>
+                        </div>
+                        <div class="mb-2 color-star">★★★★★</div>
+                        <p>“DOable gave me my evenings back.”</p>
+                        <small class="text-dark font-600">Sarah Martinez</small>
+                        <small class="text-muted">Owner</small>
+                        <small class="text-success">Rhythm & Flow Dance Studio</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 h-100">
+                        <div class="quotes-img">
+                            <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="12" fill="#39b54a" />
+                                <path
+                                    d="M8.4 7.8C7.02 7.8 5.9 8.92 5.9 10.3c0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8H8.4zm6.4 0c-1.38 0-2.5 1.12-2.5 2.5 0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8h-1.8z"
+                                    fill="#FFFFFF" />
+                            </svg>
+                        </div>
+                        <div class="mb-2 color-star">★★★★★</div>
+                        <p>“Attendance increased 35% in one week.”</p>
+                        <small class="text-dark font-600">Sarah Martinez</small>
+                        <small class="text-muted">Owner</small>
+                        <small class="text-success">Rhythm & Flow Dance Studio</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 h-100">
+                        <div class="quotes-img">
+                            <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="12" fill="#39b54a" />
+                                <path
+                                    d="M8.4 7.8C7.02 7.8 5.9 8.92 5.9 10.3c0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8H8.4zm6.4 0c-1.38 0-2.5 1.12-2.5 2.5 0 1.21.87 2.21 2.04 2.43-.09.48-.34.93-.72 1.31l.84.84c1.23-.75 2.14-2.03 2.14-3.52V7.8h-1.8z"
+                                    fill="#FFFFFF" />
+                            </svg>
+                        </div>
+                        <div class="mb-2 color-star">★★★★★</div>
+                        <p>“Saved $800/month on subscriptions.”</p>
+                        <small class="text-dark font-600">Sarah Martinez</small>
+                        <small class="text-muted">Owner</small>
+                        <small class="text-success">Rhythm & Flow Dance Studio</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 text-center">
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <h3 class="text-green fw-bold">15+</h3>
+                        <p class="mb-0">Hours Saved / Week</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <h3 class="text-green fw-bold">98%</h3>
+                        <p class="mb-0">Customer Satisfaction</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <h3 class="text-green fw-bold">$800</h3>
+                        <p class="mb-0">Average Monthly Savings</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</section>
-<div class="clearfix"></div>
-<!-- end section -->
-<section class="section-side-image section-dark sec-padding clearfix">
-    <div class="img-holder col-md-12 col-sm-12 pull-left">
-        <div class="video-background-holder">
-            <div class="video-background-overlay"></div>
-            <video playsinline="playsinline" autoplay="autoplay" muted="muted" loop="loop">
-                <source src="https://storage.coverr.co/videos/Nv4Gqow7scn9XalkdfhPSLNjwNWrYYpE?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6Ijg3NjdFMzIzRjlGQzEzN0E4QTAyIiwiaWF0IjoxNjMzMzkzNjUzfQ.EElJb38kbaq_0OTzJpPnInZjpR8pLDoxwLGskhuoBBc" type="video/mp4">
-            </video>
-        </div>
-    </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="sec-title-container text-center">
-                    <h2 class="font-weight-6 less-mar-1 line-height-5 text-uppercase font-big-head text-white heading-big">how it works</h2>
-                </div>
-            </div>
-            <div class="col-md-6">
+    </section>
 
-                <div class="col-sm-12">
-                    <div class="sec-title-container less-padding-1 text-left bg-theme-transparent">
-                        <h1 class="font-weight-6 less-mar-1 line-height-5 text-white text-uppercase bigger-fonts">one system<br>to rule<br>them all</h1>
+    <!-- CTA FORM -->
+    <section>
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Let’s Get <span class="text-green">Started</span></h2>
+                <p class="text-muted-custom">Ready to transform your business? Fill out the form and we’ll get back to you
+                    within 24 hours.</p>
+            </div>
+
+            <div class="row g-5 align-items-start">
+                <div class="col-md-6">
+                    <h5>Get in Touch</h5>
+                    <p class="text-muted-custom">Have questions about DOable or want to see it in action? Our team will guide you
+                        through a personalized demo tailored to your business.</p>
+                    <div class="contact-block">
+                        <div class="contact-item">
+                            <div class="icon-badge">
+                                <!-- Mail Icon -->
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 6H20V18H4V6Z" stroke="#39b54a" stroke-width="2" stroke-linejoin="round" />
+                                    <path d="M4 7L12 13L20 7" stroke="#39b54a" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+
+                            <div class="contact-text">
+                                <div class="contact-title">Email Us</div>
+                                <div class="contact-subtitle">demo@doable.net</div>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="icon-badge">
+                                <!-- Location Icon -->
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 21C15.5 17.5 19 14.4 19 10A7 7 0 0 0 5 10C5 14.4 8.5 17.5 12 21Z" stroke="#39b54a"
+                                        stroke-width="2" stroke-linejoin="round" />
+                                    <circle cx="12" cy="10" r="2.5" stroke="#39b54a" stroke-width="2" />
+                                </svg>
+                            </div>
+
+                            <div class="contact-text">
+                                <div class="contact-title">Visit Us</div>
+                                <div class="contact-subtitle">
+                                    Serving small businesses nationwide
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-green-light border card p-4 mt-4">
+                        <strong>What Happens Next?</strong>
+                        <ol class="what-nos text-muted-custom mt-2 mb-0">
+                            <li>We review your information within 24 hours</li>
+                            <li>Schedule a personalized demo</li>
+                            <li>Start your free trial with guided setup</li>
+                        </ol>
                     </div>
                 </div>
-                <div class="clearfix"></div>
-                <!--end title-->
+                <div class="col-md-6">
+                    <div class="form-card">
+                        <form>
 
-                <div class="clearfix"></div>
+                            <div class="form-group">
+                                <label>Full Name <span>*</span></label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">👤</span>
+                                    <input type="text" placeholder="John Doe" />
+                                </div>
+                            </div>
 
+                            <div class="form-group">
+                                <label>Email Address <span>*</span></label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">✉️</span>
+                                    <input type="email" placeholder="john@example.com" />
+                                </div>
+                            </div>
 
-            </div>
-            <!--end item-->
+                            <div class="form-group">
+                                <label>Business Name <span>*</span></label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">🏢</span>
+                                    <input type="text" placeholder="Your Studio Name" />
+                                </div>
+                            </div>
 
-        </div>
+                            <div class="form-group">
+                                <label>Business Type <span>*</span></label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">🏬</span>
+                                    <select>
+                                        <option>Select Business Type</option>
+                                    </select>
+                                </div>
+                            </div>
 
-    </div>
-</section>
-<div class=" clearfix"></div>
-<!--end section-->
-<section class="sec-paddingg">
-    <div class="container-fluid fluid-container-big">
-        <div class="row">
-            <div class="col-md-6 margin-bottom"> <img src="assets/homepage/images/vault.jpg" alt="" class="img-responsive" />
-                <h2 class="font-weight-6 less-mar-1 line-height-5 text-capitalize text-white image-over-text bg-theme-transparent big-fonts font-55">We've got<br>your back.</h2>
-            </div>
-            <!--end item-->
+                            <div class="form-group">
+                                <label>Phone Number <span>*</span></label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">📞</span>
+                                    <input type="tel" placeholder="(555) 123-4567" />
+                                </div>
+                            </div>
 
-            <div class="col-md-6 margin-bottom animate-in sec-padding" data-anim-type="fade-in-right" data-anim-delay="100">
-                <div class="col-sm-12 nopadding">
-                    <div class="sec-title-container less-padding-4 text-left">
-                        <!-- <h2 class="font-weight-6 less-mar-1 line-height-5 text-uppercase">We'ev got<br>your back.</h2> -->
+                            <div class="form-group">
+                                <label>Message <span>*</span></label>
+                                <div class="input-wrapper textarea">
+                                    <span class="input-icon">💬</span>
+                                    <textarea rows="4"
+                                        placeholder="Tell us about your business and what you're looking for..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="consent-box">
+                                <input type="checkbox" />
+                                <p>
+                                    I Consent to Receive SMS Notifications, Alerts from Doable LLP.
+                                    Message frequency varies. Message and data rates may apply.
+                                    You can reply STOP to unsubscribe at any time.
+                                    For more information please review our
+                                    <a href="terms_of_use.php">Terms of Use</a> and <a href="privacy_policy.php">Privacy Policy</a>.
+                                </p>
+                            </div>
+
+                            <button class="submit-btn">
+                                Send Message <span>➜</span>
+                            </button>
+
+                            <p class="form-footer">
+                                By submitting this form, you agree to be contacted by our team.
+                                We respect your privacy and will never share your information.
+                            </p>
+
+                        </form>
                     </div>
-                </div>
-                <div class="clearfix"></div>
-                <!--end title-->
-                <div class="section-content">
-                    <p class="font-18">A back end system sophisticated enough to handle all your needs.</p>
-                    <p class="font-18">Our patented softwares technology is at the heart of what makes everything accessible.</p>
-                    <p class="font-18">Connect to your favorite sites including Hubspot, Twilio, Goolge, Xero and more.<br>
-                        Connect your favorite payment platforms like Quickbooks, Stripe, Authorize and Square.</p>
-                    <p class="font-18">Our job is to make your job EASIER.</p><br>
-                    <!--end item-->
-                    <a class="btn btn-dark theme_doable_btn uppercase" href="contact_us.php">CONTACT US</a>
-                </div>
-                <!--end item-->
-                <div class="clearfix"></div>
-            </div>
-            <!--end item-->
-        </div>
-    </div>
-</section>
-<div class="clearfix"></div>
-<!-- end section -->
 
-<?php include 'includes/homepage/footer.php'; ?>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-dark text-secondary py-4">
+        <div class="container dd-flex jjustify-content-between fflex-wrap">
+            <div class="row">
+                <div class="col-md-4">
+                    <h3 class="text-success mb-0">
+                        DOable.net
+                    </h3>
+                    <small>Enterprise-level business management for small service businesses.</small>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-success text-center mt-4">
+                        Anything is DOable
+                    </h5>
+                </div>
+                <div class="col-md-4 text-right pt-2" style="text-align: right;">
+                    <small class="mb-0">2025 DOable.net</small><br />
+                    <small class="mb-0">Made with
+                        <img src="demo1/images/heart.png" /> for small businesses</small>
+                </div>
+            </div>
+            <!-- <div>© 2025 DOable.net</div>
+    <div>Anything is DOable.</div> -->
+        </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.5.0/js/fontawesome.min.js"></script>
+</body>
+
+</html>

@@ -34,7 +34,8 @@ $PAYMENT_QUERY = "SELECT
                     CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
                     DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
-                    DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION,
+                    DOA_ENROLLMENT_MASTER.PK_PACKAGE
                 FROM DOA_ENROLLMENT_PAYMENT 
                 LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
                     ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
@@ -144,20 +145,32 @@ if ($type === 'export') {
                 $MISC_AMOUNT = $AMOUNT_PAID - $SUNDRY_AMOUNT;
             }
 
-            switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
-                case 1:
-                    $sale_code = 'PORI';
-                    break;
-                case 2:
-                    $sale_code = 'ORI';
-                    break;
-                case 3:
-                    $sale_code = 'EXT';
-                    break;
+            if ($SERVICE_CLASS == 5) {
+                $PK_PACKAGE = $payment_data->fields['PK_PACKAGE'];
+                $package_data = $db_account->Execute("SELECT PACKAGE_NAME FROM DOA_PACKAGE WHERE PK_PACKAGE = " . $PK_PACKAGE);
+                if ($package_data->RecordCount() > 0) {
+                    $package_name = $package_data->fields['PACKAGE_NAME'];
+                } else {
+                    $package_name = 'Custom Package';
+                }
+                $sale_code = 'MISC';
+            } else {
+                $package_name = null;
+                switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
+                    case 1:
+                        $sale_code = 'PORI';
+                        break;
+                    case 2:
+                        $sale_code = 'ORI';
+                        break;
+                    case 3:
+                        $sale_code = 'EXT';
+                        break;
 
-                default:
-                    $sale_code = 'REN';
-                    break;
+                    default:
+                        $sale_code = 'REN';
+                        break;
+                }
             }
 
             $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
@@ -176,7 +189,8 @@ if ($type === 'export') {
                 "sale_code" => $sale_code,
                 "number_of_units" => $TOTAL_UNIT,
                 "sale_value" => $TOTAL_AMOUNT,
-                "cash" => $AMOUNT_PAID,
+                "cash" => ($MISC_AMOUNT <= 0) ? $AMOUNT_PAID : 0,
+                "custom_package" => $package_name,
                 "miscellaneous_services" => $MISC_AMOUNT,
                 "sundry" => $SUNDRY_AMOUNT,
             );

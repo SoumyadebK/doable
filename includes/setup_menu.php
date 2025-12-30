@@ -65,7 +65,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                                 <a class="dropdown-item" href="../admin/all_email_accounts.php">Email Accounts</a>
                                 <a class="dropdown-item" href="../admin/all_email_templates.php">Email Templates</a>
                                 <a class="dropdown-item" href="../admin/all_text_templates.php">Text Templates</a>
-                                <a class="dropdown-item" href="../admin/test_chat_gpt.php">Assistant</a>
+                                <!-- <a class="dropdown-item" href="../admin/test_chat_gpt.php">Assistant</a> -->
                             </div>
                         </li>
                         <li class="nav-item dropdown">

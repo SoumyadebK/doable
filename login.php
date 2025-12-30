@@ -171,7 +171,9 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
 
         <div class="login-register" style="background-image:url(assets/images/background/login_image.jpg);">
             <div>
-                <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+                <a href="index.php">
+                    <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+                </a>
             </div>
             <div class="login-box card">
                 <div class="card-body">
