@@ -1,3 +1,8 @@
+<?php
+global $db;
+require_once('global/config.php');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -648,7 +653,7 @@
                                 <label>Full Name <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">👤</span>
-                                    <input type="text" placeholder="John Doe" />
+                                    <input type="text" placeholder="Full Name" />
                                 </div>
                             </div>
 
@@ -656,7 +661,7 @@
                                 <label>Email Address <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">✉️</span>
-                                    <input type="email" placeholder="john@example.com" />
+                                    <input type="email" placeholder="Email Address" />
                                 </div>
                             </div>
 
@@ -664,7 +669,7 @@
                                 <label>Business Name <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">🏢</span>
-                                    <input type="text" placeholder="Your Studio Name" />
+                                    <input type="text" placeholder="Business Name" />
                                 </div>
                             </div>
 
@@ -673,7 +678,14 @@
                                 <div class="input-wrapper">
                                     <span class="input-icon">🏬</span>
                                     <select>
-                                        <option>Select Business Type</option>
+                                        <option value="">Select Business Type</option>
+                                        <?php
+                                        $row = $db->Execute("SELECT PK_BUSINESS_TYPE, BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE = 1");
+                                        while (!$row->EOF) { ?>
+                                            <option value="<?php echo $row->fields['PK_BUSINESS_TYPE']; ?>"><?= $row->fields['BUSINESS_TYPE'] ?></option>
+                                        <?php
+                                            $row->MoveNext();
+                                        } ?>
                                     </select>
                                 </div>
                             </div>
@@ -682,7 +694,7 @@
                                 <label>Phone Number <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">📞</span>
-                                    <input type="tel" placeholder="(555) 123-4567" />
+                                    <input type="tel" placeholder="Phone Number" />
                                 </div>
                             </div>
 
