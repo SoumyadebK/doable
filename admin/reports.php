@@ -194,23 +194,19 @@ if (!empty($_GET['NAME'])) {
         selectOtherMonths: true,
         changeMonth: true,
         changeYear: true,
-        //calculateWeek: wk,
         calculateWeek: function(date) {
             return '#' + getBusinessWeek(date).week;
         },
 
         beforeShowDay: function(date) {
-            return [date.getDay() === 0, '']; // only Sundays selectable
+            return [date.getDay() === 0, ''];
         },
 
         onSelect: function(dateText) {
             let d = new Date(dateText);
             let bw = getBusinessWeek(d);
 
-            let start_date =
-                (d.getMonth() + 1) + '/' +
-                d.getDate() + '/' +
-                d.getFullYear();
+            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
 
             $(this).closest('form').find('#start_date').val(start_date);
             $(this).val("Week Number " + bw.week);
@@ -220,20 +216,16 @@ if (!empty($_GET['NAME'])) {
 
     function getBusinessWeek(date) {
         let d = new Date(date);
-
-        // Always normalize to Sunday
         d.setDate(d.getDate() - d.getDay());
 
         let year = d.getFullYear();
 
-        // 🔹 OLD LOGIC (up to 2025)
+        // Logic for up to 2025
         if (year <= 2025) {
             let yearStart = new Date(year, 0, 1);
             yearStart.setDate(yearStart.getDate() - yearStart.getDay());
 
-            let week = Math.floor(
-                (d - yearStart) / (7 * 24 * 60 * 60 * 1000)
-            ) + 1;
+            let week = Math.floor((d - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
 
             return {
                 week,
@@ -241,7 +233,7 @@ if (!empty($_GET['NAME'])) {
             };
         }
 
-        // 🔹 NEW LOGIC (2026 onward)
+        // Logic for 2026 onward
         let firstSunday = new Date(year, 0, 1);
         if (firstSunday.getDay() !== 0) {
             firstSunday.setDate(1 + (7 - firstSunday.getDay()));

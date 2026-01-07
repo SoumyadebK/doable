@@ -15,11 +15,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-$week_number = $_GET['week_number'];
-$YEAR = date('Y');
-
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+$week_number = $_GET['week_number'];
+$YEAR = date('Y', strtotime($from_date));
 
 $enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";

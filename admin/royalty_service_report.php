@@ -15,11 +15,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-$week_number = $_GET['week_number'];
-$YEAR = date('Y', strtotime($_GET['start_date']));
-
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+$week_number = $_GET['week_number'];
+$YEAR = date('Y', strtotime($from_date));
 
 $PAYMENT_QUERY = "SELECT 
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, 

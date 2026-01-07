@@ -15,11 +15,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-$week_number = $_GET['week_number'];
-$YEAR = date('Y');
-
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+$week_number = $_GET['week_number'];
+$YEAR = date('Y', strtotime($from_date));
 
 $weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $net_year_date_condition = "'" . date('Y', strtotime($to_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
