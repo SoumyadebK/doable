@@ -19,6 +19,15 @@ $access_token = getAccessToken();
 $authorization = "Authorization: Bearer " . $access_token;
 
 $url = constant('ami_api_url') . '/api/v1/reports';
+
+$data_past_year = [
+    'type' => $report_type,
+    'week_year' => date('Y') - 1,
+];
+$post_data_past_year = callArturMurrayApiGet($url, $data_past_year, $authorization);
+$return_data_past_year = json_decode($post_data_past_year, true);
+
+
 $data = [
     'type' => $report_type
 ];
@@ -60,6 +69,20 @@ if ($report_type == 'miscellaneous') { ?>
         </thead>
         <tbody>
             <?php foreach (array_reverse($return_data) as $key => $value) { ?>
+                <tr style="text-align: center;">
+                    <td>
+                        <?= $value['week_number'] ?>
+                    </td>
+                    <td>
+                        <?= $value['week_year'] ?>
+                    </td>
+                    <td>
+                        <?= ($value['revised']) ? date('m/d/Y h:i A', strtotime($value['updated_at']))  : date('m/d/Y h:i A', strtotime($value['created_at'])) ?>
+                    </td>
+                </tr>
+            <?php } ?>
+
+            <?php foreach (array_reverse($return_data_past_year) as $key => $value) { ?>
                 <tr style="text-align: center;">
                     <td>
                         <?= $value['week_number'] ?>

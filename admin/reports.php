@@ -194,44 +194,79 @@ if (!empty($_GET['NAME'])) {
         selectOtherMonths: true,
         changeMonth: true,
         changeYear: true,
-        calculateWeek: wk,
-        beforeShowDay: function(date) {
-            if (date.getDay() === 0) {
-                return [true, ''];
-            }
-            return [false, ''];
+        //calculateWeek: wk,
+        calculateWeek: function(date) {
+            return '#' + getBusinessWeek(date).week;
         },
-        onSelect: function(dateText, inst) {
+
+        beforeShowDay: function(date) {
+            return [date.getDay() === 0, '']; // only Sundays selectable
+        },
+
+        onSelect: function(dateText) {
             let d = new Date(dateText);
-            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+            let bw = getBusinessWeek(d);
+
+            let start_date =
+                (d.getMonth() + 1) + '/' +
+                d.getDate() + '/' +
+                d.getFullYear();
+
             $(this).closest('form').find('#start_date').val(start_date);
-            d.setDate(d.getDate() - 363);
-            let week_number = $.datepicker.iso8601Week(d);
-            let report_type = $(this).closest('form').find('#NAME').val();
-            $(this).val("Week Number " + week_number);
-            /* $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: "POST",
-                data: {
-                    FUNCTION_NAME: 'getReportDetails',
-                    REPORT_TYPE: report_type,
-                    WEEK_NUMBER: week_number,
-                    YEAR: (d.getFullYear() + 1)
-                },
-                async: false,
-                cache: false,
-                success: function(result) {
-                    $('#last_export_message').text(result);
-                }
-            }); */
+            $(this).val("Week Number " + bw.week);
         }
     });
 
-    function wk(d) {
+
+    function getBusinessWeek(date) {
+        let d = new Date(date);
+
+        // Always normalize to Sunday
+        d.setDate(d.getDate() - d.getDay());
+
+        let year = d.getFullYear();
+
+        // 🔹 OLD LOGIC (up to 2025)
+        if (year <= 2025) {
+            let yearStart = new Date(year, 0, 1);
+            yearStart.setDate(yearStart.getDate() - yearStart.getDay());
+
+            let week = Math.floor(
+                (d - yearStart) / (7 * 24 * 60 * 60 * 1000)
+            ) + 1;
+
+            return {
+                week,
+                year
+            };
+        }
+
+        // 🔹 NEW LOGIC (2026 onward)
+        let firstSunday = new Date(year, 0, 1);
+        if (firstSunday.getDay() !== 0) {
+            firstSunday.setDate(1 + (7 - firstSunday.getDay()));
+        }
+
+        let diff = d - firstSunday;
+        let week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+        // If date falls before first Sunday, belongs to previous year
+        if (week <= 0) {
+            return getBusinessWeek(new Date(year - 1, 11, 31));
+        }
+
+        return {
+            week,
+            year
+        };
+    }
+
+
+    /* function wk(d) {
         var d = new Date(d);
         d.setDate(d.getDate() - 363);
-        return '#' + $.datepicker.iso8601Week(d);
-    }
+        return '#' + $.datepicker(d);
+    } */
 
     function showReportLog(param) {
         $('#export_log').html('<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');

@@ -242,7 +242,7 @@ while (!$res->EOF) {
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>Script 1</label>
+                                                    <label>Script 1 for New</label>
                                                     <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
                                                     <?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1'] : '' ?>
                                                     </textarea>
@@ -251,7 +251,7 @@ while (!$res->EOF) {
 
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>Script 2</label>
+                                                    <label>Script 2 for New</label>
                                                     <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
                                                     <?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2'] : '' ?>
                                                     </textarea>
@@ -260,9 +260,113 @@ while (!$res->EOF) {
 
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>End Script</label>
+                                                    <label>End Script for New</label>
                                                     <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
                                                     <?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT'] : '' ?>
+                                                    </textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 1 for 1st Contact</label>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 2 for 1st Contact</label>
+                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>End Script for 1st Contact</label>
+                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 1 for 2nd Contact</label>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script 2 for 2nd Contact</label>
+                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>End Script for 2nd Contact</label>
+                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+
+
+
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script for Yes/No</label>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script if Yes</label>
+                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script if No</label>
+                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
+
+                                                    </textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script if No Response is received</label>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
+
                                                     </textarea>
                                                 </div>
                                             </div>

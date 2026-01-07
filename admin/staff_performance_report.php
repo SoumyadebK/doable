@@ -450,62 +450,78 @@ if (!empty($_GET['WEEK_NUMBER'])) {
 
 <script>
     $(document).ready(function() {
-        // Function to calculate week number (simplified)
-        function getWeekNumber(date) {
-            var d = new Date(date);
-            // Copy date so don't modify original
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            // Set to nearest Thursday: current date + 4 - current day of week
-            // Make Sunday's day number 7
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            // Get first day of year
-            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            // Calculate full weeks to nearest Thursday
-            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            return weekNo;
-        }
-
-        // Initialize week picker
         $(".week-picker").datepicker({
             showWeek: true,
-            firstDay: 0, // Start week on Sunday
             showOtherMonths: true,
             selectOtherMonths: true,
             changeMonth: true,
             changeYear: true,
-            beforeShowDay: function(date) {
-                // Only allow selection of Sundays
-                if (date.getDay() === 0) {
-                    return [true, 'ui-state-sunday', ''];
-                }
-                return [false, '', ''];
+            //calculateWeek: wk,
+            calculateWeek: function(date) {
+                return '#' + getBusinessWeek(date).week;
             },
-            onSelect: function(dateText, inst) {
-                let selectedDate = new Date(dateText);
 
-                // Set the start date (selected Sunday)
-                let start_date = selectedDate.getFullYear() + '-' +
-                    String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' +
-                    String(selectedDate.getDate()).padStart(2, '0');
+            beforeShowDay: function(date) {
+                return [date.getDay() === 0, '']; // only Sundays selectable
+            },
 
-                // Calculate week number
-                let week_number = getWeekNumber(selectedDate);
-                let year = selectedDate.getFullYear();
+            onSelect: function(dateText) {
+                let d = new Date(dateText);
+                let bw = getBusinessWeek(d);
 
-                // Set hidden field values
-                $('#start_date').val(start_date);
+                let start_date =
+                    (d.getMonth() + 1) + '/' +
+                    d.getDate() + '/' +
+                    d.getFullYear();
 
-                // Update display value
-                $(this).val("Week Number " + week_number);
-
-                console.log('Selected:', {
-                    dateText: dateText,
-                    start_date: start_date,
-                    week_number: week_number,
-                    year: year
-                });
+                $(this).closest('form').find('#start_date').val(start_date);
+                $(this).val("Week Number " + bw.week);
             }
         });
+
+
+        function getBusinessWeek(date) {
+            let d = new Date(date);
+
+            // Always normalize to Sunday
+            d.setDate(d.getDate() - d.getDay());
+
+            let year = d.getFullYear();
+
+            // 🔹 OLD LOGIC (up to 2025)
+            if (year <= 2025) {
+                let yearStart = new Date(year, 0, 1);
+                yearStart.setDate(yearStart.getDate() - yearStart.getDay());
+
+                let week = Math.floor(
+                    (d - yearStart) / (7 * 24 * 60 * 60 * 1000)
+                ) + 1;
+
+                return {
+                    week,
+                    year
+                };
+            }
+
+            // 🔹 NEW LOGIC (2026 onward)
+            let firstSunday = new Date(year, 0, 1);
+            if (firstSunday.getDay() !== 0) {
+                firstSunday.setDate(1 + (7 - firstSunday.getDay()));
+            }
+
+            let diff = d - firstSunday;
+            let week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+            // If date falls before first Sunday, belongs to previous year
+            if (week <= 0) {
+                return getBusinessWeek(new Date(year - 1, 11, 31));
+            }
+
+            return {
+                week,
+                year
+            };
+        }
 
         // Set initial value based on PHP variables
         <?php if (!empty($week_number)): ?>
