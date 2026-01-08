@@ -1,4 +1,10 @@
 <?php require_once 'includes/homepage/header.php'; ?>
+<style>
+    h5 {
+        margin-top: 25px;
+        margin-bottom: 0px;
+    }
+</style>
 
 <div class="clearfix"></div>
 
@@ -175,6 +181,12 @@
 
                 <p>
                     If you have questions about this Policy, contact us at <strong>support@doable.net</strong>.
+                </p>
+
+                <h5>SMS/Text Messaging Privacy</h5>
+
+                <p>
+                    We do not share mobile contact information with third parties or affiliates for marketing or promotional purposes. Information may be shared with subcontractors in support services, such as customer service. All other categories exclude text messaging originator opt-in data and consent; this information will not be shared with any third parties.
                 </p>
 
                 <!-- <h5 class="font-weight-5 Roboto less-mar-1 line-height-3 ce-title-top-text">Robert Melgoza<br/>Arthur Murray Woodland Hills<br/>Arthur Murray Thousand Oaks<br/>Floating Rain, Inc</h5> -->

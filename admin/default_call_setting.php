@@ -32,6 +32,16 @@ if (!empty($_POST)) {
         $data['SCRIPT_1']           = $_POST['SCRIPT_1'][$loc_id];
         $data['SCRIPT_2']           = $_POST['SCRIPT_2'][$loc_id];
         $data['END_SCRIPT']         = $_POST['END_SCRIPT'][$loc_id];
+        $data['SCRIPT_1_1ST_CONTACT']   = $_POST['SCRIPT_1_1ST_CONTACT'][$loc_id];
+        $data['SCRIPT_2_1ST_CONTACT']   = $_POST['SCRIPT_2_1ST_CONTACT'][$loc_id];
+        $data['END_SCRIPT_1ST_CONTACT'] = $_POST['END_SCRIPT_1ST_CONTACT'][$loc_id];
+        $data['SCRIPT_1_2ND_CONTACT']   = $_POST['SCRIPT_1_2ND_CONTACT'][$loc_id];
+        $data['SCRIPT_2_2ND_CONTACT']   = $_POST['SCRIPT_2_2ND_CONTACT'][$loc_id];
+        $data['END_SCRIPT_2ND_CONTACT'] = $_POST['END_SCRIPT_2ND_CONTACT'][$loc_id];
+        $data['YES_NO_SELECTION']      = $_POST['YES_NO_SELECTION'][$loc_id];
+        $data['IF_YES']                = $_POST['IF_YES'][$loc_id];
+        $data['IF_NO']                 = $_POST['IF_NO'][$loc_id];
+        $data['NO_RESPONSE']           = $_POST['NO_RESPONSE'][$loc_id];
         $data['ACTIVE']             = 1;
 
         if ($check->RecordCount() > 0) {
@@ -70,6 +80,16 @@ while (!$res->EOF) {
         'SCRIPT_1'           => $res->fields['SCRIPT_1'],
         'SCRIPT_2'           => $res->fields['SCRIPT_2'],
         'END_SCRIPT'         => $res->fields['END_SCRIPT'],
+        'SCRIPT_1_1ST_CONTACT'   => $res->fields['SCRIPT_1_1ST_CONTACT'],
+        'SCRIPT_2_1ST_CONTACT'   => $res->fields['SCRIPT_2_1ST_CONTACT'],
+        'END_SCRIPT_1ST_CONTACT' => $res->fields['END_SCRIPT_1ST_CONTACT'],
+        'SCRIPT_1_2ND_CONTACT'   => $res->fields['SCRIPT_1_2ND_CONTACT'],
+        'SCRIPT_2_2ND_CONTACT'   => $res->fields['SCRIPT_2_2ND_CONTACT'],
+        'END_SCRIPT_2ND_CONTACT' => $res->fields['END_SCRIPT_2ND_CONTACT'],
+        'YES_NO_SELECTION'      => $res->fields['YES_NO_SELECTION'],
+        'IF_YES'                => $res->fields['IF_YES'],
+        'IF_NO'                 => $res->fields['IF_NO'],
+        'NO_RESPONSE'           => $res->fields['NO_RESPONSE'],
         'ACTIVE'             => $res->fields['ACTIVE'],
     ];
 
@@ -243,131 +263,103 @@ while (!$res->EOF) {
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 1 for New</label>
-                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
-                                                    <?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1'] : '' ?>
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 2 for New</label>
-                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
-                                                    <?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2'] : '' ?>
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>End Script for New</label>
-                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
-                                                    <?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT'] : '' ?>
-                                                    </textarea>
+                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT'] : '' ?></textarea>
                                                 </div>
                                             </div>
                                         </div>
+
 
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 1 for 1st Contact</label>
-                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_1_1ST_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1_1ST_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1_1ST_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 2 for 1st Contact</label>
-                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_2_1ST_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2_1ST_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2_1ST_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>End Script for 1st Contact</label>
-                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="END_SCRIPT_1ST_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT_1ST_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT_1ST_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
                                         </div>
+
 
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 1 for 2nd Contact</label>
-                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_1_2ND_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1_2ND_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_1_2ND_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script 2 for 2nd Contact</label>
-                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="SCRIPT_2_2ND_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2_2ND_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['SCRIPT_2_2ND_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>End Script for 2nd Contact</label>
-                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="END_SCRIPT_2ND_CONTACT[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT_2ND_CONTACT']) ? $DEFAULT_CALL_SETTING[$loc_id]['END_SCRIPT_2ND_CONTACT'] : '' ?></textarea>
                                                 </div>
                                             </div>
                                         </div>
-
-
-
-
-
 
 
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>Script for Yes/No</label>
-                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <label>Script for Yes/No Selection</label>
+                                                    <textarea class="form-control" name="YES_NO_SELECTION[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['YES_NO_SELECTION']) ? $DEFAULT_CALL_SETTING[$loc_id]['YES_NO_SELECTION'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>Script if Yes</label>
-                                                    <textarea class="form-control" name="SCRIPT_2[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <label>Script if Selected Yes</label>
+                                                    <textarea class="form-control" name="IF_YES[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['IF_YES']) ? $DEFAULT_CALL_SETTING[$loc_id]['IF_YES'] : '' ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-4">
                                                 <div class="form-group">
-                                                    <label>Script if No</label>
-                                                    <textarea class="form-control" name="END_SCRIPT[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <label>Script if Selected No</label>
+                                                    <textarea class="form-control" name="IF_NO[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['IF_NO']) ? $DEFAULT_CALL_SETTING[$loc_id]['IF_NO'] : '' ?></textarea>
                                                 </div>
                                             </div>
                                         </div>
+
 
                                         <div class="row">
                                             <div class="col-4">
                                                 <div class="form-group">
                                                     <label>Script if No Response is received</label>
-                                                    <textarea class="form-control" name="SCRIPT_1[<?= $loc_id ?>]" rows="5">
-
-                                                    </textarea>
+                                                    <textarea class="form-control" name="NO_RESPONSE[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['NO_RESPONSE']) ? $DEFAULT_CALL_SETTING[$loc_id]['NO_RESPONSE'] : '' ?></textarea>
                                                 </div>
                                             </div>
                                         </div>
