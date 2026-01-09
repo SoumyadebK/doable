@@ -201,18 +201,18 @@ if (!empty($_GET['START_DATE'])) {
                             <div class="card">
                                 <div class="card-body" style="padding-bottom: 0px !important;">
                                     <form class="form-material form-horizontal" action="" method="get" id="reportForm">
-                                        <input type="hidden" name="start_date" id="start_date">
-                                        <input type="hidden" name="end_date" id="end_date">
+                                        <!-- <input type="hidden" name="start_date" id="start_date">
+                                        <input type="hidden" name="end_date" id="end_date"> -->
                                         <input type="hidden" name="NAME" id="NAME" value="semi_annual_student_inventory_report">
                                         <div class="row justify-content-start">
                                             <div class="col-2">
                                                 <div class="form-group">
-                                                    <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['start_date']) ? date('m/d/Y', strtotime($_GET['start_date'])) : '' ?>" required>
+                                                    <input type="text" id="START_DATE" name="START_DATE" class="form-control" placeholder="Start Date" value="<?= !empty($_GET['start_date']) ? date('m/d/Y', strtotime($_GET['start_date'])) : '' ?>" required>
                                                 </div>
                                             </div>
                                             <div class="col-2">
                                                 <div class="form-group">
-                                                    <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['end_date']) ? date('m/d/Y', strtotime($_GET['end_date'])) : '' ?>" required>
+                                                    <input type="text" id="END_DATE" name="END_DATE" class="form-control" placeholder="End Date" value="<?= !empty($_GET['end_date']) ? date('m/d/Y', strtotime($_GET['end_date'])) : '' ?>" required>
                                                 </div>
                                             </div>
                                             <div class="col-3">
@@ -371,67 +371,19 @@ if (!empty($_GET['START_DATE'])) {
 
 <script>
     $(document).ready(function() {
-        $(".week-picker").datepicker({
-            showWeek: true,
-            showOtherMonths: true,
-            selectOtherMonths: true,
-            changeMonth: true,
-            changeYear: true,
-            calculateWeek: function(date) {
-                return '#' + getBusinessWeek(date).week;
-            },
-
-            beforeShowDay: function(date) {
-                return [date.getDay() === 0, ''];
-            },
-
-            onSelect: function(dateText) {
-                let d = new Date(dateText);
-                let bw = getBusinessWeek(d);
-
-                let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
-
-                $(this).closest('form').find('#start_date').val(start_date);
-                $(this).val("Week Number " + bw.week);
+        $("#START_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#END_DATE").datepicker("option", "minDate", selected);
+                $("#START_DATE, #END_DATE").trigger("change");
             }
         });
-
-
-        function getBusinessWeek(date) {
-            let d = new Date(date);
-            d.setDate(d.getDate() - d.getDay());
-
-            let year = d.getFullYear();
-
-            if (year <= 2025) {
-                let yearStart = new Date(year, 0, 1);
-                yearStart.setDate(yearStart.getDate() - yearStart.getDay());
-
-                let week = Math.floor((d - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
-
-                return {
-                    week,
-                    year
-                };
+        $("#END_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#START_DATE").datepicker("option", "maxDate", selected)
             }
-
-            let firstSunday = new Date(year, 0, 1);
-            if (firstSunday.getDay() !== 0) {
-                firstSunday.setDate(1 + (7 - firstSunday.getDay()));
-            }
-
-            let diff = d - firstSunday;
-            let week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
-
-            if (week <= 0) {
-                return getBusinessWeek(new Date(year - 1, 11, 31));
-            }
-
-            return {
-                week,
-                year
-            };
-        }
+        });
 
         <?php if (!empty($week_number)): ?>
             $('#WEEK_NUMBER1').val("Week Number <?= $week_number ?>");

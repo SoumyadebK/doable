@@ -60,7 +60,7 @@ if (!empty($_GET['NAME'])) {
                                     <h4 class="card-title">Electronic Weekly Reports</h4>
                                 </div>
                                 <form class="form-material form-horizontal" action="" method="get" id="weeklyForm">
-                                    <input type="hidden" name="start_date" id="weekly_start_date">
+                                    <input type="hidden" name="START_DATE" id="weekly_start_date">
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
@@ -103,11 +103,11 @@ if (!empty($_GET['NAME'])) {
                                     <h4 class="card-title">Extra Reports</h4>
                                 </div>
                                 <form class="form-material form-horizontal" action="" method="get" id="extraForm">
-                                    <input type="hidden" name="start_date" id="extra_start_date">
+                                    <!-- <input type="hidden" name="start_date" id="extra_start_date"> -->
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="extra_NAME" <?= ($AMI_ENABLE == 1) ? 'onchange = "showReportLog(this, \'extra_export_log\');"' : '' ?>>
+                                                <select class="form-control" required name="NAME">
                                                     <option value="">Select Report</option>
                                                     <option value="semi_annual_student_inventory_report">SEMI ANNUAL STUDENT INVENTORY REPORT</option>
                                                 </select>
@@ -115,12 +115,12 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>" required>
+                                                <input type="text" id="START_DATE" name="START_DATE" class="form-control" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>" required>
+                                                <input type="text" id="END_DATE" name="END_DATE" class="form-control" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
                                         <div class="col-4">
@@ -184,33 +184,7 @@ if (!empty($_GET['NAME'])) {
 
             let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
 
-            $(this).closest('form').find('input[name="start_date"]').val(start_date);
-            $(this).val("Week Number " + bw.week);
-        }
-    });
-
-    // Initialize extra report datepicker
-    $(".week-picker-extra").datepicker({
-        showWeek: true,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        changeMonth: true,
-        changeYear: true,
-        calculateWeek: function(date) {
-            return '#' + getBusinessWeek(date).week;
-        },
-
-        beforeShowDay: function(date) {
-            return [date.getDay() === 0, ''];
-        },
-
-        onSelect: function(dateText) {
-            let d = new Date(dateText);
-            let bw = getBusinessWeek(d);
-
-            let start_date = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
-
-            $(this).closest('form').find('input[name="start_date"]').val(start_date);
+            $('#weekly_start_date').val(start_date);
             $(this).val("Week Number " + bw.week);
         }
     });
@@ -253,6 +227,22 @@ if (!empty($_GET['NAME'])) {
             year
         };
     }
+
+    $(document).ready(function() {
+        $("#START_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#END_DATE").datepicker("option", "minDate", selected);
+                $("#START_DATE, #END_DATE").trigger("change");
+            }
+        });
+        $("#END_DATE").datepicker({
+            numberOfMonths: 1,
+            onSelect: function(selected) {
+                $("#START_DATE").datepicker("option", "maxDate", selected)
+            }
+        });
+    });
 
     function showReportLog(param, logDivId) {
         $('#' + logDivId).html('<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');
