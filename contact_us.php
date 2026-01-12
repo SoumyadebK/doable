@@ -95,9 +95,11 @@ require_once('includes/homepage/header.php');
                       <input type="checkbox" id="sms_consent" name="sms_consent">
                     </div>
                     <div class="col-md-11" style="margin-left: -25px; width: 97%;">
-                      I Consent to Receive SMS Notifications, Alerts from Doable LLP.
-                      Message frequency varies. Message and data rates may apply. You can reply STOP to unsubscribe at any
-                      time. For more information please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a> and <a href="privacy_policy.php" target="_blank">Privacy Policy</a>.
+                      <p>
+                        I agree to receive text messages from Doable related to service updates and support communications.
+                        Message frequency may vary. Message & data rates may apply. Reply STOP to opt out or HELP for help.
+                        Please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a> and <a href="privacy_policy.php" target="_blank">Privacy Policy</a>.
+                      </p>
                     </div>
                   </label>
                 </div>

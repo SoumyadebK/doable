@@ -163,7 +163,6 @@ if (!empty($_GET['NAME'])) {
 </script>
 
 <script>
-    // Initialize weekly report datepicker
     $(".week-picker-weekly").datepicker({
         showWeek: true,
         showOtherMonths: true,
@@ -189,44 +188,69 @@ if (!empty($_GET['NAME'])) {
         }
     });
 
+    function startOfWeekSunday(d) {
+        let s = new Date(d);
+        s.setHours(0, 0, 0, 0);
+        s.setDate(s.getDate() - s.getDay()); // Sunday = 0
+        return s;
+    }
+
     function getBusinessWeek(date) {
         let d = new Date(date);
-        d.setDate(d.getDate() - d.getDay());
+        d.setHours(0, 0, 0, 0);
 
-        let year = d.getFullYear();
+        let weekStart = startOfWeekSunday(d);
 
-        // Logic for up to 2025
-        if (year <= 2025) {
-            let yearStart = new Date(year, 0, 1);
-            yearStart.setDate(yearStart.getDate() - yearStart.getDay());
-
-            let week = Math.floor((d - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
-
-            return {
-                week,
-                year
-            };
+        // Decide which year this week belongs to (majority rule)
+        let yearCounts = {};
+        for (let i = 0; i < 7; i++) {
+            let wd = new Date(weekStart);
+            wd.setDate(weekStart.getDate() + i);
+            let y = wd.getFullYear();
+            yearCounts[y] = (yearCounts[y] || 0) + 1;
         }
 
-        // Logic for 2026 onward
-        let firstSunday = new Date(year, 0, 1);
-        if (firstSunday.getDay() !== 0) {
-            firstSunday.setDate(1 + (7 - firstSunday.getDay()));
+        let weekYear = Object.keys(yearCounts).reduce(function(a, b) {
+            return yearCounts[a] >= yearCounts[b] ? a : b;
+        });
+
+        weekYear = parseInt(weekYear, 10);
+
+        // Find Week 1 start for that weekYear:
+        // First Sunday whose week has >=4 days in weekYear
+        let jan1 = new Date(weekYear, 0, 1);
+        jan1.setHours(0, 0, 0, 0);
+
+        let w1 = startOfWeekSunday(jan1);
+
+        let daysInWeekYear = 0;
+        for (let j = 0; j < 7; j++) {
+            let d1 = new Date(w1);
+            d1.setDate(w1.getDate() + j);
+            if (d1.getFullYear() === weekYear) {
+                daysInWeekYear++;
+            }
         }
 
-        let diff = d - firstSunday;
-        let week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+        if (daysInWeekYear < 4) {
+            w1.setDate(w1.getDate() + 7);
+        }
 
-        // If date falls before first Sunday, belongs to previous year
-        if (week <= 0) {
-            return getBusinessWeek(new Date(year - 1, 11, 31));
+        // Count Sundays between w1 and weekStart
+        let weeks = 0;
+        let cursor = new Date(w1);
+
+        while (cursor <= weekStart) {
+            weeks++;
+            cursor.setDate(cursor.getDate() + 7);
         }
 
         return {
-            week,
-            year
+            week: weeks,
+            year: weekYear
         };
     }
+
 
     $(document).ready(function() {
         $("#START_DATE").datepicker({

@@ -712,7 +712,7 @@ require_once('global/config.php');
                                 <p>
                                     I agree to receive text messages from Doable related to service updates and support communications.
                                     Message frequency may vary. Message & data rates may apply. Reply STOP to opt out or HELP for help.
-                                    View our <a href="terms_of_use.php">Terms of Use</a> and <a href="privacy_policy.php">Privacy Policy</a>.
+                                    <br>Please review our <a href="terms_of_use.php" target="_blank">Terms of Use</a> and <a href="privacy_policy.php" target="_blank">Privacy Policy</a>.
                                 </p>
                             </div>
 
