@@ -92,7 +92,7 @@ ORDER BY NEXT_LESSON_DATE DESC
 function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
 {
     $sql = "
-        SELECT es.SERVICE_DETAILS, es.FINAL_AMOUNT
+        SELECT es.SERVICE_DETAILS, em.ENROLLMENT_NAME, es.FINAL_AMOUNT
         FROM DOA_ENROLLMENT_SERVICE es
         JOIN DOA_ENROLLMENT_MASTER em
             ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -105,6 +105,11 @@ function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
     ";
 
     $misc = $db_account->Execute($sql);
+    if (!empty($misc->fields['ENROLLMENT_NAME'])) {
+        $enrollment_name = $misc->fields['ENROLLMENT_NAME'];
+    } else {
+        $enrollment_name = $misc->fields['SERVICE_DETAILS'];
+    }
 
     if ($misc->RecordCount() == 0) {
         return '';
@@ -112,7 +117,7 @@ function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
 
     $out = [];
     while (!$misc->EOF) {
-        $out[] = htmlspecialchars($misc->fields['SERVICE_DETAILS']) .
+        $out[] = htmlspecialchars($enrollment_name) .
             ' - $' . number_format($misc->fields['FINAL_AMOUNT'], 2);
         $misc->MoveNext();
     }
