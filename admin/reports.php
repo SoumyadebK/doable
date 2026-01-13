@@ -13,6 +13,23 @@ if (!empty($_GET['NAME'])) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $report_name = $_GET['NAME'];
+
+    // Check if it's a package report (Electronic Miscellaneous Report)
+    if (is_numeric($report_name)) {
+        // This is a package report from Electronic Miscellaneous Report section
+        $package_id = $report_name;
+        $transportation_charges = $_GET['TRANSPORTATION_CHARGES'] ?? 0;
+        $package_costs = $_GET['PACKAGE_COSTS'] ?? 0;
+
+        if ($generate_excel === 1) {
+            header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&report_type=' . $report_name);
+        } else {
+            header('location:miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&report_type=' . $report_name);
+        }
+        exit;
+    }
+
+    // Existing code for other reports
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
     $START_DATE = $_GET['START_DATE'] ?? '';
     $END_DATE   = $_GET['END_DATE'] ?? '';
@@ -42,6 +59,23 @@ if (!empty($_GET['NAME'])) {
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php'); ?>
+<style>
+    .form-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-group label {
+        width: 170px;
+        /* Adjust label width */
+    }
+
+    .form-group input {
+        flex: 1;
+        /* Takes remaining space */
+        padding: 5px;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -103,7 +137,6 @@ if (!empty($_GET['NAME'])) {
                                     <h4 class="card-title">Extra Reports</h4>
                                 </div>
                                 <form class="form-material form-horizontal" action="" method="get" id="extraForm">
-                                    <!-- <input type="hidden" name="start_date" id="extra_start_date"> -->
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
@@ -125,11 +158,6 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                         <div class="col-4">
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <!-- <?php if ($AMI_ENABLE == 1) { ?>
-                                                <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <?php } ?> -->
-                                            <!-- <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                         </div>
                                         <div class="col-4">
                                             <p id="extra_last_export_message" style="color: red; margin-top: 9px;"></p>
@@ -137,6 +165,63 @@ if (!empty($_GET['NAME'])) {
                                     </div>
                                     <div class="row">
                                         <div class="col-4" id="extra_export_log"></div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Electronic Miscellaneous Reports -->
+                        <div class="card">
+                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                                <div class="col-md-12 col-sm-3 mt-3">
+                                    <h4 class="card-title">Electronic Miscellaneous Report: *Deduction will be automatically created upon submission*</h4>
+                                </div>
+                                <form class="form-material form-horizontal" action="" method="get" id="miscForm">
+                                    <input type="hidden" name="start_date" id="misc_start_date">
+                                    <input type="hidden" name="end_date" id="misc_end_date">
+                                    <div class="row">
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <select class="form-control" required name="NAME" id="misc_NAME" onchange="showMiscReportLog(this);">
+                                                    <option value="">Select a package</option>
+                                                    <?php
+                                                    $row = $db_account->Execute("SELECT DOA_PACKAGE.PK_PACKAGE, DOA_PACKAGE.PACKAGE_NAME FROM DOA_PACKAGE LEFT JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE.PK_PACKAGE = DOA_PACKAGE_SERVICE.PK_PACKAGE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_PACKAGE.ACTIVE = 1");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?= $row->fields['PK_PACKAGE'] ?>"><?= $row->fields['PACKAGE_NAME'] ?></option>
+                                                    <?php $row->MoveNext();
+                                                        $i++;
+                                                    } ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <label for="TRANSPORTATION_CHARGES">Transportation Charges : $</label>
+                                                <input type="text" id="TRANSPORTATION_CHARGES" name="TRANSPORTATION_CHARGES" class="form-control" placeholder="" value="<?= !empty($_GET['TRANSPORTATION_CHARGES']) ? $_GET['TRANSPORTATION_CHARGES'] : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            <div class="form-group">
+                                                <label for="PACKAGE_COSTS">Package Costs : $</label>
+                                                <input style="margin-left: -50px" type="text" id="PACKAGE_COSTS" name="PACKAGE_COSTS" class="form-control" placeholder="" value="<?= !empty($_GET['PACKAGE_COSTS']) ? $_GET['PACKAGE_COSTS'] : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php if ($AMI_ENABLE == 1) { ?>
+                                                    <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <?php } ?>
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
+                                        </div>
+                                        <div class="col-4">
+                                            <p id="misc_last_export_message" style="color: red; margin-top: 9px;"></p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-4" id="misc_export_log">
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -251,7 +336,6 @@ if (!empty($_GET['NAME'])) {
         };
     }
 
-
     $(document).ready(function() {
         $("#START_DATE").datepicker({
             numberOfMonths: 1,
@@ -266,12 +350,22 @@ if (!empty($_GET['NAME'])) {
                 $("#START_DATE").datepicker("option", "maxDate", selected)
             }
         });
+
+        // Add datepicker for misc form dates if needed
+        $("#miscForm input[name='start_date'], #miscForm input[name='end_date']").datepicker({
+            dateFormat: "mm/dd/yy",
+            changeMonth: true,
+            changeYear: true
+        });
     });
 
     function showReportLog(param, logDivId) {
-        $('#' + logDivId).html('<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');
+        let form = $(param).closest('form');
+        let report_type = form.find('select[name="NAME"]').val();
+        let logDiv = logDivId ? '#' + logDivId : '#misc_export_log';
 
-        let report_type = $(param).closest('form').find('select[name="NAME"]').val();
+        $(logDiv).html('<p style="font-size: 16px;">Loading Submission Log <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');
+
         $.ajax({
             url: "includes/get_report_details.php",
             type: "POST",
@@ -279,7 +373,41 @@ if (!empty($_GET['NAME'])) {
                 REPORT_TYPE: report_type
             },
             success: function(result) {
-                $('#' + logDivId).html(result);
+                $(logDiv).html(result);
+            },
+            error: function() {
+                $(logDiv).html('<p style="color: red;">Error loading submission log</p>');
+            }
+        });
+    }
+
+    function showMiscReportLog(param) {
+        let form = $(param).closest('form');
+        let package_id = form.find('select[name="NAME"]').val();
+        let logDiv = '#misc_export_log';
+
+        // For package reports, show a simple message
+        if (!package_id || package_id === '') {
+            $(logDiv).html('');
+            return;
+        }
+
+        $(logDiv).html('<p style="font-size: 16px;">Loading submission log for package report... <i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></p>');
+
+        // If you want to show logs for package reports too, you might need to create a separate endpoint
+        // For now, let's just show a generic message
+        $.ajax({
+            url: "includes/get_report_details.php",
+            type: "POST",
+            data: {
+                REPORT_TYPE: 'miscellaneous_service_summary_report',
+                PACKAGE_ID: package_id
+            },
+            success: function(result) {
+                $(logDiv).html(result);
+            },
+            error: function() {
+                $(logDiv).html('<p style="color: #666;">No submission history available for this package.</p>');
             }
         });
     }
