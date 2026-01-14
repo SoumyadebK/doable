@@ -22,9 +22,9 @@ if (!empty($_GET['NAME'])) {
         $package_costs = $_GET['PACKAGE_COSTS'] ?? 0;
 
         if ($generate_excel === 1) {
-            header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&report_type=' . $report_name);
+            header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&type=' . $type);
         } else {
-            header('location:miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&report_type=' . $report_name);
+            header('location:miscellaneous_service_summary_report.php?PK_PACKAGE=' . $package_id . '&TRANSPORTATION_CHARGES=' . $transportation_charges . '&PACKAGE_COSTS=' . $package_costs . '&type=' . $type);
         }
         exit;
     }

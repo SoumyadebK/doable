@@ -107,8 +107,10 @@ function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
     $misc = $db_account->Execute($sql);
     if (!empty($misc->fields['ENROLLMENT_NAME'])) {
         $enrollment_name = $misc->fields['ENROLLMENT_NAME'];
-    } else {
+    } elseif (!empty($misc->fields['SERVICE_DETAILS'])) {
         $enrollment_name = $misc->fields['SERVICE_DETAILS'];
+    } else {
+        $enrollment_name = '';
     }
 
     if ($misc->RecordCount() == 0) {

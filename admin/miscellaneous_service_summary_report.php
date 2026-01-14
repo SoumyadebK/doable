@@ -126,9 +126,9 @@ if (!empty($_GET['NAME'])) {
     $PACKAGE_COSTS = $_GET['PACKAGE_COSTS'];
 
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&report_type=' . $report_name);
+        header('location:generate_report_pdf.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&type=' . $type);
     } elseif ($generate_excel === 1) {
-        header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&report_type=' . $report_name);
+        header('location:excel_miscellaneous_service_summary_report.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&type=' . $type);
     } else {
         header('location:miscellaneous_service_summary_report.php?PK_PACKAGE=' . $PK_PACKAGE . '&TRANSPORTATION_CHARGES=' . $TRANSPORTATION_CHARGES . '&PACKAGE_COSTS=' . $PACKAGE_COSTS . '&type=' . $type);
     }
