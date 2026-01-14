@@ -100,26 +100,29 @@ if (isset($_POST['SUBMIT'])) {
 
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
         $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
+        $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
     } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
         $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
+        $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
         $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
-    } else {
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'";
+    } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
+        $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_MASTER'] = 0;
+        $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+        $APPOINTMENT_UPDATE_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+        $APPOINTMENT_UPDATE_DATA['IS_PAID'] = 0;
+        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
     }
-    $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
     db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
 
     $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
 
     for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
         $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION, FINAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
-        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
+        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1 || $_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
-            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
-        } else {
             $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
         }
 
@@ -548,22 +551,22 @@ if (isset($_POST['SUBMIT'])) {
                                     <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
                                     <div class="form-group">
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked /></label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="row">
-                                            <div class="col-md-8">
+                                            <div class="col-md-12">
                                                 <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2" /></label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="row">
-                                            <div class="col-md-8">
-                                                <label>Keep All Future Appointments on Schedule <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
+                                            <div class="col-md-12">
+                                                <label>Move Future Appointments As Ad-Hoc? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
                                             </div>
                                         </div>
                                     </div>

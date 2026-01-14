@@ -739,10 +739,10 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
     global $db_account;
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_DATE FROM DOA_ENROLLMENT_MASTER WHERE STATUS != 'CO' AND PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
     if ($enrollment_data->RecordCount() > 0 && $enrollment_data->fields['ENROLLMENT_DATE'] > '2021-12-31') {
-        $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'");
 
         $TOTAL_COMPLETED_SESSION = 0;
-        $enrollmentServiceData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER'");
+        $enrollmentServiceData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'");
         while (!$enrollmentServiceData->EOF) {
             $SESSION_COMPLETED_COUNT = getSessionCompletedCount($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
             $TOTAL_COMPLETED_SESSION += $SESSION_COMPLETED_COUNT;
@@ -1095,7 +1095,7 @@ function makeExpiryEnrollmentComplete($PK_USER_MASTER): void
 function checkAllEnrollmentStatus($PK_USER_MASTER): void
 {
     global $db_account;
-    $allActiveEnrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE STATUS = 'A' AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY ENROLLMENT_DATE ASC");
+    $allActiveEnrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE (STATUS = 'A' OR STATUS = 'CA') AND PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY ENROLLMENT_DATE ASC");
     while (!$allActiveEnrollment->EOF) {
         markAdhocAppointmentNormal($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
         //markEnrollmentComplete($allActiveEnrollment->fields['PK_ENROLLMENT_MASTER']);
