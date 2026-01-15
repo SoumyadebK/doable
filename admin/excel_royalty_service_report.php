@@ -16,11 +16,11 @@ $from_date = '';
 $to_date = '';
 
 if (!empty($_GET['week_number'])) {
-    $week_number = $_GET['week_number'];
-    $YEAR = date('Y', strtotime($_GET['start_date']));
-
     $from_date = date('Y-m-d', strtotime($_GET['start_date']));
     $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+    $week_number = $_GET['week_number'];
+    $YEAR = date('Y', strtotime($from_date));
 }
 
 $PAYMENT_QUERY = "SELECT 

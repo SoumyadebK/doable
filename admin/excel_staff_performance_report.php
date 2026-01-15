@@ -15,11 +15,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$week_number = $_SESSION['week_number'];
-$YEAR = date('Y', strtotime($_SESSION['start_date']));
-
 $from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+$week_number = $_SESSION['week_number'];
+$YEAR = date('Y', strtotime($from_date));
 
 $enrollment_date = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
@@ -244,27 +244,27 @@ while (!$row->EOF) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
     $cell_no = "E" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($dor_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($dor_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "F" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($showcase_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($showcase_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "G" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($general_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($general_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "H" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($interview_data->fields['INTERVIEW_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($interview_data->fields['INTERVIEW_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "I" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($renewal_data->fields['RENEWAL_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($renewal_data->fields['RENEWAL_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -310,27 +310,27 @@ while (!$row->EOF) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
     $cell_no = "E" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($executive_dor_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($executive_dor_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "F" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($executive_showcase_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($executive_showcase_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "G" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($executive_general_misc_data->fields['MISC_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($executive_general_misc_data->fields['MISC_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "H" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($executive_interview_data->fields['INTERVIEW_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($executive_interview_data->fields['INTERVIEW_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "I" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$'.number_format($executive_renewal_data->fields['RENEWAL_TOTAL'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($executive_renewal_data->fields['RENEWAL_TOTAL'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 

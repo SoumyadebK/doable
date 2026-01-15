@@ -12,11 +12,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$week_number = $_SESSION['week_number'];
-$YEAR = date('Y', strtotime($_SESSION['start_date']));
-
 $from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
+
+$week_number = $_SESSION['week_number'];
+$YEAR = date('Y', strtotime($from_date));
 
 $weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $net_year_date_condition = "'" . date('Y', strtotime($to_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
@@ -435,7 +435,7 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                     <?php
                                     $weekly_misc_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ENROLLMENT_TYPE = 16 AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
                                     ?>
-                                    <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold">Prev.</th>
+                                    <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important"></th>
                                     <th style="width:10%; text-align: center; font-weight: normal !important">$0.00</th>
