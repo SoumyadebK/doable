@@ -12,18 +12,17 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-$from_date = date('Y-m-d', strtotime($_SESSION['start_date']));
+$from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 
-$week_number = $_SESSION['week_number'];
+$week_number = $_GET['week_number'];
 $YEAR = date('Y', strtotime($from_date));
 
 $weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$net_year_date_condition = "'" . date('Y', strtotime($to_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$prev_year_date_condition = "'" . (date('Y', strtotime($to_date)) - 1) . "-01-01' AND '" . (date('Y', strtotime($to_date)) - 1) . date('-m-d', strtotime($to_date)) . "'";
+$net_year_date_condition = "'" . date('Y', strtotime($from_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
+$prev_year_date_condition = "'" . (date('Y', strtotime($from_date)) - 1) . "-01-01' AND '" . (date('Y', strtotime($to_date)) - 1) . date('-m-d', strtotime($to_date)) . "'";
 
 $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-
 
 // Calculate the year and week number of the selected date
 $selected_year = date('Y', strtotime($from_date));
@@ -44,6 +43,100 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
     $business_name = '';
 } else {
     $business_name = 'Franchisee: ' . $business_name;
+}
+
+$location_name = '';
+$results = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$resultsArray = [];
+while (!$results->EOF) {
+    $resultsArray[] = $results->fields['LOCATION_NAME'];
+    $results->MoveNext();
+}
+$totalResults = count($resultsArray);
+$concatenatedResults = "";
+foreach ($resultsArray as $key => $result) {
+    // Append the current result to the concatenated string
+    $concatenatedResults .= $result;
+
+    // If it's not the last result, append a comma
+    if ($key < $totalResults - 1) {
+        $concatenatedResults .= ", ";
+    }
+}
+
+$regular_data_query = "SELECT 
+                            sm.PK_SERVICE_CLASS,
+                            em.PK_LOCATION,
+                            SUM(
+                                ROUND(
+                                    (es.FINAL_AMOUNT / total_service.total_final_amount) * total_payment.total_paid_amount,
+                                    2
+                                )
+                            ) AS REGULAR_TOTAL
+                        FROM DOA_ENROLLMENT_SERVICE es
+                        JOIN DOA_SERVICE_MASTER sm 
+                            ON es.PK_SERVICE_MASTER = sm.PK_SERVICE_MASTER
+                        JOIN DOA_ENROLLMENT_MASTER em
+                            ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                        JOIN (
+                            -- Total FINAL_AMOUNT for all services under same enrollment
+                            SELECT PK_ENROLLMENT_MASTER, SUM(FINAL_AMOUNT) AS total_final_amount
+                            FROM DOA_ENROLLMENT_SERVICE
+                            GROUP BY PK_ENROLLMENT_MASTER
+                        ) AS total_service 
+                            ON es.PK_ENROLLMENT_MASTER = total_service.PK_ENROLLMENT_MASTER
+                        JOIN (
+                            -- Total paid amount from payment table in the date range
+                            SELECT PK_ENROLLMENT_MASTER, SUM(AMOUNT) AS total_paid_amount
+                            FROM DOA_ENROLLMENT_PAYMENT
+                            WHERE IS_REFUNDED = 0 AND (TYPE = 'Payment' || TYPE = 'Adjustment') 
+                            AND PK_PAYMENT_TYPE NOT IN (5) 
+                            AND PAYMENT_DATE BETWEEN %s
+                            GROUP BY PK_ENROLLMENT_MASTER
+                        ) AS total_payment 
+                            ON es.PK_ENROLLMENT_MASTER = total_payment.PK_ENROLLMENT_MASTER
+                        WHERE sm.PK_SERVICE_CLASS != 5
+                        AND em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                        GROUP BY sm.PK_SERVICE_CLASS, em.PK_LOCATION";
+
+$misc_data_query = "SELECT 
+                            sm.PK_SERVICE_CLASS,
+                            em.PK_LOCATION,
+                            SUM(
+                                ROUND(
+                                    (es.FINAL_AMOUNT / total_service.total_final_amount) * total_payment.total_paid_amount,
+                                    2
+                                )
+                            ) AS MISC_TOTAL
+                        FROM DOA_ENROLLMENT_SERVICE es
+                        JOIN DOA_SERVICE_MASTER sm 
+                            ON es.PK_SERVICE_MASTER = sm.PK_SERVICE_MASTER
+                        JOIN DOA_ENROLLMENT_MASTER em
+                            ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                        JOIN (
+                            -- Total FINAL_AMOUNT for all services under same enrollment
+                            SELECT PK_ENROLLMENT_MASTER, SUM(FINAL_AMOUNT) AS total_final_amount
+                            FROM DOA_ENROLLMENT_SERVICE
+                            GROUP BY PK_ENROLLMENT_MASTER
+                        ) AS total_service 
+                            ON es.PK_ENROLLMENT_MASTER = total_service.PK_ENROLLMENT_MASTER
+                        JOIN (
+                            -- Total paid amount from payment table in the date range
+                            SELECT PK_ENROLLMENT_MASTER, SUM(AMOUNT) AS total_paid_amount
+                            FROM DOA_ENROLLMENT_PAYMENT
+                            WHERE IS_REFUNDED = 0 AND (TYPE = 'Payment' || TYPE = 'Adjustment') 
+                            AND PK_PAYMENT_TYPE NOT IN (5) 
+                            AND PAYMENT_DATE BETWEEN %s
+                            GROUP BY PK_ENROLLMENT_MASTER
+                        ) AS total_payment 
+                            ON es.PK_ENROLLMENT_MASTER = total_payment.PK_ENROLLMENT_MASTER
+                        WHERE sm.PK_SERVICE_CLASS = 5
+                        AND em.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                        GROUP BY sm.PK_SERVICE_CLASS, em.PK_LOCATION";
+
+function roundToNearestFiveCents($num)
+{
+    return round($num / 0.05) * 0.05;
 }
 
 ?>
@@ -74,7 +167,7 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <h1 style="margin: 25px;"><?= $title ?></h1>
+                        <h1 style="margin: 25px; text-align: center"><?= $title ?></h1>
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
@@ -97,14 +190,14 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                 </tr>
                                 <tr>
                                     <?php
-                                    $regular_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS REGULAR_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE (DOA_ENROLLMENT_MASTER.MISC_TYPE IS NULL || DOA_ENROLLMENT_MASTER.MISC_TYPE = '') AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
+                                    $regular_data = $db_account->Execute(sprintf($regular_data_query, $weekly_date_condition));
                                     $other_payment_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS OTHER_TOTAL FROM DOA_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_MASTER = 0 AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
-                                    $misc_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.MISC_TYPE != '' AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $weekly_date_condition");
+                                    $misc_data = $db_account->Execute(sprintf($misc_data_query, $weekly_date_condition));
                                     ?>
                                     <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                    <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format($regular_data->fields['REGULAR_TOTAL'] + $other_payment_data->fields['OTHER_TOTAL'], 2) ?></th>
-                                    <th style="width:25%; text-align: center; font-weight: normal !important">$<?= number_format($misc_data->fields['MISC_TOTAL'], 2) ?></th>
-                                    <th style="width:25%; text-align: center; font-weight: normal !important"><b>$<?= number_format($regular_data->fields['REGULAR_TOTAL'] + $other_payment_data->fields['OTHER_TOTAL'] + $misc_data->fields['MISC_TOTAL'], 2) ?></b></th>
+                                    <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format(roundToNearestFiveCents($regular_data->fields['REGULAR_TOTAL']) + roundToNearestFiveCents($other_payment_data->fields['OTHER_TOTAL']), 2) ?></th>
+                                    <th style="width:25%; text-align: center; font-weight: normal !important">$<?= number_format(roundToNearestFiveCents($misc_data->fields['MISC_TOTAL']), 2) ?></th>
+                                    <th style="width:25%; text-align: center; font-weight: normal !important"><b>$<?= number_format(roundToNearestFiveCents($regular_data->fields['REGULAR_TOTAL']) + roundToNearestFiveCents($other_payment_data->fields['OTHER_TOTAL']) + roundToNearestFiveCents($misc_data->fields['MISC_TOTAL']), 2) ?></b></th>
                                 </tr>
                                 <tr>
                                     <?php
@@ -124,9 +217,9 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                 </tr>
                                 <tr>
                                     <?php
-                                    $regular_data_yearly = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS REGULAR_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (16,17,18) AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $net_year_date_condition");
+                                    $regular_data_yearly = $db_account->Execute(sprintf($regular_data_query, $net_year_date_condition));
                                     $other_payment_data_yearly = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS OTHER_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $net_year_date_condition");
-                                    $misc_data_yearly = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE IN (16,17) AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $net_year_date_condition");
+                                    $misc_data_yearly = $db_account->Execute(sprintf($misc_data_query, $net_year_date_condition));
                                     ?>
                                     <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">NET Y.T.D.</th>
                                     <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format($regular_data_yearly->fields['REGULAR_TOTAL'] + $other_payment_data_yearly->fields['OTHER_TOTAL'], 2) ?></th>
@@ -135,9 +228,9 @@ if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_n
                                 </tr>
                                 <tr>
                                     <?php
-                                    $regular_data_prev_year = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS REGULAR_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE IS NULL OR DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE = '' OR DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE NOT IN (16,17,18)) AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $prev_year_date_condition");
+                                    $regular_data_prev_year = $db_account->Execute(sprintf($regular_data_query, $prev_year_date_condition));
                                     $other_payment_data_prev_year = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS OTHER_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $prev_year_date_condition");
-                                    $misc_data_prev_year = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS MISC_TOTAL FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE IN (16,17) AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN $prev_year_date_condition");
+                                    $misc_data_prev_year = $db_account->Execute(sprintf($misc_data_query, $prev_year_date_condition));
                                     ?>
                                     <th style="width:25%; text-align: center; vertical-align:auto; font-weight: bold">PRV. Y.T.D.</th>
                                     <th style="width:25%; text-align: center; font-weight: normal !important;">$<?= number_format($regular_data_prev_year->fields['REGULAR_TOTAL'] + $other_payment_data_prev_year->fields['OTHER_TOTAL'], 2) ?></th>

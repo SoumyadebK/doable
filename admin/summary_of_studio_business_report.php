@@ -358,28 +358,34 @@ if (!empty($_GET['WEEK_NUMBER'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $report_name = $_GET['NAME'];
+    $report_name = isset($_GET['NAME']) ? $_GET['NAME'] : 'summary_of_studio_business_report';
 
     // Extract week number from "Week Number X" format
     $week_parts = explode(' ', $_GET['WEEK_NUMBER']);
     $WEEK_NUMBER = end($week_parts);
 
-    // Calculate start date from week number
-    $year = date('Y');
-    $date = new DateTime();
-    $date->setISODate($year, $WEEK_NUMBER);
-    $date->modify('-1 day'); // Get Sunday instead of Monday
-
-    $START_DATE = $_GET['start_date'] ?? '';
+    // Calculate start date from week number or use provided start date
+    if (!empty($_GET['start_date'])) {
+        $START_DATE = $_GET['start_date'];
+    } else {
+        // If no start_date provided, calculate from week number
+        $year = date('Y');
+        $date = new DateTime();
+        $date->setISODate($year, $WEEK_NUMBER);
+        $date->modify('-1 day'); // Get Sunday instead of Monday
+        $START_DATE = $date->format('Y-m-d');
+    }
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        exit;
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        exit;
     } else {
         header('location:summary_of_studio_business_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        exit;
     }
-    exit;
 }
 
 function roundToNearestFiveCents($num)
@@ -881,7 +887,72 @@ function roundToNearestFiveCents($num)
 </html>
 
 <script>
-    $(document).ready(function() {
+    $(function() {
+        // helper to read query params
+        function getParam(name) {
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var url = window.location.href;
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+            var results = regex.exec(url);
+            if (!results || !results[2]) return null;
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        // 1) On page load: if URL contains week_number, populate the week picker
+        var urlWeek = getParam('week_number') || getParam('WEEK_NUMBER');
+        var urlStart = getParam('start_date') || getParam('START_DATE');
+
+        if (urlWeek && urlStart) {
+            // Format the week display
+            $('#WEEK_NUMBER1').val("Week Number " + urlWeek);
+            $('#weekly_start_date').val(urlStart);
+        }
+
+        // 2) Form submission handler
+        $('#reportForm').on('submit', function(e) {
+            e.preventDefault();
+
+            // Get the week picker value
+            var weekValue = $('#WEEK_NUMBER1').val();
+            var startDateValue = $('#weekly_start_date').val();
+
+            if (!weekValue || !startDateValue) {
+                alert('Please select a week');
+                return false;
+            }
+
+            // Extract week number from "Week Number X" format
+            var weekParts = weekValue.split(' ');
+            var weekNumber = weekParts[weekParts.length - 1];
+
+            // Set form values
+            $('#weekly_start_date').val(startDateValue);
+            $('#NAME').val('summary_of_studio_business_report');
+
+            // Create the form data
+            var formData = $(this).serialize();
+
+            // Check which button was clicked
+            var clickedButton = $(document.activeElement).attr('name');
+
+            if (clickedButton === 'generate_pdf') {
+                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
+                    '&start_date=' + encodeURIComponent(startDateValue) +
+                    '&NAME=summary_of_studio_business_report&generate_pdf=1';
+            } else if (clickedButton === 'generate_excel') {
+                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
+                    '&start_date=' + encodeURIComponent(startDateValue) +
+                    '&NAME=summary_of_studio_business_report&generate_excel=1';
+            } else if (clickedButton === 'view') {
+                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
+                    '&start_date=' + encodeURIComponent(startDateValue) +
+                    '&NAME=summary_of_studio_business_report&view=1';
+            }
+
+            return false;
+        });
+
+        // 3) Week picker handler
         $(".week-picker").datepicker({
             showWeek: true,
             showOtherMonths: true,
@@ -973,6 +1044,9 @@ function roundToNearestFiveCents($num)
         // Set initial value based on PHP variables
         <?php if (!empty($week_number)): ?>
             $('#WEEK_NUMBER1').val("Week Number <?= $week_number ?>");
+        <?php endif; ?>
+        <?php if (!empty($from_date)): ?>
+            $('#weekly_start_date').val("<?= date('m/d/Y', strtotime($from_date)) ?>");
         <?php endif; ?>
     });
 </script>
