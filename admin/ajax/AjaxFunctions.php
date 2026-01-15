@@ -338,7 +338,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         $misc_service_data = $db_account->Execute("SELECT * FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_CLASS = 5 AND PK_SERVICE_MASTER = " . $RESPONSE_DATA['PK_SERVICE_MASTER'][0]);
         $PK_ENROLLMENT_TYPE = 0;
         if ($misc_service_data->RecordCount() > 0) {
-            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE STATUS IN ('A', 'CO') AND PK_ENROLLMENT_TYPE IN (16) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
+            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (16) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
             $PK_ENROLLMENT_TYPE = 16;
             $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR'] . ' - ' . ($enrollment_count + 1);
@@ -352,7 +352,7 @@ function saveEnrollmentData($RESPONSE_DATA)
                 $ENROLLMENT_MASTER_DATA['MISC_ID'] = $account_data->fields['MISCELLANEOUS_ID_CHAR']."-".$account_data->fields['MISCELLANEOUS_ID_NUM'];
             }*/
         } else {
-            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE STATUS IN ('A', 'CO') AND PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
+            $enrollment_count_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE IN (2,5,9,13) AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER']);
             $enrollment_count = (int)$enrollment_count_data->RecordCount();
             switch ($enrollment_count) {
                 case 0:
