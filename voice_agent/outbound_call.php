@@ -17,6 +17,10 @@ $PK_LEADS = $_GET['PK_LEADS'] ?? 0;
 
 if ($PK_LEADS > 0) {
     $leadsData = $db->Execute("SELECT * FROM DOA_LEADS WHERE PK_LEADS = " . intval($PK_LEADS));
+    $PK_LOCATION = $leadsData->fields['PK_LOCATION'];
+
+    [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
+
     $phone_number = $leadsData->fields['PHONE'];
     $to = '+1' . preg_replace('/\D/', '', $phone_number);
     $answerUrl = 'https://doable.net/voice_agent/twilio_voice_initial.php'; // public HTTPS

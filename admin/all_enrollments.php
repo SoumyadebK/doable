@@ -30,7 +30,6 @@ if ($not_billed_enrollment->RecordCount() > 0) {
 }
 
 
-
 $START_DATE = ' ';
 $END_DATE = ' ';
 $ORDER_BY = ' DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC ';
