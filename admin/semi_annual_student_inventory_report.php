@@ -105,13 +105,6 @@ function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
     ";
 
     $misc = $db_account->Execute($sql);
-    if (!empty($misc->fields['ENROLLMENT_NAME'])) {
-        $enrollment_name = $misc->fields['ENROLLMENT_NAME'];
-    } elseif (!empty($misc->fields['SERVICE_DETAILS'])) {
-        $enrollment_name = $misc->fields['SERVICE_DETAILS'];
-    } else {
-        $enrollment_name = '';
-    }
 
     if ($misc->RecordCount() == 0) {
         return '';
@@ -119,6 +112,15 @@ function getMiscItemsByUser($pk_user_master, $from_date, $to_date, $db_account)
 
     $out = [];
     while (!$misc->EOF) {
+        // Get the appropriate name for EACH row
+        if (!empty($misc->fields['ENROLLMENT_NAME'])) {
+            $enrollment_name = $misc->fields['ENROLLMENT_NAME'];
+        } elseif (!empty($misc->fields['SERVICE_DETAILS'])) {
+            $enrollment_name = $misc->fields['SERVICE_DETAILS'];
+        } else {
+            $enrollment_name = 'Miscellaneous Item';
+        }
+
         $out[] = htmlspecialchars($enrollment_name) .
             ' - $' . number_format($misc->fields['FINAL_AMOUNT'], 2);
         $misc->MoveNext();
@@ -167,7 +169,7 @@ if (!empty($_GET['START_DATE'])) {
     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
 
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
     } else {
@@ -225,8 +227,8 @@ if (!empty($_GET['START_DATE'])) {
                                             <div class="col-3">
                                                 <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                     <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                    <!-- <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
-                                                    <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
+                                                    <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                    <!-- <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                                 <?php } ?>
                                             </div>
                                         </div>

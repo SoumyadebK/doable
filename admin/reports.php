@@ -35,7 +35,7 @@ if (!empty($_GET['NAME'])) {
     $END_DATE   = $_GET['END_DATE'] ?? '';
 
     if ($generate_pdf === 1) {
-        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
+        header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&report_type=' . $report_name);
     } else {
@@ -158,6 +158,7 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                         <div class="col-4">
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
                                         </div>
                                         <div class="col-4">
                                             <p id="extra_last_export_message" style="color: red; margin-top: 9px;"></p>
