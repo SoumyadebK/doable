@@ -395,6 +395,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'insert');
         $PK_ENROLLMENT_MASTER = $db_account->insert_ID();
         createUpdateHistory('enrollment', $PK_ENROLLMENT_MASTER, 'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $PK_ENROLLMENT_MASTER, $ENROLLMENT_MASTER_DATA, 'insert');
+        addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Created', 'PK_USER_MASTER = ' . $RESPONSE_DATA['PK_USER_MASTER']);
     } else {
         if (isset($RESPONSE_DATA['PK_ENROLLMENT_TYPE']) && $RESPONSE_DATA['PK_ENROLLMENT_TYPE'] > 0) {
             $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE'] = $RESPONSE_DATA['PK_ENROLLMENT_TYPE'];
@@ -405,6 +406,7 @@ function saveEnrollmentData($RESPONSE_DATA)
         createUpdateHistory('enrollment', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'], 'DOA_ENROLLMENT_MASTER', 'PK_ENROLLMENT_MASTER', $RESPONSE_DATA['PK_ENROLLMENT_MASTER'], $ENROLLMENT_MASTER_DATA, 'update');
         db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
         $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+        addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Updated', 'PK_USER_MASTER = ' . $RESPONSE_DATA['PK_USER_MASTER']);
     }
 
     $total = 0;
@@ -2148,6 +2150,7 @@ function deleteEnrollmentData($RESPONSE_DATA)
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
     $db_account->Execute("DELETE FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     $db_account->Execute("DELETE FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Deleted', 'Enrollment deleted from deleteEnrollmentData function.');
     echo 1;
 }
 
@@ -2969,6 +2972,7 @@ function deleteActiveEnrollmentData($RESPONSE_DATA)
     //$db_account->Execute("DELETE FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE_PROVIDER` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+    addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Deleted', 'Enrollment deleted from deleteActiveEnrollmentData function.');
 
     if ($delete_type == 1) {
         $db_account->Execute("DELETE FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);

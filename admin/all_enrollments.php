@@ -22,6 +22,7 @@ $not_billed_enrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM 
 if ($not_billed_enrollment->RecordCount() > 0) {
     while (!$not_billed_enrollment->EOF) {
         $PK_ENROLLMENT_MASTER_ARRAY[] = $not_billed_enrollment->fields['PK_ENROLLMENT_MASTER'];
+        addEnrollmentLogData($not_billed_enrollment->fields['PK_ENROLLMENT_MASTER'], 'Deleted', 'Enrollment deleted from All Enrollment');
         $not_billed_enrollment->MoveNext();
     }
 

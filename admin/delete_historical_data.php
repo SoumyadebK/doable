@@ -83,6 +83,8 @@ while (!$user_list->EOF) {
         $db_account->Execute("DELETE FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         $db_account->Execute("DELETE FROM DOA_APPOINTMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
+        addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Deleted', 'Enrollment deleted from historical data deletion script');
+
         $enrollment_list->MoveNext();
     }
 
