@@ -30,7 +30,7 @@ $resourceIdArray = [];
 while (!$service_provider_data->EOF) {
     $resourceIdArray[] = [
         'id' =>  $service_provider_data->fields['PK_USER'],
-        'title' => $service_provider_data->fields['NAME'] . ' - 0',
+        'title' => $service_provider_data->fields['NAME'],
         'sortOrder' => (int) $service_provider_data->fields['DISPLAY_ORDER'],
     ];
     $service_provider_data->MoveNext();

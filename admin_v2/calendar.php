@@ -463,7 +463,21 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     .fc-event {
         border: none !important;
-        border-radius: 0px !important;
+        border-radius: 10px !important;
+        margin: 1px 0px 1px 2px !important;
+        text-align: left !important;
+    }
+
+    .fc-content {
+        margin: 5px !important;
+    }
+
+    .fc-axis.fc-widget-header {
+        width: 40px !important;
+    }
+
+    .fc-resource-cell {
+        padding-bottom: 10px !important;
     }
 </style>
 <style>
@@ -973,15 +987,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 },
                 defaultDate: date,
                 defaultView: 'agendaDay',
-                slotDuration: '<?= $INTERVAL ?>',
+                slotDuration: '00:10:00',
                 slotLabelInterval: {
-                    minutes: 5
+                    minutes: 60
                 },
                 minTime: config.minTime,
                 maxTime: config.maxTime,
                 contentHeight: 1000,
                 windowResize: true,
                 droppable: true,
+                allDaySlot: false,
                 drop: function(info) {
                     if (checkbox.checked) {
                         info.draggedEl.parentNode.removeChild(info.draggedEl);
@@ -1071,11 +1086,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     let element = info.el;
 
                     if (event_data.customerName) {
-                        $(element).find(".fc-title").prepend(' <strong style="font-size: 13px">' + event_data.customerName + '</strong> ');
+                        $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">' + event_data.customerName + '</strong> ');
                     }
-                    if (event_data.status) {
+                    /* if (event_data.status) {
                         $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
-                    }
+                    } */
                     if (event_data.comment || event_data.internal_comment) {
                         $('.popover').remove();
                         $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
@@ -1088,7 +1103,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             html: true,
                         });
                     }
-                    if (event_data.paid_status) {
+                    /* if (event_data.paid_status) {
                         if (event_data.paid_status === ' (Unpaid)') {
                             $(element).find(".fc-title").append('<span style="color: red;">' + event_data.paid_status + '</span>');
                         } else {
@@ -1101,8 +1116,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     }
 
                     if (event_data.statusCode) {
-                        $(element).find(".fc-title").append('<br><strong style="font-size: 13px">(' + event_data.statusCode + ')</strong> ');
-                    }
+                        $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">(' + event_data.statusCode + ')</strong> ');
+                    } */
                 },
                 eventClick: function(info) {
                     clickCount++;
@@ -1432,7 +1447,59 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     let result_data = JSON.parse(result);
                     let appointment_data = result_data.service_provider_count;
                     for (let i = 0; i < appointment_data.length; i++) {
-                        $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').text(appointment_data[i].SERVICE_PROVIDER_NAME + ' - ' + appointment_data[i].APPOINTMENT_COUNT);
+
+                        let resource = appointment_data[i].SERVICE_PROVIDER_NAME.trim();
+
+                        // Split name by space(s)
+                        let nameParts = resource.split(/\s+/);
+
+                        // First letter of first name
+                        let firstInitial = nameParts[0]?.charAt(0).toUpperCase() || '';
+
+                        // First letter of last name (if exists)
+                        let lastInitial = nameParts.length > 1 ?
+                            nameParts[nameParts.length - 1].charAt(0).toUpperCase() :
+                            '';
+
+                        let initials = firstInitial + lastInitial;
+
+                        //alert(initials);
+
+                        let colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#A9DFBF'];
+                        let colorIndex = resource.charCodeAt(0) % colors.length;
+                        let avatarColor = colors[colorIndex];
+
+                        let avatarHTML = `
+                                            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%;">
+                                                <div style="
+                                                    display:flex;
+                                                    align-items:center;
+                                                    justify-content:center;
+                                                    width:30px;
+                                                    height:30px;
+                                                    border-radius:50%;
+                                                    background-color:${avatarColor};
+                                                    color:#fff;
+                                                    font-weight:600;
+                                                    font-size:14px;
+                                                    letter-spacing:1px;
+                                                ">
+                                                    ${initials}
+                                                </div>
+                                                <div style="
+                                                    max-width:100%;
+                                                    font-size:13px;
+                                                    white-space:nowrap;
+                                                    overflow:hidden;
+                                                    text-overflow:ellipsis;
+                                                ">
+                                                    ${resource}
+                                                </div>
+                                            </div>
+                                            `;
+
+
+                        $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
                     }
                     if (calendar_view === 'month') {
                         $('#week_count_btn').text('M');

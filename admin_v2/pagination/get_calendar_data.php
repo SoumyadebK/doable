@@ -415,14 +415,14 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             } else {
                 $PACKAGE = " || " . "$PACKAGE_NAME";
             }
-            $title = $PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : $appointment_data->fields['PK_ENROLLMENT_MASTER']) . ' - ' . $SERIAL_NUMBER;
+            $title = strtoupper($PACKAGE . ' (' . $appointment_data->fields['SERVICE_NAME'] . ', ' . $appointment_data->fields['SERVICE_CODE'] . ') ' . (($appointment_data->fields['PK_ENROLLMENT_MASTER'] == 0) ? '(Ad-Hoc)' : ''));
             $paid_status = (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
             $type = "appointment";
         } elseif ($appointment_data->fields['APPOINTMENT_TYPE'] === 'DEMO') {
-            $title = ' (' . $appointment_data->fields['SERVICE_NAME'] . '-' . $appointment_data->fields['SERVICE_CODE'] . ') ' . ' - ' . $SERIAL_NUMBER;
+            $title = strtoupper(' (' . $appointment_data->fields['SERVICE_NAME'] . ', ' . $appointment_data->fields['SERVICE_CODE'] . ') ');
             $type = "appointment";
         } else {
-            $title = ' - ' . $appointment_data->fields['GROUP_NAME'] . ' - ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE'];
+            $title = strtoupper($appointment_data->fields['GROUP_NAME'] . ', ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE']);
             $type = "group_class";
         }
 
