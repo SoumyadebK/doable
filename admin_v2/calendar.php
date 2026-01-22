@@ -575,7 +575,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 20px;
+        padding: 0px 15px;
         border-radius: 25px;
         font-size: 15px;
         font-weight: 600;
@@ -597,13 +597,271 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         transform: scale(1.05);
     }
 </style>
+
+
+
+
+
+
+
+
+<style>
+    /* ================================
+   TOOLBAR
+================================ */
+    .calendar-header {
+        /* background: #fff;
+        border-radius: 15px; */
+        padding: 0px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        /* box-shadow: 0 1px 4px rgba(0, 0, 0, .08); */
+        flex-wrap: nowrap;
+        margin-top: 10px;
+    }
+
+    /* ================================
+   PILL BUTTONS
+================================ */
+    .chip {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        padding: 7px 20px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .chip-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* ================================
+   DATE
+================================ */
+    .date-chip {
+        font-weight: 600;
+    }
+
+    /* ================================
+   AVATARS
+================================ */
+    .staff-avatars {
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
+    }
+
+    .staff-avatar {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        font-size: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border: 2px solid #fff;
+        margin-left: -6px;
+    }
+
+    .staff-avatar-me {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border: 2px solid #fff;
+        margin-left: -6px;
+    }
+
+    .a-ce {
+        background: #ef4444
+    }
+
+    .a-rc {
+        background: #f97316
+    }
+
+    .a-mc {
+        background: #3b82f6
+    }
+
+    .a-pe {
+        background: #22c55e
+    }
+
+    .a-more {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    /* ================================
+   VIEW TOGGLE
+================================ */
+    .view-toggle {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .view-btn {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn.active {
+        color: #22c55e;
+        font-weight: 600;
+    }
+
+    /* ================================
+   NEW APPOINTMENT
+================================ */
+    .btn-new {
+        background: #22c55e;
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+    }
+
+    .SumoSelect .optWrapper {
+        width: 200% !important;
+    }
+</style>
+
+
+
+
+
+
+
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
+
+
+
+
+        <div class="calendar-header">
+
+            <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
+
+            <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+            <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+
+            <input type="hidden" id="IS_SELECTED" value="0">
+            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
+
+            <div class="chip m-r-15">
+                <div class="staff-avatars">
+                    <div class="staff-avatar a-ce">CE</div>
+                    <div class="staff-avatar a-rc">RC</div>
+                    <div class="staff-avatar a-mc">MC</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-more">+2</div>
+                </div>
+                <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="border:none;" multiple>
+
+                    <?php
+                    $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                    while (!$row->EOF) { ?>
+                        <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                    <?php $row->MoveNext();
+                    } ?>
+                </select>
+            </div>
+
+
+
+
+            <span class="staff-avatar-me a-pe m-r-15">RG</span>
+
+            <select class="chip m-r-15" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 150px;">
+                <option value="">Select Status</option>
+                <?php
+                $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                while (!$row->EOF) { ?>
+                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                <?php $row->MoveNext();
+                } ?>
+            </select>
+
+
+            <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
+                <option value="">Select Appointment Type</option>
+                <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
+                                            echo "selected";
+                                        } ?>>Appointment</option>
+                <option value="GROUP" <?php if ($appointment_type == "GROUP") {
+                                            echo "selected";
+                                        } ?>>Group Class</option>
+                <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
+                                            echo "selected";
+                                        } ?>>To Dos</option>
+                <option value="EVENT" <?php if ($appointment_type == "EVENT") {
+                                            echo "selected";
+                                        } ?>>Event</option>
+            </select>
+
+
+            <div class="view-toggle m-r-15" style="margin-left: auto;">
+                <button class="view-btn active" data-view="day" onclick="changeView('agendaDay')">Day</button>
+                <button class="view-btn" data-view="week" onclick="changeView('agendaWeek')">Week</button>
+                <button class="view-btn" data-view="month" onclick="changeView('month')">Month</button>
+            </div>
+
+            <div class="view-toggle m-r-15">
+                <button class="view-btn">
+                    <i class="fa fa-calendar" aria-hidden="true"></i>
+                </button>
+                <button class="view-btn">
+                    <i class="fa fa-list" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <button class="btn-new">＋ New Appointment</button>
+
+        </div>
+
+
+
+
+
+
+
+
         <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid body_content" style="margin-top: 0px;">
+            <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
                 <div class="row">
                     <div id="add_buttons" class="d-flex justify-content-center align-items-center" style="position: fixed; bottom: 0">
                         <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
@@ -620,9 +878,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                 <div class="row">
                     <div id="appointment_list_half" class="col-12">
-                        <div class="card">
+                        <div class="card" style="border-radius: 15px;">
 
-                            <div class="card-body row" style="margin-bottom: -30px;">
+                            <!-- <div class="card-body row" style="margin-bottom: -30px;">
                                 <div class="col-2">
                                     <div class="row">
                                         <div class="clearfix col-auto d-flex align-items-center gap-3">
@@ -704,7 +962,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 </div>
 
 
-                            </div>
+                            </div> -->
 
 
                             <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
@@ -790,12 +1048,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
 
         $('.datepicker-normal-calendar').datepicker({
+            dateFormat: "DD, M d, yy",
             onSelect: function() {
                 $('#IS_SELECTED').val(1);
                 $("#search_form").submit();
-            },
-            format: 'mm/dd/yyyy',
+            }
         });
+
 
         function showMessage() {
             if (<?= count($LOCATION_ARRAY) ?> === 1) {
@@ -863,7 +1122,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         var is_editable = <?= in_array('Calendar Edit', $PERMISSION_ARRAY) ? 1 : 0; ?>;
         var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
         $('.multi_sumo_select').SumoSelect({
-            placeholder: 'Service Provider',
+            placeholder: 'All Staff',
             selectAll: true
         });
 
@@ -930,14 +1189,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 selectable: true,
                 eventLimit: true,
                 scrollTime: '00:00',
-                header: {
-                    left: 'customPrev,customNext,customToday',
+                /* header: {
+                    left: 'customToday,customPrev,customNext',
                     center: 'title',
                     right: 'agendaDay,agendaWeek,month,'
-                },
+                }, */
+                header: false,
                 customButtons: {
                     customPrev: {
-                        text: 'Prev',
+                        text: '<',
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() - 1);
@@ -949,7 +1209,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         }
                     },
                     customNext: {
-                        text: 'Next',
+                        text: '>',
                         click: function() {
                             if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() + 1);
@@ -1210,12 +1470,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     } else {
                         getServiceProviderCount();
                     }
+                },
+                datesSet: function(info) {
+                    // Update CHOOSE_DATE whenever dates change (navigation)
+                    updateChooseDateInput(todayDate);
                 }
             });
 
             calendar.render();
 
-
+            // Update CHOOSE_DATE input with current date
+            updateChooseDateInput(date);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -1250,6 +1515,48 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
 
         var interval = 15;
+
+        function updateChooseDateInput(date) {
+            let displayText = '';
+
+            // Get calendar title based on current view
+            if (calendar && calendar.view) {
+                displayText = calendar.view.title;
+            } else {
+                // Fallback: Format date as "Day, Mon DD, YYYY"
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit'
+                };
+                displayText = date.toLocaleDateString('en-US', options);
+            }
+
+            $('#CHOOSE_DATE').val(displayText);
+        }
+
+        function changeView(view) {
+            // Update active button styling
+            $('.view-btn').removeClass('active');
+            $('[data-view="' + view.replace('agenda', '').toLowerCase() + '"]').addClass('active');
+
+            // Change calendar view
+            if (view === 'agendaDay') {
+                calendar.changeView('agendaDay');
+                updateChooseDateInput(todayDate);
+            } else if (view === 'agendaWeek') {
+                calendar.changeView('agendaWeek');
+                setTimeout(function() {
+                    updateChooseDateInput(todayDate);
+                }, 100);
+            } else if (view === 'month') {
+                calendar.changeView('month');
+                setTimeout(function() {
+                    updateChooseDateInput(todayDate);
+                }, 100);
+            }
+        }
 
         function zoomInOut(type) {
             if (type == 'in' && interval > 10) {
@@ -1746,6 +2053,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             };
         })(jQuery);
     </script>
+
 
 </body>
 
