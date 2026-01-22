@@ -411,13 +411,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 
 <link href='../assets/fullcalendar4/fullcalendar.min.css' rel='stylesheet' />
 <link href='../assets/fullcalendar4/scheduler.min.css' rel='stylesheet' />
+
 <script src='../assets/fullcalendar4/fullcalendar.min.js'></script>
 <script src='../assets/fullcalendar4/scheduler.min.js'></script>
 
@@ -441,11 +441,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     .fc-time-grid-event .fc-content {
-        color: #000000;
+        color: #000000 !important;
     }
 
     .fc-event .fc-content {
-        color: #000000;
+        color: #000000 !important;
     }
 
     .SumoSelect {
@@ -470,10 +470,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     .fc-content {
         margin: 5px !important;
-    }
-
-    .fc-axis.fc-widget-header {
-        width: 40px !important;
     }
 
     .fc-resource-cell {
@@ -849,7 +845,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </button>
             </div>
 
-            <button class="btn-new">＋ New Appointment</button>
+            <button class="btn-new" id="openDrawer">＋ New Appointment</button>
 
         </div>
 
@@ -862,19 +858,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
-                <div class="row">
-                    <div id="add_buttons" class="d-flex justify-content-center align-items-center" style="position: fixed; bottom: 0">
-                        <!--<button type="button" id="group_class" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=group_class'"><i class="fa fa-plus-circle"></i> Group Class</button>
-                    <button type="button" id="int_app" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=int_app'"><i class="fa fa-plus-circle"></i> INT APP</button>
-                    <button type="button" id="appointment" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=appointment'"><i class="fa fa-plus-circle"></i> Appointment</button>
-                    <button type="button" id="standing" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=standing'"><i class="fa fa-plus-circle"></i> Standing</button>
-                    <button type="button" id="ad_hoc" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='create_appointment.php?type=ad_hoc'"><i class="fa fa-plus-circle"></i> Ad-hoc Appointment</button>-->
-                        <?php if (in_array('Calendar Schedule', $PERMISSION_ARRAY)) { ?>
-                            <button type="button" id="appointments" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="showMessage()"><i class="fa fa-plus-circle"></i> Appointments</button>
-                        <?php } ?>
-                        <button type="button" id="operations" class="btn btn-info d-none d-lg-block m-l-10 text-white" onclick="window.location.href='operations.php'"><i class="ti-layers-alt"></i> <?= $operation_tab_title ?></button>
-                    </div>
-                </div>
+
 
                 <div class="row">
                     <div id="appointment_list_half" class="col-12">
@@ -1023,6 +1007,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
         </div>
     </div>
+
+    <?php include 'partials/create_appointment_modal.php'; ?>
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -1777,7 +1763,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         let avatarColor = colors[colorIndex];
 
                         let avatarHTML = `
-                                            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%;">
+                                            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
                                                 <div style="
                                                     display:flex;
                                                     align-items:center;
@@ -2053,6 +2039,48 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             };
         })(jQuery);
     </script>
+
+
+
+
+
+
+
+    <script>
+        $(document).ready(function() {
+            $(".btn-available").click(function() {
+                $(this).toggleClass("active");
+                $(".Availabilityarea").toggle();
+            });
+
+            $('#openDrawer').click(function() {
+                $('#sideDrawer, .overlay').addClass('active');
+            });
+
+            $('#closeDrawer, .overlay').click(function() {
+                $('#sideDrawer, .overlay').removeClass('active');
+            });
+
+            $('#openDrawer2').click(function() {
+                $('#sideDrawer2, .overlay2').addClass('active');
+            });
+
+            $('#closeDrawer2, .overlay2').click(function() {
+                $('#sideDrawer2, .overlay2').removeClass('active');
+            });
+
+            $('#openDrawer3').click(function() {
+                $('#sideDrawer3, .overlay3').addClass('active');
+            });
+
+            $('#closeDrawer3, .overlay3').click(function() {
+                $('#sideDrawer3, .overlay3').removeClass('active');
+            });
+
+        });
+    </script>
+
+
 
 
 </body>

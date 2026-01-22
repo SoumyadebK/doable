@@ -8,3 +8,7 @@
 <link href="assets/css/bootstrap.min.css" rel="stylesheet">
 <!-- Main CSS File -->
 <link href="assets/css/main.css" rel="stylesheet">
+
+<link href="../assets/dist/css/jquery-ui.css" rel="stylesheet" type="text/css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">

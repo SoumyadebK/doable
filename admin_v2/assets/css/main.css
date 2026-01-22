@@ -27,7 +27,17 @@ a:hover {
 }
 
 .theme-text {
-  color: #da281a;
+  color: #1FC16B;
+}
+
+.theme-text-light {
+  color: #525866 !important;
+}
+
+.btn.btn-sm {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-width: 1px;
 }
 
 .bg-red {
@@ -55,23 +65,28 @@ h6 {
   background-color: #da281a !important;
 }
 
+.form-check-input:checked {
+  background-color: #1FC16B;
+  border-color: #1FC16B;
+}
+
 .btn-primary {
   display: inline-flex;
   padding: 8px 30px;
-  background-color: #da281a;
+  background-color: #1FC16B;
   color: #fff;
   border-radius: 30px;
   text-decoration: none;
   font-size: 0.875rem;
-  border: 2px solid #da281a;
+  border: 2px solid #1FC16B;
   transition: all 175ms linear;
   justify-content: center;
 }
 
 .btn-primary:hover {
-  background-color: #000;
+  background-color: #12a256;
   color: #fff;
-  border-color: #000;
+  border-color: #12a256;
   transform: translateY(-2px);
 }
 
@@ -86,15 +101,20 @@ h6 {
   border-radius: 30px;
   text-decoration: none;
   font-size: 0.875rem;
-  border: 2px solid #000;
+  border: 2px solid #ddd;
   transition: all 175ms linear;
 }
 
 .btn-secondary:hover {
-  border-color: #000;
-  background-color: #000;
-  color: #fff;
+  border-color: #1fc16b;
+  background-color: #1fc16b;
+  color: #fff !important;
   transform: translateY(-2px);
+}
+
+.badgeprimary {
+  background-color: #fec0cd;
+  color: #782d35;
 }
 
 .f14 {
@@ -383,7 +403,7 @@ h6 {
 }
 
 .modal span {
-  color: #525866;
+  color: #000;
 }
 
 .modal h5 {
@@ -391,7 +411,8 @@ h6 {
 }
 
 .modal hr {
-  max-width: 6px 0px;
+  margin: 6px 0px;
+  border-color: #828080;
 }
 
 .student-row {
@@ -413,9 +434,172 @@ h6 {
   margin-bottom: 3px;
 }
 
+.nav-tabs .nav-link {
+  color: #525866;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0;
+  border: 0;
+  font-size: 13px;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: #F5F7FA;
+  font-weight: 600;
+  border-color: #1FC16B !important;
+}
+
+label {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.form-control {
+  font-size: 12px;
+  color: #000;
+  height: 40px;
+  position: relative;
+  box-shadow: none !important;
+}
+
+.form-control:focus {
+  border-color: #1FC16B !important;
+}
+
+select.form-control::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #6c757d;
+  border-bottom: 2px solid #6c757d;
+  transform: translateY(-50%) rotate(45deg);
+  pointer-events: none;
+}
+
+textarea.form-control {
+  height: 90px;
+}
+
+.statusarea {
+  margin-left: 15px;
+}
+
+.checkicon {
+  background-color: #E0FAEC;
+  padding: 1px 4px 4px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.statusarea span {
+  background-color: #F5F7FA;
+  color: #000;
+  padding: 3px 3px;
+  margin: 1px;
+  border-radius: 3px;
+  display: inline-block;
+  font-size: 10px;
+}
+
+.Availabilityarea span {
+  background-color: #F5F7FA;
+  padding: 5px 8px;
+  border-radius: 50px;
+  display: inline-block;
+  font-size: 10px;
+  border: solid 1px #ccc;
+  margin: 3px 3px;
+}
+
+.btn-available.active svg {
+  transform: rotate(180deg);
+}
+
+/* Overlay */
+.overlay,
+.overlay2,
+.overlay3 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 998;
+}
+
+/* Drawer */
+.side-drawer {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  max-width: 500px;
+  height: 100%;
+  background: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  transition: 0.3s ease;
+  z-index: 1001;
+  width: 100%;
+}
+
+.side-drawer.active {
+  right: 0;
+}
+
+.overlay.active,
+.overlay2.active,
+.overlay3.active {
+  display: block;
+}
+
+/* Header */
+.close-btn {
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Button */
+#openDrawer {
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
 /* Mobile */
+@media (max-width: 1250px) {
+  .app-topbar .navbar-nav .nav-link {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+}
+
 @media (max-width: 768px) {
   .booking-card {
     font-size: 14px;
   }
+}
+
+.appointment-profile .profilename-short {
+  width: 50px;
+  height: 50px;
+  background-color: #ffecc1;
+  border-radius: 50px;
+  color: #816c3b;
+}
+
+.table th {
+  background-color: #F5F7FA;
+}
+
+.table th,
+.table td {
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.table tr.table-alert td {
+  color: #FB3748;
+}
+
+.bg-danger {
+  background-color: #FB3748 !important;
 }
