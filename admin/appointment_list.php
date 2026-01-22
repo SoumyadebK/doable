@@ -220,6 +220,31 @@ $page_first_result = ($page - 1) * $results_per_page;
                             </div>
                         </div>
                     </div>
+
+                    <!-- Add Bulk Actions Row -->
+                    <div class="row mt-3" id="bulkActionsRow" style="display: none;">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <!-- <div class="form-check me-3">
+                                            <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                            <label class="form-check-label" for="selectAllCheckbox">
+                                                Select All
+                                            </label>
+                                        </div> -->
+                                        <span id="selectedCount" class="me-3">0 selected</span>
+                                        <button type="button" class="btn btn-danger me-2" onclick="confirmBulkDelete()">
+                                            <i class="fa fa-trash"></i> Delete Selected
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="clearSelection()">
+                                            Clear Selection
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </form>
 
                 <div class="row">
@@ -230,6 +255,9 @@ $page_first_result = ($page - 1) * $results_per_page;
                                     <table class="table <?= ($standing == 0) ? 'table-striped' : '' ?> border" data-page-length='50'>
                                         <thead>
                                             <tr>
+                                                <th width="40">
+                                                    <input type="checkbox" id="selectAllHeader" onclick="toggleSelectAll(this)">
+                                                </th>
                                                 <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Service Name</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Class Name</th>
@@ -255,6 +283,11 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     <?php } else { ?>
                                                     <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $appointment_data->fields['STANDING_ID'] ?>, <?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>)" style="cursor: pointer;">
                                                     <?php } ?>
+                                                    <td>
+                                                        <?php if ($standing == 0 && $appointment_data->fields['PK_APPOINTMENT_STATUS'] != '2') { ?>
+                                                            <input type="checkbox" class="appointment-checkbox" value="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onchange="updateSelection()">
+                                                        <?php } ?>
+                                                    </td>
                                                     <td><?= $i; ?></td>
                                                     <td><?= (($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class')) ?>
                                                         <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
@@ -431,6 +464,141 @@ $page_first_result = ($page - 1) * $results_per_page;
             }
         }
 
+
+        // Toggle select all checkboxes
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.appointment-checkbox');
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.disabled) {
+                    checkbox.checked = source.checked;
+                }
+            });
+            updateSelection();
+        }
+
+        // Update selection count and show/hide bulk actions
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.appointment-checkbox:checked');
+            const selectedCount = checkboxes.length;
+            const bulkActionsRow = document.getElementById('bulkActionsRow');
+            const selectedCountSpan = document.getElementById('selectedCount');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const selectAllHeader = document.getElementById('selectAllHeader');
+
+            selectedCountSpan.textContent = selectedCount + ' selected';
+
+            if (selectedCount > 0) {
+                bulkActionsRow.style.display = 'block';
+            } else {
+                bulkActionsRow.style.display = 'none';
+            }
+
+            // Update select all checkboxes
+            const allCheckboxes = document.querySelectorAll('.appointment-checkbox:not(:disabled)');
+            const allChecked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
+            selectAllCheckbox.checked = allChecked;
+            selectAllHeader.checked = allChecked;
+        }
+
+        // Clear all selections
+        function clearSelection() {
+            const checkboxes = document.querySelectorAll('.appointment-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelection();
+        }
+
+        // Confirm bulk delete
+        function confirmBulkDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.appointment-checkbox:checked');
+            const appointmentIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
+
+            if (appointmentIds.length === 0) {
+                Swal.fire({
+                    title: "No Selection",
+                    text: "Please select at least one appointment to delete.",
+                    icon: "warning"
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: "Delete Multiple Appointments?",
+                html: `Are you sure you want to delete <strong>${appointmentIds.length}</strong> appointment(s)?<br><br>This action cannot be undone.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete them!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    bulkDeleteAppointments(appointmentIds);
+                }
+            });
+        }
+
+        // Perform bulk delete via AJAX
+        // Perform bulk delete via AJAX
+        function bulkDeleteAppointments(appointmentIds) {
+            // Show loading
+            Swal.fire({
+                title: "Deleting...",
+                text: "Please wait while we delete the appointments.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'bulkDeleteAppointments',
+                    appointment_ids: appointmentIds,
+                    type: 'normal'
+                },
+                success: function(response) {
+                    // Parse response as integer (your function returns a number)
+                    const deletedCount = parseInt(response);
+
+                    if (deletedCount > 0) {
+                        Swal.fire({
+                            title: "Deleted!",
+                            html: `<strong>${deletedCount}</strong> appointment(s) have been deleted successfully.`,
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            // Reload the page to reflect changes
+                            location.reload();
+                        });
+                    } else if (deletedCount === 0) {
+                        Swal.fire({
+                            title: "No appointments deleted",
+                            text: "No appointments were deleted. Please try again.",
+                            icon: "info"
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error!",
+                            text: "Failed to delete appointments.",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to connect to server.",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+
+        // Update your existing ConfirmDelete function to work with bulk operations
         function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
                 title: "Are you sure?",
@@ -453,7 +621,6 @@ $page_first_result = ($page - 1) * $results_per_page;
                         success: function(data) {
                             let currentURL = window.location.href;
                             let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
-                            console.log(extractedPart);
                             window.location.href = extractedPart;
                         }
                     });
