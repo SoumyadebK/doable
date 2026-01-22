@@ -2174,6 +2174,70 @@ function deleteAppointment($RESPONSE_DATA): void
     echo 1;
 }
 
+function bulkDeleteAppointments($RESPONSE_DATA): void
+{
+    global $db_account;
+    $deleted_count = 0;
+    $enrollments_checked = []; // Track enrollments we've already checked
+
+    // Check if appointment_ids is an array
+    if (isset($RESPONSE_DATA['appointment_ids']) && is_array($RESPONSE_DATA['appointment_ids'])) {
+        $appointment_ids = $RESPONSE_DATA['appointment_ids'];
+        $type = $RESPONSE_DATA['type'];
+
+        foreach ($appointment_ids as $appointment_id) {
+            if ($type == 'normal') {
+                $PK_APPOINTMENT_MASTER = intval($appointment_id);
+
+                // Get enrollment ID for normal appointments
+                $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+
+                if ($appointment_data->RecordCount() > 0) {
+                    $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+
+                    // Delete the appointment
+                    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+
+                    // Track enrollment for completion check (only check each enrollment once)
+                    if ($PK_ENROLLMENT_MASTER > 0 && !in_array($PK_ENROLLMENT_MASTER, $enrollments_checked)) {
+                        $enrollments_checked[] = $PK_ENROLLMENT_MASTER;
+                        markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+                    }
+
+                    $deleted_count++;
+                }
+            } else {
+                // For standing appointments
+                $STANDING_ID = intval($appointment_id);
+
+                if ($STANDING_ID > 0) {
+                    // Get one appointment from the standing series to get the enrollment ID
+                    $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID . " LIMIT 1");
+
+                    if ($appointment_data->RecordCount() > 0) {
+                        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+
+                        // Delete all appointments with this standing ID
+                        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID);
+
+                        // Track enrollment for completion check (only check each enrollment once)
+                        if ($PK_ENROLLMENT_MASTER > 0 && !in_array($PK_ENROLLMENT_MASTER, $enrollments_checked)) {
+                            $enrollments_checked[] = $PK_ENROLLMENT_MASTER;
+                            markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+                        }
+
+                        $deleted_count++;
+                    }
+                }
+            }
+        }
+
+        echo $deleted_count; // Return count of deleted appointments
+    } else {
+        echo 0; // Return 0 if no appointments were deleted
+    }
+}
+
 function deleteImage($RESPONSE_DATA): void
 {
     global $db_account;
