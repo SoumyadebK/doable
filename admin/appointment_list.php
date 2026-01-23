@@ -256,7 +256,9 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <thead>
                                             <tr>
                                                 <th width="40">
-                                                    <input type="checkbox" id="selectAllHeader" onclick="toggleSelectAll(this)">
+                                                    <?php if ($standing == 0) { ?>
+                                                        <input type="checkbox" id="selectAllHeader" onclick="toggleSelectAll(this)">
+                                                    <?php } ?>
                                                 </th>
                                                 <th data-type="number" class="sortable" style="cursor: pointer">No</th>
                                                 <th data-type="string" class="sortable" style="cursor: pointer">Service Name</th>
@@ -285,7 +287,11 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     <?php } ?>
                                                     <td>
                                                         <?php if ($standing == 0 && $appointment_data->fields['PK_APPOINTMENT_STATUS'] != '2') { ?>
-                                                            <input type="checkbox" class="appointment-checkbox" value="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onchange="updateSelection()">
+                                                            <!-- For normal appointments -->
+                                                            <input type="checkbox" class="appointment-checkbox"
+                                                                data-type="normal"
+                                                                value="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>"
+                                                                onchange="updateSelection()"> <!-- ADD THIS -->
                                                         <?php } ?>
                                                     </td>
                                                     <td><?= $i; ?></td>
@@ -459,6 +465,8 @@ $page_first_result = ($page - 1) * $results_per_page;
                     },
                     success: function(result) {
                         $(result).insertAfter($(param).closest('tr'));
+                        // Reinitialize checkboxes for the new rows
+                        updateSelection();
                     }
                 });
             }
@@ -512,9 +520,8 @@ $page_first_result = ($page - 1) * $results_per_page;
         // Confirm bulk delete
         function confirmBulkDelete() {
             const selectedCheckboxes = document.querySelectorAll('.appointment-checkbox:checked');
-            const appointmentIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.value);
 
-            if (appointmentIds.length === 0) {
+            if (selectedCheckboxes.length === 0) {
                 Swal.fire({
                     title: "No Selection",
                     text: "Please select at least one appointment to delete.",
@@ -523,9 +530,43 @@ $page_first_result = ($page - 1) * $results_per_page;
                 return;
             }
 
+            // Separate by type
+            const normalAppointments = [];
+            const standingHeaders = []; // Entire standing series
+            const standingIndividuals = []; // Individual appointments within standing series
+
+            selectedCheckboxes.forEach(checkbox => {
+                const type = checkbox.getAttribute('data-type');
+                const value = checkbox.value;
+                const standingId = checkbox.getAttribute('data-standing-id');
+
+                if (type === 'normal') {
+                    normalAppointments.push(value);
+                } else if (type === 'standing_header') {
+                    standingHeaders.push(value);
+                } else if (type === 'standing_individual') {
+                    standingIndividuals.push(value);
+                }
+            });
+
+            // Create confirmation message
+            let message = `Are you sure you want to delete <strong>${selectedCheckboxes.length}</strong> item(s)?<br><br>`;
+
+            if (normalAppointments.length > 0) {
+                message += `<strong>${normalAppointments.length}</strong> normal appointment(s)<br>`;
+            }
+            if (standingHeaders.length > 0) {
+                message += `<strong>${standingHeaders.length}</strong> entire standing appointment series (all appointments in the series)<br>`;
+            }
+            if (standingIndividuals.length > 0) {
+                message += `<strong>${standingIndividuals.length}</strong> individual standing appointment(s)<br>`;
+            }
+
+            message += `<br>This action cannot be undone.`;
+
             Swal.fire({
                 title: "Delete Multiple Appointments?",
-                html: `Are you sure you want to delete <strong>${appointmentIds.length}</strong> appointment(s)?<br><br>This action cannot be undone.`,
+                html: message,
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -534,14 +575,13 @@ $page_first_result = ($page - 1) * $results_per_page;
                 cancelButtonText: "Cancel"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    bulkDeleteAppointments(appointmentIds);
+                    bulkDeleteAppointments(normalAppointments, standingHeaders, standingIndividuals);
                 }
             });
         }
 
         // Perform bulk delete via AJAX
-        // Perform bulk delete via AJAX
-        function bulkDeleteAppointments(appointmentIds) {
+        function bulkDeleteAppointments(normalAppointments, standingHeaders, standingIndividuals) {
             // Show loading
             Swal.fire({
                 title: "Deleting...",
@@ -552,46 +592,61 @@ $page_first_result = ($page - 1) * $results_per_page;
                 }
             });
 
+            console.log("Sending delete request:", {
+                normal: normalAppointments,
+                standing_headers: standingHeaders,
+                standing_individuals: standingIndividuals
+            });
+
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
+                dataType: 'json',
                 data: {
                     FUNCTION_NAME: 'bulkDeleteAppointments',
-                    appointment_ids: appointmentIds,
-                    type: 'normal'
+                    normal_appointments: normalAppointments,
+                    standing_headers: standingHeaders,
+                    standing_individuals: standingIndividuals,
+                    standing_mode: <?= $standing ?>
                 },
                 success: function(response) {
-                    // Parse response as integer (your function returns a number)
-                    const deletedCount = parseInt(response);
+                    console.log("Delete response:", response);
 
-                    if (deletedCount > 0) {
+                    if (response.success) {
+                        let message = `<strong>${response.deleted_count}</strong> item(s) deleted successfully.<br><br>`;
+
+                        if (response.normal_deleted > 0) {
+                            message += `<strong>${response.normal_deleted}</strong> normal appointment(s)<br>`;
+                        }
+                        if (response.standing_headers_deleted > 0) {
+                            message += `<strong>${response.standing_headers_deleted}</strong> standing appointment series (all appointments deleted)<br>`;
+                        }
+                        if (response.standing_individuals_deleted > 0) {
+                            message += `<strong>${response.standing_individuals_deleted}</strong> individual standing appointment(s)<br>`;
+                        }
+
                         Swal.fire({
                             title: "Deleted!",
-                            html: `<strong>${deletedCount}</strong> appointment(s) have been deleted successfully.`,
+                            html: message,
                             icon: "success",
                             confirmButtonText: "OK"
                         }).then(() => {
-                            // Reload the page to reflect changes
-                            location.reload();
-                        });
-                    } else if (deletedCount === 0) {
-                        Swal.fire({
-                            title: "No appointments deleted",
-                            text: "No appointments were deleted. Please try again.",
-                            icon: "info"
+                            // Force hard reload
+                            location.reload(true);
                         });
                     } else {
                         Swal.fire({
                             title: "Error!",
-                            text: "Failed to delete appointments.",
+                            text: response.message || "Failed to delete appointments.",
                             icon: "error"
                         });
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error("Delete error:", error, xhr.responseText);
                     Swal.fire({
                         title: "Error!",
-                        text: "Failed to connect to server.",
+                        text: "Failed to connect to server. Please check console for details.",
                         icon: "error"
                     });
                 }
