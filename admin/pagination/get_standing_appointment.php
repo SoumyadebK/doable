@@ -44,46 +44,56 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
-                        WHERE DOA_APPOINTMENT_MASTER.STANDING_ID = ".$STANDING_ID." /*AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER != $PK_APPOINTMENT_MASTER*/
+                        WHERE DOA_APPOINTMENT_MASTER.STANDING_ID = " . $STANDING_ID . "
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                         ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 $i = 1;
 $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 while (!$appointment_data->EOF) { ?>
     <tr class="added_standing" style="background-color: #dee2e6;">
-        <td style="text-align: end;"></td>
-        <td><?=(($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class'))?>
+        <td>
+            <?php if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] != '2') { ?>
+                <!-- For individual appointments within a standing series -->
+                <input type="checkbox" class="appointment-checkbox"
+                    data-type="standing_individual"
+                    data-standing-id="<?= $STANDING_ID ?>"
+                    value="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>"
+                    onchange="updateSelection()"> <!-- ADD THIS -->
+            <?php } ?>
+        </td>
+        <td><?= (($appointment_data->fields['APPOINTMENT_TYPE'] == 'NORMAL') ? 'Private Session' : (($appointment_data->fields['APPOINTMENT_TYPE'] == 'AD-HOC') ? 'Ad-Hoc' : 'Group Class')) ?>
             <?php if ($appointment_data->fields['STANDING_ID'] > 0) { ?>
                 <span style="font-weight: bold; color: #1B72B8">(S)</span>
             <?php } ?>
         </td>
-        <td><?=$appointment_data->fields['CUSTOMER_NAME']?></td>
+        <td><?= $appointment_data->fields['CUSTOMER_NAME'] ?></td>
         <?php if (!empty($appointment_data->fields['ENROLLMENT_ID']) || !empty($appointment_data->fields['ENROLLMENT_NAME'])) { ?>
-            <td><?=(($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'].' - ' : '').$appointment_data->fields['ENROLLMENT_ID']." || ".$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <td><?= (($appointment_data->fields['ENROLLMENT_NAME']) ? $appointment_data->fields['ENROLLMENT_NAME'] . ' - ' : '') . $appointment_data->fields['ENROLLMENT_ID'] . " || " . $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
         <?php } elseif (empty($appointment_data->fields['SERVICE_NAME']) && empty($appointment_data->fields['SERVICE_CODE'])) { ?>
-            <td><?=$appointment_data->fields['SERVICE_NAME']."  ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <td><?= $appointment_data->fields['SERVICE_NAME'] . "  " . $appointment_data->fields['SERVICE_CODE'] ?></td>
         <?php } else { ?>
-            <td><?=$appointment_data->fields['SERVICE_NAME']." || ".$appointment_data->fields['SERVICE_CODE']?></td>
+            <td><?= $appointment_data->fields['SERVICE_NAME'] . " || " . $appointment_data->fields['SERVICE_CODE'] ?></td>
         <?php } ?>
-        <td><?=$appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-        <td><?=date('l', strtotime($appointment_data->fields['DATE']))?></td>
-        <td><?=date('m/d/Y', strtotime($appointment_data->fields['DATE']))?></td>
-        <td><?=date('h:i A', strtotime($appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($appointment_data->fields['END_TIME']))?></td>
-        <td><?=($appointment_data->fields['IS_PAID'] == 1)?'Paid':'Unpaid'?></td>
+        <td><?= $appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
+        <td><?= date('l', strtotime($appointment_data->fields['DATE'])) ?></td>
+        <td><?= date('m/d/Y', strtotime($appointment_data->fields['DATE'])) ?></td>
+        <td><?= date('h:i A', strtotime($appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($appointment_data->fields['END_TIME'])) ?></td>
+        <td><?= ($appointment_data->fields['IS_PAID'] == 1) ? 'Paid' : 'Unpaid' ?></td>
         <td style="text-align: center;">
             <?php
             if ($appointment_data->fields['CUSTOMER_NAME']) {
-                if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2){ ?>
+                if ($appointment_data->fields['PK_APPOINTMENT_STATUS'] == 2) { ?>
                     <i class="fa fa-check-circle" style="font-size:25px;color:#35e235;"></i>
                 <?php } else { ?>
-                    <a href="javascript:" data-id="<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
-                <?php }
+                    <a href="javascript:" data-id="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>" onclick='confirmComplete($(this));'><i class="fa fa-check-circle" style="font-size:25px;color:#a9b7a9;"></i></a>
+            <?php }
             } ?>
         </td>
         <td>
-            <a href="copy_schedule.php?id=<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="javascript:" onclick='ConfirmDelete(<?=$appointment_data->fields['PK_APPOINTMENT_MASTER']?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="copy_schedule.php?id=<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="javascript:" onclick='ConfirmDelete(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>, "normal");'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </td>
     </tr>
 <?php $appointment_data->MoveNext();
-    $i++; } ?>
+    $i++;
+} ?>
