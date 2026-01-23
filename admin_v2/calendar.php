@@ -636,8 +636,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     .chip-icon {
-        width: 34px;
-        height: 34px;
+        width: 35px;
+        height: 35px;
         border-radius: 999px;
         display: flex;
         align-items: center;
@@ -676,8 +676,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     .staff-avatar-me {
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
         font-size: 12px;
         font-weight: 600;
@@ -749,6 +749,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     .SumoSelect .optWrapper {
         width: 200% !important;
     }
+
+    /* ================================
+   SEARCH FORM RESET
+================================ */
+    #search_form {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        width: auto;
+        min-width: auto;
+    }
 </style>
 
 
@@ -768,76 +784,79 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         <div class="calendar-header">
 
+
             <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
 
             <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
             <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
 
-            <input type="hidden" id="IS_SELECTED" value="0">
-            <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
+            <form id="search_form">
+                <input type="hidden" id="IS_SELECTED" value="0">
+                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
 
-            <div class="chip m-r-15">
-                <div class="staff-avatars">
-                    <div class="staff-avatar a-ce">CE</div>
-                    <div class="staff-avatar a-rc">RC</div>
-                    <div class="staff-avatar a-mc">MC</div>
-                    <div class="staff-avatar a-pe">PE</div>
-                    <div class="staff-avatar a-pe">PE</div>
-                    <div class="staff-avatar a-pe">PE</div>
-                    <div class="staff-avatar a-more">+2</div>
+                <div class="chip m-r-15" style="height: 37px;">
+                    <div class=" staff-avatars">
+                        <div class="staff-avatar a-ce">CE</div>
+                        <div class="staff-avatar a-rc">RC</div>
+                        <div class="staff-avatar a-mc">MC</div>
+                        <div class="staff-avatar a-pe">PE</div>
+                        <div class="staff-avatar a-pe">PE</div>
+                        <div class="staff-avatar a-pe">PE</div>
+                        <div class="staff-avatar a-more">+2</div>
+                    </div>
+                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="border:none;" multiple>
+
+                        <?php
+                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                        while (!$row->EOF) { ?>
+                            <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
                 </div>
-                <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="border:none;" multiple>
 
+
+
+
+                <span class="staff-avatar-me a-pe m-r-15">RG</span>
+
+                <select class="chip m-r-15" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 150px;">
+                    <option value="">Select Status</option>
                     <?php
-                    $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                    $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                     while (!$row->EOF) { ?>
-                        <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
                     <?php $row->MoveNext();
                     } ?>
                 </select>
-            </div>
 
 
+                <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
+                    <option value="">Select Appointment Type</option>
+                    <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
+                                                echo "selected";
+                                            } ?>>Appointment</option>
+                    <option value="GROUP" <?php if ($appointment_type == "GROUP") {
+                                                echo "selected";
+                                            } ?>>Group Class</option>
+                    <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
+                                                echo "selected";
+                                            } ?>>To Dos</option>
+                    <option value="EVENT" <?php if ($appointment_type == "EVENT") {
+                                                echo "selected";
+                                            } ?>>Event</option>
+                </select>
+            </form>
 
 
-            <span class="staff-avatar-me a-pe m-r-15">RG</span>
-
-            <select class="chip m-r-15" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 150px;">
-                <option value="">Select Status</option>
-                <?php
-                $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                while (!$row->EOF) { ?>
-                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
-                <?php $row->MoveNext();
-                } ?>
-            </select>
-
-
-            <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
-                <option value="">Select Appointment Type</option>
-                <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
-                                            echo "selected";
-                                        } ?>>Appointment</option>
-                <option value="GROUP" <?php if ($appointment_type == "GROUP") {
-                                            echo "selected";
-                                        } ?>>Group Class</option>
-                <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
-                                            echo "selected";
-                                        } ?>>To Dos</option>
-                <option value="EVENT" <?php if ($appointment_type == "EVENT") {
-                                            echo "selected";
-                                        } ?>>Event</option>
-            </select>
-
-
-            <div class="view-toggle m-r-15" style="margin-left: auto;">
+            <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
                 <button class="view-btn active" data-view="day" onclick="changeView('agendaDay')">Day</button>
                 <button class="view-btn" data-view="week" onclick="changeView('agendaWeek')">Week</button>
                 <button class="view-btn" data-view="month" onclick="changeView('month')">Month</button>
             </div>
 
-            <div class="view-toggle m-r-15">
-                <button class="view-btn">
+            <div class="view-toggle m-r-15" style="height: 37px;">
+                <button class=" view-btn">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
                 </button>
                 <button class="view-btn">

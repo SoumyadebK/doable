@@ -709,7 +709,7 @@ function roundToNearestFiveCents($num)
                                                 ?>
                                                 <tr>
                                                     <th style="width:5%; text-align: center; vertical-align:center; font-weight: bold" rowspan="3">Week</th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= ($weekly_pre_original_tried->fields['TRIED']) ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_pre_original_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_original_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_original_sold->fields['SOLD'] ?></th>
