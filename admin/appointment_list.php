@@ -615,16 +615,6 @@ $page_first_result = ($page - 1) * $results_per_page;
                     if (response.success) {
                         let message = `<strong>${response.deleted_count}</strong> item(s) deleted successfully.<br><br>`;
 
-                        if (response.normal_deleted > 0) {
-                            message += `<strong>${response.normal_deleted}</strong> normal appointment(s)<br>`;
-                        }
-                        if (response.standing_headers_deleted > 0) {
-                            message += `<strong>${response.standing_headers_deleted}</strong> standing appointment series (all appointments deleted)<br>`;
-                        }
-                        if (response.standing_individuals_deleted > 0) {
-                            message += `<strong>${response.standing_individuals_deleted}</strong> individual standing appointment(s)<br>`;
-                        }
-
                         Swal.fire({
                             title: "Deleted!",
                             html: message,
