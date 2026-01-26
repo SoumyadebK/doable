@@ -28,7 +28,7 @@ a:hover {
 }
 
 .theme-text {
-  color: #1FC16B;
+  color: #39b54a;
 }
 
 .theme-text-light {
@@ -67,27 +67,27 @@ h6 {
 }
 
 .form-check-input:checked {
-  background-color: #1FC16B;
-  border-color: #1FC16B;
+  background-color: #39b54a;
+  border-color: #39b54a;
 }
 
 .btn-primary {
   display: inline-flex;
   padding: 8px 30px;
-  background-color: #1FC16B;
+  background-color: #39b54a;
   color: #fff;
   border-radius: 30px;
   text-decoration: none;
   font-size: 0.875rem;
-  border: 2px solid #1FC16B;
+  border: 2px solid #39b54a;
   transition: all 175ms linear;
   justify-content: center;
 }
 
 .btn-primary:hover {
-  background-color: #12a256;
+  background-color: #39b54a;
   color: #fff;
-  border-color: #12a256;
+  border-color: #39b54a;
   transform: translateY(-2px);
 }
 
@@ -107,8 +107,8 @@ h6 {
 }
 
 .btn-secondary:hover {
-  border-color: #1fc16b;
-  background-color: #1fc16b;
+  border-color: #39b54a;
+  background-color: #39b54a;
   color: #fff !important;
   transform: translateY(-2px);
 }
@@ -446,7 +446,7 @@ h6 {
 .nav-tabs .nav-link.active {
   background-color: #F5F7FA;
   font-weight: 600;
-  border-color: #1FC16B !important;
+  border-color: #39b54a !important;
 }
 
 label {
@@ -463,7 +463,7 @@ label {
 }
 
 .form-control:focus {
-  border-color: #1FC16B !important;
+  border-color: #39b54a !important;
 }
 
 select.form-control::after {

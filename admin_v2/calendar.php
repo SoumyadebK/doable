@@ -702,7 +702,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     .a-pe {
-        background: #22c55e
+        background: #39b54a
     }
 
     .a-more {
@@ -729,7 +729,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     .view-btn.active {
-        color: #22c55e;
+        color: #39b54a;
+        font-weight: 600;
+    }
+
+
+
+    .view-btn-icon {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn-icon.active {
+        color: #39b54a;
         font-weight: 600;
     }
 
@@ -737,10 +752,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
    NEW APPOINTMENT
 ================================ */
     .btn-new {
-        background: #22c55e;
+        background: #39b54a;
         color: #fff;
         border-radius: 999px;
-        padding: 8px 18px;
+        padding: 8px 20px !important;
         font-size: 14px;
         font-weight: 600;
         border: none;
@@ -804,8 +819,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <div class="staff-avatar a-pe">PE</div>
                         <div class="staff-avatar a-more">+2</div>
                     </div>
-                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="border:none;" multiple>
 
+                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" onchange="$('#search_form').submit();" style="border:none;" multiple>
                         <?php
                         $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                         while (!$row->EOF) { ?>
@@ -814,9 +829,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         } ?>
                     </select>
                 </div>
-
-
-
 
                 <span class="staff-avatar-me a-pe m-r-15">RG</span>
 
@@ -829,7 +841,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <?php $row->MoveNext();
                     } ?>
                 </select>
-
 
                 <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
                     <option value="">Select Appointment Type</option>
@@ -848,7 +859,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </select>
             </form>
 
-
             <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
                 <button class="view-btn active" data-view="day" onclick="changeView('agendaDay')">Day</button>
                 <button class="view-btn" data-view="week" onclick="changeView('agendaWeek')">Week</button>
@@ -856,16 +866,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
 
             <div class="view-toggle m-r-15" style="height: 37px;">
-                <button class=" view-btn">
+                <button class="view-btn-icon active">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
                 </button>
-                <button class="view-btn">
+                <button class="view-btn-icon">
                     <i class="fa fa-list" aria-hidden="true"></i>
                 </button>
             </div>
 
             <button class="btn-new" id="openDrawer">＋ New Appointment</button>
-
         </div>
 
 
@@ -1128,7 +1137,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         var move_copy = <?= in_array('Calendar Move/Copy', $PERMISSION_ARRAY) ? 1 : 0; ?>;
         $('.multi_sumo_select').SumoSelect({
             placeholder: 'All Staff',
-            selectAll: true
+            selectAll: true,
+            okCancelInMulti: true,
+            triggerChangeCombined: true
         });
 
         let calendar;

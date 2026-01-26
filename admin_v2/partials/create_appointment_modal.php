@@ -72,7 +72,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-3 enrollment_area">
+                    <div class="row mb-3 enrollment_area d-none">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
                                 <label class="mb-0" style="margin-left: 33px;">Enrollment ID</label>
@@ -84,7 +84,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-3 align-items-center schedulecode d-none">
+                    <div class="row mb-3 align-items-center schedule_code_area d-none">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
                                 <label class="mb-0" style="margin-left: 33px;">Scheduling Code</label>
@@ -92,11 +92,8 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Code 1">Code 1</option>
-                                    <option value="Code 2">Code 2</option>
-                                    <option value="Code 3">Code 3</option>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE">
+                                    <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
                         </div>
@@ -201,32 +198,9 @@
 <!-- End Individual Appointment -->
 
 <script>
-    $('.customer_select').on('change', function() {
-        var selectedValue = $(this).val();
-
-        switch (selectedValue) {
-
-            case '1':
-                $('.enrollment_area, .schedulecode').removeClass('d-none');
-                break;
-
-            case '2':
-                $('.enrollment_area, .schedulecode').removeClass('d-none');
-                break;
-            case '3':
-                $('.enrollment_area, .schedulecode').removeClass('d-none');
-                break;
-
-
-            default:
-                // OPTIONAL RESET
-                $('.enrollment_area, .schedulecode').removeClass('d-none');
-        }
-    });
-
-
     function selectThisCustomer(param) {
-        PK_USER_MASTER = $(param).val();
+        let PK_USER_MASTER = $(param).val();
+        $('.enrollment_area, .schedule_code_area').removeClass('d-none');
         $.ajax({
             url: "ajax/get_enrollments.php",
             type: "POST",
@@ -237,6 +211,28 @@
             cache: false,
             success: function(result) {
                 $('#enrollment_div').html(result);
+            }
+        });
+    }
+
+
+    function selectThisEnrollment(param) {
+        let PK_ENROLLMENT_MASTER = $(param).val();
+        let no_of_session = $(param).data('no_of_session');
+        let used_session = $(param).data('used_session');
+
+        $.ajax({
+            url: "ajax/get_scheduling_codes.php",
+            type: "POST",
+            data: {
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                no_of_session: no_of_session,
+                used_session: used_session
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#PK_SCHEDULING_CODE').html(result);
             }
         });
     }

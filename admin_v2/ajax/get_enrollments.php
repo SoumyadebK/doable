@@ -15,14 +15,14 @@ while (!$row->EOF) {
     if (empty($name)) {
         $enrollment_name = ' ';
     } else {
-        $enrollment_name = "$name" . " - ";
+        $enrollment_name = "$name" . " || ";
     }
 
     $PACKAGE_NAME = $row->fields['PACKAGE_NAME'];
     if (empty($PACKAGE_NAME)) {
         $PACKAGE = ' ';
     } else {
-        $PACKAGE = "$PACKAGE_NAME" . " || ";
+        $PACKAGE = " || " . "$PACKAGE_NAME";
     }
 
     if ($row->fields['CHARGE_TYPE'] == 'Membership') {
@@ -42,17 +42,16 @@ while (!$row->EOF) {
 
 
         <div class="form-check border rounded-2 p-2 mb-2">
-            <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="male" checked>
-            <label class="form-check-label" for="male"><?= $PACKAGE . $enrollment_name . $row->fields['ENROLLMENT_ID'] ?></label>
-            <span class="checkicon float-end">
+            <label class="form-check-label">
+                <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $row->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'] . ',' . $row->fields['PK_ENROLLMENT_SERVICE'] . ',' . $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)"><?= $enrollment_name . $row->fields['ENROLLMENT_ID'] . $PACKAGE ?>
+            </label>
+            <!-- <span class="checkicon float-end">
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
                     <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
                 </svg>
-            </span>
+            </span> -->
             <div class="statusarea mt-1">
-                <span>Private: 40/50</span>
-                <span>Group: 10/10</span>
-                <span>Practice: 5/15</span>
+                <span><?= $row->fields['SERVICE_NAME'] ?> : <?= $USED_SESSION_COUNT ?>/<?= $NUMBER_OF_SESSION ?></span>
             </div>
         </div>
 

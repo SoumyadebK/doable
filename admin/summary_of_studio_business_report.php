@@ -208,7 +208,7 @@ if ($type === 'export') {
         $original_tried = $weekly_original_tried->fields['TRIED'] > 0 ? $weekly_original_tried->fields['TRIED'] : 0;
         $original_sold = $weekly_original_sold->fields['SOLD'] > 0 ? $weekly_original_sold->fields['SOLD'] : 0;
         $extension_tried = $weekly_extension_tried->fields['TRIED'] > 0 ? $weekly_extension_tried->fields['TRIED'] : 0;
-        $extension_sold = $weekly_original_tried->fields['TRIED'] > 0 ? $weekly_original_tried->fields['TRIED'] : 0;
+        $extension_sold = $weekly_extension_sold->fields['TRIED'] > 0 ? $weekly_extension_sold->fields['TRIED'] : 0;
         $renewal_tried = $weekly_renewal_tried->fields['TRIED'] > 0 ? $weekly_renewal_tried->fields['TRIED'] : 0;
         $renewal_sold = $weekly_renewal_sold->fields['SOLD'] > 0 ? $weekly_renewal_sold->fields['SOLD'] : 0;
 
@@ -263,7 +263,7 @@ if ($type === 'export') {
             'original_units' => $original_units,
             'original_sales' => $original_sales,
             'extension_tried' => $extension_tried,
-            'extension_sold' => $original_sold,
+            'extension_sold' => $extension_sold,
             'extension_units' => $extension_units,
             'extension_sales' => $extension_sales,
             'renewal_tried' => $renewal_tried,
