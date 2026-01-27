@@ -1057,6 +1057,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             }
         });
 
+        $('#APPOINTMENT_DATE').datepicker({
+            onSelect: function() {
+                getSlots();
+            }
+        });
+
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
         });
@@ -2071,16 +2077,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </script>
 
 
-
-
-
-
-
     <script>
         $(document).ready(function() {
             $(".btn-available").click(function() {
                 $(this).toggleClass("active");
-                $(".Availabilityarea").toggle();
+                $(".slot_div").toggle();
             });
 
             $('#openDrawer').click(function() {

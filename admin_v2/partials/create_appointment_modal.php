@@ -57,7 +57,10 @@
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="Appointment" role="tabpanel">
                 <h6 class="mb-4">Individual Appointment</h6>
-                <form class="mb-0 appointmentform">
+                <form class="mb-0" id="create_appointment_form" action="partials/store/add_appointment_data.php" method="POST">
+                    <input type="hidden" name="START_TIME" id="START_TIME">
+                    <input type="hidden" name="END_TIME" id="END_TIME">
+
                     <div class="row mb-2 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
@@ -71,10 +74,10 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER">
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -91,12 +94,12 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control customer_select" name="SELECT_CUSTOMER" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
+                                <select class="form-control customer_select" name="SELECTED_CUSTOMER_ID" id="SELECTED_CUSTOMER_ID" onchange="selectThisCustomer(this);" required>
                                     <option value="">Select Customer</option>
                                     <?php
-                                    $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
+                                    $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
                                     while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>"><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' ?></option>
+                                        <option value="<?= $row->fields['PK_USER_MASTER']; ?>" data-location_id=<?= $row->fields['PRIMARY_LOCATION_ID']; ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
@@ -123,7 +126,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()">
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()" required>
                                     <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
@@ -142,7 +145,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;">
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" required>
                                 <input type="time" class="form-control">
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
@@ -151,7 +154,7 @@
                                     <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
                                 </svg>
                             </button>
-                            <div class="slot_div mt-2" style="display: none;">
+                            <div class="slot_div mt-2">
 
                             </div>
 
@@ -169,7 +172,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="COMMENT"></textarea>
                             </div>
                         </div>
                     </div>
@@ -184,12 +187,22 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="INTERNAL_COMMENT"></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 42%;">
+                        <div class="col-6 col-md-6">
+                            <button type="submit" class="btn-secondary w-100 m-1">Cancel</button>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <button type="submit" class="btn-primary w-100 m-1">Save</button>
                         </div>
                     </div>
                 </form>
             </div>
+
             <div class="tab-pane fade" id="Group" role="tabpanel">
                 <div class="nodata text-center p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 64 64" viewBox="0 0 64 64" width="50px" height="50px" fill="#ccc">
@@ -216,14 +229,13 @@
             </div>
         </div>
     </div>
-    <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-        <button type="button" class="btn-primary w-100 m-1">Save</button>
-    </div>
 </div>
 <!-- End Individual Appointment -->
 
 <script>
+    let start_time_array = [];
+    let end_time_array = [];
+
     function selectThisCustomer(param) {
         let PK_USER_MASTER = $(param).val();
         $('.enrollment_area, .schedule_code_area').removeClass('d-none');
@@ -240,7 +252,6 @@
             }
         });
     }
-
 
     function selectThisEnrollment(param) {
         let PK_ENROLLMENT_MASTER = $(param).val();
@@ -264,66 +275,27 @@
     }
 
     function getSlots() {
-
-        //let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
-
-        /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
-        let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
         let PK_SERVICE_PROVIDER = $('#PK_SERVICE_PROVIDER').val();
+        let PK_LOCATION = $('#SELECTED_CUSTOMER_ID').find(':selected').data('location_id');
         let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+
         let selected_date = $('#APPOINTMENT_DATE').val();
-        let day = (selected_date.toString().split(' ')[0]).toUpperCase();
-        let month = selected_date.toString().split(' ')[1];
+        let dateObj = new Date(selected_date);
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        let date = `${year}-${month}-${day}`;
 
-        let PK_LOCATION = $('#PK_ENROLLMENT_MASTER').find(':selected').data('location_id');
-        if (!PK_LOCATION) {
-            PK_LOCATION = $('#SELECT_CUSTOMER').find(':selected').data('location_id');
-        }
-
-        if (month == 'Jan')
-            month = '01'
-        else if (month == 'Feb')
-            month = '02'
-        else if (month == 'Mar')
-            month = '03'
-        else if (month == 'Apr')
-            month = '04'
-        else if (month == 'May')
-            month = '05'
-        else if (month == 'Jun')
-            month = '06'
-        else if (month == 'Jul')
-            month = '07'
-        else if (month == 'Aug')
-            month = '08'
-        else if (month == 'Sep')
-            month = '09'
-        else if (month == 'Oct')
-            month = '10'
-        else if (month == 'Nov')
-            month = '11'
-        else if (month == 'Dec')
-            month = '12'
-        let date = selected_date.toString().split(' ')[3] + '-' + month + '-' + selected_date.toString().split(' ')[2];
         let START_TIME = '';
         let END_TIME = '';
 
-        //duration = (duration > 0) ?duration: 30;
-
-        //console.log(PK_SERVICE_PROVIDER,duration,day);
-
-        if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0) {
-
+        if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {
             start_time_array = [];
             end_time_array = [];
             $.ajax({
                 url: "ajax/get_slots.php",
                 type: "POST",
                 data: {
-                    //PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
-                    //PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                    /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
-                    PK_SERVICE_CODE: PK_SERVICE_CODE,*/
                     SERVICE_PROVIDER_ID: PK_SERVICE_PROVIDER,
                     PK_LOCATION: PK_LOCATION,
                     duration: duration,
@@ -336,11 +308,41 @@
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('#slot_div').html(result);
+                    $('.slot_div').html(result);
                 }
             });
         } else {
-            $('#slot_div').html('');
+            $('.slot_div').html('');
         }
+    }
+
+    function set_time(param, id, start_time, end_time) {
+        if ($(param).data('is_selected') == 0) {
+            start_time_array.push(start_time);
+            end_time_array.push(end_time);
+            $('#START_TIME').val(start_time_array.sort());
+            $('#END_TIME').val(end_time_array.sort());
+            $('#slot_btn_' + id).data('is_selected', 1);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#39b54a', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#fff', 'important');
+        } else {
+            const start_time_index = start_time_array.indexOf(start_time);
+            if (start_time_index > -1) {
+                start_time_array.splice(start_time_index, 1);
+            }
+
+            const end_time_index = end_time_array.indexOf(end_time);
+            if (end_time_index > -1) {
+                end_time_array.splice(end_time_index, 1);
+            }
+
+            $('#START_TIME').val(start_time_array.sort());
+            $('#END_TIME').val(end_time_array.sort());
+            $('#slot_btn_' + id).data('is_selected', 0);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#f8f9fa', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#000', 'important');
+        }
+
+        console.log(start_time_array.sort(), end_time_array.sort());
     }
 </script>
