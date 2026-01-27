@@ -1479,8 +1479,20 @@ if (!empty($_POST)) {
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                                <label style="margin-right: 30px;">
+                                                                    <input type="radio" name="PAYMENT_FROM" value="location"
+                                                                        <?= (trim($PAYMENT_FROM) === 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    &nbsp;Location&nbsp;&nbsp;
+                                                                </label>
+
+                                                                <label style="margin-right: 30px;">
+                                                                    <input type="radio" name="PAYMENT_FROM" value="corporation"
+                                                                        <?= (trim($PAYMENT_FROM) === 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    &nbsp;Corporation
+                                                                </label>
+
+                                                                <!-- <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label> -->
                                                             </div>
                                                         </div>
                                                     </div>
