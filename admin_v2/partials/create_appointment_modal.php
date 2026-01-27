@@ -1,3 +1,34 @@
+<style>
+    .slot_div {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 slots per row */
+        gap: 10px;
+    }
+
+    .slot_div span {
+        padding: 8px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        background: #f8f9fa;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .slot_div {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    @media (min-width: 768px) {
+        .slot_div {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
 <!-- Individual Appointment -->
 <div class="overlay"></div>
 <div class="side-drawer" id="sideDrawer" style="margin-top: 70px; height: 92% !important; border-radius: 15px; max-width: 575px;">
@@ -35,12 +66,12 @@
                                     <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
                                     <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
                                 </svg>
-                                <label class="mb-0">Service Provider</label>
+                                <label class="mb-0"><?= $service_provider_title ?></label>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control">
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER">
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -60,7 +91,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control customer_select" onchange="selectThisCustomer(this);">
+                                <select class="form-control customer_select" name="SELECT_CUSTOMER" id="SELECT_CUSTOMER" onchange="selectThisCustomer(this);">
                                     <option value="">Select Customer</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
@@ -92,7 +123,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE">
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()">
                                     <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
@@ -111,7 +142,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="date" class="form-control" style="min-width: 110px;">
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;">
                                 <input type="time" class="form-control">
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
@@ -120,13 +151,8 @@
                                     <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
                                 </svg>
                             </button>
-                            <div class="Availabilityarea mt-2" style="display: none;">
-                                <span>08:00 AM - 09:00 AM</span>
-                                <span>09:00 AM - 10:00 AM</span>
-                                <span>10:00 AM - 11:00 AM</span>
-                                <span>04:00 PM - 05:00 PM</span>
-                                <span>05:00 PM - 06:00 PM</span>
-                                <span>06:00 PM - 07:00 PM</span>
+                            <div class="slot_div mt-2" style="display: none;">
+
                             </div>
 
                         </div>
@@ -235,5 +261,86 @@
                 $('#PK_SCHEDULING_CODE').html(result);
             }
         });
+    }
+
+    function getSlots() {
+
+        //let PK_ENROLLMENT_MASTER = $('#PK_ENROLLMENT_MASTER').val();
+
+        /*let PK_SERVICE_MASTER = $('#PK_SERVICE_MASTER').val();
+        let PK_SERVICE_CODE = $('#PK_SERVICE_CODE').val();*/
+        let PK_SERVICE_PROVIDER = $('#PK_SERVICE_PROVIDER').val();
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+        let selected_date = $('#APPOINTMENT_DATE').val();
+        let day = (selected_date.toString().split(' ')[0]).toUpperCase();
+        let month = selected_date.toString().split(' ')[1];
+
+        let PK_LOCATION = $('#PK_ENROLLMENT_MASTER').find(':selected').data('location_id');
+        if (!PK_LOCATION) {
+            PK_LOCATION = $('#SELECT_CUSTOMER').find(':selected').data('location_id');
+        }
+
+        if (month == 'Jan')
+            month = '01'
+        else if (month == 'Feb')
+            month = '02'
+        else if (month == 'Mar')
+            month = '03'
+        else if (month == 'Apr')
+            month = '04'
+        else if (month == 'May')
+            month = '05'
+        else if (month == 'Jun')
+            month = '06'
+        else if (month == 'Jul')
+            month = '07'
+        else if (month == 'Aug')
+            month = '08'
+        else if (month == 'Sep')
+            month = '09'
+        else if (month == 'Oct')
+            month = '10'
+        else if (month == 'Nov')
+            month = '11'
+        else if (month == 'Dec')
+            month = '12'
+        let date = selected_date.toString().split(' ')[3] + '-' + month + '-' + selected_date.toString().split(' ')[2];
+        let START_TIME = '';
+        let END_TIME = '';
+
+        //duration = (duration > 0) ?duration: 30;
+
+        //console.log(PK_SERVICE_PROVIDER,duration,day);
+
+        if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0) {
+
+            start_time_array = [];
+            end_time_array = [];
+            $.ajax({
+                url: "ajax/get_slots.php",
+                type: "POST",
+                data: {
+                    //PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                    //PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                    /*PK_SERVICE_MASTER: PK_SERVICE_MASTER,
+                    PK_SERVICE_CODE: PK_SERVICE_CODE,*/
+                    SERVICE_PROVIDER_ID: PK_SERVICE_PROVIDER,
+                    PK_LOCATION: PK_LOCATION,
+                    duration: duration,
+                    day: day,
+                    date: date,
+                    START_TIME: START_TIME,
+                    END_TIME: END_TIME,
+                    slot_time: ''
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $('#slot_div').html(result);
+                }
+            });
+        } else {
+            $('#slot_div').html('');
+        }
     }
 </script>

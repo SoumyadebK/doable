@@ -259,13 +259,9 @@ if (empty($_POST['slot_time'])) {
                     $selected = "background-color: orange !important;";
                 }
             } ?>
-            <div class="col-md-6 form-group">
-                <button type="button" data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="btn waves-effect waves-light btn-light slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="set_time(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>', <?= $PK_APPOINTMENT_MASTER ?>)" style="width:100%; <?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></button>
-            </div>
+            <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="set_time(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>', <?= $PK_APPOINTMENT_MASTER ?>)" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>
         <?php }
     } else { ?>
-        <div class="col-md-12 form-group">
-            <button type="button" data-is_disable="1" class="btn waves-effect waves-light btn-light slot_btn" style="width:100%; pointer-events: none; background-color: gray !important; color: white; font-size: 18px;">No slot available on your selected time</button>
-        </div>
+        <span data-is_disable="1" class="slot_btn">No slot available on your selected time</span>
 <?php }
 } ?>

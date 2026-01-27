@@ -152,7 +152,7 @@ if ($PAYMENT_GATEWAY == 'Stripe') {
                     $address->setPostalCode($location_data->fields['ZIP_CODE']);
                     $address->setCountry('US');
 
-                    pre_r($address);
+                    //pre_r($address);
 
                     $body = new \Square\Models\CreateCustomerRequest();
                     $body->setGivenName($location_data->fields['LOCATION_NAME']);
