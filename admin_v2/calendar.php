@@ -595,12 +595,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 </style>
 
 
-
-
-
-
-
-
+<!-- View Appointment Css -->
 <style>
     /* ================================
    TOOLBAR
@@ -781,12 +776,48 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         min-width: auto;
     }
 </style>
+<style>
+    .overlay2 {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1049;
+    }
 
+    .side-drawer {
+        position: fixed;
+        top: 0;
+        right: -500px;
+        width: 500px;
+        max-width: 90vw;
+        height: 100vh;
+        background: white;
+        transition: right 0.3s ease;
+        z-index: 1050;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    }
 
+    .side-drawer.open {
+        right: 0;
+    }
 
+    .close-btn {
+        font-size: 24px;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
 
-
-
+    /* Make sure the drawer appears above calendar */
+    .fc .fc-daygrid-day-frame,
+    .fc .fc-timegrid-slot-lane {
+        z-index: auto !important;
+    }
+</style>
 
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
@@ -1036,7 +1067,23 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 
+    <div class="overlay2"></div>
+    <div class="side-drawer" id="sideDrawer2">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Appointment Details</h6>
+            <span class="close-btn" id="closeDrawer2">&times;</span>
+        </div>
+        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+        <div class="modal-footer flex-nowrap p-2 border-top">
+            <button type="button" class="btn-secondary w-100 m-1" onclick="closeSideDrawer2()">Cancel</button>
+            <button type="button" class="btn-primary w-100 m-1">Save</button>
+        </div>
+    </div>
+
     <?php include 'partials/create_appointment_modal.php'; ?>
+
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -1407,7 +1454,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if (clickCount === 1 && is_editable) {
                         singleClickTimer = setTimeout(function() {
                             if (clickCount === 1) {
-                                showAppointmentEdit(info);
+                                openSideDrawer2(info.event);
+                                //showAppointmentEdit(info);
                             }
                             clickCount = 0;
                         }, 500);
@@ -1504,6 +1552,109 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             // Update CHOOSE_DATE input with current date
             updateChooseDateInput(date);
         }
+
+        // Function to open the side drawer
+        function openSideDrawer2(event) {
+            // Get event data including the appointment ID
+            const eventData = event.extendedProps;
+            const title = event.title;
+            const appointmentId = event.id; // This is the PK_APPOINTMENT_MASTER
+            //alert(appointmentId);
+
+            // Store the appointment ID in a data attribute for later use
+            const drawerElement = document.getElementById('sideDrawer2');
+            drawerElement.dataset.appointmentId = appointmentId;
+
+            // Show overlay and drawer
+            document.querySelector('.overlay2').style.display = 'block';
+            document.getElementById('sideDrawer2').classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            // Load view_appointment_modal content via AJAX
+            loadViewAppointmentModal(appointmentId);
+        }
+
+        function loadViewAppointmentModal(appointmentId) {
+            $.ajax({
+                url: "partials/view_appointment_modal.php",
+                type: "POST",
+                data: {
+                    PK_APPOINTMENT_MASTER: appointmentId
+                },
+                success: function(result) {
+                    // Update the drawer content with view_appointment_modal
+                    $('#sideDrawer2 .drawer-body').html(result);
+
+                    // Re-initialize any scripts if needed
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading view_appointment_modal.php:", error);
+                    $('#sideDrawer2 .drawer-body').html('<p>Error loading appointment details.</p>');
+                }
+            });
+        }
+
+        function initializeModalScripts() {
+            // Re-initialize any scripts that were in view_appointment_modal.php
+            // For example, datepickers, select menus, etc.
+
+            // Initialize datepicker if exists
+            if ($.fn.datepicker) {
+                $('.datepicker').datepicker();
+            }
+
+            // Initialize SumoSelect if exists
+            if ($.fn.SumoSelect) {
+                $('.sumoselect').SumoSelect();
+            }
+
+            // Re-attach event handlers
+            attachModalEventHandlers();
+        }
+
+        function attachModalEventHandlers() {
+            // Attach event handlers for buttons in the modal
+            $(document).off('click', '.modal-save-btn').on('click', '.modal-save-btn', function() {
+                // Handle save button click
+                saveAppointmentChanges();
+            });
+
+            $(document).off('click', '.modal-cancel-btn').on('click', '.modal-cancel-btn', function() {
+                closeSideDrawer2();
+            });
+        }
+
+        // Function to close the side drawer
+        function closeSideDrawer2() {
+            document.querySelector('.overlay2').style.display = 'none';
+            document.getElementById('sideDrawer2').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Add event listeners for closing the drawer
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close button
+            document.getElementById('closeDrawer2').addEventListener('click', closeSideDrawer2);
+
+            // Close when clicking on overlay
+            document.querySelector('.overlay2').addEventListener('click', closeSideDrawer2);
+
+            // Close when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && document.getElementById('sideDrawer2').classList.contains('open')) {
+                    closeSideDrawer2();
+                }
+            });
+
+            // Prevent closing when clicking inside drawer
+            document.getElementById('sideDrawer2').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+
+        // Optional: If you have a cancel button in the drawer footer
+        document.querySelector('.modal-footer .btn-secondary').addEventListener('click', closeSideDrawer2);
 
         document.addEventListener('DOMContentLoaded', function() {
             //todayDate.setDate(todayDate.getDate() + 5);
