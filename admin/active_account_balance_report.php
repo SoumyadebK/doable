@@ -31,11 +31,12 @@ if (!empty($_GET['NAME'])) {
     } else if ($_GET['NAME'] == 'nfa_active_no_enrollments_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        $APPOINTMENT_TYPE = isset($_GET['APPOINTMENT_TYPE']) ? $_GET['APPOINTMENT_TYPE'] : 'all';
         if ($generate_excel === 1) {
             $report_name = 'nfa_active_no_enrollments_report';
-            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
+            header('location:excel_' . $report_name . '.php?appointment_type=' . $APPOINTMENT_TYPE . '&report_type=' . $report_name);
         } else {
-            header('location:nfa_active_no_enrollments_report.php?type=' . $type);
+            header('location:nfa_active_no_enrollments_report.php?appointment_type=' . $APPOINTMENT_TYPE . '&type=' . $type);
         }
     }
 }
@@ -75,7 +76,7 @@ if (!empty($_GET['NAME'])) {
                                                 <select class="form-control" required name="NAME" id="NAME" onchange="selectReport(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="active_account_balance_report">ACTIVE ACCOUNT BALANCE REPORT</option>
-                                                    <option value="nfa_active_customers_report">NFA ACTIVE CUSTOMERS REPORT</option>
+                                                    <option value="nfa_active_customers_report">NFA ACTIVE ENROLLED CUSTOMERS REPORT</option>
                                                     <option value="nfa_active_no_enrollments_report">NFA ACTIVE NO ENROLLMENTS REPORT</option>
                                                 </select>
                                             </div>
@@ -95,7 +96,16 @@ if (!empty($_GET['NAME'])) {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-2 appointment_type" style="display: none;">
+                                            <div class="form-group">
+                                                <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE">
+                                                    <option value="all">All</option>
+                                                    <option value="with_previous">With Previous Appointments</option>
+                                                    <option value="without_previous">Without Previous Appointments</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
                                                 <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
@@ -125,30 +135,41 @@ if (!empty($_GET['NAME'])) {
         // Remove required attributes first
         $('#SELECTED_DATE').prop('required', false);
         $('#SELECTED_RANGE').prop('required', false);
+        $('#APPOINTMENT_TYPE').prop('required', false);
 
-        // Hide both fields
+        // Hide all conditional fields
         $('.selected_date').hide();
         $('.selected_range').hide();
+        $('.appointment_type').hide();
 
-        // Show fields only for active_account_balance_report
+        // Show fields based on selected report
         if (selectedReport === 'active_account_balance_report') {
             $('.selected_date').show();
             $('.selected_range').show();
             $('#SELECTED_DATE').prop('required', true);
             $('#SELECTED_RANGE').prop('required', true);
+        } else if (selectedReport === 'nfa_active_no_enrollments_report') {
+            $('.appointment_type').show();
+            $('#APPOINTMENT_TYPE').prop('required', true);
         }
     }
 
     // Initialize on page load
     $(document).ready(function() {
-        // Hide fields initially
+        // Hide all conditional fields initially
         $('.selected_date').hide();
         $('.selected_range').hide();
+        $('.appointment_type').hide();
 
         // If there's already a selected value, trigger the change
         if ($('#NAME').val()) {
             selectReport(document.getElementById('NAME'));
         }
+
+        // Set default value for appointment_type if it exists in GET parameters
+        <?php if (isset($_GET['APPOINTMENT_TYPE'])): ?>
+            $('#APPOINTMENT_TYPE').val('<?php echo $_GET['APPOINTMENT_TYPE']; ?>');
+        <?php endif; ?>
 
         // Also bind the change event properly
         $('#NAME').on('change', function() {

@@ -3,50 +3,18 @@ require_once('../global/config.php');
 global $db;
 global $db_account;
 global $master_database;
-global $account_database;
-error_reporting(0);
-
-include('../global/excel/Classes/PHPExcel/IOFactory.php');
-
-$title = "NFA ACTIVE NO ENROLLMENTS REPORT";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
 
-$type = $_GET['type'];
+// Get appointment type parameter
+$appointment_type = isset($_GET['appointment_type']) ? $_GET['appointment_type'] : 'all';
 
-$from_date = date('Y-m-d', strtotime($_GET['start_date']));
-$to_date = date('Y-m-d', strtotime($_GET['end_date']));
-$service_provider_id = $_GET['service_provider_id'];
-
-$selected_service_provider = [];
-$selected_service_provider_name = [];
-$selected_service_provider_row = $db->Execute("SELECT DISTINCT DOA_USERS.`PK_USER`, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM `DOA_USERS` LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.PK_USER IN (" . $service_provider_id . ") AND DOA_USER_ROLES.`PK_ROLES` = 5");
-while (!$selected_service_provider_row->EOF) {
-    $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
-    $selected_service_provider_name[] = $selected_service_provider_row->fields['NAME'];
-    $selected_service_provider_row->MoveNext();
-}
-
-$row = $db->Execute("SELECT PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS WHERE ACTIVE = 1 AND PK_USER IN (" . implode(',', $selected_service_provider) . ")");
-$totalResults = count($selected_service_provider_name);
-$concatenatedServiceProviders = "";
-foreach ($selected_service_provider_name as $key => $result) {
-    // Append the current result to the concatenated string
-    $concatenatedServiceProviders .= $result;
-
-    // If it's not the last result, append a comma
-    if ($key < $totalResults - 1) {
-        $concatenatedServiceProviders .= ", ";
-    }
-}
-
-$payment_date = "AND DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IN (" . $service_provider_id . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' GROUP BY SERVICE_PROVIDER_ID ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC";
+$today = date('Y-m-d');
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-$user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
 if (preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $business_name)) {
     $business_name = '';
@@ -64,192 +32,167 @@ while (!$results->EOF) {
 $totalResults = count($resultsArray);
 $concatenatedResults = "";
 foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
     $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
     }
 }
 
-
-$cell1  = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
-define('EOL', (PHP_SAPI == 'cli') ? PHP_EOL : '<br />');
-
-$total_fields = 70;
-for ($i = 0; $i <= $total_fields; $i++) {
-    if ($i <= 25)
-        $cell[] = $cell1[$i];
-    else {
-        $j = floor($i / 26) - 1;
-        $k = ($i % 26);
-        //echo $j."--".$k."<br />";
-        $cell[] = $cell1[$j] . $cell1[$k];
-    }
+// Set filename based on appointment type
+$filename = "NFA_Active_No_Enrollments_Report";
+if ($appointment_type == 'with_previous') {
+    $filename .= "_With_Previous_Appointments";
+} elseif ($appointment_type == 'without_previous') {
+    $filename .= "_Without_Previous_Appointments";
 }
+$filename .= "_" . date('Y-m-d') . ".xls";
 
-$inputFileType  = 'Excel2007';
-$outputFileName = 'NFA_ACTIVE_NO_ENROLLMENTS_REPORT.xlsx';
+header("Content-Type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=\"$filename\"");
 
-$objReader      = PHPExcel_IOFactory::createReader($inputFileType);
-$objReader->setIncludeCharts(TRUE);
-$objPHPExcel     = new PHPExcel();
-$objWriter         = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+// Build the query (same as in the HTML report)
+$base_query = "
+    SELECT
+        CONCAT(
+            DOA_USERS.FIRST_NAME,
+            ' ',
+            DOA_USERS.LAST_NAME
+        ) AS CLIENT,
+        DOA_USERS.USER_ID,
+        DOA_USERS.PK_USER,
+        DOA_USERS.PHONE,
+        DOA_USERS.EMAIL_ID,
+        DOA_USERS.ADDRESS,
+        'No Active Enrollment / No Future Appointment' AS STATUS,
+        (
+            SELECT am.DATE 
+            FROM DOA_APPOINTMENT_MASTER am
+            INNER JOIN DOA_ENROLLMENT_MASTER em ON am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+            INNER JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            WHERE em.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+            AND am.DATE <= CURDATE()
+            AND sc.IS_GROUP = 0 
+            AND am.PK_APPOINTMENT_STATUS = 2  
+            ORDER BY am.DATE DESC
+            LIMIT 1
+        ) AS LAST_PRIVATE_APPOINTMENT_DATE
+    FROM
+        $master_database.DOA_USERS AS DOA_USERS
+    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
+        ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER
+    INNER JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION
+        ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER    
+    LEFT JOIN DOA_ENROLLMENT_MASTER 
+        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+        AND DOA_ENROLLMENT_MASTER.STATUS = 'A'
+    LEFT JOIN DOA_APPOINTMENT_MASTER 
+        ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+        AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
+    WHERE
+        DOA_USERS.IS_DELETED = 0 
+        AND DOA_USERS.ACTIVE = 1 
+        AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+        AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IS NULL 
+        AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER IS NULL
+    ORDER BY CLIENT ASC
+";
 
-$objPHPExcel->getActiveSheet()->getColumnDimension("A")->setWidth(18);
-$objPHPExcel->getActiveSheet()->getColumnDimension("B")->setWidth(18);
-$objPHPExcel->getActiveSheet()->getColumnDimension("C")->setWidth(18);
-$objPHPExcel->getActiveSheet()->getColumnDimension("D")->setWidth(18);
-$objPHPExcel->getActiveSheet()->getColumnDimension("E")->setWidth(18);
+$row = $db_account->Execute($base_query);
+?>
+<html>
 
-$cell_no = "A1";
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($title);
-$objPHPExcel->getActiveSheet()->mergeCells('A1:E1');
-$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18); // Set font size to 16
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-//$objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(36);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
 
-$objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(20);
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
 
-$cell_no = "A2";
-$objPHPExcel->getActiveSheet()->mergeCells('A2:E2');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' . " (" . $concatenatedResults . ")");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
 
-$styleArray = [
-    'borders' => [
-        'allBorders' => [   // <-- fix here
-            'style' => PHPExcel_Style_Border::BORDER_THIN,
-            'color' => ['rgb' => '000000']
-        ]
-    ]
-];
+<body>
+    <table>
+        <tr>
+            <td colspan="7" style="text-align: center; font-weight: bold; font-size: 16px;">
+                NFA ACTIVE NO ENROLLMENTS REPORT
+                <?php if ($appointment_type == 'with_previous'): ?>
+                    <br><small>(With Previous Appointments)</small>
+                <?php elseif ($appointment_type == 'without_previous'): ?>
+                    <br><small>(Without Previous Appointments)</small>
+                <?php else: ?>
+                    <br><small>(All)</small>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="7" style="text-align: center;">
+                <?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" ?>
+            </td>
+        </tr>
+        <tr>
+            <th>Student</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Date of the Last Private Appointment</th>
+            <th>Total Days Since the Last One</th>
+            <th>Status</th>
+        </tr>
+        <?php
+        while (!$row->EOF) {
+            $last_appointment_date = $row->fields['LAST_PRIVATE_APPOINTMENT_DATE'];
+            $has_previous_appointment = !empty($last_appointment_date);
 
-$objPHPExcel->getActiveSheet()
-    ->getStyle('A1:E1')
-    ->applyFromArray($styleArray);
+            // Filter based on appointment type
+            $show_record = false;
+            if ($appointment_type == 'all') {
+                $show_record = true;
+            } elseif ($appointment_type == 'with_previous' && $has_previous_appointment) {
+                $show_record = true;
+            } elseif ($appointment_type == 'without_previous' && !$has_previous_appointment) {
+                $show_record = true;
+            }
 
-$cell_no = "A4";
-//$objPHPExcel->getActiveSheet()->mergeCells('C3:D3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Student");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            if ($show_record) {
+                $days_since_last = '';
 
-$cell_no = "B4";
-//$objPHPExcel->getActiveSheet()->mergeCells('C3:D3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Phone");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                if (!empty($last_appointment_date)) {
+                    $last_date = new DateTime($last_appointment_date);
+                    $today_date = new DateTime();
+                    $interval = $today_date->diff($last_date);
+                    $days_since_last = $interval->days;
+                }
 
-$cell_no = "C4";
-//$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Email");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $formatted_date = !empty($last_appointment_date) ? date('m/d/Y', strtotime($last_appointment_date)) : 'No Previous Appointment';
+        ?>
+                <tr>
+                    <td><?= $row->fields['CLIENT'] ?></td>
+                    <td><?= $row->fields['PHONE'] ?></td>
+                    <td><?= $row->fields['EMAIL_ID'] ?></td>
+                    <td><?= $row->fields['ADDRESS'] ?></td>
+                    <td><?= $formatted_date ?></td>
+                    <td><?= !empty($days_since_last) ? $days_since_last . ' days' : 'N/A' ?></td>
+                    <td><?= $row->fields['STATUS'] ?></td>
+                </tr>
+        <?php
+            }
+            $row->MoveNext();
+        }
+        ?>
+    </table>
+</body>
 
-$cell_no = "D4";
-//$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Address");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-$cell_no = "E4";
-$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Status");
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-$i = 5;
-
-$row = $db_account->Execute(" SELECT
-                                CONCAT(
-                                    DOA_USERS.FIRST_NAME,
-                                    ' ',
-                                    DOA_USERS.LAST_NAME
-                                ) AS CLIENT,
-                                    DOA_USERS.USER_ID,
-                                DOA_USERS.PHONE,
-                                DOA_USERS.EMAIL_ID,
-                                DOA_USERS.ADDRESS,
-                                'No Active Enrollment / No Future Appointment' AS STATUS
-                            FROM
-                                $master_database.DOA_USERS AS DOA_USERS
-                            INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
-                                ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER
-                            INNER JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION
-                                ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER    
-                            LEFT JOIN DOA_ENROLLMENT_MASTER 
-                                ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                                AND DOA_ENROLLMENT_MASTER.STATUS = 'A'
-                            LEFT JOIN DOA_APPOINTMENT_MASTER 
-                                ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                                AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
-                            WHERE
-                                DOA_USERS.IS_DELETED = 0 
-                                AND DOA_USERS.ACTIVE = 1 
-                                AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                                AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IS NULL 
-                                AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER IS NULL
-
-                            ORDER BY CLIENT ASC
-                        ");
-while (!$row->EOF) {
-    $cell_no = "A" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['CLIENT']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-
-    $cell_no = "B" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['PHONE']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-    $cell_no = "C" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['EMAIL_ID']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-    $cell_no = "D" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['ADDRESS']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-    $cell_no = "E" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['STATUS']);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-    $row->MoveNext();
-    $i++;
-}
-
-
-// Find the last used row
-$lastRow = $i - 1; // since $i was incremented after the last row
-
-// Apply border style to the full data range (header + data)
-$objPHPExcel->getActiveSheet()
-    ->getStyle("A1:E" . $lastRow)
-    ->applyFromArray([
-        'borders' => [
-            'allBorders' => [
-                'style' => PHPExcel_Style_Border::BORDER_THIN,
-                'color' => ['rgb' => '000000']
-            ]
-        ]
-    ]);
-
-$objWriter->save($outputFileName);
-$objPHPExcel->disconnectWorksheets();
-header("location:" . $outputFileName);
+</html>

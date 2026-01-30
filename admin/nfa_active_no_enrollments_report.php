@@ -11,6 +11,10 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+// Get appointment type parameter
+$appointment_type = isset($_GET['appointment_type']) ? $_GET['appointment_type'] : 'all';
+$type = isset($_GET['type']) ? $_GET['type'] : 'view';
+
 $today = date('Y-m-d');
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -56,6 +60,13 @@ foreach ($resultsArray as $key => $result) {
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
+                        <?php if ($appointment_type == 'with_previous'): ?>
+                            <small>(With Previous Appointments)</small>
+                        <?php elseif ($appointment_type == 'without_previous'): ?>
+                            <small>(Without Previous Appointments)</small>
+                        <?php else: ?>
+                            <small>(All)</small>
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-7 align-self-center text-end">
                         <div class="d-flex justify-content-end align-items-center">
@@ -74,6 +85,13 @@ foreach ($resultsArray as $key => $result) {
                                 <div>
                                     <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
                                     <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
+                                    <?php if ($appointment_type == 'with_previous'): ?>
+                                        <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(With Previous Appointments)</h5>
+                                    <?php elseif ($appointment_type == 'without_previous'): ?>
+                                        <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(Without Previous Appointments)</h5>
+                                    <?php else: ?>
+                                        <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(All)</h5>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="table-responsive">
@@ -97,17 +115,8 @@ foreach ($resultsArray as $key => $result) {
                                             $i = 1;
                                             $total_amount = 0;
 
-                                            // Build the service provider filter condition
-                                            $service_provider_filter = "";
-                                            if (!empty($service_provider_id)) {
-                                                $service_provider_filter = "AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IN (
-                                                        SELECT DISTINCT PK_ENROLLMENT_MASTER 
-                                                        FROM DOA_ENROLLMENT_SERVICE_PROVIDER 
-                                                        WHERE SERVICE_PROVIDER_ID IN (" . $service_provider_id . ")
-                                                    )";
-                                            }
-
-                                            $row = $db_account->Execute("
+                                            // Build the base query
+                                            $base_query = "
                                                 SELECT
                                                     CONCAT(
                                                         DOA_USERS.FIRST_NAME,
@@ -120,7 +129,6 @@ foreach ($resultsArray as $key => $result) {
                                                     DOA_USERS.EMAIL_ID,
                                                     DOA_USERS.ADDRESS,
                                                     'No Active Enrollment / No Future Appointment' AS STATUS,
-                                                    
                                                     (
                                                         SELECT am.DATE 
                                                         FROM DOA_APPOINTMENT_MASTER am
@@ -151,33 +159,49 @@ foreach ($resultsArray as $key => $result) {
                                                     AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER IS NULL 
                                                     AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER IS NULL
-                                                ORDER BY CLIENT ASC
-                                            ");
+                                            ";
+
+                                            // Execute query and then filter based on appointment type
+                                            $row = $db_account->Execute($base_query . " ORDER BY CLIENT ASC");
 
                                             while (!$row->EOF) {
                                                 $last_appointment_date = $row->fields['LAST_PRIVATE_APPOINTMENT_DATE'];
-                                                $days_since_last = '';
+                                                $has_previous_appointment = !empty($last_appointment_date);
 
-                                                if (!empty($last_appointment_date)) {
-                                                    $last_date = new DateTime($last_appointment_date);
-                                                    $today_date = new DateTime();
-                                                    $interval = $today_date->diff($last_date);
-                                                    $days_since_last = $interval->days;
+                                                // Filter based on appointment type
+                                                $show_record = false;
+                                                if ($appointment_type == 'all') {
+                                                    $show_record = true;
+                                                } elseif ($appointment_type == 'with_previous' && $has_previous_appointment) {
+                                                    $show_record = true;
+                                                } elseif ($appointment_type == 'without_previous' && !$has_previous_appointment) {
+                                                    $show_record = true;
                                                 }
 
-                                                // Format the date for display
-                                                $formatted_date = !empty($last_appointment_date) ? date('m/d/Y', strtotime($last_appointment_date)) : 'No Previous Appointment';
+                                                if ($show_record) {
+                                                    $days_since_last = '';
+
+                                                    if (!empty($last_appointment_date)) {
+                                                        $last_date = new DateTime($last_appointment_date);
+                                                        $today_date = new DateTime();
+                                                        $interval = $today_date->diff($last_date);
+                                                        $days_since_last = $interval->days;
+                                                    }
+
+                                                    // Format the date for display
+                                                    $formatted_date = !empty($last_appointment_date) ? date('m/d/Y', strtotime($last_appointment_date)) : 'No Previous Appointment';
                                             ?>
-                                                <tr>
-                                                    <td style="text-align: left"><?= $row->fields['CLIENT'] ?></td>
-                                                    <td style="text-align: center"><?= $row->fields['PHONE'] ?></td>
-                                                    <td style="text-align: center"><?= $row->fields['EMAIL_ID'] ?></td>
-                                                    <td style="text-align: center"><?= $row->fields['ADDRESS'] ?></td>
-                                                    <td style="text-align: center"><?= $formatted_date ?></td>
-                                                    <td style="text-align: center"><?= !empty($days_since_last) ? $days_since_last . ' days' : 'N/A' ?></td>
-                                                    <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
-                                                </tr>
+                                                    <tr>
+                                                        <td style="text-align: left"><?= $row->fields['CLIENT'] ?></td>
+                                                        <td style="text-align: center"><?= $row->fields['PHONE'] ?></td>
+                                                        <td style="text-align: center"><?= $row->fields['EMAIL_ID'] ?></td>
+                                                        <td style="text-align: center"><?= $row->fields['ADDRESS'] ?></td>
+                                                        <td style="text-align: center"><?= $formatted_date ?></td>
+                                                        <td style="text-align: center"><?= !empty($days_since_last) ? $days_since_last . ' days' : 'N/A' ?></td>
+                                                        <td style="text-align: center"><?= $row->fields['STATUS'] ?></td>
+                                                    </tr>
                                             <?php
+                                                }
                                                 $row->MoveNext();
                                                 $i++;
                                             }
