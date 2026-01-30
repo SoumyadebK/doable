@@ -60,15 +60,29 @@ foreach ($resultsArray as $key => $result) {
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
-                        <?php if ($appointment_type == 'with_previous'): ?>
+                        <!-- <?php if ($appointment_type == 'with_previous'): ?>
                             <small>(With Previous Appointments)</small>
                         <?php elseif ($appointment_type == 'without_previous'): ?>
                             <small>(Without Previous Appointments)</small>
                         <?php else: ?>
                             <small>(All)</small>
-                        <?php endif; ?>
+                        <?php endif; ?> -->
                     </div>
-                    <div class="col-md-7 align-self-center text-end">
+                    <!-- Add filter form here, above the table -->
+
+                    <div class="col-md-2 align-self-center">
+                        <form method="get" class="d-flex align-items-center">
+                            <input type="hidden" name="type" value="<?= $type ?>">
+                            <!-- <label class="me-2 mb-0">Filter by:</label> -->
+                            <select class="form-control" name="appointment_type" id="APPOINTMENT_TYPE" onchange="this.form.submit()" style="width: auto;">
+                                <option value="all" <?= $appointment_type == 'all' ? 'selected' : '' ?>>All</option>
+                                <option value="with_previous" <?= $appointment_type == 'with_previous' ? 'selected' : '' ?>>With Previous Appointments</option>
+                                <option value="without_previous" <?= $appointment_type == 'without_previous' ? 'selected' : '' ?>>Without Previous Appointments</option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <div class="col-md-5 align-self-center text-end">
                         <div class="d-flex justify-content-end align-items-center">
                             <ol class="breadcrumb justify-content-end">
                                 <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
@@ -85,13 +99,13 @@ foreach ($resultsArray as $key => $result) {
                                 <div>
                                     <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
                                     <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
-                                    <?php if ($appointment_type == 'with_previous'): ?>
+                                    <!-- <?php if ($appointment_type == 'with_previous'): ?>
                                         <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(With Previous Appointments)</h5>
                                     <?php elseif ($appointment_type == 'without_previous'): ?>
                                         <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(Without Previous Appointments)</h5>
                                     <?php else: ?>
                                         <h5 class="text-center" style="margin-top: -10px; margin-bottom: 20px; color: #666;">(All)</h5>
-                                    <?php endif; ?>
+                                    <?php endif; ?> -->
                                 </div>
 
                                 <div class="table-responsive">
