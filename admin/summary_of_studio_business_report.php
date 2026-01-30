@@ -21,9 +21,17 @@ $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 $week_number = $_GET['week_number'];
 $YEAR = date('Y', strtotime($from_date));
 
+$ytd_form_date = firstSundayOfYear($YEAR);
+$prev_form_date = firstSundayOfYear($YEAR - 1);
+
 $weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$net_year_date_condition = "'" . date('Y', strtotime($from_date)) . "-01-01' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
-$prev_year_date_condition = "'" . (date('Y', strtotime($from_date)) - 1) . "-01-01' AND '" . (date('Y', strtotime($to_date)) - 1) . date('-m-d', strtotime($to_date)) . "'";
+$net_year_date_condition = "'" . $ytd_form_date . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
+$prev_year_date_condition = "'" . $prev_form_date . "' AND '" . (date('Y', strtotime($to_date)) - 1) . date('-m-d', strtotime($to_date)) . "'";
+
+/* echo $weekly_date_condition . "\n";
+echo $net_year_date_condition . "\n";
+echo $prev_year_date_condition . "\n";
+die(); */
 
 $appointment_date = "AND DOA_APPOINTMENT_MASTER.DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
@@ -391,6 +399,13 @@ if (!empty($_GET['WEEK_NUMBER'])) {
 function roundToNearestFiveCents($num)
 {
     return round($num / 0.05) * 0.05;
+}
+
+function firstSundayOfYear($year)
+{
+    $date = new DateTime("$year-01-01");
+    $date->modify('first sunday of january ' . $year);
+    return $date->format('Y-m-d');
 }
 ?>
 
