@@ -31,7 +31,7 @@
 </style>
 <!-- Individual Appointment -->
 <div class="overlay"></div>
-<div class="side-drawer" id="sideDrawer" style="margin-top: 70px; height: 92% !important; border-radius: 15px; max-width: 575px;">
+<div class="side-drawer" id="sideDrawer">
     <div class="drawer-header text-end border-bottom px-3">
         <span class="close-btn" id="closeDrawer">&times;</span>
     </div>

@@ -820,6 +820,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
 
+    .side-drawer {
+        margin-top: 70px;
+        height: 92% !important;
+        border-radius: 15px;
+        max-width: 575px;
+    }
+
+
     .edit-btn {
         font-size: 18px;
         color: #39b54a;
