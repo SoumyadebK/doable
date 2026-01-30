@@ -314,28 +314,6 @@ if ($PK_USER_MASTER > 0) {
             </div>
         </div>
     </div>
-    <div class="row mb-3 align-items-center">
-        <div class="col-5 col-md-5">
-            <div class="d-flex gap-2 align-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
-                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
-                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
-                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
-                </svg>
-                <label class="mb-0">Customer</label>
-            </div>
-        </div>
-        <div class="col-7 col-md-7">
-            <div class="form-group">
-                <select class="form-control customerselect">
-                    <option value="" selected disabled>-- Select --</option>
-                    <option value="Ross Geller">Ross Geller</option>
-                    <option value="Rachel Green">Rachel Green</option>
-                    <option value="Chandler Bing">Chandler Bing</option>
-                </select>
-            </div>
-        </div>
-    </div>
     <div class="row mb-3 d-none enrollmentarea">
         <div class="col-5 col-md-5">
             <div class="d-flex gap-2 align-items-center">
