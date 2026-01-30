@@ -1248,3 +1248,22 @@ function addEnrollmentLogData($PK_ENROLLMENT_MASTER, $OPERATION, $DETAILS)
     $log_data['CREATED_BY'] = $_SESSION['PK_USER'];
     db_perform_account('DOA_ENROLLMENT_LOG', $log_data, 'insert');
 }
+
+
+function getInitials(string $name): string
+{
+    // Remove extra spaces
+    $name = trim(preg_replace('/\s+/', ' ', $name));
+
+    if ($name === '') {
+        return '';
+    }
+
+    // Split name into parts
+    $parts = explode(' ', $name);
+
+    $firstInitial = strtoupper(substr($parts[0], 0, 1));
+    $lastInitial  = strtoupper(substr(end($parts), 0, 1));
+
+    return $firstInitial . $lastInitial;
+}
