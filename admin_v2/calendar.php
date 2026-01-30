@@ -794,6 +794,21 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         font-size: 18px;
         color: #6b7280;
     }
+
+    .ext-tag {
+        background-color: #eeebff;
+        color: #8c75e7;
+    }
+
+    .pri-tag {
+        background-color: #feebf4;
+        color: #ed85b7;
+    }
+
+    .grp-tag {
+        background-color: #ebf2ff;
+        color: #6b82e2;
+    }
 </style>
 
 
@@ -1299,14 +1314,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             html: true,
                             placement: 'top',
                             trigger: 'manual',
-                            container: 'body'
+                            container: 'body',
+                            sanitize: false,
                         }).popover('show');
 
                         // keep popover visible when hovering it
                         $('.popover').off('mouseenter.tooltip').on('mouseenter.tooltip', function() {
                             clearTimeout($el.data('hideTimer'));
                         }).off('mouseleave.tooltip').on('mouseleave.tooltip', function() {
-                            //$el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
+                            $el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
                         });
                     }
 
@@ -1323,7 +1339,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                         // fetch HTML via AJAX
                         $.ajax({
-                            url: 'ajax/get_event_tooltip.php', // your endpoint
+                            url: 'ajax/get_session_details.php', // your endpoint
                             type: 'POST',
                             data: {
                                 id: info.event.id,
@@ -1340,8 +1356,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         });
                     }).on('mouseleave', function() {
                         // small delay so user can move to popover without it disappearing immediately
-                        //$el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
+                        $el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
                     });
+
+
+
+
+
+
+
                 },
                 eventClick: function(info) {
                     clickCount++;
