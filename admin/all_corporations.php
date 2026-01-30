@@ -60,7 +60,7 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT * FROM `DOA_CORPORATION` WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
+                                            $row = $db->Execute("SELECT * FROM `DOA_CORPORATION` LEFT JOIN DOA_LOCATION ON DOA_CORPORATION.PK_CORPORATION = DOA_LOCATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_CORPORATION.PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]'");
                                             while (!$row->EOF) { ?>
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_CORPORATION'] ?>);"><?= $i; ?></td>
