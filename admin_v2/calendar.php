@@ -466,6 +466,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         border-radius: 10px !important;
         margin: 1px 0px 1px 2px !important;
         text-align: left !important;
+        padding: 8px !important;
     }
 
     .fc-content {
@@ -825,14 +826,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-
-
-
         <div class="calendar-header">
-
-
             <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
-
             <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
             <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
 
@@ -909,108 +904,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
 
 
-
-
-
-
-
-
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
-
-
                 <div class="row">
                     <div id="appointment_list_half" class="col-12">
                         <div class="card" style="border-radius: 15px;">
-
-                            <!-- <div class="card-body row" style="margin-bottom: -30px;">
-                                <div class="col-2">
-                                    <div class="row">
-                                        <div class="clearfix col-auto d-flex align-items-center gap-3">
-                                            <div class="box d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">D</button>
-                                                <div id="day-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
-                                            </div>
-                                            <div class="box d-flex align-items-center gap-2">
-                                                <button type="button" id="week_count_btn" class="btn btn-info d-none d-lg-block text-white" style="font-size:15px; cursor: not-allowed;">W</button>
-                                                <div id="week-count" class="timer count-title count-number" style="font-size:20px" data-from="0" data-to="0" data-speed="1500"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-8">
-                                    <form id="search_form" class="form-material form-horizontal" action="" method="get" style="margin-bottom: -30px;">
-                                        <div class="row">
-                                            <div class="col-2">
-                                                <div class="form-material form-horizontal">
-                                                    <select class="form-control" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();">
-                                                        <option value="">Select Status</option>
-                                                        <?php
-                                                        $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
-                                                        <?php $row->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-2">
-                                                <div class="form-material form-horizontal">
-                                                    <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();">
-                                                        <option value="">Select Appointment Type</option>
-                                                        <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
-                                                                                    echo "selected";
-                                                                                } ?>>Appointment</option>
-                                                        <option value="GROUP" <?php if ($appointment_type == "GROUP") {
-                                                                                    echo "selected";
-                                                                                } ?>>Group Class</option>
-                                                        <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
-                                                                                    echo "selected";
-                                                                                } ?>>To Dos</option>
-                                                        <option value="EVENT" <?php if ($appointment_type == "EVENT") {
-                                                                                    echo "selected";
-                                                                                } ?>>Event</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-3">
-                                                <input type="hidden" id="IS_SELECTED" value="0">
-                                                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal-calendar" placeholder="Choose Date" value="<?= ($_GET['date']) ?? '' ?>">
-                                            </div>
-                                            <div class="col-5">
-                                                <div class="search-container">
-                                                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" style="height: 37px" multiple>
-                                                        <?php
-                                                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
-                                                        <?php $row->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1" style="height: 37px"><i class="fa fa-search"></i></button>
-                                                </div>
-                                            </div>
-
-
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <div class="col-2">
-                                    <div class="input-group" style="width: 100px; float: right; margin-top: 1px;">
-                                        <a onclick="zoomInOut('out');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-minus"></i></a>
-                                        <a onclick="zoomInOut('in');" class="btn btn-info waves-effect waves-light m-r-10 text-white input-form-btn m-b-1"><i class="fa fa-plus"></i></a>
-                                    </div>
-                                </div>
-
-
-                            </div> -->
-
-
-                            <!--  <div id="appointment_list"  class="card-body table-responsive" style="display: none;">
-
-                            </div>-->
 
                             <div class="card-body row">
                                 <div class="col-12" id='calendar-container'>
@@ -1417,36 +1315,71 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if (event_data.customerName) {
                         $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">' + event_data.customerName + '</strong> ');
                     }
-                    /* if (event_data.status) {
-                        $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
-                    } */
-                    if (event_data.comment || event_data.internal_comment) {
-                        $('.popover').remove();
-                        $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');
-                        $(info.el).popover({
-                            title: info.event.title,
-                            placement: 'top',
-                            trigger: 'hover',
-                            content: ((event_data.comment) ? 'Comment : ' + event_data.comment + '<br>' : '') + ((event_data.internal_comment) ? 'Internal Comment : ' + event_data.internal_comment : ''),
-                            container: 'body',
+
+
+
+
+
+
+
+
+                    const $el = $(info.el);
+
+                    if ($el.data('tooltip-bound')) return;
+                    $el.data('tooltip-bound', true);
+
+                    function showPopover(html) {
+                        // initialize popover (manual trigger) and show
+                        $el.popover('dispose'); // clear any previous
+                        $el.popover({
+                            //title: info.event.title,
+                            content: html,
                             html: true,
+                            placement: 'top',
+                            trigger: 'manual',
+                            container: 'body'
+                        }).popover('show');
+
+                        // keep popover visible when hovering it
+                        $('.popover').off('mouseenter.tooltip').on('mouseenter.tooltip', function() {
+                            clearTimeout($el.data('hideTimer'));
+                        }).off('mouseleave.tooltip').on('mouseleave.tooltip', function() {
+                            //$el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
                         });
                     }
-                    /* if (event_data.paid_status) {
-                        if (event_data.paid_status === ' (Unpaid)') {
-                            $(element).find(".fc-title").append('<span style="color: red;">' + event_data.paid_status + '</span>');
-                        } else {
-                            $(element).find(".fc-title").append('<span>' + event_data.paid_status + '</span>');
+
+                    $el.on('mouseenter', function() {
+                        clearTimeout($el.data('hideTimer'));
+
+                        // if already loaded, show cached HTML
+                        if ($el.data('tooltipHtml')) {
+                            return showPopover($el.data('tooltipHtml'));
                         }
-                    }
 
-                    if (event_data.appointment_number) {
-                        $(element).find(".fc-title").append('<span>' + event_data.appointment_number + '</span>');
-                    }
+                        // show temporary loading state (optional)
+                        showPopover('<div style="padding:8px">Loading…</div>');
 
-                    if (event_data.statusCode) {
-                        $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">(' + event_data.statusCode + ')</strong> ');
-                    } */
+                        // fetch HTML via AJAX
+                        $.ajax({
+                            url: 'ajax/get_event_tooltip.php', // your endpoint
+                            type: 'POST',
+                            data: {
+                                id: info.event.id,
+                                type: info.event.extendedProps.type || ''
+                            },
+                            success: function(html) {
+                                $el.data('tooltipHtml', html);
+                                showPopover(html);
+                            },
+                            error: function() {
+                                $el.data('tooltipHtml', '<div style="padding:8px">Unable to load details</div>');
+                                showPopover($el.data('tooltipHtml'));
+                            }
+                        });
+                    }).on('mouseleave', function() {
+                        // small delay so user can move to popover without it disappearing immediately
+                        //$el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
+                    });
                 },
                 eventClick: function(info) {
                     clickCount++;
@@ -2013,7 +1946,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             }, 1000);
         });
 
-        function createAppointment(type, param) {
+        /* function createAppointment(type, param) {
             $('.btn').removeClass('button-selected');
             $(param).addClass('button-selected');
             let url = '';
@@ -2042,7 +1975,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $('#create_form_div').html(data);
                 }
             });
-        }
+        } */
     </script>
 
     <!-- JavaScript for Popup -->
