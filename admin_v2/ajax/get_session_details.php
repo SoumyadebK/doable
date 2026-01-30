@@ -42,6 +42,7 @@ if ($TYPE == 'appointment') {
 
     $appointment_data = $db_account->Execute($APPOINTMENT_QUERY);
 
+    $PK_APPOINTMENT_MASTER = $appointment_data->fields['PK_APPOINTMENT_MASTER'];
     $ENROLLMENT_ID = $appointment_data->fields['ENROLLMENT_ID'];
     $SERVICE_NAME = $appointment_data->fields['SERVICE_NAME'];
     $SERVICE_CODE = $appointment_data->fields['SERVICE_CODE'];
@@ -75,7 +76,7 @@ if ($TYPE == 'appointment') {
                 </div>
             </div>
             <div class="profilebtn-area ms-auto">
-                <a href="javascript;" class="edit-btn">
+                <a href="javascript:;" class="edit-btn" onclick="loadViewAppointmentModal(<?= $PK_APPOINTMENT_MASTER ?>)">
                     <i class="fa fa-edit" aria-hidden="true"></i>
                 </a>
                 <a href="javascript;" class="delete-btn">

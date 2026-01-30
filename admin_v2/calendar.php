@@ -819,6 +819,23 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         z-index: auto !important;
     }
 
+
+    .edit-btn {
+        font-size: 18px;
+        color: #39b54a;
+        margin-right: 5px;
+    }
+
+    .delete-btn {
+        font-size: 18px;
+        color: #ef4444;
+    }
+
+    .btn-icon {
+        font-size: 18px;
+        color: #6b7280;
+    }
+
     .ext-tag {
         background-color: #eeebff;
         color: #8c75e7;
@@ -990,7 +1007,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <!-- Content will be loaded here via AJAX -->
         </div>
         <div class="modal-footer flex-nowrap p-2 border-top">
-            <button type="button" class="btn-secondary w-100 m-1" onclick="closeSideDrawer2()">Cancel</button>
+            <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
             <button type="button" class="btn-primary w-100 m-1">Save</button>
         </div>
     </div>
@@ -1410,7 +1427,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if (clickCount === 1 && is_editable) {
                         singleClickTimer = setTimeout(function() {
                             if (clickCount === 1) {
-                                openSideDrawer2(info.event);
+                                loadViewAppointmentModal(info.event.id);
                                 //showAppointmentEdit(info);
                             }
                             clickCount = 0;
@@ -1509,28 +1526,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             updateChooseDateInput(date);
         }
 
-        // Function to open the side drawer
-        function openSideDrawer2(event) {
-            // Get event data including the appointment ID
-            const eventData = event.extendedProps;
-            const title = event.title;
-            const appointmentId = event.id; // This is the PK_APPOINTMENT_MASTER
-            //alert(appointmentId);
-
-            // Store the appointment ID in a data attribute for later use
-            const drawerElement = document.getElementById('sideDrawer2');
-            drawerElement.dataset.appointmentId = appointmentId;
-
-            // Show overlay and drawer
-            document.querySelector('.overlay2').style.display = 'block';
-            document.getElementById('sideDrawer2').classList.add('open');
-            document.body.style.overflow = 'hidden';
-
-            // Load view_appointment_modal content via AJAX
-            loadViewAppointmentModal(appointmentId);
-        }
-
         function loadViewAppointmentModal(appointmentId) {
+            $('#sideDrawer2, .overlay2').addClass('active');
             $.ajax({
                 url: "partials/view_appointment_modal.php",
                 type: "POST",
@@ -1580,37 +1577,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 closeSideDrawer2();
             });
         }
-
-        // Function to close the side drawer
-        function closeSideDrawer2() {
-            document.querySelector('.overlay2').style.display = 'none';
-            document.getElementById('sideDrawer2').classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        // Add event listeners for closing the drawer
-        document.addEventListener('DOMContentLoaded', function() {
-            // Close button
-            document.getElementById('closeDrawer2').addEventListener('click', closeSideDrawer2);
-
-            // Close when clicking on overlay
-            document.querySelector('.overlay2').addEventListener('click', closeSideDrawer2);
-
-            // Close when pressing Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && document.getElementById('sideDrawer2').classList.contains('open')) {
-                    closeSideDrawer2();
-                }
-            });
-
-            // Prevent closing when clicking inside drawer
-            document.getElementById('sideDrawer2').addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        });
-
-        // Optional: If you have a cancel button in the drawer footer
-        document.querySelector('.modal-footer .btn-secondary').addEventListener('click', closeSideDrawer2);
 
         document.addEventListener('DOMContentLoaded', function() {
             //todayDate.setDate(todayDate.getDate() + 5);
