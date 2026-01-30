@@ -981,6 +981,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
 
     <?php include 'partials/create_appointment_modal.php'; ?>
+    <?php include 'partials/view_customer_modal.php'; ?>
 
 
     <?php require_once('../includes/footer.php'); ?>
