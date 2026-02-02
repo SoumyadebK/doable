@@ -1005,6 +1005,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 
+    <!-- Appointment Details -->
     <div class="overlay2"></div>
     <div class="side-drawer" id="sideDrawer2">
         <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
@@ -1020,9 +1021,24 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 
-    <?php include 'partials/create_appointment_modal.php'; ?>
-    <?php include 'partials/view_customer_modal.php'; ?>
+    <!-- Customer Details -->
+    <div class="overlay3"></div>
+    <div class="side-drawer" id="sideDrawer3">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                    <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z" />
+                </svg>
+                <span>Customer Details</span>
+            </h6>
+            <span class="close-btn" id="closeDrawer3">&times;</span>
+        </div>
+        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 0px);">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
 
+    <?php include 'partials/create_appointment_modal.php'; ?>
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -1553,6 +1569,29 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 error: function(xhr, status, error) {
                     console.error("Error loading view_appointment_modal.php:", error);
                     $('#sideDrawer2 .drawer-body').html('<p>Error loading appointment details.</p>');
+                }
+            });
+        }
+
+        function loadViewCustomerModal(customerId, PK_ENROLLMENT_MASTER) {
+            $('#sideDrawer2, .overlay2').removeClass('active'); // Close appointment modal
+            $('#sideDrawer3, .overlay3').addClass('active'); // Open customer modal
+
+            $.ajax({
+                url: "partials/view_customer_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER: customerId,
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                },
+                success: function(result) {
+                    // Update the customer drawer content
+                    $('#sideDrawer3 .drawer-body').html(result);
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading view_customer_modal.php:", error);
+                    $('#sideDrawer3 .drawer-body').html('<p>Error loading customer details.</p>');
                 }
             });
         }
