@@ -118,6 +118,28 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row mb-3 align-items-center service_area d-none">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <label class="mb-0" style="margin-left: 33px;">Service</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <select class="form-control" required name="PK_SERVICE_MASTER" onchange="selectThisService(this)">
+                                    <option value="">Select Service</option>
+                                    <?php
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?= $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>"><?= $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row mb-3 align-items-center schedule_code_area d-none">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
@@ -404,17 +426,40 @@
     }
 
     function selectThisEnrollment(param) {
-        let PK_ENROLLMENT_MASTER = $(param).val();
-        let no_of_session = $(param).data('no_of_session');
-        let used_session = $(param).data('used_session');
+        if ($(param).val() == 'AD-HOC') {
+            $('.service_area').removeClass('d-none');
+            $('#PK_SERVICE_MASTER').val('');
+            $('#PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
+        } else {
+            $('.service_area').addClass('d-none');
+            let PK_ENROLLMENT_MASTER = $(param).val();
+            let no_of_session = $(param).data('no_of_session');
+            let used_session = $(param).data('used_session');
 
+            $.ajax({
+                url: "ajax/get_scheduling_codes.php",
+                type: "POST",
+                data: {
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                    no_of_session: no_of_session,
+                    used_session: used_session
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $('#PK_SCHEDULING_CODE').html(result);
+                }
+            });
+        }
+    }
+
+    function selectThisService(param) {
+        let PK_SERVICE_MASTER = $(param).val();
         $.ajax({
             url: "ajax/get_scheduling_codes.php",
             type: "POST",
             data: {
-                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                no_of_session: no_of_session,
-                used_session: used_session
+                PK_SERVICE_MASTER: PK_SERVICE_MASTER
             },
             async: false,
             cache: false,
