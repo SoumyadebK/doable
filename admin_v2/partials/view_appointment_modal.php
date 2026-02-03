@@ -306,6 +306,7 @@ while (!$row->EOF) {
             <span>Paid : $<?php echo $paid_session; ?></span>
         </div>
     </div>
+
     <?php
     // Get next booked lesson for this customer
     $nextLessonQuery = "SELECT 
@@ -323,7 +324,7 @@ while (!$row->EOF) {
                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                 LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
                 LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
-                LEFT JOIN DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
+                LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
                 WHERE DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = '$CUSTOMER_ID'
                 AND DOA_APPOINTMENT_MASTER.ACTIVE = 1
                 AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
@@ -332,6 +333,7 @@ while (!$row->EOF) {
                 GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
                 ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC
                 LIMIT 1";
+    //echo $nextLessonQuery;
 
     $nextLesson = $db_account->Execute($nextLessonQuery);
 
@@ -375,75 +377,7 @@ while (!$row->EOF) {
         $hasNextLesson = false;
     }
     ?>
-    <?php
-    // Get next booked lesson for this customer
-    $nextLessonQuery = "SELECT 
-                    DOA_APPOINTMENT_MASTER.*,
-                    DOA_SERVICE_MASTER.SERVICE_NAME,
-                    DOA_SCHEDULING_CODE.SCHEDULING_CODE,
-                    DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
-                    DOA_APPOINTMENT_STATUS.COLOR_CODE,
-                    GROUP_CONCAT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) SEPARATOR ', ') AS SERVICE_PROVIDERS,
-                    DOA_LOCATION.LOCATION_NAME
-                FROM DOA_APPOINTMENT_MASTER
-                LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
-                LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
-                LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
-                LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
-                LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
-                LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
-                LEFT JOIN DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
-                WHERE DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = '$CUSTOMER_ID'
-                AND DOA_APPOINTMENT_MASTER.ACTIVE = 1
-                AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE()
-                AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3) -- Scheduled, Confirmed, Completed
-                AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER != '$PK_APPOINTMENT_MASTER' -- Exclude current appointment
-                GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC
-                LIMIT 1";
-
-    $nextLesson = $db_account->Execute($nextLessonQuery);
-
-    if ($nextLesson->RecordCount() > 0) {
-        $nextLessonDate = date('l, M d, Y', strtotime($nextLesson->fields['DATE']));
-        $nextLessonStartTime = date('h:i A', strtotime($nextLesson->fields['START_TIME']));
-        $nextLessonEndTime = date('h:i A', strtotime($nextLesson->fields['END_TIME']));
-        $nextLessonServiceName = $nextLesson->fields['SERVICE_NAME'];
-        $nextLessonSchedulingCode = $nextLesson->fields['SCHEDULING_CODE'];
-        $nextLessonStatus = $nextLesson->fields['APPOINTMENT_STATUS'];
-        $nextLessonColor = $nextLesson->fields['COLOR_CODE'];
-        $nextLessonServiceProviders = $nextLesson->fields['SERVICE_PROVIDERS'];
-        $nextLessonLocation = $nextLesson->fields['LOCATION_NAME'];
-
-        // Determine appointment type badge
-        $appointmentType = 'PRI'; // Default
-        $badgeClass = 'ext-tag'; // Default class
-        if (strpos($nextLessonSchedulingCode, 'GRP') !== false || strpos($nextLessonSchedulingCode, 'GROUP') !== false) {
-            $appointmentType = 'GRP';
-            $badgeClass = 'grp-tag';
-        } elseif (strpos($nextLessonSchedulingCode, 'EXT') !== false) {
-            $appointmentType = 'EXT';
-            $badgeClass = 'ext-tag';
-        }
-
-        // Get service provider initials
-        $providerInitials = '';
-        if ($nextLessonServiceProviders) {
-            $providers = explode(', ', $nextLessonServiceProviders);
-            if (count($providers) > 0) {
-                $firstProvider = trim($providers[0]);
-                $nameParts = explode(' ', $firstProvider);
-                if (count($nameParts) >= 2) {
-                    $providerInitials = substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1);
-                } else {
-                    $providerInitials = substr($firstProvider, 0, 2);
-                }
-            }
-        }
-    } else {
-        $hasNextLesson = false;
-    }
-    ?><div class="booking-lesson p-3 border-bottom">
+    <div class="booking-lesson p-3 border-bottom">
         <?php if (isset($hasNextLesson) && !$hasNextLesson): ?>
             <h6 class="f14">Next Booked Lesson</h6>
             <div class="alert alert-info">
