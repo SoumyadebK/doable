@@ -385,92 +385,68 @@ while (!$row->EOF) {
             <button type="button" class="btn-secondary w-100 m-1">Add Appointment</button>
         </div>
     </div>
+    <?php
+    $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER' AND `IS_PRIMARY` = 1");
+    if ($customer_details->RecordCount() > 0) {
+        $PK_CUSTOMER_DETAILS = $customer_details->fields['PK_CUSTOMER_DETAILS'];
+        $CALL_PREFERENCE = $customer_details->fields['CALL_PREFERENCE'];
+        $REMINDER_OPTION = $customer_details->fields['REMINDER_OPTION'];
+        $ATTENDING_WITH = $customer_details->fields['ATTENDING_WITH'];
+        $PARTNER_FIRST_NAME = $customer_details->fields['PARTNER_FIRST_NAME'];
+        $PARTNER_LAST_NAME = $customer_details->fields['PARTNER_LAST_NAME'];
+        $PARTNER_PHONE = $customer_details->fields['PARTNER_PHONE'];
+        $PARTNER_EMAIL = $customer_details->fields['PARTNER_EMAIL'];
+        $PARTNER_GENDER = $customer_details->fields['PARTNER_GENDER'];
+        $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
+    }
+    ?>
     <div class="tab-pane fade" id="Family" role="tabpanel">
         <div class="booking-lesson p-3">
-            <div class="form-check border rounded-2 p-2 mb-2">
-                <div class="d-flex align-items-center">
-                    <label class="form-check-label">Danial Williams</label>
-                    <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
-                            <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0" />
-                            <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0" />
-                            <path d="m483.464844 84.882812-84.867188-84.8710932-.011718-.0117188c-5.875 5.882812-313.644532 314.078125-313.75 314.183594l-57.59375 142.460937 142.46875-57.597656s181.703124-181.636719 313.753906-314.164063zm-42.421875.011719-35.917969 35.964844-42.375-42.371094 35.875-36.011719zm-99.46875 14.851563 42.34375 42.347656-21.199219 21.226562-42.320312-42.320312zm-238.554688 249.523437 31.597657 31.597657-53.042969 21.441406zm58.226563 15.789063-42.429688-42.433594 180.265625-180.503906 42.433594 42.433594zm0 0" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="statusareatext f12 theme-text-light">
-                    <span class="text-uppercase">Husband</span>
-                    <ul class="list-inline mb-0">
-                        <li class="list-inline-item d-inline-flex gap-2">
-                            <a href="mailto:danialwilliams@email.com">danialwilliams@email.com</a>
+            <?php
+            $family_member_details = $db_account->Execute("SELECT DOA_CUSTOMER_DETAILS.*, DOA_RELATIONSHIP.RELATIONSHIP FROM DOA_CUSTOMER_DETAILS LEFT JOIN $master_database.DOA_RELATIONSHIP AS DOA_RELATIONSHIP ON DOA_CUSTOMER_DETAILS.PK_RELATIONSHIP = DOA_RELATIONSHIP.PK_RELATIONSHIP WHERE DOA_CUSTOMER_DETAILS.PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND DOA_CUSTOMER_DETAILS.IS_PRIMARY = 0");
+            if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
+                while (!$family_member_details->EOF) { ?>
+                    <div class="form-check border rounded-2 p-2 mb-2">
+                        <div class="d-flex align-items-center">
+                            <label class="form-check-label"><?php echo $family_member_details->fields['FIRST_NAME'] . ' ' . $family_member_details->fields['LAST_NAME']; ?></label>
                             <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
-                                    <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
+                                    <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0" />
+                                    <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0" />
+                                    <path d="m483.464844 84.882812-84.867188-84.8710932-.011718-.0117188c-5.875 5.882812-313.644532 314.078125-313.75 314.183594l-57.59375 142.460937 142.46875-57.597656s181.703124-181.636719 313.753906-314.164063zm-42.421875.011719-35.917969 35.964844-42.375-42.371094 35.875-36.011719zm-99.46875 14.851563 42.34375 42.347656-21.199219 21.226562-42.320312-42.320312zm-238.554688 249.523437 31.597657 31.597657-53.042969 21.441406zm58.226563 15.789063-42.429688-42.433594 180.265625-180.503906 42.433594 42.433594zm0 0" />
                                 </svg>
                             </button>
-                        </li>
-                        <li class="list-inline-item d-inline-flex gap-2">
-                            <a href="tel:310-123-4567">310-123-4567</a>
-                            <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
-                                    <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
-                                </svg>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="form-check border rounded-2 p-2 mb-2">
-                <div class="d-flex align-items-center">
-                    <label class="form-check-label">Maggie Williams</label>
-                    <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
-                            <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0" />
-                            <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0" />
-                            <path d="m483.464844 84.882812-84.867188-84.8710932-.011718-.0117188c-5.875 5.882812-313.644532 314.078125-313.75 314.183594l-57.59375 142.460937 142.46875-57.597656s181.703124-181.636719 313.753906-314.164063zm-42.421875.011719-35.917969 35.964844-42.375-42.371094 35.875-36.011719zm-99.46875 14.851563 42.34375 42.347656-21.199219 21.226562-42.320312-42.320312zm-238.554688 249.523437 31.597657 31.597657-53.042969 21.441406zm58.226563 15.789063-42.429688-42.433594 180.265625-180.503906 42.433594 42.433594zm0 0" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="statusareatext f12 theme-text-light">
-                    <span class="text-uppercase">Doughter</span>
-                </div>
-            </div>
-            <div class="form-check border rounded-2 p-2 mb-2">
-                <div class="d-flex align-items-center">
-                    <label class="form-check-label">Cheryl Rockefeller</label>
-                    <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
-                            <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0" />
-                            <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0" />
-                            <path d="m483.464844 84.882812-84.867188-84.8710932-.011718-.0117188c-5.875 5.882812-313.644532 314.078125-313.75 314.183594l-57.59375 142.460937 142.46875-57.597656s181.703124-181.636719 313.753906-314.164063zm-42.421875.011719-35.917969 35.964844-42.375-42.371094 35.875-36.011719zm-99.46875 14.851563 42.34375 42.347656-21.199219 21.226562-42.320312-42.320312zm-238.554688 249.523437 31.597657 31.597657-53.042969 21.441406zm58.226563 15.789063-42.429688-42.433594 180.265625-180.503906 42.433594 42.433594zm0 0" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="statusareatext f12 theme-text-light">
-                    <span class="text-uppercase">Friend</span>
-                    <ul class="list-inline mb-0">
-                        <li class="list-inline-item d-inline-flex gap-2">
-                            <a href="mailto:cheryl@email.com">cheryl@email.com</a>
-                            <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
-                                    <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
-                                </svg>
-                            </button>
-                        </li>
-                        <li class="list-inline-item d-inline-flex gap-2">
-                            <a href="tel:310-123-4567">310-123-4567</a>
-                            <button type="button" class="bg-transparent p-0 border-0 ms-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
-                                    <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
-                                </svg>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+                        </div>
+                        <div class="statusareatext f12 theme-text-light">
+                            <span class="text-uppercase"><?php echo $family_member_details->fields['RELATIONSHIP']; ?></span>
+                            <ul class="list-inline mb-0">
+                                <li class="list-inline-item d-inline-flex gap-2">
+                                    <a href="mailto:<?php echo $family_member_details->fields['EMAIL']; ?>"><?php echo $family_member_details->fields['EMAIL']; ?></a>
+                                    <button type="button" class="bg-transparent p-0 border-0 ms-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
+                                        </svg>
+                                    </button>
+                                </li>
+                                <li class="list-inline-item d-inline-flex gap-2">
+                                    <a href="tel:<?php echo $family_member_details->fields['PHONE']; ?>"><?php echo $family_member_details->fields['PHONE']; ?></a>
+                                    <button type="button" class="bg-transparent p-0 border-0 ms-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="m24.13 2.19h-12.59a2.86 2.86 0 0 0 -2.86 2.86v1.1h-1.43a3 3 0 0 0 -3 3v17.91a3 3 0 0 0 3 3h12.32a3 3 0 0 0 3-3v-1h1.56a2.87 2.87 0 0 0 2.87-2.82v-18.19a2.87 2.87 0 0 0 -2.87-2.86zm-3.56 24.87a1 1 0 0 1 -1 1h-12.32a1 1 0 0 1 -1-1v-17.91a1 1 0 0 1 1-1h12.32a1 1 0 0 1 1 1zm4.43-3.82a.87.87 0 0 1 -.87.86h-1.56v-14.95a3 3 0 0 0 -3-3h-8.89v-1.1a.86.86 0 0 1 .86-.86h12.59a.86.86 0 0 1 .87.86z" />
+                                        </svg>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+            <?php $family_member_details->MoveNext();
+                }
+            }
+            ?>
             <button type="button" class="btn-secondary w-100 m-1">Add Family</button>
         </div>
     </div>
+
     <div class="tab-pane fade" id="Payment" role="tabpanel">
         <div class="paymentarea p-3">
             <div class="searchbar-area position-relative mb-3">
@@ -485,81 +461,52 @@ while (!$row->EOF) {
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Enrollment</th>
-                            <th>Due</th>
-                            <th>Amount</th>
-                            <th></th>
+                            <th style="text-align: left;">Enrollment</th>
+                            <th style="text-align: center;">Due</th>
+                            <th style="text-align: center;">Amount</th>
+                            <th style="text-align: center;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="table-alert">
-                            <td>-3</td>
-                            <td>11/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>12/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>01/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>02/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>03/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>04/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>-3</td>
-                            <td>05/25/25</td>
-                            <td>$550</td>
-                            <td>
-                                <button type="button" class="btn btn-secondary btn-sm">Pay Now</button>
-                                <button type="button" class="btn btn-secondary btn-sm">Edit Date</button>
-                            </td>
-                        </tr>
+                        <?php
+                        $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE DESC");
+                        if ($payment_due->RecordCount() > 0) {
+                            while (!$payment_due->EOF) {
+                                $name = $payment_due->fields['ENROLLMENT_NAME'];
+                                $ENROLLMENT_ID = $payment_due->fields['ENROLLMENT_ID'];
+                                if (empty($name)) {
+                                    $enrollment_name = '';
+                                } else {
+                                    $enrollment_name = "$name" . " - ";
+                                } ?>
+                                <tr>
+                                    <td><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
+                                    <td><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
+                                    <td>$<?= number_format($payment_due->fields['BILLED_AMOUNT'], 2) ?></td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $payment_due->fields['BILLED_AMOUNT'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="editDueDate(<?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?>', 'billing')">Edit Date</button>
+                                    </td>
+                                </tr>
+                        <?php $payment_due->MoveNext();
+                            }
+                        } ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <script>
+        function editDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
+            $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+            $('#old_due_date').val(DUE_DATE);
+            $('#due_date').val(DUE_DATE);
+            $('#edit_type').val(TYPE);
+            $('#billing_due_date_model').modal('show');
+        }
+    </script>
+
 
 
 
