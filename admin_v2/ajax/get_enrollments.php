@@ -62,6 +62,7 @@ while (!$row->EOF) {
 } ?>
 
 <div class="form-check border rounded-2 p-2 mb-2">
-    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="female">
-    <label class="form-check-label" for="female">AD-hoc</label>
+    <label class="form-check-label">
+        <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC" onclick="selectThisEnrollment(this)">Ad-Hoc
+    </label>
 </div>
