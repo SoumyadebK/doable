@@ -196,3 +196,10 @@ function saveProfileInfoData($RESPONSE_DATA)
     $return_data['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
     echo json_encode($return_data);
 }
+
+function deleteUserData($RESPONSE_DATA)
+{
+    global $db;
+    $db->Execute("DELETE FROM `DOA_USERS` WHERE `PK_USER` = " . $RESPONSE_DATA['PK_USER']);
+    echo 'DELETED';
+}

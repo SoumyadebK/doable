@@ -655,6 +655,7 @@ function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
     $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
     $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($START_TIME . ' +' . $SLOT_DURATION . ' minutes'));
     $APPOINTMENT_DATA['SERIAL_NUMBER'] = 1;
+    $APPOINTMENT_DATA['IS_FROM_AI_CALL'] = 1;
     db_perform_account_own($db_account, 'DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
     $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
@@ -665,6 +666,9 @@ function createAppointment($PK_LEADS, $PK_USER_MASTER, $DATE, $START_TIME): int
     $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
     $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
     db_perform_account_own($db_account, 'DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+
+    $LEADS_UPDATE_DATA['IS_APPOINTMENT_CREATED'] = 1;
+    db_perform('DOA_LEADS', $LEADS_UPDATE_DATA, 'update', " PK_LEADS = " . $PK_LEADS);
 
     return $PK_APPOINTMENT_MASTER;
 }

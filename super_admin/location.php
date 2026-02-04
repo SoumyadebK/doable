@@ -204,6 +204,7 @@ if ($location_data->RecordCount() > 0) {
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#user_list" role="tab" id="user_list_tab" onclick="showUserListByLocation(<?= $PK_LOCATION ?>)"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->
@@ -357,6 +358,9 @@ if ($location_data->RecordCount() > 0) {
                                         </div>
                                     </div>
 
+                                    <div class="tab-pane" id="user_list" role="tabpanel" style="margin-top: 20px;">
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -423,6 +427,29 @@ if ($location_data->RecordCount() > 0) {
                 $('#corporation_card_list').slideDown().html(data);
             }
         });
+    }
+
+    function showUserListByLocation(PK_LOCATION) {
+        if (PK_LOCATION) {
+            $('#user_list').html('<div class="d-flex justify-content-center align-items-center" style="min-height:180px;"><div class="text-center"><div class="spinner-border text-primary" role="status" aria-hidden="true"></div><div style="margin-top:8px;">Loading user list...</div></div></div>');
+            setTimeout(function() {
+                $.ajax({
+                    url: "ajax/get_user_list.php",
+                    type: "POST",
+                    data: {
+                        PK_LOCATION: PK_LOCATION
+                    },
+                    async: true,
+                    cache: false,
+                    success: function(result) {
+                        $('#user_list').html(result);
+                    },
+                    error: function() {
+                        $('#user_list').html('<p class="alert alert-danger">Unable to load user list.</p>');
+                    }
+                });
+            }, 20);
+        }
     }
 </script>
 
