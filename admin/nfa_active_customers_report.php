@@ -13,6 +13,15 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $today = date('Y-m-d');
 
+if (!empty($_GET['selected_range'])) {
+    $selected_range = $_GET['selected_range'];
+    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
+    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= DATE_SUB('" . $selected_date . "', INTERVAL " . $selected_range . " MONTH) AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . $selected_date . "'";
+} else {
+    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
+    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE = '" . date('Y-m-d', strtotime($selected_date)) . "'";
+}
+
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
 $business_name = $account_data->RecordCount() > 0 ? $account_data->fields['BUSINESS_NAME'] : '';
@@ -332,11 +341,12 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
                                     <table id="myTable" class="table table-bordered" data-page-length='50'>
                                         <thead>
                                             <tr>
-                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="8"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" ?></th>
+                                                <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="9"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" ?></th>
                                             </tr>
                                             <tr>
                                                 <th style="text-align: center;">Customer Name</th>
                                                 <th style="text-align: center;">Enrollment Name / Number</th>
+                                                <th style="text-align: center;">Enrollment Date</th>
                                                 <th style="text-align: center;">Total</th>
                                                 <th style="text-align: center;">Session Left</th>
                                                 <th style="text-align: center;">Service Provider</th>
@@ -358,7 +368,8 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
                                                                             DOA_USER_MASTER.PK_USER_MASTER,
                                                                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
                                                                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                                                            DOA_ENROLLMENT_MASTER.STATUS
+                                                                            DOA_ENROLLMENT_MASTER.STATUS,
+                                                                            DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE
                                                                         FROM DOA_ENROLLMENT_SERVICE 
                                                                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
                                                                         JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
@@ -369,7 +380,8 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
                                                                             DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'C') AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                                             AND DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'
                                                                             AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0
-                                                                            AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 
+                                                                            AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5
+                                                                            $enrollment_date_condition 
                                                                         
                                                                         ORDER BY CUSTOMER_NAME");
                                             while (!$row->EOF) {
@@ -391,6 +403,7 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
                                                         <tr>
                                                             <td style="text-align: center;"><a href="customer.php?id=<?= $row->fields['PK_USER'] ?>&master_id=<?= $row->fields['PK_USER_MASTER'] ?>&tab=profile" target="_blank" style="color: blue; font-weight: bold"><?= $row->fields['CUSTOMER_NAME'] ?></a></td>
                                                             <td style="text-align: center;"><?= $row->fields['ENROLLMENT_NAME'] . " / " . $row->fields['ENROLLMENT_ID'] ?></td>
+                                                            <td style="text-align: center;"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
                                                             <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] ?></td>
                                                             <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION ?></td>
                                                             <td style="text-align: center;"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : ''  ?></td>
