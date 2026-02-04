@@ -7,6 +7,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+
 if (!empty($_GET['NAME'])) {
     if ($_GET['NAME'] == 'active_account_balance_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
@@ -22,21 +23,22 @@ if (!empty($_GET['NAME'])) {
     } else if ($_GET['NAME'] == 'nfa_active_customers_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        $SELECTED_DATE = isset($_GET['SELECTED_DATE']) ? $_GET['SELECTED_DATE'] : '';
+        $SELECTED_RANGE = isset($_GET['SELECTED_RANGE']) ? $_GET['SELECTED_RANGE'] : '';
         if ($generate_excel === 1) {
             $report_name = 'nfa_active_customers_report';
-            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
+            header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
         } else {
-            header('location:nfa_active_customers_report.php?type=' . $type);
+            header('location:nfa_active_customers_report.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
         }
     } else if ($_GET['NAME'] == 'nfa_active_no_enrollments_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-        $APPOINTMENT_TYPE = isset($_GET['APPOINTMENT_TYPE']) ? $_GET['APPOINTMENT_TYPE'] : 'all';
         if ($generate_excel === 1) {
             $report_name = 'nfa_active_no_enrollments_report';
-            header('location:excel_' . $report_name . '.php?appointment_type=' . $APPOINTMENT_TYPE . '&report_type=' . $report_name);
+            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
         } else {
-            header('location:nfa_active_no_enrollments_report.php?appointment_type=' . $APPOINTMENT_TYPE . '&type=' . $type);
+            header('location:nfa_active_no_enrollments_report.php?type=' . $type);
         }
     }
 }
@@ -143,7 +145,7 @@ if (!empty($_GET['NAME'])) {
         $('.appointment_type').hide();
 
         // Show fields based on selected report
-        if (selectedReport === 'active_account_balance_report') {
+        if (selectedReport === 'active_account_balance_report' || selectedReport === 'nfa_active_customers_report') {
             $('.selected_date').show();
             $('.selected_range').show();
             $('#SELECTED_DATE').prop('required', true);

@@ -17,8 +17,15 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-$from_date = date('Y-m-d', strtotime($_GET['start_date']));
-$to_date = date('Y-m-d', strtotime($_GET['end_date']));
+if (!empty($_GET['selected_range'])) {
+    $selected_range = $_GET['selected_range'];
+    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
+    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= DATE_SUB('" . $selected_date . "', INTERVAL " . $selected_range . " MONTH) AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . $selected_date . "'";
+} else {
+    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
+    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE = '" . date('Y-m-d', strtotime($selected_date)) . "'";
+}
+
 $service_provider_id = $_GET['service_provider_id'];
 
 $selected_service_provider = [];
@@ -205,7 +212,7 @@ $row = $db_account->Execute("SELECT
                                 AND DOA_SERVICE_CODE.IS_GROUP = 0  AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'
                                 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0
                                 AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 
-                            
+                                " . $enrollment_date_condition . "
                             ORDER BY CUSTOMER_NAME");
 while (!$row->EOF) {
     $appointment = $db_account->Execute("SELECT PK_APPOINTMENT_MASTER FROM DOA_APPOINTMENT_MASTER WHERE DATE > CURDATE() AND PK_APPOINTMENT_STATUS = 1 AND PK_ENROLLMENT_SERVICE = " . $row->fields['PK_ENROLLMENT_SERVICE']);
