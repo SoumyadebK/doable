@@ -82,8 +82,9 @@ if ($customer_details->RecordCount() > 0) {
     $PARTNER_DOB = $customer_details->fields['PARTNER_DOB'];
 }
 
-$selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
+$selected_primary_location = $db->Execute("SELECT DOA_USER_MASTER.PRIMARY_LOCATION_ID, DOA_LOCATION.LOCATION_NAME FROM DOA_USER_MASTER LEFT JOIN DOA_LOCATION ON DOA_USER_MASTER.PRIMARY_LOCATION_ID = DOA_LOCATION.PK_LOCATION WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
 $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+$LOCATION_NAME = $selected_primary_location->fields['LOCATION_NAME'];
 
 if ($PK_USER_MASTER > 0) {
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
@@ -140,11 +141,20 @@ while (!$row->EOF) {
 
 <div class="customer-profile d-flex p-3">
     <div class="d-flex align-items-center gap-3 f12 theme-text-light">
-        <div class="profilename-short d-flex align-items-center justify-content-center fw-semibold">SW</div>
+        <?php
+        $selected_customer = trim($FIRST_NAME . ' ' . $LAST_NAME);
+        $profile = getProfileBadge($selected_customer);
+        $profile_name = $profile['initials'];
+        $profile_color = $profile['color'];
+        ?>
+        <div class="profilename-short d-flex align-items-center justify-content-center fw-semibold" style="font-size: 20px; background-color: <?= $profile_color ?>; color: #fff;">
+            <?= $profile_name ?>
+        </div>
         <div class="profilename-data">
-            <h6 class="mb-1"> <span class="customer-name"><?php echo $FIRST_NAME;
-                                                            echo $LAST_NAME; ?></span></h6>
-            <span>Studio Location</span>
+            <h6 class="mb-1">
+                <?= $selected_customer; ?>
+            </h6>
+            <span><?= htmlspecialchars($LOCATION_NAME ?: 'Studio Location'); ?></span>
         </div>
     </div>
     <div class="profilebtn-area ms-auto">

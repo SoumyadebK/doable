@@ -236,24 +236,21 @@ while (!$row->EOF) {
 
 <div class="appointment-profile d-flex p-3 pb-0">
     <div class="d-flex align-items-center gap-3 f12 theme-text-light">
-        <div class="profilename-short d-flex align-items-center justify-content-center fw-semibold"><?php
-                                                                                                    // Get initials
-                                                                                                    $names = explode(' ', $selected_customer);
-                                                                                                    $initials = '';
-                                                                                                    if (count($names) >= 2) {
-                                                                                                        $initials = substr($names[0], 0, 1) . substr($names[1], 0, 1);
-                                                                                                    } else {
-                                                                                                        $initials = substr($selected_customer, 0, 2);
-                                                                                                    }
-                                                                                                    echo strtoupper($initials);
-                                                                                                    ?></div>
+        <?php
+        $profile = getProfileBadge($selected_customer);
+        $profile_name = $profile['initials'];
+        $profile_color = $profile['color'];
+        ?>
+        <div class="profilename-short d-flex align-items-center justify-content-center fw-semibold" style="font-size: 20px; background-color: <?= $profile_color ?>; color: #fff;">
+            <?= $profile_name ?>
+        </div>
         <div class="profilename-data">
             <h6 class="mb-1">
-                <a href="javascript:void(0);" onclick="loadViewCustomerModal('<?php echo $selected_user_id; ?>', '<?php echo $PK_ENROLLMENT_MASTER; ?>')" style="text-decoration: none; color: inherit; cursor: pointer;">
-                    <?php echo $selected_customer; ?>
+                <a href="javascript:void(0);" onclick="loadViewCustomerModal('<?= $selected_user_id; ?>', '<?= $PK_ENROLLMENT_MASTER; ?>')">
+                    <?= $selected_customer; ?>
                 </a>
             </h6>
-            <span><?php echo htmlspecialchars($primary_location ?: 'Studio Location'); ?></span>
+            <span><?= htmlspecialchars($primary_location ?: 'Studio Location'); ?></span>
         </div>
     </div>
     <div class="profilebtn-area ms-auto">
