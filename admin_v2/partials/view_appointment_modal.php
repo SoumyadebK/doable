@@ -454,7 +454,7 @@ while (!$row->EOF) {
         <?php endif; ?>
     </div>
 </div>
-<form class="mb-0 appointmentform p-3">
+
     <div class="row mb-2 align-items-center">
         <div class="col-4 col-md-4">
             <div class="d-flex gap-2 align-items-center">
@@ -590,6 +590,36 @@ while (!$row->EOF) {
 
         </div>
     </div>
+    <div class="row mb-3 align-items-center staus">
+        <div class="col-4 col-md-4">
+            <div class="d-flex gap-2 align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                </svg>
+                <label class="mb-0">Status</label>
+            </div>
+        </div>
+        <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?= $PK_APPOINTMENT_STATUS ?>">
+        <div class="col-8 col-md-8">
+            <div class="form-group" id="scheduling_code_select">
+                <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
+                    <option value="1">Select Status</option>
+                    <?php
+                    $selected_status = '';
+                    $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
+                    while (!$row->EOF) {
+                        if ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) {
+                            $selected_status = $row->fields['APPOINTMENT_STATUS'];
+                        } ?>
+                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) ? 'selected' : '' ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                    <?php $row->MoveNext();
+                    } ?>
+                </select>
+            </div>
+        </div>
+    </div>
     <hr class="mb-3">
     <div class="row mb-3">
         <div class="col-4 col-md-4">
@@ -602,7 +632,7 @@ while (!$row->EOF) {
         </div>
         <div class="col-8 col-md-8">
             <div class="form-group">
-                <textarea class="form-control"><?= $COMMENT ?></textarea>
+                <textarea class="form-control" name="COMMENT"><?= $COMMENT ?></textarea>
             </div>
         </div>
     </div>
@@ -617,10 +647,10 @@ while (!$row->EOF) {
         </div>
         <div class="col-8 col-md-8">
             <div class="form-group">
-                <textarea class="form-control"><?= $INTERNAL_COMMENT ?></textarea>
+                <textarea class="form-control" name="INTERNAL_COMMENT"><?= $INTERNAL_COMMENT ?></textarea>
             </div>
         </div>
     </div>
-</form>
+
 
 <!-- End Appointment Details -->

@@ -1029,17 +1029,23 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <!-- Appointment Details -->
     <div class="overlay2"></div>
     <div class="side-drawer" id="sideDrawer2">
-        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Appointment Details</h6>
-            <span class="close-btn" id="closeDrawer2">&times;</span>
-        </div>
-        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
-            <!-- Content will be loaded here via AJAX -->
-        </div>
-        <div class="modal-footer flex-nowrap p-2 border-top">
-            <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
-            <button type="button" class="btn-primary w-100 m-1">Save</button>
-        </div>
+        <form class="mb-0 appointmentform p-3" id="appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+            <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
+            <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
+            <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>">
+            <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Appointment Details</h6>
+                <span class="close-btn" id="closeDrawer2">&times;</span>
+            </div>
+            <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
+                <!-- Content will be loaded here via AJAX -->
+            </div>
+            <div class="modal-footer flex-nowrap p-2 border-top">
+                <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
+                <button type="button" class="btn-primary w-100 m-1">Save</button>
+            </div>
+        </form>
     </div>
 
     <!-- Customer Details -->
@@ -2264,6 +2270,21 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 $('.newdatetime-format').removeClass("d-none");
             });
         });
+    </script>
+    <script>
+        function changeAppointmentStatus(param) {
+            if ($(param).val() == 4) {
+                $('#no_show_div').slideDown();
+            } else {
+                $('#no_show_div').slideUp();
+            }
+
+            if ($(param).val() == 2) {
+                $('#IS_CHARGED').val(1);
+            } else {
+                $('#IS_CHARGED').val(0);
+            }
+        }
     </script>
 
 
