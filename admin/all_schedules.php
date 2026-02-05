@@ -1071,6 +1071,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if (event_data.status) {
                         $(element).find(".fc-title").prepend(' <strong style="color: ' + event_data.statusColor + '">(' + event_data.status + ')</strong> ');
                     }
+                    if (event_data.from_call == 1) {
+                        $(element).find(".fc-title").prepend(' <i class="fas fa-star" style="color: gold;"></i> ');
+                    }
                     if (event_data.comment || event_data.internal_comment) {
                         $('.popover').remove();
                         $(element).find(".fc-title").prepend(' <i class="fa fa-comment-dots" style="font-size: 15px"></i> ');

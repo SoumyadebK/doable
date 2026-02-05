@@ -204,7 +204,7 @@ if ($location_data->RecordCount() > 0) {
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li class="active"> <a class="nav-link active" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
                                     <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#user_list" role="tab" id="user_list_tab" onclick="showUserListByLocation(<?= $PK_LOCATION ?>)"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" href="#user_list" role="tab" id="user_list_tab" onclick="showUserListByLocation(<?= $PK_LOCATION ?>)"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">User List</span></a> </li>
                                 </ul>
 
                                 <!-- Tab panes -->

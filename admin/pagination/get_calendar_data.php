@@ -445,6 +445,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             'internal_comment' => $appointment_data->fields['INTERNAL_COMMENT'],
             'statusCode' => $appointment_data->fields['SCHEDULING_CODE'],
             'duration' => $appointment_data->fields['DURATION'],
+            'from_call' => $appointment_data->fields['IS_FROM_AI_CALL'],
         ];
         $appointment_data->MoveNext();
     }
