@@ -387,6 +387,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
 }
 
+
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = " . $DEFAULT_LOCATION_ID);
+if ($location_operational_hour->RecordCount() > 0) {
+    $minTime = $location_operational_hour->fields['OPEN_TIME'];
+    $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $minTime = '00:00:00';
+    $maxTime = '24:00:00';
+}
+
 $payment_gateway_data = getPaymentGatewayData();
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -2213,6 +2223,28 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
     <script>
+        $('.multi_sumo_select').SumoSelect({
+            placeholder: 'Select <?= $service_provider_title ?>',
+            selectAll: true
+        });
+
+        $('#TO_DO_START_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>',
+            change: function() {
+                calculateEndTime();
+            },
+        });
+
+        $('#TO_DO_END_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>'
+        });
+
+
+
         $(document).ready(function() {
             $(".btn-available").click(function() {
                 $(this).toggleClass("active");
