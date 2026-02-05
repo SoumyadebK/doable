@@ -28,6 +28,18 @@
             grid-template-columns: repeat(2, 1fr);
         }
     }
+
+    .optWrapper {
+        max-width: 295px;
+    }
+
+    .form-group .SumoSelect {
+        width: 100%;
+    }
+
+    .multi_sumo_select {
+        font-size: 12px;
+    }
 </style>
 <!-- Individual Appointment -->
 <div class="overlay"></div>
@@ -534,7 +546,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Enter title" />
+                                <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" required />
                             </div>
                         </div>
                     </div>
@@ -551,11 +563,10 @@
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
-                            <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots()" required>
-                                    <option value="">Select <?= $service_provider_title ?></option>
+                            <div class="form-group">
+                                <select class="multi_sumo_select" name="PK_USER[]" multiple required>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -577,7 +588,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                                <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)" required>
                                     <option disabled selected>Select Scheduling Code</option>
                                     <?php
                                     $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
@@ -602,7 +613,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select">
+                                <select class="form-control form-select" required>
                                     <option value="Daily">Not Started</option>
                                     <option value="Weekly on Thursday">In Progress</option>
                                     <option value="Monday on the first Thursday">Complete</option>
@@ -623,9 +634,11 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" style="min-width: 110px;">
+                                <input type="text" name="DATE" class="form-control datepicker-normal" style="min-width: 110px;" required>
                                 <span class="f14">at</span>
-                                <input type="time" class="form-control">
+                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
+                                <span class="f14">to</span>
+                                <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control time-picker" required>
                             </div>
                             <label class="custom-checkbox float-start mt-2 mb-2">
                                 <input type="checkbox">
@@ -670,7 +683,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="DESCRIPTION"></textarea>
                             </div>
                         </div>
                     </div>
@@ -855,8 +868,9 @@
         <button type="button" class="btn-primary w-100 m-1" onclick="submitAppointmentForm()">Save</button>
     </div>
 </div>
-<!-- End Individual Appointment -->
 
+
+<!-- End Individual Appointment -->
 <script>
     function submitAppointmentForm() {
         let form_name = $('#FORM_NAME').val();
@@ -1005,5 +1019,30 @@
         }
 
         console.log(start_time_array.sort(), end_time_array.sort());
+    }
+
+
+
+
+    function calculateEndTime() {
+        let start_time = $('#TO_DO_START_TIME').val();
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+        let scheduling_name = $('#PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
+        let is_default = $('#PK_SCHEDULING_CODE').find(':selected').data('is_default');
+        $('#TITLE').val(scheduling_name);
+        duration = (duration) ? duration : 0;
+
+        if (start_time && duration) {
+            start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+            let end_time = addMinutes(start_time, duration);
+            end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+            $('#TO_DO_END_TIME').val(end_time);
+        }
+
+        if (is_default === 1) {
+            $('.customer_div').show();
+        } else {
+            $('.customer_div').hide();
+        }
     }
 </script>

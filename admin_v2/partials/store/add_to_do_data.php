@@ -3,8 +3,7 @@ require_once('../../../global/config.php');
 global $db;
 global $db_account;
 
-
-
+$LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
 
 
@@ -80,15 +79,6 @@ if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {
                 $SPECIAL_APPOINTMENT_USER['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
                 $SPECIAL_APPOINTMENT_USER['PK_USER'] = $_POST['PK_USER'][$j];
                 db_perform_account('DOA_SPECIAL_APPOINTMENT_USER', $SPECIAL_APPOINTMENT_USER, 'insert');
-
-                if (isset($_POST['CUSTOMER_ID'])) {
-                    $db_account->Execute("DELETE FROM `DOA_SPECIAL_APPOINTMENT_CUSTOMER` WHERE `PK_SPECIAL_APPOINTMENT` = '$PK_SPECIAL_APPOINTMENT'");
-                    for ($k = 0; $k < count($_POST['CUSTOMER_ID']); $k++) {
-                        $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_SPECIAL_APPOINTMENT'] = $PK_SPECIAL_APPOINTMENT;
-                        $SPECIAL_APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $_POST['CUSTOMER_ID'][$k];
-                        db_perform_account('DOA_SPECIAL_APPOINTMENT_CUSTOMER', $SPECIAL_APPOINTMENT_CUSTOMER_DATA, 'insert');
-                    }
-                }
             }
         }
     }
