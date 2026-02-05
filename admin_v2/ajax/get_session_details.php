@@ -54,6 +54,7 @@ if ($TYPE == 'appointment') {
     $COLOR_CODE = $appointment_data->fields['COLOR_CODE'];
     $CUSTOMER_ID = $appointment_data->fields['CUSTOMER_ID'];
     $SERVICE_PROVIDER_ID = $appointment_data->fields['SERVICE_PROVIDER_ID'];
+    $APPOINTMENT_TYPE = $appointment_data->fields['APPOINTMENT_TYPE'];
 
     $STATUS_CODE = $appointment_data->fields['STATUS_CODE'];
     $APPOINTMENT_STATUS = $appointment_data->fields['APPOINTMENT_STATUS'];
@@ -84,7 +85,9 @@ if ($TYPE == 'appointment') {
         } else {
             $heading = $ENROLLMENT_ID . ' || ' . $enr_name;
         }
-    } else {
+    } elseif ($APPOINTMENT_TYPE == 'DEMO') {
+        $heading = 'DEMO';
+    } elseif ($APPOINTMENT_TYPE == 'AD-HOC') {
         $heading = 'AD-HOC';
     }
 
@@ -123,7 +126,7 @@ if ($TYPE == 'appointment') {
             </div>
         </div>
         <div>
-            <span class="badge border ms-auto " style="color: #000; background-color: <?= $COLOR_CODE ?>"><?= $SERVICE_CODE ?></span>&nbsp;
+            <span class="badge border ms-auto " style="color: #fff; background-color: <?= $COLOR_CODE ?>"><?= $SERVICE_CODE ?></span>&nbsp;
             <span class="ms-auto f-12" style="color:<?= $STATUS_COLOR ?>"><?= $APPOINTMENT_STATUS ?></span>&nbsp;&nbsp;
             <span class="ms-auto f-12"><?= $appointment_number ?></span>&nbsp;&nbsp;
             <span class="ms-auto f-12"><?= $paid_status ?></span>&nbsp;&nbsp;
@@ -182,6 +185,7 @@ if ($TYPE == 'appointment') {
 } elseif ($TYPE == 'special_appointment') {
     $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                     DOA_SPECIAL_APPOINTMENT.*,
+                                    DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
                                     DOA_APPOINTMENT_STATUS.STATUS_CODE,
                                     DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
                                     DOA_SCHEDULING_CODE.COLOR_CODE,
@@ -195,29 +199,46 @@ if ($TYPE == 'appointment') {
                                     LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
                                     WHERE DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = " . $PK_VALUE;
 
-    $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY); ?>
+    $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
+    $PK_SPECIAL_APPOINTMENT = $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'];
+    $TITLE = preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']);
+    $DATE = date("m/d/Y", strtotime($special_appointment_data->fields['DATE']));
+    $START_TIME = $special_appointment_data->fields['START_TIME'];
+    $END_TIME = $special_appointment_data->fields['END_TIME'];
+    $DESCRIPTION = $special_appointment_data->fields['DESCRIPTION'];
+
+    $APPOINTMENT_STATUS = $special_appointment_data->fields['APPOINTMENT_STATUS'];
+    $STATUS_CODE = $special_appointment_data->fields['STATUS_CODE'];
+    $STATUS_COLOR = $special_appointment_data->fields['APPOINTMENT_COLOR'];
+
+    $SERVICE_PROVIDER_ID = $special_appointment_data->fields['SERVICE_PROVIDER_ID'];
+    $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$SERVICE_PROVIDER_ID'");
+    $service_provider_name = $service_provider_data->fields['NAME'];
+
+    $profile = getProfileBadge($service_provider_name);
+    $profile_name = $profile['initials'];
+    $profile_color = $profile['color'];
+
+?>
     <div class="p-2">
         <div class="appointment-profile d-flex">
             <div class="d-flex align-items-center gap-3 f12 theme-text-light">
                 <div class="profilename-data">
-                    <h6 class="mb-1"><?= $heading ?></h6>
+                    <h6 class="mb-1"><?= $TITLE ?></h6>
                 </div>
             </div>
             <div class="profilebtn-area ms-auto">
-                <a href="javascript:;" class="edit-btn" onclick="loadViewAppointmentModal(<?= $PK_APPOINTMENT_MASTER ?>)">
+                <a href="javascript:;" class="edit-btn" onclick="editSpecialAppointment(<?= $PK_SPECIAL_APPOINTMENT ?>)">
                     <i class="fa fa-edit" aria-hidden="true"></i>
                 </a>
-                <a title="Delete" href="javascript:" onclick="deleteAppointment(<?= $PK_APPOINTMENT_MASTER ?>, 'normal');" class="delete-btn">
+                <a title="Delete" href="javascript:" onclick="deleteAppointment(<?= $PK_SPECIAL_APPOINTMENT ?>, 'special_appointment');" class="delete-btn">
                     <i class="fa fa-trash" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
         <div>
-            <span class="badge border ms-auto " style="color: #000; background-color: <?= $COLOR_CODE ?>"><?= $SERVICE_CODE ?></span>&nbsp;
-            <span class="ms-auto f-12" style="color:<?= $STATUS_COLOR ?>"><?= $APPOINTMENT_STATUS ?></span>&nbsp;&nbsp;
-            <span class="ms-auto f-12"><?= $appointment_number ?></span>&nbsp;&nbsp;
-            <span class="ms-auto f-12"><?= $paid_status ?></span>&nbsp;&nbsp;
+            <span class="ms-auto f-12" style="color:<?= $STATUS_COLOR ?>"><?= $APPOINTMENT_STATUS ?></span>
         </div>
         <div class="statusareatext f12 theme-text-light mt-2">
             <span class=""><?= date('l, M d', strtotime($DATE)) ?>, <?= date('h:i A', strtotime($START_TIME)) ?> - <?= date('h:i A', strtotime($END_TIME)) ?></span>
@@ -229,47 +250,11 @@ if ($TYPE == 'appointment') {
             </ul>
         </div>
         <hr class="my-2">
-        <div class="appointment-profile d-flex">
-            <div class="d-flex align-items-center gap-3 f12 theme-text-light">
-                <div class="profilename-data f14">1 student:</div>
-            </div>
-        </div>
-        <div class="collapse multi-collapse show" id="collaseexample1">
-            <div class="d-flex align-items-center">
-                <div>
-                    <span class="badge bgsuccess d-inline-block p-1"></span>
-                    <a href="#!" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
-                    <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
-                </div>
-                <div class="d-flex gap-2 ms-auto">
-                    <a href="javascript;" class="btn-icon">
-                        <i class="fa fa-envelope" aria-hidden="true"></i>
-                    </a>
-                    <a href="javascript;" class="btn-icon">
-                        <i class="fa fa-comment" aria-hidden="true"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-        <hr class="my-2">
-        <div class="appointment-profile theme-text-light">
-            <div class="theme-text-light f12 fw-medium">Next Lesson:</div>
-            <span class="f12"><?= getNextScheduledAppointment($PK_APPOINTMENT_MASTER, $CUSTOMER_ID, $PK_SERVICE_MASTER) ?></span>
-            <div class="statusarea ms-0">
-                <span class="fw-medium"><?= getNextBookedCount($PK_APPOINTMENT_MASTER, $CUSTOMER_ID, $PK_ENROLLMENT_MASTER) ?> more booked</span>
-            </div>
-        </div>
-        <hr class="my-2">
         <div class="appointment-profile theme-text-light mb-2">
-            <div class="theme-text-light f12 fw-medium">Public Note:</div>
-            <span class="f12 lh-2 d-inline-block"><?= $COMMENT ?></span>
-        </div>
-        <div class="appointment-profile theme-text-light">
-            <div class="theme-text-light f12 fw-medium">Internal Note:</div>
-            <span class="f12 lh-2 d-inline-block"><?= $INTERNAL_COMMENT ?></span>
+            <div class="theme-text-light f12 fw-medium">Suggested Message:</div>
+            <span class="f12 lh-2 d-inline-block"><?= $DESCRIPTION ?></span>
         </div>
     </div>
-
 <?php
 }
 ?>
