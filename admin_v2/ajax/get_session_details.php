@@ -150,7 +150,7 @@ if ($TYPE == 'appointment') {
             <div class="d-flex align-items-center">
                 <div>
                     <span class="badge bgsuccess d-inline-block p-1"></span>
-                    <a href="#!" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
+                    <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold" onclick="loadViewCustomerModal(<?= $selected_user_id ?>, 0)"><?= $selected_customer ?></a>
                     <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
                 </div>
                 <div class="d-flex gap-2 ms-auto">
