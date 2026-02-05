@@ -1,3 +1,13 @@
+<?php
+$service_master = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND SERVICE_CODE = 'COMM'");
+if ($service_master->RecordCount() == 0) {
+    $PK_SERVICE_MASTER = 0;
+    $PK_SERVICE_CODE = 0;
+} else {
+    $PK_SERVICE_MASTER = $service_master->fields['PK_SERVICE_MASTER'];
+    $PK_SERVICE_CODE = $service_master->fields['PK_SERVICE_CODE'];
+}
+?>
 <style>
     .slot_div {
         display: grid;
@@ -88,7 +98,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots()" required>
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -162,7 +172,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()" required>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
                                     <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
@@ -265,7 +275,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots()" required>
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -693,24 +703,31 @@
             <div class="tab-pane fade" id="Record" role="tabpanel">
                 <h6 class="mb-4">Record Only</h6>
                 <form class="mb-0" id="create_record_only_form" action="partials/store/add_record_only_data.php" method="POST">
+                    <input type="hidden" name="START_TIME" id="START_TIME">
+                    <input type="hidden" name="END_TIME" id="END_TIME">
+                    <input type="hidden" name="PK_LOCATION" id="PK_LOCATION">
+
                     <div class="row mb-2 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="#ccc">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="25px" height="25px" fill="#ccc">
                                     <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
                                     <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
                                     <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
                                 </svg>
-                                <label class="mb-0">Service Provider</label>
+                                <label class="mb-0"><?= $service_provider_title ?></label>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control form-select">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Chandler Bing">Chandler Bing</option>
-                                    <option value="Rachel Green">Rachel Green</option>
-                                    <option value="Ross Geller">Ross Geller</option>
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
+                                    <option value="">Select <?= $service_provider_title ?></option>
+                                    <?php
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
                                 </select>
                             </div>
                         </div>
@@ -728,60 +745,23 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select customerselect">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Ross Geller">Ross Geller</option>
-                                    <option value="Rachel Green">Rachel Green</option>
-                                    <option value="Chandler Bing">Chandler Bing</option>
+                                <select class="form-control customer_select" name="SELECTED_CUSTOMER_ID" id="SELECTED_CUSTOMER_ID" required>
+                                    <option value="">Select Customer</option>
+                                    <?php
+                                    $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?= $row->fields['PK_USER_MASTER']; ?>" data-location_id=<?= $row->fields['PRIMARY_LOCATION_ID']; ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-3 d-none enrollmentarea">
-                        <div class="col-4 col-md-4">
-                            <div class="d-flex gap-2 align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
-                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
-                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
-                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
-                                </svg>
-                                <label class="mb-0">Enrollment ID</label>
-                            </div>
-                        </div>
-                        <div class="col-8 col-md-8">
-                            <div class="form-group">
-                                <div class="form-check border rounded-2 p-2 mb-2">
-                                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="male" checked>
-                                    <label class="form-check-label" for="male">PRI1: 50, GRP 25, PTY:15</label>
-                                    <span class="checkicon float-end">
-                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
-                                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
-                                        </svg>
-                                    </span>
-                                    <div class="statusarea mt-1">
-                                        <span>Private: 40/50</span>
-                                        <span>Group: 10/10</span>
-                                        <span>Practice: 5/15</span>
-                                    </div>
-                                </div>
-                                <div class="form-check border rounded-2 p-2 mb-2">
-                                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="female">
-                                    <label class="form-check-label" for="female">AD-hoc</label>
-                                    <span class="checkicon float-end">
-                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
-                                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
-                                        </svg>
-                                    </span>
-                                    <div class="statusarea mt-1">
-                                        <span>Private: 40/50</span>
-                                        <span>Group: 10/10</span>
-                                        <span>Practice: 5/15</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3 align-items-center schedulecode d-none">
+
+                    <input type="hidden" name="PK_SERVICE_MASTER" value="<?= $PK_SERVICE_MASTER ?>">
+                    <input type="hidden" name="PK_SERVICE_CODE" value="<?= $PK_SERVICE_CODE ?>">
+
+                    <div class="row mb-3 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
@@ -794,11 +774,14 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Code 1">Code 1</option>
-                                    <option value="Code 2">Code 2</option>
-                                    <option value="Code 3">Code 3</option>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
+                                    <option value="">Select Scheduling Code</option>
+                                    <?php
+                                    $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                                    while (!$row->EOF) { ?>
+                                        <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>"><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
                                 </select>
                             </div>
                         </div>
@@ -807,7 +790,7 @@
                     <div class="row mb-3">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="25px" height="22px" fill="#ccc">
                                     <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
                                     <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
                                 </svg>
@@ -815,31 +798,19 @@
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
-                            <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                <input type="date" class="form-control" style="min-width: 110px;">
-                                <span class="f14">at</span>
+                            <div class="form-group d-flex gap-3" id="datetime">
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="TO_DO_APPOINTMENT_DATE" style="min-width: 110px;" required>
                                 <input type="time" class="form-control">
                             </div>
-                            <label class="custom-checkbox float-start mt-2">
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                                All Day
-                            </label>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
                                 <span>Show Availability</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
                                     <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
                                 </svg>
                             </button>
-                            <div class="Availabilityarea mt-2" style="display: none;">
-                                <span>08:00 AM - 09:00 AM</span>
-                                <span>09:00 AM - 10:00 AM</span>
-                                <span>10:00 AM - 11:00 AM</span>
-                                <span>04:00 PM - 05:00 PM</span>
-                                <span>05:00 PM - 06:00 PM</span>
-                                <span>06:00 PM - 07:00 PM</span>
-                            </div>
+                            <div class="slot_div mt-2">
 
+                            </div>
                         </div>
                     </div>
                     <hr class="mb-3">
@@ -854,7 +825,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="INTERNAL_COMMENT"></textarea>
                             </div>
                         </div>
                     </div>
@@ -948,13 +919,20 @@
         });
     }
 
-    function getSlots() {
-        let PK_SERVICE_PROVIDER = $('#PK_SERVICE_PROVIDER').val();
-        let PK_LOCATION = $('#SELECTED_CUSTOMER_ID').find(':selected').data('location_id');
-        $('#PK_LOCATION').val(PK_LOCATION);
-        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+    function getSlots(param) {
+        let PK_SERVICE_PROVIDER = $(param).closest('.tab-pane').find('#PK_SERVICE_PROVIDER').val();
+        let PK_LOCATION = $(param).closest('.tab-pane').find('#SELECTED_CUSTOMER_ID').find(':selected').data('location_id');
+        $(param).closest('.tab-pane').find('#PK_LOCATION').val(PK_LOCATION);
+        let duration = $(param).closest('.tab-pane').find('#PK_SCHEDULING_CODE').find(':selected').data('duration');
 
-        let selected_date = $('#APPOINTMENT_DATE').val();
+        let form_name = $('#FORM_NAME').val();
+        let selected_date = '';
+        if (form_name == 'create_appointment_form') {
+            selected_date = $('#APPOINTMENT_DATE').val();
+        } else {
+            selected_date = $('#TO_DO_APPOINTMENT_DATE').val();
+        }
+
         let dateObj = new Date(selected_date);
         let day = String(dateObj.getDate()).padStart(2, '0');
         let month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -983,11 +961,11 @@
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('.slot_div').html(result);
+                    $(param).closest('.tab-pane').find('.slot_div').html(result);
                 }
             });
         } else {
-            $('.slot_div').html('');
+            $(param).closest('.tab-pane').find('.slot_div').html('');
         }
     }
 
@@ -995,9 +973,9 @@
         if ($(param).data('is_selected') == 0) {
             start_time_array.push(start_time);
             end_time_array.push(end_time);
-            $('#START_TIME').val(start_time_array.sort());
-            $('#END_TIME').val(end_time_array.sort());
-            $('#slot_btn_' + id).data('is_selected', 1);
+            $(param).closest('.tab-pane').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('.tab-pane').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('.tab-pane').find('#slot_btn_' + id).data('is_selected', 1);
             document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#39b54a', 'important');
             document.getElementById('slot_btn_' + id).style.setProperty('color', '#fff', 'important');
         } else {
@@ -1011,9 +989,9 @@
                 end_time_array.splice(end_time_index, 1);
             }
 
-            $('#START_TIME').val(start_time_array.sort());
-            $('#END_TIME').val(end_time_array.sort());
-            $('#slot_btn_' + id).data('is_selected', 0);
+            $(param).closest('.tab-pane').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('.tab-pane').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('.tab-pane').find('#slot_btn_' + id).data('is_selected', 0);
             document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#f8f9fa', 'important');
             document.getElementById('slot_btn_' + id).style.setProperty('color', '#000', 'important');
         }

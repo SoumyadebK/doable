@@ -1060,7 +1060,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         $('#APPOINTMENT_DATE').datepicker({
             onSelect: function() {
-                getSlots();
+                getSlots(this);
+            }
+        });
+
+        $('#TO_DO_APPOINTMENT_DATE').datepicker({
+            onSelect: function() {
+                getSlots(this);
             }
         });
 

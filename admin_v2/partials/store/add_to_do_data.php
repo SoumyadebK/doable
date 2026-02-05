@@ -5,9 +5,6 @@ global $db_account;
 
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
-
-
-
 $standing_id = 0;
 $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
 
