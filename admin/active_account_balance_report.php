@@ -23,13 +23,13 @@ if (!empty($_GET['NAME'])) {
     } else if ($_GET['NAME'] == 'nfa_active_customers_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
         $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-        $SELECTED_DATE = isset($_GET['SELECTED_DATE']) ? $_GET['SELECTED_DATE'] : '';
-        $SELECTED_RANGE = isset($_GET['SELECTED_RANGE']) ? $_GET['SELECTED_RANGE'] : '';
+        $FROM_DATE = isset($_GET['FROM_DATE']) ? $_GET['FROM_DATE'] : '';
+        $TO_DATE = isset($_GET['TO_DATE']) ? $_GET['TO_DATE'] : '';
         if ($generate_excel === 1) {
             $report_name = 'nfa_active_customers_report';
-            header('location:excel_' . $report_name . '.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&report_type=' . $report_name);
+            header('location:excel_' . $report_name . '.php?from_date=' . $FROM_DATE . '&to_date=' . $TO_DATE . '&report_type=' . $report_name);
         } else {
-            header('location:nfa_active_customers_report.php?selected_date=' . $SELECTED_DATE . '&selected_range=' . $SELECTED_RANGE . '&type=' . $type);
+            header('location:nfa_active_customers_report.php?from_date=' . $FROM_DATE . '&to_date=' . $TO_DATE . '&type=' . $type);
         }
     } else if ($_GET['NAME'] == 'nfa_active_no_enrollments_report') {
         $type = isset($_GET['view']) ? 'view' : 'generate_excel';
@@ -98,6 +98,16 @@ if (!empty($_GET['NAME'])) {
                                                 </select>
                                             </div>
                                         </div>
+                                        <div class="col-2 from_date" style="display: none;">
+                                            <div class="form-group">
+                                                <input type="text" id="FROM_DATE" name="FROM_DATE" class="form-control datepicker-normal" placeholder="From Date" value="<?= !empty($_GET['FROM_DATE']) ? $_GET['FROM_DATE'] : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 to_date" style="display: none;">
+                                            <div class="form-group">
+                                                <input type="text" id="TO_DATE" name="TO_DATE" class="form-control datepicker-normal" placeholder="To Date" value="<?= !empty($_GET['TO_DATE']) ? $_GET['TO_DATE'] : '' ?>" required>
+                                            </div>
+                                        </div>
                                         <div class="col-2 appointment_type" style="display: none;">
                                             <div class="form-group">
                                                 <select class="form-control" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE">
@@ -138,14 +148,18 @@ if (!empty($_GET['NAME'])) {
         $('#SELECTED_DATE').prop('required', false);
         $('#SELECTED_RANGE').prop('required', false);
         $('#APPOINTMENT_TYPE').prop('required', false);
+        $('#FROM_DATE').prop('required', false);
+        $('#TO_DATE').prop('required', false);
 
         // Hide all conditional fields
         $('.selected_date').hide();
         $('.selected_range').hide();
         $('.appointment_type').hide();
+        $('.from_date').hide();
+        $('.to_date').hide();
 
         // Show fields based on selected report
-        if (selectedReport === 'active_account_balance_report' || selectedReport === 'nfa_active_customers_report') {
+        if (selectedReport === 'active_account_balance_report') {
             $('.selected_date').show();
             $('.selected_range').show();
             $('#SELECTED_DATE').prop('required', true);
@@ -153,6 +167,11 @@ if (!empty($_GET['NAME'])) {
         } else if (selectedReport === 'nfa_active_no_enrollments_report') {
             $('.appointment_type').show();
             $('#APPOINTMENT_TYPE').prop('required', true);
+        } else if (selectedReport === 'nfa_active_customers_report') {
+            $('.from_date').show();
+            $('.to_date').show();
+            $('#FROM_DATE').prop('required', true);
+            $('#TO_DATE').prop('required', true);
         }
     }
 
@@ -176,6 +195,29 @@ if (!empty($_GET['NAME'])) {
         // Also bind the change event properly
         $('#NAME').on('change', function() {
             selectReport(this);
+        });
+
+        // Add date validation
+        $('form').submit(function(e) {
+            let selectedReport = $('#NAME').val();
+
+            if (selectedReport === 'nfa_active_customers_report') {
+                let fromDate = $('#FROM_DATE').val();
+                let toDate = $('#TO_DATE').val();
+
+                if (fromDate && toDate) {
+                    let from = new Date(fromDate);
+                    let to = new Date(toDate);
+
+                    if (from > to) {
+                        alert('From Date must be before To Date');
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         });
     });
 </script>

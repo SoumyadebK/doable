@@ -13,14 +13,9 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $today = date('Y-m-d');
 
-if (!empty($_GET['selected_range'])) {
-    $selected_range = $_GET['selected_range'];
-    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= DATE_SUB('" . $selected_date . "', INTERVAL " . $selected_range . " MONTH) AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . $selected_date . "'";
-} else {
-    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE = '" . date('Y-m-d', strtotime($selected_date)) . "'";
-}
+$from_date = $_GET['from_date'];
+$to_date = $_GET['to_date'];
+$enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -301,6 +296,19 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
     header('location: nfa_active_customers_report.php');
     exit;
 }
+
+if (isset($_GET['view']) || isset($_GET['generate_excel'])) {
+    $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+    $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+    $FROM_DATE = isset($_GET['FROM_DATE']) ? $_GET['FROM_DATE'] : '';
+    $TO_DATE = isset($_GET['TO_DATE']) ? $_GET['TO_DATE'] : '';
+    if ($generate_excel === 1) {
+        $report_name = 'nfa_active_customers_report';
+        header('location:excel_' . $report_name . '.php?from_date=' . $FROM_DATE . '&to_date=' . $TO_DATE . '&report_type=' . $report_name);
+    } else {
+        header('location:nfa_active_customers_report.php?from_date=' . $FROM_DATE . '&to_date=' . $TO_DATE . '&type=' . $type);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -322,8 +330,39 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
                         <div class="d-flex justify-content-end align-items-center">
                             <ol class="breadcrumb justify-content-end">
                                 <li class="breadcrumb-item active"><a href="reports.php">Reports</a></li>
-                                <li class="breadcrumb-item active"><a href="customer_summary_report.php"><?= $title ?></a></li>
+                                <li class="breadcrumb-item active"><a><?= $title ?></a></li>
                             </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="row" style="padding: 15px 0px 0px 15px;">
+                                <form class="form-material form-horizontal" action="" method="get">
+                                    <input type="hidden" name="from_date" id="from_date">
+                                    <input type="hidden" name="to_date" id="to_date">
+                                    <div class="row">
+                                        <div class="col-2 from_date">
+                                            <div class="form-group">
+                                                <input type="text" id="FROM_DATE" name="FROM_DATE" class="form-control datepicker-normal" placeholder="From Date" value="<?= !empty($_GET['from_date']) ? $_GET['from_date'] : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 to_date">
+                                            <div class="form-group">
+                                                <input type="text" id="TO_DATE" name="TO_DATE" class="form-control datepicker-normal" placeholder="To Date" value="<?= !empty($_GET['to_date']) ? $_GET['to_date'] : '' ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
+                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -615,6 +654,11 @@ if (isset($_GET['inactive']) && isset($_GET['enrollment'])) {
     <?php require_once('../includes/footer.php'); ?>
     <script src="https://kit.fontawesome.com/959e6b14a9.js" crossorigin="anonymous"></script>
     <script>
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+
+
         function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
             $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('.PK_USER_MASTER').val(PK_USER_MASTER);

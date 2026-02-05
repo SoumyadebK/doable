@@ -17,14 +17,9 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $type = $_GET['type'];
 
-if (!empty($_GET['selected_range'])) {
-    $selected_range = $_GET['selected_range'];
-    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= DATE_SUB('" . $selected_date . "', INTERVAL " . $selected_range . " MONTH) AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . $selected_date . "'";
-} else {
-    $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-    $enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE = '" . date('Y-m-d', strtotime($selected_date)) . "'";
-}
+$from_date = $_GET['from_date'];
+$to_date = $_GET['to_date'];
+$enrollment_date_condition = "AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
 $service_provider_id = $_GET['service_provider_id'];
 
@@ -158,33 +153,40 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "C4";
 //$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Total");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Date");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "D4";
 //$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Session Left");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Total");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "E4";
-//$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');  
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Service Provider");
+//$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Session Left");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "F4";
 //$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');  
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Last Appointment Date");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Service Provider");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "G4";
+//$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');  
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Last Appointment Date");
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+$cell_no = "H4";
 //$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');  
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Service Provider in the Last Appointment");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
@@ -200,7 +202,8 @@ $row = $db_account->Execute("SELECT
                                 DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION,
                                 CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME,
                                 DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID
+                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE
                             FROM DOA_ENROLLMENT_SERVICE 
                             LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
                             JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
@@ -241,26 +244,31 @@ while (!$row->EOF) {
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $cell_no = "C" . $i;
-            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['NUMBER_OF_SESSION']);
+            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(isset($row->fields['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) : '');
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $cell_no = "D" . $i;
-            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION);
+            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['NUMBER_OF_SESSION']);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $cell_no = "E" . $i;
-            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '');
+            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $cell_no = "F" . $i;
-            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(isset($last_data->fields['DATE']) ? date('m-d-Y', strtotime($last_data->fields['DATE'])) : '');
+            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '');
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $cell_no = "G" . $i;
+            $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(isset($last_data->fields['DATE']) ? date('m-d-Y', strtotime($last_data->fields['DATE'])) : '');
+            $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            $cell_no = "H" . $i;
             $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(isset($last_data->fields['SERVICE_PROVIDER']) ? $last_data->fields['SERVICE_PROVIDER'] : '');
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
