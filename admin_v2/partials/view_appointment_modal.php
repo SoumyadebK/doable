@@ -454,7 +454,11 @@ while (!$row->EOF) {
         <?php endif; ?>
     </div>
 </div>
-
+<form class="mb-0 appointmentform p-3" id="appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+    <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
+    <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
+    <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>">
     <div class="row mb-2 align-items-center">
         <div class="col-4 col-md-4">
             <div class="d-flex gap-2 align-items-center">
@@ -652,5 +656,9 @@ while (!$row->EOF) {
         </div>
     </div>
 
+        <button type="button" class="btn-secondary w-100 m-1" >Cancel</button>
+        <button type="submit" class="btn-primary w-100 m-1">Save</button>
+
+</form>
 
 <!-- End Appointment Details -->
