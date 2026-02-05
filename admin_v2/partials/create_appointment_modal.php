@@ -39,19 +39,20 @@
     <!-- Tabs Nav -->
     <ul class="nav nav-tabs align-items-center" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Appointment" type="button">Appointment</button>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Appointment" type="button" onclick="$('#FORM_NAME').val('create_appointment_form');">Appointment</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Group" type="button">Group Class</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Group" type="button" onclick="$('#FORM_NAME').val('create_group_class_form')">Group Class</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#DO" type="button">TO DO</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#To-Do" type="button" onclick="$('#FORM_NAME').val('create_to_do_form')">To Do</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Record" type="button">Record Only</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Record" type="button" onclick="$('#FORM_NAME').val('create_record_only_form')">Record Only</button>
         </li>
     </ul>
     <div class="modal-body p-3" style="overflow-y: auto; height: calc(100% - 130px);">
+        <input type="hidden" id="FORM_NAME" value="create_appointment_form">
 
         <!-- Tabs Content -->
         <div class="tab-content" id="myTabContent">
@@ -60,6 +61,7 @@
                 <form class="mb-0" id="create_appointment_form" action="partials/store/add_appointment_data.php" method="POST">
                     <input type="hidden" name="START_TIME" id="START_TIME">
                     <input type="hidden" name="END_TIME" id="END_TIME">
+                    <input type="hidden" name="PK_LOCATION" id="PK_LOCATION">
 
                     <div class="row mb-2 align-items-center">
                         <div class="col-4 col-md-4">
@@ -127,7 +129,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" required name="PK_SERVICE_MASTER" onchange="selectThisService(this)">
+                                <select class="form-control" name="PK_SERVICE_MASTER" onchange="selectThisService(this)">
                                     <option value="">Select Service</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
@@ -213,33 +215,27 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="row" style="margin-top: 42%;">
-                        <div class="col-6 col-md-6">
-                            <button type="submit" class="btn-secondary w-100 m-1">Cancel</button>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <button type="submit" class="btn-primary w-100 m-1">Save</button>
-                        </div>
-                    </div>
                 </form>
             </div>
 
             <div class="tab-pane fade" id="Group" role="tabpanel">
                 <h6 class="mb-4">Group Class</h6>
-                <form class="mb-0" id="create_appointment_form" action="partials/store/add_appointment_data.php" method="POST">
-                    <input type="hidden" name="START_TIME" id="START_TIME">
-                    <input type="hidden" name="END_TIME" id="END_TIME">
-
-                    <div class="row mb-3 align-items-center">
+                <form class="mb-0" id="create_group_class_form" action="partials/store/add_group_class_data.php" method="POST">
+                    <div class="row mb-2 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <label class="mb-0" style="margin-left: 33px;">Group Name</label>
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="#ccc">
+                                    <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
+                                    <path d="m107.7045 91.5695a3 3 0 0 0 -2.7573-1.85 2.9415 2.9415 0 0 0 -2.7734 1.8252l-28.6245 67.25a3 3 0 0 0 2.76 4.1748h56.5581a3 3 0 0 0 2.7705-4.15zm-26.8574 65.4 24.0529-56.5104 23.473 56.5109z" />
+                                    <path d="m233.0087 223.2169h-9.8213v-162.3291h9.8213a3 3 0 0 0 0-6h-25.6426a3 3 0 1 0 0 6h9.8213v162.3291h-9.8213a3 3 0 0 0 0 6h25.6426a3 3 0 0 0 0-6z" />
+                                    <path d="m17.1913 55.23a3 3 0 0 0 3-3v-9.8217h173.1358v9.8217a3 3 0 1 0 6 0v-25.642a3 3 0 0 0 -6 0v9.82h-173.1358v-9.82a3 3 0 1 0 -6 0v25.642a3 3 0 0 0 3 3z" />
+                                </svg>
+                                <label class="mb-0">Group Name</label>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <input type="text" class="form-control" name="GROUP_NAME" id="GROUP_NAME" required>
+                                <input type="text" class="form-control" placeholder="Enter group name" required />
                             </div>
                         </div>
                     </div>
@@ -257,7 +253,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots()" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -272,33 +268,43 @@
                     <div class="row mb-3 align-items-center">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <label class="mb-0" style="margin-left: 33px;">Service</label>
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Service</label>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" class="multi_select" required name="SERVICE_ID" onchange="selectThisService(this)">
-                                    <option value="">Select Service</option>
-                                    <?php
-                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?= $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>"><?= $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] ?></option>
-                                    <?php $row->MoveNext();
-                                    } ?>
+                                <select class="form-control form-select customerselect">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Group || GRP">Group || GRP</option>
+                                    <option value="Group || GRP 1">Group || GRP 1</option>
+                                    <option value="Group || GRP 2">Group || GRP 2</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-3 align-items-center schedule_code_area d-none">
+                    <div class="row mb-3 align-items-center schedulecode d-none">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <label class="mb-0" style="margin-left: 33px;">Scheduling Code</label>
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Scheduling Code</label>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots()" required>
-                                    <option value="">Select Scheduling Code</option>
+                                <select class="form-control form-select">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Code 1">Code 1</option>
+                                    <option value="Code 2">Code 2</option>
+                                    <option value="Code 3">Code 3</option>
                                 </select>
                             </div>
                         </div>
@@ -307,7 +313,7 @@
                     <div class="row mb-3">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="25px" height="22px" fill="#ccc">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
                                     <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
                                     <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
                                 </svg>
@@ -315,37 +321,173 @@
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
-                            <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" required>
-                                <label class="mt-2">at</label><input type="time" class="form-control">
+                            <div class="datetime-area">
+                                <div class="datetime-item f12 bg-light p-2 border rounded-2 d-flex mb-2">
+                                    <div>
+                                        <p class="text-dark fw-semibold mb-0">Thu, Dec 4, 8 PM - 9 PM</p>
+                                        <span class="text-muted f10">Weekly on Thursday - Never ends</span>
+                                    </div>
+                                    <div class="d-flex gap-2 ms-auto align-items-start">
+                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
+                                                <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" href="#datetime1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
+                                                <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="datetime-item f12 bg-light p-2 border rounded-2 d-flex mb-2 added-item d-none">
+                                    <div>
+                                        <p class="text-dark fw-semibold mb-0">Mon, Dec 8, 8 PM - 9 PM</p>
+                                        <span class="text-muted f10">Weekly on Monday - ends on 3 Jan, 2026</span>
+                                    </div>
+                                    <div class="d-flex gap-2 ms-auto align-items-start">
+                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
+                                                <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" href="#datetime1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
+                                                <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="adddaytime btn-secondary w-100 f12 mb-2">Add Another Day & Time</button>
                             </div>
-                            <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
-                                <span>Show Availability</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
-                                    <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
-                                </svg>
-                            </button>
-                            <div class="slot_div mt-2">
+                            <div class="newdatetime-format d-none">
+                                <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                                    <input type="date" class="form-control" style="min-width: 110px;">
+                                    <span class="f14">at</span>
+                                    <input type="time" class="form-control">
+                                </div>
+                                <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
+                                    <span>Show Availability</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
+                                        <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
+                                    </svg>
+                                </button>
+                                <div class="Availabilityarea mt-2" style="display: none;">
+                                    <span>08:00 AM - 09:00 AM</span>
+                                    <span>09:00 AM - 10:00 AM</span>
+                                    <span>10:00 AM - 11:00 AM</span>
+                                    <span>04:00 PM - 05:00 PM</span>
+                                    <span>05:00 PM - 06:00 PM</span>
+                                    <span>06:00 PM - 07:00 PM</span>
+                                </div>
+                                <div class="form-group my-2">
+                                    <select class="form-control form-select">
+                                        <option value="">-- Select --</option>
+                                        <option value="Daily">Daily</option>
+                                        <option value="Weekly on Thursday">Weekly on Thursday</option>
+                                        <option value="Monday on the first Thursday">Monday on the first Thursday</option>
+                                        <option value="Does not repeat">Does not repeat</option>
+                                        <option value="Custom" selected disabled>Custom</option>
+                                    </select>
+                                </div>
+                                <div class="repeat-box">
+                                    <div class="row gx-1">
+                                        <div class="col-12 col-lg-5 mb-2">
+                                            <label class="theme-text-light">Repeat every:</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" class="form-control p-1" style="max-width: 35px; height: 25px;" value="1" min="1">
+                                                <select class="form-control form-select p-1" style="max-width: 80px; height: 25px;">
+                                                    <option>week</option>
+                                                    <option>day</option>
+                                                    <option>month</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-7 mb-2">
+                                            <label class="theme-text-light">Repeat on:</label>
+                                            <div class="weekday-radio mt-1">
+                                                <label>
+                                                    <input type="radio" name="weekday" checked>
+                                                    <span>S</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>M</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>T</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>W</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>T</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>F</span>
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="weekday">
+                                                    <span>S</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-12">
+                                            <div class="ends">
+                                                <div>
+                                                    <label class="theme-text-light">Ends</label>
+                                                </div>
+                                                <div class="mb-1">
+                                                    <label class="radio active">
+                                                        <input type="radio" name="end" checked>
+                                                        <span></span>
+                                                        Never
+                                                    </label>
+                                                </div>
+                                                <div class="mb-1 d-flex gap-2">
+                                                    <label class="radio">
+                                                        <input type="radio" name="end">
+                                                        <span></span>
+                                                        On
 
+                                                    </label>
+                                                    <div class="ms-auto">
+                                                        <input type="text" class="form-control" placeholder="3 Jan, 2026" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-1 d-flex gap-2">
+                                                    <label class="radio">
+                                                        <input type="radio" name="end">
+                                                        <span></span>
+                                                        After
+                                                    </label>
+                                                    <div class="ms-auto">
+                                                        <input type="number" class="form-control" placeholder="4 occurrences" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <a class="savebtngroup btn-secondary f12 rounded-2 px-3">Save</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <select class="form-control" id="" name="">
-                                    <option value="" selected disabled hidden>Does not repeat</option>
-                                    <option value="">Daily</option>
-                                    <option value="">Weekly on Thursday</option>
-                                    <option value="">Monthly on the first Thursday</option>
-                                    <option value="">Custom...</option>
-                                </select>
-                            </div>
-
-
                         </div>
                     </div>
                     <hr class="mb-3">
                     <div class="row mb-3">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="25px" height="20px" fill="#ccc">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="18px" fill="#ccc">
                                     <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
                                 </svg>
                                 <label class="mb-0">Public Note</label>
@@ -353,7 +495,7 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control" name="COMMENT"></textarea>
+                                <textarea class="form-control"></textarea>
                             </div>
                         </div>
                     </div>
@@ -368,43 +510,366 @@
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control" name="INTERNAL_COMMENT"></textarea>
+                                <textarea class="form-control"></textarea>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="row" style="margin-top: 42%;">
-                        <div class="col-6 col-md-6">
-                            <button type="submit" class="btn-secondary w-100 m-1">Cancel</button>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <button type="submit" class="btn-primary w-100 m-1">Save</button>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="tab-pane fade" id="DO" role="tabpanel">
-                <div class="nodata text-center p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 64 64" viewBox="0 0 64 64" width="50px" height="50px" fill="#ccc">
-                        <path d="m64 38.139c0-.063-.058-.1-.066-.16-.013-.178-.035-.355-.066-.53l-8.536-34.14c-.485-1.948-2.237-3.314-4.245-3.309h-38.174c-2.008-.005-3.76 1.361-4.245 3.309l-8.536 34.146c-.031.173-.052.348-.065.523-.009.06-.067.1-.067.161 0 .033.033.053.036.087-.007.1-.036.193-.036.29v21.108c.005 2.415 1.961 4.371 4.376 4.376h55.248c2.415-.005 4.371-1.961 4.376-4.376v-21.108c0-.1-.029-.194-.036-.291.003-.033.036-.053.036-.086zm-52.8-34.194c.197-.786.905-1.335 1.715-1.331h38.172c.809-.003 1.516.546 1.713 1.331l8.225 32.887h-16.748c-.721.002-1.305.586-1.307 1.307v4.831h-21.94v-4.831c-.002-.721-.586-1.305-1.307-1.307h-16.748zm48.424 57.441h-55.248c-.972-.002-1.76-.79-1.762-1.762v-20.179h15.8v4.832c.001.721.586 1.306 1.307 1.307h24.556c.721-.001 1.306-.586 1.307-1.307v-4.832h15.8v20.179c-.002.972-.788 1.759-1.76 1.762z" />
-                    </svg>
-                    <span class="d-block pt-2 f12 text-muted">No Data</span>
-                </div>
+
+            <div class="tab-pane fade" id="To-Do" role="tabpanel">
+                <h6 class="mb-4">To Do</h6>
+                <form class="mb-0" id="create_to_do_form" action="partials/store/add_to_do_data.php" method="POST">
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="#ccc">
+                                    <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
+                                    <path d="m107.7045 91.5695a3 3 0 0 0 -2.7573-1.85 2.9415 2.9415 0 0 0 -2.7734 1.8252l-28.6245 67.25a3 3 0 0 0 2.76 4.1748h56.5581a3 3 0 0 0 2.7705-4.15zm-26.8574 65.4 24.0529-56.5104 23.473 56.5109z" />
+                                    <path d="m233.0087 223.2169h-9.8213v-162.3291h9.8213a3 3 0 0 0 0-6h-25.6426a3 3 0 1 0 0 6h9.8213v162.3291h-9.8213a3 3 0 0 0 0 6h25.6426a3 3 0 0 0 0-6z" />
+                                    <path d="m17.1913 55.23a3 3 0 0 0 3-3v-9.8217h173.1358v9.8217a3 3 0 1 0 6 0v-25.642a3 3 0 0 0 -6 0v9.82h-173.1358v-9.82a3 3 0 1 0 -6 0v25.642a3 3 0 0 0 3 3z" />
+                                </svg>
+                                <label class="mb-0">Title</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Enter title" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="25px" height="25px" fill="#ccc">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0"><?= $service_provider_title ?></label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group serviceprovider">
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots()" required>
+                                    <option value="">Select <?= $service_provider_title ?></option>
+                                    <?php
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center schedulecode">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Scheduling Code</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)">
+                                    <option disabled selected>Select Scheduling Code</option>
+                                    <?php
+                                    $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
+                                    while (!$booking_row->EOF) { ?>
+                                        <option value="<?php echo $booking_row->fields['PK_SCHEDULING_CODE']; ?>" data-duration="<?php echo $booking_row->fields['DURATION']; ?>" data-scheduling_name="<?php echo $booking_row->fields['SCHEDULING_NAME'] ?>" data-is_default="<?php echo $booking_row->fields['IS_DEFAULT'] ?>"><?= $booking_row->fields['SCHEDULING_NAME'] . ' (' . $booking_row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                                    <?php $booking_row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center schedulecode">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Status</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <select class="form-control form-select">
+                                    <option value="Daily">Not Started</option>
+                                    <option value="Weekly on Thursday">In Progress</option>
+                                    <option value="Monday on the first Thursday">Complete</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+                    <div class="row mb-3">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                                    <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                                    <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                                </svg>
+                                <label class="mb-0">Date & Time</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                                <input type="text" class="form-control datepicker-normal" style="min-width: 110px;">
+                                <span class="f14">at</span>
+                                <input type="time" class="form-control">
+                            </div>
+                            <label class="custom-checkbox float-start mt-2 mb-2">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                                All Day
+                            </label>
+                            <!-- <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
+                                <span>Show Availability</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
+                                    <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
+                                </svg>
+                            </button>
+                            <div class="Availabilityarea mt-2" style="display: none;">
+                                <span>08:00 AM - 09:00 AM</span>
+                                <span>09:00 AM - 10:00 AM</span>
+                                <span>10:00 AM - 11:00 AM</span>
+                                <span>04:00 PM - 05:00 PM</span>
+                                <span>05:00 PM - 06:00 PM</span>
+                                <span>06:00 PM - 07:00 PM</span>
+                            </div> -->
+                            <div class="form-group mt-2">
+                                <select class="form-control form-select">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Daily">Daily</option>
+                                    <option value="Weekly on Thursday">Weekly on Thursday</option>
+                                    <option value="Monday on the first Thursday">Monday on the first Thursday</option>
+                                    <option value="Does not repeat">Does not repeat</option>
+                                    <option value="Custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+                    <div class="row mb-3">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="18px" fill="#ccc">
+                                    <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                                </svg>
+                                <label class="mb-0">Description</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <textarea class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
+
             <div class="tab-pane fade" id="Record" role="tabpanel">
-                <div class="nodata text-center p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 64 64" viewBox="0 0 64 64" width="50px" height="50px" fill="#ccc">
-                        <path d="m64 38.139c0-.063-.058-.1-.066-.16-.013-.178-.035-.355-.066-.53l-8.536-34.14c-.485-1.948-2.237-3.314-4.245-3.309h-38.174c-2.008-.005-3.76 1.361-4.245 3.309l-8.536 34.146c-.031.173-.052.348-.065.523-.009.06-.067.1-.067.161 0 .033.033.053.036.087-.007.1-.036.193-.036.29v21.108c.005 2.415 1.961 4.371 4.376 4.376h55.248c2.415-.005 4.371-1.961 4.376-4.376v-21.108c0-.1-.029-.194-.036-.291.003-.033.036-.053.036-.086zm-52.8-34.194c.197-.786.905-1.335 1.715-1.331h38.172c.809-.003 1.516.546 1.713 1.331l8.225 32.887h-16.748c-.721.002-1.305.586-1.307 1.307v4.831h-21.94v-4.831c-.002-.721-.586-1.305-1.307-1.307h-16.748zm48.424 57.441h-55.248c-.972-.002-1.76-.79-1.762-1.762v-20.179h15.8v4.832c.001.721.586 1.306 1.307 1.307h24.556c.721-.001 1.306-.586 1.307-1.307v-4.832h15.8v20.179c-.002.972-.788 1.759-1.76 1.762z" />
-                    </svg>
-                    <span class="d-block pt-2 f12 text-muted">No Data</span>
-                </div>
+                <h6 class="mb-4">Record Only</h6>
+                <form class="mb-0" id="create_record_only_form" action="partials/store/add_record_only_data.php" method="POST">
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="#ccc">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Service Provider</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group serviceprovider">
+                                <select class="form-control form-select">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Chandler Bing">Chandler Bing</option>
+                                    <option value="Rachel Green">Rachel Green</option>
+                                    <option value="Ross Geller">Ross Geller</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Customer</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <select class="form-control form-select customerselect">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Ross Geller">Ross Geller</option>
+                                    <option value="Rachel Green">Rachel Green</option>
+                                    <option value="Chandler Bing">Chandler Bing</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3 d-none enrollmentarea">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Enrollment ID</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <div class="form-check border rounded-2 p-2 mb-2">
+                                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="male" checked>
+                                    <label class="form-check-label" for="male">PRI1: 50, GRP 25, PTY:15</label>
+                                    <span class="checkicon float-end">
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
+                                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
+                                        </svg>
+                                    </span>
+                                    <div class="statusarea mt-1">
+                                        <span>Private: 40/50</span>
+                                        <span>Group: 10/10</span>
+                                        <span>Practice: 5/15</span>
+                                    </div>
+                                </div>
+                                <div class="form-check border rounded-2 p-2 mb-2">
+                                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="female">
+                                    <label class="form-check-label" for="female">AD-hoc</label>
+                                    <span class="checkicon float-end">
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
+                                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
+                                        </svg>
+                                    </span>
+                                    <div class="statusarea mt-1">
+                                        <span>Private: 40/50</span>
+                                        <span>Group: 10/10</span>
+                                        <span>Practice: 5/15</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3 align-items-center schedulecode d-none">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                                </svg>
+                                <label class="mb-0">Scheduling Code</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <select class="form-control form-select">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Code 1">Code 1</option>
+                                    <option value="Code 2">Code 2</option>
+                                    <option value="Code 3">Code 3</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+                    <div class="row mb-3">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                                    <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                                    <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                                </svg>
+                                <label class="mb-0">Date & Time</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                                <input type="date" class="form-control" style="min-width: 110px;">
+                                <span class="f14">at</span>
+                                <input type="time" class="form-control">
+                            </div>
+                            <label class="custom-checkbox float-start mt-2">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                                All Day
+                            </label>
+                            <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
+                                <span>Show Availability</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
+                                    <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
+                                </svg>
+                            </button>
+                            <div class="Availabilityarea mt-2" style="display: none;">
+                                <span>08:00 AM - 09:00 AM</span>
+                                <span>09:00 AM - 10:00 AM</span>
+                                <span>10:00 AM - 11:00 AM</span>
+                                <span>04:00 PM - 05:00 PM</span>
+                                <span>05:00 PM - 06:00 PM</span>
+                                <span>06:00 PM - 07:00 PM</span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+                    <div class="row mb-3">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="18px" fill="#ccc">
+                                    <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                                </svg>
+                                <label class="mb-0">Internal Note</label>
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-8">
+                            <div class="form-group">
+                                <textarea class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
+    <div class="modal-footer flex-nowrap border-top">
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer">Cancel</button>
+        <button type="button" class="btn-primary w-100 m-1" onclick="submitAppointmentForm()">Save</button>
     </div>
 </div>
 <!-- End Individual Appointment -->
 
 <script>
+    function submitAppointmentForm() {
+        let form_name = $('#FORM_NAME').val();
+        let form = $('#' + form_name);
+
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return false;
+        }
+
+        form.submit();
+    }
+
     let start_time_array = [];
     let end_time_array = [];
 
@@ -472,6 +937,7 @@
     function getSlots() {
         let PK_SERVICE_PROVIDER = $('#PK_SERVICE_PROVIDER').val();
         let PK_LOCATION = $('#SELECTED_CUSTOMER_ID').find(':selected').data('location_id');
+        $('#PK_LOCATION').val(PK_LOCATION);
         let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
 
         let selected_date = $('#APPOINTMENT_DATE').val();
@@ -511,7 +977,7 @@
         }
     }
 
-    function set_time(param, id, start_time, end_time) {
+    function selectSlot(param, id, start_time, end_time) {
         if ($(param).data('is_selected') == 0) {
             start_time_array.push(start_time);
             end_time_array.push(end_time);

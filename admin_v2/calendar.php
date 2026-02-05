@@ -476,6 +476,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     .fc-resource-cell {
         padding-bottom: 10px !important;
     }
+
+    .fc-time-grid-event .fc-time {
+        font-size: 11px;
+    }
+
+    .fc-content .fc-title {
+        margin-top: 3px;
+        line-height: 19px;
+        font-size: 12px;
+    }
 </style>
 <style>
     .list-select {
@@ -776,6 +786,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         width: auto;
         min-width: auto;
     }
+
+    .sp_badge {
+        height: 25px;
+        width: 25px;
+        border-radius: 20px;
+        padding: 6px 0px;
+        font-size: 12px;
+    }
 </style>
 <style>
     .overlay2 {
@@ -857,6 +875,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     .grp-tag {
         background-color: #ebf2ff;
         color: #6b82e2;
+    }
+
+    .f-12 {
+        font-size: 12px;
     }
 </style>
 
@@ -1372,6 +1394,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">' + event_data.customerName + '</strong> ');
                     }
 
+                    if (event_data.comment || event_data.internal_comment) {
+                        $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
+                    }
+
 
 
 
@@ -1830,7 +1856,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 async: false,
                 cache: false,
                 success: function(data) {
-                    getServiceProviderCount();
+                    //getServiceProviderCount();
                     calendar.refetchEvents();
                 }
             });
@@ -1860,7 +1886,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 async: false,
                 cache: false,
                 success: function(data) {
-                    getServiceProviderCount();
+                    //getServiceProviderCount();
                     calendar.refetchEvents();
                 }
             });
@@ -1893,71 +1919,24 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 async: false,
                 cache: false,
                 success: function(result) {
-                    let result_data = JSON.parse(result);
-                    let appointment_data = result_data.service_provider_count;
-                    for (let i = 0; i < appointment_data.length; i++) {
+                    let result_data = JSON.parse(result).service_provider;
+                    for (let i = 0; i < result_data.length; i++) {
 
-                        let resource = appointment_data[i].SERVICE_PROVIDER_NAME.trim();
+                        let sp_name = result_data[i].SERVICE_PROVIDER_NAME.trim();
+                        let sp_initials = result_data[i].INITIALS;
+                        let sp_color = result_data[i].COLOR;
 
-                        // Split name by space(s)
-                        let nameParts = resource.split(/\s+/);
-
-                        // First letter of first name
-                        let firstInitial = nameParts[0]?.charAt(0).toUpperCase() || '';
-
-                        // First letter of last name (if exists)
-                        let lastInitial = nameParts.length > 1 ?
-                            nameParts[nameParts.length - 1].charAt(0).toUpperCase() :
-                            '';
-
-                        let initials = firstInitial + lastInitial;
-
-                        //alert(initials);
-
-                        let colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#A9DFBF'];
-                        let colorIndex = resource.charCodeAt(0) % colors.length;
-                        let avatarColor = colors[colorIndex];
-
-                        let avatarHTML = `
-                                            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
-                                                <div style="
-                                                    display:flex;
-                                                    align-items:center;
-                                                    justify-content:center;
-                                                    width:30px;
-                                                    height:30px;
-                                                    border-radius:50%;
-                                                    background-color:${avatarColor};
-                                                    color:#fff;
-                                                    font-weight:600;
-                                                    font-size:14px;
-                                                    letter-spacing:1px;
-                                                ">
-                                                    ${initials}
+                        let avatarHTML = `<div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
+                                                <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:${sp_color};color:#fff;font-weight:600;font-size:14px;letter-spacing:1px;">
+                                                    ${sp_initials}
                                                 </div>
-                                                <div style="
-                                                    max-width:100%;
-                                                    font-size:13px;
-                                                    white-space:nowrap;
-                                                    overflow:hidden;
-                                                    text-overflow:ellipsis;
-                                                ">
-                                                    ${resource}
+                                                <div style="max-width:100%;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    ${sp_name}
                                                 </div>
-                                            </div>
-                                            `;
+                                            </div>`;
 
-
-                        $('th[data-resource-id="' + appointment_data[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
+                        $('th[data-resource-id="' + result_data[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
                     }
-                    if (calendar_view === 'month') {
-                        $('#week_count_btn').text('M');
-                    } else {
-                        $('#week_count_btn').text('W');
-                    }
-                    $('#day-count').attr('data-to', result_data.day_count);
-                    $('#week-count').attr('data-to', result_data.week_count);
-                    $('.count-number').countTo();
                 }
             });
         }
@@ -2012,6 +1991,36 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 }
             });
         } */
+    </script>
+
+
+    <script>
+        function deleteAppointment(PK_APPOINTMENT_MASTER, type) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteAppointment',
+                            type: type,
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                        },
+                        success: function(data) {
+                            calendar.refetchEvents();
+                        }
+                    });
+                }
+            });
+        }
     </script>
 
     <!-- JavaScript for Popup -->
@@ -2227,7 +2236,33 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             $('#closeDrawer3, .overlay3').click(function() {
                 $('#sideDrawer3, .overlay3').removeClass('active');
             });
+        });
 
+        $(document).ready(function() {
+            $('.ends input[type="radio"]').on('change', function() {
+
+                // Disable all inputs first
+                $('.ends .form-control').prop('disabled', true);
+
+                // Enable input next to selected radio (if any)
+                var $row = $(this).closest('.d-flex');
+                if ($row.length) {
+                    $row.find('.form-control')
+                        .prop('disabled', false)
+                        .focus();
+                }
+
+            });
+
+            $('.savebtngroup').click(function() {
+                $(this).addClass("d-none");
+                $('.added-item').removeClass("d-none");
+                $('.newdatetime-format').addClass("d-none");
+            });
+
+            $('.adddaytime').click(function() {
+                $('.newdatetime-format').removeClass("d-none");
+            });
         });
     </script>
 

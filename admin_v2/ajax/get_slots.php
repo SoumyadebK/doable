@@ -159,7 +159,7 @@ if (empty($_POST['slot_time'])) {
     $selected = "";
     $available_slots = getAvailableSlots($db_account, $SERVICE_PROVIDER_ID, $PK_LOCATION, $date, '00:' . $duration . ':00');
     foreach ($available_slots as $key => $item) { ?>
-        <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="set_time(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>')" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>
+        <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="selectSlot(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>')" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>
         <?php }
 } else {
     $booked_appointment_data = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS NOT IN (2, 6) AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . $SERVICE_PROVIDER_ID . " AND DOA_APPOINTMENT_MASTER.DATE = " . "'" . $date . "'");
@@ -256,7 +256,7 @@ if (empty($_POST['slot_time'])) {
                     $selected = "background-color: orange !important;";
                 }
             } ?>
-            <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="set_time(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>')" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>
+            <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="selectSlot(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>')" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>
         <?php }
     } else { ?>
         <span data-is_disable="1" class="slot_btn">No slot available on your selected time</span>
