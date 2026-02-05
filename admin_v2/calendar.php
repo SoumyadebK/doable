@@ -1025,7 +1025,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <div class="side-drawer" id="sideDrawer3">
         <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0">
-                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                <svg class="close-btn" id="closeDrawer3" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
                     <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z" />
                 </svg>
                 <span>Customer Details</span>
@@ -1579,7 +1579,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
 
         function loadViewCustomerModal(customerId, PK_ENROLLMENT_MASTER) {
-            $('#sideDrawer2, .overlay2').removeClass('active'); // Close appointment modal
+            //$('#sideDrawer2, .overlay2').removeClass('active'); // Close appointment modal
             $('#sideDrawer3, .overlay3').addClass('active'); // Open customer modal
 
             $.ajax({
@@ -1597,6 +1597,28 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 error: function(xhr, status, error) {
                     console.error("Error loading view_customer_modal.php:", error);
                     $('#sideDrawer3 .drawer-body').html('<p>Error loading customer details.</p>');
+                }
+            });
+        }
+
+        function loadCreateAppointmentModal(PK_USER_MASTER) {
+            $('#sideDrawer, .overlay').addClass('active');
+            $.ajax({
+                url: "partials/create_appointment_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER
+                },
+                success: function(result) {
+                    // Update the drawer content with create_appointment_modal
+                    $('#sideDrawer .drawer-body').html(result);
+
+                    // Re-initialize any scripts if needed
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading create_appointment_modal.php:", error);
+                    $('#sideDrawer .drawer-body').html('<p>Error loading appointment creation form.</p>');
                 }
             });
         }
