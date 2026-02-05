@@ -1249,21 +1249,126 @@ function addEnrollmentLogData($PK_ENROLLMENT_MASTER, $OPERATION, $DETAILS)
     db_perform_account('DOA_ENROLLMENT_LOG', $log_data, 'insert');
 }
 
-
-function getInitials(string $name): string
+function getProfileBadge(string $name): array
 {
-    // Remove extra spaces
+    // Clean name
     $name = trim(preg_replace('/\s+/', ' ', $name));
 
     if ($name === '') {
-        return '';
+        return [
+            'initials' => '',
+            'color' => '#CED4DA'
+        ];
     }
 
-    // Split name into parts
+    // Split name
     $parts = explode(' ', $name);
 
-    $firstInitial = strtoupper(substr($parts[0], 0, 1));
-    $lastInitial  = strtoupper(substr(end($parts), 0, 1));
+    $firstName = strtolower($parts[0]);
+    $lastName  = strtolower(end($parts));
 
-    return $firstInitial . $lastInitial;
+    // Initials
+    $initials = strtoupper(
+        substr($firstName, 0, 1) . substr($lastName, 0, 1)
+    );
+
+    // Color palette
+    $colors = [
+        '#FF6B6B',
+        '#FF8787',
+        '#FA5252',
+        '#4ECDC4',
+        '#20C997',
+        '#12B886',
+        '#45B7D1',
+        '#339AF0',
+        '#228BE6',
+        '#748FFC',
+        '#5C7CFA',
+        '#9775FA',
+        '#B197FC',
+        '#D0BFFF',
+        '#E599F7',
+        '#FFA94D',
+        '#FF922B',
+        '#F76707',
+        '#FFD43B',
+        '#FCC419',
+        '#FAB005',
+        '#A9DFBF',
+        '#8CE99A',
+        '#69DB7C',
+        '#ADB5BD',
+        '#868E96',
+        '#495057'
+    ];
+
+    // Generate stable hash using first + last name
+    $hash = crc32($firstName . '_' . $lastName);
+    $colorIndex = $hash % count($colors);
+
+    return [
+        'initials' => $initials,
+        'color' => $colors[$colorIndex]
+    ];
+}
+
+
+function getNextScheduledAppointment($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_SERVICE_MASTER)
+{
+    global $db_account;
+    $nextLessonQuery = "SELECT am.*
+                                FROM DOA_APPOINTMENT_MASTER am
+                                JOIN DOA_APPOINTMENT_CUSTOMER ac
+                                    ON ac.PK_APPOINTMENT_MASTER = am.PK_APPOINTMENT_MASTER
+                                JOIN DOA_APPOINTMENT_MASTER cur
+                                    ON cur.PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER
+                                WHERE ac.PK_USER_MASTER = $PK_USER_MASTER
+                                AND am.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER'
+                                AND am.PK_APPOINTMENT_STATUS = 1
+                                AND am.STATUS = 'A'
+                                AND (
+                                        am.DATE > cur.DATE
+                                        OR (am.DATE = cur.DATE AND am.START_TIME > cur.START_TIME)
+                                    )
+                                ORDER BY am.DATE ASC, am.START_TIME ASC
+                                LIMIT 1";
+
+    $nextLessonData = $db_account->Execute($nextLessonQuery);
+
+    if ($nextLessonData->RecordCount() > 0) {
+        $nextLessonDate = date('l, M d', strtotime($nextLessonData->fields['DATE']));
+        $nextLessonStartTime = date('h:i A', strtotime($nextLessonData->fields['START_TIME']));
+        $nextLessonEndTime = date('h:i A', strtotime($nextLessonData->fields['END_TIME']));
+        return $nextLessonDate . ', ' . $nextLessonStartTime . ' - ' . $nextLessonEndTime;
+    } else {
+        return "No upcoming appointments scheduled.";
+    }
+}
+
+function getNextBookedCount($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT_MASTER)
+{
+    global $db_account;
+    $nextLessonQuery = "SELECT COUNT(*) AS total_next_lessons
+                        FROM DOA_APPOINTMENT_MASTER am
+                        JOIN DOA_APPOINTMENT_CUSTOMER ac
+                            ON ac.PK_APPOINTMENT_MASTER = am.PK_APPOINTMENT_MASTER
+                        JOIN DOA_APPOINTMENT_MASTER cur
+                            ON cur.PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER
+                        WHERE ac.PK_USER_MASTER = $PK_USER_MASTER
+                        AND am.PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER
+                        AND am.PK_APPOINTMENT_STATUS = 1
+                        AND am.STATUS = 'A'
+                        AND (
+                                am.DATE > cur.DATE
+                                OR (am.DATE = cur.DATE AND am.START_TIME > cur.START_TIME)
+                            )";
+
+    $nextLessonData = $db_account->Execute($nextLessonQuery);
+
+    if ($nextLessonData->fields['total_next_lessons'] > 0) {
+        return $nextLessonData->fields['total_next_lessons'];
+    } else {
+        return "No ";
+    }
 }

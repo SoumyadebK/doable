@@ -1585,7 +1585,7 @@ function getServiceProviderCount($RESPONSE_DATA)
         $selected_service_provider = implode(',', $selected_service_provider_array);
     }
 
-    $date = $RESPONSE_DATA['currentDate'];
+    /* $date = $RESPONSE_DATA['currentDate'];
     $calendar_view = $RESPONSE_DATA['calendar_view'];
     $service_provider_array = [];
 
@@ -1595,17 +1595,21 @@ function getServiceProviderCount($RESPONSE_DATA)
 
     $event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
                             LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
-                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'");
+                            WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` = '$date'"); */
 
     $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (" . $selected_service_provider . ")");
     while (!$all_service_provider_details->EOF) {
-        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['APPOINTMENT_COUNT'] = ($event_count->RecordCount() > 0) ? $event_count->fields['APPOINTMENT_COUNT'] : 0; //+$service_provider_special_appointment_count->fields['SPECIAL_APPOINTMENT_COUNT']+$service_provider_group_class_count->fields['GROUP_CLASS_COUNT'];
+        $profile = getProfileBadge($all_service_provider_details->fields['SERVICE_PROVIDER_NAME']);
+
         $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_ID'] = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
         $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
+        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['INITIALS'] = $profile['initials'];
+        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['COLOR'] = $profile['color'];
+
         $all_service_provider_details->MoveNext();
     }
 
-    $week_event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
+    /* $week_event_count = $db_account->Execute("SELECT COUNT(DOA_EVENT.PK_EVENT) AS APPOINTMENT_COUNT FROM DOA_EVENT
                             LEFT JOIN DOA_EVENT_LOCATION ON DOA_EVENT.PK_EVENT = DOA_EVENT_LOCATION.PK_EVENT
                             WHERE SHARE_WITH_SERVICE_PROVIDERS = 1 AND ALL_DAY = 0 AND DOA_EVENT_LOCATION.PK_LOCATION IN ($DEFAULT_LOCATION_ID) AND `START_DATE` BETWEEN '$start_date' AND '$end_date'");
 
@@ -1654,11 +1658,11 @@ function getServiceProviderCount($RESPONSE_DATA)
                             AND DOA_SERVICE_CODE.COUNT_ON_CALENDAR = 1
                             AND DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)
                             AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3, 5, 7, 8)
-                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` BETWEEN '$start_date' AND '$end_date'");
+                            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IN (" . $selected_service_provider . ") AND `DATE` BETWEEN '$start_date' AND '$end_date'"); */
 
-    $return_data['service_provider_count'] = array_values($service_provider_array);
-    $return_data['day_count'] = $event_count->fields['APPOINTMENT_COUNT'] + $day_appointment_count->fields['APPOINTMENT_COUNT'];
-    $return_data['week_count'] = $week_event_count->fields['APPOINTMENT_COUNT'] + $week_appointment_count->fields['APPOINTMENT_COUNT'];
+    $return_data['service_provider'] = array_values($service_provider_array);
+    /* $return_data['day_count'] = $event_count->fields['APPOINTMENT_COUNT'] + $day_appointment_count->fields['APPOINTMENT_COUNT'];
+    $return_data['week_count'] = $week_event_count->fields['APPOINTMENT_COUNT'] + $week_appointment_count->fields['APPOINTMENT_COUNT']; */
 
     echo json_encode($return_data);
 }

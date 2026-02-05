@@ -817,3 +817,145 @@ textarea.form-control {
   padding: 8px 10px;
   font-size: 14px
 }
+
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 400;
+  gap: 5px;
+}
+
+.custom-checkbox input {
+  display: none;
+}
+
+.custom-checkbox .checkmark {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #555;
+  border-radius: 2px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox .checkmark::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+}
+
+.custom-checkbox input:checked+.checkmark {
+  background-color: #39B54A;
+  border-color: #39B54A;
+}
+
+.custom-checkbox input:checked+.checkmark::after {
+  opacity: 1;
+}
+
+.weekday-radio {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.weekday-radio label {
+  cursor: pointer;
+  font-size: 10px;
+}
+
+/* hide radio */
+.weekday-radio input {
+  display: none;
+}
+
+/* circle */
+.weekday-radio span {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+/* active */
+.weekday-radio input:checked+span {
+  background: #39B54A;
+  color: #fff;
+  border-color: #39B54A;
+}
+
+/* hover */
+.weekday-radio span:hover {
+  border-color: #39B54A;
+}
+
+/* mobile */
+@media (max-width: 480px) {
+  .weekday-radio span {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.radio input {
+  display: none;
+}
+
+.radio span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #bfbfbf;
+  position: relative;
+}
+
+.radio input:checked+span {
+  background: #39B54A;
+  border-color: #39B54A;
+}
+
+.radio span::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: 0.2s ease;
+}
+
+.radio input:checked+span::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+input.form-control:disabled,
+select.form-control:disabled {
+  background-color: rgba(0, 0, 0, 5%);
+  color: rgba(0, 0, 0, 25%);
+}
