@@ -82,19 +82,19 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveAdhocAppo
 }
 
 if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] === 'saveSpecialAppointmentData') {
-    $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
-    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
-    $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
-    $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+    $SPECIAL_APPOINTMENTs['TITLE'] = $_POST['TITLE'];
+    $SPECIAL_APPOINTMENTs['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $SPECIAL_APPOINTMENTs['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    $SPECIAL_APPOINTMENTs['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
+    $SPECIAL_APPOINTMENTs['DESCRIPTION'] = $_POST['DESCRIPTION'];
     $PK_SPECIAL_APPOINTMENT = $_POST['PK_SPECIAL_APPOINTMENT'];
 
-    $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
-    $SPECIAL_APPOINTMENT_DATA['EDITED_BY']    = $_SESSION['PK_USER'];
-    $SPECIAL_APPOINTMENT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    $SPECIAL_APPOINTMENTs['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS'];
+    $SPECIAL_APPOINTMENTs['EDITED_BY']    = $_SESSION['PK_USER'];
+    $SPECIAL_APPOINTMENTs['EDITED_ON'] = date("Y-m-d H:i");
 
-    $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
-    db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
+    $SPECIAL_APPOINTMENTs['DATE'] = date('Y-m-d', strtotime($_POST['DATE']));
+    db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENTs, 'update', " PK_SPECIAL_APPOINTMENT =  '$PK_SPECIAL_APPOINTMENT'");
 
     header("location:all_schedules.php?date=" . date('m/d/Y', strtotime($_POST['DATE'])));
 }
@@ -416,6 +416,60 @@ $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_
 $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
 $API_KEY                = $payment_gateway_data->fields['API_KEY'];
 $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+
+
+// Get all filter values from the form
+$selected_date = !empty($_GET['date']) ? date('Y-m-d', strtotime($_GET['date'])) : date('Y-m-d');
+$selected_service_providers = isset($_GET['SERVICE_PROVIDER_ID']) ? $_GET['SERVICE_PROVIDER_ID'] : [];
+$selected_status = isset($_GET['STATUS_CODE']) ? $_GET['STATUS_CODE'] : '';
+$selected_appointment_type = isset($_GET['APPOINTMENT_TYPE']) ? $_GET['APPOINTMENT_TYPE'] : '';
+$selected_view = isset($_GET['view']) ? $_GET['view'] : 'day';
+
+// Debug: Check what parameters are being received
+// error_log("DEBUG: date: $selected_date");
+// error_log("DEBUG: service_providers: " . print_r($selected_service_providers, true));
+// error_log("DEBUG: status: $selected_status");
+// error_log("DEBUG: appointment_type: $selected_appointment_type");
+// error_log("DEBUG: view: $selected_view");
+
+// Build WHERE conditions based on filters
+$where_conditions = [];
+
+// Date filter - fixed to use the correct column name
+$where_conditions[] = "DATE(DOA_APPOINTMENT_MASTER.DATE) = '" . $selected_date . "'";
+
+// Service Provider filter
+if (!empty($selected_service_providers) && is_array($selected_service_providers)) {
+    // Filter out any empty values
+    $selected_service_providers = array_filter($selected_service_providers);
+    if (!empty($selected_service_providers)) {
+        $service_provider_ids = implode(',', array_map('intval', $selected_service_providers));
+        $where_conditions[] = "SERVICE_PROVIDER.PK_USER IN ($service_provider_ids)";
+    }
+}
+
+// Status filter
+if (!empty($selected_status)) {
+    $where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = '$selected_status'";
+} else {
+    // Default to showing active statuses if none selected
+    $where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS IN (1, 2, 3)";
+}
+
+// Appointment Type filter
+if (!empty($selected_appointment_type)) {
+    $where_conditions[] = "DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$selected_appointment_type'";
+}
+
+// Location filter (always applies)
+$where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)";
+$where_conditions[] = "(CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)";
+
+// Combine all WHERE conditions
+$where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
+
+
 ?>
 
 <!DOCTYPE html>
@@ -898,140 +952,397 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
         <div class="calendar-header">
-            <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
-            <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
-            <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+            <!-- Today Button -->
+            <button class="chip m-r-15" id="todayBtn">Today</button>
 
-            <form id="search_form">
-                <input type="hidden" id="IS_SELECTED" value="0">
-                <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
+            <!-- Previous Button -->
+            <button class="chip chip-icon" id="prevBtn">
+                <i class="fa fa-chevron-left" aria-hidden="true"></i>
+            </button>
 
-                <div class="chip m-r-15" style="height: 37px;">
-                    <div class=" staff-avatars">
-                        <div class="staff-avatar a-ce">CE</div>
-                        <div class="staff-avatar a-rc">RC</div>
-                        <div class="staff-avatar a-mc">MC</div>
-                        <div class="staff-avatar a-pe">PE</div>
-                        <div class="staff-avatar a-pe">PE</div>
-                        <div class="staff-avatar a-pe">PE</div>
-                        <div class="staff-avatar a-more">+2</div>
-                    </div>
+            <!-- Next Button -->
+            <button class="chip chip-icon m-r-20" id="nextBtn">
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </button>
 
-                    <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID" onchange="$('#search_form').submit();" style="border:none;" multiple>
-                        <?php
-                        $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
-                        while (!$row->EOF) { ?>
-                            <option value="<?= $row->fields['PK_USER'] ?>" <?= (!empty($service_providers) && in_array($row->fields['PK_USER'], explode(',', $service_providers))) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
-                        <?php $row->MoveNext();
-                        } ?>
-                    </select>
+            <!-- Date Picker -->
+            <input type="text" id="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar"
+                placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>"
+                style="min-width: 240px;">
+
+            <!-- Service Provider Filter -->
+            <div class="chip m-r-15" style="height: 37px;">
+                <div class="staff-avatars">
+                    <div class="staff-avatar a-ce">CE</div>
+                    <div class="staff-avatar a-rc">RC</div>
+                    <div class="staff-avatar a-mc">MC</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-pe">PE</div>
+                    <div class="staff-avatar a-more">+2</div>
                 </div>
 
-                <span class="staff-avatar-me a-pe m-r-15">RG</span>
-
-                <select class="chip m-r-15" name="STATUS_CODE" id="STATUS_CODE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 150px;">
-                    <option value="">Select Status</option>
+                <select class="SERVICE_PROVIDER_ID multi_sumo_select" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID"
+                    multiple style="border:none;">
                     <?php
-                    $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
-                    while (!$row->EOF) { ?>
-                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>"><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                    $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.DISPLAY_ORDER FROM DOA_USERS INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                    while (!$row->EOF) {
+                        $selected = (isset($_GET['SERVICE_PROVIDER_ID']) && is_array($_GET['SERVICE_PROVIDER_ID']) && in_array($row->fields['PK_USER'], $_GET['SERVICE_PROVIDER_ID'])) ? "selected" : "";
+                    ?>
+                        <option value="<?= $row->fields['PK_USER'] ?>" <?= $selected ?>>
+                            <?= $row->fields['NAME'] ?>
+                        </option>
                     <?php $row->MoveNext();
                     } ?>
                 </select>
-
-                <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
-                    <option value="">Select Appointment Type</option>
-                    <option value="NORMAL" <?php if ($appointment_type == "NORMAL") {
-                                                echo "selected";
-                                            } ?>>Appointment</option>
-                    <option value="GROUP" <?php if ($appointment_type == "GROUP") {
-                                                echo "selected";
-                                            } ?>>Group Class</option>
-                    <option value="TO-DO" <?php if ($appointment_type == "TO-DO") {
-                                                echo "selected";
-                                            } ?>>To Dos</option>
-                    <option value="EVENT" <?php if ($appointment_type == "EVENT") {
-                                                echo "selected";
-                                            } ?>>Event</option>
-                </select>
-            </form>
-
-            <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
-                <button class="view-btn active" data-view="day" onclick="changeView('agendaDay')">Day</button>
-                <button class="view-btn" data-view="week" onclick="changeView('agendaWeek')">Week</button>
-                <button class="view-btn" data-view="month" onclick="changeView('month')">Month</button>
             </div>
 
+            <!-- Your Avatar -->
+            <span class="staff-avatar-me a-pe m-r-15">RG</span>
+
+            <!-- Status Filter -->
+            <select class="chip m-r-15" id="STATUS_CODE" style="height: 37px; min-width: 150px;">
+                <option value="">Select Status</option>
+                <?php
+                $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
+                while (!$row->EOF) {
+                    $selected = (isset($_GET['STATUS_CODE']) && $_GET['STATUS_CODE'] == $row->fields['PK_APPOINTMENT_STATUS']) ? "selected" : "";
+                ?>
+                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= $selected ?>>
+                        <?= $row->fields['APPOINTMENT_STATUS'] ?>
+                    </option>
+                <?php $row->MoveNext();
+                } ?>
+            </select>
+
+            <!-- Appointment Type Filter -->
+            <select class="chip m-r-15" id="APPOINTMENT_TYPE" style="height: 37px; min-width: 230px;">
+                <option value="">Select Appointment Type</option>
+                <option value="NORMAL" <?= (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] == "NORMAL") ? "selected" : "" ?>>Appointment</option>
+                <option value="GROUP" <?= (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] == "GROUP") ? "selected" : "" ?>>Group Class</option>
+                <option value="AD-HOC" <?= (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] == "AD-HOC") ? "selected" : "" ?>>Ad-Hoc</option>
+                <option value="EVENT" <?= (isset($_GET['APPOINTMENT_TYPE']) && $_GET['APPOINTMENT_TYPE'] == "EVENT") ? "selected" : "" ?>>Event</option>
+            </select>
+
+            <!-- View Toggle -->
+            <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
+                <button class="view-btn active" data-view="day">Day</button>
+                <button class="view-btn" data-view="week">Week</button>
+                <button class="view-btn" data-view="month">Month</button>
+            </div>
+
+            <!-- Calendar/List View Toggle -->
             <div class="view-toggle m-r-15" style="height: 37px;">
-                <button class="view-btn-icon active">
+                <button class="view-btn-icon" onclick="window.location.href='calendar.php'">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
                 </button>
-                <button class="view-btn-icon" onclick="window.location.href='calendar_list_view.php'">
+                <button class="view-btn-icon active">
                     <i class="fa fa-list" aria-hidden="true"></i>
                 </button>
             </div>
 
+            <!-- New Appointment Button -->
             <button class="btn-new" id="openDrawer">＋ New Appointment</button>
         </div>
 
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
-                <div class="row">
-                    <div id="appointment_list_half" class="col-12">
-                        <div class="card" style="border-radius: 15px;">
+        <div class="tablearea pt-4">
+            <div class="container-fluid">
+                <div class="table-responsive schedule-wrapper">
+                    <table class="table align-middle schedule-table mb-0">
+                        <thead>
+                            <tr>
+                                <th class="sticky-col date-col border-bottom"></th>
+                                <th>Title</th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Time</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Status</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Service Provider</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Description</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
+                                <th width="60px"></th>
+                            </tr>
+                        </thead>
 
-                            <div class="card-body row">
-                                <div class="col-12" id='calendar-container'>
-                                    <div id='calendar'></div>
-                                </div>
+                        <tbody>
+                            <?php
+                            // Get filter values from the form
+                            $selected_date = !empty($_GET['date']) ? date('Y-m-d', strtotime($_GET['date'])) : date('Y-m-d');
+                            $selected_service_providers = isset($_GET['SERVICE_PROVIDER_ID']) ? $_GET['SERVICE_PROVIDER_ID'] : [];
+                            $selected_status = isset($_GET['STATUS_CODE']) ? $_GET['STATUS_CODE'] : '';
+                            $selected_appointment_type = isset($_GET['APPOINTMENT_TYPE']) ? $_GET['APPOINTMENT_TYPE'] : '';
 
-                                <div class="col-2" id='external-events' style="display: none;">
-                                    <a href="javascript:;" onclick="closeCopyPasteDiv()" style="float: right; font-size: 25px;">&times;</a>
-                                    <h5>Copy OR Move Events</h5>
-                                    <?php if (in_array('Calendar Move/Copy', $PERMISSION_ARRAY) || in_array('Appointments Move/Copy', $PERMISSION_ARRAY) || in_array('To-Do Move/Copy', $PERMISSION_ARRAY)) { ?>
-                                        <div class="radio-buttons" style="margin-bottom: 15px;">
-                                            <input type='radio' name="copy_move" id='drop-copy' checked />
-                                            <label for='drop-copy'><i class="fa fa-copy"></i> Copy</label>
+                            // Build WHERE conditions based on filters
+                            $where_conditions = [];
 
-                                            <input type='radio' name="copy_move" id='drop-remove' />
-                                            <label for='drop-remove'><i class="fa fa-cut"></i> Move</label>
-                                        </div>
-                                    <?php } ?>
-                                </div>
-                            </div>
+                            // Date filter
+                            $where_conditions[] = "DOA_APPOINTMENT_MASTER.DATE = '" . $selected_date . "'";
 
-                        </div>
-                    </div>
+                            // Service Provider filter
+                            if (!empty($selected_service_providers) && is_array($selected_service_providers)) {
+                                $service_provider_ids = implode(',', array_map('intval', $selected_service_providers));
+                                $where_conditions[] = "SERVICE_PROVIDER.PK_USER IN ($service_provider_ids)";
+                            }
 
-                    <?php if (in_array('Calendar Edit', $PERMISSION_ARRAY)) { ?>
-                        <div id="edit_appointment_half" class="col-6" style="display: none;">
-                            <div class="card">
-                                <div class="card-body">
-                                    <a href="javascript:;" onclick="closeEditAppointment()" style="float: right; font-size: 25px;">&times;</a>
-                                    <div class="card-body" id="appointment_details_div">
+                            // Status filter
+                            if (!empty($selected_status)) {
+                                $where_conditions[] = "DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS = '$selected_status'";
+                            } else {
+                                // Default to showing active statuses if none selected
+                                $where_conditions[] = "DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (1, 2, 3)";
+                            }
 
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php } ?>
+                            // Appointment Type filter
+                            if (!empty($selected_appointment_type)) {
+                                $where_conditions[] = "DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$selected_appointment_type'";
+                            }
 
-                    <div id="myModal" class="modal">
-                        <!-- Modal content -->
-                        <div class="modal-content" style="margin-top:10%; width: 20%;">
-                            <span class="close" style="margin-left: 96%;">&times;</span>
-                            <div class="card" id="payment_confirmation_form_div">
-                                <div class="card-body" style="text-align: center">
-                                    <a href="create_appointment.php">Create Appointment</a><br><br>
-                                    <!--<a href="event.php">Create Event</a>-->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            // Location filter (always applies)
+                            $where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)";
+                            $where_conditions[] = "(CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)";
 
+                            // Combine all WHERE conditions
+                            $where_clause = "WHERE " . implode(" AND ", $where_conditions);
+
+                            $query = "SELECT
+                                DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
+                                DOA_APPOINTMENT_MASTER.STANDING_ID,
+                                DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
+                                DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE,
+                                DOA_APPOINTMENT_MASTER.GROUP_NAME,
+                                DOA_APPOINTMENT_MASTER.SERIAL_NUMBER,
+                                DOA_APPOINTMENT_MASTER.DATE AS DATE,
+                                DATE(DATE) AS APPOINTMENT_DATE,
+                                DAYNAME(DATE) AS DAY_NAME,      
+                                DAY(DATE) AS DAY_NUMBER,        
+                                DOA_APPOINTMENT_MASTER.START_TIME,
+                                DOA_APPOINTMENT_MASTER.END_TIME,
+                                DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                                DOA_APPOINTMENT_MASTER.IS_PAID,
+                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                DOA_SERVICE_MASTER.SERVICE_NAME,
+                                DOA_SERVICE_CODE.SERVICE_CODE,
+                                DOA_APPOINTMENT_MASTER.IS_PAID,
+                                DOA_APPOINTMENT_MASTER.IS_CHARGED,
+                                DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE,
+                                DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS,
+                                DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                                DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                                DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                                DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                                DOA_SCHEDULING_CODE.COLOR_CODE,
+                                GROUP_CONCAT(DISTINCT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME)) SEPARATOR ', ') AS SERVICE_PROVIDER_NAME,
+                                GROUP_CONCAT(DISTINCT(CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME)) SEPARATOR ', ') AS CUSTOMER_NAME
+                            FROM
+                                DOA_APPOINTMENT_MASTER
+                            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
+                            LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
+                            
+                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
+                            LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                            LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
+                                    
+                            LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
+                            LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+                            LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
+                            LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                            LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
+                            $where_clause
+                            GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
+                            ORDER BY DOA_APPOINTMENT_MASTER.START_TIME ASC";
+
+                            // Debug: Uncomment to see the query
+                            // echo "<!-- Query: " . htmlspecialchars($query) . " -->";
+
+                            $appointments = $db_account->Execute($query);
+
+                            $current_date = '';
+
+                            // First, count appointments per date
+                            $temp_appointments = $db_account->Execute($query);
+                            $date_counts = [];
+                            while (!$temp_appointments->EOF) {
+                                $appointment_date = $temp_appointments->fields['DATE'];
+                                if (!isset($date_counts[$appointment_date])) {
+                                    $date_counts[$appointment_date] = 0;
+                                }
+                                $date_counts[$appointment_date]++;
+                                $temp_appointments->MoveNext();
+                            }
+
+                            // Reset the result set
+                            $appointments = $db_account->Execute($query);
+
+                            while (!$appointments->EOF) {
+                                $appointment_date = $appointments->fields['DATE'];
+                                $day_name = $appointments->fields['DAY_NAME'];
+                                $day_number = $appointments->fields['DAY_NUMBER'];
+                                $appointment_id = $appointments->fields['PK_APPOINTMENT_MASTER'];
+                                $title = $appointments->fields['ENROLLMENT_NAME'] ? $appointments->fields['ENROLLMENT_NAME'] : $appointments->fields['SERVICE_NAME'];
+                                $start_time = date('gA', strtotime($appointments->fields['START_TIME']));
+                                $end_time = date('gA', strtotime($appointments->fields['END_TIME']));
+                                $status = $appointments->fields['APPOINTMENT_STATUS'];
+                                $service_provider = $appointments->fields['SERVICE_PROVIDER_NAME'];
+                                $service_name = $appointments->fields['SERVICE_NAME'];
+                                $pk_appointment_status = $appointments->fields['PK_APPOINTMENT_STATUS'];
+
+                                // Get service provider initials
+                                $initials = '';
+                                if ($service_provider) {
+                                    $names = explode(', ', $service_provider);
+                                    if (count($names) > 0) {
+                                        $first_provider = $names[0];
+                                        $name_parts = explode(' ', $first_provider);
+                                        $initials = substr($name_parts[0], 0, 1);
+                                        if (count($name_parts) > 1) {
+                                            $initials .= substr($name_parts[1], 0, 1);
+                                        }
+                                    }
+                                }
+
+                                // Determine badge type based on scheduling code or appointment type
+                                $badge_class = '';
+                                $badge_text = '';
+                                $appointment_type = $appointments->fields['APPOINTMENT_TYPE'];
+
+                                if ($appointment_type == 'GROUP') {
+                                    $badge_class = 'grp-tag';
+                                    $badge_text = 'GRP';
+                                } elseif ($appointment_type == 'NORMAL') {
+                                    $badge_class = 'pri-tag';
+                                    $badge_text = 'PRI';
+                                } elseif ($appointment_type == 'AD-HOC') {
+                                    $badge_class = 'ext-tag';
+                                    $badge_text = 'EXT';
+                                }
+
+                                // Status badge styling
+                                $status_badge = '';
+                                if ($pk_appointment_status == 1) { // Scheduled
+                                    $status_badge = '<span class="status not-started">
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" viewBox="0 0 512 512" width="12px" height="12px" fill="#727986">
+                                    <path d="m256 2c-140.1 0-254 113.9-254 254s113.9 254 254 254 254-113.9 254-254-113.9-254-254-254zm0 457.2c-112 0-203.2-91.2-203.2-203.2s91.2-203.2 203.2-203.2 203.2 91.2 203.2 203.2-91.2 203.2-203.2 203.2z"></path>
+                                    <path d="m256 129c-70 0-127 57-127 127s57 127 127 127 127-57 127-127-57-127-127-127z"></path>
+                                </svg>
+                                ' . $status . '
+                            </span>';
+                                } elseif ($pk_appointment_status == 2) { // Completed
+                                    $status_badge = '<span class="status completed">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="12px" height="12px" fill="#39b54a">
+                                    <path d="M256 2C114.5 2 2 114.5 2 256s112.5 254 254 254 254-112.5 254-254S397.5 2 256 2zm0 457.2c-112 0-203.2-91.2-203.2-203.2S144 52.8 256 52.8 459.2 144 459.2 256 368 459.2 256 459.2z"/>
+                                    <path d="M378.6 181.6L241.3 318.9l-75.9-75.9c-5.6-5.6-14.7-5.6-20.3 0s-5.6 14.7 0 20.3l86.1 86.1c2.8 2.8 6.5 4.2 10.1 4.2s7.3-1.4 10.1-4.2l147.3-147.3c5.6-5.6 5.6-14.7 0-20.3-5.6-5.6-14.7-5.6-20.3 0z"/>
+                                </svg>
+                                ' . $status . '
+                            </span>';
+                                } elseif ($pk_appointment_status == 3) { // In Progress
+                                    $status_badge = '<span class="status in-progress">
+                                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" viewBox="0 0 512 512" width="12px" height="12px" fill="#fbb02a">
+                                    <path d="m256 2c-140.1 0-254 113.9-254 254s113.9 254 254 254 254-113.9 254-254-113.9-254-254-254zm0 457.2c-112 0-203.2-91.2-203.2-203.2s91.2-203.2 203.2-203.2 203.2 91.2 203.2 203.2-91.2 203.2-203.2 203.2z"></path>
+                                    <path d="m256 129c-70 0-127 57-127 127s57 127 127 127 127-57 127-127-57-127-127-127z"></path>
+                                </svg>
+                                ' . $status . '
+                            </span>';
+                                }
+
+                                // Description with badge
+                                $description = $service_name;
+                                if ($badge_text) {
+                                    $description .= ' <span class="badge border ms-auto ' . $badge_class . '">' . $badge_text . '</span>';
+                                }
+
+                                // Title display
+                                $title_display = '';
+                                if ($appointment_type == 'NORMAL') {
+                                    $title_display = 'Private Session';
+                                } elseif ($appointment_type == 'AD-HOC') {
+                                    $title_display = 'Ad-Hoc';
+                                } elseif ($appointment_type == 'GROUP') {
+                                    $title_display = 'Group Class';
+                                } else {
+                                    $title_display = $appointments->fields['ENROLLMENT_NAME'] ?: $service_name;
+                                }
+                            ?>
+                                <tr>
+                                    <?php if ($current_date != $appointment_date): ?>
+                                        <?php
+                                        $current_date = $appointment_date;
+                                        $rowspan_count = isset($date_counts[$appointment_date]) ? $date_counts[$appointment_date] : 1;
+                                        ?>
+                                        <td class="sticky-col date-col" rowspan="<?php echo $rowspan_count; ?>" style="vertical-align: top;">
+                                            <div class="date-box">
+                                                <small><?php echo substr($day_name, 0, 3); ?></small>
+                                                <strong><?php echo $day_number; ?></strong>
+                                            </div>
+                                        </td>
+                                    <?php endif; ?>
+
+                                    <td style="vertical-align: middle;"><?php echo $title_display; ?></td>
+                                    <td style="vertical-align: middle;"><?php echo $start_time . '–' . $end_time; ?></td>
+                                    <td style="vertical-align: middle;"><?php echo $status_badge; ?></td>
+                                    <td style="vertical-align: middle;">
+                                        <?php if ($initials): ?>
+                                            <span class="avatarname"><?php echo $initials; ?></span>
+                                        <?php endif; ?>
+                                        <?php echo htmlspecialchars($service_provider); ?>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <?php echo $description; ?>
+                                    </td>
+                                    <td class="text-center" style="vertical-align: middle;">
+                                        <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?php echo $appointment_id; ?>)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
+                                                <circle cx="256" cy="256" r="48" />
+                                                <circle cx="256" cy="416" r="48" />
+                                                <circle cx="256" cy="96" r="48" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php
+                                $appointments->MoveNext();
+                            }
+
+                            if ($appointments->RecordCount() == 0): ?>
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="text-muted">No appointments found for the selected date/filters.</div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
         </div>
     </div>
@@ -2327,7 +2638,180 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </script>
 
 
+    <script>
+        // Calendar navigation and filter handling
+        $(document).ready(function() {
+            // Initialize datepicker
+            $('.datepicker-normal-calendar').datepicker({
+                dateFormat: "DD, M d, yy",
+                onSelect: function(dateText, inst) {
+                    // Convert the selected date to mm/dd/yyyy format
+                    var dateObj = $(this).datepicker('getDate');
+                    var formattedDate = $.datepicker.formatDate('mm/dd/yy', dateObj);
+                    updateFilters({
+                        date: formattedDate
+                    });
+                }
+            });
 
+            // Today Button
+            $('#todayBtn').on('click', function() {
+                var today = new Date();
+                var formattedDate = $.datepicker.formatDate('mm/dd/yy', today);
+                updateFilters({
+                    date: formattedDate
+                });
+            });
+
+            // Previous Button
+            $('#prevBtn').on('click', function() {
+                navigateDate(-1);
+            });
+
+            // Next Button
+            $('#nextBtn').on('click', function() {
+                navigateDate(1);
+            });
+
+            // Handle status filter change
+            $('#STATUS_CODE').on('change', function() {
+                updateFilters({
+                    STATUS_CODE: $(this).val()
+                });
+            });
+
+            // Handle appointment type filter change
+            $('#APPOINTMENT_TYPE').on('change', function() {
+                updateFilters({
+                    APPOINTMENT_TYPE: $(this).val()
+                });
+            });
+
+            // Handle service provider changes
+            let serviceProviderTimeout;
+            $('#SERVICE_PROVIDER_ID').on('change', function() {
+                clearTimeout(serviceProviderTimeout);
+                serviceProviderTimeout = setTimeout(function() {
+                    var selectedProviders = $('#SERVICE_PROVIDER_ID').val();
+                    updateFilters({
+                        SERVICE_PROVIDER_ID: selectedProviders
+                    });
+                }, 300);
+            });
+
+            // View toggle buttons
+            $('.view-btn').on('click', function() {
+                var view = $(this).data('view');
+                updateFilters({
+                    view: view
+                });
+
+                // Update active state
+                $('.view-btn').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Set active view based on URL
+            var urlParams = new URLSearchParams(window.location.search);
+            var currentView = urlParams.get('view') || 'day';
+            $('.view-btn[data-view="' + currentView + '"]').addClass('active');
+
+            // Set initial date in datepicker if it exists in URL
+            if (urlParams.has('date')) {
+                var dateParam = urlParams.get('date');
+                var dateObj = new Date(dateParam);
+                var formattedDate = $.datepicker.formatDate('DD, M d, yy', dateObj);
+                $('#CHOOSE_DATE').val(formattedDate);
+            }
+
+            // Initialize SumoSelect
+            $('.multi_sumo_select').SumoSelect({
+                placeholder: 'All Staff',
+                selectAll: true,
+                okCancelInMulti: true,
+                triggerChangeCombined: true,
+                triggerChange: true
+            });
+        });
+
+        // Function to navigate to next/previous date
+        function navigateDate(days) {
+            var urlParams = new URLSearchParams(window.location.search);
+            var currentDate = urlParams.get('date');
+
+            // If no date in URL, use today
+            if (!currentDate) {
+                currentDate = $.datepicker.formatDate('mm/dd/yy', new Date());
+            }
+
+            // Parse current date
+            var dateParts = currentDate.split('/');
+            var dateObj = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+
+            // Add/subtract days
+            dateObj.setDate(dateObj.getDate() + days);
+
+            // Format new date
+            var newDate = $.datepicker.formatDate('mm/dd/yy', dateObj);
+            var displayDate = $.datepicker.formatDate('DD, M d, yy', dateObj);
+
+            // Update datepicker display
+            $('#CHOOSE_DATE').val(displayDate);
+
+            // Update URL
+            updateFilters({
+                date: newDate
+            });
+        }
+
+        // Function to update URL with new filter parameters
+        function updateFilters(newParams) {
+            // Get current URL parameters
+            var urlParams = new URLSearchParams(window.location.search);
+
+            // Update with new parameters
+            for (var key in newParams) {
+                if (newParams[key] !== null && newParams[key] !== undefined) {
+                    if (Array.isArray(newParams[key])) {
+                        // Remove existing values for this key
+                        urlParams.delete(key);
+                        // Add each array value
+                        newParams[key].forEach(function(value) {
+                            if (value) { // Only add non-empty values
+                                urlParams.append(key + '[]', value);
+                            }
+                        });
+                    } else if (newParams[key] === '') {
+                        // Remove parameter if value is empty
+                        urlParams.delete(key);
+                    } else {
+                        // Set single value
+                        urlParams.set(key, newParams[key]);
+                    }
+                }
+            }
+
+            // Build new URL
+            var newUrl = 'calendar_list_view.php';
+            if (urlParams.toString()) {
+                newUrl += '?' + urlParams.toString();
+            }
+
+            // Reload page with new filters
+            window.location.href = newUrl;
+        }
+
+        // Open side drawer for new appointment
+        $(document).ready(function() {
+            $('#openDrawer').click(function() {
+                $('#sideDrawer, .overlay').addClass('active');
+            });
+
+            $('#closeDrawer, .overlay').click(function() {
+                $('#sideDrawer, .overlay').removeClass('active');
+            });
+        });
+    </script>
 
 </body>
 

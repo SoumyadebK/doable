@@ -959,3 +959,78 @@ select.form-control:disabled {
   background-color: rgba(0, 0, 0, 5%);
   color: rgba(0, 0, 0, 25%);
 }
+
+/* Schedule wrapper */
+.schedule-wrapper {
+  max-height: auto;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+/* Sticky first column */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: #fff !important;
+  z-index: 2;
+  border-bottom: 0;
+  border-right-width: 1px;
+  border-color: #dee2e6;
+  vertical-align: top !important;
+}
+
+.date-col {
+  width: 80px;
+  vertical-align: top !important;
+}
+
+.date-box small {
+  color: #6c757d;
+  display: block;
+}
+
+.date-box strong {
+  font-size: 20px;
+}
+
+/* Avatar */
+.avatarname {
+  width: 28px;
+  height: 28px;
+  background: #fdebd0;
+  color: #816c3b;
+  font-weight: 600;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+/* Status pills */
+.status {
+  padding: 4px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status.in-progress {
+  background: #fffaea;
+  color: #495057;
+}
+
+.status.not-started {
+  background: #f2f6f9;
+  color: #495057;
+}
+
+/* Table tweaks */
+.schedule-table th,
+.schedule-table td {
+  white-space: nowrap;
+  border-color: #dee2e6;
+  color: #525866;
+}

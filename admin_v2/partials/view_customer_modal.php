@@ -307,7 +307,7 @@ while (!$row->EOF) {
     $has_appointments = $appointments->RecordCount() > 0;
     ?>
     <div class="tab-pane fade" id="Appointment1" role="tabpanel">
-        <div class="booking-lesson p-3">
+        <div class="appointment_area p-3">
             <?php if ($has_appointments): ?>
                 <?php while (!$appointments->EOF):
                     $appointment = $appointments->fields;
@@ -411,7 +411,7 @@ while (!$row->EOF) {
     }
     ?>
     <div class="tab-pane fade" id="Family" role="tabpanel">
-        <div class="booking-lesson p-3">
+        <div class="family_area p-3">
             <?php
             $family_member_details = $db_account->Execute("SELECT DOA_CUSTOMER_DETAILS.*, DOA_RELATIONSHIP.RELATIONSHIP FROM DOA_CUSTOMER_DETAILS LEFT JOIN $master_database.DOA_RELATIONSHIP AS DOA_RELATIONSHIP ON DOA_CUSTOMER_DETAILS.PK_RELATIONSHIP = DOA_RELATIONSHIP.PK_RELATIONSHIP WHERE DOA_CUSTOMER_DETAILS.PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND DOA_CUSTOMER_DETAILS.IS_PRIMARY = 0");
             if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
@@ -506,18 +506,19 @@ while (!$row->EOF) {
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function editDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
-            $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-            $('#old_due_date').val(DUE_DATE);
-            $('#due_date').val(DUE_DATE);
-            $('#edit_type').val(TYPE);
-            $('#billing_due_date_model').modal('show');
-        }
-    </script>
+<script>
+    function editDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
+        $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#old_due_date').val(DUE_DATE);
+        $('#due_date').val(DUE_DATE);
+        $('#edit_type').val(TYPE);
+        $('#billing_due_date_model').modal('show');
+    }
+</script>
 
 
 
 
-    <!-- End Customer Details -->
+<!-- End Customer Details -->
