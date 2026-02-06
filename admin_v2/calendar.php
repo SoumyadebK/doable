@@ -1046,10 +1046,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
             <!-- Content will be loaded here via AJAX -->
         </div>
-        <div class="modal-footer flex-nowrap p-2 border-top">
+        <!-- <div class="modal-footer flex-nowrap p-2 border-top">
             <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
             <button type="button" class="btn-primary w-100 m-1">Save</button>
-        </div>
+        </div> -->
     </div>
 
     <!-- Customer Details -->
