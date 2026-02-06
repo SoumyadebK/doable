@@ -346,7 +346,7 @@ if (!empty($_GET['id'])) {
                                                                     <?php if ($AMI_ENABLE == 1) { ?>
                                                                         <div class="col-md-3">
                                                                             <div class="form-group">
-                                                                                <label class="form-label">Arthur Murray ID</label>
+                                                                                <label class="form-label">Employee ID</label>
                                                                                 <div class="col-md-12">
                                                                                     <input type="text" id="ARTHUR_MURRAY_ID" name="ARTHUR_MURRAY_ID" class="form-control" placeholder="Arthur Murray ID" value="<?= $ARTHUR_MURRAY_ID ?>">
                                                                                 </div>
