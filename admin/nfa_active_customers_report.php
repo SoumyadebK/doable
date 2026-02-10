@@ -416,7 +416,7 @@ if (isset($_GET['view']) || isset($_GET['generate_excel'])) {
                                                                         JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                                                                         JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER                                                                            
                                                                         WHERE 
-                                                                            DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'C') AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                                            DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                                             AND DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_CODE.SERVICE_CODE LIKE '%PRI%'
                                                                             AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0
                                                                             AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5
@@ -437,41 +437,41 @@ if (isset($_GET['view']) || isset($_GET['generate_excel'])) {
                                                     $last_data = $db_account->Execute("SELECT DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_APPOINTMENT_MASTER LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER WHERE PK_APPOINTMENT_STATUS = 2 AND PK_ENROLLMENT_SERVICE = " . $row->fields['PK_ENROLLMENT_SERVICE'] . " ORDER BY DATE DESC, START_TIME DESC LIMIT 1");
 
                                                     $NUMBER_OF_SESSION = getSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE']);
-                                                    if ($row->fields['NUMBER_OF_SESSION'] > $NUMBER_OF_SESSION) {
+                                                    /* if ($row->fields['NUMBER_OF_SESSION'] > $NUMBER_OF_SESSION) { */
                                             ?>
-                                                        <tr>
-                                                            <td style="text-align: center;"><a href="customer.php?id=<?= $row->fields['PK_USER'] ?>&master_id=<?= $row->fields['PK_USER_MASTER'] ?>&tab=profile" target="_blank" style="color: blue; font-weight: bold"><?= $row->fields['CUSTOMER_NAME'] ?></a></td>
-                                                            <td style="text-align: center;"><?= $row->fields['ENROLLMENT_NAME'] . " / " . $row->fields['ENROLLMENT_ID'] ?></td>
-                                                            <td style="text-align: center;"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
-                                                            <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] ?></td>
-                                                            <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION ?></td>
-                                                            <td style="text-align: center;"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : ''  ?></td>
-                                                            <td style="text-align: center;"><?= isset($last_data->fields['DATE']) ? date('m-d-Y', strtotime($last_data->fields['DATE'])) : '' ?></td>
-                                                            <td style="text-align: center;"><?= isset($last_data->fields['SERVICE_PROVIDER']) ? $last_data->fields['SERVICE_PROVIDER'] : '' ?></td>
-                                                            <td style="text-align: center;">
-                                                                <?php if ($row->fields['STATUS'] == 'A') { ?>
-                                                                    <a href="javascript:;" onclick="cancelEnrollment(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>)" title="Cancel Enrollment">
-                                                                        <i class="fa-solid fa-ban"></i>
-                                                                    </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <a href="?inactive=<?= $row->fields['PK_USER'] ?>&enrollment=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>"
-                                                                        onclick="return confirm('Are you sure you want to mark this customer as inactive?')"
-                                                                        title="Mark Customer Inactive">
-                                                                        <i class="fa-solid fa-person-arrow-down-to-line"></i>
-                                                                    </a>
-                                                                <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
-                                                                    <a style="color: red;" title="Cancelled before">
-                                                                        <i class="fa-solid fa-x"></i>
-                                                                    </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                    <a href="?inactive=<?= $row->fields['PK_USER'] ?>&enrollment=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>"
-                                                                        onclick="return confirm('This enrollment is cancelled. Are you sure you want to mark this customer as inactive?')"
-                                                                        title="Mark Customer Inactive">
-                                                                        <i class="fa-solid fa-person-arrow-down-to-line"></i>
-                                                                    </a>
-                                                                <?php } ?>
-                                                            </td>
-                                                        </tr>
+                                                    <tr>
+                                                        <td style="text-align: center;"><a href="customer.php?id=<?= $row->fields['PK_USER'] ?>&master_id=<?= $row->fields['PK_USER_MASTER'] ?>&tab=profile" target="_blank" style="color: blue; font-weight: bold"><?= $row->fields['CUSTOMER_NAME'] ?></a></td>
+                                                        <td style="text-align: center;"><?= $row->fields['ENROLLMENT_NAME'] . " / " . $row->fields['ENROLLMENT_ID'] ?></td>
+                                                        <td style="text-align: center;"><?= date('m-d-Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
+                                                        <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] ?></td>
+                                                        <td style="text-align: center;"><?= $row->fields['NUMBER_OF_SESSION'] - $NUMBER_OF_SESSION ?></td>
+                                                        <td style="text-align: center;"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : ''  ?></td>
+                                                        <td style="text-align: center;"><?= isset($last_data->fields['DATE']) ? date('m-d-Y', strtotime($last_data->fields['DATE'])) : '' ?></td>
+                                                        <td style="text-align: center;"><?= isset($last_data->fields['SERVICE_PROVIDER']) ? $last_data->fields['SERVICE_PROVIDER'] : '' ?></td>
+                                                        <td style="text-align: center;">
+                                                            <?php if ($row->fields['STATUS'] == 'A') { ?>
+                                                                <a href="javascript:;" onclick="cancelEnrollment(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>)" title="Cancel Enrollment">
+                                                                    <i class="fa-solid fa-ban"></i>
+                                                                </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                <a href="?inactive=<?= $row->fields['PK_USER'] ?>&enrollment=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>"
+                                                                    onclick="return confirm('Are you sure you want to mark this customer as inactive?')"
+                                                                    title="Mark Customer Inactive">
+                                                                    <i class="fa-solid fa-person-arrow-down-to-line"></i>
+                                                                </a>
+                                                            <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
+                                                                <a style="color: red;" title="Cancelled before">
+                                                                    <i class="fa-solid fa-x"></i>
+                                                                </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                <a href="?inactive=<?= $row->fields['PK_USER'] ?>&enrollment=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>"
+                                                                    onclick="return confirm('This enrollment is cancelled. Are you sure you want to mark this customer as inactive?')"
+                                                                    title="Mark Customer Inactive">
+                                                                    <i class="fa-solid fa-person-arrow-down-to-line"></i>
+                                                                </a>
+                                                            <?php } ?>
+                                                        </td>
+                                                    </tr>
                                             <?php
-                                                    }
+
                                                 }
                                                 $row->MoveNext();
                                                 $i++;
