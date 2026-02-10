@@ -236,7 +236,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 </div>
                 <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                     <div class="navbar-nav">
-                        <a class="nav-link <?= (('calendar.php' === $current_address) ? 'active' : '') ?>" href="calendar.php">Calendar</a>
+                        <a class="nav-link <?= (('calendar.php' === $current_address || 'calendar_list_view.php' === $current_address) ? 'active' : '') ?>" href="calendar.php">Calendar</a>
                         <a class="nav-link <?= (('email.php' === $current_address) ? 'active' : '') ?>" href="../email/email.php?type=inbox">Messages</a>
                         <a class="nav-link <?= (('all_customers.php' === $current_address) ? 'active' : '') ?>" href="all_customers.php">Customers</a>
                         <a class="nav-link <?= (('payment_due_report.php' === $current_address) ? 'active' : '') ?>" href="payment_due_report.php">Billing</a>

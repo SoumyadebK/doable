@@ -172,4 +172,4 @@ if ($APPOINTMENT_TYPE == 'GROUP') {
     adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER);
 }
 
-header('Location: ' . $_POST['REDIRECT_URL']);
+header("location:" . $_SERVER['HTTP_REFERER']);
