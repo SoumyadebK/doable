@@ -820,6 +820,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     </div>
 
     <?php include 'partials/create_appointment_modal.php'; ?>
+    <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -1405,6 +1406,28 @@ if ($location_operational_hour->RecordCount() > 0) {
                 error: function(xhr, status, error) {
                     console.error("Error loading create_appointment_modal.php:", error);
                     $('#sideDrawer .drawer-body').html('<p>Error loading appointment creation form.</p>');
+                }
+            });
+        }
+
+        function loadCreateEnrollmentModal(PK_USER_MASTER) {
+            $('#sideDrawer4, .overlay4').addClass('active');
+            $.ajax({
+                url: "partials/create_enrollment_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER
+                },
+                success: function(result) {
+                    // Update the drawer content with create_enrollment_modal
+                    $('#sideDrawer4 .drawer-body').html(result);
+
+                    // Re-initialize any scripts if needed
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading create_enrollment_modal.php:", error);
+                    $('#sideDrawer4 .drawer-body').html('<p>Error loading enrollment creation form.</p>');
                 }
             });
         }
@@ -2045,6 +2068,32 @@ if ($location_operational_hour->RecordCount() > 0) {
 
             $('#closeDrawer3, .overlay3').click(function() {
                 $('#sideDrawer3, .overlay3').removeClass('active');
+            });
+
+            $('#openDrawer4').click(function() {
+                $('#sideDrawer4, .overlay4').addClass('active');
+            });
+
+            $('#closeDrawer4, .overlay4').click(function() {
+                $('#sideDrawer4, .overlay4').removeClass('active');
+            });
+
+            $('#openDrawer5').click(function() {
+                $('#sideDrawer5, .overlay5').addClass('active');
+            });
+
+            $('#closeDrawer5, .overlay5').click(function() {
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer6').click(function() {
+                $('#sideDrawer6, .overlay6').addClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#closeDrawer6, .overlay6').click(function() {
+                $('#sideDrawer6, .overlay6').removeClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
             });
         });
 

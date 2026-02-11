@@ -521,7 +521,10 @@ textarea.form-control {
 /* Overlay */
 .overlay,
 .overlay2,
-.overlay3 {
+.overlay3,
+.overlay4,
+.overlay5,
+.overlay6 {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -549,7 +552,10 @@ textarea.form-control {
 
 .overlay.active,
 .overlay2.active,
-.overlay3.active {
+.overlay3.active,
+.overlay4.active,
+.overlay5.active,
+.overlay6.active {
   display: block;
 }
 

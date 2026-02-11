@@ -232,7 +232,12 @@ while (!$row->EOF) {
                     <span>Paid : $<?php echo $TOTAL_AMOUNT_PAID; ?></span>
                 </div>
             </div>
-            <button type="button" class="btn-secondary w-100 m-1">Add Enrollment</button>
+            <button
+                type="button"
+                class="btn-secondary w-100 m-1"
+                onclick="openDrawer4(<?= $PK_USER_MASTER ?>)">
+                Add Enrollment
+            </button>
         </div>
         <div class="form-group p-3">
             <label class="mb-2">Internal Note</label>
@@ -392,7 +397,14 @@ while (!$row->EOF) {
                 </div>
             <?php endif; ?>
 
-            <button type="button" class="btn-secondary w-100 m-1" onclick="loadCreateAppointmentModal('<?php echo $PK_USER_MASTER; ?>')">Add Appointment</button>
+            <button
+                type="button"
+                class="btn-secondary w-100 m-1"
+                data-user="<?php echo $PK_USER_MASTER; ?>"
+                onclick="loadCreateAppointmentModal(this.dataset.user)">
+                Add Appointment
+            </button>
+
         </div>
     </div>
     <?php
@@ -515,6 +527,27 @@ while (!$row->EOF) {
         $('#due_date').val(DUE_DATE);
         $('#edit_type').val(TYPE);
         $('#billing_due_date_model').modal('show');
+    }
+</script>
+<script>
+    function openDrawer4(customerId) {
+        // Since the drawer content is already pre-loaded in calendar.php,
+        // we just need to show the drawer and set the customer ID
+
+        // Open the drawer
+        $('#sideDrawer4, .overlay4').addClass('active');
+
+        // If you need to pass the customer ID to the enrollment form
+        // You can set it in a hidden field or trigger a function
+        if (typeof setEnrollmentCustomerId === 'function') {
+            setEnrollmentCustomerId(customerId);
+        }
+
+        // Alternatively, directly set the value if the form is already loaded
+        setTimeout(function() {
+            $('#sideDrawer4 #PK_USER_MASTER').val(customerId);
+            $('#sideDrawer4 input[name="PK_USER_MASTER"]').val(customerId);
+        }, 100);
     }
 </script>
 
