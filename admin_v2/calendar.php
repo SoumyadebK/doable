@@ -823,9 +823,6 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     <?php require_once('../includes/footer.php'); ?>
 
-    <!--Payment Model-->
-    <?php include('includes/enrollment_payment.php'); ?>
-
     <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
@@ -2062,16 +2059,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                         .focus();
                 }
 
-            });
-
-            $('.savebtngroup').click(function() {
-                $(this).addClass("d-none");
-                $('.added-item').removeClass("d-none");
-                $('.newdatetime-format').addClass("d-none");
-            });
-
-            $('.adddaytime').click(function() {
-                $('.newdatetime-format').removeClass("d-none");
             });
         });
     </script>

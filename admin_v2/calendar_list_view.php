@@ -1302,16 +1302,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                 }
 
             });
-
-            $('.savebtngroup').click(function() {
-                $(this).addClass("d-none");
-                $('.added-item').removeClass("d-none");
-                $('.newdatetime-format').addClass("d-none");
-            });
-
-            $('.adddaytime').click(function() {
-                $('.newdatetime-format').removeClass("d-none");
-            });
         });
     </script>
 

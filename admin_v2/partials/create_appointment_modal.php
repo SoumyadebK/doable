@@ -191,8 +191,8 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" required>
-                                <input type="time" class="form-control">
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
+                                <!-- <input type="time" class="form-control"> -->
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
                                 <span>Show Availability</span>
@@ -257,7 +257,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Enter group name" required />
+                                <input type="text" name="GROUP_NAME" class="form-control" placeholder="Enter Group Name" required />
                             </div>
                         </div>
                     </div>
@@ -274,11 +274,10 @@ if ($service_master->RecordCount() == 0) {
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
-                            <div class="form-group serviceprovider">
-                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
-                                    <option value="">Select <?= $service_provider_title ?></option>
+                            <div class="form-group">
+                                <select class="multi_sumo_select" name="PK_USER[]" multiple required>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -300,16 +299,19 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select customerselect">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Group || GRP">Group || GRP</option>
-                                    <option value="Group || GRP 1">Group || GRP 1</option>
-                                    <option value="Group || GRP 2">Group || GRP 2</option>
+                                <select class="form-control" name="SERVICE_ID" onchange="selectThisService(this)" required>
+                                    <option value="">Select Service</option>
+                                    <?php
+                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?= $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>"><?= $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-3 align-items-center schedulecode d-none">
+                    <div class="row mb-3 align-items-center schedulecode">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
@@ -322,11 +324,8 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Code 1">Code 1</option>
-                                    <option value="Code 2">Code 2</option>
-                                    <option value="Code 3">Code 3</option>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="SCHEDULING_CODE" required>
+                                    <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
                         </div>
@@ -342,124 +341,74 @@ if ($service_master->RecordCount() == 0) {
                                 <label class="mb-0">Date & Time</label>
                             </div>
                         </div>
-                        <div class="col-8 col-md-8">
-                            <div class="datetime-area">
-                                <div class="datetime-item f12 bg-light p-2 border rounded-2 d-flex mb-2">
-                                    <div>
-                                        <p class="text-dark fw-semibold mb-0">Thu, Dec 4, 8 PM - 9 PM</p>
-                                        <span class="text-muted f10">Weekly on Thursday - Never ends</span>
-                                    </div>
-                                    <div class="d-flex gap-2 ms-auto align-items-start">
-                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
-                                                <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" href="#datetime1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
-                                                <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="datetime-item f12 bg-light p-2 border rounded-2 d-flex mb-2 added-item d-none">
-                                    <div>
-                                        <p class="text-dark fw-semibold mb-0">Mon, Dec 8, 8 PM - 9 PM</p>
-                                        <span class="text-muted f10">Weekly on Monday - ends on 3 Jan, 2026</span>
-                                    </div>
-                                    <div class="d-flex gap-2 ms-auto align-items-start">
-                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
-                                                <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" href="#datetime1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
-                                                <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button type="button" class="adddaytime btn-secondary w-100 f12 mb-2">Add Another Day & Time</button>
+                        <div class="col-8 col-md-8 custom-date-time">
+
+                            <div class="datetime-area mt-2 d-none">
+
                             </div>
-                            <div class="newdatetime-format d-none">
-                                <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                    <input type="date" class="form-control" style="min-width: 110px;">
-                                    <span class="f14">at</span>
-                                    <input type="time" class="form-control">
-                                </div>
-                                <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
-                                    <span>Show Availability</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
-                                        <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
-                                    </svg>
-                                </button>
-                                <div class="Availabilityarea mt-2" style="display: none;">
-                                    <span>08:00 AM - 09:00 AM</span>
-                                    <span>09:00 AM - 10:00 AM</span>
-                                    <span>10:00 AM - 11:00 AM</span>
-                                    <span>04:00 PM - 05:00 PM</span>
-                                    <span>05:00 PM - 06:00 PM</span>
-                                    <span>06:00 PM - 07:00 PM</span>
-                                </div>
-                                <div class="form-group my-2">
-                                    <select class="form-control form-select">
-                                        <option value="">-- Select --</option>
-                                        <option value="Daily">Daily</option>
-                                        <option value="Weekly on Thursday">Weekly on Thursday</option>
-                                        <option value="Monday on the first Thursday">Monday on the first Thursday</option>
-                                        <option value="Does not repeat">Does not repeat</option>
-                                        <option value="Custom" selected disabled>Custom</option>
-                                    </select>
-                                </div>
+
+                            <div class="form-group d-flex gap-2 align-items-center custom-date-time-at" id="datetime">
+                                <input type="text" class="form-control datepicker-normal" id="STARTING_ON" style="min-width: 110px;" placeholder="MM/DD/YYYY">
+                                <span class="f14">at</span>
+                                <input type="text" class="form-control timepicker-normal" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
+                            </div>
+
+                            <div class="form-group mt-2 custom-date-time-repeat">
+                                <select class="form-control" id="REPEAT" name="REPEAT" onchange="repeatSchedule(this)">
+                                    <option value="">-- Select --</option>
+                                    <option value="Daily">Daily</option>
+                                    <option value="Weekly on Thursday">Weekly on Thursday</option>
+                                    <option value="Monday on the first Thursday">Monday on the first Thursday</option>
+                                    <option value="Does not repeat" selected>Does not repeat</option>
+                                    <option value="Custom">Custom...</option>
+                                </select>
+                            </div>
+
+
+
+                            <div class="custom-date-time-format d-none mt-2">
                                 <div class="repeat-box">
                                     <div class="row gx-1">
-                                        <div class="col-12 col-lg-5 mb-2">
+                                        <div class="col-12 col-lg-6 mb-2">
                                             <label class="theme-text-light">Repeat every:</label>
                                             <div class="d-flex gap-2">
-                                                <input type="number" class="form-control p-1" style="max-width: 35px; height: 25px;" value="1" min="1">
-                                                <select class="form-control form-select p-1" style="max-width: 80px; height: 25px;">
-                                                    <option>week</option>
-                                                    <option>day</option>
-                                                    <option>month</option>
+                                                <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
+                                                <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
+                                                    <option value="week">Week(S)</option>
+                                                    <option value="month">Month(S)</option>
+                                                    <option value="year">Year(S)</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-lg-7 mb-2">
+                                        <div class="col-12 col-lg-6 mb-2">
                                             <label class="theme-text-light">Repeat on:</label>
                                             <div class="weekday-radio mt-1">
                                                 <label>
-                                                    <input type="radio" name="weekday" checked>
+                                                    <input type="checkbox" name="sunday">
                                                     <span>S</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="monday">
                                                     <span>M</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="tuesday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="wednesday">
                                                     <span>W</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="thursday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="friday">
                                                     <span>F</span>
                                                 </label>
                                                 <label>
-                                                    <input type="radio" name="weekday">
+                                                    <input type="checkbox" name="saturday">
                                                     <span>S</span>
                                                 </label>
                                             </div>
@@ -476,17 +425,18 @@ if ($service_master->RecordCount() == 0) {
                                                         Never
                                                     </label>
                                                 </div>
+
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
                                                         <input type="radio" name="end">
                                                         <span></span>
                                                         On
-
                                                     </label>
                                                     <div class="ms-auto">
-                                                        <input type="text" class="form-control" placeholder="3 Jan, 2026" disabled>
+                                                        <input type="text" id="END_ON_DATE" name="END_ON_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
                                                     </div>
                                                 </div>
+
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
                                                         <input type="radio" name="end">
@@ -494,15 +444,17 @@ if ($service_master->RecordCount() == 0) {
                                                         After
                                                     </label>
                                                     <div class="ms-auto">
-                                                        <input type="number" class="form-control" placeholder="4 occurrences" disabled>
+                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a class="savebtngroup btn-secondary f12 rounded-2 px-3">Save</a>
+                                            <a href="javascript:;" class="save-custom-date-selection btn-secondary f12 rounded-2 px-3" onclick="saveCustomDateSelection(this)">Save</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <button type="button" class="btn-secondary w-100 f12 mt-2 mb-2 d-none add-another-day" onclick="addAnotherDay(this)">Add Another Day & Time</button>
                         </div>
                     </div>
                     <hr class="mb-3">
@@ -517,7 +469,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="COMMENT"></textarea>
                             </div>
                         </div>
                     </div>
@@ -532,7 +484,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <textarea class="form-control"></textarea>
+                                <textarea class="form-control" name="INTERNAL_COMMENT"></textarea>
                             </div>
                         </div>
                     </div>
@@ -799,8 +751,8 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="TO_DO_APPOINTMENT_DATE" style="min-width: 110px;" required>
-                                <input type="time" class="form-control">
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="TO_DO_APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
+                                <!-- <input type="time" class="form-control"> -->
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
                                 <span>Show Availability</span>
@@ -914,7 +866,7 @@ if ($service_master->RecordCount() == 0) {
             async: false,
             cache: false,
             success: function(result) {
-                $('#PK_SCHEDULING_CODE').html(result);
+                $(param).closest('.tab-pane').find('#PK_SCHEDULING_CODE').html(result);
             }
         });
     }
@@ -998,6 +950,139 @@ if ($service_master->RecordCount() == 0) {
 
         console.log(start_time_array.sort(), end_time_array.sort());
     }
+
+
+
+    function repeatSchedule(param) {
+        if ($(param).val() == 'Custom') {
+            $('.custom-date-time-format').removeClass("d-none");
+        } else {
+            $('.custom-date-time-format').addClass('d-none');
+        }
+    }
+
+    function addAnotherDay(param) {
+        $('.add-another-day').addClass('d-none');
+        $('.custom-date-time-at').removeClass('d-none');
+        $('.custom-date-time-format').removeClass("d-none");
+    }
+
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+
+        if (timeStr.toLowerCase().includes('am') || timeStr.toLowerCase().includes('pm')) {
+            return timeStr;
+        }
+
+        const [hours, minutes] = timeStr.split(':');
+        const date = new Date();
+        date.setHours(hours, minutes);
+
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    }
+
+    function getSelectedDays() {
+        const map = {
+            sunday: 'Sunday',
+            monday: 'Monday',
+            tuesday: 'Tuesday',
+            wednesday: 'Wednesday',
+            thursday: 'Thursday',
+            friday: 'Friday',
+            saturday: 'Saturday'
+        };
+
+        let days = [];
+        $('.weekday-radio input:checked').each(function() {
+            days.push(map[this.name]);
+        });
+
+        return days;
+    }
+
+    function saveCustomDateSelection(param) {
+
+        $('.datetime-area').removeClass('d-none');
+        $('.add-another-day').removeClass('d-none');
+        $('.custom-date-time-at').addClass('d-none');
+        $('.custom-date-time-repeat').addClass('d-none');
+        $('.custom-date-time-format').addClass('d-none');
+
+
+        const startDate = $('#STARTING_ON').val(); // MM/DD/YYYY
+        const startTime = $('#GROUP_CLASS_START_TIME').val(); // HH:mm
+        const repeatEvery = $('.repeat-box input[type="number"]').first().val();
+        const repeatType = $('.repeat-box select').val(); // week / month / year
+
+        const LENGTH = $('#LENGTH').val();
+        const FREQUENCY = $('#FREQUENCY').val();
+
+
+        const days = getSelectedDays();
+
+        // End condition
+        let endText = 'Never Ends';
+        const endType = $('input[name="end"]:checked').closest('.radio').text().trim();
+
+        if (endType === 'On') {
+            let END_ON_DATE = $('#END_ON_DATE').val();
+            endText = `Ends on ${END_ON_DATE}`;
+        } else if (endType === 'After') {
+            let occurrences = $('#OCCURRENCE_AFTER').val();
+            endText = `Ends after ${occurrences} occurrences`;
+        }
+
+        // Build text
+        const dateText = formatDate(startDate);
+        const timeText = formatTime(startTime);
+
+        const frequency =
+            repeatType === 'week' ? 'Weekly' :
+            repeatType === 'month' ? 'Monthly' : 'Yearly';
+
+        const dayText = days.length ? days.join(', ') : 'selected days';
+
+        const html = `<div class="datetime-item f12 bg-light p-2 border rounded-2 d-flex mb-2">
+                            <input type="hidden" name="STARTING_ON[]" value="${startDate}">
+                            <input type="hidden" name="LENGTH[]" value="${LENGTH}">
+                            <input type="hidden" name="FREQUENCY[]" value="${FREQUENCY}">
+                            <input type="hidden" name="START_TIME[]" value="${startTime}">
+
+                            <input type="hidden" name="DAYS[]" value="${dayText}">
+                            <div>
+                                <p class="text-dark fw-semibold mb-0">
+                                    ${dateText}, ${timeText}
+                                </p>
+                                <span class="text-muted f10">
+                                    ${frequency} on ${dayText} - ${endText}
+                                </span>
+                            </div>
+                            <div class="d-flex gap-2 ms-auto align-items-start">
+                                <a title="Delete" href="javascript:" class="delete-btn" onclick="this.closest('.datetime-item').remove()">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>`;
+
+        // Append or replace wherever you want
+        $('.datetime-area').append(html);
+    }
+
+
+
 
 
 
