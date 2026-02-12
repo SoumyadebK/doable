@@ -1407,28 +1407,6 @@ if ($location_operational_hour->RecordCount() > 0) {
             });
         }
 
-        // function loadCreateEnrollmentModal(PK_USER_MASTER) {
-        //     $('#sideDrawer4, .overlay4').addClass('active');
-        //     $.ajax({
-        //         url: "partials/create_enrollment_modal.php",
-        //         type: "POST",
-        //         data: {
-        //             PK_USER_MASTER: PK_USER_MASTER
-        //         },
-        //         success: function(result) {
-        //             // Update the drawer content with create_enrollment_modal
-        //             $('#sideDrawer4 .drawer-body').html(result);
-
-        //             // Re-initialize any scripts if needed
-        //             initializeModalScripts();
-        //         },
-        //         error: function(xhr, status, error) {
-        //             console.error("Error loading create_enrollment_modal.php:", error);
-        //             $('#sideDrawer4 .drawer-body').html('<p>Error loading enrollment creation form.</p>');
-        //         }
-        //     });
-        // }
-
         function initializeModalScripts() {
             // Re-initialize any scripts that were in view_appointment_modal.php
             // For example, datepickers, select menus, etc.

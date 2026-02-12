@@ -12,17 +12,6 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-if (empty($_GET['id']))
-    $title = "Add Enrollment";
-else
-    $title = "Edit Enrollment";
-
-if (!empty($_GET['source']) && $_GET['source'] === 'customer') {
-    $header = 'customer.php?id=' . $_GET['id_customer'] . '&master_id=' . $_GET['master_id_customer'] . '&tab=enrollment';
-} else {
-    $header = '';
-}
-
 $PK_ENROLLMENT_MASTER = 0;
 $ENROLLMENT_NAME = '';
 $ENROLLMENT_DATE = date('m/d/Y');
@@ -276,79 +265,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             } ?>
                         </select>
                     </div>
-                    <div class="datetime-area f12 bg-light p-2 border rounded-2 mb-2" style="display: none;">
-                        <div class="individual_service_div">
-                            <div class="datetime-item d-flex ">
-                                <div class="align-self-center">
-                                    <p class="text-dark fw-semibold mb-0">Private Service <span class="badge border ms-auto" style="background-color: #ebf2ff; color: #6b82e2;">PRI</span></p>
-                                    <span class="f10">Total: $90.00</span>
-                                </div>
-                                <div class="d-flex gap-2 ms-auto align-items-start">
-                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
-                                            <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                            <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                            <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                            <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
-                                        </svg>
-                                    </button>
-                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" href="#package1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
-                                            <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="collapse" id="package1">
-                                <!-- Sessions -->
-                                <div class="d-inline-flex gap-1">
-                                    <div class="session-item">
-                                        <label class="small text-muted">No. of sessions</label>
-                                        <input type="number" class="form-control form-control-sm text-center" value="1">
-                                    </div>
-                                    <div class="session-item">
-                                        <label class="small text-muted">Price / session</label>
-                                        <div class="session-item position-relative">
-                                            <input type="text" class="form-control form-control-sm" value="100.00" style="padding-left: 20px;">
-                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
-                                        </div>
-                                    </div>
 
-                                    <div class="session-item" style="min-width: 45px;">
-                                        <label class="small text-muted">Total</label>
-                                        <div class="f10 pt-2">$ 100.00</div>
-                                    </div>
-                                </div>
-                                <hr class="my-2">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="f12 text-muted">Discount</label>
-                                    <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
-                                        <input class="form-check-input" type="checkbox" checked>
-                                    </div>
-                                </div>
-                                <div class="d-inline-flex gap-1">
-                                    <div class="session-item">
-                                        <label class="small text-muted">Type</label>
-                                        <select class="form-select form-select-sm" style="min-width: 90px;">
-                                            <option>Percent</option>
-                                            <option>Flat</option>
-                                        </select>
-                                    </div>
-                                    <div class="session-item">
-                                        <label class="small text-muted">Value</label>
-                                        <div class="session-item position-relative">
-                                            <input type="text" class="form-control form-control-sm" value="10" style="padding-left: 20px;">
-                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
-                                        </div>
-                                    </div>
-                                    <div class="session-item" style="min-width: 45px;">
-                                        <label class="small text-muted">Total</label>
-                                        <div class="f10 pt-2">$ 90.00</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div id="append_service_div">
 
                     </div>
@@ -391,7 +308,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 <div class="col-7 col-md-7">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                         <input type="date" class="form-control" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
-                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
                             <option value="2" data-expiry_date="60" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
@@ -855,7 +772,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     <div class="modal-footer flex-nowrap p-2 border-top">
         <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-        <button type="button" class="btn-primary w-100 m-1">Continue to Payment</button>
+        <button id="openDrawer6" type="button" class="btn-primary w-100 m-1">Continue to Payment</button>
     </div>
 </div>
 <!-- End Billing -->
