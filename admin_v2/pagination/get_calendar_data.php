@@ -423,7 +423,8 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointmen
             $title = strtoupper($appointment_data->fields['SERVICE_NAME'] . ', ' . $appointment_data->fields['SERVICE_CODE']);
             $type = "appointment";
         } else {
-            $title = strtoupper($appointment_data->fields['GROUP_NAME'] . ', ' . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE']);
+            $group_name = (!empty($appointment_data->fields['GROUP_NAME'])) ? $appointment_data->fields['GROUP_NAME'] . ', ' : '';
+            $title = strtoupper($group_name . $appointment_data->fields['SERVICE_NAME'] . ' - ' . $appointment_data->fields['SERVICE_CODE']);
             $type = "group_class";
         }
 

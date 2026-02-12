@@ -12,6 +12,8 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
+
 $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.*,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
@@ -37,43 +39,38 @@ $ALL_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS 
                         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
-                        WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $_POST['PK_APPOINTMENT_MASTER'];
+                        WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $PK_APPOINTMENT_MASTER;
 
-$res = $db_account->Execute($ALL_APPOINTMENT_QUERY);
+$appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
-if ($res->RecordCount() == 0) {
-    header("location:all_services.php");
-    exit;
-}
 
-$PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
-$STANDING_ID = $res->fields['STANDING_ID'];
-$CUSTOMER_ID = $res->fields['CUSTOMER_ID'];
-$PK_ENROLLMENT_MASTER = $res->fields['PK_ENROLLMENT_MASTER'];
-$PK_ENROLLMENT_SERVICE = $res->fields['PK_ENROLLMENT_SERVICE'];
-$SERIAL_NUMBER = $res->fields['SERIAL_NUMBER'];
-$PK_SERVICE_MASTER = $res->fields['PK_SERVICE_MASTER'];
-$SERVICE_NAME = $res->fields['SERVICE_NAME'];
-$PK_SERVICE_CODE = $res->fields['PK_SERVICE_CODE'];
-$PK_SCHEDULING_CODE = $res->fields['PK_SCHEDULING_CODE'];
-$SERVICE_PROVIDER_ID = $res->fields['SERVICE_PROVIDER_ID'];
-$PK_APPOINTMENT_STATUS = $res->fields['PK_APPOINTMENT_STATUS'];
-$NO_SHOW = $res->fields['NO_SHOW'];
-$ACTIVE = $res->fields['ACTIVE'];
-$DATE = date("m/d/Y", strtotime($res->fields['DATE']));
-$START_TIME = $res->fields['START_TIME'];
-$END_TIME = $res->fields['END_TIME'];
-$COMMENT = $res->fields['COMMENT'];
-$INTERNAL_COMMENT = $res->fields['INTERNAL_COMMENT'];
-$IMAGE = $res->fields['IMAGE'];
-$VIDEO = $res->fields['VIDEO'];
-$IMAGE_2 = $res->fields['IMAGE_2'];
-$VIDEO_2 = $res->fields['VIDEO_2'];
-$IS_CHARGED = $res->fields['IS_CHARGED'];
-$APPOINTMENT_TYPE = $res->fields['APPOINTMENT_TYPE'];
+$STANDING_ID = $appointment_data->fields['STANDING_ID'];
+$CUSTOMER_ID = $appointment_data->fields['CUSTOMER_ID'];
+$PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+$PK_ENROLLMENT_SERVICE = $appointment_data->fields['PK_ENROLLMENT_SERVICE'];
+$SERIAL_NUMBER = $appointment_data->fields['SERIAL_NUMBER'];
+$PK_SERVICE_MASTER = $appointment_data->fields['PK_SERVICE_MASTER'];
+$SERVICE_NAME = $appointment_data->fields['SERVICE_NAME'];
+$PK_SERVICE_CODE = $appointment_data->fields['PK_SERVICE_CODE'];
+$PK_SCHEDULING_CODE = $appointment_data->fields['PK_SCHEDULING_CODE'];
+$SERVICE_PROVIDER_ID = $appointment_data->fields['SERVICE_PROVIDER_ID'];
+$PK_APPOINTMENT_STATUS = $appointment_data->fields['PK_APPOINTMENT_STATUS'];
+$NO_SHOW = $appointment_data->fields['NO_SHOW'];
+$ACTIVE = $appointment_data->fields['ACTIVE'];
+$DATE = date("m/d/Y", strtotime($appointment_data->fields['DATE']));
+$START_TIME = $appointment_data->fields['START_TIME'];
+$END_TIME = $appointment_data->fields['END_TIME'];
+$COMMENT = $appointment_data->fields['COMMENT'];
+$INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
+$IMAGE = $appointment_data->fields['IMAGE'];
+$VIDEO = $appointment_data->fields['VIDEO'];
+$IMAGE_2 = $appointment_data->fields['IMAGE_2'];
+$VIDEO_2 = $appointment_data->fields['VIDEO_2'];
+$IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
+$APPOINTMENT_TYPE = $appointment_data->fields['APPOINTMENT_TYPE'];
 
 // Format date for HTML input
-$date_for_html_input = date("Y-m-d", strtotime($res->fields['DATE']));
+$date_for_html_input = date("Y-m-d", strtotime($appointment_data->fields['DATE']));
 $start_time_for_input = date("H:i", strtotime($START_TIME));
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
@@ -83,38 +80,6 @@ while (!$status_data->EOF) {
     $status_data->MoveNext();
 }
 
-$CREATE_LOGIN = 0;
-$user_doc_count = 0;
-
-if (empty($_GET['id']))
-    $title = "Add " . $userType;
-else
-    $title = "Edit " . $userType;
-
-if (!empty($_GET['tab']))
-    $title = $userType;
-
-$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
-
-$payment_gateway_data = getPaymentGatewayData();
-
-$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
-$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
-
-$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
-$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
-
-$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
-$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
-$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
-
-$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
-$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
-$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
-
-$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
-$API_KEY                = $payment_gateway_data->fields['API_KEY'];
-$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
@@ -124,33 +89,33 @@ $customer_email = $customer_data->fields['EMAIL_ID'];
 $selected_customer_id = $customer_data->fields['PK_USER_MASTER'];
 $selected_user_id = $customer_data->fields['PK_USER'];
 
-$res = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
+$user_data = $db->Execute("SELECT * FROM DOA_USERS JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$CUSTOMER_ID'");
 
-if ($res->RecordCount() == 0) {
+if ($user_data->RecordCount() == 0) {
     header("location:all_customers.php");
     exit;
 }
-$PK_USER = $res->fields['PK_USER'];
-$PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-$USER_NAME = $res->fields['USER_NAME'];
-$FIRST_NAME = $res->fields['FIRST_NAME'];
-$LAST_NAME = $res->fields['LAST_NAME'];
-$EMAIL_ID = $res->fields['EMAIL_ID'];
-$USER_IMAGE = $res->fields['USER_IMAGE'];
-$GENDER = $res->fields['GENDER'];
-$DOB = $res->fields['DOB'];
-$ADDRESS = $res->fields['ADDRESS'];
-$ADDRESS_1 = $res->fields['ADDRESS_1'];
-$PK_COUNTRY = $res->fields['PK_COUNTRY'];
-$PK_STATES = $res->fields['PK_STATES'];
-$CITY = $res->fields['CITY'];
-$ZIP = $res->fields['ZIP'];
-$PHONE = $res->fields['PHONE'];
-$NOTES = $res->fields['NOTES'];
-$ACTIVE = $res->fields['ACTIVE'];
-$PASSWORD = $res->fields['PASSWORD'];
-$INACTIVE_BY_ADMIN = $res->fields['INACTIVE_BY_ADMIN'];
-$CREATE_LOGIN = $res->fields['CREATE_LOGIN'];
+$PK_USER = $user_data->fields['PK_USER'];
+$PK_USER_MASTER = $user_data->fields['PK_USER_MASTER'];
+$USER_NAME = $user_data->fields['USER_NAME'];
+$FIRST_NAME = $user_data->fields['FIRST_NAME'];
+$LAST_NAME = $user_data->fields['LAST_NAME'];
+$EMAIL_ID = $user_data->fields['EMAIL_ID'];
+$USER_IMAGE = $user_data->fields['USER_IMAGE'];
+$GENDER = $user_data->fields['GENDER'];
+$DOB = $user_data->fields['DOB'];
+$ADDRESS = $user_data->fields['ADDRESS'];
+$ADDRESS_1 = $user_data->fields['ADDRESS_1'];
+$PK_COUNTRY = $user_data->fields['PK_COUNTRY'];
+$PK_STATES = $user_data->fields['PK_STATES'];
+$CITY = $user_data->fields['CITY'];
+$ZIP = $user_data->fields['ZIP'];
+$PHONE = $user_data->fields['PHONE'];
+$NOTES = $user_data->fields['NOTES'];
+$ACTIVE = $user_data->fields['ACTIVE'];
+$PASSWORD = $user_data->fields['PASSWORD'];
+$INACTIVE_BY_ADMIN = $user_data->fields['INACTIVE_BY_ADMIN'];
+$CREATE_LOGIN = $user_data->fields['CREATE_LOGIN'];
 
 $user_interest_other_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` WHERE `PK_USER_MASTER` = '$CUSTOMER_ID'");
 if ($user_interest_other_data->RecordCount() > 0) {
@@ -185,50 +150,18 @@ if ($PK_USER_MASTER > 0) {
 }
 
 $selected_enrollment = '';
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP != 1 AND ((DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0) OR (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER)) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
-while (!$row->EOF) {
-    $name = $row->fields['ENROLLMENT_NAME'];
-    if (empty($name)) {
-        $enrollment_name = ' ';
-    } else {
-        $enrollment_name = "$name" . " || ";
-    }
-
-    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-    $serviceCode = [];
-    while (!$serviceCodeData->EOF) {
-        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
-        $serviceCodeData->MoveNext();
-    }
-
-    $PACKAGE_NAME = $row->fields['PACKAGE_NAME'];
-    if (empty($PACKAGE_NAME)) {
-        $PACKAGE = ' ';
-    } else {
-        $PACKAGE = " || " . "$PACKAGE_NAME";
-    }
-
-    if ($row->fields['CHARGE_TYPE'] == 'Membership') {
-        $NUMBER_OF_SESSION = 99; //getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
-    } else {
-        $NUMBER_OF_SESSION = $row->fields['NUMBER_OF_SESSION'];
-    }
-
-    $PRICE_PER_SESSION = $row->fields['PRICE_PER_SESSION'];
-    $TOTAL_AMOUNT_PAID = ($row->fields['TOTAL_AMOUNT_PAID'] != null) ? $row->fields['TOTAL_AMOUNT_PAID'] : 0;
-    $USED_NORMAL_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'NORMAL');
-    $USED_GROUP_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'GROUP');
-    $USED_PRACTICE_SESSION_COUNT = getAllSessionCreatedCount($row->fields['PK_ENROLLMENT_SERVICE'], 'AD_HOC');
-    $paid_session = ($PRICE_PER_SESSION > 0) ? number_format(($TOTAL_AMOUNT_PAID / $PRICE_PER_SESSION), 2) : $NUMBER_OF_SESSION;
-
-    if ($PK_ENROLLMENT_MASTER == $row->fields['PK_ENROLLMENT_MASTER']) {
-        $selected_enrollment = $row->fields['ENROLLMENT_ID'];
-    }
-    $enrollment = $enrollment_name . $row->fields['PK_ENROLLMENT_MASTER'] . ' || ' . $PACKAGE . $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] . ' || ' . $USED_NORMAL_SESSION_COUNT . '/' . $NUMBER_OF_SESSION . ' || Paid : ' . $paid_session;
-
-    $row->MoveNext();
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+$name = $enrollment_data->fields['ENROLLMENT_NAME'];
+if (empty($name)) {
+    $enrollment_name = ' ';
+} else {
+    $enrollment_name = "$name" . " || ";
 }
+
+$ENROLLMENT_ID = $enrollment_data->fields['ENROLLMENT_ID'];
+
 ?>
+
 
 
 
@@ -279,6 +212,8 @@ while (!$row->EOF) {
         </button>
     </div>
 </div>
+
+
 <div class="booking-lesson p-3 border-bottom">
     <div class="form-check border rounded-2 p-2 mb-2">
         <div class="d-flex">
@@ -287,24 +222,38 @@ while (!$row->EOF) {
                     <path d="M511.923,416.776l-7.748-62.787c-0.002-0.013-0.003-0.026-0.005-0.04c-2.064-16.192-12.655-30.269-27.642-36.737 l-58.468-25.236c-0.061-0.026-0.124-0.044-0.185-0.07c-0.054-0.022-0.104-0.05-0.159-0.072l-4.873-1.892v-11.023 c13.391-10.093,22.29-26.088,24.403-44.179c3.314-2.211,5.64-5.854,6.028-10.139l2.18-24.998c0.335-3.628-0.769-7.165-3.107-9.958 c-0.716-0.855-1.521-1.609-2.397-2.252l0.028-0.509c0.01-0.184,0.015-0.368,0.015-0.551c0-32.516-28.132-58.97-62.711-58.97 c-20.668,0-39.026,9.456-50.457,24.005l0.016-0.3c0.01-0.183,0.015-0.367,0.015-0.551c0-36.69-31.788-66.54-70.859-66.54 c-39.07,0-70.856,29.85-70.856,66.54c0,0.185,0.005,0.37,0.015,0.554l0.016,0.298c-11.431-14.549-29.791-24.006-50.46-24.006 c-34.578,0-62.708,26.454-62.708,58.97c0,0.185,0.005,0.37,0.016,0.555l0.027,0.495c-0.876,0.642-1.681,1.393-2.397,2.246 c-2.34,2.787-3.451,6.318-3.129,9.928l2.191,25.046c0.317,3.631,2.03,6.918,4.825,9.255c0.393,0.329,0.8,0.633,1.221,0.912 c2.13,18.083,11.027,34.065,24.398,44.15v11.022l-4.874,1.893c-0.053,0.021-0.102,0.048-0.154,0.069 c-0.063,0.026-0.127,0.044-0.189,0.071l-58.463,25.236c-14.984,6.467-25.575,20.542-27.645,36.77l-7.756,62.791 c-0.351,2.844,0.535,5.702,2.432,7.849C4.403,426.77,7.131,428,9.996,428l101.71,0.022c0,0,0.002,0,0.003,0h288.58 c0.001,0,0.002,0,0.002,0L502.001,428c2.865,0,5.592-1.23,7.49-3.377C511.388,422.477,512.274,419.619,511.923,416.776z M316.107,233.859c0.393,0.329,0.801,0.633,1.221,0.913c2.131,18.081,11.028,34.065,24.398,44.149v11.022l-1.112,0.432 l-38.148-16.465c-0.061-0.026-0.124-0.045-0.185-0.07c-0.054-0.022-0.104-0.05-0.159-0.072l-6.612-2.567V256.64 c8.246-6.061,15.002-14.105,19.899-23.425C315.637,233.434,315.862,233.654,316.107,233.859z M362.047,321.409 c0.249,0.107,0.488,0.232,0.733,0.346c0.382,0.177,0.768,0.347,1.141,0.538c9.168,4.699,15.656,13.718,17.125,23.995 c0.026,0.181,0.055,0.362,0.095,0.591l1.758,13.792H268.735l34.283-64.739l33.519,14.467c0.001,0,0.002,0.001,0.003,0.001 L362.047,321.409z M201.27,168.943c2.934-1.966,4.613-5.335,4.418-8.861l-0.545-9.828c0.155-25.542,22.909-46.276,50.856-46.276 c27.948,0,50.703,20.736,50.858,46.278l-0.542,9.814c-0.193,3.501,1.461,6.847,4.36,8.819c0.646,0.439,1.333,0.796,2.046,1.07 l-1.543,17.694c-0.935,0.307-1.829,0.754-2.65,1.335c-2.489,1.76-4.039,4.56-4.211,7.603l-0.322,5.732 c-1.589,17.58-10.595,32.783-24.111,40.689c-3.897,2.28-5.784,6.889-4.602,11.247c0.067,0.249,0.144,0.492,0.228,0.732v23.054 c0,4.126,2.534,7.829,6.381,9.322l2.514,0.976l-28.407,53.645l-28.406-53.642l2.517-0.977c3.847-1.494,6.381-5.196,6.381-9.322 v-23.064c0.084-0.236,0.159-0.477,0.225-0.721c1.182-4.358-0.704-8.967-4.601-11.247c-13.501-7.9-22.505-23.106-24.109-40.694 l-0.323-5.74c-0.174-3.089-1.769-5.924-4.318-7.678c-0.797-0.548-1.66-0.972-2.559-1.266l-1.545-17.654 C199.959,169.716,200.634,169.369,201.27,168.943z M243.26,360.672H129.104l1.759-13.79c0.033-0.192,0.066-0.384,0.093-0.577 c0-0.001,0-0.002,0-0.003c0-0.001,0.001-0.003,0.001-0.004c1.465-10.28,7.953-19.302,17.122-24.003 c0.614-0.314,1.24-0.61,1.877-0.885l59.022-25.477L243.26,360.672z M194.675,234.757c0.419-0.279,0.825-0.583,1.217-0.912 c0.245-0.205,0.471-0.427,0.699-0.647c4.898,9.329,11.654,17.38,19.899,23.444v14.56l-6.614,2.568 c-0.054,0.021-0.104,0.049-0.158,0.071c-0.062,0.025-0.125,0.043-0.186,0.07l-38.144,16.465l-1.114-0.432v-11.023 C183.66,268.831,192.558,252.841,194.675,234.757z M102.903,408.021l-81.594-0.018l3.376-27.33h81.706L102.903,408.021z M108.942,360.673H27.155l0.518-4.198c1.176-9.212,7.202-17.22,15.727-20.9l49.985-21.576l10.873,20.533l6.462,12.203 L108.942,360.673z M121.879,318.586c-0.637,0.807-1.249,1.632-1.838,2.474c-0.054,0.078-0.112,0.153-0.166,0.231l-3.462-6.538 l-4.415-8.341l0.777-0.302c3.846-1.493,6.38-5.196,6.38-9.322v-19.755c0.053-0.163,0.103-0.329,0.148-0.496 c1.181-4.358-0.704-8.967-4.601-11.247c-11.313-6.62-18.865-19.393-20.221-34.187l-0.278-4.948 c-0.174-3.089-1.767-5.923-4.315-7.677c-0.545-0.375-1.121-0.692-1.718-0.949l-1.181-13.5c0.367-0.185,0.724-0.393,1.07-0.624 c2.934-1.967,4.613-5.335,4.417-8.862l-0.47-8.469c0.153-21.37,19.253-38.71,42.707-38.71c23.456,0,42.557,17.342,42.711,38.711 l-0.467,8.458c-0.193,3.499,1.46,6.845,4.356,8.817c0.359,0.245,0.73,0.463,1.112,0.656l-1.181,13.539 c-0.631,0.273-1.239,0.613-1.811,1.018c-2.487,1.76-4.036,4.559-4.207,7.601l-0.278,4.941 c-1.343,14.787-8.896,27.558-20.223,34.184c-3.898,2.28-5.784,6.889-4.603,11.247c0.046,0.17,0.097,0.339,0.151,0.506v19.746 c0,0.877,0.115,1.736,0.332,2.558l-8.575,3.702c-0.979,0.422-1.938,0.88-2.883,1.36c-0.1,0.051-0.202,0.098-0.301,0.15 c-0.864,0.446-1.709,0.92-2.543,1.412c-0.183,0.107-0.366,0.213-0.547,0.323c-0.759,0.461-1.502,0.942-2.234,1.44 c-0.249,0.169-0.496,0.339-0.742,0.512c-0.662,0.467-1.312,0.948-1.95,1.445c-0.303,0.235-0.601,0.476-0.899,0.718 c-0.563,0.458-1.119,0.925-1.661,1.406c-0.355,0.314-0.7,0.637-1.046,0.96c-0.316,0.296-0.627,0.597-0.935,0.9 c-0.552,0.542-1.091,1.095-1.618,1.66c-0.205,0.221-0.408,0.443-0.61,0.667c-0.612,0.68-1.205,1.375-1.781,2.086 C122.146,318.253,122.011,318.419,121.879,318.586z M123.065,408.022l1.447-11.342l2.042-16.008h258.894l3.485,27.35H123.065z M397.294,265.288c-3.898,2.28-5.784,6.889-4.603,11.247c0.046,0.17,0.097,0.339,0.151,0.506v19.746 c0,4.126,2.534,7.829,6.381,9.322l0.775,0.301l-4.01,7.573l-3.866,7.3c-0.046-0.066-0.094-0.13-0.14-0.195 c-0.6-0.86-1.225-1.702-1.875-2.524c-0.121-0.152-0.243-0.303-0.365-0.454c-0.589-0.728-1.195-1.439-1.822-2.134 c-0.189-0.21-0.379-0.418-0.572-0.625c-0.543-0.583-1.099-1.152-1.668-1.71c-0.292-0.287-0.586-0.573-0.886-0.853 c-0.367-0.343-0.735-0.685-1.112-1.017c-0.522-0.462-1.056-0.91-1.597-1.351c-0.307-0.25-0.615-0.498-0.928-0.741 c-0.629-0.49-1.271-0.964-1.923-1.425c-0.255-0.18-0.512-0.356-0.771-0.531c-0.723-0.491-1.457-0.967-2.207-1.423 c-0.191-0.116-0.385-0.227-0.577-0.341c-0.824-0.486-1.659-0.954-2.512-1.395c-0.112-0.058-0.227-0.112-0.34-0.169 c-0.928-0.471-1.87-0.92-2.83-1.335c-0.009-0.004-0.017-0.008-0.026-0.012l-8.578-3.702c0.217-0.822,0.331-1.68,0.331-2.556 v-19.755c0.053-0.163,0.103-0.329,0.148-0.496c1.181-4.358-0.704-8.967-4.601-11.247c-11.315-6.621-18.867-19.395-20.222-34.19 l-0.278-4.947c-0.174-3.088-1.768-5.922-4.315-7.676c-0.545-0.375-1.121-0.692-1.718-0.949l-1.181-13.5 c0.367-0.185,0.724-0.393,1.07-0.624c2.934-1.966,4.613-5.335,4.418-8.861l-0.47-8.469c0.154-21.371,19.253-38.713,42.708-38.713 c23.456,0,42.557,17.342,42.71,38.711l-0.467,8.458c-0.193,3.499,1.46,6.845,4.357,8.817c0.359,0.244,0.73,0.463,1.111,0.656 l-1.181,13.539c-0.632,0.273-1.239,0.613-1.811,1.018c-2.487,1.76-4.036,4.559-4.207,7.601l-0.278,4.942 C416.174,245.892,408.622,258.662,397.294,265.288z M409.095,408.021l-3.485-27.348h10.878c5.523,0,10-4.477,10-10 s-4.477-10-10-10h-13.426l-1.778-13.95l17.33-32.725l49.99,21.577c8.521,3.678,14.546,11.679,15.725,20.885l6.361,51.542 L409.095,408.021z" />
                 </svg>
             </span>
-            <!-- <label class="form-check-label"><?php echo $enrollment_name . implode(', ', $serviceCode) ?></label> -->
-            <label class="form-check-label"><?php echo $enrollment_name . $row->fields['ENROLLMENT_ID'] . $PACKAGE ?></label>
-            <?php if ($TOTAL_AMOUNT_PAID >= $row->fields['FINAL_AMOUNT']) { ?>
-                <span class="checkicon float-end ms-auto">
+            <label class="form-check-label"><?= $enrollment_name . $ENROLLMENT_ID ?></label>
+            <?php
+            $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            ?>
+            <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] == $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                <span class="checkicon float-end ms-auto f12 theme-text" style="background-color: #cffce4; color: #1FC16B; padding: 3px 6px; border-radius: 4px;">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
                         <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z"></path>
                     </svg>
+                    <span style="background-color: #cffce4; color: #1FC16B;">Paid</span>
                 </span>
             <?php } ?>
-
         </div>
         <div class="statusarea mt-1" style="margin-left: 27px;">
-            <span>Private: <?php echo $USED_NORMAL_SESSION_COUNT . '/' . $NUMBER_OF_SESSION ?></span>
-            <span>Group: <?php echo $USED_GROUP_SESSION_COUNT . '/' . $NUMBER_OF_SESSION ?></span>
-            <span>Practice: 0/0</span>
-            <span>Paid : $<?php echo $TOTAL_AMOUNT_PAID; ?></span>
+            <?php
+            $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            while (!$serviceCodeData->EOF) {
+                $used_session_count = getAllSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+            ?>
+                <span><?= $serviceCodeData->fields['SERVICE_NAME'] ?>: <?= $used_session_count . '/' . $serviceCodeData->fields['NUMBER_OF_SESSION'] ?></span>
+            <?php
+                $serviceCodeData->MoveNext();
+            } ?>
         </div>
+
+
+
     </div>
+
+
+
 
     <?php
     // Get next booked lesson for this customer

@@ -163,19 +163,19 @@ while (!$appointments->EOF) {
             $current_date = $appointment_date;
             $rowspan_count = isset($date_counts[$appointment_date]) ? $date_counts[$appointment_date] : 1;
             ?>
-            <td class="sticky-col date-col" rowspan="<?php echo $rowspan_count; ?>" style="vertical-align: top;">
+            <td class="sticky-col date-col" rowspan="<?= $rowspan_count; ?>" style="vertical-align: top;">
                 <div class="date-box">
-                    <small><?php echo substr($day_name, 0, 3); ?></small>
-                    <strong><?php echo $day_number; ?></strong>
+                    <small><?= substr($day_name, 0, 3); ?></small>
+                    <strong><?= $day_number; ?></strong>
                 </div>
             </td>
         <?php endif; ?>
 
-        <td style="vertical-align: middle;"><?php echo $title_display; ?></td>
-        <td style="vertical-align: middle;"><?php echo $start_time . ' – ' . $end_time; ?></td>
+        <td style="vertical-align: middle;"><?= $title_display; ?></td>
+        <td style="vertical-align: middle;"><?= $start_time . ' – ' . $end_time; ?></td>
         <td style="vertical-align: middle;">
-            <span class="status not-started" style="color: <?php echo $status_color; ?>;">
-                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" viewBox="0 0 512 512" width="12px" height="12px" fill="<?php echo $status_color; ?>">
+            <span class="status not-started" style="background-color: <?= $status_color ?>20 !important; color: <?= $status_color ?> !important;">
+                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" viewBox="0 0 512 512" width="12px" height="12px" fill="<?= $status_color; ?>">
                     <path d="m256 2c-140.1 0-254 113.9-254 254s113.9 254 254 254 254-113.9 254-254-113.9-254-254-254zm0 457.2c-112 0-203.2-91.2-203.2-203.2s91.2-203.2 203.2-203.2 203.2 91.2 203.2 203.2-91.2 203.2-203.2 203.2z"></path>
                     <path d="m256 129c-70 0-127 57-127 127s57 127 127 127 127-57 127-127-57-127-127-127z"></path>
                 </svg>
@@ -183,14 +183,14 @@ while (!$appointments->EOF) {
             </span>
         </td>
         <td style="vertical-align: middle;">
-            <span class="avatarname" style="color: #fff; background-color: <?= $profile_color ?>;"><?php echo $profile_name; ?></span>
+            <span class="avatarname" style="color: #fff; background-color: <?= $profile_color ?>;"><?= $profile_name; ?></span>
             <?= $service_provider ?>
         </td>
         <td style="vertical-align: middle;">
-            <?= $service_name ?>&nbsp;&nbsp;<span class="badge border ms-auto" style="font-size: 12px !important; color: #fff; background-color: <?= $color_code ?>"><?= $service_code ?></span>
+            <?= $service_name ?>&nbsp;&nbsp;<span class="badge ms-auto" style="font-size: 12px !important; background-color: <?= $color_code ?>20 !important; color: <?= $color_code ?> !important;"><?= $service_code ?></span>
         </td>
         <td class="text-center" style="vertical-align: middle;">
-            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?php echo $appointment_id; ?>)">
+            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
                     <circle cx="256" cy="256" r="48" />
                     <circle cx="256" cy="416" r="48" />

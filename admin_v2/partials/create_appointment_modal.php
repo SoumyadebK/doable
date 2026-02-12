@@ -275,9 +275,10 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="multi_sumo_select" name="PK_USER[]" multiple required>
+                                <select class="form-control" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
+                                    <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -348,7 +349,7 @@ if ($service_master->RecordCount() == 0) {
                             </div>
 
                             <div class="form-group d-flex gap-2 align-items-center custom-date-time-at" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" id="STARTING_ON" style="min-width: 110px;" placeholder="MM/DD/YYYY">
+                                <input type="text" class="form-control datepicker-normal" id="STARTING_ON" name="GROUP_CLASS_START_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY">
                                 <span class="f14">at</span>
                                 <input type="text" class="form-control timepicker-normal" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
                             </div>
@@ -359,7 +360,7 @@ if ($service_master->RecordCount() == 0) {
                                     <option value="Daily">Daily</option>
                                     <option value="Weekly on Thursday">Weekly on Thursday</option>
                                     <option value="Monday on the first Thursday">Monday on the first Thursday</option>
-                                    <option value="Does not repeat" selected>Does not repeat</option>
+                                    <option value="NOT_REPEAT" selected>Does not repeat</option>
                                     <option value="Custom">Custom...</option>
                                 </select>
                             </div>

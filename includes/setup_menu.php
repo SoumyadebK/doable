@@ -16,7 +16,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                 <div class="collapse col-6 navbar-collapse" id="navbarNavDropdown">
                     <ul class="navbar-nav">
                         <li id="menu-products" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 General
                             </a>
                             <div id="dropdown-products" class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -29,7 +29,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Services
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -43,7 +43,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Others
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -58,7 +58,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Communication
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -69,7 +69,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Operations
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -77,7 +77,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 eCommerce
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
@@ -86,7 +86,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="javascript:" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Logs
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
