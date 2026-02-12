@@ -276,8 +276,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             } ?>
                         </select>
                     </div>
-                    <div class="datetime-area f12 bg-light p-2 border rounded-2 mb-2">
-                        <div class="individual_service_div" style="display: none;">
+                    <div class="datetime-area f12 bg-light p-2 border rounded-2 mb-2" style="display: none;">
+                        <div class="individual_service_div">
                             <div class="datetime-item d-flex ">
                                 <div class="align-self-center">
                                     <p class="text-dark fw-semibold mb-0">Private Service <span class="badge border ms-auto" style="background-color: #ebf2ff; color: #6b82e2;">PRI</span></p>
@@ -348,30 +348,33 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 </div>
                             </div>
                         </div>
-                        <div id="append_service_div">
+                    </div>
+                    <div id="append_service_div">
 
-                        </div>
                     </div>
 
-
-                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100" <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
                         <span>Total Amount</span>
-                        <span class="fw-semibold text-dark">$90.00</span>
+                        <span class="fw-semibold text-dark TOTAL_AMOUNT" value="<?= number_format((float)$total, 2, '.', ''); ?>" readonly></span>
                     </div>
 
                     <button type="button" class="btn-secondary w-100 f12 my-2 addpackage">Add More Service</button>
-                    <div class="d-flex gap-3 mt-1">
-                        <label class="radio">
-                            <input type="radio" name="end">
+                    <?php
+                    $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
+                    if ($payment_gateway_type->RecordCount() > 0) { ?>
+                        <div class="d-flex gap-3 mt-1 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>"">
+                        <label class=" radio" for="Session">
+                            <input type="radio" id="Session" name="CHARGE_TYPE" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?> onchange="chargeBySessions(this);">
                             <span></span>
                             Charge by sessions
-                        </label>
-                        <label class="radio">
-                            <input type="radio" name="end">
-                            <span></span>
-                            Membership
-                        </label>
-                    </div>
+                            </label>
+                            <label class="radio" for="Membership">
+                                <input type="radio" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?> onchange="chargeByMembership(this);">
+                                <span></span>
+                                Membership
+                            </label>
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             <hr class="mb-3">
@@ -388,7 +391,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 <div class="col-7 col-md-7">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                         <input type="date" class="form-control" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
-                        <select class="form-control form-select">
+                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE">
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
                             <option value="2" data-expiry_date="60" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
@@ -488,13 +491,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
                             </div>
                         </div>
-                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+
 
                     <?php } ?>
                     <div id="append_service_provider_div">
 
                     </div>
-                    <button type="button" class="btn-secondary w-100 f12 mt-2">Add Service Provider</button>
+                    <button type="button" class="btn-secondary w-100 f12 mt-2" onclick="addMoreServiceProviders();">Add Service Provider</button>
                 </div>
             </div>
             <hr class="mb-3">
@@ -509,7 +512,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-7 col-md-7">
                     <div class="form-group">
-                        <textarea class="form-control"></textarea>
+                        <textarea class="form-control" name="MEMO"><?= $MEMO ?></textarea>
                     </div>
                 </div>
             </div>
@@ -517,9 +520,420 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
     <div class="modal-footer flex-nowrap p-2 border-top">
         <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-        <button id="openDrawer6" type="button" class="btn-primary w-100 m-1">Continue to Billing</button>
+        <button id="openDrawer5" type="button" class="btn-primary w-100 m-1">Continue to Billing</button>
     </div>
 </div>
+
+<!--Confirm Model-->
+<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <input type="hidden" id="is_confirm" value="0">
+                            <label>Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
+                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
+                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" data-bs-dismiss="modal" aria-label="No">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Billing -->
+<div class="overlay5"></div>
+<div class="side-drawer" id="sideDrawer5">
+    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+        <h6>
+            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
+            </svg>
+            <span class="mb-0">Create New Enrollment</span>
+        </h6>
+        <span class="close-btn" id="closeDrawer5">&times;</span>
+    </div>
+    <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
+        <h5 class="mb-4 text-dark">Billing</h5>
+        <div class="booking-lesson">
+            <div class="form-check border rounded-2 p-2 mb-2">
+                <div class="d-flex">
+                    <span class="checkicon d-inline-flex me-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 15 15" fill="#00922E">
+                            <path d="M7.5 6.75C8.49456 6.75 9.44839 7.14509 10.1517 7.84835C10.8549 8.55161 11.25 9.50544 11.25 10.5V15H3.75V10.5C3.75 9.50544 4.14509 8.55161 4.84835 7.84835C5.55161 7.14509 6.50544 6.75 7.5 6.75ZM2.466 9.0045C2.34664 9.40709 2.27614 9.82257 2.256 10.242L2.25 10.5V15H6.84877e-08V11.625C-0.000147605 10.9782 0.238521 10.3541 0.670226 9.87241C1.10193 9.39074 1.69627 9.08541 2.33925 9.015L2.46675 9.0045H2.466ZM12.534 9.0045C13.2014 9.04518 13.8282 9.33897 14.2864 9.82593C14.7447 10.3129 14.9999 10.9563 15 11.625V15H12.75V10.5C12.75 9.98025 12.675 9.4785 12.534 9.0045ZM2.625 4.5C3.12228 4.5 3.59919 4.69754 3.95083 5.04917C4.30246 5.40081 4.5 5.87772 4.5 6.375C4.5 6.87228 4.30246 7.34919 3.95083 7.70083C3.59919 8.05246 3.12228 8.25 2.625 8.25C2.12772 8.25 1.65081 8.05246 1.29917 7.70083C0.947544 7.34919 0.75 6.87228 0.75 6.375C0.75 5.87772 0.947544 5.40081 1.29917 5.04917C1.65081 4.69754 2.12772 4.5 2.625 4.5V4.5ZM12.375 4.5C12.8723 4.5 13.3492 4.69754 13.7008 5.04917C14.0525 5.40081 14.25 5.87772 14.25 6.375C14.25 6.87228 14.0525 7.34919 13.7008 7.70083C13.3492 8.05246 12.8723 8.25 12.375 8.25C11.8777 8.25 11.4008 8.05246 11.0492 7.70083C10.6975 7.34919 10.5 6.87228 10.5 6.375C10.5 5.87772 10.6975 5.40081 11.0492 5.04917C11.4008 4.69754 11.8777 4.5 12.375 4.5V4.5ZM7.5 0C8.29565 0 9.05871 0.316071 9.62132 0.87868C10.1839 1.44129 10.5 2.20435 10.5 3C10.5 3.79565 10.1839 4.55871 9.62132 5.12132C9.05871 5.68393 8.29565 6 7.5 6C6.70435 6 5.94129 5.68393 5.37868 5.12132C4.81607 4.55871 4.5 3.79565 4.5 3C4.5 2.20435 4.81607 1.44129 5.37868 0.87868C5.94129 0.316071 6.70435 0 7.5 0V0Z" />
+                        </svg>
+                    </span>
+                    <label class="form-check-label text-dark">
+                        Enrollment Number
+                        <span class="statusarea ms-2 fw-normal"><span>-3</span></span>
+                    </label>
+                    <button type="button" class="bg-white boxshadow-sm p-0 border-0 rounded-4 ms-auto avatar-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
+                            <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0"></path>
+                            <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0"></path>
+                            <path d="m483.464844 84.882812-84.867188-84.8710932-.011718-.0117188c-5.875 5.882812-313.644532 314.078125-313.75 314.183594l-57.59375 142.460937 142.46875-57.597656s181.703124-181.636719 313.753906-314.164063zm-42.421875.011719-35.917969 35.964844-42.375-42.371094 35.875-36.011719zm-99.46875 14.851563 42.34375 42.347656-21.199219 21.226562-42.320312-42.320312zm-238.554688 249.523437 31.597657 31.597657-53.042969 21.441406zm58.226563 15.789063-42.429688-42.433594 180.265625-180.503906 42.433594 42.433594zm0 0"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="border rounded-2 p-2 mt-2">
+                    <div class="d-flex mb-0">
+                        <label class="form-check-label text-dark">
+                            Private Service
+                            <span class="badge ms-auto rounded-1" style="background-color: #ebf2ff; color: #6b82e2;">PRI</span>
+                        </label>
+                        <span class="f12 text-dark ms-auto">$90.00</span>
+                    </div>
+                    <div class="statusarea m-0">
+                        <span>Session: 1</span>
+                        <span>Price/Session: $100.00</span>
+                        <span>Discount: 10%</span>
+                    </div>
+                </div>
+                <div class="border rounded-2 p-2 mt-2">
+                    <div class="d-flex mb-0">
+                        <label class="form-check-label text-dark">
+                            Group Class
+                            <span class="badge ms-auto rounded-1" style="background-color: #feebf4; color: #ed85b7;">GRP</span>
+                        </label>
+                        <span class="f12 text-dark ms-auto">$100.00</span>
+                    </div>
+                    <div class="statusarea m-0">
+                        <span>Session: 1</span>
+                        <span>Price/Session: $100.00</span>
+                    </div>
+                </div>
+                <div class="border rounded-2 p-2 mt-2">
+                    <div class="d-flex mb-0">
+                        <label class="form-check-label text-dark">
+                            Private Service
+                            <span class="badge ms-auto rounded-1" style="background-color: #E4FBF8; color: #22D3BB;">PTY</span>
+                        </label>
+                        <span class="f12 text-dark ms-auto">$100.00</span>
+                    </div>
+                    <div class="statusarea m-0">
+                        <span>Session: 1</span>
+                        <span>Price/Session: $100.00</span>
+                    </div>
+                </div>
+                <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100 mt-2">
+                    <span>Total Amount</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+            </div>
+        </div>
+        <hr class="my-3">
+        <h5 class="mb-4 text-dark">Payment Plans</h5>
+        <form class="mb-0 appointmentform">
+            <div class="row mb-2 align-items-center">
+                <div class="col-5 col-md-5">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="#ccc">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Billing Ref #</label>
+                    </div>
+                </div>
+                <div class="col-7 col-md-7">
+                    <div class="form-group">
+                        <input type="text" class="form-control" value="1234567890" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-5 col-md-5">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
+                            <path d="M12 24C5.3724 24 0 18.6276 0 12C0 5.3724 5.3724 0 12 0C18.6276 0 24 5.3724 24 12C24 18.6276 18.6276 24 12 24ZM12 21.6C14.5461 21.6 16.9879 20.5886 18.7882 18.7882C20.5886 16.9879 21.6 14.5461 21.6 12C21.6 9.45392 20.5886 7.01212 18.7882 5.21178C16.9879 3.41143 14.5461 2.4 12 2.4C9.45392 2.4 7.01212 3.41143 5.21178 5.21178C3.41143 7.01212 2.4 9.45392 2.4 12C2.4 14.5461 3.41143 16.9879 5.21178 18.7882C7.01212 20.5886 9.45392 21.6 12 21.6ZM7.8 14.4H14.4C14.5591 14.4 14.7117 14.3368 14.8243 14.2243C14.9368 14.1117 15 13.9591 15 13.8C15 13.6409 14.9368 13.4883 14.8243 13.3757C14.7117 13.2632 14.5591 13.2 14.4 13.2H9.6C8.80435 13.2 8.04129 12.8839 7.47868 12.3213C6.91607 11.7587 6.6 10.9957 6.6 10.2C6.6 9.40435 6.91607 8.64129 7.47868 8.07868C8.04129 7.51607 8.80435 7.2 9.6 7.2H10.8V4.8H13.2V7.2H16.2V9.6H9.6C9.44087 9.6 9.28826 9.66321 9.17574 9.77574C9.06321 9.88826 9 10.0409 9 10.2C9 10.3591 9.06321 10.5117 9.17574 10.6243C9.28826 10.7368 9.44087 10.8 9.6 10.8H14.4C15.1957 10.8 15.9587 11.1161 16.5213 11.6787C17.0839 12.2413 17.4 13.0044 17.4 13.8C17.4 14.5956 17.0839 15.3587 16.5213 15.9213C15.9587 16.4839 15.1957 16.8 14.4 16.8H13.2V19.2H10.8V16.8H7.8V14.4Z" />
+                        </svg>
+                        <label class="mb-0">Payment Method</label>
+                    </div>
+                </div>
+                <div class="col-7 col-md-7">
+                    <div class="form-group">
+                        <div class="d-flex flex-column gap-2 paymentmethod">
+                            <label class="radio">
+                                <input type="radio" name="payment" checked>
+                                <span></span>
+                                One Time
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="payment">
+                                <span></span>
+                                Payment Plans
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="payment">
+                                <span></span>
+                                Flexible Payments
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="onetime" style="display: block;">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Billing Date</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group">
+                            <input type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <hr class="mb-3">
+                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                    <span>Balance Payable</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+            </div>
+            <div id="paymentplans" style="display: none;">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5"></div>
+                    <div class="col-md-7 ms-auto pe-0 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <label>Auto-Pay</label>
+                            <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                <input class="form-check-input" type="checkbox" checked="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Billing Date</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group">
+                            <input type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Down Payment</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group">
+                            <div class="position-relative">
+                                <input type="text" class="form-control" value="0" style="padding-left: 20px;">
+                                <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Payment Term</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group d-flex gap-2">
+                            <select class="form-control form-select">
+                                <option>Monthly</option>
+                                <option>Weekly</option>
+                                <option>Yearly</option>
+                            </select>
+                            <input type="number" class="form-control" value="2">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">1st Scheduled Payment Date</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group d-flex gap-2">
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <hr class="mb-3">
+                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                    <span>Installment Amount</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+            </div>
+            <div id="flexiblepayment" style="display: none;">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5"></div>
+                    <div class="col-md-7 ms-auto pe-0 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <label>Auto-Pay</label>
+                            <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                <input class="form-check-input" type="checkbox" checked="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Billing Date</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group">
+                            <input type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Down Payment</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group">
+                            <div class="position-relative">
+                                <input type="text" class="form-control" value="0" style="padding-left: 20px;">
+                                <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-5 col-md-5">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Next Payment Dates</label>
+                        </div>
+                    </div>
+                    <div class="col-7 col-md-7">
+                        <div class="form-group d-flex gap-2">
+                            <input type="date" class="form-control">
+                            <div class="position-relative">
+                                <input type="text" class="form-control" value="390" style="padding-left: 20px;">
+                                <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr class="mb-3">
+                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                    <span>Installment Amount</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer flex-nowrap p-2 border-top">
+        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
+        <button type="button" class="btn-primary w-100 m-1">Continue to Payment</button>
+    </div>
+</div>
+<!-- End Billing -->
+
+<!-- Enrollment Billing -->
+<div class="overlay6"></div>
+<div class="side-drawer" id="sideDrawer6">
+    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+        <h6>
+            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
+            </svg>
+            <span class="mb-0">Create New Enrollment / Billing</span>
+        </h6>
+        <span class="close-btn" id="closeDrawer6">&times;</span>
+    </div>
+    <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
+        <h5 class="mb-4 text-dark">Payment</h5>
+        <form class="mb-0 appointmentform">
+            <div class="totalamount p-2 text-dark border rounded-2 f12 d-flex flex-column gap-2">
+                <div class="d-inline-flex align-items-center justify-content-between w-100">
+                    <span>Total Amount</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+                <div class="d-inline-flex align-items-center justify-content-between w-100">
+                    <span class="fw-semibold">Amount to Pay</span>
+                    <span class="fw-semibold text-dark">$290.00</span>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="row mb-2 align-items-center">
+                <div class="col-5 col-md-5">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 22" fill="#ccc">
+                            <path d="M1.2 0H22.8C23.1183 0 23.4235 0.126428 23.6485 0.351472C23.8736 0.576516 24 0.88174 24 1.2V20.4C24 20.7183 23.8736 21.0235 23.6485 21.2485C23.4235 21.4736 23.1183 21.6 22.8 21.6H1.2C0.88174 21.6 0.576515 21.4736 0.351472 21.2485C0.126428 21.0235 0 20.7183 0 20.4V1.2C0 0.88174 0.126428 0.576516 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0ZM21.6 10.8H2.4V19.2H21.6V10.8ZM21.6 6V2.4H2.4V6H21.6Z" />
+                        </svg>
+                        <label class="mb-0">Payment Type</label>
+                    </div>
+                </div>
+                <div class="col-7 col-md-7">
+                    <div class="form-group">
+                        <select class="form-control form-select">
+                            <option value="" selected disabled>-- Select --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="">Credit Card</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="row mb-2">
+                <div class="col-5 col-md-5">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                            <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                        </svg>
+                        <label class="mb-0">Internal Note</label>
+                    </div>
+                </div>
+                <div class="col-7 col-md-7">
+                    <div class="form-group">
+                        <textarea class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                <span>Amount to Pay</span>
+                <span class="fw-semibold text-dark">$290.00</span>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer flex-nowrap p-2 border-top">
+        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
+        <button type="button" class="btn-primary w-100 m-1">Save</button>
+    </div>
+</div>
+<!-- End Enrollment Billing -->
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
@@ -866,32 +1280,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     function addMoreServiceProviders() {
-        $('#append_service_provider_div').append(`<div class="row individual_service_provider_div" style="margin_top: -25px">
-                                                        <div class="col-5">
-                                                            <div class="form-group">
-                                                                <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                                                                    <option value="">Select</option>
-                                                                    <?php
-                                                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                                    while (!$row->EOF) { ?>
-                                                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
-                                                                        <?php $row->MoveNext();
-                                                                    } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-5">
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
-                                                                <span class="form-control input-group-text">%</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2">
-                                                        <div class="form-group">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                </div>`);
+        $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;">
+                            <select class="form-control form-select SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                <option value="" selected disabled>-- Select --</option>
+                            </select>
+                            <div class="position-relative">
+                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                            </div>
+                        </div>`);
         showEnrollmentInstructor();
     }
 
@@ -956,15 +1352,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('.individual_service_div').remove();
+                    // Clear existing services
+                    $('#append_service_div').empty();
+
+                    // Append the package services
                     $('#append_service_div').html(result);
 
+                    // Calculate total amount from FINAL_AMOUNT hidden inputs
                     let TOTAL_AMOUNT = 0;
-                    $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function() {
-                        TOTAL_AMOUNT += parseFloat($(this).val());
+                    $('#append_service_div .FINAL_AMOUNT').each(function() {
+                        TOTAL_AMOUNT += parseFloat($(this).val()) || 0;
                     });
+                    $('.TOTAL_AMOUNT').text('$' + TOTAL_AMOUNT.toFixed(2));
                     $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
-                    $('#EXPIRY_DATE option').each(function() {
+
+                    // Set expiry date
+                    $('select[name="EXPIRY_DATE"] option').each(function() {
                         if ($(this).data('expiry_date') == EXPIRY_DATE) {
                             $(this).prop('selected', true);
                         }
@@ -972,7 +1375,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 }
             });
         } else {
-            $('.package_div').remove();
+            $('#append_service_div').empty();
+            $('.TOTAL_AMOUNT').text('$0.00');
+            $('.TOTAL_AMOUNT').val('0.00');
             addMoreServices();
         }
     }
