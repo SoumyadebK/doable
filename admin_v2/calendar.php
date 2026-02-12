@@ -939,6 +939,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         let todayDate = redirect_date ? new Date(redirect_date) : new Date();
         const dayConfigs = <?= json_encode($dayConfig) ?>;
 
+        let activePopoverInstance = null;
+        let activePopoverEl = null;
+        let hideTimer = null;
+
+
         function renderCalendar(date) {
             const day = date.getDay();
             const config = dayConfigs[day] || {
@@ -1164,68 +1169,93 @@ if ($location_operational_hour->RecordCount() > 0) {
 
 
 
+                    function destroyActivePopover() {
+                        if (hideTimer) {
+                            clearTimeout(hideTimer);
+                            hideTimer = null;
+                        }
+
+                        if (activePopoverInstance) {
+                            activePopoverInstance.dispose();
+                            activePopoverInstance = null;
+                            activePopoverEl = null;
+                        }
+                    }
 
 
 
+                    const el = info.el;
 
-                    const $el = $(info.el);
-
-                    if ($el.data('tooltip-bound')) return;
-                    $el.data('tooltip-bound', true);
+                    if (el.dataset.tooltipBound) return;
+                    el.dataset.tooltipBound = '1';
 
                     function showPopover(html) {
-                        // initialize popover (manual trigger) and show
-                        $el.popover('dispose'); // clear any previous
-                        $el.popover({
-                            //title: info.event.title,
+                        destroyActivePopover();
+
+                        // Element may be destroyed by FullCalendar
+                        if (!document.body.contains(el)) return;
+
+                        activePopoverEl = el;
+                        activePopoverInstance = new bootstrap.Popover(el, {
                             content: html,
                             html: true,
                             placement: 'top',
                             trigger: 'manual',
                             container: 'body',
-                            sanitize: false,
-                        }).popover('show');
+                            sanitize: false
+                        });
 
-                        // keep popover visible when hovering it
-                        $('.popover').off('mouseenter.tooltip').on('mouseenter.tooltip', function() {
-                            clearTimeout($el.data('hideTimer'));
-                        }).off('mouseleave.tooltip').on('mouseleave.tooltip', function() {
-                            $el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
+                        activePopoverInstance.show();
+
+                        // Keep alive when hovering popover
+                        document.querySelectorAll('.popover').forEach(pop => {
+                            pop.onmouseenter = () => {
+                                if (hideTimer) clearTimeout(hideTimer);
+                            };
+                            pop.onmouseleave = () => {
+                                hideTimer = setTimeout(destroyActivePopover, 150);
+                            };
                         });
                     }
 
-                    $el.on('mouseenter', function() {
-                        clearTimeout($el.data('hideTimer'));
+                    el.addEventListener('mouseenter', () => {
+                        if (hideTimer) clearTimeout(hideTimer);
 
-                        // if already loaded, show cached HTML
-                        if ($el.data('tooltipHtml')) {
-                            return showPopover($el.data('tooltipHtml'));
+                        if (el.dataset.tooltipHtml) {
+                            showPopover(el.dataset.tooltipHtml);
+                            return;
                         }
 
-                        // show temporary loading state (optional)
                         showPopover('<div style="padding:8px">Loading…</div>');
 
-                        // fetch HTML via AJAX
                         $.ajax({
-                            url: 'ajax/get_session_details.php', // your endpoint
+                            url: 'ajax/get_session_details.php',
                             type: 'POST',
                             data: {
                                 id: info.event.id,
                                 type: info.event.extendedProps.type || ''
                             },
                             success: function(html) {
-                                $el.data('tooltipHtml', html);
+                                if (!document.body.contains(el)) return;
+                                el.dataset.tooltipHtml = html;
                                 showPopover(html);
                             },
                             error: function() {
-                                $el.data('tooltipHtml', '<div style="padding:8px">Unable to load details</div>');
-                                showPopover($el.data('tooltipHtml'));
+                                const html = '<div style="padding:8px">Unable to load details</div>';
+                                el.dataset.tooltipHtml = html;
+                                showPopover(html);
                             }
                         });
-                    }).on('mouseleave', function() {
-                        // small delay so user can move to popover without it disappearing immediately
-                        $el.data('hideTimer', setTimeout(() => $el.popover('hide'), 150));
                     });
+
+                    el.addEventListener('mouseleave', () => {
+                        hideTimer = setTimeout(destroyActivePopover, 150);
+                    });
+
+
+
+
+
 
 
 
@@ -1330,7 +1360,12 @@ if ($location_operational_hour->RecordCount() > 0) {
                 datesSet: function(info) {
                     // Update CHOOSE_DATE whenever dates change (navigation)
                     updateChooseDateInput(todayDate);
+                    destroyActivePopover();
+                },
+                eventLeave: function() {
+                    destroyActivePopover();
                 }
+
             });
 
             calendar.render();
