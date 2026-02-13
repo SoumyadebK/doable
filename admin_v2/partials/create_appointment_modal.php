@@ -813,7 +813,8 @@ if ($service_master->RecordCount() == 0) {
 
     function selectThisCustomer(param) {
         let PK_USER_MASTER = $(param).val();
-        $('.enrollment_area, .schedule_code_area').removeClass('d-none');
+        $('.enrollment_area').removeClass('d-none');
+        $('.schedule_code_area').removeClass('d-none');
         $.ajax({
             url: "ajax/get_enrollments.php",
             type: "POST",
