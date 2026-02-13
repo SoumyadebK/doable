@@ -43,7 +43,7 @@ $ALL_APPOINTMENT_QUERY = "SELECT
 
 $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
-
+$PK_LOCATION = $appointment_data->fields['PK_LOCATION'];
 $STANDING_ID = $appointment_data->fields['STANDING_ID'];
 $CUSTOMER_ID = $appointment_data->fields['CUSTOMER_ID'];
 $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
@@ -57,9 +57,9 @@ $SERVICE_PROVIDER_ID = $appointment_data->fields['SERVICE_PROVIDER_ID'];
 $PK_APPOINTMENT_STATUS = $appointment_data->fields['PK_APPOINTMENT_STATUS'];
 $NO_SHOW = $appointment_data->fields['NO_SHOW'];
 $ACTIVE = $appointment_data->fields['ACTIVE'];
-$DATE = date("m/d/Y", strtotime($appointment_data->fields['DATE']));
-$START_TIME = $appointment_data->fields['START_TIME'];
-$END_TIME = $appointment_data->fields['END_TIME'];
+$DATE = date("Y-m-d", strtotime($appointment_data->fields['DATE']));
+$START_TIME = date("h:i A", strtotime($appointment_data->fields['START_TIME']));
+$END_TIME = date("h:i A", strtotime($appointment_data->fields['END_TIME']));
 $COMMENT = $appointment_data->fields['COMMENT'];
 $INTERNAL_COMMENT = $appointment_data->fields['INTERNAL_COMMENT'];
 $IMAGE = $appointment_data->fields['IMAGE'];
@@ -68,10 +68,6 @@ $IMAGE_2 = $appointment_data->fields['IMAGE_2'];
 $VIDEO_2 = $appointment_data->fields['VIDEO_2'];
 $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
 $APPOINTMENT_TYPE = $appointment_data->fields['APPOINTMENT_TYPE'];
-
-// Format date for HTML input
-$date_for_html_input = date("Y-m-d", strtotime($appointment_data->fields['DATE']));
-$start_time_for_input = date("H:i", strtotime($START_TIME));
 
 $status_data = $db_account->Execute("SELECT DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS, DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_APPOINTMENT_STATUS_HISTORY.TIME_STAMP FROM DOA_APPOINTMENT_STATUS_HISTORY LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS=DOA_APPOINTMENT_STATUS_HISTORY.PK_APPOINTMENT_STATUS LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER=DOA_APPOINTMENT_STATUS_HISTORY.PK_USER WHERE PK_APPOINTMENT_MASTER = '$_POST[PK_APPOINTMENT_MASTER]'");
 $CHANGED_BY = '';
@@ -244,9 +240,11 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
     $nextLessonQuery = "SELECT 
                             DOA_APPOINTMENT_MASTER.*,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
+                            DOA_SERVICE_CODE.SERVICE_CODE,
                             DOA_SCHEDULING_CODE.SCHEDULING_CODE,
+                            DOA_SCHEDULING_CODE.COLOR_CODE,
                             DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
-                            DOA_APPOINTMENT_STATUS.COLOR_CODE,
+                            DOA_APPOINTMENT_STATUS.COLOR_CODE AS STATUS_COLOR,
                             GROUP_CONCAT(CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) SEPARATOR ', ') AS SERVICE_PROVIDERS,
                             DOA_LOCATION.LOCATION_NAME
                         FROM DOA_APPOINTMENT_MASTER
@@ -255,6 +253,7 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
                         LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
                         LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                         LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
                         LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
                         CROSS JOIN DOA_APPOINTMENT_MASTER AS cur ON cur.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'
@@ -279,22 +278,12 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
         $nextLessonStartTime = date('h:i A', strtotime($nextLesson->fields['START_TIME']));
         $nextLessonEndTime = date('h:i A', strtotime($nextLesson->fields['END_TIME']));
         $nextLessonServiceName = $nextLesson->fields['SERVICE_NAME'];
-        $nextLessonSchedulingCode = $nextLesson->fields['SCHEDULING_CODE'];
+        $nextLessonServiceCode = $nextLesson->fields['SERVICE_CODE'];
+        $nextLessonColorCode = $nextLesson->fields['COLOR_CODE'];
         $nextLessonStatus = $nextLesson->fields['APPOINTMENT_STATUS'];
-        $nextLessonColor = $nextLesson->fields['COLOR_CODE'];
+        $nextLessonStatusColor = $nextLesson->fields['STATUS_COLOR'];
         $nextLessonServiceProviders = $nextLesson->fields['SERVICE_PROVIDERS'];
         $nextLessonLocation = $nextLesson->fields['LOCATION_NAME'];
-
-        // Determine appointment type badge
-        $appointmentType = 'PRI'; // Default
-        $badgeClass = 'ext-tag'; // Default class
-        if (strpos($nextLessonSchedulingCode, 'GRP') !== false || strpos($nextLessonSchedulingCode, 'GROUP') !== false) {
-            $appointmentType = 'GRP';
-            $badgeClass = 'grp-tag';
-        } elseif (strpos($nextLessonSchedulingCode, 'EXT') !== false) {
-            $appointmentType = 'EXT';
-            $badgeClass = 'ext-tag';
-        }
 
         // Get service provider initials
         $providerInitials = '';
@@ -302,12 +291,9 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
             $providers = explode(', ', $nextLessonServiceProviders);
             if (count($providers) > 0) {
                 $firstProvider = trim($providers[0]);
-                $nameParts = explode(' ', $firstProvider);
-                if (count($nameParts) >= 2) {
-                    $providerInitials = substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1);
-                } else {
-                    $providerInitials = substr($firstProvider, 0, 2);
-                }
+                $firstProvider_profile = getProfileBadge($firstProvider);
+                $firstProvider_profile_name = $firstProvider_profile['initials'];
+                $firstProvider_profile_color = $firstProvider_profile['color'];
             }
         }
     } else {
@@ -321,7 +307,7 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
             <p class="mb-0">No upcoming appointments scheduled.</p>
         </div>
     <?php elseif ($nextLesson->RecordCount() > 0): ?>
-        <h6 class="f14">Next Booked Lesson</h6>
+        <h6 class="f14 mt-3 mb-3">Next Booked Lesson</h6>
         <div class="form-check border rounded-2 p-2 mb-2">
             <div class="d-flex">
                 <span class="checkicon d-inline-flex me-2 align-items-center">
@@ -330,61 +316,30 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
                     </svg>
                 </span>
                 <label class="form-check-label">
-                    <?php echo htmlspecialchars($nextLessonServiceName); ?>
-                    <?php if ($nextLessonSchedulingCode): ?>
-                        , <?php echo htmlspecialchars($nextLessonSchedulingCode); ?>
-                    <?php endif; ?>
+                    <?= htmlspecialchars($nextLessonServiceName); ?>
                 </label>
-                <span class="badge border ms-auto <?php echo $badgeClass; ?>"><?php echo $appointmentType; ?></span>
-                <span class="badge bg-light fw-normal theme-text-light ms-1" style="background-color: <?php echo $nextLessonColor; ?>20 !important; color: <?php echo $nextLessonColor; ?> !important;">
-                    <?php echo htmlspecialchars($nextLessonStatus); ?>
+                <span class="badge border ms-auto" style="background-color: <?= $nextLessonColorCode; ?>20 !important; color: <?= $nextLessonColorCode; ?>"><?= $nextLessonServiceCode; ?></span>
+                <span class=" badge bg-light fw-normal theme-text-light ms-1" style="background-color: <?= $nextLessonStatusColor; ?>20 !important; color: <?= $nextLessonStatusColor; ?> !important;">
+                    <?= htmlspecialchars($nextLessonStatus); ?>
                 </span>
             </div>
             <div class="statusareatext mt-1 f12 theme-text-light" style="margin-left: 27px;">
                 <span class="text-uppercase">
-                    <?php echo $nextLessonDate; ?>, <?php echo $nextLessonStartTime; ?> - <?php echo $nextLessonEndTime; ?> (PST)
+                    <?= $nextLessonDate; ?>, <?= $nextLessonStartTime; ?> - <?= $nextLessonEndTime; ?>
                 </span>
                 <ul class="list-inline mb-0 mt-1">
-                    <?php if ($providerInitials): ?>
+                    <?php if ($firstProvider): ?>
                         <li class="list-inline-item fw-semibold">
-                            <span class="namebadge badge badgeprimary badge-pill px-1"><?php echo $providerInitials; ?></span>
-                            <span class="name"><?php echo htmlspecialchars($nextLessonServiceProviders); ?></span>
+                            <span class="namebadge badge sp_badge badge-pill" style="background-color: <?= $firstProvider_profile_color ?>"><?= $firstProvider_profile_name ?></span>
+                            <a href="#!" class="name text-decoration-underline"><?= $firstProvider ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if ($nextLessonLocation): ?>
                         <li class="list-inline-item fw-semibold">
                             <span class="badge rounded-pill bg-secondary p-1 d-inline-block me-1"></span>
-                            <span class="name"><?php echo htmlspecialchars($nextLessonLocation); ?></span>
+                            <span class="name"><?= htmlspecialchars($nextLessonLocation); ?></span>
                         </li>
                     <?php endif; ?>
-                </ul>
-            </div>
-        </div>
-    <?php else: ?>
-        <!-- Fallback to hardcoded example if no next lesson found -->
-        <h6 class="f14">Next Booked Lesson</h6>
-        <div class="form-check border rounded-2 p-2 mb-2">
-            <div class="d-flex">
-                <span class="checkicon d-inline-flex me-2 align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 511.999 511.999" style="enable-background:new 0 0 511.999 511.999;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
-                        <!-- Same SVG path as above -->
-                    </svg>
-                </span>
-                <label class="form-check-label">Salsa Beginner, Grp</label>
-                <span class="badge border ms-auto grp-tag">GRP</span>
-                <span class="badge bg-light fw-normal theme-text-light ms-1">1 of 4</span>
-            </div>
-            <div class="statusareatext mt-1 f12 theme-text-light" style="margin-left: 27px;">
-                <span class="text-uppercase">Monday Dec 15, 8:00 - 9:00 AM (PST)</span>
-                <ul class="list-inline mb-0 mt-1">
-                    <li class="list-inline-item fw-semibold">
-                        <span class="namebadge badge badgeprimary badge-pill px-1">CB</span>
-                        <span class="name">Chandler Bing</span>
-                    </li>
-                    <li class="list-inline-item fw-semibold">
-                        <span class="badge rounded-pill bg-secondary p-1 d-inline-block me-1"></span>
-                        <span class="name">Studio Location</span>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -396,6 +351,8 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
     <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
     <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>">
+    <input type="hidden" name="START_TIME" id="START_TIME" value="<?= $START_TIME ?>">
+    <input type="hidden" name="END_TIME" id="END_TIME" value="<?= $END_TIME ?>">
     <div class="row mb-2 align-items-center">
         <div class="col-4 col-md-4">
             <div class="d-flex gap-2 align-items-center">
@@ -409,7 +366,7 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
         </div>
         <div class="col-8 col-md-8">
             <div class="form-group serviceprovider">
-                <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots()">
+                <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots(this)" required>
                     <option value="">Select <?= $service_provider_title ?></option>
                     <?php
                     $selected_service_provider = '';
@@ -418,57 +375,14 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
                         if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
                             $selected_service_provider = $row->fields['NAME'];
                         } ?>
-                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
+                        <option value="<?= $row->fields['PK_USER']; ?>" <?= ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
                     <?php $row->MoveNext();
                     } ?>
                 </select>
             </div>
         </div>
     </div>
-    <div class="row mb-3 d-none enrollmentarea">
-        <div class="col-4 col-md-4">
-            <div class="d-flex gap-2 align-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
-                    <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
-                    <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
-                    <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
-                </svg>
-                <label class="mb-0">Enrollment ID</label>
-            </div>
-        </div>
-        <div class="col-8 col-md-8">
-            <div class="form-group">
-                <div class="form-check border rounded-2 p-2 mb-2">
-                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="male" checked>
-                    <label class="form-check-label" for="male">PRI1: 50, GRP 25, PTY:15</label>
-                    <span class="checkicon float-end">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
-                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
-                        </svg>
-                    </span>
-                    <div class="statusarea mt-1">
-                        <span>Private: 40/50</span>
-                        <span>Group: 10/10</span>
-                        <span>Practice: 5/15</span>
-                    </div>
-                </div>
-                <div class="form-check border rounded-2 p-2 mb-2">
-                    <input class="form-check-input ms-0 me-1" type="radio" name="Enrollment" id="female">
-                    <label class="form-check-label" for="female">AD-hoc</label>
-                    <span class="checkicon float-end">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="12px" height="12px" fill="#1FC16B">
-                            <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z" />
-                        </svg>
-                    </span>
-                    <div class="statusarea mt-1">
-                        <span>Private: 40/50</span>
-                        <span>Group: 10/10</span>
-                        <span>Practice: 5/15</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <div class="row mb-3 align-items-center schedulecode">
         <div class="col-4 col-md-4">
             <div class="d-flex gap-2 align-items-center">
@@ -482,16 +396,12 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
         </div>
         <div class="col-8 col-md-8">
             <div class="form-group" id="scheduling_code_select">
-                <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE">
+                <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
                     <option value="">Select Scheduling Code</option>
                     <?php
-                    $selected_scheduling_code = '';
-                    $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER);
-                    while (!$row->EOF) {
-                        if ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) {
-                            $selected_scheduling_code = $row->fields['SCHEDULING_CODE'];
-                        } ?>
-                        <option value="<?php echo $row->fields['PK_SCHEDULING_CODE']; ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_CODE'] ?></option>
+                    $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE PK_LOCATION IN (" . $PK_LOCATION . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+                    while (!$row->EOF) { ?>
+                        <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
                     <?php $row->MoveNext();
                     } ?>
                 </select>
@@ -511,8 +421,8 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
         </div>
         <div class="col-8 col-md-8">
             <div class="form-group d-flex gap-3" id="datetime">
-                <input type="date" class="form-control" name="DATE" value="<?php echo $date_for_html_input; ?>" style="min-width: 110px;">
-                <input type="time" class="form-control" name="START_TIME" value="<?php echo $start_time_for_input; ?>">
+                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
+                <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
             </div>
             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
                 <span>Show Availability</span>
@@ -520,17 +430,12 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
                     <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
                 </svg>
             </button>
-            <div class="Availabilityarea mt-2" style="display: none;">
-                <span>08:00 AM - 09:00 AM</span>
-                <span>09:00 AM - 10:00 AM</span>
-                <span>10:00 AM - 11:00 AM</span>
-                <span>04:00 PM - 05:00 PM</span>
-                <span>05:00 PM - 06:00 PM</span>
-                <span>06:00 PM - 07:00 PM</span>
-            </div>
+            <div class="slot_div mt-2">
 
+            </div>
         </div>
     </div>
+
     <div class="row mb-3 align-items-center staus">
         <div class="col-4 col-md-4">
             <div class="d-flex gap-2 align-items-center">
@@ -554,7 +459,7 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
                         if ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) {
                             $selected_status = $row->fields['APPOINTMENT_STATUS'];
                         } ?>
-                        <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) ? 'selected' : '' ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                        <option value="<?= $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) ? 'selected' : '' ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
                     <?php $row->MoveNext();
                     } ?>
                 </select>
@@ -599,3 +504,84 @@ if ($APPOINTMENT_TYPE == 'NORMAL') {
 </form>
 
 <!-- End Appointment Details -->
+
+<script>
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+        onSelect: function() {
+            getSlots(this);
+        }
+    });
+
+    function getSlots(param) {
+        let PK_SERVICE_PROVIDER = $(param).closest('#appointment_form').find('#SERVICE_PROVIDER_ID').val();
+        let PK_LOCATION = <?= $PK_LOCATION ?>;
+        let duration = $(param).closest('#appointment_form').find('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+
+        let selected_date = $(param).closest('#appointment_form').find('#APPOINTMENT_DATE').val();
+        let dateObj = new Date(selected_date);
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        let date = `${year}-${month}-${day}`;
+
+        let START_TIME = $(param).closest('#appointment_form').find('#START_TIME').val();
+        let END_TIME = $(param).closest('#appointment_form').find('#END_TIME').val();
+
+        if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {
+            start_time_array = [];
+            end_time_array = [];
+            $.ajax({
+                url: "ajax/get_slots.php",
+                type: "POST",
+                data: {
+                    SERVICE_PROVIDER_ID: PK_SERVICE_PROVIDER,
+                    PK_LOCATION: PK_LOCATION,
+                    duration: duration,
+                    day: day,
+                    date: date,
+                    START_TIME: START_TIME,
+                    END_TIME: END_TIME,
+                    slot_time: ''
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $(param).closest('#appointment_form').find('.slot_div').html(result);
+                }
+            });
+        } else {
+            $(param).closest('#appointment_form').find('.slot_div').html('');
+        }
+    }
+
+    function selectSlot(param, id, start_time, end_time) {
+        if ($(param).data('is_selected') == 0) {
+            start_time_array.push(start_time);
+            end_time_array.push(end_time);
+            $(param).closest('#appointment_form').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('#appointment_form').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('#appointment_form').find('#slot_btn_' + id).data('is_selected', 1);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#39b54a', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#fff', 'important');
+        } else {
+            const start_time_index = start_time_array.indexOf(start_time);
+            if (start_time_index > -1) {
+                start_time_array.splice(start_time_index, 1);
+            }
+
+            const end_time_index = end_time_array.indexOf(end_time);
+            if (end_time_index > -1) {
+                end_time_array.splice(end_time_index, 1);
+            }
+
+            $(param).closest('#appointment_form').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('#appointment_form').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('#appointment_form').find('#slot_btn_' + id).data('is_selected', 0);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#f8f9fa', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#000', 'important');
+        }
+
+        console.log(start_time_array.sort(), end_time_array.sort());
+    }
+</script>
