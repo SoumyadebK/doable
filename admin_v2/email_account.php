@@ -8,7 +8,7 @@ if (empty($_GET['id']))
 else
     $title = "Edit Email Accounts";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
@@ -70,54 +70,58 @@ if (empty($_GET['id'])) {
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
+<?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
+
 <body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<style>
-    /* Style the input wrapper */
-    .password-wrapper {
-        position: relative;
-        display: inline-block;
-    }
+    <?php require_once('../includes/loader.php'); ?>
+    <style>
+        /* Style the input wrapper */
+        .password-wrapper {
+            position: relative;
+            display: inline-block;
+        }
 
-    /* Style the password input box */
-    .password-wrapper input {
-        padding-right: 40px; /* Space for the eye icon */
-        
-        height: 40px;
-        font-size: 15px;
-    }
+        /* Style the password input box */
+        .password-wrapper input {
+            padding-right: 40px;
+            /* Space for the eye icon */
 
-    /* Style the eye icon */
-    .password-wrapper .eye-icon {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        font-size: 18px;
-    }
+            height: 40px;
+            font-size: 15px;
+        }
 
-    /* Optional: Icon hover effect */
-    .password-wrapper .eye-icon:hover {
-        color: #007bff;
-    }
-</style>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid extra-space body_content">
+        /* Style the eye icon */
+        .password-wrapper .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Optional: Icon hover effect */
+        .password-wrapper .eye-icon:hover {
+            color: #007bff;
+        }
+    </style>
+    <div id="main-wrapper">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <div class="container-fluid extra-space body_content" style="margin-top: 0px !important;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?=$title?></h4>
+                        <h4 class="text-themecolor"><?= $title ?></h4>
                     </div>
                     <div class="col-md-7 align-self-center text-end">
                         <div class="d-flex justify-content-end align-items-center">
                             <ol class="breadcrumb justify-content-end">
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                                 <li class="breadcrumb-item"><a href="all_email_accounts.php">All Email Accounts</a></li>
-                                <li class="breadcrumb-item active"><?=$title?></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
                             </ol>
 
                         </div>
@@ -136,7 +140,7 @@ if (empty($_GET['id'])) {
                                             <select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
                                                 <?php
                                                 $selected_location = [];
-                                                if(!empty($_GET['id'])) {
+                                                if (!empty($_GET['id'])) {
                                                     $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_EMAIL_ACCOUNT_LOCATION` WHERE `PK_EMAIL_ACCOUNT` = '$_GET[id]'");
                                                     while (!$selected_location_row->EOF) {
                                                         $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
@@ -145,8 +149,9 @@ if (empty($_GET['id'])) {
                                                 }
                                                 $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>" <?=in_array($row->fields['PK_LOCATION'], $selected_location)?"selected":""?>><?=$row->fields['LOCATION_NAME']?></option>
-                                                <?php $row->MoveNext(); } ?>
+                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                <?php $row->MoveNext();
+                                                } ?>
                                             </select>
                                         </div>
                                     </div>
@@ -169,33 +174,37 @@ if (empty($_GET['id'])) {
                                     <div class="col-md-12 mb-3 password-wrapper">
                                         <label for="PASSWORD">Password</label>
                                         <div class="row">
-                                        <div class="col-md-12" style="position: relative; padding-right: 10px;">
-                                            <input type="password" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
-                                            <a href="javascript:" onclick="togglePasswordVisibility()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">
-                                            <i class="icon-eye"></i>
-                                            </a>
-                                        </div>
+                                            <div class="col-md-12" style="position: relative; padding-right: 10px;">
+                                                <input type="password" class="form-control" id="PASSWORD" name="PASSWORD" value="<?php echo $PASSWORD ?>">
+                                                <a href="javascript:" onclick="togglePasswordVisibility()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">
+                                                    <i class="icon-eye"></i>
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <?php if(!empty($_GET['id'])){?>
+                                    <?php if (!empty($_GET['id'])) { ?>
                                         <input type="hidden" name="PK_EMAIL_ACCOUNT" value="<?php echo $_GET['id'] ?>">
                                         <div class="col-md-12 mb-3">
                                             <label for="IMAGE">Active</label>
                                             <div class="custom-control custom-radio ">
-                                                <input type="radio" id="ACTIVE1" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '1'?'checked':'' ?> value="1">
+                                                <input type="radio" id="ACTIVE1" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '1' ? 'checked' : '' ?> value="1">
                                                 <label class="custom-control-label" for="ACTIVE1">Yes</label>
                                             </div>
                                             <div class="custom-control custom-radio">
-                                                <input type="radio" id="ACTIVE2" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '0'?'checked':'' ?> value="0">
+                                                <input type="radio" id="ACTIVE2" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '0' ? 'checked' : '' ?> value="0">
                                                 <label class="custom-control-label" for="ACTIVE2">No</label>
                                             </div>
                                         </div>
                                     <?php } ?>
 
 
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if(empty($_GET['id'])){ echo 'Save'; } else { echo 'Update'; }?></button>
-                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_email_accounts.php'" >Cancel</button>
+                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if (empty($_GET['id'])) {
+                                                                                                                                echo 'Save';
+                                                                                                                            } else {
+                                                                                                                                echo 'Update';
+                                                                                                                            } ?></button>
+                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_email_accounts.php'">Cancel</button>
                                 </form>
                             </div>
                         </div>
@@ -206,21 +215,24 @@ if (empty($_GET['id'])) {
         </div>
     </div>
 
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 
-<script>
-    $('#PK_LOCATION').SumoSelect({placeholder: 'Select Location', selectAll: true});
+    <script>
+        $('#PK_LOCATION').SumoSelect({
+            placeholder: 'Select Location',
+            selectAll: true
+        });
 
-    function togglePasswordVisibility() {
-        let passwordInput = document.getElementById("PASSWORD");
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text"; // Show password
-        } else {
-            passwordInput.type = "password"; // Hide password
+        function togglePasswordVisibility() {
+            let passwordInput = document.getElementById("PASSWORD");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text"; // Show password
+            } else {
+                passwordInput.type = "password"; // Hide password
+            }
         }
-    }
-</script>
+    </script>
 
 </body>
-</html>
 
+</html>

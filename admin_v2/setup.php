@@ -54,7 +54,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
 
-            <?php require_once('../includes/setup_menu.php') ?>
+            <?php require_once('layout/setup_menu.php') ?>
             <div class="container-fluid body_content" style="margin-top: 0px;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">

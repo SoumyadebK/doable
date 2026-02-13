@@ -1,7 +1,7 @@
 <?php
 require_once('../global/config.php');
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ) {
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
@@ -24,12 +24,12 @@ $PAYMENT_INFO = '';
 
 if (empty($_GET['id'])) {
     $PK_USER_MASTER = '';
-    $PK_GIFT_CERTIFICATE_SETUP ='';
+    $PK_GIFT_CERTIFICATE_SETUP = '';
     $DATE_OF_PURCHASE = '';
     $GIFT_NOTE = '';
     $AMOUNT = '';
     $ACTIVE = '';
-    } else {
+} else {
     $res = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_gift_certificates.php");
@@ -41,7 +41,7 @@ if (empty($_GET['id'])) {
     $GIFT_NOTE = $res->fields['GIFT_NOTE'];
     $AMOUNT = $res->fields['AMOUNT'];
     $ACTIVE = $res->fields['ACTIVE'];
-    }
+}
 
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
@@ -54,7 +54,7 @@ use Stripe\Stripe;
 use Stripe\StripeClient;
 
 $user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-if($user_payment_gateway->RecordCount() > 0){
+if ($user_payment_gateway->RecordCount() > 0) {
     $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
     $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
     $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
@@ -67,9 +67,9 @@ if($user_payment_gateway->RecordCount() > 0){
 } else {
     $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
     $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-    $SQUARE_APP_ID 			= $account_data->fields['APP_ID'];
-    $SQUARE_LOCATION_ID 	= $account_data->fields['LOCATION_ID'];
-    $ACCESS_TOKEN 			= $account_data->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID             = $account_data->fields['APP_ID'];
+    $SQUARE_LOCATION_ID     = $account_data->fields['LOCATION_ID'];
+    $ACCESS_TOKEN             = $account_data->fields['ACCESS_TOKEN'];
     $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
     $SECRET_KEY = $account_data->fields['SECRET_KEY'];
     $LOGIN_ID = $account_data->fields['LOGIN_ID'];
@@ -77,7 +77,7 @@ if($user_payment_gateway->RecordCount() > 0){
     $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
 }
 
-$SQUARE_MODE 			= 2;
+$SQUARE_MODE             = 2;
 if ($SQUARE_MODE == 1)
     $SQ_URL = "https://connect.squareup.com";
 else if ($SQUARE_MODE == 2)
@@ -88,7 +88,7 @@ if ($SQUARE_MODE == 1)
 else if ($SQUARE_MODE == 2)
     $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
 
-if(!empty($_POST)){
+if (!empty($_POST)) {
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
             require_once("../global/stripe-php-master/init.php");
@@ -155,7 +155,6 @@ if(!empty($_POST)){
             }
 
             $PAYMENT_INFO = $payment_intent->id;
-
         } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
 
             require_once("../global/vendor/autoload.php");
@@ -202,7 +201,6 @@ if(!empty($_POST)){
                 $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
                 $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
-
             }
 
             $card = new \Square\Models\Card();
@@ -224,7 +222,6 @@ if(!empty($_POST)){
             } else {
                 $errors = $api_response->getErrors();
             }
-
         } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
 
             require_once('../global/authorizenet/vendor/autoload.php');
@@ -314,7 +311,6 @@ if(!empty($_POST)){
                     'source' => $STRIPE_TOKEN
                 ]);
             } catch (Exception $e) {
-
             }
             if ($charge->paid == 1) {
                 $PAYMENT_INFO = $charge->id;
@@ -324,8 +320,8 @@ if(!empty($_POST)){
         }
 
         $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$_POST['PK_ENROLLMENT_MASTER']);
-        if(empty($enrollment_data->fields['ENROLLMENT_ID'])) {
+        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
+        if (empty($enrollment_data->fields['ENROLLMENT_ID'])) {
             $enrollment_id = $enrollment_data->fields['MISC_ID'];
         } else {
             $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
@@ -341,7 +337,6 @@ if(!empty($_POST)){
         $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-
     } else {
         $PAYMENT_INFO = 'Payment Done.';
     }
@@ -355,7 +350,7 @@ if(!empty($_POST)){
         $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
         $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
         $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-        $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = (!empty($_POST['CHECK_DATE']))?date('Y-m-d', strtotime($_POST['CHECK_DATE'])):'0000-00-00';
+        $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = (!empty($_POST['CHECK_DATE'])) ? date('Y-m-d', strtotime($_POST['CHECK_DATE'])) : '0000-00-00';
         $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
         $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
@@ -376,11 +371,18 @@ if(!empty($_POST)){
 
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet"/>
+<?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
 <style>
-    #advice-required-entry-ACCEPT_HANDLING{width: 150px;top: 20px;position: absolute;}
+    #advice-required-entry-ACCEPT_HANDLING {
+        width: 150px;
+        top: 20px;
+        position: absolute;
+    }
+
     .StripeElement {
         display: block;
         width: 100%;
@@ -407,7 +409,7 @@ if(!empty($_POST)){
         background-color: #fefde5 !important;
     }
 
-    .SumoSelect{
+    .SumoSelect {
         width: 90%;
     }
 
@@ -427,7 +429,8 @@ if(!empty($_POST)){
         box-shadow: 0 2px 4px 0 #cfd7df;
         min-height: 125px;
         padding: 13px;
-        background: linear-gradient(to left, #283593, #1976d2);;
+        background: linear-gradient(to left, #283593, #1976d2);
+        ;
         color: #ffffff;
     }
 
@@ -501,12 +504,14 @@ if(!empty($_POST)){
         color: #99efe0;
     }
 
-    .credit-card.diners, .credit-card.diners-club {
+    .credit-card.diners,
+    .credit-card.diners-club {
         background: #8a38ff;
         color: #f5efff;
     }
 
-    .credit-card.diners .credit-card-last4:before, .credit-card.diners-club .credit-card-last4:before {
+    .credit-card.diners .credit-card-last4:before,
+    .credit-card.diners-club .credit-card-last4:before {
         color: #b284f4;
     }
 
@@ -590,330 +595,341 @@ if(!empty($_POST)){
         height: 30px;
         background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAeCAYAAABuUU38AAAKZklEQVRYhd2YeXBV1R3HP3d5+5rlkQAhhCUD4sKiFRDZFFeoyIxVmcpMx62ldjpTZlprq7W2bq06rdjK1CpDVapOVWCKZVNLxUgwIMgOAUISwpaNl7e/d+89nXtvwPdCEtD/2t/Mb+459557zvn+9nP4fyEpH4dgQQ9YMqBxLHIIXcksknFOBRw9seckmYpsEg14ouIy/jxgBAlJBkPvXUzmqlkBBlDlgEoVFKCP4YX/Coi07uG1ex9l57jc2ddq/pi0u7HHTxJC4EKWNiM7xlsL9yABFGsZErLKjFFT2VlSCcko6Jr1f6+kdb8c54IKFeKG/a6P4QUkJOgsms20TaPZydxegZwKt58nOSHJjyvCM1425O5tn0/hbIofDLuKnZFhEGs7J4Q+KS2gulsTZ4xza100pd1QfvK2/PEFQGTNc764FXm+pfY+QHgMg4TTzbpABDLJi5Bo96ph2Tavb0KKDmnXxr6ByD1XlCoMmao+MFgU0nPs8gQ46vKBnr3wrnQBHgm8JpBvhsPyk6x7Q8He8zuKyGfZ1PZkC4NugJHnIGZfWEBxWkBC4PSCfhHeavqCCcJtRgndntc4O9/XIFn/JH9wgUYMWSuYyFBdk8loaG2nkBQ3avlAjEQX+pkOlFAxkt8HwmCbNwyK2qf5FZCJNazaiKIJ2wxMELkc+HwQ8IF2AYEIKYmq1fUJRPSQqNHVNVGKlFC+5k30M120fm8hzmGXEHl7MYkV60kvW0bOX0qtCaSvUFuwAN1hNsbIsuG8ePcshpUUIQnBpsZmntiwkZa2dvB4+p5DMkB3bCPtyuS/LvQKyfkVyy6Pluqc4BwzEs/N01GHV5LNtOCeNQXPTdMQsQTBzCn25CS2Sh7Qc9DUCq1RcKqQykIi3T2xgGQGulJgZMFIMLe6mltHjeT1HbtYV3+EB64az8Mzp8LJ07aJ6t1ml812a0wDTbMloWi1+BL0CUSWpG6WkSTpakHK7bzyMutb/NV3rKf7usnWM7lyLUF1CIeGVoE/CPEECx+azdzbJ8GXDTgDHgKRELTHLFCyz40vFEQp94BHZvbwEWQ0nWd//Xv+8Nnn1pzr6w/b2khnrPAtmWbncNh9BGVFIRtg1llLxlUApNC0hJ7XlqdLuHFNn2j1MzXbUXDinjmZ5IZPcU4cB+8uYbYkczClcctPl/LIXVN5acVmbrj1Kl59coG1+I9fWk06q7H8l3da/tGhpRi7eAkDvD5cqsKaJc9z8+VjeHPHLiqCAfY/8xjHuuLUt7WzubmFR2dM4aHV61g6bw4Prl7HmqbPwVe2GaMw8RSalpAsNkxOpq5RS4bgmTUFvStOYu9aVIaghIOk3l9L+O65RGWVpnU1DBpUzNhRg8npBo2tUda/8iNe+MenNJ2O8vT9N/LD2ydxJp5i/dZ6qiMlDCqNMCgYoLa5hbZEkvmvvsHizXUsmXsrj3z0CdePqKIs4GdfWzvVpSWsXnAXaV1nzaZaCPr34E2cIBDrG4gimSxQJWSRyV0th3ymiaEE/YS++yDln75jOWxy5Xo8D97N0dUbrTxSezLOFVVlDB9UTGlJ0JqrNZrk2suGsml3I7dNHs2bH+3EK1RqWlu4vLSYIo+bn/xrAwt++xxvv/9PFl07yfrv4OlW6/nu3v3UHW6w2k5FYfpf/waymQK8m+gKQjTYj0bMskKWEbJ0hVQULNJPHqfj4WfJHTjCgNdeRg4FaLn6FkQmC00tnKjdxb7ywaxbV4fX7WBtXT1vr9rCpl1HeereWfxpZS3PvPUJB5rbqN3TjC/gYmntDgaHguxrbWOPuelR1TBsKMu/2MmRjk7enX8HjWeifHKkERJ2pbB0+y6O7zkApaVm+VGLKwvOXAGQAkNrjozrhqcsFIrzZQwN7eQxZG8RsseN1t5q2b1j2HAqjjXyu4rL+PklUyHaAR6nHanM6KIqdr9mHwyNQHEAjkZhuApXKKApdv4oLYH2Tjsud8XB47bZFGg0xgPzbuWV22fjffQpUrE4BAJmUhiFzEErlD/5WO/OLhuS9V1I0iQhDCRk1PIhiHQGoWmokQGgOmxJKQp14VI7yzsUG4AiQygIDacwo8oLby6i5kALq1dtYd591xEc7UeNOHHrsiX9VbVbue/GmQwvLuJgaysVoRAuh4PXt+3g0NEmC8Rzn20h1dQMw4ZAjhOk/AetCrhHkVkIxDxDSKDJ0jQ7SduZWnLnhTph4EYQDYT5wl9s262qfPU9mqRkQIjFv5rPDRNGcGlRgAqngxcWzWV3ooNUUzuTLx3Fsu07LSCvzpvNX+q+YNkdc2no6ETTNK6tHMzJRJKtLSf42TsroazMrggUoxZ/vNdSudBHFIEhixECqUrqp9wI6zn2uf00uP32uSOf2roYP/VSy8HfWL+d3YdPUFlVhoFgxabtHE6lrMGL1nzIty4fY7VPx5M0R6M8X7OFjYePUhkOMa68jL9/ucsuXVxOu1DMOWrIOiHrsLkvIIYuzNA7ud+zhKlGq1AMgtNzfmkS9NK0u5FEOsuiO68l3tbFpOpBCENQHQzi9Xn44EA9nfsP8sz109nY0MjAgI+I14eWSoPTwYjiIg51drL9aLPVP1fDGfJ/0FTOcV9AEGZXnnzB0k9AnbcI5B6FoukvssR3brmSsN/NjsbTnNB0BhcFefqjGsKlRUwoL2NDQ5NVIE6vquR4V5ypQyt5b+9+jp9u4/4JYzkei1Nz4BD7ojEz8JzdZhRvcgfBLs5xX0AkM5HI0sT+SmqnMEg7XNT6wueblSzBmThJAS6HyrR7F9Mmy1RVFrNix35uHD2SNfWHWbXuY74/+0ZURebDww2MipTw3u79tOSyVt4a4PXwxy3bONV0DAJ+kHRTA3XEApqVQ85yn0AEQYEY259hhXSNepePve6AXSgWTCBZZwx3t/P/4p4ZjBlcgqEbPDVnJl3JNFXhEEdzOcYUhfn4QD2PzZhCTtd5ZPo1fPzQ/dyx7C1aE0me//bNtqCsityMUqIW1QzteZy/dH6nOXLlTUJR1/Z3rhiSSbC8pJJ7qqeAljn/QKQbqE6VSNiH3+umoaGNAVUB1LEe2mNJhoZC7Os4g4gnIJnCESkh4HRQ6vMSz+Q4frgB7+CBVh3WaY5RuiOibMxBEh8UrPWbx881CzxGksQ0Q7IDRG9kR2Sd7eaJ0MwnufT5o5wqWirLibYuu5zPKhxvPQ3tXkgZ7O2Igs9rRyKXk1wyRUcsToeZGE2xlg8gGYuRNH3DDPtGt0YS3lrbh3unwupXUq/vzz8cQpBTnGzxFRUefXtoxALg9HcfpAQM8YJHLdTe2choAsonc163235htiVLgntQ9fb+Lr56AGFif/7hFjptqovdZui92BOhuYJfprc7sQuSaRomxwJvWfmjH+rp7P/uL/SmJZmyXJpxqSiYtyYX3Ih5wQDEDHB9nYurPDJk06SeRdU5j/OoMKso8hxJ158AhltxsAeZV6MxRWF5w1YWGgYfhgfKKUMXwhJbLyIwZ3BKcDBnfy5TzIJBXMwdBZLIoamfIaQXKTv1zYTwP0fAfwGNu1G2zKQzagAAAABJRU5ErkJggg==');
     }
-
 </style>
-<body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <div class="container-fluid body_content">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item"><a href="all_gift_certificates.php">All Gift Certificates</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
 
+<body class="skin-default-dark fixed-layout">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <div class="container-fluid body_content" style="margin-top: 0px !important;">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-7 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item"><a href="all_gift_certificates.php">All Gift Certificates</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
+
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <!-- Nav tabs -->
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="gift_certificate_link" href="#gift_certificate" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Gift Certificate</span></a> </li>
-                            </ul>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- Nav tabs -->
+                                <ul class="nav nav-tabs" role="tablist">
+                                    <li class="active"> <a class="nav-link active" data-bs-toggle="tab" id="gift_certificate_link" href="#gift_certificate" role="tab"><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Gift Certificate</span></a> </li>
+                                </ul>
 
-                            <div class="tab-content tabcontent-border">
-                                <div class="tab-pane active" id="gift_certificate" role="tabpanel">
-                                    <form class="form-material form-horizontal" id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
-                                        <div class="p-20">
-                                            <div class="row">
-                                                <?php if (empty($_GET['id'])) { ?>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="PK_USER_MASTER">Customer</label>
-                                                        <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
-                                                            <option>Select Customer</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected ;?>><?php echo $row->fields['NAME']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
-                                                        <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" required>
-                                                            <option disabled selected>Select Gift Certificate Name</option>
-                                                            <?php
-                                                            $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Date of Purchase</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal">
+                                <div class="tab-content tabcontent-border">
+                                    <div class="tab-pane active" id="gift_certificate" role="tabpanel">
+                                        <form class="form-material form-horizontal" id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
+                                            <div class="p-20">
+                                                <div class="row">
+                                                    <?php if (empty($_GET['id'])) { ?>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label" for="PK_USER_MASTER">Customer</label>
+                                                                <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
+                                                                    <option>Select Customer</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME");
+                                                                    while (!$row->EOF) {
+                                                                        $selected = '';
+                                                                        if ($PK_USER_MASTER != '' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']) {
+                                                                            $selected = 'selected';
+                                                                        }
+                                                                    ?>
+                                                                        <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected; ?>><?php echo $row->fields['NAME']; ?></option>
+                                                                    <?php $row->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 align-self-center">
-                                                    <label class="form-label">Gift Note</label>
-                                                    <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Amount</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                                <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" required>
+                                                                    <option disabled selected>Select Gift Certificate Name</option>
+                                                                    <?php
+                                                                    $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                                                    while (!$row->EOF) {
+                                                                        $selected = '';
+                                                                        if ($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']) {
+                                                                            $selected = 'selected';
+                                                                        }
+                                                                    ?>
+                                                                        <option data-minimum="<?= $row->fields['MINIMUM_AMOUNT'] ?>" data-maximum="<?= $row->fields['MAXIMUM_AMOUNT'] ?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected; ?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                    <?php $row->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Payment Type</label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
-                                                                <option value="">Select</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Date of Purchase</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?= ($DATE_OF_PURCHASE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($DATE_OF_PURCHASE)) ?>" class="form-control datepicker-normal">
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div id="wallet_balance_div">
+                                                        <div class="col-3 align-self-center">
+                                                            <label class="form-label">Gift Note</label>
+                                                            <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Amount</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT ?>">
+                                                                </div>
+                                                                <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Payment Type</label>
+                                                                <div class="col-md-12">
+                                                                    <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                                                        <option value="">Select</option>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                                                        <?php $row->MoveNext();
+                                                                        } ?>
+                                                                    </select>
+                                                                </div>
+                                                                <div id="wallet_balance_div">
 
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <?php } else { ?>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="PK_USER_MASTER">Customer</label>
-                                                        <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
-                                                            <option>Select Customer</option>
-                                                            <?php
-                                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']." ORDER BY DOA_USERS.FIRST_NAME");
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($PK_USER_MASTER!='' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected ;?>><?php echo $row->fields['NAME']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
-                                                        <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" disabled>
-                                                            <option disabled selected>Select Gift Certificate Name</option>
-                                                            <?php
-                                                            $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                                            while (!$row->EOF) {
-                                                                $selected = '';
-                                                                if($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']){
-                                                                    $selected = 'selected';
-                                                                }
-                                                                ?>
-                                                                <option data-minimum="<?=$row->fields['MINIMUM_AMOUNT']?>" data-maximum="<?=$row->fields['MAXIMUM_AMOUNT']?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected ;?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
-                                                                <?php $row->MoveNext(); } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Date of Purchase</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?=($DATE_OF_PURCHASE == '')?date('m/d/Y'):date('m/d/Y', strtotime($DATE_OF_PURCHASE))?>" class="form-control datepicker-normal" disabled>
+                                                    <?php } else { ?>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label" for="PK_USER_MASTER">Customer</label>
+                                                                <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
+                                                                    <option>Select Customer</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME");
+                                                                    while (!$row->EOF) {
+                                                                        $selected = '';
+                                                                        if ($PK_USER_MASTER != '' && $PK_USER_MASTER == $row->fields['PK_USER_MASTER']) {
+                                                                            $selected = 'selected';
+                                                                        }
+                                                                    ?>
+                                                                        <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?php echo $selected; ?>><?php echo $row->fields['NAME']; ?></option>
+                                                                    <?php $row->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3 align-self-center">
-                                                    <label class="form-label">Gift Note</label>
-                                                    <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Amount</label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT?>" disabled>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                                <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" disabled>
+                                                                    <option disabled selected>Select Gift Certificate Name</option>
+                                                                    <?php
+                                                                    $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                                                    while (!$row->EOF) {
+                                                                        $selected = '';
+                                                                        if ($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']) {
+                                                                            $selected = 'selected';
+                                                                        }
+                                                                    ?>
+                                                                        <option data-minimum="<?= $row->fields['MINIMUM_AMOUNT'] ?>" data-maximum="<?= $row->fields['MAXIMUM_AMOUNT'] ?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected; ?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
+                                                                    <?php $row->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Payment Details</label>
-                                                        <div class="col-md-12">
-                                                            <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.PAYMENT_INFO FROM $master_database.DOA_PAYMENT_TYPE INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=$account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
-                                                                while (!$row->EOF) { ?>
-                                                                    <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
-                                                                    <option value=""><?=$row->fields['PAYMENT_TYPE'].' Number: '.$row->fields['CHECK_NUMBER'].', Date: '.$row->fields['CHECK_DATE']?></option>
-                                                                    <?php } else if ($row->fields['PAYMENT_TYPE'] == "Credit Card") { ?>
-                                                                    <option value=""><?='CC-Confirmation Number: '.$row->fields['PAYMENT_INFO']?></option>
-                                                                    <?php } else { ?>
-                                                                    <option value=""><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                                    <?php } ?>
-                                                                    <?php $row->MoveNext(); } ?>
-                                                            </select>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Date of Purchase</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?= ($DATE_OF_PURCHASE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($DATE_OF_PURCHASE)) ?>" class="form-control datepicker-normal" disabled>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div id="wallet_balance_div">
+                                                        <div class="col-3 align-self-center">
+                                                            <label class="form-label">Gift Note</label>
+                                                            <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Amount</label>
+                                                                <div class="col-md-12">
+                                                                    <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT ?>" disabled>
+                                                                </div>
+                                                                <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;"></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Payment Details</label>
+                                                                <div class="col-md-12">
+                                                                    <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" disabled>
+                                                                        <?php
+                                                                        $row = $db->Execute("SELECT $master_database.DOA_PAYMENT_TYPE.PAYMENT_TYPE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_NUMBER, $account_database.DOA_GIFT_CERTIFICATE_MASTER.CHECK_DATE, $account_database.DOA_GIFT_CERTIFICATE_MASTER.PAYMENT_INFO FROM $master_database.DOA_PAYMENT_TYPE INNER JOIN $account_database.DOA_GIFT_CERTIFICATE_MASTER ON $master_database.DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE=$account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE WHERE $account_database.DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER='$_GET[id]'");
+                                                                        while (!$row->EOF) { ?>
+                                                                            <?php if ($row->fields['PAYMENT_TYPE'] == "Check") { ?>
+                                                                                <option value=""><?= $row->fields['PAYMENT_TYPE'] . ' Number: ' . $row->fields['CHECK_NUMBER'] . ', Date: ' . $row->fields['CHECK_DATE'] ?></option>
+                                                                            <?php } else if ($row->fields['PAYMENT_TYPE'] == "Credit Card") { ?>
+                                                                                <option value=""><?= 'CC-Confirmation Number: ' . $row->fields['PAYMENT_INFO'] ?></option>
+                                                                            <?php } else { ?>
+                                                                                <option value=""><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                                                            <?php } ?>
+                                                                        <?php $row->MoveNext();
+                                                                        } ?>
+                                                                    </select>
+                                                                </div>
+                                                                <div id="wallet_balance_div">
 
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+
+                                                <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
+                                                <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
+                                                    <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                        <div class="row" style="margin: auto;" id="card_list">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group" id="card_div">
+
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
+                                                    <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                                                        <div class="row" style="margin: auto;" id="card_list">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group" id="card-container">
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
+                                                    <div class="payment_type_div" id="credit_card_payment" style="display: none;">
+                                                        <div class="row" style="margin: auto;" id="card_list">
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Name (As it appears on your card)</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="NAME" id="NAME" class="form-control" value="<?= $NAME ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Email (For receiving payment confirmation mail)</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="email" name="EMAIL" id="EMAIL" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Card Number</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?= $CARD_NUMBER ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-4">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Expiration Month</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Expiration Year</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Security Code</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?= $SECURITY_CODE ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 <?php } ?>
-                                            </div>
-
-                                            <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                                            <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
-                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="form-group" id="card_div">
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-                                                <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="form-group" id="card-container">
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
-                                                <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                                    <div class="row" style="margin: auto;" id="card_list">
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Name (As it appears on your card)</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Email (For receiving payment confirmation mail)</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="email" name="EMAIL" id="EMAIL" class="form-control">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Card Number</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Expiration Month</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Expiration Year</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Security Code</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-                                            <div id="payment-status-container"></div>
+                                                <div id="payment-status-container"></div>
 
 
-                                            <div class="row payment_type_div" id="check_payment" style="display: none;">
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Number<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control"="">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Check Date<span class="text-danger">*</span></label>
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="CHECK_DATE" id="CHECK_DATE" class="form-control datepicker-normal">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <?php if(!empty($_GET['id'])) { ?>
-                                                <div class="row" style="margin-bottom: 15px;">
+                                                <div class="row payment_type_div" id="check_payment" style="display: none;">
                                                     <div class="col-6">
-                                                        <div class="col-md-2">
-                                                            <label>Active</label>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Check Number<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="CHECK_NUMBER" id="CHECK_NUMBER" class="form-control"="">
+                                                            </div>
                                                         </div>
-                                                        <div class="col-md-4">
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Check Date<span class="text-danger">*</span></label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="CHECK_DATE" id="CHECK_DATE" class="form-control datepicker-normal">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php } ?>
 
-                                            <div class="form-group">
-                                                <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"><?php if(empty($_GET['id'])){ echo 'Purchase'; } else { echo 'Pay'; }?></button>
-                                                <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'" >Cancel</button>
+                                                <?php if (!empty($_GET['id'])) { ?>
+                                                    <div class="row" style="margin-bottom: 15px;">
+                                                        <div class="col-6">
+                                                            <div class="col-md-2">
+                                                                <label>Active</label>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php } ?>
+
+                                                <div class="form-group">
+                                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"><?php if (empty($_GET['id'])) {
+                                                                                                                                                echo 'Purchase';
+                                                                                                                                            } else {
+                                                                                                                                                echo 'Pay';
+                                                                                                                                            } ?></button>
+                                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_gift_certificates.php'">Cancel</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </form>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -922,332 +938,335 @@ if(!empty($_POST)){
             </div>
         </div>
     </div>
-</div>
 
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 
-<script src="https://js.stripe.com/v3/"></script>
+    <script src="https://js.stripe.com/v3/"></script>
 
-<script>
-    $('.datepicker-future').datepicker({
-        format: 'mm/dd/yyyy',
-        minDate: 0
-    });
+    <script>
+        $('.datepicker-future').datepicker({
+            format: 'mm/dd/yyyy',
+            minDate: 0
+        });
 
-    $('.datepicker-normal').datepicker({
-        format: 'mm/dd/yyyy',
-    });
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
 
-    function showMinMaxAmount() {
-        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
-        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum')
-        $('#number_of_payment_error').show();
-        $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
-    }
+        function showMinMaxAmount() {
+            let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+            let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum')
+            $('#number_of_payment_error').show();
+            $('#number_of_payment_error').text("Minimum Amount = " + MINIMUM + ", Maximum Amount = " + MAXIMUM);
+        }
 
-    function selectPaymentType(param){
-        let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $('.payment_type_div').slideUp();
-        $('#card-element').remove();
-        switch (paymentType) {
-            case 'Credit Card':
-                if (PAYMENT_GATEWAY == 'Stripe') {
-                    $('#card_div').html(`<div id="card-element"></div>`);
-                    stripePaymentFunction();
-                }
+        function selectPaymentType(param) {
+            let paymentType = $("#PK_PAYMENT_TYPE option:selected").text();
+            let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+            $('.payment_type_div').slideUp();
+            $('#card-element').remove();
+            switch (paymentType) {
+                case 'Credit Card':
+                    if (PAYMENT_GATEWAY == 'Stripe') {
+                        $('#card_div').html(`<div id="card-element"></div>`);
+                        stripePaymentFunction();
+                    }
 
-                //getCreditCardList();
-                $('#credit_card_payment').slideDown();
-                break;
+                    //getCreditCardList();
+                    $('#credit_card_payment').slideDown();
+                    break;
 
-            case 'Check':
-                $('#CHECK_NUMBER').prop('required', true);
-                $('#CHECK_DATE').prop('required', true);
-                $('#check_payment').slideDown();
-                break;
+                case 'Check':
+                    $('#CHECK_NUMBER').prop('required', true);
+                    $('#CHECK_DATE').prop('required', true);
+                    $('#check_payment').slideDown();
+                    break;
 
-            case 'Wallet':
-                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-                $.ajax({
-                    url: "ajax/wallet_balance.php",
-                    type: 'POST',
-                    data: {PK_USER_MASTER: PK_USER_MASTER},
-                    success: function (data) {
-                        $('#wallet_balance_div').html(data);
-                        $('#wallet_balance_div').slideDown();
+                case 'Wallet':
+                    let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                    $.ajax({
+                        url: "ajax/wallet_balance.php",
+                        type: 'POST',
+                        data: {
+                            PK_USER_MASTER: PK_USER_MASTER
+                        },
+                        success: function(data) {
+                            $('#wallet_balance_div').html(data);
+                            $('#wallet_balance_div').slideDown();
 
-                        let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-                        let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
+                            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                            let WALLET_BALANCE = parseFloat($('#WALLET_BALANCE').val());
 
-                        if (AMOUNT_TO_PAY > WALLET_BALANCE) {
-                            $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
-                            $('#remaining_amount_div').slideDown();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
-                        } else {
-                            $('#remaining_amount_div').slideUp();
-                            $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                            if (AMOUNT_TO_PAY > WALLET_BALANCE) {
+                                $('#REMAINING_AMOUNT').val(AMOUNT_TO_PAY - WALLET_BALANCE);
+                                $('#remaining_amount_div').slideDown();
+                                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', true);
+                            } else {
+                                $('#remaining_amount_div').slideUp();
+                                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                            }
                         }
+                    });
+                    break;
+
+                case 'Cash':
+                default:
+                    $('#CHECK_NUMBER').prop('required', false);
+                    $('#CHECK_DATE').prop('required', false);
+                    $('.payment_type_div').slideUp();
+                    $('#wallet_balance_div').slideUp();
+                    $('#remaining_amount_div').slideUp();
+                    $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+                    break;
+            }
+        }
+
+        /*    function getCreditCardList() {
+                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
+                $.ajax({
+                    url: "ajax/get_credit_card_list.php",
+                    type: 'POST',
+                    data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
+                    success: function (data) {
+                        $('#card_list').html(data);
                     }
                 });
-                break;
+            }*/
 
-            case 'Cash':
-            default:
-                $('#CHECK_NUMBER').prop('required', false);
-                $('#CHECK_DATE').prop('required', false);
-                $('.payment_type_div').slideUp();
-                $('#wallet_balance_div').slideUp();
-                $('#remaining_amount_div').slideUp();
-                $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
-                break;
-        }
-    }
+        $(document).on('submit', '#payment_confirmation_form', function(event) {
+            //event.preventDefault();
+            let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
+            let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
+            let entered_amount = $('#AMOUNT').val();
 
-/*    function getCreditCardList() {
-        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-        let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
-        $.ajax({
-            url: "ajax/get_credit_card_list.php",
-            type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
-                $('#card_list').html(data);
-            }
-        });
-    }*/
-
-    $(document).on('submit', '#payment_confirmation_form', function (event) {
-        //event.preventDefault();
-        let MINIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('minimum');
-        let MAXIMUM = $('#GIFT_CERTIFICATE').find(':selected').data('maximum');
-        let entered_amount = $('#AMOUNT').val();
-
-        if (parseFloat(entered_amount)>=parseFloat(MINIMUM) && parseFloat(entered_amount)<=parseFloat(MAXIMUM)) {
-            return true;
-        } else {
-            $('#number_of_payment_error').show();
-            $('#number_of_payment_error').text("Minimum Amount = "+MINIMUM+", Maximum Amount = "+MAXIMUM);
-            $('#number_of_payment_error').effect('shake');
-            return false;
-        }
-    });
-
-    $(document).on('click', '.credit-card', function () {
-        $('.credit-card').css("opacity", "1");
-        $(this).css("opacity", "0.6");
-    });
-
-    function getPaymentMethodId(param) {
-        $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
-    }
-</script>
-
-<script type="text/javascript">
-    function stripePaymentFunction() {
-
-        // Create a Stripe client.
-        var stripe = Stripe('<?=$PUBLISHABLE_KEY?>');
-
-        // Create an instance of Elements.
-        var elements = stripe.elements();
-
-        // Custom styling can be passed to options when creating an Element.
-        // (Note that this demo uses a wider set of styles than the guide below.)
-        var style = {
-            base: {
-                height: '34px',
-                padding: '6px 12px',
-                fontSize: '14px',
-                lineHeight: '1.42857143',
-                color: '#555',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                '::placeholder': {
-                    color: '#ddd'
-                }
-            },
-            invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-            }
-        };
-
-        // Create an instance of the card Element.
-        var card = elements.create('card', {style: style});
-
-        // Add an instance of the card Element into the `card-element` <div>.
-        if (($('#card-element')).length > 0) {
-            card.mount('#card-element');
-        }
-
-        // Handle real-time validation errors from the card Element.
-        card.addEventListener('change', function (event) {
-            var displayError = document.getElementById('card-errors');
-            if (event.error) {
-                displayError.textContent = event.error.message;
+            if (parseFloat(entered_amount) >= parseFloat(MINIMUM) && parseFloat(entered_amount) <= parseFloat(MAXIMUM)) {
+                return true;
             } else {
-                displayError.textContent = '';
+                $('#number_of_payment_error').show();
+                $('#number_of_payment_error').text("Minimum Amount = " + MINIMUM + ", Maximum Amount = " + MAXIMUM);
+                $('#number_of_payment_error').effect('shake');
+                return false;
             }
         });
 
-        // Handle form submission.
-        var form = document.getElementById('payment_confirmation_form');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            stripe.createToken(card).then(function (result) {
-                if (result.error) {
-                    // Inform the user if there was an error.
-                    var errorElement = document.getElementById('card-errors');
-                    errorElement.textContent = result.error.message;
+        $(document).on('click', '.credit-card', function() {
+            $('.credit-card').css("opacity", "1");
+            $(this).css("opacity", "0.6");
+        });
+
+        function getPaymentMethodId(param) {
+            $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
+        }
+    </script>
+
+    <script type="text/javascript">
+        function stripePaymentFunction() {
+
+            // Create a Stripe client.
+            var stripe = Stripe('<?= $PUBLISHABLE_KEY ?>');
+
+            // Create an instance of Elements.
+            var elements = stripe.elements();
+
+            // Custom styling can be passed to options when creating an Element.
+            // (Note that this demo uses a wider set of styles than the guide below.)
+            var style = {
+                base: {
+                    height: '34px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    lineHeight: '1.42857143',
+                    color: '#555',
+                    backgroundColor: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    '::placeholder': {
+                        color: '#ddd'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            };
+
+            // Create an instance of the card Element.
+            var card = elements.create('card', {
+                style: style
+            });
+
+            // Add an instance of the card Element into the `card-element` <div>.
+            if (($('#card-element')).length > 0) {
+                card.mount('#card-element');
+            }
+
+            // Handle real-time validation errors from the card Element.
+            card.addEventListener('change', function(event) {
+                var displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
                 } else {
-                    // Send the token to your server.
-                    stripeTokenHandler(result.token);
+                    displayError.textContent = '';
                 }
             });
-        });
 
-        // Submit the form with the token ID.
-        function stripeTokenHandler(token) {
-            // Insert the token ID into the form so it gets submitted to the server
+            // Handle form submission.
             var form = document.getElementById('payment_confirmation_form');
-            var hiddenInput = document.createElement('input');
-            hiddenInput.setAttribute('type', 'hidden');
-            hiddenInput.setAttribute('name', 'token');
-            hiddenInput.setAttribute('value', token.id);
-            form.appendChild(hiddenInput);
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                stripe.createToken(card).then(function(result) {
+                    if (result.error) {
+                        // Inform the user if there was an error.
+                        var errorElement = document.getElementById('card-errors');
+                        errorElement.textContent = result.error.message;
+                    } else {
+                        // Send the token to your server.
+                        stripeTokenHandler(result.token);
+                    }
+                });
+            });
 
-            //ACCEPT_HANDLING_ERROR
-            // Submit the form
-            form.submit();
+            // Submit the form with the token ID.
+            function stripeTokenHandler(token) {
+                // Insert the token ID into the form so it gets submitted to the server
+                var form = document.getElementById('payment_confirmation_form');
+                var hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'token');
+                hiddenInput.setAttribute('value', token.id);
+                form.appendChild(hiddenInput);
+
+                //ACCEPT_HANDLING_ERROR
+                // Submit the form
+                form.submit();
+            }
         }
-    }
-
-</script>
+    </script>
 
 
 
-<script type="text/javascript" src="<?=$URL?>"></script>
-<script>
-    const appId = '<?=$SQUARE_APP_ID ?>';
-    const locationId = '<?=$SQUARE_LOCATION_ID ?>';
+    <script type="text/javascript" src="<?= $URL ?>"></script>
+    <script>
+        const appId = '<?= $SQUARE_APP_ID ?>';
+        const locationId = '<?= $SQUARE_LOCATION_ID ?>';
 
-    async function initializeCard(payments) {
-        const card = await payments.card();
-        await card.attach('#card-container');
+        async function initializeCard(payments) {
+            const card = await payments.card();
+            await card.attach('#card-container');
 
-        return card;
-    }
-
-    async function createPayment(token) {
-        document.getElementById('sourceId').value = token;
-        $('#payment_confirmation_form').submit();
-
-        /*const body = JSON.stringify({
-          locationId,
-          sourceId: token,
-        });
-
-        const paymentResponse = await fetch('payment.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body,
-        });
-
-        if (paymentResponse.ok) {
-          return paymentResponse.json();
+            return card;
         }
 
-        const errorBody = await paymentResponse.text();
-        throw new Error(errorBody);*/
+        async function createPayment(token) {
+            document.getElementById('sourceId').value = token;
+            $('#payment_confirmation_form').submit();
 
-        token
-    }
+            /*const body = JSON.stringify({
+              locationId,
+              sourceId: token,
+            });
 
-    async function tokenize(paymentMethod) {
-        const tokenResult = await paymentMethod.tokenize();
-        if (tokenResult.status === 'OK') {
-            return tokenResult.token;
-        } else {
-            let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
-            if (tokenResult.errors) {
-                errorMessage += ` and errors: ${JSON.stringify(
-                    tokenResult.errors
-                )}`;
+            const paymentResponse = await fetch('payment.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body,
+            });
+
+            if (paymentResponse.ok) {
+              return paymentResponse.json();
             }
 
-            throw new Error(errorMessage);
-        }
-    }
+            const errorBody = await paymentResponse.text();
+            throw new Error(errorBody);*/
 
-    // status is either SUCCESS or FAILURE;
-    function displayPaymentResults(status) {
-        const statusContainer = document.getElementById(
-            'payment-status-container'
-        );
-        if (status === 'SUCCESS') {
-            statusContainer.classList.remove('is-failure');
-            statusContainer.classList.add('is-success');
-        } else {
-            statusContainer.classList.remove('is-success');
-            statusContainer.classList.add('is-failure');
+            token
         }
 
-        statusContainer.style.visibility = 'visible';
-    }
+        async function tokenize(paymentMethod) {
+            const tokenResult = await paymentMethod.tokenize();
+            if (tokenResult.status === 'OK') {
+                return tokenResult.token;
+            } else {
+                let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
+                if (tokenResult.errors) {
+                    errorMessage += ` and errors: ${JSON.stringify(
+                    tokenResult.errors
+                )}`;
+                }
 
-    document.addEventListener('DOMContentLoaded', async function () {
-        if (!window.Square) {
-            throw new Error('Square.js failed to load properly');
+                throw new Error(errorMessage);
+            }
         }
 
-        let payments;
-        try {
-            payments = window.Square.payments(appId, locationId);
-        } catch {
+        // status is either SUCCESS or FAILURE;
+        function displayPaymentResults(status) {
             const statusContainer = document.getElementById(
                 'payment-status-container'
             );
-            statusContainer.className = 'missing-credentials';
-            statusContainer.style.visibility = 'visible';
-            return;
-        }
-
-        let card;
-        try {
-            card = await initializeCard(payments);
-        } catch (e) {
-            console.error('Initializing Card failed', e);
-            return;
-        }
-
-        // Checkpoint 2.
-        async function handlePaymentMethodSubmission(event, paymentMethod) {
-            event.preventDefault();
-
-            try {
-                // disable the submit button as we await tokenization and make a payment request.
-                cardButton.disabled = true;
-                const token = await tokenize(paymentMethod);
-                const paymentResults = await createPayment(token);
-                displayPaymentResults('SUCCESS');
-
-                console.debug('Payment Success', paymentResults);
-            } catch (e) {
-                cardButton.disabled = false;
-                displayPaymentResults('FAILURE');
-                console.error(e.message);
+            if (status === 'SUCCESS') {
+                statusContainer.classList.remove('is-failure');
+                statusContainer.classList.add('is-success');
+            } else {
+                statusContainer.classList.remove('is-success');
+                statusContainer.classList.add('is-failure');
             }
+
+            statusContainer.style.visibility = 'visible';
         }
 
-        const cardButton = document.getElementById('card-button');
-        cardButton.addEventListener('click', async function (event) {
-            await handlePaymentMethodSubmission(event, card);
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!window.Square) {
+                throw new Error('Square.js failed to load properly');
+            }
+
+            let payments;
+            try {
+                payments = window.Square.payments(appId, locationId);
+            } catch {
+                const statusContainer = document.getElementById(
+                    'payment-status-container'
+                );
+                statusContainer.className = 'missing-credentials';
+                statusContainer.style.visibility = 'visible';
+                return;
+            }
+
+            let card;
+            try {
+                card = await initializeCard(payments);
+            } catch (e) {
+                console.error('Initializing Card failed', e);
+                return;
+            }
+
+            // Checkpoint 2.
+            async function handlePaymentMethodSubmission(event, paymentMethod) {
+                event.preventDefault();
+
+                try {
+                    // disable the submit button as we await tokenization and make a payment request.
+                    cardButton.disabled = true;
+                    const token = await tokenize(paymentMethod);
+                    const paymentResults = await createPayment(token);
+                    displayPaymentResults('SUCCESS');
+
+                    console.debug('Payment Success', paymentResults);
+                } catch (e) {
+                    cardButton.disabled = false;
+                    displayPaymentResults('FAILURE');
+                    console.error(e.message);
+                }
+            }
+
+            const cardButton = document.getElementById('card-button');
+            cardButton.addEventListener('click', async function(event) {
+                await handlePaymentMethodSubmission(event, card);
+            });
         });
-    });
-</script>
+    </script>
 </body>
+
 </html>

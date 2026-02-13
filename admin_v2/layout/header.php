@@ -131,6 +131,14 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         display: inline-block;
         text-align: center;
     }
+
+    .page-wrapper {
+        padding-top: 0px !important;
+    }
+
+    .container-fluid {
+        margin-top: 0px !important;
+    }
 </style>
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">

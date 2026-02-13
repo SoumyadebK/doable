@@ -25,16 +25,18 @@ if ($header_data->RecordCount() > 0) {
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <?php require_once('../includes/setup_menu.php') ?>
-            <div class="container-fluid body_content m-0">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <?php require_once('layout/setup_menu.php') ?>
+            <div class="container-fluid body_content m-0" style="margin-top: 0px !important;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <?php if ($status_check == 'inactive') { ?>
