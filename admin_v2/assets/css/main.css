@@ -126,6 +126,10 @@ h6 {
   font-size: 0.75rem !important;
 }
 
+.f10 {
+  font-size: 0.65rem !important;
+}
+
 .brd-light {
   border-color: #2B303B !important;
 }
@@ -462,6 +466,16 @@ label {
   box-shadow: none !important;
 }
 
+.form-control-sm {
+  height: 30px;
+  font-size: 11px;
+}
+
+select.form-select-sm {
+  font-size: 12px;
+  height: 30px;
+}
+
 .form-control:focus {
   border-color: #39b54a !important;
 }
@@ -521,7 +535,10 @@ textarea.form-control {
 /* Overlay */
 .overlay,
 .overlay2,
-.overlay3 {
+.overlay3,
+.overlay4,
+.overlay5,
+.overlay6 {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -549,7 +566,10 @@ textarea.form-control {
 
 .overlay.active,
 .overlay2.active,
-.overlay3.active {
+.overlay3.active,
+.overlay4.active,
+.overlay5.active,
+.overlay6.active {
   display: block;
 }
 
@@ -816,6 +836,10 @@ textarea.form-control {
   height: 35px;
   padding: 8px 10px;
   font-size: 14px
+}
+
+.btncollapse[aria-expanded="true"] {
+  transform: rotate(180deg);
 }
 
 .custom-checkbox {

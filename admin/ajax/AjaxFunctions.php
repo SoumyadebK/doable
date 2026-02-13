@@ -534,6 +534,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME'] . " - " . $abbreviation;
     }
 
+    $SERVICE_PRICE = [];
+
     while (!$enrollment_service_data->EOF) {
         $TYPE_OF_ENROLLMENT = $enrollment_name;
         $SERVICE_DETAILS .= $enrollment_service_data->fields['SERVICE_DETAILS'] . "<br>";
@@ -541,7 +543,19 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $TUITION .= $enrollment_service_data->fields['TOTAL'] . "<br>";
         $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT'] . "<br>";
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT'] . "<br>";
+        $SERVICE_PRICE[] = $enrollment_service_data->fields['SERVICE_DETAILS'] . " $" . $enrollment_service_data->fields['PRICE_PER_SESSION'] . " per lesson";
         $enrollment_service_data->MoveNext();
+    }
+
+    $count = count($SERVICE_PRICE);
+
+    if ($count === 1) {
+        $SERVICE_PRICE = $SERVICE_PRICE[0] . '.';
+    } elseif ($count === 2) {
+        $SERVICE_PRICE = $SERVICE_PRICE[0] . ' and ' . $SERVICE_PRICE[1] . '.';
+    } else {
+        $SERVICE_PRICE = implode(', ', array_slice($SERVICE_PRICE, 0, -1))
+            . ' and ' . end($SERVICE_PRICE) . '.';
     }
 
     $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
@@ -563,6 +577,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
     $html_template = str_replace('{BILLING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
     $html_template = str_replace('{EXPIRATION_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
+    $html_template = str_replace('{SERVICE_PRICE}', $SERVICE_PRICE, $html_template);
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {

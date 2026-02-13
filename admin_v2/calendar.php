@@ -820,6 +820,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     </div>
 
     <?php include 'partials/create_appointment_modal.php'; ?>
+    <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <?php require_once('../includes/footer.php'); ?>
 
@@ -2077,6 +2078,32 @@ if ($location_operational_hour->RecordCount() > 0) {
 
             $('#closeDrawer3, .overlay3').click(function() {
                 $('#sideDrawer3, .overlay3').removeClass('active');
+            });
+
+            $('#openDrawer4').click(function() {
+                $('#sideDrawer4, .overlay4').addClass('active');
+            });
+
+            $('#closeDrawer4, .overlay4').click(function() {
+                $('#sideDrawer4, .overlay4').removeClass('active');
+            });
+
+            $('#openDrawer5').click(function() {
+                $('#sideDrawer5, .overlay5').addClass('active');
+            });
+
+            $('#closeDrawer5, .overlay5').click(function() {
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer6').click(function() {
+                $('#sideDrawer6, .overlay6').addClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#closeDrawer6, .overlay6').click(function() {
+                $('#sideDrawer6, .overlay6').removeClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
             });
         });
 
