@@ -802,6 +802,18 @@ if ($location_operational_hour->RecordCount() > 0) {
         </div>
     </div>
 
+    <!-- Add Customer to group class -->
+    <div class="overlay7"></div>
+    <div class="side-drawer" id="sideDrawer7">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Add New Customer</h6>
+            <span class="close-btn" id="closeDrawer7">&times;</span>
+        </div>
+        <div class="modal-body p-3" id="add_customer_to_group_class" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+
     <!-- Customer Details -->
     <div class="overlay3"></div>
     <div class="side-drawer" id="sideDrawer3">
@@ -2109,6 +2121,14 @@ if ($location_operational_hour->RecordCount() > 0) {
             $('#closeDrawer6, .overlay6').click(function() {
                 $('#sideDrawer6, .overlay6').removeClass('active');
                 $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer7').click(function() {
+                $('#sideDrawer7, .overlay7').addClass('active');
+            });
+
+            $('#closeDrawer7, .overlay7').click(function() {
+                $('#sideDrawer7, .overlay7').removeClass('active');
             });
         });
 

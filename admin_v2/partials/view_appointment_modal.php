@@ -545,14 +545,13 @@ if ($TYPE == 'appointment') {
     /* ---------------------------------------------- Group Class Details -------------------------------------------------- */
 
 
-
-
     $ALL_APPOINTMENT_QUERY = "SELECT
                                 DOA_APPOINTMENT_MASTER.*,
                                 DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
                                 DOA_SERVICE_MASTER.SERVICE_NAME,
                                 DOA_SERVICE_MASTER.PK_SERVICE_MASTER,
                                 DOA_SERVICE_MASTER.SERVICE_NAME,
+                                DOA_SERVICE_CODE.PK_SERVICE_CODE,
                                 DOA_SERVICE_CODE.SERVICE_CODE,
                                 DOA_APPOINTMENT_STATUS.STATUS_CODE,
                                 DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
@@ -562,9 +561,6 @@ if ($TYPE == 'appointment') {
                                 DOA_APPOINTMENT_MASTER
                                 LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
                                 LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = SERVICE_PROVIDER.PK_USER
-
-                                LEFT JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER
-                                LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
 
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE
                                 LEFT JOIN DOA_SERVICE_MASTER ON DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER
@@ -625,7 +621,7 @@ if ($TYPE == 'appointment') {
     $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'";
     $appointment_customer_data = $db_account->Execute($appointment_customer_query);
     ?>
-    <div class="appointment-profile d-flex">
+    <div class="appointment-profile d-flex gap-3 f12 theme-text-light mb-2">
         <div class="d-flex align-items-center gap-3 f12 theme-text-light">
             <div class="profilename-data f14">Enrolled Student : <?= $appointment_customer_data->RecordCount() ?></div>
         </div>
@@ -639,20 +635,20 @@ if ($TYPE == 'appointment') {
             $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
             $selected_user_id = $appointment_customer_data->fields['PK_USER'];
         ?>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
                 <div>
                     <span class="badge bgsuccess d-inline-block p-1"></span>
                     <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold" onclick="loadViewCustomerModal(<?= $selected_user_id ?>, 0)"><?= $selected_customer ?></a>
                     <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
                 </div>
                 <div class="d-flex gap-2 ms-auto">
-                    <a href="javascript;" class="btn-icon">
+                    <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>)">
                         <i class="fa fa-times" aria-hidden="true"></i>
                     </a>
-                    <a href="javascript;" class="btn-icon">
+                    <a href="javascript:;" class="btn-icon">
                         <i class="fa fa-envelope" aria-hidden="true"></i>
                     </a>
-                    <a href="javascript;" class="btn-icon">
+                    <a href="javascript:;" class="btn-icon">
                         <i class="fa fa-comment" aria-hidden="true"></i>
                     </a>
                 </div>
@@ -661,6 +657,9 @@ if ($TYPE == 'appointment') {
             $appointment_customer_data->MoveNext();
         }
         ?>
+        <div class="appointment-profile d-flex gap-3 f12 theme-text-light mb-2">
+            <button type="button" class="btn-secondary w-100 m-1" onclick="addCustomerToGroupClass();">Add New Customer</button>
+        </div>
     </div>
 
     <!-- Group Class Details -->
@@ -686,7 +685,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group serviceprovider">
-                    <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" onchange="getSlots(this)" required>
+                    <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" required>
                         <option value="">Select <?= $service_provider_title ?></option>
                         <?php
                         $selected_service_provider = '';
@@ -719,7 +718,7 @@ if ($TYPE == 'appointment') {
                     <select class="form-control" name="SERVICE_ID" onchange="selectThisService(this)" required>
                         <option value="">Select Service</option>
                         <?php
-                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
+                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
                         while (!$row->EOF) { ?>
                             <option value="<?= $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" <?= ($PK_SERVICE_CODE == $row->fields['PK_SERVICE_CODE']) ? 'selected' : '' ?>><?= $row->fields['SERVICE_NAME'] . ' || ' . $row->fields['SERVICE_CODE'] ?></option>
                         <?php $row->MoveNext();
@@ -742,7 +741,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group" id="scheduling_code_select">
-                    <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
+                    <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" required>
                         <option value="">Select Scheduling Code</option>
                         <?php
                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE PK_LOCATION IN (" . $PK_LOCATION . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
@@ -771,7 +770,7 @@ if ($TYPE == 'appointment') {
                     <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
                     <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
                 </div>
-                <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
+                <!-- <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
                     <span>Show Availability</span>
                     <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
                         <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
@@ -779,7 +778,7 @@ if ($TYPE == 'appointment') {
                 </button>
                 <div class="slot_div mt-2">
 
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -854,5 +853,46 @@ if ($TYPE == 'appointment') {
                 getSlots(this);
             }
         });
+
+        function addCustomerToGroupClass() {
+            $('#sideDrawer7, .overlay7').addClass('active');
+            $.ajax({
+                url: "partials/add_customer_to_group_class.php",
+                type: "POST",
+                data: {
+                    PK_APPOINTMENT_MASTER: <?= $PK_APPOINTMENT_MASTER ?>,
+                    PK_SERVICE_CODE: <?= $PK_SERVICE_CODE ?>
+                },
+                success: function(result) {
+                    $('#add_customer_to_group_class').html(result);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading view_appointment_modal.php:", error);
+                    $('#add_customer_to_group_class').html('<p>Error loading appointment details.</p>');
+                }
+            });
+
+        }
+
+        function removeThisCustomerFromGroupClass(PK_APPOINTMENT_MASTER, PK_USER_MASTER) {
+            if (confirm("Are you sure you want to remove this customer from the appointment?")) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: "POST",
+                    data: {
+                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                        PK_USER_MASTER: PK_USER_MASTER,
+                        FUNCTION_NAME: 'removeCustomerFromGroupClass'
+                    },
+                    success: function(result) {
+                        loadViewAppointmentModal(PK_APPOINTMENT_MASTER, 'group_class');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error loading view_appointment_modal.php:", error);
+                        alert("Error removing customer from appointment.");
+                    }
+                });
+            }
+        }
     </script>
 <?php } ?>

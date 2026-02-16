@@ -3034,3 +3034,71 @@ function changeShowAsRecipient($RESPONSE_DATA)
     db_perform('DOA_USERS', $UPDATE_DATA, 'update', " PK_USER = " . $PK_USER);
     echo 1;
 }
+
+
+function addCustomerToGroupClass($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $PK_USER_MASTER = $RESPONSE_DATA['SELECTED_CUSTOMER_ID'];
+
+    $PK_ENROLLMENT_MASTER_ARRAY = explode(',', $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[0];
+    $PK_ENROLLMENT_SERVICE = $PK_ENROLLMENT_MASTER_ARRAY[1];
+    $PK_SERVICE_MASTER = $PK_ENROLLMENT_MASTER_ARRAY[2];
+    $PK_SERVICE_CODE = $PK_ENROLLMENT_MASTER_ARRAY[3];
+
+    if (!isset($RESPONSE_DATA['PK_ENROLLMENT_MASTER']) || $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] == '') {
+        $return_data['success'] = false;
+        $return_data['message'] = 'Enrollment data is missing';
+        echo json_encode($return_data);
+        die();
+    } else {
+        $customer_already_added = $db_account->Execute("SELECT PK_APPOINTMENT_CUSTOMER FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' AND PK_USER_MASTER = '$PK_USER_MASTER' AND IS_PARTNER = 0");
+        if ($customer_already_added->RecordCount() > 0) {
+            $return_data['success'] = false;
+            $return_data['message'] = 'Customer already added to this class';
+            echo json_encode($return_data);
+            die();
+        } else {
+            $GROUP_CLASS_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $GROUP_CLASS_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $GROUP_CLASS_CUSTOMER_DATA['IS_PARTNER'] = 0;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $GROUP_CLASS_CUSTOMER_DATA, 'insert');
+
+            $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+            $details = '(' . $user_data->fields['NAME'] . ' Added By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
+            $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+            db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+
+            checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, 'CREATED', 0);
+
+            $return_data['success'] = true;
+            $return_data['message'] = 'Customer added successfully';
+            echo json_encode($return_data);
+        }
+    }
+}
+
+function removeCustomerFromGroupClass($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+
+    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_CUSTOMER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER' AND IS_PARTNER = 0");
+    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER' AND `PK_USER_MASTER` = '$PK_USER_MASTER'");
+
+    $CUSTOMER_UPDATE_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+    $user_data = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
+    $details = '(' . $user_data->fields['NAME'] . ' Removed By ' . $_SESSION['FIRST_NAME'] . ' ' . $_SESSION['LAST_NAME'] . ' at ' . date("m/d/Y h:i A") . ')';
+    $CUSTOMER_UPDATE_DATA['DETAILS'] = $details;
+    db_perform_account('DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY', $CUSTOMER_UPDATE_DATA, 'insert');
+
+    $return_data['success'] = true;
+    $return_data['message'] = 'Customer removed successfully';
+    echo json_encode($return_data);
+}

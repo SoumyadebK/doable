@@ -118,7 +118,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control customer_select" name="SELECTED_CUSTOMER_ID" id="SELECTED_CUSTOMER_ID" onchange="selectThisCustomer(this);" required>
+                                <select class="form-control customer_select" name="SELECTED_CUSTOMER_ID" id="SELECTED_CUSTOMER_ID" onchange="selectThisCustomerForAppointmentCreation(this);" required>
                                     <option value="">Select Customer</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_USER_LOCATION AS DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_ENROLLMENT_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USER_ROLES AS DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE (DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 ORDER BY DOA_USERS.FIRST_NAME");
@@ -151,7 +151,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" name="PK_SERVICE_MASTER" onchange="selectThisService(this)">
+                                <select class="form-control" name="PK_SERVICE_MASTER" onchange="selectThisServiceForSchedulingCode(this)">
                                     <option value="">Select Service</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 0 AND DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
@@ -300,7 +300,7 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" name="SERVICE_ID" onchange="selectThisService(this)" required>
+                                <select class="form-control" name="SERVICE_ID" onchange="selectThisServiceForSchedulingCode(this)" required>
                                     <option value="">Select Service</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_SERVICE_CODE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_CODE.IS_GROUP = 1 AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.IS_DELETED = 0 ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
@@ -811,10 +811,10 @@ if ($service_master->RecordCount() == 0) {
     let start_time_array = [];
     let end_time_array = [];
 
-    function selectThisCustomer(param) {
+    function selectThisCustomerForAppointmentCreation(param) {
         let PK_USER_MASTER = $(param).val();
-        $('.enrollment_area').removeClass('d-none');
-        $('.schedule_code_area').removeClass('d-none');
+        $('#create_appointment_form .enrollment_area').removeClass('d-none');
+        $('#create_appointment_form .schedule_code_area').removeClass('d-none');
         $.ajax({
             url: "ajax/get_enrollments.php",
             type: "POST",
@@ -824,7 +824,7 @@ if ($service_master->RecordCount() == 0) {
             async: false,
             cache: false,
             success: function(result) {
-                $('#enrollment_div').html(result);
+                $('#create_appointment_form #enrollment_div').html(result);
             }
         });
     }
@@ -857,7 +857,7 @@ if ($service_master->RecordCount() == 0) {
         }
     }
 
-    function selectThisService(param) {
+    function selectThisServiceForSchedulingCode(param) {
         let PK_SERVICE_MASTER = $(param).val();
         $.ajax({
             url: "ajax/get_scheduling_codes.php",
