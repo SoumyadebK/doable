@@ -172,7 +172,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         <span class="close-btn" id="closeDrawer4">&times;</span>
     </div>
     <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
-        <form class="mb-0" id="enrollmentForm">
+        <form class="mb-0" id="enrollment_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
             <div class="row mb-2 align-items-center">
@@ -433,12 +433,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
             </div>
+
+
+            <div class="modal-footer flex-nowrap p-2 border-top">
+                <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
+                <button type="submit" class="btn-primary w-100 m-1">Continue to Billing</button>
+            </div>
+
         </form>
     </div>
-    <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-        <button id="openDrawer5" type="button" class="btn-primary w-100 m-1">Continue to Billing</button>
-    </div>
+
 </div>
 
 <!--Confirm Model-->
@@ -1433,6 +1437,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     $(document).on('submit', '#enrollment_form', function(event) {
         event.preventDefault();
+
         let service_provider = $('#SERVICE_PROVIDER_ID').val();
         let is_confirm = $('#is_confirm').val();
         if (service_provider == '' && is_confirm == 0) {

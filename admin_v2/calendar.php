@@ -793,13 +793,13 @@ if ($location_operational_hour->RecordCount() > 0) {
             <h6 class="mb-0">Appointment Details</h6>
             <span class="close-btn" id="closeDrawer2">&times;</span>
         </div>
-        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
+        <div class="modal-body p-3" id="edit_appointment_div" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
             <!-- Content will be loaded here via AJAX -->
         </div>
-        <!-- <div class="modal-footer flex-nowrap p-2 border-top">
+        <div class="modal-footer flex-nowrap border-top">
             <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
-            <button type="button" class="btn-primary w-100 m-1">Save</button>
-        </div> -->
+            <button type="button" class="btn-primary w-100 m-1" onclick="submitEditAppointmentForm(this)">Save</button>
+        </div>
     </div>
 
     <!-- Customer Details -->
@@ -819,10 +819,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         </div>
     </div>
 
-    <?php include 'partials/create_appointment_modal.php'; ?>
-    <?php include 'partials/create_enrollment_modal.php'; ?>
-
     <?php require_once('../includes/footer.php'); ?>
+
+    <?php include 'partials/create_appointment_modal.php'; ?>
+
+    <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
@@ -1271,7 +1272,10 @@ if ($location_operational_hour->RecordCount() > 0) {
                     if (clickCount === 1 && is_editable) {
                         singleClickTimer = setTimeout(function() {
                             if (clickCount === 1) {
-                                loadViewAppointmentModal(info.event.id);
+                                let event_data = info.event;
+                                let event_data_ext_prop = info.event.extendedProps;
+                                let TYPE = event_data_ext_prop.type;
+                                loadViewAppointmentModal(event_data.id, TYPE);
                                 //showAppointmentEdit(info);
                             }
                             clickCount = 0;
@@ -1375,24 +1379,25 @@ if ($location_operational_hour->RecordCount() > 0) {
             updateChooseDateInput(date);
         }
 
-        function loadViewAppointmentModal(appointmentId) {
+        function loadViewAppointmentModal(appointmentId, TYPE) {
             $('#sideDrawer2, .overlay2').addClass('active');
             $.ajax({
                 url: "partials/view_appointment_modal.php",
                 type: "POST",
                 data: {
-                    PK_APPOINTMENT_MASTER: appointmentId
+                    PK_APPOINTMENT_MASTER: appointmentId,
+                    TYPE: TYPE
                 },
                 success: function(result) {
                     // Update the drawer content with view_appointment_modal
-                    $('#sideDrawer2 .drawer-body').html(result);
+                    $('#edit_appointment_div').html(result);
 
                     // Re-initialize any scripts if needed
                     initializeModalScripts();
                 },
                 error: function(xhr, status, error) {
                     console.error("Error loading view_appointment_modal.php:", error);
-                    $('#sideDrawer2 .drawer-body').html('<p>Error loading appointment details.</p>');
+                    $('#edit_appointment_div').html('<p>Error loading appointment details.</p>');
                 }
             });
         }
@@ -2126,7 +2131,18 @@ if ($location_operational_hour->RecordCount() > 0) {
     </script>
 
 
+    <script>
+        function submitEditAppointmentForm() {
+            let form = $('#edit_appointment_form');
 
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return false;
+            }
+
+            form.submit();
+        }
+    </script>
 
 </body>
 
