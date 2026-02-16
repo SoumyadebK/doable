@@ -18,10 +18,18 @@ while (!$package_service_data->EOF) {
     <div class="datetime-area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_<?= $service_counter ?>">
         <div class="datetime-item d-flex ">
             <div class="align-self-center">
+
                 <?php
-                $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND ACTIVE = 1 AND IS_DELETED = 0");
+                $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_MASTER.IS_DELETED = 0");
                 ?>
-                <p class="text-dark fw-semibold mb-0"><?= $row->fields['SERVICE_NAME'] ?> <span class="badge border ms-auto" style="background-color: #ebf2ff; color: #6b82e2;">PRI</span></p>
+                <input type="hidden" name="PK_SERVICE_MASTER[]" value="<?= $package_service_data->fields['PK_SERVICE_MASTER'] ?>">
+                <input type="hidden" name="PK_SERVICE_CODE[]" value="<?= $row->fields['PK_SERVICE_CODE'] ?>">
+                <input type="hidden" name="SERVICE_DETAILS[]" value="<?= $package_service_data->fields['SERVICE_DETAILS'] ?>">
+                <input type="hidden" name="NUMBER_OF_SESSION[]" value="<?= $package_service_data->fields['NUMBER_OF_SESSION'] ?>">
+                <input type="hidden" name="PRICE_PER_SESSION[]" value="<?= $package_service_data->fields['PRICE_PER_SESSION'] ?>">
+                <input type="hidden" name="TOTAL[]" value="<?= $package_service_data->fields['TOTAL'] ?>">
+
+                <p class="text-dark fw-semibold mb-0"><?= $row->fields['SERVICE_NAME'] ?> <span class="badge border ms-auto" style="background-color: #ebf2ff; color: #6b82e2;"><?= $row->fields['SERVICE_CODE'] ?></span></p>
                 <span class="f10">Total: $<?= $package_service_data->fields['TOTAL'] ?></span>
             </div>
             <div class="d-flex gap-2 ms-auto align-items-start">
@@ -57,7 +65,7 @@ while (!$package_service_data->EOF) {
 
                 <div class="session-item" style="min-width: 45px;">
                     <label class="small text-muted">Total</label>
-                    <div class="f10 pt-2"><span class="TOTAL" name="TOTAL">$ <?= $package_service_data->fields['TOTAL'] ?></span></div>
+                    <div class="f10 pt-2"><span class="TOTAL" name="TOTAL[]">$ <?= $package_service_data->fields['TOTAL'] ?></span></div>
                 </div>
             </div>
             <hr class="my-2">
