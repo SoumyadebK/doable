@@ -165,12 +165,17 @@ if (empty($_GET['id'])) {
                                                 <a href="javascript:;" class="tag_name" data-tag="{ZIP}" style="font-weight: normal;">{ZIP}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{RES_PHONE}" style="font-weight: normal;">{RES_PHONE}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{CELL_PHONE}" style="font-weight: normal;">{CELL_PHONE}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{DOB}" style="font-weight: normal;">{DOB}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{EMAIL}" style="font-weight: normal;">{EMAIL}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{SERVICE_DETAILS}" style="font-weight: normal;">{SERVICE_DETAILS}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{PVT_LESSONS}" style="font-weight: normal;">{PVT_LESSONS}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{TUITION}" style="font-weight: normal;">{TUITION}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{DISCOUNT}" style="font-weight: normal;">{DISCOUNT}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{BAL_DUE}" style="font-weight: normal;">{BAL_DUE}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{TOTAL}" style="font-weight: normal;">{TOTAL}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{TOTAL_TUITION}" style="font-weight: normal;">{TOTAL_TUITION}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{TOTAL_DISCOUNT}" style="font-weight: normal;">{TOTAL_DISCOUNT}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SUBTOTAL}" style="font-weight: normal;">{SUBTOTAL}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{FIRST_DATE}" style="font-weight: normal;">{FIRST_DATE}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{TYPE_OF_ENROLLMENT}" style="font-weight: normal;">{TYPE_OF_ENROLLMENT}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{MISC_SERVICES}" style="font-weight: normal;">{MISC_SERVICES}</a>
@@ -206,7 +211,17 @@ if (empty($_GET['id'])) {
                                                 <a href="javascript:;" class="tag_name" data-tag="{STUDIO_REPRESENTATIVE}" style="font-weight: normal;">{STUDIO_REPRESENTATIVE}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{CO_CLIENT_GUARDIAN}" style="font-weight: normal;">{CO_CLIENT_GUARDIAN}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{VERIFIED_BY}" style="font-weight: normal;">{VERIFIED_BY}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{ENROLLMENT_DATE}" style="font-weight: normal;">{ENROLLMENT_DATE}</a>
                                                 <a href="javascript:;" class="tag_name" data-tag="{EXPIRATION_DATE}" style="font-weight: normal;">{EXPIRATION_DATE}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{TOTAL_NUMBER_OF_SESSION}" style="font-weight: normal;">{TOTAL_NUMBER_OF_SESSION}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_SESSION}" style="font-weight: normal;">{SERVICE_SESSION}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{MONTHS}" style="font-weight: normal;">{MONTHS}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_1}" style="font-weight: normal;">{SERVICE_1}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_2}" style="font-weight: normal;">{SERVICE_2}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_3}" style="font-weight: normal;">{SERVICE_3}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_4}" style="font-weight: normal;">{SERVICE_4}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_5}" style="font-weight: normal;">{SERVICE_5}</a>
+                                                <a href="javascript:;" class="tag_name" data-tag="{SERVICE_6}" style="font-weight: normal;">{SERVICE_6}</a>
                                             </div>
                                         </div>
                                     </div>

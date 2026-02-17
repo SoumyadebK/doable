@@ -502,7 +502,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $PK_ENROLLMENT_LEDGER = 0;
 
     $document_library_data = $db_account->Execute("SELECT DOA_DOCUMENT_LIBRARY.DOCUMENT_TEMPLATE FROM `DOA_DOCUMENT_LIBRARY` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_DOCUMENT_LIBRARY=DOA_DOCUMENT_LIBRARY.PK_DOCUMENT_LIBRARY WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
-    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_USERS.DOB, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     $enrollment_details = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION) AS NUMBER_OF_SESSIONS, SUM(DOA_ENROLLMENT_SERVICE.TOTAL) AS TOTAL, SUM(DOA_ENROLLMENT_SERVICE.DISCOUNT) AS DISCOUNT, SUM(DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT) AS FINAL_AMOUNT, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_BILLING.FIRST_DUE_DATE, DOA_ENROLLMENT_BILLING.PAYMENT_TERM, DOA_ENROLLMENT_BILLING.NUMBER_OF_PAYMENT, DOA_ENROLLMENT_BILLING.INSTALLMENT_AMOUNT FROM DOA_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $RESPONSE_DATA['PK_ENROLLMENT_MASTER'] . " GROUP BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER");
     $html_template = $document_library_data->fields['DOCUMENT_TEMPLATE'];
     $html_template = str_replace('{FULL_NAME}', $user_data->fields['FIRST_NAME'] . " " . $user_data->fields['LAST_NAME'], $html_template);
@@ -510,7 +510,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{CITY}', $user_data->fields['CITY'], $html_template);
     $html_template = str_replace('{STATE}', $user_data->fields['STATE_NAME'], $html_template);
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
-    $html_template = str_replace('{CELL_PHONE}', $user_data->fields['PHONE'], $html_template);
+    $html_template = str_replace('{CELL_PHONE}', !empty($user_data->fields['PHONE']) ? $user_data->fields['PHONE'] : '', $html_template);
+    $html_template = str_replace('{EMAIL}', !empty($user_data->fields['EMAIL_ID']) ? $user_data->fields['EMAIL_ID'] : '', $html_template);
+    $html_template = str_replace('{DOB}', !empty($user_data->fields['DOB']) ? date('m/d/Y', strtotime($user_data->fields['DOB'])) : '', $html_template);
 
     $TYPE_OF_ENROLLMENT = '';
     $SERVICE_DETAILS = '';
@@ -534,7 +536,14 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME'] . " - " . $abbreviation;
     }
 
+    $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
+    $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
+    $interval = $EXPIRY_DATE->diff($CREATED_ON);
+    $months = intval($interval->days / 30) . " months";
+    $months = $months . " month" . ($months > 1 ? "s" : "");
+
     $SERVICE_PRICE = [];
+    $SERVICE_SESSION = [];
 
     while (!$enrollment_service_data->EOF) {
         $TYPE_OF_ENROLLMENT = $enrollment_name;
@@ -544,18 +553,53 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $DISCOUNT .= $enrollment_service_data->fields['DISCOUNT'] . "<br>";
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT'] . "<br>";
         $SERVICE_PRICE[] = $enrollment_service_data->fields['SERVICE_DETAILS'] . " $" . $enrollment_service_data->fields['PRICE_PER_SESSION'] . " per lesson";
+        $SERVICE_SESSION[] = $enrollment_service_data->fields['NUMBER_OF_SESSION'] . " " . $enrollment_service_data->fields['SERVICE_DETAILS'];
+        $TOTAL_NUMBER_OF_SESSION += $enrollment_service_data->fields['NUMBER_OF_SESSION'] . " sessions";
+        $TOTAL_TUITION += $enrollment_service_data->fields['TOTAL'];
+        $TOTAL_DISCOUNT += $enrollment_service_data->fields['DISCOUNT'];
+        $SUBTOTAL += $enrollment_service_data->fields['FINAL_AMOUNT'];
         $enrollment_service_data->MoveNext();
     }
 
-    $count = count($SERVICE_PRICE);
+    $service_data = [];
 
-    if ($count === 1) {
+    // Re-execute the query to reset the recordset pointer
+    $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+
+    if ($enrollment_service_data && $enrollment_service_data->RecordCount() > 0) {
+        while (!$enrollment_service_data->EOF) {
+            $service_data[] = array(
+                'service_details' => $enrollment_service_data->fields['SERVICE_DETAILS'],
+                'number_of_sessions' => $enrollment_service_data->fields['NUMBER_OF_SESSION'],
+                'total' => $enrollment_service_data->fields['TOTAL'],
+                'discount' => $enrollment_service_data->fields['DISCOUNT'],
+                'final_amount' => $enrollment_service_data->fields['FINAL_AMOUNT'],
+                'price_per_session' => $enrollment_service_data->fields['PRICE_PER_SESSION'],
+                'service_name' => $enrollment_service_data->fields['SERVICE_NAME'] ?? 'Service'
+            );
+
+            $enrollment_service_data->MoveNext();
+        }
+    }
+
+    $price_count = count($SERVICE_PRICE);
+    if ($price_count === 1) {
         $SERVICE_PRICE = $SERVICE_PRICE[0] . '.';
-    } elseif ($count === 2) {
+    } elseif ($price_count === 2) {
         $SERVICE_PRICE = $SERVICE_PRICE[0] . ' and ' . $SERVICE_PRICE[1] . '.';
     } else {
         $SERVICE_PRICE = implode(', ', array_slice($SERVICE_PRICE, 0, -1))
             . ' and ' . end($SERVICE_PRICE) . '.';
+    }
+
+    $session_count = count($SERVICE_SESSION);
+    if ($session_count === 1) {
+        $SERVICE_SESSION = $SERVICE_SESSION[0] . '.';
+    } elseif ($session_count === 2) {
+        $SERVICE_SESSION = $SERVICE_SESSION[0] . ' and ' . $SERVICE_SESSION[1] . '.';
+    } else {
+        $SERVICE_SESSION = implode(', ', array_slice($SERVICE_SESSION, 0, -1))
+            . ' and ' . end($SERVICE_SESSION) . '.';
     }
 
     $misc_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.* FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER=DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS = 5 AND DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
@@ -574,10 +618,26 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{MISC_SERVICES}', $MISC_SERVICES, $html_template);
     $html_template = str_replace('{TUITION_COST}', $TUITION_COST, $html_template);
     $html_template = str_replace('{TOTAL}', $enrollment_details->fields['TOTAL'], $html_template);
+    $html_template = str_replace('{TOTAL_TUITION}', $TOTAL_TUITION, $html_template);
+    $html_template = str_replace('{TOTAL_DISCOUNT}', ($TOTAL_TUITION - $SUBTOTAL), $html_template);
+    $html_template = str_replace('{SUBTOTAL}', $SUBTOTAL, $html_template);
     $html_template = str_replace('{CASH_PRICE}', $enrollment_details->fields['FINAL_AMOUNT'], $html_template);
     $html_template = str_replace('{BILLING_DATE}', date('m-d-Y', strtotime($RESPONSE_DATA['BILLING_DATE'])), $html_template);
     $html_template = str_replace('{EXPIRATION_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
     $html_template = str_replace('{SERVICE_PRICE}', $SERVICE_PRICE, $html_template);
+    $html_template = str_replace('{SERVICE_SESSION}', $SERVICE_SESSION, $html_template);
+    $html_template = str_replace('{TOTAL_NUMBER_OF_SESSION}', $TOTAL_NUMBER_OF_SESSION, $html_template);
+    $html_template = str_replace('{MONTHS}', $months, $html_template);
+    $html_template = str_replace('{ENROLLMENT_NAME}', $enrollment_service_data->fields['ENROLLMENT_NAME'], $html_template);
+    $html_template = str_replace('{ENROLLMENT_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['CREATED_ON'])), $html_template);
+    foreach ($service_data as $index => $service) {
+        if (!empty($service)) {
+            $unit_price = ($service['number_of_sessions'] > 0) ? ($service['total'] / $service['number_of_sessions']) : 0;
+            $html_template = str_replace('{SERVICE_' . ($index + 1) . '}', "(" . ($index + 1) . ") " . $service['service_details'] . "<br> Units: " . $service['number_of_sessions'] . "<br> Unit Price: $" . number_format((float)$unit_price, 2, '.', '') . "<br> Total Price: $" . number_format((float)$service['total'], 2, '.', '') . "<br>", $html_template);
+        } else {
+            $html_template = str_replace('{SERVICE_' . ($index + 1) . '}', ' ', $html_template);
+        }
+    }
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
         for ($i = 0; $i < count($FLEXIBLE_PAYMENT_DATE); $i++) {
@@ -735,6 +795,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{SCHEDULE_AMOUNT}', $SCHEDULING_AMOUNT, $html_template);
     $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
+    //pre_r($html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
     $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $RESPONSE_DATA['AUTO_PAY_PAYMENT_METHOD_ID'];
