@@ -174,9 +174,21 @@ if ($TYPE == 'appointment') {
                         <?php
                         $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                         while (!$serviceCodeData->EOF) {
-                            $used_session_count = getAllSessionCreatedCount($serviceCodeData->fields['PK_ENROLLMENT_SERVICE']);
+                            if ($PK_ENROLLMENT_SERVICE != 0) {
+                                $appointment_position = 0;
+                                $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+                                if ($enr_service_data->RecordCount() > 0) {
+                                    $appointment_position = getAppointmentPosition($PK_ENROLLMENT_SERVICE, $PK_APPOINTMENT_MASTER);
+                                    $PAID_COUNT = getPaidCount($PK_ENROLLMENT_SERVICE);
+                                    $paid_status = (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
+                                    $appointment_number = ($appointment_position > 0) ? '  ' . ($appointment_position) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+                                }
+                            } else {
+                                $appointment_number = '';
+                                $paid_status = '';
+                            }
                         ?>
-                            <span><?= $serviceCodeData->fields['SERVICE_NAME'] ?>: <?= $used_session_count . '/' . $serviceCodeData->fields['NUMBER_OF_SESSION'] ?></span>
+                            <span><?= $serviceCodeData->fields['SERVICE_NAME'] ?>: <?= $appointment_number ?></span>
                         <?php
                             $serviceCodeData->MoveNext();
                         } ?>
@@ -309,7 +321,7 @@ if ($TYPE == 'appointment') {
         <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $CUSTOMER_ID ?>">
         <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
         <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
-        <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>">
+        <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $TYPE ?>">
         <input type="hidden" name="START_TIME" id="START_TIME" value="<?= $START_TIME ?>">
         <input type="hidden" name="END_TIME" id="END_TIME" value="<?= $END_TIME ?>">
         <div class="row mb-2 align-items-center mt-3">
@@ -540,11 +552,7 @@ if ($TYPE == 'appointment') {
         }
     </script>
 <?php } elseif ($TYPE == 'group_class') {
-
-
-    /* ---------------------------------------------- Group Class Details -------------------------------------------------- */
-
-
+    /* --------------------------------------------------------------- Group Class Details --------------------------------------------------------------- */
     $ALL_APPOINTMENT_QUERY = "SELECT
                                 DOA_APPOINTMENT_MASTER.*,
                                 DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
@@ -668,7 +676,7 @@ if ($TYPE == 'appointment') {
         <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $CUSTOMER_ID ?>">
         <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
         <input type="hidden" name="PK_APPOINTMENT_MASTER" class="PK_APPOINTMENT_MASTER" value="<?= $PK_APPOINTMENT_MASTER ?>">
-        <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $APPOINTMENT_TYPE ?>">
+        <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $TYPE ?>">
         <input type="hidden" name="START_TIME" id="START_TIME" value="<?= $START_TIME ?>">
         <input type="hidden" name="END_TIME" id="END_TIME" value="<?= $END_TIME ?>">
 
@@ -895,4 +903,205 @@ if ($TYPE == 'appointment') {
             }
         }
     </script>
-<?php } ?>
+<?php } elseif ($TYPE == 'special_appointment') {
+    /* --------------------------------------------------------------- Special Appointment Details --------------------------------------------------------------- */
+    $SPECIAL_APPOINTMENT_QUERY = "SELECT
+                                    DOA_SPECIAL_APPOINTMENT.*,
+                                    DOA_APPOINTMENT_STATUS.APPOINTMENT_STATUS,
+                                    DOA_APPOINTMENT_STATUS.STATUS_CODE,
+                                    DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                                    DOA_SCHEDULING_CODE.COLOR_CODE,
+                                    DOA_SCHEDULING_CODE.DURATION,
+                                    GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID
+                                    FROM
+                                    `DOA_SPECIAL_APPOINTMENT`
+                                    LEFT JOIN DOA_SPECIAL_APPOINTMENT_USER ON DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
+                                    LEFT JOIN $master_database.DOA_USERS AS SERVICE_PROVIDER ON DOA_SPECIAL_APPOINTMENT_USER.PK_USER = SERVICE_PROVIDER.PK_USER
+                                    LEFT JOIN $master_database.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
+                                    LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
+                                    WHERE DOA_SPECIAL_APPOINTMENT.PK_SPECIAL_APPOINTMENT = " . $PK_APPOINTMENT_MASTER;
+
+    $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
+
+    $PK_SPECIAL_APPOINTMENT = $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'];
+    $TITLE = preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']);
+    $DATE = date("m/d/Y", strtotime($special_appointment_data->fields['DATE']));
+    $START_TIME = $special_appointment_data->fields['START_TIME'];
+    $END_TIME = $special_appointment_data->fields['END_TIME'];
+    $DESCRIPTION = $special_appointment_data->fields['DESCRIPTION'];
+    $PK_APPOINTMENT_STATUS = $special_appointment_data->fields['PK_APPOINTMENT_STATUS'];
+
+    $PK_SCHEDULING_CODE = $special_appointment_data->fields['PK_SCHEDULING_CODE'];
+
+    $APPOINTMENT_STATUS = $special_appointment_data->fields['APPOINTMENT_STATUS'];
+    $STATUS_CODE = $special_appointment_data->fields['STATUS_CODE'];
+    $STATUS_COLOR = $special_appointment_data->fields['APPOINTMENT_COLOR'];
+
+    $SERVICE_PROVIDER_ID = $special_appointment_data->fields['SERVICE_PROVIDER_ID'];
+    $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE DOA_USERS.PK_USER = '$SERVICE_PROVIDER_ID'");
+    $service_provider_name = $service_provider_data->fields['NAME'];
+
+    $profile = getProfileBadge($service_provider_name);
+    $profile_name = $profile['initials'];
+    $profile_color = $profile['color'];
+?>
+
+    <!-- Special Appointment Details -->
+    <form class="mb-0" id="edit_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="PK_SPECIAL_APPOINTMENT" class="PK_SPECIAL_APPOINTMENT" value="<?= $PK_SPECIAL_APPOINTMENT ?>">
+        <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $TYPE ?>">
+        <input type="hidden" name="START_TIME" id="START_TIME" value="<?= $START_TIME ?>">
+        <input type="hidden" name="END_TIME" id="END_TIME" value="<?= $END_TIME ?>">
+
+        <div class="row mb-2 align-items-center mt-3">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="#ccc">
+                        <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
+                        <path d="m107.7045 91.5695a3 3 0 0 0 -2.7573-1.85 2.9415 2.9415 0 0 0 -2.7734 1.8252l-28.6245 67.25a3 3 0 0 0 2.76 4.1748h56.5581a3 3 0 0 0 2.7705-4.15zm-26.8574 65.4 24.0529-56.5104 23.473 56.5109z" />
+                        <path d="m233.0087 223.2169h-9.8213v-162.3291h9.8213a3 3 0 0 0 0-6h-25.6426a3 3 0 1 0 0 6h9.8213v162.3291h-9.8213a3 3 0 0 0 0 6h25.6426a3 3 0 0 0 0-6z" />
+                        <path d="m17.1913 55.23a3 3 0 0 0 3-3v-9.8217h173.1358v9.8217a3 3 0 1 0 6 0v-25.642a3 3 0 0 0 -6 0v9.82h-173.1358v-9.82a3 3 0 1 0 -6 0v25.642a3 3 0 0 0 3 3z" />
+                    </svg>
+                    <label class="mb-0">Title</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" value="<?= $TITLE ?>" required />
+                </div>
+            </div>
+        </div>
+
+        <hr class="mb-3">
+        <div class="row mb-2 align-items-center mt-3">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="#ccc">
+                        <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                        <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                        <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                    </svg>
+                    <label class="mb-0"><?= $service_provider_title ?></label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group serviceprovider">
+                    <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" required>
+                        <option value="">Select <?= $service_provider_title ?></option>
+                        <?php
+                        $selected_service_provider = '';
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                        while (!$row->EOF) {
+                            if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
+                                $selected_service_provider = $row->fields['NAME'];
+                            } ?>
+                            <option value="<?= $row->fields['PK_USER']; ?>" <?= ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3 align-items-center schedulecode">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                        <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                        <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                        <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                    </svg>
+                    <label class="mb-0">Scheduling Code</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group" id="scheduling_code_select">
+                    <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" required>
+                        <option value="">Select Scheduling Code</option>
+                        <?php
+                        $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
+                        while (!$row->EOF) { ?>
+                            <option data-duration="<?= $row->fields['DURATION']; ?>" value="<?= $row->fields['PK_SCHEDULING_CODE'] . ',' . $row->fields['DURATION'] ?>" <?= ($PK_SCHEDULING_CODE == $row->fields['PK_SCHEDULING_CODE']) ? 'selected' : '' ?>><?= $row->fields['SCHEDULING_NAME'] . ' (' . $row->fields['SCHEDULING_CODE'] . ')' ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3 align-items-center staus">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="transparent">
+                        <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                        <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                        <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                    </svg>
+                    <label class="mb-0">Status</label>
+                </div>
+            </div>
+            <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?= $PK_APPOINTMENT_STATUS ?>">
+            <div class="col-8 col-md-8">
+                <div class="form-group" id="scheduling_code_select">
+                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
+                        <option value="1">Select Status</option>
+                        <?php
+                        $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
+                        while (!$row->EOF) { ?>
+                            <option value="<?= $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($PK_APPOINTMENT_STATUS == $row->fields['PK_APPOINTMENT_STATUS']) ? 'selected' : '' ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <hr class="mb-3">
+        <div class="row mb-3">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                        <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                        <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                    </svg>
+                    <label class="mb-0">Date & Time</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group d-flex gap-3" id="datetime">
+                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
+                    <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
+                </div>
+            </div>
+        </div>
+
+
+        <hr class="mb-3">
+        <div class="row mb-3">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="18px" fill="#ccc">
+                        <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                    </svg>
+                    <label class="mb-0">Description</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <textarea class="form-control" name="DESCRIPTION"><?= $DESCRIPTION ?></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!-- End Special Appointment Details -->
+
+    <script>
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+            onSelect: function() {
+                getSlots(this);
+            }
+        });
+    </script>
+<?php }
+?>

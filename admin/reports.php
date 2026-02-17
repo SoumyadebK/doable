@@ -8,6 +8,12 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
+$location_data = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = " . $LOCATION_ARRAY[0]);
+$AMI_ENABLE = $location_data->fields['FRANCHISE'];
+
 if (!empty($_GET['NAME'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;

@@ -1392,26 +1392,28 @@ if ($location_operational_hour->RecordCount() > 0) {
         }
 
         function loadViewAppointmentModal(appointmentId, TYPE) {
-            $('#sideDrawer2, .overlay2').addClass('active');
-            $.ajax({
-                url: "partials/view_appointment_modal.php",
-                type: "POST",
-                data: {
-                    PK_APPOINTMENT_MASTER: appointmentId,
-                    TYPE: TYPE
-                },
-                success: function(result) {
-                    // Update the drawer content with view_appointment_modal
-                    $('#edit_appointment_div').html(result);
+            if (TYPE != 'not_available') {
+                $('#sideDrawer2, .overlay2').addClass('active');
+                $.ajax({
+                    url: "partials/view_appointment_modal.php",
+                    type: "POST",
+                    data: {
+                        PK_APPOINTMENT_MASTER: appointmentId,
+                        TYPE: TYPE
+                    },
+                    success: function(result) {
+                        // Update the drawer content with view_appointment_modal
+                        $('#edit_appointment_div').html(result);
 
-                    // Re-initialize any scripts if needed
-                    initializeModalScripts();
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error loading view_appointment_modal.php:", error);
-                    $('#edit_appointment_div').html('<p>Error loading appointment details.</p>');
-                }
-            });
+                        // Re-initialize any scripts if needed
+                        initializeModalScripts();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error loading view_appointment_modal.php:", error);
+                        $('#edit_appointment_div').html('<p>Error loading appointment details.</p>');
+                    }
+                });
+            }
         }
 
         function loadViewCustomerModal(customerId, PK_ENROLLMENT_MASTER) {
