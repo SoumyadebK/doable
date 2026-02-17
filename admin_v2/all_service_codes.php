@@ -90,7 +90,7 @@ if ($header_data->RecordCount() > 0) {
                                                 <th style="text-align: center">Description</th>
                                                 <th style="text-align: center">Upload Documents</th>
                                                 <th style="text-align: center">Count on Calendar</th>
-                                                <th style="text-align: center">Sort Order</th>
+                                                <th style="text-align: center">Sort By Order</th>
                                                 <th style="text-align: center">Actions</th>
                                             </tr>
                                         </thead>

@@ -249,7 +249,7 @@ if ($TYPE == 'appointment') {
             </div>
         </div>
         <div>
-            <span class="badge border ms-auto " style="color: #fff; background-color: <?= $COLOR_CODE ?>"><?= $SERVICE_CODE ?></span>&nbsp;
+            <span class="badge ms-auto f-12" style="color: <?= $COLOR_CODE ?>; background-color: <?= $COLOR_CODE ?>20;"><?= $SERVICE_CODE ?></span>&nbsp;
             <span class="ms-auto f-12" style="color:<?= $STATUS_COLOR ?>"><?= $APPOINTMENT_STATUS ?></span>&nbsp;&nbsp;
         </div>
         <div class="statusareatext f12 theme-text-light mt-2">

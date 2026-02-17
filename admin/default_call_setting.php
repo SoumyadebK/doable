@@ -362,6 +362,20 @@ while (!$res->EOF) {
                                                     <textarea class="form-control" name="NO_RESPONSE[<?= $loc_id ?>]" rows="5"><?= isset($DEFAULT_CALL_SETTING[$loc_id]['NO_RESPONSE']) ? $DEFAULT_CALL_SETTING[$loc_id]['NO_RESPONSE'] : '' ?></textarea>
                                                 </div>
                                             </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script for Date Selection</label>
+                                                    <textarea class="form-control" rows="5" disabled>Great! Let's get you scheduled for your first session. Please say a date like {SAMPLE_DATE}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4">
+                                                <div class="form-group">
+                                                    <label>Script for Time Slot Selection</label>
+                                                    <textarea class="form-control" rows="5" disabled>Great! Here are the available time slots for {CHOSEN_DATE}</textarea>
+                                                </div>
+                                            </div>
                                         </div>
 
                                     <?php
