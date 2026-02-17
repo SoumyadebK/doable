@@ -38,7 +38,9 @@ if (!empty($_GET['NAME'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 <style>
     .menu-list {
         list-style-type: none;
@@ -76,11 +78,10 @@ if (!empty($_GET['NAME'])) {
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <?php require_once('../includes/report_menu.php') ?>
-            <div class="container-fluid" style="padding: 10px 20px 0 20px;">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <?php require_once('layout/report_menu.php') ?>
+            <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">

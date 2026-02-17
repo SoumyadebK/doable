@@ -3,15 +3,14 @@ error_reporting(0);
 require_once('../global/config.php');
 $title = "Data Uploader";
 
-if($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5]) ){
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
-if(!empty($_POST))
-{
+if (!empty($_POST)) {
     // Allowed mime types
     $fileMimes = array(
         'text/x-comma-separated-values',
@@ -28,9 +27,8 @@ if(!empty($_POST))
     );
 
     // Validate whether selected file is a CSV file
-    if (!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $fileMimes))
-    {
-        $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = ".$PK_ACCOUNT_MASTER);
+    if (!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $fileMimes)) {
+        $account_data = $db->Execute("SELECT DB_NAME FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $PK_ACCOUNT_MASTER);
         $DB_NAME = $account_data->fields['DB_NAME'];
 
         if (!empty($DB_NAME)) {
@@ -56,9 +54,11 @@ if(!empty($_POST))
         $PK_LOCATION = $_POST['PK_LOCATION'];
 
         // Parse data from CSV file line by line
-        while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE)
-        {
-            if ($lineNumber === 1) { $lineNumber++; continue; }
+        while (($getData = fgetcsv($csvFile, 10000, ",")) !== FALSE) {
+            if ($lineNumber === 1) {
+                $lineNumber++;
+                continue;
+            }
             //CUSTOMER SECTION
             $INSERT_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
             $INSERT_DATA['FIRST_NAME'] = trim($getData[0]);
@@ -121,24 +121,24 @@ if(!empty($_POST))
 
             //$ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
 
-            $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = ".$PK_ACCOUNT_MASTER);
-            if ($account_data->RecordCount() > 0){
+            $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = " . $PK_ACCOUNT_MASTER);
+            if ($account_data->RecordCount() > 0) {
                 $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
             } else {
                 $enrollment_char = 'ENR';
             }
-            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = ".$PK_USER_MASTER." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-            if ($enrollment_data->RecordCount() > 0){
-                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
-            }else{
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
+            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($enrollment_data->RecordCount() > 0) {
+                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
+                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
+            } else {
+                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
             }
 
-            $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$PK_USER_MASTER." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-            if ($customer_enrollment_number->RecordCount() > 0){
+            $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($customer_enrollment_number->RecordCount() > 0) {
                 $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
-            }else{
+            } else {
                 $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
             }
 
@@ -158,8 +158,8 @@ if(!empty($_POST))
 
             $TOTAL_LESSONS = $getData[4] + $getData[5] + $getData[6];
             $TOTAL_COST = $getData[8];
-            $PRICE_PER_SESSION = $TOTAL_COST/$TOTAL_LESSONS;
-            if($getData[4] > 0) {
+            $PRICE_PER_SESSION = $TOTAL_COST / $TOTAL_LESSONS;
+            if ($getData[4] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
@@ -176,7 +176,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
-            if($getData[5] > 0) {
+            if ($getData[5] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
@@ -193,7 +193,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
-            if($getData[6] > 0) {
+            if ($getData[6] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
@@ -259,24 +259,24 @@ if(!empty($_POST))
 
             //$ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
 
-            $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = ".$PK_ACCOUNT_MASTER);
-            if ($account_data->RecordCount() > 0){
+            $account_data = $db->Execute("SELECT ENROLLMENT_ID_CHAR, ENROLLMENT_ID_NUM FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = " . $PK_ACCOUNT_MASTER);
+            if ($account_data->RecordCount() > 0) {
                 $enrollment_char = $account_data->fields['ENROLLMENT_ID_CHAR'];
             } else {
                 $enrollment_char = 'ENR';
             }
-            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = ".$PK_USER_MASTER." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-            if ($enrollment_data->RecordCount() > 0){
-                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']) ;
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.(intval($last_enrollment_id)+1);
-            }else{
-                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char.$account_data->fields['ENROLLMENT_ID_NUM'];
+            $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($enrollment_data->RecordCount() > 0) {
+                $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
+                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
+            } else {
+                $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
             }
 
-            $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = ".$PK_USER_MASTER." ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-            if ($customer_enrollment_number->RecordCount() > 0){
+            $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($customer_enrollment_number->RecordCount() > 0) {
                 $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
-            }else{
+            } else {
                 $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
             }
 
@@ -295,8 +295,8 @@ if(!empty($_POST))
 
             $TOTAL_LESSONS = $getData[9] + $getData[10] + $getData[11];
             $TOTAL_COST = $getData[13];
-            $PRICE_PER_SESSION = $TOTAL_COST/$TOTAL_LESSONS;
-            if($getData[9] > 0) {
+            $PRICE_PER_SESSION = $TOTAL_COST / $TOTAL_LESSONS;
+            if ($getData[9] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
@@ -313,7 +313,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
-            if($getData[10] > 0) {
+            if ($getData[10] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
@@ -330,7 +330,7 @@ if(!empty($_POST))
                 db_perform_account('DOA_ENROLLMENT_SERVICE', $SERVICE_DATA, 'insert');
             }
 
-            if($getData[11] > 0) {
+            if ($getData[11] > 0) {
                 $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
                 $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
@@ -397,17 +397,16 @@ if(!empty($_POST))
         // Close opened CSV file
         fclose($csvFile);
         //header("Location: csv_uploader.php");
-    }
-    else
-    {
+    } else {
         echo "Please select valid file";
     }
 }
 
-function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER) {
+function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT_SERVICE, $PK_USER_MASTER, $PK_SERVICE_MASTER)
+{
     global $db;
     global $db_account;
-    $SESSION_CREATED = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = ".$PK_ENROLLMENT_MASTER." AND PK_ENROLLMENT_SERVICE = ".$PK_ENROLLMENT_SERVICE);
+    $SESSION_CREATED = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER . " AND PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
     if ($SESSION_CREATED->RecordCount() > 0 && $SESSION_CREATED->fields['SESSION_COUNT'] >= $SESSION_COUNT) {
         $db_account->Execute("UPDATE `DOA_ENROLLMENT_MASTER` SET `ALL_APPOINTMENT_DONE` = '1' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
         $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 ORDER BY PK_ENROLLMENT_MASTER ASC LIMIT 1");
@@ -426,60 +425,64 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once('../includes/header.php');?>
-<body class="skin-default-dark fixed-layout">
-<?php require_once('../includes/loader.php');?>
-<div id="main-wrapper">
-    <?php require_once('../includes/top_menu.php');?>
-    <div class="page-wrapper">
-        <?php require_once('../includes/top_menu_bar.php') ?>
-        <?php require_once('../includes/setup_menu.php') ?>
-        <div class="container-fluid body_content m-0">
-            <div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h4 class="text-themecolor"><?=$title?></h4>
-                </div>
-                <div class="col-md-7 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                            <li class="breadcrumb-item active"><?=$title?></li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            <form action="" method="post" enctype="multipart/form-data">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Select Location</label>
-                            <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
-                                <option value="">Select Location</option>
-                                <?php
-                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = ".$_SESSION['PK_ACCOUNT_MASTER']);
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_LOCATION'];?>"><?=$row->fields['LOCATION_NAME']?></option>
-                                    <?php $row->MoveNext(); } ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Select CSV</label>
-                            <input type="file" class="form-control" name="file">
-                            <a href="../uploads/Demo Sheet.csv" target="_blank">Download Demo Sheet</a>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="margin-top: 30px">Submit</button>
-                    </div>
-                </div>
+<?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 
-            </form>
+<body class="skin-default-dark fixed-layout">
+    <?php require_once('../includes/loader.php'); ?>
+    <div id="main-wrapper">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <?php require_once('layout/setup_menu.php') ?>
+            <div class="container-fluid body_content m-0" style="margin-top: 0px !important;">
+                <div class="row page-titles">
+                    <div class="col-md-5 align-self-center">
+                        <h4 class="text-themecolor"><?= $title ?></h4>
+                    </div>
+                    <div class="col-md-7 align-self-center text-end">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <ol class="breadcrumb justify-content-end">
+                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
+                                <li class="breadcrumb-item active"><?= $title ?></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Select Location</label>
+                                <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
+                                    <option value="">Select Location</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>"><?= $row->fields['LOCATION_NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Select CSV</label>
+                                <input type="file" class="form-control" name="file">
+                                <a href="../uploads/Demo Sheet.csv" target="_blank">Download Demo Sheet</a>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="margin-top: 30px">Submit</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
         </div>
     </div>
-</div>
-<?php require_once('../includes/footer.php');?>
+    <?php require_once('../includes/footer.php'); ?>
 </body>
 <script>
     function viewCsvDownload(param) {
@@ -487,4 +490,5 @@ function checkSessionCount($SESSION_COUNT, $PK_ENROLLMENT_MASTER, $PK_ENROLLMENT
         $('#view_download_div').html(`<a href="../uploads/csv_upload/${table_name}.csv" target="_blank">View Sample</a>`);
     }
 </script>
+
 </html>

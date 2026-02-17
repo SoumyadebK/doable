@@ -106,7 +106,9 @@ if ($help->RecordCount() > 0) {
 
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 <style>
     /* Ensure container doesn't clip */
@@ -178,10 +180,10 @@ if ($help->RecordCount() > 0) {
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
+
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <div class="container-fluid body_content" style="margin-top: 0px;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
