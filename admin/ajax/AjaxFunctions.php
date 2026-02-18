@@ -567,20 +567,24 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     if ($enrollment_service_data && $enrollment_service_data->RecordCount() > 0) {
+
         while (!$enrollment_service_data->EOF) {
+
             $service_data[] = array(
-                'service_details' => $enrollment_service_data->fields['SERVICE_DETAILS'],
-                'number_of_sessions' => $enrollment_service_data->fields['NUMBER_OF_SESSION'],
-                'total' => $enrollment_service_data->fields['TOTAL'],
-                'discount' => $enrollment_service_data->fields['DISCOUNT'],
-                'final_amount' => $enrollment_service_data->fields['FINAL_AMOUNT'],
-                'price_per_session' => $enrollment_service_data->fields['PRICE_PER_SESSION'],
+                'service_details' => $enrollment_service_data->fields['SERVICE_DETAILS'] ?? '',
+                'number_of_sessions' => (int)($enrollment_service_data->fields['NUMBER_OF_SESSION'] ?? 0),
+                'total' => (float)($enrollment_service_data->fields['TOTAL'] ?? 0),
+                'discount' => (float)($enrollment_service_data->fields['DISCOUNT'] ?? 0),
+                'final_amount' => (float)($enrollment_service_data->fields['FINAL_AMOUNT'] ?? 0),
+                'price_per_session' => (float)($enrollment_service_data->fields['PRICE_PER_SESSION'] ?? 0),
                 'service_name' => $enrollment_service_data->fields['SERVICE_NAME'] ?? 'Service'
             );
 
             $enrollment_service_data->MoveNext();
         }
     }
+    //print_r($service_data);
+
 
     $price_count = count($SERVICE_PRICE);
     if ($price_count === 1) {
@@ -630,13 +634,28 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{MONTHS}', $months, $html_template);
     $html_template = str_replace('{ENROLLMENT_NAME}', $enrollment_service_data->fields['ENROLLMENT_NAME'], $html_template);
     $html_template = str_replace('{ENROLLMENT_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['CREATED_ON'])), $html_template);
-    foreach ($service_data as $index => $service) {
-        if (!empty($service)) {
+
+    // Create a mapping of numbers to letters
+    $letter_map = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    // Loop through all 6 possible service positions
+    for ($i = 1; $i <= 6; $i++) {
+        $index = $i - 1; // Convert to zero-based index for array access
+
+        // Check if service exists at this index
+        if (isset($service_data[$index]) && isset($service_data[$index]['service_details']) && $service_data[$index]['service_details'] !== '') {
+            $service = $service_data[$index];
             $unit_price = ($service['number_of_sessions'] > 0) ? ($service['total'] / $service['number_of_sessions']) : 0;
-            $html_template = str_replace('{SERVICE_' . ($index + 1) . '}', "(" . ($index + 1) . ") " . $service['service_details'] . "<br> Units: " . $service['number_of_sessions'] . "<br> Unit Price: $" . number_format((float)$unit_price, 2, '.', '') . "<br> Total Price: $" . number_format((float)$service['total'], 2, '.', '') . "<br>", $html_template);
+
+            // Use the letter from the map instead of the number
+            $replacement = "(" . $letter_map[$index] . ") " . $service['service_details'] . "<br> Units: " . $service['number_of_sessions'] . "<br> Unit Price: $" . number_format((float)$unit_price, 2, '.', '') . "<br> Total Price: $" . number_format((float)$service['total'], 2, '.', '') . "<br>";
         } else {
-            $html_template = str_replace('{SERVICE_' . ($index + 1) . '}', ' ', $html_template);
+            // No service data for this position, show blank/empty
+            $replacement = ''; // or you can use an empty string ''
         }
+
+        // Replace the placeholder
+        $html_template = str_replace('{SERVICE_' . $i . '}', $replacement, $html_template);
     }
 
     if ($RESPONSE_DATA['PAYMENT_METHOD'] == 'Flexible Payments') {
