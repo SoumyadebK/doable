@@ -512,7 +512,18 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{ZIP}', $user_data->fields['ZIP'], $html_template);
     $html_template = str_replace('{CELL_PHONE}', !empty($user_data->fields['PHONE']) ? $user_data->fields['PHONE'] : '', $html_template);
     $html_template = str_replace('{EMAIL}', !empty($user_data->fields['EMAIL_ID']) ? $user_data->fields['EMAIL_ID'] : '', $html_template);
-    $html_template = str_replace('{DOB}', !empty($user_data->fields['DOB']) ? date('m/d/Y', strtotime($user_data->fields['DOB'])) : '', $html_template);
+
+    $dob = $user_data->fields['DOB'];
+    $formatted_dob = '';
+    if (!empty($dob)) {
+        $date = DateTime::createFromFormat('Y-m-d', $dob);
+        $errors = DateTime::getLastErrors();
+
+        if ($date && $errors['warning_count'] == 0 && $errors['error_count'] == 0) {
+            $formatted_dob = $date->format('m/d/Y');
+        }
+    }
+    $html_template = str_replace('{DOB}', $formatted_dob, $html_template);
 
     $TYPE_OF_ENROLLMENT = '';
     $SERVICE_DETAILS = '';
@@ -564,7 +575,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $service_data = [];
 
     // Re-execute the query to reset the recordset pointer
-    $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
+    $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     if ($enrollment_service_data && $enrollment_service_data->RecordCount() > 0) {
 
@@ -633,7 +644,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{TOTAL_NUMBER_OF_SESSION}', $TOTAL_NUMBER_OF_SESSION, $html_template);
     $html_template = str_replace('{MONTHS}', $months, $html_template);
     $html_template = str_replace('{ENROLLMENT_NAME}', $enrollment_service_data->fields['ENROLLMENT_NAME'], $html_template);
-    $html_template = str_replace('{ENROLLMENT_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['CREATED_ON'])), $html_template);
+    $html_template = str_replace('{ENROLLMENT_DATE}', !empty($enrollment_service_data->fields['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($enrollment_service_data->fields['ENROLLMENT_DATE'])) : '', $html_template);
 
     // Create a mapping of numbers to letters
     $letter_map = ['A', 'B', 'C', 'D', 'E', 'F'];
