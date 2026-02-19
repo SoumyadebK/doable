@@ -826,7 +826,13 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{DUE_DATE}', $DUE_DATE, $html_template);
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     //pre_r($html_template);
-    $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+
+    if ($_SESSION['PK_ACCOUNT_MASTER'] == 1010) {
+        $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generateEnrollmentPDF($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    } else {
+        $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    }
+
     $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
     $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $RESPONSE_DATA['AUTO_PAY_PAYMENT_METHOD_ID'];
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
@@ -894,6 +900,386 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
     $mpdf->Output('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $file_name, 'F');
 
     return $LOCATION_CODE . '/' . $file_name;
+}
+
+// Include the HTML template file
+// Update the path accordingly
+
+function generateEnrollmentPDF($PK_ENROLLMENT_MASTER)
+{
+    require_once('../includes/pdf_generation.php');
+    global $upload_path;
+
+    // Generate the HTML using only the PK_ENROLLMENT_MASTER
+    $html = getEnrollmentHTML($PK_ENROLLMENT_MASTER);
+
+    // Use your existing mPDF function
+    require_once('../../global/vendor/autoload.php');
+
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_left' => 15,
+        'margin_right' => 15,
+        'margin_top' => 15,
+        'margin_bottom' => 15,
+        'margin_header' => 5,
+        'margin_footer' => 5
+    ]);
+
+    // Set document properties
+    $mpdf->SetTitle('Enrollment Agreement #' . $PK_ENROLLMENT_MASTER);
+    $mpdf->SetAuthor('Dance With Me');
+    $mpdf->SetCreator('DWM System');
+
+    // Write HTML
+    $mpdf->WriteHTML($html);
+    $mpdf->keep_table_proportions = true;
+
+    // Get location code from database
+    global $master_database;
+    global $db_account;
+
+    $enrollment_location = $db_account->Execute("
+        SELECT DOA_LOCATION.LOCATION_CODE 
+        FROM DOA_ENROLLMENT_MASTER 
+        LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+            ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION 
+        WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'
+    ");
+
+    $LOCATION_CODE = $enrollment_location->fields['LOCATION_CODE'] ?? 'DEFAULT';
+
+    // Create directory structure if not exists
+    $pdf_dir = '../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/';
+
+    if (!file_exists($pdf_dir)) {
+        mkdir($pdf_dir, 0777, true);
+        chmod($pdf_dir, 0777);
+    }
+
+    // Generate filename
+    $file_name = "enrollment_" . $PK_ENROLLMENT_MASTER . "_" . date('Ymd_His') . ".pdf";
+    $full_path = $pdf_dir . $file_name;
+
+    // Save PDF
+    $mpdf->Output($full_path, 'F');
+
+    return $LOCATION_CODE . '/' . $file_name;
+}
+
+function generateEnrollmentHTML($enrollment, $services, $total_tuition, $total_discount, $grand_total)
+{
+
+    $student_name = $enrollment['FIRST_NAME'] . ' ' . $enrollment['LAST_NAME'];
+    $address = $enrollment['ADDRESS'] ?? '';
+    $city = $enrollment['CITY'] ?? '';
+    $phone = $enrollment['PHONE'] ?? '';
+    $email = $enrollment['EMAIL'] ?? '';
+    $dob = $enrollment['DOB'] ? date('m/d/Y', strtotime($enrollment['DOB'])) : '';
+    $enrollment_date = date('m/d/Y', strtotime($enrollment['ENROLLMENT_DATE']));
+    $expiry_date = date('m/d/Y', strtotime($enrollment['EXPIRY_DATE']));
+    $course_description = $enrollment['ENROLLMENT_NAME'] ?: 'Dance Program';
+
+    // Company info
+    $company_name = $enrollment['COMPANY_NAME'] ?? 'DWM Dance Studio Houston, LLC.';
+    $company_address = $enrollment['COMPANY_ADDRESS'] ?? '600 N SHEPHERD DR SUITE 405 | HOUSTON, TX 77007';
+    $company_phone = $enrollment['COMPANY_PHONE'] ?? '713.360.3262';
+    $company_email = $enrollment['COMPANY_EMAIL'] ?? 'HOUSTON@DANCEWITHMEUSA.COM';
+    $company_logo = $enrollment['COMPANY_LOGO'] ?? '';
+
+    // Handle logo
+    $logo_html = '';
+    if (!empty($company_logo) && file_exists('../../' . $company_logo)) {
+        $logo_html = '<img src="../../' . $company_logo . '" class="logo" />';
+    } else {
+        $logo_html = '<div style="font-size: 24px; font-weight: bold;">' . $company_name . '</div>';
+    }
+
+    // Map services to letters A-F
+    $letter_map = ['A', 'B', 'C', 'D', 'E', 'F'];
+    $service_blocks = [];
+
+    for ($i = 0; $i < 6; $i++) {
+        if (isset($services[$i])) {
+            $service = $services[$i];
+            $unit_price = ($service['number_of_sessions'] > 0) ?
+                ($service['total'] / $service['number_of_sessions']) : 0;
+
+            $service_blocks[$letter_map[$i]] = [
+                'title' => '(' . $letter_map[$i] . ') ' . $service['service_name'],
+                'units' => $service['number_of_sessions'],
+                'unit_price' => $unit_price,
+                'total_price' => $service['total']
+            ];
+        } else {
+            $service_blocks[$letter_map[$i]] = [
+                'title' => '(' . $letter_map[$i] . ') ',
+                'units' => '',
+                'unit_price' => '',
+                'total_price' => ''
+            ];
+        }
+    }
+
+    // Return the HTML template
+    return '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>DWM Enrollment Agreement</title>
+        <style>
+            body { 
+                font-family: Helvetica, Arial, sans-serif; 
+                color: #000; 
+                font-size: 12px; 
+                line-height: 18px; 
+                margin: 0;
+                padding: 0;
+            }
+            .font-bold { font-weight: bold; }
+            .font-black { font-weight: 900; }
+            p { margin: 0 0 12px; }
+            .text-center { text-align: center; }
+            .text-end { text-align: right; }
+            .logo { max-width: 180px; }
+            .line { 
+                border-bottom: 1px solid #000; 
+                min-height: 20px; 
+                width: 100%;
+                margin-top: 5px;
+                display: inline-block;
+            }
+            .mb-0 { margin-bottom: 0; }
+            .service-block {
+                width: 30%;
+                padding: 10px 0px;
+                vertical-align: top;
+            }
+            .footer { margin-top: 30px; text-align: center; }
+            ol { margin-left: 20px; }
+            li { margin-bottom: 8px; }
+            .watermark {
+                position: fixed;
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 50px;
+                color: rgba(0, 0, 0, 0.05);
+                white-space: nowrap;
+                z-index: -1;
+            }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .page-break { page-break-before: always; }
+            hr { border: 1px solid #ddd; }
+        </style>
+    </head>
+    <body>       
+        <!-- Welcome Content -->
+        <tbody>
+            <tr>
+                <td colspan="3" width="100%">
+                    <div class="text-center">
+                        <a href="#"><img src="../../assets/images/dwm_logo.png" style="max-width: 180px;"></a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" width="100%">
+                    <p>
+                        <b>Welcome to the DWM Family!!</b>We are thrilled to have you join our community of dancers. As
+                        you
+                        begin your program, we want to provide you with tips and information to help you make the most
+                        out of
+                        your dance lessons.
+                    </p>
+                    <p>
+                        <b>Utilizing Your Lessons:</b> Your program consists of a total of 13 sessions, including 5
+                        private
+                        classes, 5 group classes, and 3 parties. We encourage you to utilize the privates and groups
+                        within 1
+                        month. This condensed schedule is designed to immerse you fully in the dance experience and
+                        accelerate
+                        your progress. Consistency is key when learning anything new, so we encourage you to make it a
+                        priority
+                        and we guarantee we will make it worth it! The aim of your current plan is to explore various
+                        dances and
+                        patterns, setting you on the path to becoming a confident dancer. To enhance your learning
+                        experience we
+                        highly encourage you to share your feedback throughout the lessons. Let us know which songs
+                        inspire you
+                        to dance, which dance styles pique your curiosity, and how you prefer to learn.
+                    </p>
+                    <p>
+                        <b>Group Class Schedule:</b> You will find the schedule for our group classes on our website. We
+                        recommend attending sessions regularly as they provide valuable opportunities for socializing,
+                        practicing with different partners, and refining your techniques under the guidance of our
+                        experienced
+                        instructors. Anyone working in the studio will be able to give you advice on which groups will
+                        be best
+                        for your level and desire.
+                    </p>
+                    <p>
+                        <b>Attire:</b> For your comfort and ease of movement, we suggest wearing clothing that allows
+                        you to
+                        move freely. Ballroom dancing is a king’s sport so dressing up is encouraged :) However, if you
+                        are
+                        coming from work or the gym, that of course will work as well. Additionally, it’s important to
+                        wear
+                        appropriate dance shoes to support your feet and enhance your performance. If you are able to
+                        purchase
+                        ballroom dance shoes, that is ideal but it is not essential to learning. A comfortable sport
+                        shoe or a
+                        shoe with a small heel will also do as long as it won’t slip off. For more recommendations,
+                        please speak
+                        to your instructor.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" width="100%">
+                    <p><b>Additional Tips:</b></p>
+                    <ul>
+                        <li>
+                            If possible, consider scheduling a private lesson right before a group class (especially if
+                            you are
+                            busy). This back-to-back format provides you with 90 minutes of dance practice, blending
+                            focused
+                            personal instruction with the fun and energy of group dynamics.
+                        </li>
+                        <li>
+                            Arrive a few minutes early to each class to warm up. Warming up could be reviewing the steps
+                            you’ve
+                            learned, physical stretching or even just giving yourself time to sit and watch the other
+                            lessons
+                            going on.
+                        </li>
+                        <li>
+                            Let your instructor know what you are enjoying most. The more open you are with your
+                            experience the
+                            better your instructor will be able to custom tailor it for you.
+                        </li>
+                        <li>If possible, practice outside of class to reinforce what you’ve learned.</li>
+                        <li>
+                            Your teacher will keep track of your progress in your program which he will show you on your
+                            first
+                            lesson. You are more than welcome to access it whenever you are at the studio.
+                        </li>
+                    </ul>
+                    <p>
+                        We’re here to support you every step of your dance journey. If you have any questions or need
+                        guidance,
+                        just give us a call. Let’s make your dance experience as exciting and enriching as possible!
+                    </p>
+                    <p>Sincerely,</p>
+                    <p class="font-bold">Dance With Me Houston</p>
+                    <div class="text-center font-bold">
+                        <h2 class="font-black mb-0"><b>DWM DANCE STUDIO HOUSTON, LLC.</b></h2>
+                        <p>
+                            600 N SHEPHERD DR SUITE 405 | HOUSTON, TX 77007 <br />
+                            <a href="mailto:HOUSTON@DANCEWITHMEUSA.COM">HOUSTON@DANCEWITHMEUSA.COM</a> |
+                            <a href="tel:713.360.3262">713.360.3262</a>
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+        
+        <!-- Enrollment Agreement -->
+        <div class="page-break"></div>
+        <table>
+            <tr><td class="font-bold" colspan="3">DANCE WITH ME HOUSTON</td></tr>
+            <tr>
+                <td colspan="2">STUDENT ENROLLMENT AGREEMENT</td>
+                <td class="text-end">Date: <span class="line" style="width:150px;">' . $enrollment_date . '</span></td>
+            </tr>
+            <tr><td colspan="3">Name: <span class="line" style="width:80%;">' . $student_name . '</span></td></tr>
+            <tr><td colspan="3" style="padding-top:10px;">Address: <span class="line" style="width:80%;">' . $address . '</span></td></tr>
+            <tr><td colspan="3" style="padding-top:10px;">City: <span class="line" style="width:85%;">' . $city . '</span></td></tr>
+            <tr><td colspan="3" style="padding-top:10px;">Phone: <span class="line" style="width:85%;">' . $phone . '</span></td></tr>
+            <tr>
+                <td style="width:30%; padding-top:10px;">Phone 2: <span class="line"></span></td>
+                <td style="width:30%; padding-top:10px;">DOB: <span class="line">' . $dob . '</span></td>
+                <td style="width:30%; padding-top:10px;">Email: <span class="line">' . $email . '</span></td>
+            </tr>
+            <tr><td colspan="3" style="padding-top:10px;">Student agrees to purchase and DWM Dance Studio Galleria, LLC. (the “studio”) agrees to provide the following described course of dance instruction and/or miscellaneous studio service(s) on the following items of tuition.</td></tr>
+            
+            <!-- Service Blocks -->
+            <tr>
+                <td class="service-block"><h3>' . $service_blocks['A']['title'] . '</h3>Units: ' . ($service_blocks['A']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['A']['unit_price'] ? number_format($service_blocks['A']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['A']['total_price'] ? number_format($service_blocks['A']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3>' . $service_blocks['B']['title'] . '</h3>Units: ' . ($service_blocks['B']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['B']['unit_price'] ? number_format($service_blocks['B']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['B']['total_price'] ? number_format($service_blocks['B']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3>' . $service_blocks['C']['title'] . '</h3>Units: ' . ($service_blocks['C']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['C']['unit_price'] ? number_format($service_blocks['C']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['C']['total_price'] ? number_format($service_blocks['C']['total_price'], 2) : '') . '</b></td>
+            </tr>
+            <tr>
+                <td class="service-block"><h3>' . $service_blocks['D']['title'] . '</h3>Units: ' . ($service_blocks['D']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['D']['unit_price'] ? number_format($service_blocks['D']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['D']['total_price'] ? number_format($service_blocks['D']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3>' . $service_blocks['E']['title'] . '</h3>Units: ' . ($service_blocks['E']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['E']['unit_price'] ? number_format($service_blocks['E']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['E']['total_price'] ? number_format($service_blocks['E']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3>' . $service_blocks['F']['title'] . '</h3>Units: ' . ($service_blocks['F']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['F']['unit_price'] ? number_format($service_blocks['F']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['F']['total_price'] ? number_format($service_blocks['F']['total_price'], 2) : '') . '</b></td>
+            </tr>
+            
+            <tr><td colspan="3" class="text-center"><h2 style="margin:10px 0;"><span style="font-size:13px;">Course Description:</span> ' . $course_description . '</h2></td></tr>
+            
+            <!-- Totals -->
+            <tr>
+                <td style="padding:10px 0px 0px;"><b>TOTAL TUITION</b><br><span style="font-size:24px;">$' . number_format($total_tuition, 2) . '</span></td>
+                <td style="padding:10px 0px 0px; text-align:center;"><b>DISCOUNT / CREDIT</b><br><span style="font-size:24px;">$' . number_format($total_discount, 2) . '</span></td>
+                <td style="padding:10px 0px 0px; text-align:right;"><b>GRAND TOTAL</b><br><span style="font-size:24px;">$' . number_format($grand_total, 2) . '</span></td>
+            </tr>
+            
+            <tr><td colspan="3" style="padding:20px 0;"><hr></td></tr>
+            
+            <!-- Signatures -->
+            <tr>
+                <td style="width:30%; padding-right:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Manager / Supervisor</div></td>
+                <td style="width:30%;"><div class="line" style="height:30px;"></div><div class="text-center">Student Name</div></td>
+                <td style="width:30%;"><div class="line" style="height:30px;"></div><div class="text-center">Date: ' . $enrollment_date . '</div></td>
+            </tr>
+        </table>
+        
+        <!-- Terms and Conditions (New Page) -->
+        <div class="page-break"></div>
+        <table>
+            <tr><td colspan="3" class="text-center" style="font-size:14px; padding:20px 0;"><b>TERMS AND CONDITIONS</b></td></tr>
+            <tr><td colspan="3">
+                <ol>
+                    <li><b>Term:</b> The Student agrees to prearrange and complete all lessons and/or services provided in this Agreement within one (1) year of the date of the Student Enrollment Agreement Form (Expiration Date: ' . $expiry_date . '). DWM Dance Studio GALLERIA, L.L.C. (hereinafter “Studio”) shall not be obligated to transfer any unused or expired dance lessons and/or services fro prior Agreements.</li>
+                    <li><b>Credit Card Authorization:</b> Student authorizes DWM Houston to charge the credit card on file for any scheduled lessons or unpaid session fees not paid at the time of booking. Student is responsible for updating the studio with any changes to your payment method.</li>
+                    <li><b>Payments:</b> Student agrees to make all payments required under the Agreement in a timely manner; otherwise the Agreement shall terminate immediately upon a default.</li>
+                    <li><b>Rescheduling/Cancellation:</b> All cancellations and/or changes to a scheduled lesson must be done twenty four (24) hours prior to the scheduled time of the lesson or the lesson shall be forfeited.</li>
+                    <li><b>Rescheduling/Cancellation by the Studio:</b> The Studio may cancel or reschedule any individual or group lesson in its sole discretion at any time for any reason.</li>
+                    <li><b>Instructors:</b> The Studio does not guarantee the services of any instructor nor does the Studio guarantee that a request for a particular instructor will be accommodated.</li>
+                    <li><b>Refunds:</b> There shall be no refunds for any reason whatsoever except as set forth in paragraph 8.</li>
+                    <li><b>Termination by the Studio:</b> The Studio may terminate an Agreement with a Student for good cause. Upon termination the Student shall not be entitled to a refund for any unused lessons.</li>
+                    <li><b>Termination by the Student:</b> The student may terminate this agreement within sixty days (60) of the date of the Agreement. Upon termination under this provision, the Student shall receive a refund for only unused lessons paid for.</li>
+                    <li><b>Lost Items:</b> The Studio is not responsible for or liable to the Student for any lost or stolen items.</li>
+                    <li><b>Use of Image and Likeness:</b> The Student grants permission for videos and photographs to be taken of the Student while in the Studio and during the course of the dance lessons, showcases, competitions, company events, etc.</li>
+                    <li><b>Non-Solicitation:</b> The Student hereby agrees not to solicit, induce, encourage, or allow an Employee or former employee of the Studio to engage in dance related activities with the Student outside of the Studio regardless of the Employee’s current employment status.</li>
+                    <li><b>Gratuity:</b> The Student shall not give or loan anything of value to the Employee except for a tip that would be customary in the industry.</li>
+                    <li><b>Liability/Waiver Release:</b> The Student assumes any and all risks involving or arising from his/her participation in the services offered by the Studio, including without limitation, the risk of death, bodily injury or property damage.</li>
+                    <li><b>Non-Transferable:</b> This Agreement is not transferable or assignable to any other individual and/or entity.</li>
+                    <li><b>Legal Construction:</b> In case any one or more of the provisions contained in this Agreement shall for any reason, be held invalid, illegal, or unenforceable in any respect, the invalidity, illegality, or unenforceability shall not affect any other provision of this agreement.</li>
+                    <li><b>Entire Agreement:</b> This Agreement supersedes any prior understandings or written or oral Agreements between the Studio and the Student</li>
+                    <li><b>Actions:</b> In the event of any controversy or claim arising out of this Agreement or the Students relationship with the Studio, the Student shall be required to submit written notice to the Studio of its intent to bring a claim.</li>
+                    <li><b>Waiver:</b> In the event the Studio relaxes any rules stated herein, the relaxation of same shall not be deemed a waiver of any rights the Studio may otherwise have at a later time.</li>
+                    <li><b>Statute of Limitations modifications:</b> Any and all claims brought against the Studio must be brought within twelve months of the accrual of the claim or within six months of the expiration of the one year term of the Agreement, whichever occurs first.</li>
+                </ol>
+            </td></tr>
+            
+            <!-- Final Signatures -->
+            <tr>
+                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Student Name</div></td>
+                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Date</div></td>
+                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div></td>
+            </tr>
+        </table>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><b>Dance With Me Houston</b></p>
+            <p><b>' . $company_name . '</b><br>' . $company_address . '<br>' . $company_email . ' | ' . $company_phone . '</p>
+        </div>
+    </body>
+    </html>';
 }
 
 /*function confirmEnrollmentPayment($RESPONSE_DATA){
