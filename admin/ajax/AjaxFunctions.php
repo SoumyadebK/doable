@@ -827,7 +827,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     //pre_r($html_template);
 
-    if ($_SESSION['PK_ACCOUNT_MASTER'] == 1042) {
+    if ($_SESSION['PK_ACCOUNT_MASTER'] == 1010) {
         $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generateEnrollmentPDF($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     } else {
         $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
