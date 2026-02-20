@@ -670,7 +670,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <div class="calendar-header">
+        <div class="calendar-header mb-2">
             <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
             <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
             <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
