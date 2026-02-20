@@ -7,8 +7,8 @@ function getEnrollmentHTML($PK_ENROLLMENT_MASTER)
     global $master_database;
     global $db_account;
     global $db;
-    
-$background_path = '../../assets/images/dwm_background.jpg'; // Default background image path
+
+    $background_path = '../../assets/images/dwm_background.jpg'; // Default background image path
 
     // Fetch document template
     $document_library_data = $db_account->Execute("
@@ -43,6 +43,7 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE,
             DOA_ENROLLMENT_MASTER.EXPIRY_DATE,
             DOA_ENROLLMENT_MASTER.CREATED_ON,
+            DOA_ENROLLMENT_MASTER.PK_DOCUMENT_LIBRARY,
             DOA_ENROLLMENT_BILLING.FIRST_DUE_DATE, 
             DOA_ENROLLMENT_BILLING.PAYMENT_TERM, 
             DOA_ENROLLMENT_BILLING.NUMBER_OF_PAYMENT, 
@@ -284,10 +285,7 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
         }
     }
 
-    if ($document_library_data->fields['PK_DOCUMENT_LIBRARY'] != 1) {
-
-
-        // Return the HTML template with all placeholders replaced
+    if ($enrollment_details->fields['PK_DOCUMENT_LIBRARY'] == 1) {
         return '
     <!DOCTYPE html>
     <html>
@@ -298,7 +296,7 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             body { 
                 font-family: Helvetica, Arial, sans-serif; 
                 color: #000; 
-                font-size: 12px; 
+                font-size: 13px; 
                 line-height: 18px; 
                 margin: 0;
                 padding: 0;
@@ -322,7 +320,7 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
                 padding: 10px 0px;
                 vertical-align: top;
             }
-            .footer { margin-top: 30px; text-align: center; }
+            .footer { margin-top: 10px; text-align: center; }
             ol { margin-left: 20px; }
             li { margin-bottom: 8px; }
             .watermark {
@@ -340,9 +338,9 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             hr { border: 1px solid #ddd; }
         </style>
     </head>
-    <body background="../../assets/images/dwm_background.jpg">       
+    <body>       
         <!-- Welcome Content -->
-        <tbody  style="background-image: url('.$background_path.'); width: 400px; height: 200px; background-repeat: no-repeat; background-size: cover;">
+        <tbody>
             <tr>
                 <td colspan="3" width="100%">
                     <div class="text-center">
@@ -449,29 +447,29 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             
             <!-- Service Blocks -->
             <tr>
-                <td class="service-block"><h3>' . $service_blocks['A']['title'] . '</h3>Units: ' . ($service_blocks['A']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['A']['unit_price'] ? number_format($service_blocks['A']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['A']['total_price'] ? number_format($service_blocks['A']['total_price'], 2) : '') . '</b></td>
-                <td class="service-block"><h3>' . $service_blocks['B']['title'] . '</h3>Units: ' . ($service_blocks['B']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['B']['unit_price'] ? number_format($service_blocks['B']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['B']['total_price'] ? number_format($service_blocks['B']['total_price'], 2) : '') . '</b></td>
-                <td class="service-block"><h3>' . $service_blocks['C']['title'] . '</h3>Units: ' . ($service_blocks['C']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['C']['unit_price'] ? number_format($service_blocks['C']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['C']['total_price'] ? number_format($service_blocks['C']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['A']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['A']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['A']['unit_price'] ? number_format($service_blocks['A']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['A']['total_price'] ? number_format($service_blocks['A']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['B']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['B']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['B']['unit_price'] ? number_format($service_blocks['B']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['B']['total_price'] ? number_format($service_blocks['B']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['C']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['C']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['C']['unit_price'] ? number_format($service_blocks['C']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['C']['total_price'] ? number_format($service_blocks['C']['total_price'], 2) : '') . '</b></td>
             </tr>
             <tr>
-                <td class="service-block"><h3>' . $service_blocks['D']['title'] . '</h3>Units: ' . ($service_blocks['D']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['D']['unit_price'] ? number_format($service_blocks['D']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['D']['total_price'] ? number_format($service_blocks['D']['total_price'], 2) : '') . '</b></td>
-                <td class="service-block"><h3>' . $service_blocks['E']['title'] . '</h3>Units: ' . ($service_blocks['E']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['E']['unit_price'] ? number_format($service_blocks['E']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['E']['total_price'] ? number_format($service_blocks['E']['total_price'], 2) : '') . '</b></td>
-                <td class="service-block"><h3>' . $service_blocks['F']['title'] . '</h3>Units: ' . ($service_blocks['F']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['F']['unit_price'] ? number_format($service_blocks['F']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['F']['total_price'] ? number_format($service_blocks['F']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['D']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['D']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['D']['unit_price'] ? number_format($service_blocks['D']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['D']['total_price'] ? number_format($service_blocks['D']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['E']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['E']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['E']['unit_price'] ? number_format($service_blocks['E']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['E']['total_price'] ? number_format($service_blocks['E']['total_price'], 2) : '') . '</b></td>
+                <td class="service-block"><h3><em><strong>' . $service_blocks['F']['title'] . '</strong></em></h3>Units: ' . ($service_blocks['F']['units'] ?: '') . '<br>Unit Price: <b>$' . ($service_blocks['F']['unit_price'] ? number_format($service_blocks['F']['unit_price'], 2) : '') . '</b><br>Total: <b>$' . ($service_blocks['F']['total_price'] ? number_format($service_blocks['F']['total_price'], 2) : '') . '</b></td>
             </tr>
             
             <tr><td colspan="3" class="text-center"><h2 style="margin:10px 0;"><span style="font-size:13px;">Course Description:</span> ' . $enrollment_name . '</h2></td></tr>
             <tr>
-                <td width="100%" colspan="3" class="text-center">
+                <td width="100%" colspan="3" class="text-center"><em><strong>
                     <p class="mb-0 font-black line">(Parties and Group classes are complimentary)</p>
-                    <p class="font-black line" style="padding-top: 5px;">($' . number_format($TOTAL_TUITION, 2) . ' VALUE)</p>
+                    <p class="font-black line" style="padding-top: 5px;">($' . number_format($TOTAL_TUITION, 2) . ' VALUE)</p></strong></em>
                 </td>
             </tr>
             
             <!-- Totals -->
             <tr>
-                <td style="padding:10px 0px 0px;"><b>TOTAL TUITION</b><br><span style="font-size:24px;">$' . number_format($TOTAL_TUITION, 2) . '</span></td>
-                <td style="padding:10px 0px 0px; text-align:center;"><b>DISCOUNT / CREDIT</b><br><span style="font-size:24px;">$' . number_format($TOTAL_DISCOUNT, 2) . '</span></td>
-                <td style="padding:10px 0px 0px; text-align:right;"><b>GRAND TOTAL</b><br><span style="font-size:24px;">$' . number_format($SUBTOTAL, 2) . '</span></td>
+                <td style="padding:10px 0px 0px;"><em><strong><b>TOTAL TUITION</b><br><span style="font-size:24px;">$' . number_format($TOTAL_TUITION, 2) . '</span></strong></em></td>
+                <td style="padding:10px 0px 0px; text-align:center;"><em><strong><b>DISCOUNT / CREDIT</b><br><span style="font-size:24px;">$' . number_format($TOTAL_DISCOUNT, 2) . '</span></strong></em></td>
+                <td style="padding:10px 0px 0px; text-align:right;"><em><strong><b>GRAND TOTAL</b><br><span style="font-size:24px;">$' . number_format($SUBTOTAL, 2) . '</span></strong></em></td>
             </tr>
             
             <tr><td colspan="3" style="padding:20px 0;"><hr></td></tr>
@@ -480,7 +478,7 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             <tr>
                 <td style="width:30%; padding-right:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Manager / Supervisor</div></td>
                 <td style="width:30%;"><div class="line" style="height:30px;"></div><div class="text-center">Student Name</div></td>
-                <td style="width:30%;"><div class="line" style="height:30px;"></div><div class="text-center">Date: ' . $enrollment_date . '</div></td>
+                <td style="width:30%;"><div class="line" style="height:30px;"></div><div class="text-center">Date: </div></td>
             </tr>
         </table>
     
@@ -516,9 +514,8 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
             
             <!-- Final Signatures -->
             <tr>
-                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Student Name</div></td>
-                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div><div class="text-center">Date</div></td>
-                <td style="width:30%; padding-top:30px;"><div class="line" style="height:30px;"></div></td>
+                <td style="width:50%; padding-top:30px; text-align: center;">Student Name</td>
+                <td style="width:50%; padding-top:30px; text-align: center;">Date</td>               
             </tr>
         </table>
         
@@ -530,6 +527,205 @@ $background_path = '../../assets/images/dwm_background.jpg'; // Default backgrou
     </body>
     </html>';
     } else {
-        return '<p>Template not found.</p>';
+        return '<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>DWM Miscellaneous Agreement</title>
+        <style>
+            body { 
+                font-family: Helvetica, Arial, sans-serif; 
+                color: #000; 
+                font-size: 12px; 
+                line-height: 18px; 
+                margin: 0;
+                padding: 0;
+            }
+            .font-bold { font-weight: bold; }
+            .font-black { font-weight: 900; }
+            p { margin: 0 0 12px; }
+            .text-center { text-align: center; }
+            .text-end { text-align: right; }
+            .logo { max-width: 180px; }
+            .line { 
+                border-bottom: 1px solid #000; 
+                min-height: 20px; 
+                width: 100%;
+                margin-top: 5px;
+                display: inline-block;
+            }
+            .mb-0 { margin-bottom: 0; }
+            .service-block {
+                width: 30%;
+                padding: 10px 0px;
+                vertical-align: top;
+            }
+            .footer { margin-top: 30px; text-align: center; }
+            ol { margin-left: 20px; }
+            li { margin-bottom: 8px; }
+            .watermark {
+                position: fixed;
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 50px;
+                color: rgba(0, 0, 0, 0.05);
+                white-space: nowrap;
+                z-index: -1;
+            }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .page-break { page-break-before: always; }
+            hr { border: 1px solid #ddd; }
+        </style>
+    </head>
+    <body>
+        <table cellspacing="0" style="width:100%">
+            <tbody>
+                <tr>
+                    <td colspan="3" width="100%">
+                    <div style="text-align:center;">
+                        ' . $logo_html . '
+                    </div>
+                </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- MAIN AGREEMENT TABLE (copied structure, no extra colspan complexity) -->
+
+        <table cellspacing="0" style="width:100%">
+            <tbody>
+                <tr>
+                    <td colspan="3" style="font-size:15px;"><em><strong>DANCE WITH ME HOUSTON</strong></em></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top:10px; font-size:15px;">COMPETITION AGREEMENT</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-top:10px; font-size:15px;"><strong><em>NAME:</em>&nbsp;' . $student_name . '</strong></td>
+                    <td colspan="1" style="padding-top:10px; font-size:15px; text-align:right;"><strong><em>DATE:</em>&nbsp;' . $enrollment_date . '</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top:10px;">Student agrees to purchase and DWM Dance Studio Galleria, LLC. (the &ldquo;studio&rdquo;) agrees to provide the following described course of dance instruction and/or miscellaneous studio service(s) on the following items of tuition. This agreement includes and incorporates by reference the conditions and definitions attached to this form</td>
+                </tr>
+                <!-- service lines (placeholders) -->
+                <tr>
+                    <td colspan="3" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['A']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['A']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['A']['unit_price'] ? number_format($service_blocks['A']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['A']['total_price'] ? number_format($service_blocks['A']['total_price'], 2) : '') . '</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['B']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['B']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['B']['unit_price'] ? number_format($service_blocks['B']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['B']['total_price'] ? number_format($service_blocks['B']['total_price'], 2) : '') . '</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['C']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['C']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['C']['unit_price'] ? number_format($service_blocks['C']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['C']['total_price'] ? number_format($service_blocks['C']['total_price'], 2) : '') . '</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['D']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['D']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['D']['unit_price'] ? number_format($service_blocks['D']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['D']['total_price'] ? number_format($service_blocks['D']['total_price'], 2) : '') . '</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['E']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['E']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['E']['unit_price'] ? number_format($service_blocks['E']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['E']['total_price'] ? number_format($service_blocks['E']['total_price'], 2) : '') . '</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding-top:10px; font-size:15px;"><strong><em>' . $service_blocks['F']['title'] . '</em></strong></h3>Units: ' . ($service_blocks['F']['units'] ?: '') . '<br>Unit Price: <b><em>$' . ($service_blocks['F']['unit_price'] ? number_format($service_blocks['F']['unit_price'], 2) : '') . '</em></b><br>Total: <b>$' . ($service_blocks['F']['total_price'] ? number_format($service_blocks['F']['total_price'], 2) : '') . '</td>
+                </tr>
+                <!-- financial row: TOTAL | DISCOUNT | SERVICE CHARGE -->
+                <tr>
+                    <td colspan="1" style="padding-top:10px; font-size:15px;">
+                    <p><em><strong>TOTAL</strong></em></p>
+
+                    <p><em><strong>$' . number_format($TOTAL_TUITION, 2) . '</strong></em></p>
+                    </td>
+                    <td colspan="1" style="text-align:center; font-size:15px; padding-top:10px;">
+                    <p><em><strong>DISCOUNT | CREDIT</strong></em></p>
+
+                    <p><em><strong>$' . number_format($TOTAL_DISCOUNT, 2) . '</strong></em></p>
+                    </td>
+                    <td colspan="1" style="width:30%; padding-top:10px; font-size:15px; text-align:right;">
+                    <p><em><strong>SERVICE CHARGE </strong></em></p>
+                    <p><em><strong>7%</strong></em></p>
+
+                    <p>&nbsp;</p>
+                    </td>
+                </tr>
+                <!-- second row: GRAND TOTAL | PAID TODAY | BALANCE DUE -->
+                <tr>
+                    <td colspan="1" style="padding-top:10px; font-size:15px;">
+                    <p><em><strong>GRAND TOTAL</strong></em></p>
+
+                    <p><em><strong>$' . number_format($SUBTOTAL, 2) . '</strong></em></p>
+                    </td>
+                    <td colspan="1" style="text-align:center; font-size:15px; padding-top:10px;">
+                    <p><em><strong>PAID TODAY</strong></em></p>
+
+                    <p><em><strong>$' . number_format($enrollment_details->fields['DOWN_PAYMENT'], 2) . '</strong></em></p>
+                    </td>
+                    <td colspan="1" style="width:30%; padding-top:10px; font-size:15px; text-align:right;">
+                    <p><em><strong>BALANCE DUE</strong></em></p>
+
+                    <p><em><strong>$' . number_format($SUBTOTAL - $enrollment_details->fields['DOWN_PAYMENT'], 2) . '</strong></em></p>
+                    <!-- placeholder --></td>
+                </tr>
+                <!-- manager / student signature line (first page signature line, but keep original) -->
+                <tr>
+                    <td colspan="1" style="text-align:center; width:30%; padding-top:50px;">
+                    <p>Manager / Supervisor</p>
+
+                    <p>&nbsp;</p>
+                    </td>
+                    <td colspan="1" style="text-align:center; width:30%; padding-top:50px;">
+                    <p>Student Name</p>
+
+                    <p>&nbsp;</p>
+                    </td>
+                    <td colspan="1" style="width:30%; padding-top:50px;">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+
+    
+        
+        <!-- Terms and Conditions (New Page) -->
+        <div class="page-break"></div>
+        <table>
+            <tr><td colspan="3" class="text-center" style="font-size:14px; padding:20px 0;"><b>TERMS AND CONDITIONS</b></td></tr>
+            <tr><td colspan="3">
+                <ol>
+                    <li><b>Term:</b> The Student agrees to prearrange and complete all lessons and/or services provided in this Agreement within one (1) year of the date of the Student Enrollment Agreement Form (Expiration Date: ' . $expiry_date . '). DWM Dance Studio GALLERIA, L.L.C. (hereinafter “Studio”) shall not be obligated to transfer any unused or expired dance lessons and/or services from prior Agreements.</li>
+                    <li><b>Credit Card Authorization:</b> Student authorizes DWM Houston to charge the credit card on file for any scheduled lessons or unpaid session fees not paid at the time of booking. Student is responsible for updating the studio with any changes to your payment method.</li>
+                    <li><b>Payments:</b> Student agrees to make all payments required under the Agreement in a timely manner; otherwise the Agreement shall terminate immediately upon a default.</li>
+                    <li><b>Rescheduling/Cancellation:</b> All cancellations and/or changes to a scheduled lesson must be done twenty four (24) hours prior to the scheduled time of the lesson or the lesson shall be forfeited.</li>
+                    <li><b>Rescheduling/Cancellation by the Studio:</b> The Studio may cancel or reschedule any individual or group lesson in its sole discretion at any time for any reason.</li>
+                    <li><b>Instructors:</b> The Studio does not guarantee the services of any instructor nor does the Studio guarantee that a request for a particular instructor will be accommodated.</li>
+                    <li><b>Refunds:</b> There shall be no refunds for any reason whatsoever except as set forth in paragraph 8.</li>
+                    <li><b>Termination by the Studio:</b> The Studio may terminate an Agreement with a Student for good cause. Upon termination the Student shall not be entitled to a refund for any unused lessons.</li>
+                    <li><b>Termination by the Student:</b> The student may terminate this agreement within sixty days (60) of the date of the Agreement. Upon termination under this provision, the Student shall receive a refund for only unused lessons paid for.</li>
+                    <li><b>Lost Items:</b> The Studio is not responsible for or liable to the Student for any lost or stolen items.</li>
+                    <li><b>Use of Image and Likeness:</b> The Student grants permission for videos and photographs to be taken of the Student while in the Studio and during the course of the dance lessons, showcases, competitions, company events, etc.</li>
+                    <li><b>Non-Solicitation:</b> The Student hereby agrees not to solicit, induce, encourage, or allow an Employee or former employee of the Studio to engage in dance related activities with the Student outside of the Studio regardless of the Employee’s current employment status.</li>
+                    <li><b>Gratuity:</b> The Student shall not give or loan anything of value to the Employee except for a tip that would be customary in the industry.</li>
+                    <li><b>Liability/Waiver Release:</b> The Student assumes any and all risks involving or arising from his/her participation in the services offered by the Studio, including without limitation, the risk of death, bodily injury or property damage.</li>
+                    <li><b>Non-Transferable:</b> This Agreement is not transferable or assignable to any other individual and/or entity.</li>
+                    <li><b>Legal Construction:</b> In case any one or more of the provisions contained in this Agreement shall for any reason, be held invalid, illegal, or unenforceable in any respect, the invalidity, illegality, or unenforceability shall not affect any other provision of this agreement.</li>
+                    <li><b>Entire Agreement:</b> This Agreement supersedes any prior understandings or written or oral Agreements between the Studio and the Student</li>
+                    <li><b>Actions:</b> In the event of any controversy or claim arising out of this Agreement or the Students relationship with the Studio, the Student shall be required to submit written notice to the Studio of its intent to bring a claim.</li>
+                    <li><b>Waiver:</b> In the event the Studio relaxes any rules stated herein, the relaxation of same shall not be deemed a waiver of any rights the Studio may otherwise have at a later time.</li>
+                    <li><b>Statute of Limitations modifications:</b> Any and all claims brought against the Studio must be brought within twelve months of the accrual of the claim or within six months of the expiration of the one year term of the Agreement, whichever occurs first.</li>
+                </ol>
+            </td></tr>
+            
+            <!-- Final Signatures -->
+            <tr>
+                <td style="width:50%; padding-top:50px; text-align:center;">Student Name</td>
+                <td style="width:50%; padding-top:50px; text-align:center;">Date</td>
+            </tr>
+        </table>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><b><em><strong>Dance With Me Houston</strong></em></b></p>
+            <p><em><strong><b>' . $company_name . '</b><br>' . $company_full_address . '<br>' . $company_email . ' | ' . $company_phone . '</em></p>
+        </div>
+    </body>
+    </html>';
     }
 }
