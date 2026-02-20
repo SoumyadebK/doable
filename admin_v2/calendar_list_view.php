@@ -740,7 +740,15 @@ if ($location_operational_hour->RecordCount() > 0) {
                         <thead>
                             <tr>
                                 <th class="sticky-col date-col border-bottom"></th>
-                                <th>Title</th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Customer Name</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
                                 <th>
                                     <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
                                         <span class="fw-semibold">Time</span>

@@ -271,6 +271,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>ORI</option>
                                                                 <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>EXT</option>
                                                                 <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>REN</option>
+                                                                <option value="16" <?= ($PK_ENROLLMENT_TYPE == 16) ? 'selected' : '' ?>>MISC</option>
                                                             </select>
                                                         </div>
                                                     </div>
