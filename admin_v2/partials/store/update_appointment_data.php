@@ -160,7 +160,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         }
     }
 
-    $time = $db_account->Execute("SELECT DURATION FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . $_POST['PK_SCHEDULING_CODE']);
+    /* $time = $db_account->Execute("SELECT DURATION FROM DOA_SCHEDULING_CODE WHERE PK_SCHEDULING_CODE = " . $_POST['PK_SCHEDULING_CODE']);
     $duration = $time->fields['DURATION'];
     $startTime = date('H:i:s', strtotime($START_TIME));
     if ($duration > 0) {
@@ -169,7 +169,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         $convertedTime = date('H:i:s', strtotime('+30 minutes', strtotime($startTime)));
     }
     $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
-    $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime));
+    $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime)); */
     $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $PK_APPOINTMENT_STATUS;
     $APPOINTMENT_DATA['COMMENT'] = $_POST['COMMENT'];

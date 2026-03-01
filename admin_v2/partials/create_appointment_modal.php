@@ -7,6 +7,15 @@ if ($service_master->RecordCount() == 0) {
     $PK_SERVICE_MASTER = $service_master->fields['PK_SERVICE_MASTER'];
     $PK_SERVICE_CODE = $service_master->fields['PK_SERVICE_CODE'];
 }
+
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = " . $DEFAULT_LOCATION_ID);
+if ($location_operational_hour->RecordCount() > 0) {
+    $minTime = $location_operational_hour->fields['OPEN_TIME'];
+    $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $minTime = '00:00:00';
+    $maxTime = '24:00:00';
+}
 ?>
 <style>
     .slot_div {
@@ -351,7 +360,7 @@ if ($service_master->RecordCount() == 0) {
                             <div class="form-group d-flex gap-2 align-items-center custom-date-time-at" id="datetime">
                                 <input type="text" class="form-control datepicker-normal" id="STARTING_ON" name="GROUP_CLASS_START_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY">
                                 <span class="f14">at</span>
-                                <input type="text" class="form-control timepicker-normal" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
+                                <input type="time" class="form-control" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
                             </div>
 
                             <div class="form-group mt-2 custom-date-time-repeat">
@@ -597,11 +606,11 @@ if ($service_master->RecordCount() == 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                <input type="text" name="DATE" class="form-control datepicker-normal" style="min-width: 110px;" required>
+                                <input type="text" name="DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
                                 <span class="f14">at</span>
-                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control time-picker" onchange="calculateEndTime(this)" required>
+                                <input type="time" id="TO_DO_START_TIME" name="START_TIME" class="form-control" onchange="calculateEndTime(this)" required>
                                 <span class="f14">to</span>
-                                <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control time-picker" required>
+                                <input type="time" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
                             </div>
                             <label class="custom-checkbox float-start mt-2 mb-2">
                                 <input type="checkbox">
@@ -796,6 +805,38 @@ if ($service_master->RecordCount() == 0) {
 
 <!-- End Individual Appointment -->
 <script>
+    $('#APPOINTMENT_DATE').datepicker({
+        onSelect: function() {
+            getSlots(this);
+        }
+    });
+
+    $('#TO_DO_APPOINTMENT_DATE').datepicker({
+        onSelect: function() {
+            getSlots(this);
+        }
+    });
+
+    $('.multi_sumo_select').SumoSelect({
+        placeholder: 'Select <?= $service_provider_title ?>',
+        selectAll: true
+    });
+
+    /* $('#TO_DO_START_TIME').timepicker({
+        timeFormat: 'hh:mm p',
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>',
+        change: function() {
+            calculateEndTime();
+        },
+    });
+
+    $('#TO_DO_END_TIME').timepicker({
+        timeFormat: 'hh:mm p',
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>'
+    }); */
+
     function submitAppointmentForm() {
         let form_name = $('#FORM_NAME').val();
         let form = $('#' + form_name);
