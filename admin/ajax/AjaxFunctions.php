@@ -536,6 +536,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $DUE_DATE = '';
     $BILLED_AMOUNT = '';
 
+    $enrollment_master_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.EXPIRY_DATE, DOA_ENROLLMENT_MASTER.PK_USER_MASTER FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
     $enrollment_count = $db_account->Execute("SELECT COUNT(PK_USER_MASTER) AS ENROLLMENT_COUNT FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER=" . $enrollment_service_data->fields['PK_USER_MASTER']);
     $number = $enrollment_count->RecordCount() > 0 ? $enrollment_count->fields['ENROLLMENT_COUNT'] : '';
@@ -547,8 +548,8 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $enrollment_name = $enrollment_service_data->fields['ENROLLMENT_NAME'] . " - " . $abbreviation;
     }
 
-    $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
-    $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
+    $EXPIRY_DATE = new DateTime($enrollment_master_data->fields['EXPIRY_DATE']);
+    $CREATED_ON = new DateTime($enrollment_master_data->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
     $months = intval($interval->days / 30) . " months";
     $months = $months . " month" . ($months > 1 ? "s" : "");
@@ -565,7 +566,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $BAL_DUE .= $enrollment_service_data->fields['FINAL_AMOUNT'] . "<br>";
         $SERVICE_PRICE[] = $enrollment_service_data->fields['SERVICE_DETAILS'] . " $" . $enrollment_service_data->fields['PRICE_PER_SESSION'] . " per lesson";
         $SERVICE_SESSION[] = $enrollment_service_data->fields['NUMBER_OF_SESSION'] . " " . $enrollment_service_data->fields['SERVICE_DETAILS'];
-        $TOTAL_NUMBER_OF_SESSION += $enrollment_service_data->fields['NUMBER_OF_SESSION'] . " sessions";
+        $TOTAL_NUMBER_OF_SESSION += $enrollment_service_data->fields['NUMBER_OF_SESSION'];
         $TOTAL_TUITION += $enrollment_service_data->fields['TOTAL'];
         $TOTAL_DISCOUNT += $enrollment_service_data->fields['DISCOUNT'];
         $SUBTOTAL += $enrollment_service_data->fields['FINAL_AMOUNT'];
@@ -641,7 +642,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{EXPIRATION_DATE}', date('m-d-Y', strtotime($enrollment_service_data->fields['EXPIRY_DATE'])), $html_template);
     $html_template = str_replace('{SERVICE_PRICE}', $SERVICE_PRICE, $html_template);
     $html_template = str_replace('{SERVICE_SESSION}', $SERVICE_SESSION, $html_template);
-    $html_template = str_replace('{TOTAL_NUMBER_OF_SESSION}', $TOTAL_NUMBER_OF_SESSION, $html_template);
+    $html_template = str_replace('{TOTAL_NUMBER_OF_SESSION}', $TOTAL_NUMBER_OF_SESSION . 'sessions', $html_template);
     $html_template = str_replace('{MONTHS}', $months, $html_template);
     $html_template = str_replace('{ENROLLMENT_NAME}', $enrollment_service_data->fields['ENROLLMENT_NAME'], $html_template);
     $html_template = str_replace('{ENROLLMENT_DATE}', !empty($enrollment_service_data->fields['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($enrollment_service_data->fields['ENROLLMENT_DATE'])) : '', $html_template);
@@ -827,7 +828,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     //pre_r($html_template);
 
-    if ($_SESSION['PK_ACCOUNT_MASTER'] == 1010) {
+    if ($_SESSION['PK_ACCOUNT_MASTER'] == 1042) {
         $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generateEnrollmentPDF($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     } else {
         $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
