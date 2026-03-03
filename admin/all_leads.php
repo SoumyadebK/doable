@@ -4,11 +4,17 @@ $title = "All Leads";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
+    $CHOOSE_DATE = " AND DATE = '" . date('Y-m-d', strtotime($_GET['CHOOSE_DATE'])) . "'";
+} else {
+    $CHOOSE_DATE = "";
+}
+
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 
 $status_condition = ' ';
 if ($status_check != '') {
-    $status_condition = " AND PK_LEAD_STATUS = " . $status_check;
+    $status_condition = " AND DOA_LEAD_STATUS.PK_LEAD_STATUS = " . $status_check;
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
@@ -172,8 +178,13 @@ foreach ($lead_status as $key => $value) {
                         <h4 class="text-themecolor"><?= $title ?></h4>
                     </div>
                     <div class="col-md-6">
-                        <form class=" form-material form-horizontal" action="" method="get">
+                        <form id="search_form" class=" form-material form-horizontal" action="" method="get">
                             <div class="row">
+                                <div class="col-md-4 align-self-center text-end">
+                                    <input type="hidden" id="IS_SELECTED" value="0">
+                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Date" value="<?= ($_GET['CHOOSE_DATE']) ?? '' ?>">
+                                </div>
+
                                 <div class="col-md-4 align-self-center text-end">
                                     <select class="form-control" name="status" id="status" onchange="this.form.submit();">
                                         <option value="">Select Status</option>
@@ -186,7 +197,7 @@ foreach ($lead_status as $key => $value) {
                                     </select>
                                 </div>
 
-                                <div class=" col-md-8 align-self-center text-end">
+                                <div class=" col-md-4 align-self-center text-end">
                                     <div class="input-group">
                                         <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
                                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
@@ -216,7 +227,7 @@ foreach ($lead_status as $key => $value) {
                                         <?php
                                         $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
                                         while (!$leads_status->EOF) {
-                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LEADS.IS_CALLED, DOA_LEADS.IS_APPOINTMENT_CREATED, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
+                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LEADS.IS_CALLED, DOA_LEADS.IS_APPOINTMENT_CREATED, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS LEFT JOIN DOA_LEAD_DATE ON DOA_LEADS.PK_LEADS = DOA_LEAD_DATE.PK_LEADS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " $CHOOSE_DATE AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
                                             <div class="kanban-column">
                                                 <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;"><?= $leads_status->fields['LEAD_STATUS'] ?><br><small><?= $leds_user->RecordCount(); ?> Opportunities</small></div>
                                                 <div class="kanban-body">
@@ -312,6 +323,10 @@ foreach ($lead_status as $key => $value) {
     </div>
     <?php require_once('../includes/footer.php'); ?>
     <script>
+        $('.datepicker-normal').datepicker({
+            format: 'mm/dd/yyyy',
+        });
+
         $(document).ready(function() {
             $('.toggle-pill').on('click', function() {
                 const target = $(this).data('target');
