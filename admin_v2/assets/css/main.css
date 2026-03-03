@@ -1058,3 +1058,53 @@ select.form-control:disabled {
   border-color: #dee2e6;
   color: #525866;
 }
+
+
+.center .pagination {
+  display: inline-block;
+}
+
+.center .pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+  border: 1px solid #ddd;
+  margin: 0 4px;
+  border-radius: 999px;
+}
+
+.center .pagination a.active {
+  background-color: #39B54A;
+  color: white;
+  border: 1px solid #39B54A;
+}
+
+.center .pagination a.hidden {
+  display: none;
+}
+
+.center .pagination a:hover:not(.active) {
+  background-color: #ddd;
+}
+
+.outer {
+  width: 100%;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.outer ul {
+  text-align: center;
+}
+
+.outer li {
+  display: inline-block;
+  *display: inline;
+  /*For IE7*/
+  *zoom: 1;
+  /*For IE7*/
+  vertical-align: top;
+  white-space: normal;
+}

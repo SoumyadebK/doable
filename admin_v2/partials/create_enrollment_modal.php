@@ -12,6 +12,8 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$header = 'all_enrollments.php';
+
 $PK_ENROLLMENT_MASTER = 0;
 $ENROLLMENT_NAME = '';
 $ENROLLMENT_DATE = date('Y-m-d');
@@ -177,7 +179,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
             <input type="hidden" name="PK_LOCATION" id="PK_LOCATION">
             <div class="row mb-2 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="#ccc">
                             <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
@@ -187,7 +189,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Customer</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <select class="form-control form-select" required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
                             <option>Select Customer</option>
@@ -203,7 +205,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-2 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="#ccc">
                             <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
@@ -214,14 +216,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Enrollment Name</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?= $ENROLLMENT_NAME ?>">
                     </div>
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="transparent">
                             <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
@@ -232,7 +234,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Enrollment Type</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <select class="form-control form-select customerselect" name="PK_ENROLLMENT_TYPE" id="PK_ENROLLMENT_TYPE">
                             <option value="">Select Enrollment Type</option>
@@ -246,7 +248,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-2">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 25 25" fill="#ccc">
                             <path d="M11.3829 0L23.2617 1.698L24.9585 13.578L13.9281 24.6084C13.7031 24.8334 13.3979 24.9597 13.0797 24.9597C12.7615 24.9597 12.4564 24.8334 12.2313 24.6084L0.351344 12.7284C0.126379 12.5034 0 12.1982 0 11.88C0 11.5618 0.126379 11.2566 0.351344 11.0316L11.3829 0ZM12.2313 2.5464L2.89654 11.88L13.0797 22.062L22.4133 12.7284L21.1413 3.8184L12.2313 2.5464ZM14.7753 10.1832C14.3252 9.73286 14.0723 9.12214 14.0724 8.48538C14.0725 8.17008 14.1346 7.85789 14.2554 7.56662C14.3761 7.27535 14.553 7.01071 14.7759 6.7878C14.9989 6.56489 15.2636 6.38809 15.5549 6.26749C15.8463 6.14688 16.1585 6.08483 16.4738 6.08489C17.1105 6.085 17.7212 6.33806 18.1713 6.7884C18.6215 7.23874 18.8744 7.84946 18.8743 8.48623C18.8741 9.12299 18.6211 9.73362 18.1707 10.1838C17.7204 10.634 17.1097 10.8868 16.4729 10.8867C15.8362 10.8866 15.2255 10.6335 14.7753 10.1832Z" />
@@ -254,7 +256,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Packages</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group mb-2">
                         <select class="form-control form-select PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
                             <option value="">Select Package</option>
@@ -297,7 +299,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-3 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
                             <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
@@ -306,7 +308,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Start Date & Expiration</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                         <input type="date" class="form-control" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
                         <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
@@ -322,7 +324,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-3 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
                             <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
@@ -331,7 +333,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Agreement</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <select class="form-control form-select" required name="PK_DOCUMENT_LIBRARY" id="PK_DOCUMENT_LIBRARY">
                             <option value="" selected disabled>-- Select --</option>
@@ -347,7 +349,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-3">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
                             <path d="M20.4 24H3.6C2.64522 24 1.72955 23.6207 1.05442 22.9456C0.379285 22.2705 0 21.3548 0 20.4V1.2C0 0.88174 0.126428 0.576515 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0H18C18.3183 0 18.6235 0.126428 18.8485 0.351472C19.0736 0.576515 19.2 0.88174 19.2 1.2V15.6H24V20.4C24 21.3548 23.6207 22.2705 22.9456 22.9456C22.2705 23.6207 21.3548 24 20.4 24ZM19.2 18V20.4C19.2 20.7183 19.3264 21.0235 19.5515 21.2485C19.7765 21.4736 20.0817 21.6 20.4 21.6C20.7183 21.6 21.0235 21.4736 21.2485 21.2485C21.4736 21.0235 21.6 20.7183 21.6 20.4V18H19.2ZM16.8 21.6V2.4H2.4V20.4C2.4 20.7183 2.52643 21.0235 2.75147 21.2485C2.97652 21.4736 3.28174 21.6 3.6 21.6H16.8ZM4.8 6H14.4V8.4H4.8V6ZM4.8 10.8H14.4V13.2H4.8V10.8ZM4.8 15.6H10.8V18H4.8V15.6Z" />
@@ -355,7 +357,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Enrollment By</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="salesby">
                         <select class="form-control form-select" required name="ENROLLMENT_BY_ID" id="ENROLLMENT_BY_ID">
                             <option value="" selected disabled>-- Select --</option>
@@ -368,7 +370,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row mb-3">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
                             <path d="M20.4 24H3.6C2.64522 24 1.72955 23.6207 1.05442 22.9456C0.379285 22.2705 0 21.3548 0 20.4V1.2C0 0.88174 0.126428 0.576515 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0H18C18.3183 0 18.6235 0.126428 18.8485 0.351472C19.0736 0.576515 19.2 0.88174 19.2 1.2V15.6H24V20.4C24 21.3548 23.6207 22.2705 22.9456 22.9456C22.2705 23.6207 21.3548 24 20.4 24ZM19.2 18V20.4C19.2 20.7183 19.3264 21.0235 19.5515 21.2485C19.7765 21.4736 20.0817 21.6 20.4 21.6C20.7183 21.6 21.0235 21.4736 21.2485 21.2485C21.4736 21.0235 21.6 20.7183 21.6 20.4V18H19.2ZM16.8 21.6V2.4H2.4V20.4C2.4 20.7183 2.52643 21.0235 2.75147 21.2485C2.97652 21.4736 3.28174 21.6 3.6 21.6H16.8ZM4.8 6H14.4V8.4H4.8V6ZM4.8 10.8H14.4V13.2H4.8V10.8ZM4.8 15.6H10.8V18H4.8V15.6Z" />
@@ -376,7 +378,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0"><?= $service_provider_title ?></label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <?php
                     if (!empty($_GET['id'])) {
                         $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
@@ -420,7 +422,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="mb-3">
             <div class="row">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="#ccc">
                             <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
@@ -428,23 +430,21 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Internal Note</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <textarea class="form-control" name="MEMO"><?= $MEMO ?></textarea>
                     </div>
                 </div>
             </div>
-
-
-            <div class="modal-footer flex-nowrap p-2 border-top">
-                <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-                <button type="submit" class="btn-primary w-100 m-1">Continue to Billing</button>
-            </div>
-
         </form>
     </div>
-
+    <div class="modal-footer flex-nowrap p-2 border-top">
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer">Cancel</button>
+        <button type="submit" class="btn-primary w-100 m-1" onclick="continueToBilling()">Continue to Billing</button>
+    </div>
 </div>
+
+
 
 <!--Confirm Model-->
 <div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
@@ -490,12 +490,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         <hr class="my-3">
         <h5 class="mb-4 text-dark">Payment Plans</h5>
-        <form class="mb-0 billing_form">
+        <form class="mb-0" id="billing_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
             <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= $PK_ENROLLMENT_BILLING ?>">
             <div class="row mb-2 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="#ccc">
                             <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -503,14 +503,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Billing Ref #</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control" value="<?= $BILLING_REF ?>">
                     </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
                             <path d="M12 24C5.3724 24 0 18.6276 0 12C0 5.3724 5.3724 0 12 0C18.6276 0 24 5.3724 24 12C24 18.6276 18.6276 24 12 24ZM12 21.6C14.5461 21.6 16.9879 20.5886 18.7882 18.7882C20.5886 16.9879 21.6 14.5461 21.6 12C21.6 9.45392 20.5886 7.01212 18.7882 5.21178C16.9879 3.41143 14.5461 2.4 12 2.4C9.45392 2.4 7.01212 3.41143 5.21178 5.21178C3.41143 7.01212 2.4 9.45392 2.4 12C2.4 14.5461 3.41143 16.9879 5.21178 18.7882C7.01212 20.5886 9.45392 21.6 12 21.6ZM7.8 14.4H14.4C14.5591 14.4 14.7117 14.3368 14.8243 14.2243C14.9368 14.1117 15 13.9591 15 13.8C15 13.6409 14.9368 13.4883 14.8243 13.3757C14.7117 13.2632 14.5591 13.2 14.4 13.2H9.6C8.80435 13.2 8.04129 12.8839 7.47868 12.3213C6.91607 11.7587 6.6 10.9957 6.6 10.2C6.6 9.40435 6.91607 8.64129 7.47868 8.07868C8.04129 7.51607 8.80435 7.2 9.6 7.2H10.8V4.8H13.2V7.2H16.2V9.6H9.6C9.44087 9.6 9.28826 9.66321 9.17574 9.77574C9.06321 9.88826 9 10.0409 9 10.2C9 10.3591 9.06321 10.5117 9.17574 10.6243C9.28826 10.7368 9.44087 10.8 9.6 10.8H14.4C15.1957 10.8 15.9587 11.1161 16.5213 11.6787C17.0839 12.2413 17.4 13.0044 17.4 13.8C17.4 14.5956 17.0839 15.3587 16.5213 15.9213C15.9587 16.4839 15.1957 16.8 14.4 16.8H13.2V19.2H10.8V16.8H7.8V14.4Z" />
@@ -518,7 +518,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Payment Method</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <div class="d-flex flex-column gap-2">
                             <label class="one_time">
@@ -543,7 +543,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <!-- One Time -->
             <div id="onetime" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? '' : 'none' ?>;">
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -551,7 +551,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Billing Date</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group">
                             <input type="date" class="form-control" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
                         </div>
@@ -567,7 +567,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <!-- Payment Plans -->
             <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5"></div>
+                    <div class="col-4 col-md-4"></div>
                     <div class="col-md-7 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans' || $PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>;">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
@@ -576,7 +576,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             </div>
                         </div>
                     </div>
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -584,14 +584,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Billing Date</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group">
                             <input type="date" class="form-control" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control datepicker-normal">
                         </div>
                     </div>
                 </div>
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -599,7 +599,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Down Payment</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group">
                             <div class="position-relative">
                                 <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
@@ -608,7 +608,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -616,7 +616,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Payment Term</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
                             <select class="form-control form-select installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                 <option value="">Select</option>
@@ -628,7 +628,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -636,7 +636,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">1st Scheduled Payment Date</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
                             <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                         </div>
@@ -652,7 +652,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <!-- Flexible Payments -->
             <div class="payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
                 <div class="row mb-2 align-items-center">
-                    <div class="col-5 col-md-5"></div>
+                    <div class="col-4 col-md-4"></div>
                     <div class="col-md-7 ms-auto pe-0 mb-2">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
@@ -661,7 +661,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             </div>
                         </div>
                     </div>
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -669,14 +669,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Billing Date</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group">
                             <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control">
                         </div>
                     </div>
                 </div>
                 <div class="row mb-2 align-items-center" id="down_payment_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? 'none' : '' ?>">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -684,7 +684,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Down Payment</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group">
                             <div class="position-relative">
                                 <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()" style="padding-left: 20px;">
@@ -694,7 +694,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
                 <div class="row mb-2 align-items-center payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
-                    <div class="col-5 col-md-5">
+                    <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
                                 <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
@@ -702,7 +702,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Next Payment Dates</label>
                         </div>
                     </div>
-                    <div class="col-7 col-md-7">
+                    <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
                             <input type="date" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control">
                             <div class="position-relative">
@@ -722,8 +722,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
 
     <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
-        <button id="openDrawer6" type="button" class="btn-primary w-100 m-1">Continue to Payment</button>
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer5">Cancel</button>
+        <button type="button" class="btn-primary w-100 m-1" onclick="continueToPayment()">Continue to Payment</button>
     </div>
 </div>
 <!-- End Billing -->
@@ -755,7 +755,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="my-3">
             <div class="row mb-2 align-items-center">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 22" fill="#ccc">
                             <path d="M1.2 0H22.8C23.1183 0 23.4235 0.126428 23.6485 0.351472C23.8736 0.576516 24 0.88174 24 1.2V20.4C24 20.7183 23.8736 21.0235 23.6485 21.2485C23.4235 21.4736 23.1183 21.6 22.8 21.6H1.2C0.88174 21.6 0.576515 21.4736 0.351472 21.2485C0.126428 21.0235 0 20.7183 0 20.4V1.2C0 0.88174 0.126428 0.576516 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0ZM21.6 10.8H2.4V19.2H21.6V10.8ZM21.6 6V2.4H2.4V6H21.6Z" />
@@ -763,7 +763,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Payment Type</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <select class="form-control form-select">
                             <option value="" selected disabled>-- Select --</option>
@@ -775,7 +775,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <hr class="my-3">
             <div class="row mb-2">
-                <div class="col-5 col-md-5">
+                <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="#ccc">
                             <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
@@ -783,7 +783,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         <label class="mb-0">Internal Note</label>
                     </div>
                 </div>
-                <div class="col-7 col-md-7">
+                <div class="col-8 col-md-8">
                     <div class="form-group">
                         <textarea class="form-control"></textarea>
                     </div>
@@ -808,6 +808,29 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 <script>
+    function continueToBilling() {
+        let form = $('#enrollment_form');
+
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return false;
+        }
+
+        form.submit();
+    }
+
+    function continueToPayment() {
+        let form = $('#billing_form');
+
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return false;
+        }
+
+        form.submit();
+    }
+
+
     $(document).ready(function() {
         $('#PK_USER_MASTER').trigger("change");
     });
@@ -1711,14 +1734,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     }
                     $('#enrollment_payment_modal').modal('show');
                 } else {
-                    let header = '<?= $header ?>';
+                    $('#sideDrawer6').addClass('open');
+                    $('.overlay6').show();
+
+                    /* let header = '<?= $header ?>';
                     if (header) {
                         window.location.href = header;
                     } else {
                         let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
                         let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
                         window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
-                    }
+                    } */
                 }
             }
         });

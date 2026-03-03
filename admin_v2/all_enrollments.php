@@ -31,6 +31,7 @@ if ($not_billed_enrollment->RecordCount() > 0) {
 } */
 
 
+
 $START_DATE = ' ';
 $END_DATE = ' ';
 $ORDER_BY = ' DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC ';
@@ -47,8 +48,16 @@ $search_text = '';
 $search = $START_DATE . $END_DATE . ' ';
 if (!empty($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = $START_DATE . $END_DATE . " AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%" . $search_text . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%'OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%') ";
+    $search .= $STATUS_CONDITION . $START_DATE . $END_DATE . " AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%" . $search_text . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%'OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%') ";
 }
+
+$STATUS = empty($_GET['STATUS']) ? 'A' : $_GET['STATUS'];
+if ($STATUS == 'A') {
+    $search .= " AND DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'CA') ";
+} elseif ($STATUS == 'I') {
+    $search .= " AND DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') ";
+}
+
 
 // if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
 //     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
@@ -302,10 +311,6 @@ if (isset($_POST['SUBMIT'])) {
 
     $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_ENROLLMENT_MASTER = 0, PK_ENROLLMENT_SERVICE = 0, APPOINTMENT_TYPE = 'AD-HOC' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
-    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
 
     markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     header('location:all_enrollments.php');
@@ -327,219 +332,388 @@ if (isset($_POST['SUBMIT'])) {
 <!DOCTYPE html>
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
-    table th {
-        font-weight: bold;
+    body {
+        background: #f6f7f9;
     }
 
-    .sortable.asc::after {
-        content: " ▲";
+    .card-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
     }
 
-    .sortable.desc::after {
-        content: " ▼";
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #444;
+    }
+
+    .status-badge {
+        background: #e6f4ea;
+        color: #1e7e34;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+
+    .table td,
+    .table th {
+        vertical-align: middle;
+    }
+
+    .header-actions button {
+        margin-left: 8px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .search-box {
+        max-width: 300px;
+    }
+
+    .btn-new {
+        background: #39b54a;
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 20px !important;
+        font-size: 14px;
+        border: none;
+    }
+
+
+    .view-toggle {
+        display: flex;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .view-btn {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn.active {
+        color: #39b54a;
+        font-weight: 600;
+    }
+
+
+
+    .view-btn-icon {
+        padding: 6px 16px;
+        border: none;
+        background: #fff;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .view-btn-icon.active {
+        color: #39b54a;
+        font-weight: 600;
     }
 </style>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
-    <?php require_once('../includes/loader.php'); ?>
+    <?php //require_once('../includes/loader.php'); 
+    ?>
     <div id="main-wrapper">
-
         <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid mt-4">
+                <div class="card-box" style="margin-top: 20px;">
 
-            <div class="container-fluid body_content" style="margin-top: 0px;">
-                <div class="row page-titles">
-                    <div class="col-md-2 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
-                    <div class="col-md-8 align-self-center">
-                        <form class="form-material form-horizontal" action="" method="get">
-                            <div class="input-group" style="width: 80%; margin: auto;">
-                                <div style="margin-right: 5px">
-                                    <input type="text" id="FROM_DATE" name="FROM_DATE" placeholder="From Date" class="form-control datepicker-past" value="<?= ($START_DATE == ' ' || $START_DATE == '0000-00-00') ? '' : date('m/d/Y', strtotime($_GET['FROM_DATE'])) ?>">
-                                </div>
-                                <div style="margin-right: 5px">
-                                    <input type="text" id="END_DATE" name="END_DATE" placeholder="To Date" class="form-control datepicker-normal" value="<?= ($END_DATE == ' ' || $END_DATE == '0000-00-00') ? '' : date('m/d/Y', strtotime($_GET['END_DATE'])) ?>">
-                                </div>
-                                <div style="margin-right: 5px">
-                                    <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
-                                </div>
-                                <div>
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
-                        <div class="col-md-2 align-self-center text-end">
-                            <div class="d-flex justify-content-end align-items-center">
-                                <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='enrollment.php'"><i class="fa fa-plus-circle"></i> Create New</button>
-                            </div>
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <div>
+                            <h4 class="mb-0">Enrollments</h4>
+                            <small class="text-muted">Optionally describe this</small>
                         </div>
-                    <?php } ?>
-                </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped border" data-page-length='50'>
-                                        <thead>
-                                            <tr>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">No</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Customer</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Unique Id</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Id</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Enrollment Name</th>
-                                                <th data-type="number" class="sortable" style="cursor: pointer">Total Amount</th>
-                                                <th data-date data-order class="sortable" style="cursor: pointer">Date</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Email ID</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Phone</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Service Provider</th>
-                                                <th data-type="string" class="sortable" style="cursor: pointer">Location</th>
-                                                <th>Actions</th>
-                                                <th>Status</th>
-                                                <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
-                                                    <th>Cancel</th>
-                                                <?php } ?>
-                                            </tr>
-                                        </thead>
+                        <button class="btn-new" onclick="$('#sideDrawer4, .overlay4').addClass('active');">
+                            + Create New Enrollment
+                        </button>
+                    </div>
 
-                                        <tbody>
-                                            <?php
-                                            $i = $page_first_result + 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search . " ORDER BY " . $ORDER_BY . " LIMIT " . $page_first_result . ',' . $results_per_page);
-                                            while (!$row->EOF) {
-                                                $name = $row->fields['ENROLLMENT_NAME'];
-                                                if ($row->fields['MISC_TYPE']) {
-                                                    $id = $row->fields['MISC_ID'];
-                                                } else {
-                                                    $id = $row->fields['ENROLLMENT_ID'];
-                                                }
-                                                if (empty($name)) {
-                                                    $enrollment_name = ' ';
-                                                } else {
-                                                    $enrollment_name = "$name" . " - ";
-                                                }
-                                                $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-                                                $serviceCode = [];
-                                                while (!$serviceCodeData->EOF) {
-                                                    $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                                    $serviceCodeData->MoveNext();
-                                                }
 
-                                                $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-                                                $resultsArray = [];
-                                                while (!$results->EOF) {
-                                                    $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
-                                                    $results->MoveNext();
-                                                }
-                                                $totalResults = count($resultsArray);
-                                                $concatenatedResults = "";
-                                                foreach ($resultsArray as $key => $result) {
-                                                    // Append the current result to the concatenated string
-                                                    $concatenatedResults .= $result;
+                    <!-- Filters -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <input type="text" class="form-control search-box" placeholder="Search...">
 
-                                                    // If it's not the last result, append a comma
-                                                    if ($key < $totalResults - 1) {
-                                                        $concatenatedResults .= ", ";
-                                                    }
-                                                }
-                                            ?>
-                                                <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['FIRST_NAME'] . " " . $row->fields['LAST_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['PK_ENROLLMENT_MASTER'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $id ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['TOTAL_AMOUNT'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= date('m/d/Y', strtotime($row->fields['ENROLLMENT_DATE'])) ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['EMAIL_ID'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['PHONE'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $concatenatedResults ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
-                                                    <td>
-                                                        <?php if (in_array('Enrollments Edit', $PERMISSION_ARRAY)) { ?>
-                                                            <a href="enrollment.php?id=<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php } ?>
 
-                                                        <?php if ($row->fields['ACTIVE'] == 1) { ?>
-                                                            <span class="active-box-green"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php } else { ?>
-                                                            <span class="active-box-red"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php } ?>
-                                                        <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
-                                                            <a href="enrollment.php?id_customer=<?= $row->fields['PK_USER'] ?>&master_id_customer=<?= $row->fields['PK_USER_MASTER'] ?>" title="Add Enrollment" style="font-size:18px"><i class="fa fa-plus-circle"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php } ?>
-                                                        <?php
-                                                        $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $row->fields['PK_ENROLLMENT_MASTER']);
-                                                        if ($payment_data->RecordCount() == 0) {
-                                                        ?>
-                                                            <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                                                                <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                            <?php } ?>
-                                                        <?php } ?>
-                                                    </td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>);">
-                                                        <?php if ($row->fields['STATUS'] == 'A') { ?>
-                                                            <i class="fa fa-check-circle" style="font-size:21px;color:#35e235;"></i>
-                                                        <?php } elseif ($row->fields['STATUS'] == 'CO') { ?>
-                                                            <span class="fa fa-check-circle" style="font-size:21px;color:#0048ff;"></span>
-                                                        <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
-                                                            <span class="fa fa-check-circle" style="font-size:21px;color:#ff0000;"></span>
-                                                        <?php } ?>
-                                                    </td>
-                                                    <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
-                                                        <td>
-                                                            <?php if ($row->fields['STATUS'] == 'A') { ?>
-                                                                <a href="javascript:;" onclick="cancelEnrollment(<?= $row->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px;"></a>
-                                                            <?php } elseif ($row->fields['STATUS'] == 'C') { ?>
-                                                                <p style="color: red;">Cancelled</p>
-                                                                <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
-                                                            <?php } ?>
-                                                        </td>
-                                                    <?php } ?>
-                                                </tr>
-                                            <?php $row->MoveNext();
-                                                $i++;
-                                            } ?>
-                                        </tbody>
-                                    </table>
-                                    <div class="center">
-                                        <div class="pagination outer">
-                                            <ul>
-                                                <?php if ($page > 1) { ?>
-                                                    <li><a href="all_enrollments.php?page=1<?= ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&laquo;</a></li>
-                                                    <li><a href="all_enrollments.php?page=<?= ($page - 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&lsaquo;</a></li>
-                                                <?php }
-                                                for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
-                                                    if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                                        echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    } elseif ($page_count == ($number_of_page - 1)) {
-                                                        echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
-                                                    } else {
-                                                        echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
-                                                    }
-                                                }
-                                                if ($page < $number_of_page) { ?>
-                                                    <li><a href="all_enrollments.php?page=<?= ($page + 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&rsaquo;</a></li>
-                                                    <li><a href="all_enrollments.php?page=<?= $number_of_page . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&raquo;</a></li>
-                                                <?php } ?>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto; margin-right: 12px;">
+                            <button class="view-btn-icon <?= ($STATUS == 'A') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php'">
+                                Active
+                            </button>
+                            <button class="view-btn-icon <?= ($STATUS == 'I') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php?STATUS=I'">
+                                Archived
+                            </button>
+                        </div>
+
+                        <div class="view-toggle m-r-10" style="height: 37px; margin-right: 12px;">
+                            <button class="view-btn-icon">
+                                Filter
+                            </button>
+                        </div>
+                        <div class="view-toggle" style="height: 37px;">
+                            <button class="view-btn-icon">
+                                Sort By
+                            </button>
                         </div>
                     </div>
-                </div>
 
+
+
+                    <p class="text-muted f12"><?= $number_of_result ?> <?= ($STATUS == 'I') ? 'archived' : 'active' ?> enrollments</p>
+
+                    <!-- Table -->
+                    <div class="table-responsive schedule-wrapper">
+                        <table class="table align-middle schedule-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Customer Name / Email</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Unique ID</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Enrollment ID</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Enrollment Name</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Date</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Phone</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Service Provider</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Status</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Total Amount</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <?php
+                                $i = $page_first_result + 1;
+                                $enrollment_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search . " ORDER BY " . $ORDER_BY . " LIMIT " . $page_first_result . ',' . $results_per_page);
+                                while (!$enrollment_data->EOF) {
+                                    $name = $enrollment_data->fields['ENROLLMENT_NAME'];
+                                    if ($enrollment_data->fields['MISC_TYPE']) {
+                                        $id = $enrollment_data->fields['MISC_ID'];
+                                    } else {
+                                        $id = $enrollment_data->fields['ENROLLMENT_ID'];
+                                    }
+                                    if (empty($name)) {
+                                        $enrollment_name = ' ';
+                                    } else {
+                                        $enrollment_name = "$name" . " - ";
+                                    }
+                                    $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.SESSION_CREATED, DOA_ENROLLMENT_SERVICE.SESSION_COMPLETED FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                                    $serviceCode = [];
+                                    while (!$serviceCodeData->EOF) {
+                                        $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                                        $serviceCodeData->MoveNext();
+                                    }
+
+                                    $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                                    $resultsArray = [];
+                                    while (!$results->EOF) {
+                                        $service_provider = ($results->fields['SERVICE_PROVIDER'] == null) ? " " : $results->fields['SERVICE_PROVIDER'];
+                                        $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
+                                        $results->MoveNext();
+                                    }
+
+                                    $totalResults = count($resultsArray);
+                                    $concatenatedResults = "";
+                                    foreach ($resultsArray as $key => $result) {
+                                        // Append the current result to the concatenated string
+                                        $concatenatedResults .= $result;
+
+                                        // If it's not the last result, append a comma
+                                        if ($key < $totalResults - 1) {
+                                            $concatenatedResults .= ", ";
+                                        }
+                                    }
+
+                                    $CUSTOMER_NAME = $enrollment_data->fields['FIRST_NAME'] . " " . $enrollment_data->fields['LAST_NAME'];
+                                    $customer = getProfileBadge($CUSTOMER_NAME);
+                                    $customer_initial = $customer['initials'];
+                                    $customer_color = $customer['color'];
+
+                                    $profile = getProfileBadge($service_provider);
+                                    $profile_initial = $profile['initials'];
+                                    $profile_color = $profile['color'];
+                                ?>
+                                    <tr style="height: 60px;">
+                                        <td><input type="checkbox"></td>
+                                        <td class="d-flex align-items-center" style="height: 60px;">
+                                            <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
+                                            <div>
+                                                <div><?= $CUSTOMER_NAME ?></div>
+                                                <small class="text-muted"><?= $enrollment_data->fields['EMAIL_ID'] ?></small>
+                                            </div>
+                                        </td>
+                                        <td><?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?></td>
+                                        <td><?= $id ?></td>
+                                        <td><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
+                                        <td><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></td>
+                                        <td><?= $enrollment_data->fields['PHONE'] ?></td>
+                                        <td style="vertical-align: middle;">
+                                            <?php if ($service_provider != ' ') { ?>
+                                                <span class="avatarname" style="color: #fff; background-color: <?= $profile_color ?>;"><?= $profile_initial; ?></span>
+                                                <?= $service_provider ?>
+                                            <?php } ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
+                                                <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
+                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#35e235;"></i> Active
+                                                </span>
+                                            <?php } elseif ($enrollment_data->fields['STATUS'] == 'CO') { ?>
+                                                <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
+                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#0048ff;"></i> Completed
+                                                </span>
+                                            <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
+                                                <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
+                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#ff0000;"></i> Cancelled
+                                                </span>
+                                            <?php } ?>
+                                        </td>
+                                        <td>$<?= $enrollment_data->fields['TOTAL_AMOUNT'] ?></td>
+                                        <td class="text-center" style="vertical-align: middle;">
+                                            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>, <?= $TYPE ?>)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
+                                                    <circle cx="256" cy="256" r="48" />
+                                                    <circle cx="256" cy="416" r="48" />
+                                                    <circle cx="256" cy="96" r="48" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php $enrollment_data->MoveNext();
+                                    $i++;
+                                } ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="d-flex justify-content-between align-items-center mt-3 f12">
+
+                        <small class="text-muted">Page <?= $page ?> of <?= $number_of_page ?></small>
+
+                        <div class="center">
+                            <div class="pagination outer">
+                                <ul>
+                                    <?php if ($page > 1) { ?>
+                                        <li><a href="all_enrollments.php?page=1<?= ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&laquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=<?= ($page - 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&lsaquo;</a></li>
+                                    <?php }
+                                    for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
+                                        if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
+                                            echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                        } elseif ($page_count == ($number_of_page - 1)) {
+                                            echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
+                                        } else {
+                                            echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                        }
+                                    }
+                                    if ($page < $number_of_page) { ?>
+                                        <li><a href="all_enrollments.php?page=<?= ($page + 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&rsaquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=<?= $number_of_page . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&raquo;</a></li>
+                                    <?php } ?>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <select class="form-select form-select-sm" style="width: auto;">
+                            <option>8 / page</option>
+                            <option>16 / page</option>
+                        </select>
+                    </div>
+
+                </div>
             </div>
         </div>
+
+
     </div>
 
     <div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
@@ -681,6 +855,8 @@ if (isset($_POST['SUBMIT'])) {
     </div>
 
     <?php require_once('../includes/footer.php'); ?>
+
+    <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script>
         function ConfirmDelete(PK_ENROLLMENT_MASTER) {

@@ -179,7 +179,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                         <?php endif; ?>
 
                                                         <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                                            <a href="customer.php?id=<?= $row->fields['PK_USER'] ?>&master_id=<?= $row->fields['PK_USER_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;
+                                                            <a href="../admin/customer.php?id=<?= $row->fields['PK_USER'] ?>&master_id=<?= $row->fields['PK_USER_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;
                                                         <?php } ?>
                                                         <?php if ($row->fields['ACTIVE'] == 1) { ?>
                                                             <span class="active-box-green"></span>
@@ -289,7 +289,7 @@ $page_first_result = ($page - 1) * $results_per_page;
         }
 
         function editpage(id, master_id) {
-            window.location.href = "customer.php?id=" + id + "&master_id=" + master_id;
+            window.location.href = "../admin/customer.php?id=" + id + "&master_id=" + master_id;
 
         }
     </script>
