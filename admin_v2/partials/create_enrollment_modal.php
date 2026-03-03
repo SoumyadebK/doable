@@ -16,7 +16,7 @@ $header = 'all_enrollments.php';
 
 $PK_ENROLLMENT_MASTER = 0;
 $ENROLLMENT_NAME = '';
-$ENROLLMENT_DATE = date('Y-m-d');
+$ENROLLMENT_DATE = date('m/d/Y');
 $PK_ENROLLMENT_TYPE = '';
 $PK_LOCATION = '';
 $PK_PACKAGE = '';
@@ -36,7 +36,7 @@ $BILLING_REF = '';
 $BILLING_DATE = '';
 $DOWN_PAYMENT = 0.00;
 $BALANCE_PAYABLE = 0.00;
-$PAYMENT_METHOD = '';
+$PAYMENT_METHOD = 'One Time';
 $PAYMENT_TERM = '';
 $NUMBER_OF_PAYMENT = '';
 $FIRST_DUE_DATE = '';
@@ -76,7 +76,7 @@ if (!empty($_GET['id'])) {
     $PK_ENROLLMENT_MASTER = $_GET['id'];
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
-    $ENROLLMENT_DATE = date('Y-m-d', strtotime($res->fields['ENROLLMENT_DATE']));
+    $ENROLLMENT_DATE = date('m/d/Y', strtotime($res->fields['ENROLLMENT_DATE']));
     $PK_ENROLLMENT_TYPE = $res->fields['PK_ENROLLMENT_TYPE'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_PACKAGE = $res->fields['PK_PACKAGE'];
@@ -242,6 +242,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>ORI</option>
                             <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>EXT</option>
                             <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>REN</option>
+                            <option value="16" <?= ($PK_ENROLLMENT_TYPE == 16) ? 'selected' : '' ?>>MISC</option>
                         </select>
                     </div>
                 </div>
@@ -269,21 +270,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         </select>
                     </div>
 
-                    <div id="append_service_div">
-
-                    </div>
-
-                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100" <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
-                        <span>Total Amount</span>
-                        <span class="fw-semibold text-dark TOTAL_AMOUNT" value="<?= number_format((float)$total, 2, '.', ''); ?>" readonly></span>
-                    </div>
-
-                    <button type="button" class="btn-secondary w-100 f12 my-2 addpackage">Add More Service</button>
                     <?php
                     $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
                     if ($payment_gateway_type->RecordCount() > 0) { ?>
-                        <div class="d-flex gap-3 mt-1 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>"">
-                        <label class=" radio" for="Session">
+                        <div class="d-flex gap-3 mt-1 mb-2 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>"">
+                            <label class=" radio" for="Session">
                             <input type="radio" id="Session" name="CHARGE_TYPE" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?> onchange="chargeBySessions(this);">
                             <span></span>
                             Charge by sessions
@@ -295,6 +286,18 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             </label>
                         </div>
                     <?php } ?>
+
+                    <div class="mb-2" id="append_service_div">
+
+                    </div>
+
+                    <button type="button" class="btn-secondary w-100 f12 mb-2" onclick="addMoreServices()">Add More Service</button>
+
+                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100" <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
+                        <span>Total Amount</span>
+                        <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT" value="<?= number_format((float)$total, 2, '.', ''); ?>" readonly></span>
+                    </div>
+
                 </div>
             </div>
             <hr class="mb-3">
@@ -310,7 +313,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                        <input type="date" class="form-control" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
                         <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
@@ -439,45 +442,22 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </form>
     </div>
     <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer">Cancel</button>
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer4">Cancel</button>
         <button type="submit" class="btn-primary w-100 m-1" onclick="continueToBilling()">Continue to Billing</button>
     </div>
 </div>
+<!-- New Enrollment -->
 
 
-
-<!--Confirm Model-->
-<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="card">
-                    <div class="card-body">
-                        <div>
-                            <input type="hidden" id="is_confirm" value="0">
-                            <label>Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
-                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
-                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" data-bs-dismiss="modal" aria-label="No">No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Billing -->
+<!-- Enrollment Billing -->
 <div class="overlay5"></div>
 <div class="side-drawer" id="sideDrawer5">
     <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
         <h6>
-            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+            <svg id="closeDrawer5" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
                 <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
             </svg>
-            <span class="mb-0">Create New Enrollment</span>
+            <span class="mb-0">Enrollment Billing</span>
         </h6>
         <span class="close-btn" id="closeDrawer5">&times;</span>
     </div>
@@ -494,6 +474,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
             <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= $PK_ENROLLMENT_BILLING ?>">
+            <input type="hidden" name="TOTAL_AMOUNT" class="TOTAL_AMOUNT" value="<?= number_format((float)$total, 2, '.', '') ?>">
             <div class="row mb-2 align-items-center">
                 <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
@@ -509,6 +490,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
             </div>
+
             <div class="row mb-3">
                 <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">
@@ -540,8 +522,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
             </div>
+
+
+
             <!-- One Time -->
-            <div id="onetime" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? '' : 'none' ?>;">
+            <div class="payment_method_div" id="one_time_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? '' : 'none' ?>;">
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
@@ -553,16 +538,19 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group">
-                            <input type="date" class="form-control" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
+                            <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
                         </div>
                     </div>
                 </div>
                 <hr class="mb-3">
                 <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
                     <span>Balance Payable</span>
-                    <span class="fw-semibold text-dark" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE">$<?= $BALANCE_PAYABLE ?></span>
+                    <input type="text" id="BALANCE_PAYABLE" class="TOTAL_AMOUNT" name="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>">
+                    <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT">$<?= $BALANCE_PAYABLE ?></span>
                 </div>
             </div>
+
+
 
             <!-- Payment Plans -->
             <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
@@ -649,6 +637,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
             </div>
 
+
+
             <!-- Flexible Payments -->
             <div class="payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
                 <div class="row mb-2 align-items-center">
@@ -693,7 +683,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         </div>
                     </div>
                 </div>
-                <div class="row mb-2 align-items-center payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
+
+                <div class="row mb-2 align-items-center" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
                     <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
@@ -715,9 +706,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 <hr class="mb-3">
                 <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
                     <span>Installment Amount</span>
-                    <span class="fw-semibold text-dark">$290.00</span>
+                    <span class="fw-semibold text-dark">$0.00</span>
                 </div>
             </div>
+
+
+
         </form>
     </div>
 
@@ -728,12 +722,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 </div>
 <!-- End Billing -->
 
-<!-- Enrollment Billing -->
+
+
+<!-- Enrollment Payment -->
 <div class="overlay6"></div>
 <div class="side-drawer" id="sideDrawer6">
     <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
         <h6>
-            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+            <svg id="closeDrawer6" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
                 <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
             </svg>
             <span class="mb-0">Create New Enrollment / Billing</span>
@@ -797,17 +793,66 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
 
     <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1">Cancel</button>
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer6">Cancel</button>
         <button type="button" class="btn-primary w-100 m-1">Save</button>
     </div>
 </div>
-<!-- End Enrollment Billing -->
+<!-- End Enrollment Payment -->
+
+
+
+
+<!--Confirm Model-->
+<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <input type="hidden" id="is_confirm" value="0">
+                            <label>Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
+                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
+                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" data-bs-dismiss="modal" aria-label="No">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Confirm Model End -->
+
+
+
+<!--Payment Model-->
+<?php include('includes/enrollment_payment_v2.php'); ?>
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 <script>
+    $('#closeDrawer4, .overlay4').click(function() {
+        $('#sideDrawer4, .overlay4').removeClass('active');
+    });
+
+    $('#closeDrawer5, .overlay5').click(function() {
+        $('#sideDrawer5, .overlay5').removeClass('active');
+    });
+
+    $('#closeDrawer6, .overlay6').click(function() {
+        $('#sideDrawer6, .overlay6').removeClass('active');
+    });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
+
     function continueToBilling() {
         let form = $('#enrollment_form');
 
@@ -1089,6 +1134,42 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
     }
 
+
+
+    function toggleDiscount(checkbox) {
+        const discountTypeSelect = checkbox.closest('.d-flex').nextElementSibling.querySelector('select');
+        const discountValueInput = checkbox.closest('.d-flex').nextElementSibling.querySelector('input');
+        if (checkbox.checked) {
+            discountTypeSelect.removeAttribute('readonly');
+            discountValueInput.removeAttribute('readonly');
+        } else {
+            discountTypeSelect.setAttribute('readonly', 'readonly');
+            discountValueInput.setAttribute('readonly', 'readonly');
+            discountTypeSelect.value = '';
+            discountValueInput.value = '';
+            calculateServiceTotal(discountValueInput);
+        }
+    }
+
+    // Add delete functionality
+    $(document).ready(function() {
+        $('.delete-package-service').click(function() {
+            $(this).closest('.individual_service_div').remove();
+
+            // Recalculate total
+            let total = 0;
+            $('.FINAL_AMOUNT').each(function() {
+                total += parseFloat($(this).val()) || 0;
+            });
+            $('.TOTAL_AMOUNT_TEXT').text('$' + total.toFixed(2));
+            $('.TOTAL_AMOUNT').val(total.toFixed(2));
+        });
+    });
+
+
+
+    var service_counter = 20;
+
     function addMoreServices() {
         let charge_type = $('.charge_type:checked').val();
         if (charge_type === 'Membership') {
@@ -1096,89 +1177,110 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             var type = "readonly";
             var total = "";
         } else {
-            var value = "";
-            var type = "";
+            var value = 0;
+            var type = 0;
             var total = "readonly";
         }
 
+        $('#append_service_div').append(`<div class="service_code_area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_${service_counter}">
+                                            <div class="datetime-item d-flex mb-2">
+                                                <div class="align-self-center">
+                                                    Service
+                                                </div>
+                                                <div class="d-flex gap-2 ms-auto align-items-start">
+                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm delete-package-service" data-service-id="${service_counter}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
+                                                            <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" data-bs-target="#package${service_counter}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
+                                                            <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
 
-        $('#append_service_div').append(`<div class="row individual_service_div">
-                                            <div class="col-2">
-                                                <div class="form-group">
-                                                    <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)" required>
-                                                        <option>Select</option>
-                                                        <?php
-                                                        $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
-                                                        <?php $row->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                </div>
+                                            <div class="align-self-center mb-2">
+                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)" required>
+                                                    <option>Select</option>
+                                                    <?php
+                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
+                                                </select>
                                             </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <select class="form-control PK_SERVICE_CODE" name="PK_SERVICE_CODE[]" onchange="selectThisServiceCode(this)" required>
-                                                        <option value="">Select</option>
-                                                    </select>
+
+                                            <div id="package${service_counter}" class="collapse show">
+                                                <!-- Sessions -->
+                                                <div class="d-inline-flex gap-1">
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">No. of sessions</label>
+                                                        <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} value="${value}">
+                                                    </div>
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Price / session</label>
+                                                        <div class="session-item position-relative">
+                                                            <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} value="${value}" style="padding-left: 20px;">
+                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
+                                                        <label class="small text-muted">Total</label>
+                                                        <input type="hidden" class="TOTAL" name="TOTAL[]" value="0.00">
+                                                        <div class="f10 pt-2"><span class="TOTAL_TEXT">$0.00</span></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-2">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control SERVICE_DETAILS" name="SERVICE_DETAILS[]" >
+                                                <hr class="my-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <label class="f12 text-muted">Discount</label>
+                                                    <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                                        <input class="form-check-input" type="checkbox" name="HAS_DISCOUNT[]" onchange="toggleDiscount(this)">
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control NUMBER_OF_SESSION" value="${value}" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} required>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control PRICE_PER_SESSION" value="${value}" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this);" ${type} required>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control TOTAL" name="TOTAL[]" onkeyup="calculateServiceTotal(this)" ${total}>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <select class="form-control DISCOUNT_TYPE" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
-                                                        <option value="">Select</option>
-                                                        <option value="1">Fixed</option>
-                                                        <option value="2">Percent</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control DISCOUNT" name="DISCOUNT[]" onkeyup="calculateServiceTotal(this)">
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <input type="text" class="form-control FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
-                                                </div>
-                                            </div>
-                                            <div class="col-1">
-                                                <div class="form-group">
-                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                <div class="d-inline-flex gap-1">
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Type</label>
+                                                        <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" readonly onchange="calculateServiceTotal(this)">
+                                                            <option value="">Select</option>
+                                                            <option value="1">Fixed</option>
+                                                            <option value="2">Percent</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Value</label>
+                                                        <div class="session-item position-relative">
+                                                            <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" readonly onkeyup="calculateServiceTotal(this)">
+                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
+                                                        <label class="small text-muted">Total</label>
+                                                        <div class="f10 pt-2 FINAL_AMOUNT_TEXT">$0.00</div>
+                                                        <input type="hidden" class="FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="0.00">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>`);
+
+        service_counter++;
     }
 
     function addMoreServiceProviders() {
         $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;">
-                            <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
-                                <option value="" selected disabled>-- Select --</option>
-                            </select>
-                            <div class="position-relative">
-                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
-                            </div>
-                        </div>`);
+                                                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                                                            <option value="" selected disabled>-- Select --</option>
+                                                        </select>
+                                                        <div class="position-relative">
+                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                        </div>
+                                                    </div>`);
         showEnrollmentInstructor();
     }
 
@@ -1254,7 +1356,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $('#append_service_div .FINAL_AMOUNT').each(function() {
                         TOTAL_AMOUNT += parseFloat($(this).val()) || 0;
                     });
-                    $('.TOTAL_AMOUNT').text('$' + TOTAL_AMOUNT.toFixed(2));
+                    $('.TOTAL_AMOUNT_TEXT').text('$' + TOTAL_AMOUNT.toFixed(2));
                     $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
 
                     // Set expiry date
@@ -1267,7 +1369,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             });
         } else {
             $('#append_service_div').empty();
-            $('.TOTAL_AMOUNT').text('$0.00');
+            $('.TOTAL_AMOUNT_TEXT').text('$0.00');
             $('.TOTAL_AMOUNT').val('0.00');
             addMoreServices();
         }
@@ -1329,16 +1431,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         let TOTAL = 0;
 
         if (charge_type === 'Membership') {
-            TOTAL = ($(param).closest('.row').find('.TOTAL').val() == '') ? 0 : $(param).closest('.row').find('.TOTAL').val();
+            TOTAL = ($(param).closest('.service_code_area').find('.TOTAL').val() == '') ? 0 : $(param).closest('.service_code_area').find('.TOTAL').val();
         } else {
-            let number_of_session = ($(param).closest('.row').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.row').find('.NUMBER_OF_SESSION').val();
-            let service_price = ($(param).closest('.row').find('.PRICE_PER_SESSION').val()) ?? 0;
+            let number_of_session = ($(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val();
+            let service_price = ($(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val()) ?? 0;
             TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
-            $(param).closest('.row').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+            $(param).closest('.service_code_area').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+            $(param).closest('.service_code_area').find('.TOTAL_TEXT').text('$' + parseFloat(TOTAL).toFixed(2));
         }
 
-        let DISCOUNT = ($(param).closest('.row').find('.DISCOUNT').val()) ?? 0;
-        let DISCOUNT_TYPE = ($(param).closest('.row').find('.DISCOUNT_TYPE').val()) ?? 0;
+        let DISCOUNT = ($(param).closest('.service_code_area').find('.DISCOUNT').val()) ?? 0;
+        let DISCOUNT_TYPE = ($(param).closest('.service_code_area').find('.DISCOUNT_TYPE').val()) ?? 0;
         let FINAL_AMOUNT = parseFloat(TOTAL);
         if (DISCOUNT_TYPE == 1) {
             FINAL_AMOUNT = parseFloat(TOTAL - DISCOUNT);
@@ -1347,13 +1450,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
             }
         }
-        $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+        $(param).closest('.service_code_area').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+        $(param).closest('.service_code_area').find('.FINAL_AMOUNT_TEXT').text('$' + FINAL_AMOUNT.toFixed(2));
 
         let TOTAL_AMOUNT = 0;
         $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function() {
             TOTAL_AMOUNT += parseFloat($(this).val());
         });
         $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
+        $('.TOTAL_AMOUNT_TEXT').text('$' + TOTAL_AMOUNT.toFixed(2));
     }
 
     $(document).on('click', '#cancel_button', function() {
@@ -1369,24 +1474,24 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
             $('#flexible_plans_div').append(`<div class="row">
-                                            <div class="col-3">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-3">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this)" required>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <div class="col-md-12">
+                                                            <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this)" required>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-3" style="padding-top: 5px;">
-                                                <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                            </div>
-                                        </div>`);
+                                                <div class="col-3" style="padding-top: 5px;">
+                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                </div>
+                                                </div>`);
             $('.datepicker-future').datepicker({
                 dateFormat: 'mm/dd/yy',
                 beforeShow: function(input, inst) {
@@ -1424,8 +1529,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if (PK_ENROLLMENT_MASTER > 0) {
                         window.location.reload();
                     } else {
-                        $('#sideDrawer5').addClass('open');
-                        $('.overlay5').show();
+                        $('#sideDrawer5, .overlay5').addClass('active');
                         $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
                         goToPaymentTab(data.PK_ENROLLMENT_MASTER);
                     }
@@ -1463,28 +1567,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
     }
 
-    function calculateDiscount(param) {
-        let DISCOUNT = $(param).closest('.row').find('.DISCOUNT').val();
-        let DISCOUNT_TYPE = $(param).closest('.row').find('.DISCOUNT_TYPE').val();
-        let TOTAL = $(param).closest('.row').find('.TOTAL').val();
-
-        if (DISCOUNT_TYPE == 1) {
-            let FINAL_AMOUNT = parseFloat(TOTAL - DISCOUNT);
-            $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
-        } else {
-            if (DISCOUNT_TYPE == 2) {
-                let FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
-                $(param).closest('.row').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
-            }
-        }
-        let TOTAL_AMOUNT = 0;
-        $(param).closest('#payment_tab_div').find('.FINAL_AMOUNT').each(function() {
-            TOTAL_AMOUNT += parseFloat($(this).val());
-        });
-        $('#total_bill').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
-        $('#BALANCE_PAYABLE').val(parseFloat(TOTAL_AMOUNT).toFixed(2));
-    }
-
     function calculatePayment() {
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
@@ -1501,6 +1583,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $('#auto-pay-div').slideUp();
         //$('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time') {
+            $('#one_time_div').slideDown();
             let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
@@ -1734,16 +1817,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     }
                     $('#enrollment_payment_modal').modal('show');
                 } else {
-                    $('#sideDrawer6').addClass('open');
-                    $('.overlay6').show();
-
+                    $('#sideDrawer6, .overlay6').addClass('active');
                     /* let header = '<?= $header ?>';
                     if (header) {
-                        window.location.href = header;
+                    window.location.href = header;
                     } else {
-                        let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
-                        let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
-                        window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                    let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                    let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
                     } */
                 }
             }
@@ -1766,7 +1847,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
         let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
         for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
-            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + ' &receipt=' + RECEIPT_NUMBER_ARRAY[i], ' _blank');
         }
     }
 </script>

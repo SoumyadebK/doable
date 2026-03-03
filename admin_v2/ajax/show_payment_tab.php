@@ -22,7 +22,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
             Enrollment Number
             <span class="statusarea ms-2 fw-normal"><span><?= $enrollment_data->fields['ENROLLMENT_ID'] ?></span></span>
         </label>
-        <button type="button" class="bg-white boxshadow-sm p-0 border-0 rounded-4 ms-auto avatar-sm">
+        <button id="closeDrawer5" type="button" class="bg-white boxshadow-sm p-0 border-0 rounded-4 ms-auto avatar-sm">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 0 511 512" width="14px" height="14px" fill="CurrentColor">
                 <path d="m.5 481.992188h300.078125v30.007812h-300.078125zm0 0"></path>
                 <path d="m330.585938 481.992188h120.03125v30.007812h-120.03125zm0 0"></path>
@@ -34,17 +34,28 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
     $total = 0;
     $enrollment_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     while (!$enrollment_service_data->EOF) {
-        if($enrollment_service_data->fields['DISCOUNT_TYPE'] > 0) {
-            $discount = $enrollment_service_data->fields['DISCOUNT']."%";
+        $service_code_color = '#6b82e2';
+        if (strpos($enrollment_service_data->fields['SERVICE_CODE'], 'PRI') !== false) {
+            $service_code_color = '#335CFF';
+        } else if (strpos($enrollment_service_data->fields['SERVICE_CODE'], 'GRP') !== false) {
+            $service_code_color = '#FB4BA3';
+        } else if (strpos($enrollment_service_data->fields['SERVICE_CODE'], 'PRT') !== false) {
+            $service_code_color = '#22D3BB';
+        }
+
+        if ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 1) {
+            $discount = "$" . $enrollment_service_data->fields['DISCOUNT'];
+        } elseif ($enrollment_service_data->fields['DISCOUNT_TYPE'] == 2) {
+            $discount = $enrollment_service_data->fields['DISCOUNT'] . "%";
         } else {
-            $discount = "$".$enrollment_service_data->fields['DISCOUNT'];
+            $discount = "$0";
         }
         $total += $enrollment_service_data->fields['FINAL_AMOUNT']; ?>
         <div class="border rounded-2 p-2 mt-2">
             <div class="d-flex mb-0">
                 <label class="form-check-label text-dark">
                     <?= $enrollment_service_data->fields['SERVICE_DETAILS'] ?>
-                    <span class="badge ms-auto rounded-1" style="background-color: #ebf2ff; color: #6b82e2;"><?= $enrollment_service_data->fields['SERVICE_CODE'] ?></span>
+                    <span class="badge ms-auto rounded-1" style="background-color: <?= $service_code_color ?>20; color: <?= $service_code_color ?>;"><?= $enrollment_service_data->fields['SERVICE_CODE'] ?></span>
                 </label>
                 <span class="f12 text-dark ms-auto"><?= number_format((float)$enrollment_service_data->fields['FINAL_AMOUNT'], 2, '.', ''); ?></span>
             </div>
@@ -58,6 +69,7 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
     } ?>
     <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100 mt-2">
         <span>Total Amount</span>
+        <input type="hidden" id="total_bill" name="total_bill" value="<?= number_format((float)$total, 2, '.', ''); ?>">
         <span class="fw-semibold text-dark"><?= number_format((float)$total, 2, '.', ''); ?></span>
     </div>
 </div>

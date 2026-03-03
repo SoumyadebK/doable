@@ -13,24 +13,25 @@ $package_service_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE_SERVICE 
 while (!$package_service_data->EOF) {
     $unique_id = "package" . $service_counter; // Changed to match existing pattern but with counter
 ?>
-
+    <input type="hidden" name="PK_SERVICE_MASTER[]" value="<?= $package_service_data->fields['PK_SERVICE_MASTER'] ?>">
     <!-- Added wrapper div to separate each service -->
-    <div class="datetime-area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_<?= $service_counter ?>">
-        <div class="datetime-item d-flex ">
+    <div class="service_code_area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_<?= $service_counter ?>">
+        <div class="datetime-item d-flex mb-2">
             <div class="align-self-center">
-
                 <?php
-                $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_MASTER.IS_DELETED = 0");
+                $service_master_data = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_MASTER.IS_DELETED = 0");
+                $service_code_color = '#6b82e2';
+                if (strpos($service_master_data->fields['SERVICE_CODE'], 'PRI') !== false) {
+                    $service_code_color = '#335CFF';
+                } else if (strpos($service_master_data->fields['SERVICE_CODE'], 'GRP') !== false) {
+                    $service_code_color = '#FB4BA3';
+                } else if (strpos($service_master_data->fields['SERVICE_CODE'], 'PRT') !== false) {
+                    $service_code_color = '#22D3BB';
+                }
                 ?>
-                <input type="hidden" name="PK_SERVICE_MASTER[]" value="<?= $package_service_data->fields['PK_SERVICE_MASTER'] ?>">
-                <input type="hidden" name="PK_SERVICE_CODE[]" value="<?= $row->fields['PK_SERVICE_CODE'] ?>">
-                <input type="hidden" name="SERVICE_DETAILS[]" value="<?= $package_service_data->fields['SERVICE_DETAILS'] ?>">
-                <input type="hidden" name="NUMBER_OF_SESSION[]" value="<?= $package_service_data->fields['NUMBER_OF_SESSION'] ?>">
-                <input type="hidden" name="PRICE_PER_SESSION[]" value="<?= $package_service_data->fields['PRICE_PER_SESSION'] ?>">
-                <input type="hidden" name="TOTAL[]" value="<?= $package_service_data->fields['TOTAL'] ?>">
-
-                <p class="text-dark fw-semibold mb-0"><?= $row->fields['SERVICE_NAME'] ?> <span class="badge border ms-auto" style="background-color: #ebf2ff; color: #6b82e2;"><?= $row->fields['SERVICE_CODE'] ?></span></p>
-                <span class="f10">Total: $<?= $package_service_data->fields['TOTAL'] ?></span>
+                <p class="text-dark mb-0"><?= $service_master_data->fields['SERVICE_NAME'] ?>
+                    <span class="badge ms-auto" style="background-color: <?= $service_code_color ?>20; color: <?= $service_code_color ?>;"><?= $service_master_data->fields['SERVICE_CODE'] ?></span>
+                </p>
             </div>
             <div class="d-flex gap-2 ms-auto align-items-start">
                 <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm delete-package-service" data-service-id="<?= $service_counter ?>">
@@ -48,24 +49,28 @@ while (!$package_service_data->EOF) {
                 </button>
             </div>
         </div>
+
         <div class="collapse" id="<?= $unique_id ?>">
             <!-- Sessions -->
             <div class="d-inline-flex gap-1">
                 <div class="session-item">
                     <label class="small text-muted">No. of sessions</label>
-                    <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" value="<?= $package_service_data->fields['NUMBER_OF_SESSION'] ?>">
+                    <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" value="<?= $package_service_data->fields['NUMBER_OF_SESSION'] ?>">
                 </div>
                 <div class="session-item">
                     <label class="small text-muted">Price / session</label>
                     <div class="session-item position-relative">
-                        <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" value="<?= $package_service_data->fields['PRICE_PER_SESSION'] ?>" style="padding-left: 20px;">
+                        <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" value="<?= $package_service_data->fields['PRICE_PER_SESSION'] ?>" style="padding-left: 20px;">
                         <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
                     </div>
                 </div>
 
-                <div class="session-item" style="min-width: 45px;">
+                <div class="session-item" style="min-width: 45px; text-align: right;">
                     <label class="small text-muted">Total</label>
-                    <div class="f10 pt-2"><span class="TOTAL" name="TOTAL[]">$ <?= $package_service_data->fields['TOTAL'] ?></span></div>
+                    <div class="f10 pt-2">
+                        <input type="hidden" class="TOTAL" name="TOTAL[]" value="<?= $package_service_data->fields['TOTAL'] ?>">
+                        <span class="TOTAL_TEXT">$ <?= $package_service_data->fields['TOTAL'] ?></span>
+                    </div>
                 </div>
             </div>
             <hr class="my-2">
@@ -78,7 +83,7 @@ while (!$package_service_data->EOF) {
             <div class="d-inline-flex gap-1">
                 <div class="session-item">
                     <label class="small text-muted">Type</label>
-                    <select class="form-select form-select-sm" style="min-width: 90px;" name="DISCOUNT_TYPE[]">
+                    <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
                         <option value="1" <?= ($package_service_data->fields['DISCOUNT_TYPE'] == 1) ? 'selected' : '' ?>>Fixed</option>
                         <option value="2" <?= ($package_service_data->fields['DISCOUNT_TYPE'] == 2) ? 'selected' : '' ?>>Percent</option>
                     </select>
@@ -86,18 +91,17 @@ while (!$package_service_data->EOF) {
                 <div class="session-item">
                     <label class="small text-muted">Value</label>
                     <div class="session-item position-relative">
-                        <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" value="<?= $package_service_data->fields['DISCOUNT'] ?>" style="padding-left: 20px;">
+                        <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" value="<?= $package_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;">
                         <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
                     </div>
                 </div>
-                <div class="session-item" style="min-width: 45px;">
+                <div class="session-item" style="min-width: 45px; text-align: right;">
                     <label class="small text-muted">Total</label>
-                    <div class="f10 pt-2">$ <?= $package_service_data->fields['FINAL_AMOUNT'] ?></div>
+                    <div class="f10 pt-2 FINAL_AMOUNT_TEXT">$ <?= $package_service_data->fields['FINAL_AMOUNT'] ?></div>
                     <input type="hidden" class="FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?= $package_service_data->fields['FINAL_AMOUNT'] ?>">
                 </div>
             </div>
         </div>
-    </div>
     </div>
     <!-- End of wrapper div -->
 
@@ -105,35 +109,3 @@ while (!$package_service_data->EOF) {
     $service_counter++;
     $package_service_data->MoveNext();
 } ?>
-
-<script>
-    function toggleDiscount(checkbox) {
-        const discountTypeSelect = checkbox.closest('.d-flex').nextElementSibling.querySelector('select');
-        const discountValueInput = checkbox.closest('.d-flex').nextElementSibling.querySelector('input');
-        if (checkbox.checked) {
-            discountTypeSelect.removeAttribute('disabled');
-            discountValueInput.removeAttribute('disabled');
-        } else {
-            discountTypeSelect.setAttribute('disabled', 'disabled');
-            discountValueInput.setAttribute('disabled', 'disabled');
-            discountTypeSelect.value = '';
-            discountValueInput.value = '';
-            calculateServiceTotal(discountValueInput);
-        }
-    }
-
-    // Add delete functionality
-    $(document).ready(function() {
-        $('.delete-package-service').click(function() {
-            $(this).closest('.individual_service_div').remove();
-
-            // Recalculate total
-            let total = 0;
-            $('.FINAL_AMOUNT').each(function() {
-                total += parseFloat($(this).val()) || 0;
-            });
-            $('.TOTAL_AMOUNT').text('$' + total.toFixed(2));
-            $('.TOTAL_AMOUNT').val(total.toFixed(2));
-        });
-    });
-</script>
