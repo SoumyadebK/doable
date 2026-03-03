@@ -817,10 +817,10 @@ if ($location_operational_hour->RecordCount() > 0) {
         }
     });
 
-    $('.multi_sumo_select').SumoSelect({
+    /* $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select <?= $service_provider_title ?>',
         selectAll: true
-    });
+    }); */
 
     /* $('#TO_DO_START_TIME').timepicker({
         timeFormat: 'hh:mm p',

@@ -623,9 +623,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 <select class="chip m-r-15" name="APPOINTMENT_TYPE" id="APPOINTMENT_TYPE" onchange="$('#search_form').submit();" style="height: 37px; min-width: 230px;">
                     <option value="">Select Appointment Type</option>
                     <option value="NORMAL">Appointment</option>
+                    <option value="AD-HOC">Ad-Hoc</option>
                     <option value="GROUP">Group Class</option>
                     <option value="TO-DO">To Dos</option>
-                    <option value="EVENT">Event</option>
+                    <option value="DEMO">Record Only</option>
                 </select>
             </form>
 
@@ -1463,7 +1464,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         }
 
-        function zoomInOut(type) {
+        /* function zoomInOut(type) {
             if (type == 'in' && interval > 10) {
                 interval = interval - 5;
             } else {
@@ -1473,9 +1474,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
             calendar.setOption('slotDuration', '00:' + interval + ':00');
             getServiceProviderCount();
-        }
+        } */
 
-        function showAppointmentEdit(info) {
+        /* function showAppointmentEdit(info) {
             $('#calendar-container').removeClass('col-10').addClass('col-12');
             $('#external-events').hide();
             let event_data = info.event.extendedProps;
@@ -1556,7 +1557,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 }
             }
-        }
+        } */
 
         function closeEditAppointment() {
             $('#edit_appointment_half').hide();

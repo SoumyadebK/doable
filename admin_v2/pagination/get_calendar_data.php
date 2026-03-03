@@ -37,7 +37,7 @@ $appointment_type = '';
 $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN (''NORMAL'', ''AD-HOC'', ''GROUP'', ''DEMO'') ";
 if (isset($_POST['APPOINTMENT_TYPE']) && $_POST['APPOINTMENT_TYPE'] != '') {
     $appointment_type = $_POST['APPOINTMENT_TYPE'];
-    $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = '$appointment_type' ";
+    $APPOINTMENT_TYPE_QUERY = " AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = \"$appointment_type\" ";
 }
 
 $SERVICE_PROVIDER_ID = ' ';
@@ -336,7 +336,7 @@ if ($appointment_type == 'EVENT' || $appointment_type == '') {
     }
 }
 
-if ($appointment_type == 'NORMAL' || $appointment_type == 'GROUP' || $appointment_type == '') {
+if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointment_type == 'GROUP' || $appointment_type == 'DEMO' || $appointment_type == '') {
     $appointment_data = $db_account->Execute($ALL_APPOINTMENT_QUERY);
 
     while ($conn_account->more_results() && $conn_account->next_result()) {

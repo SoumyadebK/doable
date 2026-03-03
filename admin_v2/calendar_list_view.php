@@ -806,13 +806,25 @@ if ($location_operational_hour->RecordCount() > 0) {
             <h6 class="mb-0">Appointment Details</h6>
             <span class="close-btn" id="closeDrawer2">&times;</span>
         </div>
-        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 100px);">
+        <div class="modal-body p-3" id="edit_appointment_div" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
             <!-- Content will be loaded here via AJAX -->
         </div>
-        <!-- <div class="modal-footer flex-nowrap p-2 border-top">
+        <div class="modal-footer flex-nowrap border-top">
             <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer2">Cancel</button>
-            <button type="button" class="btn-primary w-100 m-1">Save</button>
-        </div> -->
+            <button type="button" class="btn-primary w-100 m-1" onclick="submitEditAppointmentForm(this)">Save</button>
+        </div>
+    </div>
+
+    <!-- Add Customer to group class -->
+    <div class="overlay7"></div>
+    <div class="side-drawer" id="sideDrawer7">
+        <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Add New Customer</h6>
+            <span class="close-btn" id="closeDrawer7">&times;</span>
+        </div>
+        <div class="modal-body p-3" id="add_customer_to_group_class" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
     </div>
 
     <!-- Customer Details -->
@@ -832,9 +844,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         </div>
     </div>
 
+    <?php require_once('../includes/footer.php'); ?>
+
     <?php include 'partials/create_appointment_modal.php'; ?>
 
-    <?php require_once('../includes/footer.php'); ?>
+    <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
@@ -1027,11 +1041,6 @@ if ($location_operational_hour->RecordCount() > 0) {
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            //todayDate.setDate(todayDate.getDate() + 5);
-            renderCalendar(todayDate);
-            //renderCalendar(new Date());
-        });
 
         /*$('.fc-prev-button').click(function () {
             getServiceProviderCount();
@@ -1104,42 +1113,6 @@ if ($location_operational_hour->RecordCount() > 0) {
             $('#CHOOSE_DATE').val(displayText);
         }
 
-        function changeView(view) {
-            // Update active button styling
-            $('.view-btn').removeClass('active');
-            $('[data-view="' + view.replace('agenda', '').toLowerCase() + '"]').addClass('active');
-
-            // Change calendar view
-            if (view === 'agendaDay') {
-                calendar.changeView('agendaDay');
-                updateChooseDateInput(todayDate);
-            } else if (view === 'agendaWeek') {
-                calendar.changeView('agendaWeek');
-                setTimeout(function() {
-                    updateChooseDateInput(todayDate);
-                }, 100);
-            } else if (view === 'month') {
-                calendar.changeView('month');
-                setTimeout(function() {
-                    updateChooseDateInput(todayDate);
-                }, 100);
-            }
-        }
-
-        function zoomInOut(type) {
-            if (type == 'in' && interval > 10) {
-                interval = interval - 5;
-            } else {
-                if (type == 'out') {
-                    interval = interval + 5;
-                }
-            }
-            calendar.setOption('slotDuration', '00:' + interval + ':00');
-            getServiceProviderCount();
-        }
-
-
-
         $(document).on('submit', '#search_form', function(event) {
             event.preventDefault();
             let formData = $(this).serialize();
@@ -1154,41 +1127,115 @@ if ($location_operational_hour->RecordCount() > 0) {
             });
 
         });
-
-        /* function createAppointment(type, param) {
-            $('.btn').removeClass('button-selected');
-            $(param).addClass('button-selected');
-            let url = '';
-            if (type === 'group_class') {
-                url = "ajax/add_group_classes.php";
-            }
-            if (type === 'int_app') {
-                url = "ajax/add_special_appointment.php";
-            }
-            if (type === 'appointment') {
-                url = "ajax/add_appointment.php";
-            }
-            if (type === 'standing') {
-                url = "ajax/add_multiple_appointment.php";
-            }
-            if (type === 'ad_hoc') {
-                url = "ajax/add_ad_hoc_appointment.php";
-            }
-            if (type === 'appointments') {
-                url = "create_appointment.php";
-            }
-            $.ajax({
-                url: url,
-                type: "POST",
-                success: function(data) {
-                    $('#create_form_div').html(data);
-                }
-            });
-        } */
     </script>
 
 
+
+
+
+
     <script>
+        function loadViewAppointmentModal(appointmentId, TYPE) {
+            if (TYPE != 'not_available') {
+                $('#sideDrawer2, .overlay2').addClass('active');
+                $.ajax({
+                    url: "partials/view_appointment_modal.php",
+                    type: "POST",
+                    data: {
+                        PK_APPOINTMENT_MASTER: appointmentId,
+                        TYPE: TYPE
+                    },
+                    success: function(result) {
+                        // Update the drawer content with view_appointment_modal
+                        $('#edit_appointment_div').html(result);
+
+                        // Re-initialize any scripts if needed
+                        initializeModalScripts();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error loading view_appointment_modal.php:", error);
+                        $('#edit_appointment_div').html('<p>Error loading appointment details.</p>');
+                    }
+                });
+            }
+        }
+
+        function loadViewCustomerModal(customerId, PK_ENROLLMENT_MASTER) {
+            //$('#sideDrawer2, .overlay2').removeClass('active'); // Close appointment modal
+            $('#sideDrawer3, .overlay3').addClass('active'); // Open customer modal
+
+            $.ajax({
+                url: "partials/view_customer_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER: customerId,
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                },
+                success: function(result) {
+                    // Update the customer drawer content
+                    $('#sideDrawer3 .drawer-body').html(result);
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading view_customer_modal.php:", error);
+                    $('#sideDrawer3 .drawer-body').html('<p>Error loading customer details.</p>');
+                }
+            });
+        }
+
+        function loadCreateAppointmentModal(PK_USER_MASTER) {
+            $('#sideDrawer, .overlay').addClass('active');
+            $.ajax({
+                url: "partials/create_appointment_modal.php",
+                type: "POST",
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER
+                },
+                success: function(result) {
+                    // Update the drawer content with create_appointment_modal
+                    $('#sideDrawer .drawer-body').html(result);
+
+                    // Re-initialize any scripts if needed
+                    initializeModalScripts();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading create_appointment_modal.php:", error);
+                    $('#sideDrawer .drawer-body').html('<p>Error loading appointment creation form.</p>');
+                }
+            });
+        }
+
+        function initializeModalScripts() {
+            // Re-initialize any scripts that were in view_appointment_modal.php
+            // For example, datepickers, select menus, etc.
+
+            // Initialize datepicker if exists
+            if ($.fn.datepicker) {
+                $('.datepicker').datepicker();
+            }
+
+            // Initialize SumoSelect if exists
+            if ($.fn.SumoSelect) {
+                $('.sumoselect').SumoSelect();
+            }
+
+            // Re-attach event handlers
+            attachModalEventHandlers();
+        }
+
+        function attachModalEventHandlers() {
+            // Attach event handlers for buttons in the modal
+            $(document).off('click', '.modal-save-btn').on('click', '.modal-save-btn', function() {
+                // Handle save button click
+                saveAppointmentChanges();
+            });
+
+            $(document).off('click', '.modal-cancel-btn').on('click', '.modal-cancel-btn', function() {
+                closeSideDrawer2();
+            });
+        }
+
+
         function deleteAppointment(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
                 title: "Are you sure?",
@@ -1269,6 +1316,15 @@ if ($location_operational_hour->RecordCount() > 0) {
                 $('#CHOOSE_DATE').val(formattedDate);
                 $('#search_form').submit();
             });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $(".btn-available").click(function() {
+                $(this).toggleClass("active");
+                $(".slot_div").toggle();
+            });
 
             $('#openDrawer').click(function() {
                 $('#sideDrawer, .overlay').addClass('active');
@@ -1293,6 +1349,40 @@ if ($location_operational_hour->RecordCount() > 0) {
             $('#closeDrawer3, .overlay3').click(function() {
                 $('#sideDrawer3, .overlay3').removeClass('active');
             });
+
+            $('#openDrawer4').click(function() {
+                $('#sideDrawer4, .overlay4').addClass('active');
+            });
+
+            $('#closeDrawer4, .overlay4').click(function() {
+                $('#sideDrawer4, .overlay4').removeClass('active');
+            });
+
+            $('#openDrawer5').click(function() {
+                $('#sideDrawer5, .overlay5').addClass('active');
+            });
+
+            $('#closeDrawer5, .overlay5').click(function() {
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer6').click(function() {
+                $('#sideDrawer6, .overlay6').addClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#closeDrawer6, .overlay6').click(function() {
+                $('#sideDrawer6, .overlay6').removeClass('active');
+                $('#sideDrawer5, .overlay5').removeClass('active');
+            });
+
+            $('#openDrawer7').click(function() {
+                $('#sideDrawer7, .overlay7').addClass('active');
+            });
+
+            $('#closeDrawer7, .overlay7').click(function() {
+                $('#sideDrawer7, .overlay7').removeClass('active');
+            });
         });
 
         $(document).ready(function() {
@@ -1311,6 +1401,20 @@ if ($location_operational_hour->RecordCount() > 0) {
 
             });
         });
+    </script>
+
+
+    <script>
+        function submitEditAppointmentForm() {
+            let form = $('#edit_appointment_form');
+
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return false;
+            }
+
+            form.submit();
+        }
     </script>
 
 
