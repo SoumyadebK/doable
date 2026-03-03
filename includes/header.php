@@ -119,9 +119,7 @@
 
         .outer li {
             display: inline-block;
-            *display: inline;
             /*For IE7*/
-            *zoom: 1;
             /*For IE7*/
             vertical-align: top;
             white-space: normal;
@@ -396,7 +394,6 @@
         .plus {
             width: 30px;
             height: 30px;
-            *background: #f2f2f2;
             border-radius: 4px;
             padding: 4px 8px 8px 8px;
             border: 1px solid #ddd;
