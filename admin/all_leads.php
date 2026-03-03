@@ -227,7 +227,7 @@ foreach ($lead_status as $key => $value) {
                                         <?php
                                         $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
                                         while (!$leads_status->EOF) {
-                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LEADS.IS_CALLED, DOA_LEADS.IS_APPOINTMENT_CREATED, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS LEFT JOIN DOA_LEAD_DATE ON DOA_LEADS.PK_LEADS = DOA_LEAD_DATE.PK_LEADS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " $CHOOSE_DATE AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
+                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LEADS.IS_CALLED, DOA_LEADS.IS_APPOINTMENT_CREATED, DOA_LOCATION.LOCATION_NAME, DOA_LEAD_DATE.DATE FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS LEFT JOIN DOA_LEAD_DATE ON DOA_LEADS.PK_LEADS = DOA_LEAD_DATE.PK_LEADS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " $CHOOSE_DATE AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
                                             <div class="kanban-column">
                                                 <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;"><?= $leads_status->fields['LEAD_STATUS'] ?><br><small><?= $leds_user->RecordCount(); ?> Opportunities</small></div>
                                                 <div class="kanban-body">
@@ -243,7 +243,7 @@ foreach ($lead_status as $key => $value) {
                                                                 <?php } ?>
                                                                 <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
                                                             </div>
-                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;">
+                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>, '<?= date('Y-m-d', strtotime($leds_user->fields['DATE'])) ?>');" style="cursor: pointer;">
                                                                 <?= $leds_user->fields['NAME'] ?>
                                                             </div>
                                                             <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
@@ -339,9 +339,9 @@ foreach ($lead_status as $key => $value) {
             $('#myTable').DataTable();
         });
 
-        function editpage(id) {
+        function editpage(id, date) {
             //alert(i);
-            window.location.href = "leads.php?id=" + id;
+            window.location.href = "leads.php?id=" + id + "&date=" + date;
         }
 
         function ConfirmDelete(PK_LEADS) {

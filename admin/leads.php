@@ -90,7 +90,7 @@ if (empty($_GET['id'])) {
     $PHONE = $res->fields['PHONE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
-    $DATE = !empty($res->fields['DATE']) ? date("m/d/Y", strtotime($res->fields['DATE'])) : '';
+    $DATE = !empty($_GET['date']) ? date("m/d/Y", strtotime($_GET['date'])) : '';
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
     $ACTIVE = $res->fields['ACTIVE'];
