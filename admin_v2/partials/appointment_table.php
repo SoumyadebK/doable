@@ -198,7 +198,7 @@ while (!$appointments->EOF) {
             <?= $service_name ?>&nbsp;&nbsp;<span class="badge ms-auto" style="font-size: 12px !important; background-color: <?= $color_code ?>20 !important; color: <?= $color_code ?> !important;"><?= $service_code ?></span>
         </td>
         <td class="text-center" style="vertical-align: middle;">
-            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>, <?= $TYPE ?>)">
+            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id ?>, '<?= $TYPE ?>')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
                     <circle cx="256" cy="256" r="48" />
                     <circle cx="256" cy="416" r="48" />
