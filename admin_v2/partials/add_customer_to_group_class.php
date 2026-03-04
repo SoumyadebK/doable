@@ -75,6 +75,13 @@ $LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 </form>
 
 <script>
+    $('#SELECTED_CUSTOMER_ID').SumoSelect({
+        placeholder: 'Select Customer',
+        search: true,
+        searchText: 'Search...'
+    });
+
+
     function cancelAddCustomer() {
         $('#sideDrawer7, .overlay7').removeClass('active');
     }

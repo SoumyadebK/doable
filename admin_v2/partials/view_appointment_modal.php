@@ -926,8 +926,8 @@ if ($TYPE == 'appointment') {
     $PK_SPECIAL_APPOINTMENT = $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'];
     $TITLE = preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']);
     $DATE = date("m/d/Y", strtotime($special_appointment_data->fields['DATE']));
-    $START_TIME = $special_appointment_data->fields['START_TIME'];
-    $END_TIME = $special_appointment_data->fields['END_TIME'];
+    $START_TIME = date("h:i A", strtotime($special_appointment_data->fields['START_TIME']));
+    $END_TIME = date("h:i A", strtotime($special_appointment_data->fields['END_TIME']));
     $DESCRIPTION = $special_appointment_data->fields['DESCRIPTION'];
     $PK_APPOINTMENT_STATUS = $special_appointment_data->fields['PK_APPOINTMENT_STATUS'];
 
