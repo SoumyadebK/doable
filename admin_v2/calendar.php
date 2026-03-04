@@ -1266,6 +1266,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             let serviceProviderId = selectedServiceProvider && selectedServiceProvider.length > 0 ? selectedServiceProvider[0] : '';
 
                                             $('#sideDrawer, .overlay').addClass('active');
+                                            setDateOnAppointment();
 
                                             // Load the create appointment modal with the current date
                                             $.ajax({
@@ -1281,15 +1282,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
                                                     // Optionally set the date in the datepicker if it exists
                                                     setTimeout(function() {
-                                                        if ($('#APPOINTMENT_DATE').length) {
+                                                        /* if ($('#APPOINTMENT_DATE').length) {
                                                             $('#APPOINTMENT_DATE').val(formattedDate);
-                                                        }
+                                                        } */
 
                                                         // Set the service provider select value
-                                                        if ($('#PK_SERVICE_PROVIDER').length) {
-                                                            $('#PK_SERVICE_PROVIDER').val(resource_id);
+                                                        if ($('.PK_SERVICE_PROVIDER').length) {
+                                                            $('.PK_SERVICE_PROVIDER').val(resource_id);
                                                             // Trigger change event to load slots if needed
-                                                            $('#PK_SERVICE_PROVIDER').trigger('change');
+                                                            $('.PK_SERVICE_PROVIDER').trigger('change');
                                                         }
                                                     }, 200);
                                                 },
@@ -1433,6 +1434,19 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $(document).off('click', '.modal-cancel-btn').on('click', '.modal-cancel-btn', function() {
                 closeSideDrawer2();
             });
+        }
+
+        function setDateOnAppointment() {
+            let date = $('#CHOOSE_DATE').val();
+            let converted_date = new Date(date);
+            let year = converted_date.getFullYear();
+            let month = ('0' + (converted_date.getMonth() + 1)).slice(-2);
+            let day = ('0' + converted_date.getDate()).slice(-2);
+            let formatted_date = month + '/' + day + '/' + year;
+            $('#APPOINTMENT_DATE').val(formatted_date);
+            $('#STARTING_ON').val(formatted_date);
+            $('#TO_DO_DATE').val(formatted_date);
+            $('#RECORD_ONLY_APPOINTMENT_DATE').val(formatted_date);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -2015,16 +2029,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             $('#openDrawer').click(function() {
                 $('#sideDrawer, .overlay').addClass('active');
-                let date = $('#CHOOSE_DATE').val();
-                let converted_date = new Date(date);
-                let year = converted_date.getFullYear();
-                let month = ('0' + (converted_date.getMonth() + 1)).slice(-2);
-                let day = ('0' + converted_date.getDate()).slice(-2);
-                let formatted_date = month + '/' + day + '/' + year;
-                $('#APPOINTMENT_DATE').val(formatted_date);
-                $('#STARTING_ON').val(formatted_date);
-                $('#TO_DO_DATE').val(formatted_date);
-                $('#RECORD_ONLY_APPOINTMENT_DATE').val(formatted_date);
+                setDateOnAppointment();
             });
 
             $('#closeDrawer, .overlay').click(function() {
