@@ -1251,7 +1251,53 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                     //dataType: 'json',
                                     success: function(result) {
                                         if (result == 1) {
-                                            window.location.href = "create_appointment.php?date=" + date + "&SERVICE_PROVIDER_ID=" + resource_id;
+                                            //window.location.href = "create_appointment.php?date=" + date + "&SERVICE_PROVIDER_ID=" + resource_id;
+                                            // Get the current date from the calendar
+                                            let currentDate = calendar.getDate();
+
+                                            // Format the date for the URL (YYYY-MM-DD)
+                                            let year = currentDate.getFullYear();
+                                            let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                                            let day = String(currentDate.getDate()).padStart(2, '0');
+                                            let formattedDate = `${year}-${month}-${day}`;
+
+                                            // Get selected service provider if any
+                                            let selectedServiceProvider = $('#SERVICE_PROVIDER_ID').val();
+                                            let serviceProviderId = selectedServiceProvider && selectedServiceProvider.length > 0 ? selectedServiceProvider[0] : '';
+
+                                            $('#sideDrawer, .overlay').addClass('active');
+
+                                            // Load the create appointment modal with the current date
+                                            $.ajax({
+                                                url: "partials/create_appointment_modal.php",
+                                                type: "POST",
+                                                data: {
+                                                    DATE: formattedDate,
+                                                    SERVICE_PROVIDER_ID: resource_id
+                                                },
+                                                success: function(result) {
+                                                    $('#sideDrawer .drawer-body').html(result);
+                                                    initializeModalScripts();
+
+                                                    // Optionally set the date in the datepicker if it exists
+                                                    setTimeout(function() {
+                                                        if ($('#APPOINTMENT_DATE').length) {
+                                                            $('#APPOINTMENT_DATE').val(formattedDate);
+                                                        }
+
+                                                        // Set the service provider select value
+                                                        if ($('#PK_SERVICE_PROVIDER').length) {
+                                                            $('#PK_SERVICE_PROVIDER').val(resource_id);
+                                                            // Trigger change event to load slots if needed
+                                                            $('#PK_SERVICE_PROVIDER').trigger('change');
+                                                        }
+                                                    }, 200);
+                                                },
+                                                error: function(xhr, status, error) {
+                                                    console.error("Error loading create_appointment_modal.php:", error);
+                                                    $('#sideDrawer .drawer-body').html('<p>Error loading appointment creation form.</p>');
+                                                }
+                                            });
                                         } else {
                                             swal("No slot available!", result, "error");
                                         }

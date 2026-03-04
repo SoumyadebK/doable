@@ -1,4 +1,10 @@
 <?php
+// Get the date from POST or use current date
+$selected_date = isset($_POST['DATE']) ? date('m/d/Y', strtotime($_POST['DATE'])) : date('m/d/Y');
+$selected_service_provider = isset($_POST['SERVICE_PROVIDER_ID']) ? $_POST['SERVICE_PROVIDER_ID'] : '';
+echo $selected_service_provider;
+echo $selected_date;
+
 $service_master = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND SERVICE_CODE = 'COMM'");
 if ($service_master->RecordCount() == 0) {
     $PK_SERVICE_MASTER = 0;
@@ -111,8 +117,16 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                    while (!$row->EOF) {
+                                        $selected = '';
+                                        // Check if this option should be selected
+                                        if ($selected_service_provider == $row->fields['PK_USER']) {
+                                            $selected = 'selected';
+                                        }
+                                    ?>
+                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?php echo $selected; ?>>
+                                            <?= $row->fields['NAME'] ?>
+                                        </option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
@@ -200,7 +214,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?php echo htmlspecialchars($selected_date); ?>" required>
                                 <!-- <input type="time" class="form-control"> -->
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
