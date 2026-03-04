@@ -523,30 +523,37 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
             </div>
 
-
-
-            <!-- One Time -->
-            <div class="payment_method_div" id="one_time_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? '' : 'none' ?>;">
-                <div class="row mb-2 align-items-center">
-                    <div class="col-4 col-md-4">
-                        <div class="d-flex gap-2 align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
-                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
-                            </svg>
-                            <label class="mb-0">Billing Date</label>
-                        </div>
-                    </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group">
-                            <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
-                        </div>
+            <div class="row mb-2 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Billing Date</label>
                     </div>
                 </div>
-                <hr class="mb-3">
-                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
-                    <span>Balance Payable</span>
-                    <input type="text" id="BALANCE_PAYABLE" class="TOTAL_AMOUNT" name="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>">
-                    <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT">$<?= $BALANCE_PAYABLE ?></span>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-2 align-items-center" id="down_payment_div" style="display: none;">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Down Payment</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <div class="position-relative">
+                            <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -556,45 +563,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4"></div>
-                    <div class="col-md-7 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans' || $PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>;">
+                    <div class="col-md-8 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans' || $PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>;">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
                             <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
-                                <label><input type="radio" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" <?= ($ACTIVE_AUTO_PAY == '1') ? 'checked' : '' ?> /></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-4 col-md-4">
-                        <div class="d-flex gap-2 align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
-                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
-                            </svg>
-                            <label class="mb-0">Billing Date</label>
-                        </div>
-                    </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group">
-                            <input type="date" class="form-control" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control datepicker-normal">
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-2 align-items-center">
-                    <div class="col-4 col-md-4">
-                        <div class="d-flex gap-2 align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
-                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
-                            </svg>
-                            <label class="mb-0">Down Payment</label>
-                        </div>
-                    </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group">
-                            <div class="position-relative">
-                                <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
+                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" <?= ($ACTIVE_AUTO_PAY == '1') ? 'checked' : '' ?> /></label>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
@@ -611,7 +589,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
                                 <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
                             </select>
-                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <input type="text" placeholder="Number of Payments" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                         </div>
                     </div>
                 </div>
@@ -626,14 +604,25 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-normal installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                         </div>
                     </div>
                 </div>
-                <hr class="mb-3">
-                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
-                    <span>Installment Amount</span>
-                    <span class="fw-semibold text-dark" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?></span>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Installment Amount</label>
+                        </div>
+                    </div>
+                    <div class="col-8 col-md-8">
+                        <div class="form-group d-flex gap-2">
+                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -643,7 +632,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <div class="payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4"></div>
-                    <div class="col-md-7 ms-auto pe-0 mb-2">
+                    <div class="col-md-8 ms-auto pe-0 mb-2">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
                             <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
@@ -651,40 +640,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             </div>
                         </div>
                     </div>
-                    <div class="col-4 col-md-4">
-                        <div class="d-flex gap-2 align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
-                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
-                            </svg>
-                            <label class="mb-0">Billing Date</label>
-                        </div>
-                    </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group">
-                            <input type="text" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" class="form-control">
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-2 align-items-center" id="down_payment_div" style="display: <?= ($PAYMENT_METHOD == 'One Time') ? 'none' : '' ?>">
-                    <div class="col-4 col-md-4">
-                        <div class="d-flex gap-2 align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
-                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
-                            </svg>
-                            <label class="mb-0">Down Payment</label>
-                        </div>
-                    </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group">
-                            <div class="position-relative">
-                                <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()" style="padding-left: 20px;">
-                                <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <div class="row mb-2 align-items-center" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
+                <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4">
                         <div class="d-flex gap-2 align-items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
@@ -693,9 +651,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Next Payment Dates</label>
                         </div>
                     </div>
-                    <div class="col-8 col-md-8">
-                        <div class="form-group d-flex gap-2">
-                            <input type="date" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control">
+                    <div class="col-8 col-md-8" id="next_payment_dates_div">
+                        <div class="form-group d-flex gap-2 mb-2">
+                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-normal">
                             <div class="position-relative">
                                 <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                 <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
@@ -703,15 +661,23 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                         </div>
                     </div>
                 </div>
-                <hr class="mb-3">
-                <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
-                    <span>Installment Amount</span>
-                    <span class="fw-semibold text-dark">$0.00</span>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4"> </div>
+                    <div class="col-8 col-md-8">
+                        <button type="button" class="btn-secondary w-100 f12 mb-2" onclick="addMorePayments()">Add More Payment Dates</button>
+                    </div>
                 </div>
+
             </div>
 
 
 
+            <hr class="mb-3">
+            <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                <span>Balance Payable</span>
+                <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>" class="form-control" style="width: 330px;" readonly>
+            </div>
         </form>
     </div>
 
@@ -725,7 +691,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
 <!-- Enrollment Payment -->
-<div class="overlay6"></div>
+<!-- <div class="overlay6"></div>
 <div class="side-drawer" id="sideDrawer6">
     <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
         <h6>
@@ -796,7 +762,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer6">Cancel</button>
         <button type="button" class="btn-primary w-100 m-1">Save</button>
     </div>
-</div>
+</div> -->
 <!-- End Enrollment Payment -->
 
 
@@ -1043,6 +1009,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     function selectThisCustomer(param) {
         let location_id = $(param).find(':selected').data('location_id');
         let PK_USER = $(param).find(':selected').data('pk_user');
+        let PK_USER_MASTER = $(param).val();
+        $('.CUSTOMER_ID').val(PK_USER_MASTER);
         $('#PK_LOCATION').val(location_id);
         $.ajax({
             url: "ajax/get_locations.php",
@@ -1473,24 +1441,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             total_flexible_payment += parseFloat($(this).val());
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
-            $('#flexible_plans_div').append(`<div class="row">
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" required>
-                                                        </div>
+            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
+                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
+                                                    <div class="position-relative">
+                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
+                                                        <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
                                                     </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="form-group">
-                                                        <div class="col-md-12">
-                                                            <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this)" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3" style="padding-top: 5px;">
-                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                </div>
                                                 </div>`);
             $('.datepicker-future').datepicker({
                 dateFormat: 'mm/dd/yy',
@@ -1817,6 +1773,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     }
                     $('#enrollment_payment_modal').modal('show');
                 } else {
+                    window.location.reload();
                     $('#sideDrawer6, .overlay6').addClass('active');
                     /* let header = '<?= $header ?>';
                     if (header) {

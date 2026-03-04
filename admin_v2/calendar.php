@@ -1744,18 +1744,34 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 confirmButtonText: "Yes, delete it!"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {
-                            FUNCTION_NAME: 'deleteAppointment',
-                            type: type,
-                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                        },
-                        success: function(data) {
-                            calendar.refetchEvents();
-                        }
-                    });
+                    if (type == 'normal') {
+                        $.ajax({
+                            url: "ajax/AjaxFunctions.php",
+                            type: 'POST',
+                            data: {
+                                FUNCTION_NAME: 'deleteAppointment',
+                                type: type,
+                                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                            },
+                            success: function(data) {
+                                calendar.refetchEvents();
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            url: "ajax/AjaxFunctions.php",
+                            type: 'POST',
+                            data: {
+                                FUNCTION_NAME: 'deleteSpecialAppointment',
+                                type: type,
+                                PK_SPECIAL_APPOINTMENT: PK_APPOINTMENT_MASTER
+                            },
+                            success: function(data) {
+                                calendar.refetchEvents();
+                            }
+                        });
+
+                    }
                 }
             });
         }
@@ -1953,6 +1969,16 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             $('#openDrawer').click(function() {
                 $('#sideDrawer, .overlay').addClass('active');
+                let date = $('#CHOOSE_DATE').val();
+                let converted_date = new Date(date);
+                let year = converted_date.getFullYear();
+                let month = ('0' + (converted_date.getMonth() + 1)).slice(-2);
+                let day = ('0' + converted_date.getDate()).slice(-2);
+                let formatted_date = month + '/' + day + '/' + year;
+                $('#APPOINTMENT_DATE').val(formatted_date);
+                $('#STARTING_ON').val(formatted_date);
+                $('#TO_DO_DATE').val(formatted_date);
+                $('#RECORD_ONLY_APPOINTMENT_DATE').val(formatted_date);
             });
 
             $('#closeDrawer, .overlay').click(function() {
