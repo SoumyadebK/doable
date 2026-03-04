@@ -1,4 +1,42 @@
 <style>
+    #advice-required-entry-ACCEPT_HANDLING {
+        width: 150px;
+        top: 20px;
+        position: absolute;
+    }
+
+    .StripeElement {
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .StripeElement--focus {
+        box-shadow: 0 1px 3px 0 #cfd7df;
+    }
+
+    .StripeElement--invalid {
+        border-color: #fa755a;
+    }
+
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+
+    nav-link {
+        border: 1px solid #555;
+    }
+</style>
+
+<style>
     .clover-input {
         height: 34px;
         padding: 6px 12px;
@@ -25,22 +63,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#enrollment_payment_modal').modal('hide');"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" name="sourceId" id="enrollment_sourceId">
-                    <input type="text" name="token" id="token">
-                    <input type="text" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
-                    <!--<input type="text" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
-                    <input type="text" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
-                    <input type="text" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= ($PK_ENROLLMENT_BILLING) ?? 0 ?>">
-                    <input type="text" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                    <input type="text" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
-                    <input type="text" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?= isset($PK_USER_MASTER) ? $PK_USER_MASTER : '' ?>">
-                    <input type="text" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
-                    <input type="text" name="BILLING_REF" id="PAYMENT_BILLING_REF">
-                    <input type="text" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
-                    <input type="text" name="header" value="<?= $header ?>">
+                    <input type="hidden" name="sourceId" id="enrollment_sourceId">
+                    <input type="hidden" name="token" id="token">
+                    <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
+                    <!--<input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">-->
+                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
+                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= ($PK_ENROLLMENT_BILLING) ?? 0 ?>">
+                    <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
+                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
+                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?= isset($PK_USER_MASTER) ? $PK_USER_MASTER : '' ?>">
+                    <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
+                    <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
+                    <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
+                    <input type="hidden" name="header" value="<?= $header ?>">
 
                     <div class="p-20">
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Total Amount</label>
@@ -59,7 +97,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Amount to Pay</label>
@@ -90,9 +128,9 @@
                         </div>
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
-                            <div class="row" id="card_list">
+                            <div class="row mb-3" id="card_list">
                             </div>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                            <div class="row mb-3 payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
@@ -109,9 +147,9 @@
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-                            <div class="row" id="card_list">
+                            <div class="row mb-3" id="card_list">
                             </div>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                            <div class="row mb-3 payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
@@ -132,7 +170,7 @@
                             $customer_id = isset($PK_USER_MASTER) ? $PK_USER_MASTER : '';
                             $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$customer_id'");
                         ?>
-                            <div class="row" id="card_list">
+                            <div class="row mb-3" id="card_list">
                             </div>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row">
@@ -226,7 +264,7 @@
                         <?php } ?>
 
 
-                        <div class="row payment_type_div" id="check_payment" style="display: none;">
+                        <div class="row mb-3 payment_type_div" id="check_payment" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Check Number</label>
@@ -271,7 +309,7 @@
                             </div>
                         </div>-->
 
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-12 partial_payment">
                                 <div class="form-group d-flex align-items-center mt-3 ms-2">
                                     <input type="checkbox" id="PARTIAL_PAYMENT" name="PARTIAL_PAYMENT" class="me-2" onchange="showPartialPaymentDiv(this)">
@@ -280,7 +318,7 @@
                             </div>
                         </div>
 
-                        <div class="row" id="save_card_on_file_div" style="display: none;">
+                        <div class="row mb-3" id="save_card_on_file_div" style="display: none;">
                             <div class="col-12">
                                 <div class="form-group">
                                     <label class="col-md-12 mt-3"><input type="checkbox" id="SAVE_CARD_ON_FILE" name="SAVE_CARD_ON_FILE" class="form-check-inline" checked disabled> Save Card on File</label>
@@ -288,7 +326,7 @@
                             </div>
                         </div>
 
-                        <div class="row form-group partial_payment_div" style="display: none;">
+                        <div class="row mb-3 form-group partial_payment_div" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Partial Payment</label>
@@ -315,7 +353,7 @@
                             </div>
                         </div>
 
-                        <div class="row partial_payment_type_div" id="partial_credit_card_payment" style="display: none;">
+                        <div class="row mb-3 partial_payment_type_div" id="partial_credit_card_payment" style="display: none;">
                             <div class="col-12">
                                 <div class="form-group" id="remaining_card_div">
 
@@ -323,7 +361,7 @@
                             </div>
                         </div>
 
-                        <div class="row partial_payment_type_div" id="partial_check_payment" style="display: none;">
+                        <div class="row mb-3 partial_payment_type_div" id="partial_check_payment" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Check Number</label>
@@ -342,7 +380,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-12">
                                 <div class="form-group">
                                     <label class="form-label">Notes</label>
@@ -352,7 +390,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-12" id="payment_status">
 
                             </div>
@@ -360,8 +398,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#enrollment_payment_modal').modal('hide');">Close</button>
-                    <button type="submit" id="enr-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    <button type="button" class="btn-secondary" data-bs-dismiss="modal" onclick="$('#enrollment_payment_modal').modal('hide');">Close</button>
+                    <button type="submit" class="btn-primary" id="enr-payment-btn" style="float: right;">Process</button>
                 </div>
             </div>
         </form>
@@ -607,8 +645,9 @@
                     $('#enr-payment-btn').prop('disabled', false);
                 } else {
                     $('#payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
+                    window.location.reload();
 
-                    setTimeout(function() {
+                    /* setTimeout(function() {
                         let header = '<?= $header ?>';
                         if (header) {
                             window.location.href = header;
@@ -618,7 +657,7 @@
                             window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
                         }
                         //location.reload();
-                    }, 3000);
+                    }, 3000); */
                 }
                 console.log(data);
             }
@@ -739,7 +778,7 @@
     }
 
     function getCreditCardList() {
-        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+        let PK_USER_MASTER = $('.CUSTOMER_ID').val();
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',

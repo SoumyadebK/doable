@@ -620,11 +620,11 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                <input type="text" name="DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
+                                <input type="text" name="DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
                                 <span class="f14">at</span>
                                 <input type="time" id="TO_DO_START_TIME" name="START_TIME" class="form-control" onchange="calculateEndTime(this)" required>
                                 <span class="f14">to</span>
-                                <input type="time" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
+                                <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
                             </div>
                             <label class="custom-checkbox float-start mt-2 mb-2">
                                 <input type="checkbox">
@@ -775,7 +775,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="TO_DO_APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="RECORD_ONLY_APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
                                 <!-- <input type="time" class="form-control"> -->
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
@@ -825,7 +825,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         }
     });
 
-    $('#TO_DO_APPOINTMENT_DATE').datepicker({
+    $('#RECORD_ONLY_APPOINTMENT_DATE').datepicker({
         onSelect: function() {
             getSlots(this);
         }
@@ -939,7 +939,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         if (form_name == 'create_appointment_form') {
             selected_date = $('#APPOINTMENT_DATE').val();
         } else {
-            selected_date = $('#TO_DO_APPOINTMENT_DATE').val();
+            selected_date = $('#RECORD_ONLY_APPOINTMENT_DATE').val();
         }
 
         let dateObj = new Date(selected_date);
@@ -1145,10 +1145,10 @@ if ($location_operational_hour->RecordCount() > 0) {
 
 
     function calculateEndTime() {
-        let start_time = $('#TO_DO_START_TIME').val();
-        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
-        let scheduling_name = $('#PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
-        let is_default = $('#PK_SCHEDULING_CODE').find(':selected').data('is_default');
+        let start_time = $('#create_to_do_form #TO_DO_START_TIME').val();
+        let duration = $('#create_to_do_form #PK_SCHEDULING_CODE').find(':selected').data('duration');
+        let scheduling_name = $('#create_to_do_form #PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
+        let is_default = $('#create_to_do_form #PK_SCHEDULING_CODE').find(':selected').data('is_default');
         $('#TITLE').val(scheduling_name);
         duration = (duration) ? duration : 0;
 
@@ -1156,7 +1156,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
             let end_time = addMinutes(start_time, duration);
             end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
-            $('#TO_DO_END_TIME').val(end_time);
+            $('#create_to_do_form #TO_DO_END_TIME').val(end_time);
         }
 
         if (is_default === 1) {
@@ -1164,5 +1164,15 @@ if ($location_operational_hour->RecordCount() > 0) {
         } else {
             $('.customer_div').hide();
         }
+    }
+
+    function addMinutes(time, minsToAdd) {
+        function D(J) {
+            return (J < 10 ? '0' : '') + J;
+        };
+        var piece = time.split(':');
+        var mins = piece[0] * 60 + +piece[1] + +minsToAdd;
+
+        return D(mins % (24 * 60) / 60 | 0) + ':' + D(mins % 60);
     }
 </script>
