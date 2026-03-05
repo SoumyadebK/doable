@@ -842,9 +842,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
 
-    $(document).ready(function() {
+    /* $(document).ready(function() {
         $('#PK_USER_MASTER').trigger("change");
-    });
+    }); */
 
     let ENROLLMENT_BY_ID = parseInt(<?= $ENROLLMENT_BY_ID ?>);
 
@@ -1011,7 +1011,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         let PK_USER = $(param).find(':selected').data('pk_user');
         let PK_USER_MASTER = $(param).val();
         $('.CUSTOMER_ID').val(PK_USER_MASTER);
-        $('#PK_LOCATION').val(location_id);
+        $('#enrollment_form #PK_LOCATION').val(location_id);
+        //alert(location_id);
         $.ajax({
             url: "ajax/get_locations.php",
             type: "POST",
@@ -1033,7 +1034,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     function showEnrollmentBy() {
-        let location_id = $('#PK_LOCATION').val();
+        let location_id = $('#enrollment_form #PK_LOCATION').val();
         $.ajax({
             url: "ajax/get_enrollment_by.php",
             type: "POST",
@@ -1043,16 +1044,16 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             async: false,
             cache: false,
             success: function(result) {
-                $('#ENROLLMENT_BY_ID').empty().append(result);
+                $('#enrollment_form #ENROLLMENT_BY_ID').empty().append(result);
                 if (PK_ENROLLMENT_MASTER > 0) {
-                    $('#ENROLLMENT_BY_ID').val(ENROLLMENT_BY_ID);
+                    $('#enrollment_form #ENROLLMENT_BY_ID').val(ENROLLMENT_BY_ID);
                 }
             }
         });
     }
 
     function showEnrollmentInstructor() {
-        let location_id = $('#PK_LOCATION').val();
+        let location_id = $('#enrollment_form #PK_LOCATION').val();
         $.ajax({
             url: "ajax/get_instructor.php",
             type: "POST",
@@ -1069,8 +1070,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
     function getEnrollmentCount() {
         let PK_ENROLLMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
-        let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-        let PK_LOCATION = $('#PK_LOCATION').val();
+        let PK_USER_MASTER = $('#enrollment_form #PK_USER_MASTER').val();
+        let PK_LOCATION = $('#enrollment_form #PK_LOCATION').val();
         if (PK_USER_MASTER > 0 && PK_LOCATION > 0 && PK_ENROLLMENT_MASTER == 0) {
             $.ajax({
                 url: "ajax/AjaxFunctions.php",

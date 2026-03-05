@@ -74,11 +74,11 @@ if ($FUNCTION_NAME == 'loginFunction') {
 
                     header("location: customer/all_schedules.php?view=table");
                 } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: admin/all_schedules.php");
+                    header("location: admin_v2/calendar.php");
                 } elseif ($_SESSION['IS_NEW'] == 1) {
                     header("location: admin/wizard_corporation.php");
                 } else {
-                    header("location: admin/all_schedules.php?view=table");
+                    header("location: admin_v2/calendar.php");
                 }
             } else {
                 $msg = "Invalid Password";
@@ -99,11 +99,11 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
         $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
         header("location: customer/all_schedules.php?view=table");
     } elseif ($_SESSION['PK_ROLES'] == 5) {
-        header("location: admin/all_schedules.php");
+        header("location: admin_v2/calendar.php");
     } elseif ($_SESSION['IS_NEW'] == 1) {
         header("location: admin/wizard_corporation.php");
     } else {
-        header("location: admin/all_schedules.php?view=table");
+        header("location: admin_v2/calendar.php");
     }
 }
 
