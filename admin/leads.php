@@ -18,16 +18,36 @@ if (!empty($_POST)) {
         exit;
     }
 
-    $LEADS_DATA = $_POST;
+    //$LEADS_DATA = $_POST;
     if (empty($_GET['id'])) {
+        $LEADS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+        $LEADS_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
+        $LEADS_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
+        $LEADS_DATA['PHONE'] = $_POST['PHONE'];
+        $LEADS_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+        $LEADS_DATA['PK_LEAD_STATUS'] = $_POST['PK_LEAD_STATUS'];
+        $LEADS_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+        $LEADS_DATA['OPPORTUNITY_SOURCE'] = $_POST['OPPORTUNITY_SOURCE'];
         $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
         $LEADS_DATA['IP_ADDRESS'] = $IP_ADDRESS;
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $LEADS_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        //pre_r($LEADS_DATA);
+        //echo db_perform('DOA_LEADS', $LEADS_DATA, 'insert');
         db_perform('DOA_LEADS', $LEADS_DATA, 'insert');
-        $PK_LEADS = $db_account->insert_ID();
+        $PK_LEADS = $db->insert_ID();
     } else {
+        $LEADS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+        $LEADS_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
+        $LEADS_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
+        $LEADS_DATA['PHONE'] = $_POST['PHONE'];
+        $LEADS_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+        $LEADS_DATA['PK_LEAD_STATUS'] = $_POST['PK_LEAD_STATUS'];
+        $LEADS_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+        $LEADS_DATA['OPPORTUNITY_SOURCE'] = $_POST['OPPORTUNITY_SOURCE'];
+        $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
+        $LEADS_DATA['IP_ADDRESS'] = $IP_ADDRESS;
         $LEADS_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $LEADS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $LEADS_DATA['EDITED_ON'] = date("Y-m-d H:i");
@@ -37,6 +57,7 @@ if (!empty($_POST)) {
 
     if (!empty($PK_LEADS) && !empty($_POST['DATE'])) {
         // Insert new lead status record
+        $db->Execute("DELETE FROM `DOA_LEAD_DATE` WHERE `PK_LEADS` = '$PK_LEADS'");
         $LEAD_DATE = array(
             'PK_LEADS' => $PK_LEADS,
             'PK_LEAD_STATUS' => $_POST['PK_LEAD_STATUS'],
@@ -75,25 +96,35 @@ if (empty($_GET['id'])) {
     $PHONE = '';
     $EMAIL_ID = '';
     $PK_LEAD_STATUS = '';
+    $DATE = '';
     $DESCRIPTION = '';
     $OPPORTUNITY_SOURCE = '';
     $ACTIVE = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_LEADS` LEFT JOIN `DOA_LEAD_DATE` ON `DOA_LEADS`.`PK_LEADS` = `DOA_LEAD_DATE`.`PK_LEADS` WHERE DOA_LEADS.PK_LEADS = '$_GET[id]'");
+    // Get lead data
+    $res = $db->Execute("SELECT * FROM `DOA_LEADS` WHERE PK_LEADS = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_leads.php");
         exit;
     }
+
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
-    $DATE = !empty($_GET['date']) ? date("m/d/Y", strtotime($_GET['date'])) : '';
-    $DESCRIPTION = $res->fields['DESCRIPTION'];
     $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
+    $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
+
+    // Get the latest lead date if exists
+    $date_res = $db->Execute("SELECT DATE FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY DATE DESC LIMIT 1");
+    if ($date_res->RecordCount() > 0) {
+        $DATE = date("m/d/Y", strtotime($date_res->fields['DATE']));
+    } else {
+        $DATE = '';
+    }
 }
 
 ?>
