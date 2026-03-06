@@ -81,4 +81,4 @@ if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {
     }
 }
 
-header("location:" . $_SERVER['HTTP_REFERER']);
+header("location:../../calendar.php?date=" . $SPECIAL_APPOINTMENT_DATA['DATE']);

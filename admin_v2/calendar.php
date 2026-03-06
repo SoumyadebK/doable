@@ -697,12 +697,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     <!-- Appointment Details -->
     <div class="overlay2"></div>
-    <div class="side-drawer" id="sideDrawer2">
+    <div class="side-drawer" id="sideDrawer2" style="display: flex; flex-direction: column;">
         <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0">Appointment Details</h6>
             <span class="close-btn" id="closeDrawer2">&times;</span>
         </div>
-        <div class="modal-body p-3" id="edit_appointment_div" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
+        <div class="modal-body p-3" id="edit_appointment_div" style="flex: 1; overflow-y: auto;">
             <!-- Content will be loaded here via AJAX -->
         </div>
         <div class="modal-footer flex-nowrap border-top">
@@ -718,7 +718,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             <h6 class="mb-0">Add New Customer</h6>
             <span class="close-btn" id="closeDrawer7">&times;</span>
         </div>
-        <div class="modal-body p-3" id="add_customer_to_group_class" style="overflow-y: auto; height: calc(100% - 130px); min-height: 820px;">
+        <div class="modal-body p-3" id="add_customer_to_group_class" style="overflow-y: auto; height: calc(100% - 130px);">
             <!-- Content will be loaded here via AJAX -->
         </div>
     </div>
@@ -735,7 +735,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             </h6>
             <span class="close-btn" id="closeDrawer3">&times;</span>
         </div>
-        <div class="drawer-body" style="overflow-y: auto; height: calc(100% - 0px);">
+        <div class="modal-body p-3 drawer-body" style="overflow-y: auto; height: calc(100% - 0px);">
             <!-- Content will be loaded here via AJAX -->
         </div>
     </div>

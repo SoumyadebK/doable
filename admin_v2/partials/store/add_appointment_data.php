@@ -147,4 +147,4 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
 
 //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-header("location:" . $_SERVER['HTTP_REFERER']);
+header("location:../../calendar.php?date=" . $APPOINTMENT_DATA['DATE']);

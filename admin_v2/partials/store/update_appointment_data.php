@@ -220,4 +220,4 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     adjustEnrollmentAppointment($PK_APPOINTMENT_MASTER);
 }
 
-header("location:" . $_SERVER['HTTP_REFERER']);
+header("location:../../calendar.php?date=" . $_POST['APPOINTMENT_DATE']);

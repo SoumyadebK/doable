@@ -46,4 +46,4 @@ for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
     db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
 }
 
-header("location:" . $_SERVER['HTTP_REFERER']);
+header("location:../../calendar.php?date=" . $APPOINTMENT_DATA['DATE']);
