@@ -182,7 +182,7 @@ foreach ($lead_status as $key => $value) {
                             <div class="row">
                                 <div class="col-md-4 align-self-center text-end">
                                     <input type="hidden" id="IS_SELECTED" value="0">
-                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Date" value="<?= ($_GET['CHOOSE_DATE']) ?? '' ?>">
+                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Follow up Date" value="<?= ($_GET['CHOOSE_DATE']) ?? '' ?>">
                                 </div>
 
                                 <div class="col-md-4 align-self-center text-end">
@@ -247,6 +247,15 @@ foreach ($lead_status as $key => $value) {
                                                                 <?= $leds_user->fields['NAME'] ?>
                                                             </div>
                                                             <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
+                                                            <div><strong>Follow up Date:</strong>
+                                                                <?php
+                                                                if (!empty($leds_user->fields['DATE']) && $leds_user->fields['DATE'] != '0000-00-00') {
+                                                                    echo date('m/d/Y', strtotime($leds_user->fields['DATE']));
+                                                                } else {
+                                                                    echo 'N/A';
+                                                                }
+                                                                ?>
+                                                            </div>
                                                             <div class="kanban-icons">
                                                                 <div class="icon-with-pill">
                                                                     <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>

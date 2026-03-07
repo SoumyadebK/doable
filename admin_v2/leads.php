@@ -18,20 +18,55 @@ if (!empty($_POST)) {
         exit;
     }
 
-    $LEADS_DATA = $_POST;
+    //$LEADS_DATA = $_POST;
     if (empty($_GET['id'])) {
+        $LEADS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+        $LEADS_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
+        $LEADS_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
+        $LEADS_DATA['PHONE'] = $_POST['PHONE'];
+        $LEADS_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+        $LEADS_DATA['PK_LEAD_STATUS'] = $_POST['PK_LEAD_STATUS'];
+        $LEADS_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+        $LEADS_DATA['OPPORTUNITY_SOURCE'] = $_POST['OPPORTUNITY_SOURCE'];
         $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
         $LEADS_DATA['IP_ADDRESS'] = $IP_ADDRESS;
         $LEADS_DATA['ACTIVE'] = 1;
         $LEADS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $LEADS_DATA['CREATED_ON']  = date("Y-m-d H:i");
+        //pre_r($LEADS_DATA);
+        //echo db_perform('DOA_LEADS', $LEADS_DATA, 'insert');
         db_perform('DOA_LEADS', $LEADS_DATA, 'insert');
+        $PK_LEADS = $db->insert_ID();
     } else {
+        $LEADS_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+        $LEADS_DATA['FIRST_NAME'] = $_POST['FIRST_NAME'];
+        $LEADS_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
+        $LEADS_DATA['PHONE'] = $_POST['PHONE'];
+        $LEADS_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+        $LEADS_DATA['PK_LEAD_STATUS'] = $_POST['PK_LEAD_STATUS'];
+        $LEADS_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
+        $LEADS_DATA['OPPORTUNITY_SOURCE'] = $_POST['OPPORTUNITY_SOURCE'];
+        $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
+        $LEADS_DATA['IP_ADDRESS'] = $IP_ADDRESS;
         $LEADS_DATA['ACTIVE'] = $_POST['ACTIVE'];
         $LEADS_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $LEADS_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_LEADS', $LEADS_DATA, 'update', " PK_LEADS =  '$_GET[id]'");
+        $PK_LEADS = $_GET['id'];
     }
+
+    if (!empty($PK_LEADS) && !empty($_POST['DATE'])) {
+        // Insert new lead status record
+        $db->Execute("DELETE FROM `DOA_LEAD_DATE` WHERE `PK_LEADS` = '$PK_LEADS'");
+        $LEAD_DATE = array(
+            'PK_LEADS' => $PK_LEADS,
+            'PK_LEAD_STATUS' => $_POST['PK_LEAD_STATUS'],
+            'DATE' => date("Y-m-d", strtotime($_POST['DATE'])),
+            'DESCRIPTION' => $_POST['DESCRIPTION']
+        );
+        db_perform('DOA_LEAD_DATE', $LEAD_DATE, 'insert');
+    }
+
     header("location:all_leads.php");
 }
 
@@ -61,40 +96,49 @@ if (empty($_GET['id'])) {
     $PHONE = '';
     $EMAIL_ID = '';
     $PK_LEAD_STATUS = '';
+    $DATE = '';
     $DESCRIPTION = '';
     $OPPORTUNITY_SOURCE = '';
     $ACTIVE = '';
 } else {
+    // Get lead data
     $res = $db->Execute("SELECT * FROM `DOA_LEADS` WHERE PK_LEADS = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_leads.php");
         exit;
     }
+
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
-    $DESCRIPTION = $res->fields['DESCRIPTION'];
     $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
+    $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
+
+    // Get the latest lead date if exists
+    $date_res = $db->Execute("SELECT DATE FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY DATE DESC LIMIT 1");
+    if ($date_res->RecordCount() > 0) {
+        $DATE = date("m/d/Y", strtotime($date_res->fields['DATE']));
+    } else {
+        $DATE = '';
+    }
 }
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
-<?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-
-        <div class="page-wrapper" style="padding-top: 0px !important;">
-
-            <div class="container-fluid body_content" style="margin-top: 0px;">
+        <?php require_once('../includes/top_menu.php'); ?>
+        <div class="page-wrapper">
+            <?php require_once('../includes/top_menu_bar.php') ?>
+            <div class="container-fluid body_content">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
@@ -125,7 +169,7 @@ if (empty($_GET['id'])) {
                                                 <select class="form-control" name="PK_LOCATION" id="PK_LOCATION">
                                                     <option value="">Select Location</option>
                                                     <?php
-                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                     while (!$row->EOF) { ?>
                                                         <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($row->fields['PK_LOCATION'] == $PK_LOCATION) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
                                                     <?php
@@ -184,6 +228,16 @@ if (empty($_GET['id'])) {
 
                                     <div class="col-4">
                                         <div class="form-group">
+                                            <label class="form-label">Follow up Date</label>
+                                            <div class="col-md-12">
+                                                <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" placeholder="Enter Date" value="<?php echo $DATE ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-4">
+                                        <div class="form-group">
                                             <label class="form-label">Opportunity Source</label>
                                             <div class="col-md-12">
                                                 <input type="text" id="OPPORTUNITY_SOURCE" name="OPPORTUNITY_SOURCE" class="form-control" placeholder="Enter Opportunity Source" value="<?php echo $OPPORTUNITY_SOURCE ?>">
@@ -234,6 +288,10 @@ if (empty($_GET['id'])) {
         let EMAIL_ID = $('#EMAIL_ID').val();
         window.location.href = `customer.php?PK_LOCATION=${PK_LOCATION}&FIRST_NAME=${FIRST_NAME}&LAST_NAME=${LAST_NAME}&PHONE=${PHONE}&EMAIL_ID=${EMAIL_ID}&PK_LEADS=${PK_LEADS}`;
     }
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
 </script>
 
 </html>

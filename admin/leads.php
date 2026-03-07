@@ -228,7 +228,7 @@ if (empty($_GET['id'])) {
 
                                     <div class="col-4">
                                         <div class="form-group">
-                                            <label class="form-label">Date</label>
+                                            <label class="form-label">Follow up Date</label>
                                             <div class="col-md-12">
                                                 <input type="text" id="DATE" name="DATE" class="form-control datepicker-normal" placeholder="Enter Date" value="<?php echo $DATE ?>">
                                             </div>
