@@ -149,10 +149,17 @@ $SERVICE_PROVIDER_ID = $_POST['SERVICE_PROVIDER_ID'];
 $PK_LOCATION = $_POST['PK_LOCATION'];
 $duration = intval($_POST['duration']);
 $date = $_POST['date'];
-$day = $_POST['day'];
+$day = strtoupper(date('D', strtotime($date)));
 $START_TIME = empty($_POST['START_TIME']) ? '09:00:00' : $_POST['START_TIME'];
 $END_TIME = empty($_POST['END_TIME']) ? '22:00:00' : $_POST['END_TIME'];
-$slot_time = empty($_POST['slot_time']) ? '' : $_POST['slot_time'];
+$slot_time = empty($_POST['slot_time']) ? '' : date('h:i A', strtotime($_POST['slot_time']));
+
+function getShortDayName($dayNumber)
+{
+    $days = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
+    return $days[$dayNumber] ?? null;
+}
+
 
 if (empty($_POST['slot_time'])) {
     $is_disable = 0;
@@ -257,7 +264,7 @@ if (empty($_POST['slot_time'])) {
             $selected = "";
             if ($is_disable === 0) {
                 if ((date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($START_TIME))) && date('H:i', strtotime($item['slot_end_time'])) == date('H:i', strtotime($END_TIME)) || (!empty($slot_time) && date('H:i', strtotime($item['slot_start_time'])) == date('H:i', strtotime($slot_time))) || (!empty($slot_time) && date('H:i', strtotime($slot_time)) > date('H:i', strtotime($item['slot_start_time']))) && (date('H:i', strtotime($slot_time)) < date('H:i', strtotime($item['slot_end_time'])))) {
-                    $selected = "background-color: orange !important;";
+                    $selected = "background-color: #39b54a !important; color: white;";
                 }
             } ?>
             <span data-is_disable="<?= $is_disable ?>" data-is_selected="<?= (($slot_time) ? 0 : (($selected) ? 1 : 0)) ?>" class="slot_btn <?= ($selected) ? 'selected_slot' : '' ?>" id="slot_btn_<?= $key ?>" onclick="selectSlot(this, <?= $key ?>, '<?= $item['slot_start_time'] ?>', '<?= $item['slot_end_time'] ?>')" style="<?= ($selected) ?: $disabled ?>"><?= date('h:i A', strtotime($item['slot_start_time'])) ?> - <?= date('h:i A', strtotime($item['slot_end_time'])) ?></span>

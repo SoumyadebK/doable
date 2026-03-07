@@ -125,4 +125,4 @@ if ($REPEAT == 'NOT_REPEAT') {
     }
 }
 
-header("location:" . $_SERVER['HTTP_REFERER']);
+header("location:../../calendar.php?date=" . $GROUP_CLASS_DATA['DATE']);

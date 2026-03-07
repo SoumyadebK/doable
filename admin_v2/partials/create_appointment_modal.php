@@ -1,10 +1,4 @@
 <?php
-// Get the date from POST or use current date
-$selected_date = isset($_POST['DATE']) ? date('m/d/Y', strtotime($_POST['DATE'])) : date('m/d/Y');
-$selected_service_provider = isset($_POST['SERVICE_PROVIDER_ID']) ? $_POST['SERVICE_PROVIDER_ID'] : '';
-echo $selected_service_provider;
-echo $selected_date;
-
 $service_master = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.PK_SERVICE_MASTER FROM DOA_SERVICE_CODE WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND SERVICE_CODE = 'COMM'");
 if ($service_master->RecordCount() == 0) {
     $PK_SERVICE_MASTER = 0;
@@ -90,6 +84,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     </ul>
     <div class="modal-body p-3" style="overflow-y: auto; height: calc(100% - 130px);">
         <input type="hidden" id="FORM_NAME" value="create_appointment_form">
+        <input type="hidden" id="slot_time">
 
         <!-- Tabs Content -->
         <div class="tab-content" id="myTabContent">
@@ -374,7 +369,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="form-group d-flex gap-2 align-items-center custom-date-time-at" id="datetime">
                                 <input type="text" class="form-control datepicker-normal" id="STARTING_ON" name="GROUP_CLASS_START_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY">
                                 <span class="f14">at</span>
-                                <input type="time" class="form-control" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
+                                <input type="text" class="form-control" id="GROUP_CLASS_START_TIME" name="GROUP_CLASS_START_TIME">
                             </div>
 
                             <div class="form-group mt-2 custom-date-time-repeat">
@@ -622,7 +617,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                                 <input type="text" name="DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
                                 <span class="f14">at</span>
-                                <input type="time" id="TO_DO_START_TIME" name="START_TIME" class="form-control" onchange="calculateEndTime(this)" required>
+                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" onchange="calculateEndTime(this)" required>
                                 <span class="f14">to</span>
                                 <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
                             </div>
@@ -950,6 +945,14 @@ if ($location_operational_hour->RecordCount() > 0) {
 
         let START_TIME = '';
         let END_TIME = '';
+        let slot_time = $('#slot_time').val();
+
+        if (slot_time) {
+            slot_time = format12Hour(new Date(slot_time));
+        } else {
+            slot_time = '';
+        }
+
 
         if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {
             start_time_array = [];
@@ -965,18 +968,31 @@ if ($location_operational_hour->RecordCount() > 0) {
                     date: date,
                     START_TIME: START_TIME,
                     END_TIME: END_TIME,
-                    slot_time: ''
+                    slot_time: slot_time
                 },
                 async: false,
                 cache: false,
                 success: function(result) {
                     $(param).closest('.tab-pane').find('.slot_div').html(result);
+                    $('.selected_slot').trigger('click');
                 }
             });
         } else {
             $(param).closest('.tab-pane').find('.slot_div').html('');
         }
     }
+
+
+    function format12Hour(d) {
+        let hours = d.getHours();
+        let minutes = String(d.getMinutes()).padStart(2, '0');
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12 || 12;
+
+        return `${hours}:${minutes} ${ampm}`;
+    }
+
 
     function selectSlot(param, id, start_time, end_time) {
         if ($(param).data('is_selected') == 0) {

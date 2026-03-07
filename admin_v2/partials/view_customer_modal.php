@@ -587,13 +587,15 @@ while (!$row->EOF) {
             setEnrollmentCustomerId(customerId);
         }
 
-        $('#PK_USER_MASTER').trigger('change'); // Trigger change event to ensure any listeners are notified
-
         // Alternatively, directly set the value if the form is already loaded
         setTimeout(function() {
             $('#sideDrawer4 #PK_USER_MASTER').val(customerId);
             $('#sideDrawer4 input[name="PK_USER_MASTER"]').val(customerId);
+
+            $('#enrollment_form #PK_USER_MASTER').trigger('change');
         }, 100);
+
+
     }
 </script>
 

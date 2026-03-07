@@ -136,8 +136,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     <?php } ?>
 
                     <?php if (!in_array($_SESSION['PK_ROLES'], [1, 4, 5])) { ?>
-                        <li class="<?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>">
-                            <a class="nav-link <?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>" href="../admin/all_schedules.php" aria-expanded="false">
+                        <li class="<?= (('calendar.php' === $current_address) ? 'active' : '') ?>">
+                            <a class="nav-link <?= (('calendar.php' === $current_address) ? 'active' : '') ?>" href="../admin_v2/calendar.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
@@ -218,7 +218,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                         $selected_user_id = $customer_data->fields['PK_USER'];
                     ?>
                         <li>
-                            <a class="nav-link <?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>" href="../customer/all_schedules.php" aria-expanded="false">
+                            <a class="nav-link <?= (('calendar.php' === $current_address) ? 'active' : '') ?>" href="../customer/calendar.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
@@ -256,8 +256,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     <?php } ?>
 
                     <?php if ($_SESSION['PK_ROLES'] == 5) { ?>
-                        <li class="<?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>">
-                            <a class="nav-link <?= (('all_schedules.php' === $current_address) ? 'active' : '') ?>" href="../admin/all_schedules.php" aria-expanded="false">
+                        <li class="<?= (('calendar.php' === $current_address) ? 'active' : '') ?>">
+                            <a class="nav-link <?= (('calendar.php' === $current_address) ? 'active' : '') ?>" href="../admin_v2/calendar.php" aria-expanded="false">
                                 <i class="icon-calender"></i>
                                 <span class="hide-menu">Calendar</span>
                             </a>
