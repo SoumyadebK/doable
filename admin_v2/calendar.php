@@ -1271,6 +1271,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             $('.PK_SERVICE_PROVIDER').val(resource_id);
                                             $('.PK_SERVICE_PROVIDER').trigger('change');
 
+                                            calculateEndTime();
 
                                             // Load the create appointment modal with the current date
                                             /* $.ajax({
