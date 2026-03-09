@@ -831,7 +831,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         selectAll: true
     }); */
 
-    /* $('#TO_DO_START_TIME').timepicker({
+    $('#TO_DO_START_TIME').timepicker({
         timeFormat: 'hh:mm p',
         maxTime: '<?= $maxTime ?>',
         minTime: '<?= $minTime ?>',
@@ -844,7 +844,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         timeFormat: 'hh:mm p',
         maxTime: '<?= $maxTime ?>',
         minTime: '<?= $minTime ?>'
-    }); */
+    });
 
     function submitAppointmentForm() {
         let form_name = $('#FORM_NAME').val();
