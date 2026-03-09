@@ -1910,7 +1910,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             imageNumber: imageNumber
                         },
                         success: function(data) {
-                            window.location.href = 'all_schedules.php';
+                            window.location.reload();
                         }
                     });
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -1940,7 +1940,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             videoNumber: videoNumber
                         },
                         success: function(data) {
-                            window.location.href = 'all_schedules.php';
+                            window.location.reload();
                         }
                     });
                 } else if (result.dismiss === Swal.DismissReason.cancel) {

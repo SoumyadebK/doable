@@ -16,6 +16,7 @@ if ($location_operational_hour->RecordCount() > 0) {
     $minTime = '00:00:00';
     $maxTime = '24:00:00';
 }
+
 ?>
 <style>
     .slot_div {
@@ -58,6 +59,14 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     .multi_sumo_select {
         font-size: 12px;
+    }
+
+    .ui-timepicker-container {
+        z-index: 9999 !important;
+    }
+
+    .ui-timepicker-viewport {
+        font-size: 12px !important;
     }
 </style>
 <!-- Individual Appointment -->
@@ -569,7 +578,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime(this)" required>
+                                <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime()" required>
                                     <option disabled selected>Select Scheduling Code</option>
                                     <?php
                                     $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
@@ -617,7 +626,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                                 <input type="text" name="DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
                                 <span class="f14">at</span>
-                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" onchange="calculateEndTime(this)" required>
+                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" required>
                                 <span class="f14">to</span>
                                 <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
                             </div>
@@ -831,19 +840,31 @@ if ($location_operational_hour->RecordCount() > 0) {
         selectAll: true
     }); */
 
-    $('#TO_DO_START_TIME').timepicker({
-        timeFormat: 'hh:mm p',
-        maxTime: '<?= $maxTime ?>',
-        minTime: '<?= $minTime ?>',
-        change: function() {
-            calculateEndTime();
-        },
-    });
+    $(document).ready(function() {
+        if ($.fn.timepicker) {
+            $('#create_to_do_form #TO_DO_START_TIME').timepicker({
+                timeFormat: 'hh:mm p',
+                maxTime: '<?= $maxTime ?>',
+                minTime: '<?= $minTime ?>',
+                change: function(time) {
+                    let startTime = $('#TO_DO_START_TIME').val();
+                    $('#create_to_do_form #TO_DO_END_TIME').timepicker('option', 'minTime', startTime);
+                    calculateEndTime();
+                }
+            });
 
-    $('#TO_DO_END_TIME').timepicker({
-        timeFormat: 'hh:mm p',
-        maxTime: '<?= $maxTime ?>',
-        minTime: '<?= $minTime ?>'
+            $('#create_to_do_form #TO_DO_END_TIME').timepicker({
+                timeFormat: 'hh:mm p',
+                maxTime: '<?= $maxTime ?>',
+                minTime: '<?= $minTime ?>'
+            });
+
+            $('#create_group_class_form #GROUP_CLASS_START_TIME').timepicker({
+                timeFormat: 'hh:mm p',
+                maxTime: '<?= $maxTime ?>',
+                minTime: '<?= $minTime ?>'
+            });
+        }
     });
 
     function submitAppointmentForm() {

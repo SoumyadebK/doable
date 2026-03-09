@@ -468,6 +468,103 @@ if ($TYPE == 'appointment') {
                 </div>
             </div>
         </div>
+
+
+
+
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="transparent">
+                        <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                    </svg>
+                    <label class="mb-0">Image 1</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <input type="file" class="form-control" name="IMAGE" id="IMAGE">
+                    <img src="<?= $IMAGE ?>" onclick="window.open('<?= $IMAGE ?>', '_blank')" style="cursor: pointer; margin-top: 10px; margin-bottom: 10px; max-width: 150px; height: auto;">
+                    <?php if ((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE != '')) { ?>
+                        <a href="javascript:" onclick='ConfirmDeleteImage(<?= $PK_APPOINTMENT_MASTER ?>, 1);' style="color: red;"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="transparent">
+                        <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                    </svg>
+                    <label class="mb-0">Video 1</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <input type="file" class="form-control" name="VIDEO" id="VIDEO" accept="video/*">
+                    <?php if ($VIDEO != '') { ?>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                            <video width="240" height="135" controls onclick="window.open('<?= $VIDEO ?>', '_blank')" style="cursor: pointer;">
+                                <source src="<?= $VIDEO ?>" type="video/mp4">
+                            </video>
+                            <?php if (in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteVideo(<?= $PK_APPOINTMENT_MASTER ?>, 1);' style="color: red;"><i class="fa fa-trash"></i></a>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="transparent">
+                        <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                    </svg>
+                    <label class="mb-0">Image 2</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <input type="file" class="form-control" name="IMAGE_2" id="IMAGE_2">
+                    <img src="<?= $IMAGE_2 ?>" onclick="window.open('<?= $IMAGE_2 ?>', '_blank')" style="cursor: pointer; margin-top: 10px; margin-bottom: 10px; max-width: 150px; height: auto;">
+                    <?php if ((in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) && ($IMAGE_2 != '')) { ?>
+                        <a href="javascript:" onclick='ConfirmDeleteImage(<?= $PK_APPOINTMENT_MASTER ?>, 2);' style="color: red;"><i class="fa fa-trash"></i></a>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 col-md-4">
+                <div class="d-flex gap-2 align-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="transparent">
+                        <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                    </svg>
+                    <label class="mb-0">Video 2</label>
+                </div>
+            </div>
+            <div class="col-8 col-md-8">
+                <div class="form-group">
+                    <input type="file" class="form-control" name="VIDEO_2" id="VIDEO_2" accept="video/*">
+                    <?php if ($VIDEO_2 != '') { ?>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 10px">
+                            <video width="240" height="135" controls onclick="window.open('<?= $VIDEO_2 ?>', '_blank')" style="cursor: pointer;">
+                                <source src="<?= $VIDEO_2 ?>" type="video/mp4">
+                            </video>
+                            <?php if (in_array('Calendar Delete', $PERMISSION_ARRAY) || in_array('Appointments Delete', $PERMISSION_ARRAY)) { ?>
+                                <a href="javascript:" onclick='ConfirmDeleteVideo(<?= $PK_APPOINTMENT_MASTER ?>, 2);' style="color: red;"><i class="fa fa-trash"></i></a>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+
     </form>
     <!-- End Appointment Details -->
 
