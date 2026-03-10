@@ -132,12 +132,6 @@ if (empty($_GET['id'])) {
         WHERE ld.PK_LEADS = '$_GET[id]' 
         ORDER BY ld.CREATED_ON DESC
     ");
-    echo "SELECT ld.*, ls.LEAD_STATUS, u.FULL_NAME as CREATED_BY_NAME 
-        FROM `DOA_LEAD_DATE` ld 
-        LEFT JOIN DOA_LEAD_STATUS ls ON ld.PK_LEAD_STATUS = ls.PK_LEAD_STATUS
-        LEFT JOIN DOA_USER u ON ld.CREATED_BY = u.PK_USER
-        WHERE ld.PK_LEADS = '$_GET[id]' 
-        ORDER BY ld.DATE DESC, ld.CREATED_ON DESC";
 }
 
 // Get lead statuses for dropdown
