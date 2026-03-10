@@ -54,6 +54,7 @@ if (!empty($_POST)) {
 
     if (!empty($PK_LEADS) && !empty($_POST['DATE'])) {
         // Insert new lead status record
+        $db->Execute("DELETE FROM DOA_LEAD_DATE WHERE PK_LEAD_STATUS = " . $_POST['PK_LEAD_STATUS']); // Remove existing record for the same date to avoid duplicates
         $LEAD_DATE = array(
             'PK_LEADS' => $PK_LEADS,
             'PK_LEAD_STATUS' => $_POST['PK_LEAD_STATUS'],
@@ -115,10 +116,10 @@ if (empty($_GET['id'])) {
     $ACTIVE = $res->fields['ACTIVE'];
 
     // Get the latest lead date if exists
-    $date_res = $db->Execute("SELECT DATE FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY DATE DESC LIMIT 1");
+    $date_res = $db->Execute("SELECT DATE FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY CREATED_ON DESC LIMIT 1");
     if ($date_res->RecordCount() > 0) {
         $DATE = date("m/d/Y", strtotime($date_res->fields['DATE']));
-        $COMMENT = $db->Execute("SELECT COMMENT FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY DATE DESC LIMIT 1")->fields['COMMENT'];
+        $COMMENT = $db->Execute("SELECT COMMENT FROM `DOA_LEAD_DATE` WHERE PK_LEADS = '$_GET[id]' ORDER BY CREATED_ON DESC LIMIT 1")->fields['COMMENT'];
     } else {
         $DATE = '';
         $COMMENT = '';
