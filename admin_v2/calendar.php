@@ -83,7 +83,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-time-grid .fc-slats td {
-        height: 2.5em;
+        height: 50px !important;
     }
 
     .fc-time-grid-event .fc-content {
@@ -113,10 +113,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         margin: 1px 0px 1px 2px !important;
         text-align: left !important;
         padding: 8px !important;
+        min-height: 50px !important;
     }
 
     .fc-content {
         margin: 5px !important;
+    }
+
+    .fc-time-grid-event {
+        min-height: 50px !important;
     }
 
     .fc-resource-cell {
@@ -972,7 +977,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 },
                 defaultDate: date,
                 defaultView: 'agendaDay',
-                slotDuration: '00:10:00',
+                slotDuration: '<?= $INTERVAL ?>',
                 slotLabelInterval: {
                     minutes: 60
                 },
@@ -1165,16 +1170,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     });
 
 
-
-
-
-
-
-
-
-
-
-
                 },
                 eventClick: function(info) {
                     clickCount++;
@@ -1268,13 +1263,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             $('#sideDrawer, .overlay').addClass('active');
                                             setDateOnAppointment();
 
-                                            $('.PK_SERVICE_PROVIDER').val(resource_id);
-                                            $('.PK_SERVICE_PROVIDER').trigger('change');
-
                                             let formatted_time = formatTime12(date);
                                             $('#GROUP_CLASS_START_TIME').val(formatted_time);
                                             $('#TO_DO_START_TIME').val(formatted_time);
                                             $('#slot_time').val(date);
+
+                                            $('.PK_SERVICE_PROVIDER').val(resource_id);
+                                            $('.PK_SERVICE_PROVIDER').trigger('change');
+
+                                            calculateEndTime();
 
                                             // Load the create appointment modal with the current date
                                             /* $.ajax({
@@ -1914,7 +1911,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             imageNumber: imageNumber
                         },
                         success: function(data) {
-                            window.location.href = 'all_schedules.php';
+                            window.location.reload();
                         }
                     });
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -1944,7 +1941,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             videoNumber: videoNumber
                         },
                         success: function(data) {
-                            window.location.href = 'all_schedules.php';
+                            window.location.reload();
                         }
                     });
                 } else if (result.dismiss === Swal.DismissReason.cancel) {

@@ -81,9 +81,9 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     $START_TIME = $_POST['START_TIME'];
 
     if (isset($_FILES['IMAGE']['name']) && $_FILES['IMAGE']['name'] != '') {
-        if (!file_exists('../../' . $upload_path . '/appointment_image/')) {
-            mkdir('../../' . $upload_path . '/appointment_image/', 0777, true);
-            chmod('../../' . $upload_path . '/appointment_image/', 0777);
+        if (!file_exists('../../../' . $upload_path . '/appointment_image/')) {
+            mkdir('../../../' . $upload_path . '/appointment_image/', 0777, true);
+            chmod('../../../' . $upload_path . '/appointment_image/', 0777);
         }
 
         $extn = explode(".", $_FILES['IMAGE']['name']);
@@ -93,7 +93,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $upload_dir   = '../../' . $upload_path . '/appointment_image/' . $file11;
+            $upload_dir   = '../../../' . $upload_path . '/appointment_image/' . $file11;
             $image_path    = '../' . $upload_path . '/appointment_image/' . $file11;
             move_uploaded_file($_FILES['IMAGE']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['IMAGE'] = $image_path;
@@ -101,9 +101,9 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     }
 
     if (isset($_FILES['IMAGE_2']['name']) && $_FILES['IMAGE_2']['name'] != '') {
-        if (!file_exists('../../' . $upload_path . '/appointment_image/')) {
-            mkdir('../../' . $upload_path . '/appointment_image/', 0777, true);
-            chmod('../../' . $upload_path . '/appointment_image/', 0777);
+        if (!file_exists('../../../' . $upload_path . '/appointment_image/')) {
+            mkdir('../../../' . $upload_path . '/appointment_image/', 0777, true);
+            chmod('../../../' . $upload_path . '/appointment_image/', 0777);
         }
 
         $extn = explode(".", $_FILES['IMAGE_2']['name']);
@@ -113,7 +113,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $upload_dir   = '../../' . $upload_path . '/appointment_image/' . $file11;
+            $upload_dir   = '../../../' . $upload_path . '/appointment_image/' . $file11;
             $image_path    = '../' . $upload_path . '/appointment_image/' . $file11;
             move_uploaded_file($_FILES['IMAGE_2']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['IMAGE_2'] = $image_path;
@@ -121,9 +121,9 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     }
 
     if (isset($_FILES['VIDEO']['name']) && $_FILES['VIDEO']['name'] != '') {
-        if (!file_exists('../../' . $upload_path . '/appointment_video/')) {
-            mkdir('../../' . $upload_path . '/appointment_video/', 0777, true);
-            chmod('../../' . $upload_path . '/appointment_video/', 0777);
+        if (!file_exists('../../../' . $upload_path . '/appointment_video/')) {
+            mkdir('../../../' . $upload_path . '/appointment_video/', 0777, true);
+            chmod('../../../' . $upload_path . '/appointment_video/', 0777);
         }
 
         $extn = explode(".", $_FILES['VIDEO']['name']);
@@ -133,7 +133,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
-            $upload_dir   = '../../' . $upload_path . '/appointment_video/' . $file11;
+            $upload_dir   = '../../../' . $upload_path . '/appointment_video/' . $file11;
             $video_path    = '../' . $upload_path . '/appointment_video/' . $file11;
             move_uploaded_file($_FILES['VIDEO']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['VIDEO'] = $video_path;
@@ -141,9 +141,9 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     }
 
     if (isset($_FILES['VIDEO_2']['name']) && $_FILES['VIDEO_2']['name'] != '') {
-        if (!file_exists('../../' . $upload_path . '/appointment_video/')) {
-            mkdir('../../' . $upload_path . '/appointment_video/', 0777, true);
-            chmod('../../' . $upload_path . '/appointment_video/', 0777);
+        if (!file_exists('../../../' . $upload_path . '/appointment_video/')) {
+            mkdir('../../../' . $upload_path . '/appointment_video/', 0777, true);
+            chmod('../../../' . $upload_path . '/appointment_video/', 0777);
         }
 
         $extn = explode(".", $_FILES['VIDEO_2']['name']);
@@ -153,7 +153,7 @@ if ($APPOINTMENT_TYPE == 'group_class') {
         $extension = strtolower($extn[$iindex]);
 
         if ($extension == "mp4" || $extension == "avi" || $extension == "mov" || $extension == "wmv") {
-            $upload_dir   = '../../' . $upload_path . '/appointment_video/' . $file11;
+            $upload_dir   = '../../../' . $upload_path . '/appointment_video/' . $file11;
             $video_path    = '../' . $upload_path . '/appointment_video/' . $file11;
             move_uploaded_file($_FILES['VIDEO_2']['tmp_name'], $upload_dir);
             $APPOINTMENT_DATA['VIDEO_2'] = $video_path;
