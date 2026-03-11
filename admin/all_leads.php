@@ -14,7 +14,7 @@ $status_check = empty($_GET['status']) ? '' : $_GET['status'];
 
 $status_condition = ' ';
 if ($status_check != '') {
-    $status_condition = " AND DOA_LEAD_STATUS.PK_LEAD_STATUS = " . $status_check;
+    $status_condition = " AND DOA_LEADS.PK_LEAD_STATUS = " . $status_check;
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
@@ -26,7 +26,7 @@ $results_per_page = 100;
 
 if (isset($_GET['search_text'])) {
     $search_text = $_GET['search_text'];
-    $search = " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_LEAD_STATUS.LEAD_STATUS LIKE '%" . $search_text . "%')";
+    $search = " AND (DOA_LEADS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_LEADS.PHONE LIKE '%" . $search_text . "%' OR DOA_LEADS.EMAIL_ID LIKE '%" . $search_text . "%' OR LS.LEAD_STATUS LIKE '%" . $search_text . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -115,9 +115,6 @@ foreach ($lead_status as $key => $value) {
     .kanban-card .title:hover {
         color: #39b54a;
     }
-
-
-
 
     .kanban-icons {
         display: flex;
@@ -225,74 +222,207 @@ foreach ($lead_status as $key => $value) {
 
                                     <div class="kanban-board">
                                         <?php
-                                        $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") $status_condition ORDER BY DISPLAY_ORDER ASC");
+                                        $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") ORDER BY DISPLAY_ORDER ASC");
+
                                         while (!$leads_status->EOF) {
-                                            $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LEADS.IS_CALLED, DOA_LEADS.IS_APPOINTMENT_CREATED, DOA_LOCATION.LOCATION_NAME, DOA_LEAD_DATE.DATE FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS LEFT JOIN DOA_LEAD_DATE ON DOA_LEADS.PK_LEADS = DOA_LEAD_DATE.PK_LEADS WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " $CHOOSE_DATE AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 1" . $search); ?>
+                                            // Get leads with their latest follow-up date only
+                                            $leds_user = $db->Execute(
+                                                "
+                                                SELECT DISTINCT 
+                                                    DOA_LEADS.PK_LEADS, 
+                                                    CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                    DOA_LEADS.PHONE, 
+                                                    DOA_LEADS.EMAIL_ID, 
+                                                    LS.LEAD_STATUS, 
+                                                    DOA_LEADS.DESCRIPTION, 
+                                                    DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                    DOA_LEADS.ACTIVE, 
+                                                    DOA_LEADS.CREATED_ON, 
+                                                    DOA_LEADS.IS_CALLED, 
+                                                    DOA_LEADS.IS_APPOINTMENT_CREATED, 
+                                                    DOA_LOCATION.LOCATION_NAME,
+                                                    (SELECT DATE FROM DOA_LEAD_DATE 
+                                                     WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                                                     ORDER BY CREATED_ON DESC 
+                                                     LIMIT 1) AS LATEST_DATE
+                                                FROM `DOA_LEADS` 
+                                                INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                    ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                                LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                    ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                                WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " 
+                                                    AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
+                                                    AND DOA_LEADS.ACTIVE = 1" . $search
+                                            );
+
+                                            // If date filter is applied, we need to filter the results
+                                            $filtered_leads = array();
+                                            if (!empty($_GET['CHOOSE_DATE'])) {
+                                                $selected_date = date('Y-m-d', strtotime($_GET['CHOOSE_DATE']));
+                                                while (!$leds_user->EOF) {
+                                                    if ($leds_user->fields['LATEST_DATE'] == $selected_date) {
+                                                        $filtered_leads[] = $leds_user->fields;
+                                                    }
+                                                    $leds_user->MoveNext();
+                                                }
+                                                $lead_count = count($filtered_leads);
+                                            } else {
+                                                $lead_count = $leds_user->RecordCount();
+                                            }
+                                        ?>
+
                                             <div class="kanban-column">
-                                                <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;"><?= $leads_status->fields['LEAD_STATUS'] ?><br><small><?= $leds_user->RecordCount(); ?> Opportunities</small></div>
+                                                <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;">
+                                                    <?= $leads_status->fields['LEAD_STATUS'] ?><br>
+                                                    <small><?= $lead_count ?> Opportunities</small>
+                                                </div>
                                                 <div class="kanban-body">
-                                                    <?php while (!$leds_user->EOF) { ?>
-                                                        <div class="kanban-card">
-                                                            <div style="float: right;">
-                                                                <?php if ($leds_user->fields['IS_APPOINTMENT_CREATED']) { ?>
-                                                                    <i class="fas fa-star" style="color: gold;"></i>
-                                                                <?php } ?>
+                                                    <?php
+                                                    if (!empty($_GET['CHOOSE_DATE'])) {
+                                                        // Display filtered leads
+                                                        foreach ($filtered_leads as $lead) {
+                                                    ?>
+                                                            <div class="kanban-card">
+                                                                <div style="float: right;">
+                                                                    <?php if ($lead['IS_APPOINTMENT_CREATED']) { ?>
+                                                                        <i class="fas fa-star" style="color: gold;"></i>
+                                                                    <?php } ?>
 
-                                                                <?php if ($leds_user->fields['IS_CALLED']) { ?>
-                                                                    <i class="fas fa-check-square" style="color: #39b54a;"></i>
-                                                                <?php } ?>
-                                                                <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
+                                                                    <?php if ($lead['IS_CALLED']) { ?>
+                                                                        <i class="fas fa-check-square" style="color: #39b54a;"></i>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:;" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
+                                                                </div>
+                                                                <div class="title" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATELY_DATE'] ?? '' ?>');" style="cursor: pointer;">
+                                                                    <?= $lead['NAME'] ?>
+                                                                </div>
+                                                                <div><strong>Source:</strong> <?= $lead['OPPORTUNITY_SOURCE'] ?></div>
+                                                                <div><strong>Follow up Date:</strong>
+                                                                    <?php
+                                                                    if (!empty($lead['LATEST_DATE']) && $lead['LATEST_DATE'] != '0000-00-00') {
+                                                                        echo date('m/d/Y', strtotime($lead['LATEST_DATE']));
+                                                                    } else {
+                                                                        echo 'N/A';
+                                                                    }
+                                                                    ?>
+                                                                </div>
+                                                                <div class="kanban-icons">
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-phone-<?= $lead['PK_LEADS'] ?>"><?= $lead['PHONE'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-email-<?= $lead['PK_LEADS'] ?>"><?= $lead['EMAIL_ID'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-chat-<?= $lead['PK_LEADS'] ?>"><?= $lead['DESCRIPTION'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill" style="font-size: 22px;">
+                                                                        <a href="javascript:;" onclick="callToLeads(<?= $lead['PK_LEADS'] ?>)" title="AI Call"><i class="fas fas fa-phone-square-alt"></i></a>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>, '<?= date('Y-m-d', strtotime($leds_user->fields['DATE'])) ?>');" style="cursor: pointer;">
-                                                                <?= $leds_user->fields['NAME'] ?>
-                                                            </div>
-                                                            <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
-                                                            <div><strong>Follow up Date:</strong>
-                                                                <?php
-                                                                if (!empty($leds_user->fields['DATE']) && $leds_user->fields['DATE'] != '0000-00-00') {
-                                                                    echo date('m/d/Y', strtotime($leds_user->fields['DATE']));
-                                                                } else {
-                                                                    echo 'N/A';
-                                                                }
-                                                                ?>
-                                                            </div>
-                                                            <div class="kanban-icons">
-                                                                <div class="icon-with-pill">
-                                                                    <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                    <span class="pill pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['PHONE'] ?></span>
-                                                                </div>
-                                                                <div class="icon-with-pill">
-                                                                    <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                    <span class="pill pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['EMAIL_ID'] ?></span>
-                                                                </div>
-                                                                <div class="icon-with-pill">
-                                                                    <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                    <span class="pill pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['DESCRIPTION'] ?></span>
-                                                                </div>
-                                                                <div class="icon-with-pill">
-                                                                    <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                    <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
-                                                                </div>
+                                                        <?php
+                                                        }
+                                                    } else {
+                                                        while (!$leds_user->EOF) {
+                                                        ?>
+                                                            <div class="kanban-card">
+                                                                <div style="float: right;">
+                                                                    <?php if ($leds_user->fields['IS_APPOINTMENT_CREATED']) { ?>
+                                                                        <i class="fas fa-star" style="color: gold;"></i>
+                                                                    <?php } ?>
 
-                                                                <div class="icon-with-pill" style="font-size: 22px;">
-                                                                    <a href="javascript:;" onclick="callToLeads(<?= $leds_user->fields['PK_LEADS'] ?>)" title="AI Call"><i class="fas fas fa-phone-square-alt"></i></a>
+                                                                    <?php if ($leds_user->fields['IS_CALLED']) { ?>
+                                                                        <i class="fas fa-check-square" style="color: #39b54a;"></i>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
+                                                                </div>
+                                                                <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>, '<?= $leds_user->fields['LATEST_DATE'] ?? '' ?>');" style="cursor: pointer;">
+                                                                    <?= $leds_user->fields['NAME'] ?>
+                                                                </div>
+                                                                <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
+                                                                <div><strong>Follow up Date:</strong>
+                                                                    <?php
+                                                                    if (!empty($leds_user->fields['LATEST_DATE']) && $leds_user->fields['LATEST_DATE'] != '0000-00-00') {
+                                                                        echo date('m/d/Y', strtotime($leds_user->fields['LATEST_DATE']));
+                                                                    } else {
+                                                                        echo 'N/A';
+                                                                    }
+                                                                    ?>
+                                                                </div>
+                                                                <div class="kanban-icons">
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['PHONE'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['EMAIL_ID'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['DESCRIPTION'] ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill">
+                                                                        <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
+                                                                        <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
+                                                                    </div>
+                                                                    <div class="icon-with-pill" style="font-size: 22px;">
+                                                                        <a href="javascript:;" onclick="callToLeads(<?= $leds_user->fields['PK_LEADS'] ?>)" title="AI Call"><i class="fas fas fa-phone-square-alt"></i></a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    <?php $leds_user->MoveNext();
-                                                    } ?>
+                                                    <?php
+                                                            $leds_user->MoveNext();
+                                                        }
+                                                    }
+                                                    ?>
                                                 </div>
                                             </div>
                                         <?php $leads_status->MoveNext();
                                         }
 
-                                        $leds_user = $db->Execute("SELECT DOA_LEADS.PK_LEADS, CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, DOA_LEADS.PHONE, DOA_LEADS.EMAIL_ID, DOA_LEAD_STATUS.LEAD_STATUS, DOA_LEADS.DESCRIPTION, DOA_LEADS.OPPORTUNITY_SOURCE, DOA_LEADS.ACTIVE, DOA_LEADS.CREATED_ON, DOA_LOCATION.LOCATION_NAME FROM `DOA_LEADS` INNER JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION LEFT JOIN DOA_LEAD_STATUS ON DOA_LEADS.PK_LEAD_STATUS = DOA_LEAD_STATUS.PK_LEAD_STATUS WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_LEADS.ACTIVE = 0" . $search); ?>
+                                        // Inactive leads query
+                                        $leds_user = $db->Execute(
+                                            "
+                                            SELECT DISTINCT 
+                                                DOA_LEADS.PK_LEADS, 
+                                                CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                DOA_LEADS.PHONE, 
+                                                DOA_LEADS.EMAIL_ID, 
+                                                LS.LEAD_STATUS, 
+                                                DOA_LEADS.DESCRIPTION, 
+                                                DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                DOA_LEADS.ACTIVE, 
+                                                DOA_LEADS.CREATED_ON, 
+                                                DOA_LOCATION.LOCATION_NAME 
+                                            FROM `DOA_LEADS` 
+                                            INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                            LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                            WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
+                                                AND DOA_LEADS.ACTIVE = 0" . $search
+                                        ); ?>
+
                                         <div class="kanban-column">
-                                            <div class="kanban-header" style="background: #e80c0cbd; color: white;">Inactive<br><small><?= $leds_user->RecordCount(); ?></small></div>
+                                            <div class="kanban-header" style="background: #e80c0cbd; color: white;">
+                                                Inactive<br>
+                                                <small><?= $leds_user->RecordCount(); ?></small>
+                                            </div>
                                             <div class="kanban-body">
                                                 <?php while (!$leds_user->EOF) { ?>
                                                     <div class="kanban-card">
-                                                        <div style="float: right;"><a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a></div>
+                                                        <div style="float: right;">
+                                                            <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
+                                                        </div>
                                                         <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;">
                                                             <?= $leds_user->fields['NAME'] ?>
                                                         </div>
@@ -349,7 +479,6 @@ foreach ($lead_status as $key => $value) {
         });
 
         function editpage(id, date) {
-            //alert(i);
             window.location.href = "leads.php?id=" + id + "&date=" + date;
         }
 
