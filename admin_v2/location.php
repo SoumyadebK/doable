@@ -595,16 +595,35 @@ if (!empty($_POST)) {
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span>
-                                                            </label>
+                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span></label>
                                                             <div class="col-md-12">
                                                                 <?php
                                                                 $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                                while (!$row->EOF) { ?>
-                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
-                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"><?= $row->fields['ACCOUNT_TYPE'] ?></label>
-                                                                <?php $row->MoveNext();
-                                                                } ?>
+                                                                while (!$row->EOF) {
+
+                                                                    $checked = '';
+                                                                    if ($PK_ACCOUNT_TYPE != '') {
+                                                                        if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) {
+                                                                            $checked = 'checked';
+                                                                        }
+                                                                    } else {
+                                                                        if ($row->fields['PK_ACCOUNT_TYPE'] == 1) {
+                                                                            $checked = 'checked';
+                                                                        }
+                                                                    }
+                                                                ?>
+                                                                    <input type="radio" name="PK_ACCOUNT_TYPE"
+                                                                        id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                        value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                        <?= $checked; ?> required>
+
+                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>">
+                                                                        <?= $row->fields['ACCOUNT_TYPE'] ?>
+                                                                    </label>
+                                                                <?php
+                                                                    $row->MoveNext();
+                                                                }
+                                                                ?>
                                                             </div>
                                                         </div>
                                                     </div>

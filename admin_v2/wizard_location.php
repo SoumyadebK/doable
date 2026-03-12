@@ -19,13 +19,13 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $FRANCHISE = 0;
-$franchise_data = $db->Execute("SELECT FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+$franchise_data = $db->Execute("SELECT FRANCHISE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '1018'");
 if ($franchise_data->RecordCount() > 0) {
     $FRANCHISE = $franchise_data->fields['FRANCHISE'];
 }
 
-if (empty($_GET['id'])) {
-    $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '$_SESSION[PK_ACCOUNT_MASTER]'");
+if (!empty($_GET['id'])) {
+    $account_res = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = '1018'");
 
     $PK_LOCATION = 0;
     $PK_CORPORATION = '';
@@ -70,17 +70,20 @@ if (empty($_GET['id'])) {
     $RECEIPT_CHARACTER = '';
     $TEXTING_FEATURE_ENABLED = '';
     $TWILIO_ACCOUNT_TYPE = '';
+    $SID = '';
+    $TOKEN = '';
+    $TWILIO_PHONE_NO = '';
     $FOCUSBIZ_API_KEY = '';
     $USERNAME_PREFIX = '';
 } else {
-    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '22'");
 
     if ($res->RecordCount() == 0) {
         header("location:all_locations.php");
         exit;
     }
 
-    $PK_LOCATION = $_GET['id'];
+    $PK_LOCATION = 22;
     $PK_CORPORATION = $res->fields['PK_CORPORATION'];
     $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
     $FRANCHISE = $res->fields['FRANCHISE'];
@@ -105,26 +108,44 @@ if (empty($_GET['id'])) {
     $MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
     $APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
     $HOUR                   = $res->fields['HOUR'];
-    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
-    $ACTIVE = $res->fields['ACTIVE'];
-    $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
-    $SECRET_KEY             = $res->fields['SECRET_KEY'];
-    $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
-    $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
-    $SQUARE_APP_ID          = $res->fields['APP_ID'];
-    $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
-    $LOGIN_ID               = $res->fields['LOGIN_ID'];
-    $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
-    $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
-    $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
-    $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $SALES_TAX              = $res->fields['SALES_TAX'];
     $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
+    $ACTIVE = $res->fields['ACTIVE'];
+    // $PAYMENT_GATEWAY_TYPE   = $res->fields['PAYMENT_GATEWAY_TYPE'];
+    // $SECRET_KEY             = $res->fields['SECRET_KEY'];
+    // $PUBLISHABLE_KEY        = $res->fields['PUBLISHABLE_KEY'];
+    // $ACCESS_TOKEN           = $res->fields['ACCESS_TOKEN'];
+    // $SQUARE_APP_ID          = $res->fields['APP_ID'];
+    // $SQUARE_LOCATION_ID     = $res->fields['LOCATION_ID'];
+    // $LOGIN_ID               = $res->fields['LOGIN_ID'];
+    // $TRANSACTION_KEY        = $res->fields['TRANSACTION_KEY'];
+    // $AUTHORIZE_CLIENT_KEY   = $res->fields['AUTHORIZE_CLIENT_KEY'];
+    // $AM_USER_NAME           = $res->fields['AM_USER_NAME'];
+    // $AM_PASSWORD            = $res->fields['AM_PASSWORD'];
+    // $AM_REFRESH_TOKEN       = $res->fields['AM_REFRESH_TOKEN'];
     $TEXTING_FEATURE_ENABLED = $res->fields['TEXTING_FEATURE_ENABLED'];
-    $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
-    $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
-    $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
+    // $TWILIO_ACCOUNT_TYPE = $res->fields['TWILIO_ACCOUNT_TYPE'];
+    // $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
+    // $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
+    $PAYMENT_GATEWAY_TYPE = '';
+    $SECRET_KEY = '';
+    $PUBLISHABLE_KEY = '';
+    $ACCESS_TOKEN = '';
+    $SQUARE_APP_ID = '';
+    $SQUARE_LOCATION_ID = '';
+    $LOGIN_ID = '';
+    $TRANSACTION_KEY = '';
+    $AUTHORIZE_CLIENT_KEY = '';
+    $AM_USER_NAME = '';
+    $AM_PASSWORD = '';
+    $AM_REFRESH_TOKEN = '';
+    $TWILIO_ACCOUNT_TYPE = '';
+    $SID = '';
+    $TOKEN = '';
+    $TWILIO_PHONE_NO = '';
+    $FOCUSBIZ_API_KEY = '';
+    $USERNAME_PREFIX = '';
 }
 
 $SMTP_HOST = '';
@@ -243,7 +264,9 @@ if (!empty($_POST)) {
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 <style>
     #advice-required-entry-ACCEPT_HANDLING {
         width: 150px;
@@ -280,227 +303,244 @@ if (!empty($_POST)) {
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
-    <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
+    <div class="page-wrapper" style="padding-top: 0px !important;">
+
+        <div class="container-fluid body_content" style="margin-top: 0px;">
+            <div class="row page-titles">
+                <div class="col-md-5 align-self-center">
+                    <h4 class="text-themecolor"><?= $title ?></h4>
                 </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
-                                <?php
-                                if (!empty($_GET['id'])) {
-                                    echo $LOCATION_NAME;
-                                }
-                                ?>
-                            </div>
-                            <div class="card-body">
-                                <!-- Nav tabs -->
-                                <ul class="nav nav-tabs" role="tablist">
-                                    <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
-                                    <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
-                                    <?php if (!empty($_GET['id'])) { ?>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <?php } ?>
-                                </ul>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-title" style="margin-top: 15px; margin-left: 15px;">
+                            <?php
+                            if (!empty($_GET['id'])) {
+                                echo $LOCATION_NAME;
+                            }
+                            ?>
+                        </div>
+                        <div class="card-body">
+                            <!-- Nav tabs -->
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
+                                <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
+                                <?php if (!empty($_GET['id'])) { ?>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" id="credit_card_link" href="#credit_card" role="tab" onclick="stripePaymentFunction();"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
+                                <?php } ?>
+                            </ul>
 
-                                <!-- Tab panes -->
-                                <div class="tab-content tabcontent-border">
-                                    <div class="tab-pane active" id="location_div" role="tabpanel">
-                                        <form class="form-material form-horizontal" id="location_form" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
-                                            <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                            <div class="p-20">
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <div class="col-sm-12">
-                                                                    <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
-                                                                        <option value="">Select Corporation</option>
-                                                                        <?php
-                                                                        $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= $row->fields['CORPORATION_NAME'] ?></option>
-                                                                        <?php $row->MoveNext();
-                                                                        } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <?php
-                                                                $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                                while (!$row->EOF) { ?>
-                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
-                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"><?= $row->fields['ACCOUNT_TYPE'] ?></label>
-                                                                <?php $row->MoveNext();
-                                                                } ?>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Arthur Murray Franchise ?</label>
-                                                            <div class="col-md-12">
-                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Location<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control" placeholder="Enter Location Name" required value="<?php echo $LOCATION_NAME ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Location Code<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control" placeholder="Enter Location Code" required value="<?php echo $LOCATION_CODE ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Address</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Apt/Ste</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apartment OR Street" value="<?php echo $ADDRESS_1 ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <div class="col-sm-12">
-                                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                                        <option value="">Select Country</option>
-                                                                        <?php
-                                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
-                                                                        <?php $row->MoveNext();
-                                                                        } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <div class="col-sm-12">
-                                                                    <div id="State_div"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">City</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City" value="<?php echo $CITY ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Postal / Zip Code</span>
-                                                            </label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Phone</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Email</label>
-                                                            <div class="col-md-12">
-                                                                <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="enter Email Address" value="<?php echo $EMAIL ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Location Image</label>
-                                                            <div class="col-md-12">
-                                                                <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Timezone<span class="text-danger">*</span></label>
-                                                            <div class="col-md-12">
-                                                                <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
-                                                                    <option value="">Select</option>
-                                                                    <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
-                                                                    while (!$res_type->EOF) { ?>
-                                                                        <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <? if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= $res_type->fields['NAME'] ?></option>
-                                                                    <? $res_type->MoveNext();
+                            <!-- Tab panes -->
+                            <div class="tab-content tabcontent-border">
+                                <div class="tab-pane active" id="location_div" role="tabpanel">
+                                    <form class="form-material form-horizontal" id="location_form" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                        <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                        <div class="p-20">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Corporation<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <div class="col-sm-12">
+                                                                <select class="form-control" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                                    <option value="">Select Corporation</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= $row->fields['CORPORATION_NAME'] ?></option>
+                                                                    <?php $row->MoveNext();
                                                                     } ?>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="row">
-                                                    <!-- <div class="col-6">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Account Type<span class="text-danger">*</span></label>
+                                                        <div class="col-md-12">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                            while (!$row->EOF) {
+
+                                                                $checked = '';
+                                                                if ($PK_ACCOUNT_TYPE != '') {
+                                                                    if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) {
+                                                                        $checked = 'checked';
+                                                                    }
+                                                                } else {
+                                                                    if ($row->fields['PK_ACCOUNT_TYPE'] == 1) {
+                                                                        $checked = 'checked';
+                                                                    }
+                                                                }
+                                                            ?>
+                                                                <input type="radio" name="PK_ACCOUNT_TYPE"
+                                                                    id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                    value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
+                                                                    <?= $checked; ?> required>
+
+                                                                <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>">
+                                                                    <?= $row->fields['ACCOUNT_TYPE'] ?>
+                                                                </label>
+                                                            <?php
+                                                                $row->MoveNext();
+                                                            }
+                                                            ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Arthur Murray Franchise ?</label>
+                                                        <div class="col-md-12">
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Location<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="LOCATION_NAME" name="LOCATION_NAME" class="form-control" placeholder="Enter Location Name" required value="<?php echo $LOCATION_NAME ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Location Code<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="LOCATION_CODE" name="LOCATION_CODE" class="form-control" placeholder="Enter Location Code" required value="<?php echo $LOCATION_CODE ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Address</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Apt/Ste</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Apartment OR Street" value="<?php echo $ADDRESS_1 ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <div class="col-sm-12">
+                                                                <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                                    <option value="">Select Country</option>
+                                                                    <?php
+                                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                    while (!$row->EOF) { ?>
+                                                                        <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                                                                    <?php $row->MoveNext();
+                                                                    } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <div class="col-sm-12">
+                                                                <div id="State_div"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">City</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter City" value="<?php echo $CITY ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Postal / Zip Code</span>
+                                                        </label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="ZIP_CODE" name="ZIP_CODE" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP_CODE ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Phone</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Email</label>
+                                                        <div class="col-md-12">
+                                                            <input type="email" id="EMAIL" name="EMAIL" class="form-control" placeholder="enter Email Address" value="<?php echo $EMAIL ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Location Image</label>
+                                                        <div class="col-md-12">
+                                                            <input type="file" name="IMAGE_PATH" id="IMAGE_PATH" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Timezone<span class="text-danger">*</span></label>
+                                                        <div class="col-md-12">
+                                                            <select name="PK_TIMEZONE" id="PK_TIMEZONE" class="form-control required-entry" required>
+                                                                <option value="">Select</option>
+                                                                <? $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                                while (!$res_type->EOF) { ?>
+                                                                    <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <? if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected="selected"'; ?>><?= $res_type->fields['NAME'] ?></option>
+                                                                <? $res_type->MoveNext();
+                                                                } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <!-- <div class="col-6">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Username Prefix</label>
                                                         <div class="col-md-12">
@@ -509,121 +549,121 @@ if (!empty($_POST)) {
                                                         </div>
                                                     </div>
                                                 </div> -->
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label for="example-text">Time Slot Interval <span class="text-danger">*</span></label>
-                                                            <div>
-                                                                <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
-                                                                    <option value="">Select</option>
-                                                                    <?php for ($i = 5; $i <= 60; $i += 5) { ?>
-                                                                        <option value="<?= '00:' . $i . ':00' ?>" <?= ($TIME_SLOT_INTERVAL == '00:' . $i . ':00') ? 'selected' : '' ?>><?= '00:' . $i . ':00' ?></option>
-                                                                    <?php } ?>
-                                                                </select>
-                                                            </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label for="example-text">Time Interval for Calendar Rows <span class="text-danger">*</span></label>
+                                                        <div>
+                                                            <select name="TIME_SLOT_INTERVAL" id="TIME_SLOT_INTERVAL" class="form-control required-entry" required>
+                                                                <option value="">Select</option>
+                                                                <?php for ($i = 5; $i <= 60; $i += 5) { ?>
+                                                                    <option value="<?= '00:' . $i . ':00' ?>" <?= ($TIME_SLOT_INTERVAL == '00:' . $i . ':00') ? 'selected' : '' ?>><?= '00:' . $i . ':00' ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </div>
                                                     </div>
-                                                    <?php if (isset($_SESSION['error'])) { ?>
-                                                        <div class="alert alert-danger">
-                                                            <strong><?= $_SESSION['error']; ?></strong>
-                                                        </div>
-                                                    <?php } ?>
                                                 </div>
+                                                <?php if (isset($_SESSION['error'])) { ?>
+                                                    <div class="alert alert-danger">
+                                                        <strong><?= $_SESSION['error']; ?></strong>
+                                                    </div>
+                                                <?php } ?>
+                                            </div>
 
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Service Provider Title</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Operation Tab Title</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE ?>">
-                                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Title for Service Provider</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="SERVICE_PROVIDER_TITLE" name="SERVICE_PROVIDER_TITLE" class="form-control" placeholder="Enter Service Provider Title" value="<?php echo $SERVICE_PROVIDER_TITLE ?>">
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Name of the Tab for Charging Services</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="OPERATION_TAB_TITLE" name="OPERATION_TAB_TITLE" class="form-control" placeholder="Enter Operation Tab Title" value="<?php echo $OPERATION_TAB_TITLE ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Enrollment Id Character</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Id Character" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Enrollment Id Number</label>
-                                                            <div class="col-md-12">
-                                                                <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
-                                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Enrollment Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="ENROLLMENT_ID_CHAR" name="ENROLLMENT_ID_CHAR" class="form-control" placeholder="Enrollment Id Character" value="<?php echo $ENROLLMENT_ID_CHAR ?>">
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Starting Enrollment Number</label>
+                                                        <div class="col-md-12">
+                                                            <input type="number" id="ENROLLMENT_ID_NUM" name="ENROLLMENT_ID_NUM" class="form-control" placeholder="Enrollment Id Number" value="<?php echo $ENROLLMENT_ID_NUM ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Miscellaneous Id Character</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Miscellaneous Id Number</label>
-                                                            <div class="col-md-12">
-                                                                <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
-                                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Misc Enrollment Prefix</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="MISCELLANEOUS_ID_CHAR" name="MISCELLANEOUS_ID_CHAR" class="form-control" placeholder="Miscellaneous Id Character" value="<?php echo $MISCELLANEOUS_ID_CHAR ?>">
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Starting Misc Enrollment Number</label>
+                                                        <div class="col-md-12">
+                                                            <input type="number" id="MISCELLANEOUS_ID_NUM" name="MISCELLANEOUS_ID_NUM" class="form-control" placeholder="Miscellaneous Id Number" value="<?php echo $MISCELLANEOUS_ID_NUM ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Royalty Percentage</label>
-                                                            <div class="input-group">
-                                                                <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE ?>">
-                                                                <span class="form-control input-group-text">%</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Sales Tax</label>
-                                                            <div class="input-group">
-                                                                <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX ?>">
-                                                                <span class="form-control input-group-text">%</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Receipt Character<span class="text-danger">*</span></label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?= $RECEIPT_CHARACTER ?>">
-                                                            </div>
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Royalty Percentage</label>
+                                                        <div class="input-group">
+                                                            <input type="text" name="ROYALTY_PERCENTAGE" id="ROYALTY_PERCENTAGE" class="form-control" value="<?php echo $ROYALTY_PERCENTAGE ?>">
+                                                            <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12">Focusbiz API Key</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
-                                                            </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Sales Tax</label>
+                                                        <div class="input-group">
+                                                            <input type="text" name="SALES_TAX" id="SALES_TAX" class="form-control" value="<?php echo $SALES_TAX ?>">
+                                                            <span class="form-control input-group-text">%</span>
                                                         </div>
                                                     </div>
-                                                    <!-- <div class="col-6">
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Receipt Prefix<span class="text-danger">*</span></label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="RECEIPT_CHARACTER" name="RECEIPT_CHARACTER" class="form-control" placeholder="Receipt Character" required value="<?= $RECEIPT_CHARACTER ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12">Focusbiz API Key</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="FOCUSBIZ_API_KEY" name="FOCUSBIZ_API_KEY" class="form-control" placeholder="Enter Focusbiz API Key" value="<?php echo $FOCUSBIZ_API_KEY ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">Username Prefix</label>
                                                             <div class="col-md-12">
@@ -631,387 +671,390 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div> -->
-                                                </div>
+                                            </div>
 
-                                                <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
-                                                    <div class="col-md-2">
-                                                        <label class="form-label">Texting Feature Enabled?</label>
+                                            <div class="row twilio_account_type" id="twilio_account_type" style="margin-top: 30px;">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label" style="margin-bottom: 10px;">Send an Appointment Reminder Text message.</label><br>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
+                                                            <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-md-3">
-                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;No</label>
+                                                    <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                        <div class="form-group">
+                                                            <label class="form-label">How many hours before the appointment ?</label>
+                                                            <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
-                                                    <div class="col-md-6">
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
+                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                                <div class="col-md-2">
+                                                    <label class="form-label">Texting Feature Enabled?</label>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="1" <? if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TEXTING_FEATURE_ENABLED" id="TEXTING_FEATURE_ENABLED" value="0" <? if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked="checked"'; ?> onclick="showTwilioAccountSetting(this);" />&nbsp;No</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row twilio_account_type" id="twilio_account_type" style="display: <?= ($TEXTING_FEATURE_ENABLED == '1') ? '' : 'none' ?>; margin-bottom: 15px;">
+                                                <div class="col-md-6">
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_0" value="0" <? if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Doable's Twilio account</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <label><input type="radio" name="TWILIO_ACCOUNT_TYPE" id="TWILIO_ACCOUNT_TYPE_1" value="1" <? if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked="checked"'; ?> onclick="showTwilioSetting(this);" />&nbsp;Using Your own Twilio Account</label>
+                                                </div>
+                                            </div>
+
+                                            <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">SID</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID ?>">
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Token</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="col-md-12" for="example-text">Phone No.</label>
+                                                        <div class="col-md-12">
+                                                            <input type="text" id="TWILIO_PHONE_NO" name="TWILIO_PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $TWILIO_PHONE_NO ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <div id="twilio_setting_div" class="row" style="display: <?= ($TEXTING_FEATURE_ENABLED == 1 && $TWILIO_ACCOUNT_TYPE == 1) ? '' : 'none' ?>; margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Twilio Setting</b>
+                                            <div class="form-group">
+                                                <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
+                                            </div>
+
+                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
+                                                <div class="row" style="margin-top: 30px;">
+                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Electronic Connection to Merchant Service</b>
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <div class="form-group">
-                                                                <label class="form-label" style="margin-bottom: 20px;">Send an Appointment Reminder Text message.</label><br>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);">Yes</label>
-                                                                <label style="margin-right: 70px;"><input type="radio" id="APPOINTMENT_REMINDER" name="APPOINTMENT_REMINDER" class="form-check-inline" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);">No</label>
+                                                                <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
+                                                                <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-6 hour_box" id="yes" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? '' : 'none' ?>;">
+                                                    </div>
+
+                                                    <div class="row payment_gateway" id="stripe" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? '' : 'none' ?>;">
+                                                        <div class="col-12">
                                                             <div class="form-group">
-                                                                <label class="form-label">How many hours before the appointment ?</label>
-                                                                <input type="text" class="form-control" name="HOUR" value="<?= $HOUR ?>">
+                                                                <label class="form-label">Secret Key</label>
+                                                                <input type="text" class="form-control" name="SECRET_KEY" value="<?= $SECRET_KEY ?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Publishable Key</label>
+                                                                <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?= $PUBLISHABLE_KEY ?>">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">SID</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="SID" name="SID" class="form-control" placeholder="Enter SID" value="<?php echo $SID ?>">
+
+                                                    <div class="row payment_gateway" id="square" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? '' : 'none' ?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Application ID</label>
+                                                                <input type="text" class="form-control" name="APP_ID" value="<?= $SQUARE_APP_ID ?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Location ID</label>
+                                                                <input type="text" class="form-control" name="LOCATION_ID" value="<?= $SQUARE_LOCATION_ID ?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Access Token</label>
+                                                                <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?= $ACCESS_TOKEN ?>">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Token</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="TOKEN" name="TOKEN" class="form-control" placeholder="Enter TOKEN" value="<?php echo $TOKEN ?>">
+
+                                                    <div class="row payment_gateway" id="authorized" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? '' : 'none' ?>">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Login ID</label>
+                                                                <input type="text" class="form-control" name="LOGIN_ID" value="<?= $LOGIN_ID ?>">
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="col-md-12" for="example-text">Phone No.</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="TWILIO_PHONE_NO" name="TWILIO_PHONE_NO" class="form-control" placeholder="Enter Phone No." value="<?php echo $TWILIO_PHONE_NO ?>">
+                                                            <div class="form-group">
+                                                                <label class="form-label">Transaction Key</label>
+                                                                <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?= $TRANSACTION_KEY ?>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Authorize Client Key</label>
+                                                                <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            <?php } ?>
 
-                                                <div class="form-group">
-                                                    <?php if ($IMAGE_PATH != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $IMAGE_PATH; ?>" data-fancybox-group="gallery"><img src="<?php echo $IMAGE_PATH; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
-                                                </div>
-
-                                                <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
-                                                    <div class="row" style="margin-top: 30px;">
-                                                        <b class="btn btn-light" style="margin-bottom: 20px;">Payment Gateway Setting</b>
-                                                        <div class="row">
-                                                            <div class="col-6">
-                                                                <div class="form-group">
-                                                                    <label class="form-label" style="margin-bottom: 5px;">Payment Gateway</label><br>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Stripe</label>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Square</label>
-                                                                    <label style="margin-right: 70px;"><input type="radio" id="PAYMENT_GATEWAY_TYPE" name="PAYMENT_GATEWAY_TYPE" class="form-check-inline" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);">Authorized.net</label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row payment_gateway" id="stripe" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? '' : 'none' ?>;">
-                                                            <div class="col-12">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Secret Key</label>
-                                                                    <input type="text" class="form-control" name="SECRET_KEY" value="<?= $SECRET_KEY ?>">
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Publishable Key</label>
-                                                                    <input type="text" class="form-control" name="PUBLISHABLE_KEY" value="<?= $PUBLISHABLE_KEY ?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row payment_gateway" id="square" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? '' : 'none' ?>">
-                                                            <div class="col-12">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Application ID</label>
-                                                                    <input type="text" class="form-control" name="APP_ID" value="<?= $SQUARE_APP_ID ?>">
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Location ID</label>
-                                                                    <input type="text" class="form-control" name="LOCATION_ID" value="<?= $SQUARE_LOCATION_ID ?>">
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Access Token</label>
-                                                                    <input type="text" class="form-control" name="ACCESS_TOKEN" value="<?= $ACCESS_TOKEN ?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row payment_gateway" id="authorized" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? '' : 'none' ?>">
-                                                            <div class="col-12">
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Login ID</label>
-                                                                    <input type="text" class="form-control" name="LOGIN_ID" value="<?= $LOGIN_ID ?>">
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Transaction Key</label>
-                                                                    <input type="text" class="form-control" name="TRANSACTION_KEY" value="<?= $TRANSACTION_KEY ?>">
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label class="form-label">Authorize Client Key</label>
-                                                                    <input type="text" class="form-control" name="AUTHORIZE_CLIENT_KEY" value="<?= $AUTHORIZE_CLIENT_KEY ?>">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php } ?>
-
-                                                <div class="row" style="margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">SMTP Setup</b>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="form-label">SMTP HOST</label>
-                                                            <input type="text" class="form-control" name="SMTP_HOST" value="<?= $SMTP_HOST ?>">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="form-label">SMTP PORT</label>
-                                                            <input type="text" class="form-control" name="SMTP_PORT" value="<?= $SMTP_PORT ?>">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="form-label">SMTP USERNAME</label>
-                                                            <input type="text" class="form-control" name="SMTP_USERNAME" value="<?= $SMTP_USERNAME ?>">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label class="form-label">SMTP PASSWORD</label>
-                                                            <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?= $SMTP_PASSWORD ?>">
-                                                        </div>
+                                            <div class="row" style="margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">Email Connection</b>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP HOST</label>
+                                                        <input type="text" class="form-control" name="SMTP_HOST" value="<?= $SMTP_HOST ?>">
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP PORT</label>
+                                                        <input type="text" class="form-control" name="SMTP_PORT" value="<?= $SMTP_PORT ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP USERNAME</label>
+                                                        <input type="text" class="form-control" name="SMTP_USERNAME" value="<?= $SMTP_USERNAME ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label class="form-label">SMTP PASSWORD</label>
+                                                        <input type="text" class="form-control" name="SMTP_PASSWORD" value="<?= $SMTP_PASSWORD ?>">
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
-                                                    <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">User Name</label>
-                                                            <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
-                                                        </div>
+                                            <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
+                                                <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">User Name</label>
+                                                        <input type="text" class="form-control" name="AM_USER_NAME" value="<?= $AM_USER_NAME ?>">
                                                     </div>
-                                                    <div class="col-4">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Password</label>
-                                                            <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
-                                                        </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password</label>
+                                                        <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
                                                     </div>
-                                                    <!--<div class="col-4">
+                                                </div>
+                                                <!--<div class="col-4">
                                                     <div class="form-group">
                                                         <label class="form-label">Refresh Token</label>
                                                         <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/ ?>">
                                                     </div>
                                                 </div>-->
-                                                </div>
-
-                                                <?php if (!empty($_GET['id'])) { ?>
-                                                    <div class="row" style="margin-bottom: 15px;">
-                                                        <div class="col-6">
-                                                            <div class="col-md-2">
-                                                                <label>Active</label>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                                <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php } ?>
-
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Next</button>
-                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
                                             </div>
-                                        </form>
-                                    </div>
 
-                                    <div class="tab-pane" id="operational_hours" role="tabpanel">
-                                        <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
-                                            <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                            <div class="p-20" id="holiday_list_div">
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                        <div class="form-group" style="text-align: center;">
-                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Day</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group" style="text-align: center;">
-                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Open Time</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group" style="text-align: center;">
-                                                            <label class="form-label" for="example-text" style="font-weight: bold;">Close Time</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <div class="form-group">
-                                                            <label><input type="checkbox" name="ALL_DAYS" class="form-check-inline" onclick="applyToAllDays(this)"> All Days</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php
-                                                $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
-                                                if ($operational_hours->RecordCount() > 0) {
-                                                    $i = 0;
-                                                    while (!$operational_hours->EOF) { ?>
-                                                        <div class="row">
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                            <option value="1" <?= ($operational_hours->fields['DAY_NUMBER'] == 1) ? 'selected' : '' ?>>Monday</option>
-                                                                            <option value="2" <?= ($operational_hours->fields['DAY_NUMBER'] == 2) ? 'selected' : '' ?>>Tuesday</option>
-                                                                            <option value="3" <?= ($operational_hours->fields['DAY_NUMBER'] == 3) ? 'selected' : '' ?>>Wednesday</option>
-                                                                            <option value="4" <?= ($operational_hours->fields['DAY_NUMBER'] == 4) ? 'selected' : '' ?>>Thursday</option>
-                                                                            <option value="5" <?= ($operational_hours->fields['DAY_NUMBER'] == 5) ? 'selected' : '' ?>>Friday</option>
-                                                                            <option value="6" <?= ($operational_hours->fields['DAY_NUMBER'] == 6) ? 'selected' : '' ?>>Saturday</option>
-                                                                            <option value="7" <?= ($operational_hours->fields['DAY_NUMBER'] == 7) ? 'selected' : '' ?>>Sunday</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12" style="margin-top: 10px;">
-                                                                        <label><input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>> Closed</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    <?php $operational_hours->MoveNext();
-                                                        $i++;
-                                                    } ?>
-                                                    <?php } else {
-                                                    for ($i = 1; $i <= 7; $i++) { ?>
-                                                        <div class="row">
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
-                                                                            <option value="1" <?= ($i == 1) ? 'selected' : '' ?>>Monday</option>
-                                                                            <option value="2" <?= ($i == 2) ? 'selected' : '' ?>>Tuesday</option>
-                                                                            <option value="3" <?= ($i == 3) ? 'selected' : '' ?>>Wednesday</option>
-                                                                            <option value="4" <?= ($i == 4) ? 'selected' : '' ?>>Thursday</option>
-                                                                            <option value="5" <?= ($i == 5) ? 'selected' : '' ?>>Friday</option>
-                                                                            <option value="6" <?= ($i == 6) ? 'selected' : '' ?>>Saturday</option>
-                                                                            <option value="7" <?= ($i == 7) ? 'selected' : '' ?>>Sunday</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12">
-                                                                        <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" readonly>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-3">
-                                                                <div class="form-group">
-                                                                    <div class="col-md-12" style="margin-top: 10px;">
-                                                                        <label><input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)"> Closed</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                <?php }
-                                                } ?>
-                                            </div>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                        </form>
-                                    </div>
-
-                                    <div class="tab-pane" id="credit_card" role="tabpanel">
-                                        <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
-                                            <div class="p-20" id="credit_card_div">
-                                                <div class="row">
+                                            <?php if (!empty($_GET['id'])) { ?>
+                                                <div class="row" style="margin-bottom: 15px;">
                                                     <div class="col-6">
-                                                        <div id="card-element"></div>
+                                                        <div class="col-md-2">
+                                                            <label>Active</label>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
+                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                            <?php } ?>
+
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Next</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                        </form>
-                                        <?php if (isset($card_details['last4'])) {
-                                            switch ($card_details['brand']) {
-                                                case 'Visa':
-                                                case 'Visa (debit)':
-                                                    $card_type = 'visa';
-                                                    break;
-                                                case 'MasterCard':
-                                                case 'Mastercard (2-series)':
-                                                case 'Mastercard (debit)':
-                                                case 'Mastercard (prepaid)':
-                                                    $card_type = 'mastercard';
-                                                    break;
-                                                case 'American Express':
-                                                    $card_type = 'amex';
-                                                    break;
-                                                case 'Discover':
-                                                case 'Discover (debit)':
-                                                    $card_type = 'discover';
-                                                    break;
-                                                case 'Diners Club':
-                                                case 'Diners Club (14-digit card)':
-                                                    $card_type = 'diners';
-                                                    break;
-                                                case 'JCB':
-                                                    $card_type = 'jcb';
-                                                    break;
-                                                case 'UnionPay':
-                                                case 'UnionPay (debit)':
-                                                case 'UnionPay (19-digit card)':
-                                                    $card_type = 'unionpay';
-                                                    break;
-                                                default:
-                                                    $card_type = '';
-                                                    break;
-                                            } ?>
-                                            <div class="p-20">
-                                                <h5>Saved Card Details</h5>
-                                                <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
-                                                    <div class="credit-card-last4">
-                                                        <?= $card_details['last4'] ?>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane" id="operational_hours" role="tabpanel">
+                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                        <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                        <div class="p-20" id="holiday_list_div">
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <div class="form-group" style="text-align: center;">
+                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Day</label>
                                                     </div>
-                                                    <div class="credit-card-expiry">
-                                                        <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group" style="text-align: center;">
+                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Open Time</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group" style="text-align: center;">
+                                                        <label class="form-label" for="example-text" style="font-weight: bold;">Close Time</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label><input type="checkbox" name="ALL_DAYS" class="form-check-inline" onclick="applyToAllDays(this)"> All Days</label>
                                                     </div>
                                                 </div>
                                             </div>
-                                        <?php } ?>
-                                    </div>
+                                            <?php
+                                            $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                            if ($operational_hours->RecordCount() > 0) {
+                                                $i = 0;
+                                                while (!$operational_hours->EOF) { ?>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
+                                                                        <option value="1" <?= ($operational_hours->fields['DAY_NUMBER'] == 1) ? 'selected' : '' ?>>Monday</option>
+                                                                        <option value="2" <?= ($operational_hours->fields['DAY_NUMBER'] == 2) ? 'selected' : '' ?>>Tuesday</option>
+                                                                        <option value="3" <?= ($operational_hours->fields['DAY_NUMBER'] == 3) ? 'selected' : '' ?>>Wednesday</option>
+                                                                        <option value="4" <?= ($operational_hours->fields['DAY_NUMBER'] == 4) ? 'selected' : '' ?>>Thursday</option>
+                                                                        <option value="5" <?= ($operational_hours->fields['DAY_NUMBER'] == 5) ? 'selected' : '' ?>>Friday</option>
+                                                                        <option value="6" <?= ($operational_hours->fields['DAY_NUMBER'] == 6) ? 'selected' : '' ?>>Saturday</option>
+                                                                        <option value="7" <?= ($operational_hours->fields['DAY_NUMBER'] == 7) ? 'selected' : '' ?>>Sunday</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12" style="margin-top: 10px;">
+                                                                    <label><input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>> Closed</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php $operational_hours->MoveNext();
+                                                    $i++;
+                                                } ?>
+                                                <?php } else {
+                                                for ($i = 1; $i <= 7; $i++) { ?>
+                                                    <div class="row">
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <select name="DAY_NUMBER[]" class="form-control required-entry" disabled>
+                                                                        <option value="1" <?= ($i == 1) ? 'selected' : '' ?>>Monday</option>
+                                                                        <option value="2" <?= ($i == 2) ? 'selected' : '' ?>>Tuesday</option>
+                                                                        <option value="3" <?= ($i == 3) ? 'selected' : '' ?>>Wednesday</option>
+                                                                        <option value="4" <?= ($i == 4) ? 'selected' : '' ?>>Thursday</option>
+                                                                        <option value="5" <?= ($i == 5) ? 'selected' : '' ?>>Friday</option>
+                                                                        <option value="6" <?= ($i == 6) ? 'selected' : '' ?>>Saturday</option>
+                                                                        <option value="7" <?= ($i == 7) ? 'selected' : '' ?>>Sunday</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="OPEN_TIME[]" class="form-control time-input time-picker OPEN_TIME" readonly>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12">
+                                                                    <input type="text" name="CLOSE_TIME[]" class="form-control time-input time-picker CLOSE_TIME" readonly>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="form-group">
+                                                                <div class="col-md-12" style="margin-top: 10px;">
+                                                                    <label><input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)"> Closed</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            <?php }
+                                            } ?>
+                                        </div>
+                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane" id="credit_card" role="tabpanel">
+                                    <form class="form-material form-horizontal" id="creditCardForm" action="" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="FUNCTION_NAME" value="saveCreditCard">
+                                        <div class="p-20" id="credit_card_div">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div id="card-element"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                        <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                    </form>
+                                    <?php if (isset($card_details['last4'])) {
+                                        switch ($card_details['brand']) {
+                                            case 'Visa':
+                                            case 'Visa (debit)':
+                                                $card_type = 'visa';
+                                                break;
+                                            case 'MasterCard':
+                                            case 'Mastercard (2-series)':
+                                            case 'Mastercard (debit)':
+                                            case 'Mastercard (prepaid)':
+                                                $card_type = 'mastercard';
+                                                break;
+                                            case 'American Express':
+                                                $card_type = 'amex';
+                                                break;
+                                            case 'Discover':
+                                            case 'Discover (debit)':
+                                                $card_type = 'discover';
+                                                break;
+                                            case 'Diners Club':
+                                            case 'Diners Club (14-digit card)':
+                                                $card_type = 'diners';
+                                                break;
+                                            case 'JCB':
+                                                $card_type = 'jcb';
+                                                break;
+                                            case 'UnionPay':
+                                            case 'UnionPay (debit)':
+                                            case 'UnionPay (19-digit card)':
+                                                $card_type = 'unionpay';
+                                                break;
+                                            default:
+                                                $card_type = '';
+                                                break;
+                                        } ?>
+                                        <div class="p-20">
+                                            <h5>Saved Card Details</h5>
+                                            <div class="credit-card <?= $card_type ?> selectable" style="margin-right: 80%;">
+                                                <div class="credit-card-last4">
+                                                    <?= $card_details['last4'] ?>
+                                                </div>
+                                                <div class="credit-card-expiry">
+                                                    <?= $card_details['exp_month'] . '/' . $card_details['exp_year'] ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
                                 </div>
                             </div>
                         </div>
@@ -1019,6 +1062,7 @@ if (!empty($_POST)) {
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <?php require_once('../includes/footer.php'); ?>

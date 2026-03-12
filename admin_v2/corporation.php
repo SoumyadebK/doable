@@ -422,7 +422,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                 </div>
                                             </div> -->
 
-                                            <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
+                                            <!-- <div class="row" style="margin-bottom: 15px; margin-top: 15px;">
                                                 <div class="col-md-2">
                                                     <label class="form-label">Texting Feature Enabled?</label>
                                                 </div>
@@ -465,7 +465,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> -->
 
 
                                             <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1) { ?>
