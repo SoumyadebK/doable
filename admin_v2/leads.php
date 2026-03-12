@@ -354,7 +354,7 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
 
                                     <div class="row mt-4">
                                         <div class="col-12">
-                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
                                             <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_leads.php'">Cancel</button>
                                             <a href="javascript:;" onclick="createCustomer()" class="btn btn-success waves-effect waves-light m-r-10 text-white">Create Customer</a>
                                         </div>
