@@ -83,7 +83,7 @@ if (!empty($_GET['id'])) {
         exit;
     }
 
-    $PK_LOCATION = 22;
+    $PK_LOCATION = '';
     $PK_CORPORATION = $res->fields['PK_CORPORATION'];
     $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
     $FRANCHISE = $res->fields['FRANCHISE'];

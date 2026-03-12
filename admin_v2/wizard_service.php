@@ -52,6 +52,7 @@ if (empty($_GET['id'])) {
     $SERVICE_NAME = '';
     $PK_SERVICE_CLASS = '';
     $IS_SCHEDULE = 1;
+    $PK_LOCATION = '';
     $DESCRIPTION = '';
     $ACTIVE = '';
 
@@ -62,6 +63,8 @@ if (empty($_GET['id'])) {
     $IS_SUNDRY = 0;
     $CAPACITY = '';
     $IS_CHARGEABLE = 0;
+    $COUNT_ON_CALENDAR = 1;
+    $SORT_ORDER = 0;
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_SERVICE_MASTER` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -72,6 +75,7 @@ if (empty($_GET['id'])) {
     $PK_SERVICE_CLASS = $res->fields['PK_SERVICE_CLASS'];
     $MISC_TYPE = $res->fields['MISC_TYPE'];
     $IS_SCHEDULE = $res->fields['IS_SCHEDULE'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
     $DESCRIPTION = $res->fields['DESCRIPTION'];
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -83,6 +87,8 @@ if (empty($_GET['id'])) {
     $IS_SUNDRY = $service_code->fields['IS_SUNDRY'];
     $CAPACITY = $service_code->fields['CAPACITY'];
     $IS_CHARGEABLE = $service_code->fields['IS_CHARGEABLE'];
+    $COUNT_ON_CALENDAR = $service_code->fields['COUNT_ON_CALENDAR'];
+    $SORT_ORDER = $service_code->fields['SORT_ORDER'];
 }
 
 $help_title = '';
@@ -202,7 +208,7 @@ if ($help->RecordCount() > 0) {
                                                                     <div class="col-md-12">
                                                                         <div class="input-group">
                                                                             <span class="input-group-text"><?= $currency ?></span>
-                                                                            <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Price" value="<?= $PRICE ?>" required>
+                                                                            <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Price" value="<?= $PRICE ?>">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -210,25 +216,21 @@ if ($help->RecordCount() > 0) {
                                                         </div>
 
                                                         <div class="row">
-                                                            <div class="col-6">
-                                                                <label class="form-label">Location</label>
-                                                                <div class="col-md-12 multiselect-box">
-                                                                    <label for="PK_LOCATION"></label><select class="multi_sumo_select_location" name="PK_LOCATION[]" id="PK_LOCATION" multiple>
-                                                                        <?php
-                                                                        $selected_location = [];
-                                                                        if (!empty($_GET['id'])) {
-                                                                            $selected_location_row = $db_account->Execute("SELECT `PK_LOCATION` FROM `DOA_SERVICE_LOCATION` WHERE `PK_SERVICE_MASTER` = '$_GET[id]'");
-                                                                            while (!$selected_location_row->EOF) {
-                                                                                $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                                $selected_location_row->MoveNext();
-                                                                            }
-                                                                        }
-                                                                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                                                                        <?php $row->MoveNext();
-                                                                        } ?>
-                                                                    </select>
+                                                            <div class="col-12">
+                                                                <label class="form-label">Location
+
+                                                                </label>
+                                                                <div class="col-12">
+                                                                    <div class="form-group">
+                                                                        <select class="form-control PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                                            <?php $row->MoveNext();
+                                                                            } ?>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -384,6 +386,28 @@ if ($help->RecordCount() > 0) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                <div class="row">
+                                                                    <div class="col-4">
+                                                                        <div class="form-group">
+                                                                            <label>Count on Calendar?
+                                                                                <span class="tooltip-bubble" tabindex="0">
+                                                                                    <i class="ti-help-alt" aria-hidden="true"></i>
+                                                                                    <span class="tooltip-text">
+                                                                                        Is this Service to be counted on Calendar Counter?
+                                                                                    </span>
+                                                                                </span>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-8">
+                                                                        <div class="form-group">
+                                                                            <div class="col-md-12">
+                                                                                <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="1" <?= (($COUNT_ON_CALENDAR == 1) ? 'checked' : '') ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="0" <?= (($COUNT_ON_CALENDAR == 0) ? 'checked' : '') ?> />&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             <?php } else { ?>
                                                                 <div class="row">
                                                                     <div class="col-3">
@@ -496,6 +520,38 @@ if ($help->RecordCount() > 0) {
                                                                             <div class="col-md-12">
                                                                                 <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="1" />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                                 <label><input type="radio" name="IS_SUNDRY" class="IS_SUNDRY" value="0" checked />&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-4">
+                                                                        <div class="form-group">
+                                                                            <label>Count on Calendar?
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-8">
+                                                                        <div class="form-group">
+                                                                            <div class="col-md-12">
+                                                                                <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="1" <?= (($COUNT_ON_CALENDAR == 1) ? 'checked' : '') ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                <label><input type="radio" name="COUNT_ON_CALENDAR" class="COUNT_ON_CALENDAR" value="0" <?= (($COUNT_ON_CALENDAR == 0) ? 'checked' : '') ?> />&nbsp;No</label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-4">
+                                                                        <div class="form-group">
+                                                                            <label>Sort Order
+
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-8">
+                                                                        <div class="form-group">
+                                                                            <div class="col-md-12">
+                                                                                <input type="text" id="SORT_ORDER" name="SORT_ORDER" class="form-control" placeholder="Enter Sort Order" value="<?php echo $SORT_ORDER ?>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
