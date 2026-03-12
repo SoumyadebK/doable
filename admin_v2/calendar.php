@@ -584,6 +584,20 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
         <div class="calendar-header mb-2">
+
+
+            <div class="view-toggle m-r-15" style="height: 37px; font-weight: 600; font-size: 20px !important;">
+                <button type="button" class="view-btn-icon" style="cursor: not-allowed; font-weight: 600; font-size: 20px !important; padding: 2px 14px; background-color: #39b54a; color: white;">D</button>
+                <div id="day-count" class="timer count-title count-number" style="padding: 2px 14px; background-color: white; color: #39b54a;" data-from="0" data-to="0" data-speed="1500"></div>
+            </div>
+
+            <div class="view-toggle m-r-15" style="height: 37px;  font-weight: 600; font-size: 20px !important;">
+                <button type="button" id="week_count_btn" class="view-btn-icon" style="cursor: not-allowed; font-weight: 600; font-size: 20px !important; padding: 2px 14px; background-color: #39b54a; color: white;">W</button>
+                <div id="week-count" class="timer count-title count-number" style="padding: 2px 14px; background-color: white; color: #39b54a;" data-from="0" data-to="0" data-speed="1500"></div>
+            </div>
+
+
+
             <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
             <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
             <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
@@ -1036,8 +1050,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     });
                 },
                 events: function(info, successCallback, failureCallback) {
-                    $('#day-count').html('<i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i>');
-                    $('#week-count').html('<i class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i>');
+                    $('#day-count').html('...');
+                    $('#week-count').html('...');
                     let STATUS_CODE = $('#STATUS_CODE').val();
                     let APPOINTMENT_TYPE = $('#APPOINTMENT_TYPE').val();
 
@@ -1725,12 +1739,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 async: false,
                 cache: false,
                 success: function(result) {
-                    let result_data = JSON.parse(result).service_provider;
-                    for (let i = 0; i < result_data.length; i++) {
+                    let result_data = JSON.parse(result);
+                    let service_providers = result_data.service_provider;
+                    for (let i = 0; i < service_providers.length; i++) {
 
-                        let sp_name = result_data[i].SERVICE_PROVIDER_NAME.trim();
-                        let sp_initials = result_data[i].INITIALS;
-                        let sp_color = result_data[i].COLOR;
+                        let sp_name = service_providers[i].SERVICE_PROVIDER_NAME.trim();
+                        let sp_initials = service_providers[i].INITIALS;
+                        let sp_color = service_providers[i].COLOR;
 
                         let avatarHTML = `<div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
                                                 <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:${sp_color};color:#fff;font-weight:600;font-size:14px;letter-spacing:1px;">
@@ -1741,8 +1756,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                 </div>
                                             </div>`;
 
-                        $('th[data-resource-id="' + result_data[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
+                        $('th[data-resource-id="' + service_providers[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
                     }
+
+
+                    if (calendar_view === 'month') {
+                        $('#week_count_btn').text('M');
+                    } else {
+                        $('#week_count_btn').text('W');
+                    }
+                    $('#day-count').attr('data-to', result_data.day_count);
+                    $('#week-count').attr('data-to', result_data.week_count);
+                    $('.count-number').countTo();
                 }
             });
         }
