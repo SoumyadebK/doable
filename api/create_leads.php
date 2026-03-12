@@ -47,7 +47,7 @@ if (!empty($postData)) {
             $i++;
         }
     }
-    $lead_status_data = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE LEAD_STATUS = 'New' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+    $lead_status_data = $db->Execute("SELECT PK_LEAD_STATUS FROM DOA_LEAD_STATUS WHERE ACTIVE = 1 AND LEAD_STATUS LIKE '%New%' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
     $LEADS_DATA['PK_LOCATION'] = $PK_LOCATION;
     $LEADS_DATA['FIRST_NAME'] = $postData['FIRST_NAME'];
     $LEADS_DATA['LAST_NAME'] = $postData['LAST_NAME'];
