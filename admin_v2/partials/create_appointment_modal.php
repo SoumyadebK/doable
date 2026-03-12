@@ -554,7 +554,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="PK_USER[]" multiple required>
+                                <select class="multi_sumo_select PK_SERVICE_PROVIDER" id="TO_DO_SERVICE_PROVIDER" name="PK_USER[]" multiple required>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                     while (!$row->EOF) { ?>
@@ -844,10 +844,11 @@ if ($location_operational_hour->RecordCount() > 0) {
         if ($.fn.timepicker) {
             $('#create_to_do_form #TO_DO_START_TIME').timepicker({
                 timeFormat: 'hh:mm p',
+                interval: <?= explode(':', $INTERVAL)[1] ?>,
                 maxTime: '<?= $maxTime ?>',
                 minTime: '<?= $minTime ?>',
                 change: function(time) {
-                    let startTime = $('#TO_DO_START_TIME').val();
+                    let startTime = $('#create_to_do_form #TO_DO_START_TIME').val();
                     $('#create_to_do_form #TO_DO_END_TIME').timepicker('option', 'minTime', startTime);
                     calculateEndTime();
                 }
@@ -855,12 +856,14 @@ if ($location_operational_hour->RecordCount() > 0) {
 
             $('#create_to_do_form #TO_DO_END_TIME').timepicker({
                 timeFormat: 'hh:mm p',
+                interval: <?= explode(':', $INTERVAL)[1] ?>,
                 maxTime: '<?= $maxTime ?>',
                 minTime: '<?= $minTime ?>'
             });
 
             $('#create_group_class_form #GROUP_CLASS_START_TIME').timepicker({
                 timeFormat: 'hh:mm p',
+                interval: <?= explode(':', $INTERVAL)[1] ?>,
                 maxTime: '<?= $maxTime ?>',
                 minTime: '<?= $minTime ?>'
             });
