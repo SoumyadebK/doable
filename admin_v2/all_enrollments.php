@@ -626,12 +626,12 @@ if (isset($_POST['SUBMIT'])) {
                                         <td class="d-flex align-items-center" style="height: 60px;">
                                             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                             <div>
-                                                <div><?= $CUSTOMER_NAME ?></div>
+                                                <div><a href="../admin/customer.php?id=<?= $enrollment_data->fields['PK_USER'] ?>&master_id=<?= $enrollment_data->fields['PK_USER_MASTER'] ?>"><?= $CUSTOMER_NAME ?></a></div>
                                                 <small class="text-muted"><?= $enrollment_data->fields['EMAIL_ID'] ?></small>
                                             </div>
                                         </td>
                                         <td><?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?></td>
-                                        <td><?= $id ?></td>
+                                        <td><a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a></td>
                                         <td><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
                                         <td><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></td>
                                         <td><?= $enrollment_data->fields['PHONE'] ?></td>
@@ -658,13 +658,15 @@ if (isset($_POST['SUBMIT'])) {
                                         </td>
                                         <td>$<?= $enrollment_data->fields['TOTAL_AMOUNT'] ?></td>
                                         <td class="text-center" style="vertical-align: middle;">
-                                            <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>, <?= $TYPE ?>)">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
-                                                    <circle cx="256" cy="256" r="48" />
-                                                    <circle cx="256" cy="416" r="48" />
-                                                    <circle cx="256" cy="96" r="48" />
-                                                </svg>
-                                            </button>
+                                            <a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>">
+                                                <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>, <?= $TYPE ?>)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
+                                                        <circle cx="256" cy="256" r="48" />
+                                                        <circle cx="256" cy="416" r="48" />
+                                                        <circle cx="256" cy="96" r="48" />
+                                                    </svg>
+                                                </button>
+                                            </a>
                                         </td>
                                     </tr>
                                 <?php $enrollment_data->MoveNext();

@@ -89,7 +89,7 @@ if (empty($_GET['id'])) {
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>Status Name<span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="LEAD_STATUS" name="LEAD_STATUS" placeholder="Enter Status Name" value="<?php echo $LEAD_STATUS ?>" required>
+                                                <input type="text" class="form-control" id="LEAD_STATUS" name="LEAD_STATUS" placeholder="Enter Status Name" value="<?php echo $LEAD_STATUS ?>" <?= ($LEAD_STATUS == 'New') ? 'readonly' : '' ?> required>
                                             </div>
                                         </div>
                                     </div>
@@ -140,7 +140,7 @@ if (empty($_GET['id'])) {
                                     </div>
 
                                     <?php if (!empty($_GET['id'])) { ?>
-                                        <div class="row" style="margin-top: 15px;">
+                                        <div class="row" style="margin-top: 15px; <?php if ($LEAD_STATUS == 'New') echo 'display:none;'; ?>">
                                             <div class="form-group">
                                                 <div class="col-6">
                                                     <div class="col-md-2">

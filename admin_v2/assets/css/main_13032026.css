@@ -272,12 +272,11 @@ h6 {
 }
 
 .app-topbar .navbar-nav .nav-link {
-  /* font-size: 14px; */
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: -0.4px;
   font-weight: 500;
   color: #99A0AE;
-  padding: 8px 12px !important;
+  padding: 8px 12px;
   border-radius: 6px;
   list-style: 20px;
 }
@@ -1108,71 +1107,4 @@ select.form-control:disabled {
   /*For IE7*/
   vertical-align: top;
   white-space: normal;
-}
-
-@media only screen and (min-width: 1200px) {
-  .app-topbar .navbar-nav .nav-link {
-    /* font-size: 11px !important; */
-    font-size: 82% !important;
-    padding: 0 8px !important;
-  }
-
-  .location-display-name {
-    font-size: 12px !important;
-  }
-
-  .topbar-item .top-bar-icon i {
-    font-size: 12px;
-  }
-
-  .navbar-nav .nav-link.active::after {
-    bottom: -15px !important;
-  }
-
-  .app-topbar {
-    padding: 5px 0;
-  }
-
-  div#user-dropdown-detailed {
-    padding: 0 5px;
-    height: 35px;
-  }
-
-  .pro-username {
-    font-size: 12px !important;
-  }
-}
-
-@media only screen and (max-width: 1200px) {
-  .app-topbar .navbar-nav .nav-link {
-    /* font-size: 8px !important; */
-    font-size: 56% !important;
-    padding: 5px 5px !important;
-  }
-
-  .location-display-name {
-    font-size: 10px !important;
-  }
-
-  .topbar-item .top-bar-icon i {
-    font-size: 10px;
-  }
-
-  .pro-username {
-    font-size: 10px !important;
-  }
-
-  #user-dropdown-detailed a img {
-    width: 20px;
-  }
-
-  div#user-dropdown-detailed {
-    padding: 0 5px;
-    height: 25px;
-  }
-
-  .navbar-nav .nav-link.active::after {
-    bottom: -5px !important;
-    height: 3px !important;
-  }
 }
