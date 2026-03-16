@@ -139,26 +139,6 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     .container-fluid {
         margin-top: 0px !important;
     }
-
-    .xxx ul.nav li.dropdown:hover ul.dropdown-menu {
-        display: block;
-    }
-
-    .sub-menu {
-        padding: 10px 10px;
-        font-size: 14px;
-    }
-
-    .sub-menu a {
-        padding: 5px;
-        display: block;
-        border-radius: 5px;
-    }
-
-    .sub-menu a:hover {
-        color: #333;
-        background-color: #ddd;
-    }
 </style>
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">
@@ -263,39 +243,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     </a>
                 </div>
                 <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="nav-links-elements xxx">
-                        <ul class="nav navbar-nav">
-                            <li class="">
-                                <a class="nav-link <?= (('calendar.php' === $current_address || 'calendar_list_view.php' === $current_address) ? 'active' : '') ?>" href="calendar.php">Calendar</a>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('email.php' === $current_address) ? 'active' : '') ?>" href="../email/email.php?type=inbox">Messages</a>
-                            </li>
-                            <li class="dropdown drop-menu">
-                                <a href="javascript:;" class="nav-link dropdown-toggle <?= (('all_customers.php' === $current_address || 'all_enrollments.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Customers <span class="caret"></span></a>
-                                <ul class="dropdown-menu sub-menu">
-                                    <li><a href="all_customers.php">Customers</a></li>
-                                    <li><a href="all_enrollments.php">Enrollments</a></li>
-                                </ul>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('payment_due_report.php' === $current_address) ? 'active' : '') ?>" href="payment_due_report.php">Billing</a>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('all_leads.php' === $current_address) ? 'active' : '') ?>" href="all_leads.php">Leads</a>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('all_events.php' === $current_address) ? 'active' : '') ?>" href="all_events.php">Events</a>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('all_products.php' === $current_address) ? 'active' : '') ?>" href="all_products.php">E-Commerce</a>
-                            </li>
-                            <li class="">
-                                <a class="nav-link <?= (('reports.php' === $current_address) ? 'active' : '') ?>" href="reports.php">Reports</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <!-- <div class="navbar-nav">
+                    <div class="navbar-nav">
                         <a class="nav-link <?= (('calendar.php' === $current_address || 'calendar_list_view.php' === $current_address) ? 'active' : '') ?>" href="calendar.php">Calendar</a>
                         <a class="nav-link <?= (('email.php' === $current_address) ? 'active' : '') ?>" href="../email/email.php?type=inbox">Messages</a>
                         <a class="nav-link <?= (('all_customers.php' === $current_address) ? 'active' : '') ?>" href="all_customers.php">Customers</a>
@@ -306,12 +254,12 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                         <a class="nav-link <?= (('all_events.php' === $current_address) ? 'active' : '') ?>" href="all_events.php">Events</a>
                         <a class="nav-link <?= (('all_products.php' === $current_address) ? 'active' : '') ?>" href="all_products.php">E-Commerce</a>
                         <a class="nav-link <?= (('reports.php' === $current_address) ? 'active' : '') ?>" href="reports.php">Reports</a>
-                    </div> -->
+                    </div>
                 </div>
             </nav>
         </div>
 
-        <div class="d-flex align-items-center" style="gap: 1.5rem !important;">
+        <div class="d-flex align-items-center" style="gap: 2rem !important;">
 
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="to_do_list.php">
