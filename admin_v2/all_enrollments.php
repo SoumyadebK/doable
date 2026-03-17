@@ -330,18 +330,7 @@ if (isset($_POST['SUBMIT'])) {
 ?>
 
 <!DOCTYPE html>
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
-    body {
-        background: #f6f7f9;
-    }
-
-    .card-box {
-        background: #fff;
-        border-radius: 12px;
-        padding: 20px;
-    }
-
     .avatar {
         width: 40px;
         height: 40px;
@@ -428,8 +417,7 @@ if (isset($_POST['SUBMIT'])) {
 <?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
-    <?php //require_once('../includes/loader.php'); 
-    ?>
+    <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid mt-4">
@@ -437,9 +425,14 @@ if (isset($_POST['SUBMIT'])) {
 
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-center mb-5">
-                        <div>
-                            <h4 class="mb-0">Enrollments</h4>
-                            <small class="text-muted">Optionally describe this</small>
+                        <div class="d-flex align-items-center" style="gap: 12px;">
+                            <span class="avatar-large">
+                                <i class="bi bi-journal-text" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <h4 class="mb-0">Enrollments</h4>
+                                <small class="text-muted">Optionally describe this</small>
+                            </div>
                         </div>
 
                         <button class="btn-new" onclick="$('#sideDrawer4, .overlay4').addClass('active');">
@@ -464,12 +457,12 @@ if (isset($_POST['SUBMIT'])) {
 
                         <div class="view-toggle m-r-10" style="height: 37px; margin-right: 12px;">
                             <button class="view-btn-icon">
-                                Filter
+                                <i class="fa fa-filter"></i> Filter
                             </button>
                         </div>
                         <div class="view-toggle" style="height: 37px;">
                             <button class="view-btn-icon">
-                                Sort By
+                                <i class="fa fa-sort-amount-desc"></i> Sort By
                             </button>
                         </div>
                     </div>
@@ -642,24 +635,24 @@ if (isset($_POST['SUBMIT'])) {
                                             <?php } ?>
                                         </td>
                                         <td>
-                                            <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
+                                            <?php if ($enrollment_data->fields['STATUS'] == 'A' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
                                                 <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
-                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#35e235;"></i> Active
+                                                    <i class="fa fa-check-circle" style="font-size:15px; color:#35e235;"></i> Active
                                                 </span>
                                             <?php } elseif ($enrollment_data->fields['STATUS'] == 'CO') { ?>
                                                 <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
-                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#0048ff;"></i> Completed
+                                                    <i class="fa fa-check-circle" style="font-size:15px; color:#0048ff;"></i> Completed
                                                 </span>
                                             <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
                                                 <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
-                                                    <i class="fa fa-check-circle" style="font-size:12px; color:#ff0000;"></i> Cancelled
+                                                    <i class="fa fa-ban" style="font-size:15px; color:#ff0000;"></i> Cancelled
                                                 </span>
                                             <?php } ?>
                                         </td>
-                                        <td>$<?= $enrollment_data->fields['TOTAL_AMOUNT'] ?></td>
+                                        <td>$<?= str_replace(",", "", number_format($enrollment_data->fields['TOTAL_AMOUNT'], 2)) ?></td>
                                         <td class="text-center" style="vertical-align: middle;">
                                             <a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>">
-                                                <button type="button" class="bg-transparent p-0 border-0" onclick="loadViewAppointmentModal(<?= $appointment_id; ?>, <?= $TYPE ?>)">
+                                                <button type="button" class="bg-transparent p-0 border-0">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
                                                         <circle cx="256" cy="256" r="48" />
                                                         <circle cx="256" cy="416" r="48" />
@@ -706,8 +699,8 @@ if (isset($_POST['SUBMIT'])) {
                         </div>
 
                         <select class="form-select form-select-sm" style="width: auto;">
-                            <option>8 / page</option>
-                            <option>16 / page</option>
+                            <option>50 / page</option>
+                            <option>100 / page</option>
                         </select>
                     </div>
 

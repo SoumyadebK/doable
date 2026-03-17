@@ -36,8 +36,7 @@ if (empty($_GET['id'])) {
 $PK_USER = $_GET['id'] ?? '';
 $PK_USER_MASTER = $_GET['master_id'] ?? '';
 
-if (!empty($_GET['tab']))
-    $title = $userType;
+
 
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
@@ -61,46 +60,6 @@ $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
 $API_KEY                = $payment_gateway_data->fields['API_KEY'];
 $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
-
-/*$card_number = '';
-
-if($PAYMENT_GATEWAY == "Stripe") {
-    $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_GET[master_id]'");
-    if ($user_payment_info_data->RecordCount() > 0) {
-        $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-        $stripe = new \Stripe\StripeClient($SECRET_KEY);
-        $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-
-        try {
-            $all_payment_methods = $stripe->customers->allPaymentMethods(
-                $CUSTOMER_PAYMENT_ID,
-                ['type' => 'card']
-            );
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            pre_r($e->getMessage());
-        }
-
-        $card_number = $all_payment_methods->card->last4;
-    }
-} elseif ($PAYMENT_GATEWAY == "Square") {
-    $user_payment_info_data = $db->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PK_USER_MASTER = '$_GET[master_id]'");
-
-    if ($user_payment_info_data->RecordCount() > 0) {
-        require_once("../global/vendor/autoload.php");
-        $client = new SquareClient([
-            'accessToken' => $ACCESS_TOKEN,
-            'environment' => Environment::SANDBOX,
-        ]);
-
-        $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-        $card = new \Square\Models\Card();
-        $card->setCustomerId($CUSTOMER_PAYMENT_ID);
-        $all_payment_methods = $client->getCardsApi()->listCards();
-        $all_payment_methods_array = json_decode($all_payment_methods->getBody());
-
-        $card_number = $all_payment_methods_array->cards->last_4;
-    }
-}*/
 
 $USER_NAME = '';
 $FIRST_NAME = $_GET['FIRST_NAME'] ?? '';
@@ -198,11 +157,14 @@ if (!empty($_GET['id'])) {
 
 $primary_location = $_GET['PK_LOCATION'] ?? 0;
 if (!empty($_GET['master_id']) && $primary_location <= 0) {
-    $selected_primary_location = $db->Execute("SELECT PRIMARY_LOCATION_ID FROM DOA_USER_MASTER WHERE PK_USER_MASTER = " . $_GET['master_id']);
+    $selected_primary_location = $db->Execute("SELECT DOA_USER_MASTER.PRIMARY_LOCATION_ID, DOA_LOCATION.LOCATION_NAME FROM DOA_USER_MASTER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $_GET['master_id']);
     if ($selected_primary_location->RecordCount() > 0) {
         $primary_location = $selected_primary_location->fields['PRIMARY_LOCATION_ID'];
+        $PRIMARY_LOCATION_NAME = $selected_primary_location->fields['LOCATION_NAME'];
     }
 }
+
+
 
 $TAB_PERMISSION_ARRAY = [];
 $permission_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PERMISSION = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
@@ -225,6 +187,12 @@ if ($not_billed_enrollment->RecordCount() > 0) {
     $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (" . implode(',', $PK_ENROLLMENT_MASTER_ARRAY) . ")");
 } */
 
+$title = $FIRST_NAME . " " . $LAST_NAME;
+
+$CUSTOMER_NAME = $FIRST_NAME . " " . $LAST_NAME;
+$customer = getProfileBadge($CUSTOMER_NAME);
+$customer_initial = $customer['initials'];
+$customer_color = $customer['color'];
 
 if ($PK_USER_MASTER > 0) {
     makeExpiryEnrollmentComplete($PK_USER_MASTER);
@@ -236,2084 +204,1176 @@ if ($PK_USER_MASTER > 0) {
 }
 ?>
 <!DOCTYPE html>
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
+<?php include 'layout/header.php'; ?>
+
 <style>
-    .commentModel {
-        z-index: 1011
+    .sidebar-link {
+        color: #6c757d;
+        text-decoration: none;
+        padding: 10px 20px;
+        display: block;
+        border-left: 3px solid transparent;
     }
 
-    .page-titles {
-        padding: 0;
-        position: fixed;
-        width: auto;
-        *background-color: whitesmoke;
-        z-index: 1000;
-        /* Ensure it's above other content */
-        margin: 0 0 0 0 !important;
+    .sidebar-link.active {
+        background-color: #f0f4f8;
+        color: #39b54a;
+        border-left-color: #39b54a;
+        font-weight: 600;
     }
 
-    .SumoSelect {
-        width: 100% !important;
-    }
-</style>
-<style>
-    table th {
-        font-weight: bold;
+    .profile-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background: #fff;
+        margin-bottom: 24px;
+        padding: 24px;
     }
 
-    /* Table sort indicators */
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
 
-    th.sortable {
-        position: relative;
+    .section-desc {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+
+    .label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .value {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .btn-outline-edit {
+        border: 1px solid #e0e0e0;
+        color: #333;
+        font-size: 0.85rem;
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+
+    .internal-note {
+        font-size: 0.9rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .add-btn {
+        color: #39b54a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .border-right-light {
+        border-right: 1px solid #ddd;
+    }
+
+    .main-card {
+        background: #fff;
+        border: 1px solid #eef0f2;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 700px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1d23;
+        margin-bottom: 4px;
+    }
+
+    .section-desc {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+
+    /* Inner Family Member Card */
+    .family-member-card {
+        border: 1px solid #eef0f2;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .family-member-card:hover {
+        border-color: #dee2e6;
+        background-color: #fafbfc;
+    }
+
+    .member-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 2px;
+    }
+
+    .member-role {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #808e9b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    .contact-info {
+        font-size: 0.9rem;
+        color: #636e72;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .copy-icon {
+        font-size: 0.85rem;
+        color: #b2bec3;
+        cursor: pointer;
+        margin-left: 4px;
+        transition: color 0.2s;
+    }
+
+    .copy-icon:hover {
+        color: #39b54a;
+    }
+
+    .action-icons i {
+        font-size: 1.1rem;
+        color: #636e72;
+        cursor: pointer;
+        padding: 5px;
+        transition: color 0.2s;
+    }
+
+    .action-icons i:hover {
+        color: #1a1d23;
+    }
+
+    .add-family-btn {
+        display: inline-flex;
+        align-items: center;
+        color: #39b54a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+
+    .add-family-btn:hover {
+        background-color: #f0fff4;
+    }
+
+    .enrollment-container {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    /* Balance Stats */
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .stat-divider {
+        border-left: 1px solid #eee;
+        height: 50px;
+        margin: 0 40px;
+    }
+
+    /* Tables */
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-bottom: none;
+        padding: 12px 15px;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+        padding: 15px;
+        border-color: #f1f1f1;
+    }
+
+    /* Badges */
+    .badge-service {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+
+    .bg-pri {
+        background-color: #e7f0ff;
+        color: #39b54a;
+    }
+
+    .bg-grp {
+        background-color: #fff0f5;
+        color: #d63384;
+    }
+
+    .bg-ext {
+        background-color: #f3f0ff;
+        color: #6f42c1;
+    }
+
+    .bg-pty {
+        background-color: #fff4e6;
+        color: #fd7e14;
+    }
+
+    /* AutoPay Toggle */
+    .form-switch .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
         cursor: pointer;
     }
 
-    th.sortable::after {
-        font-family: FontAwesome;
-        content: "\f0dc";
-        position: absolute;
-        right: 8px;
-        color: #999;
+    .autopay-label {
+        font-size: 0.85rem;
+        color: #444;
+        font-weight: 500;
     }
 
-    th.sortable.asc::after {
-        content: "\f0d8";
+    .view-schedule {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-decoration: none;
     }
 
-    th.sortable.desc::after {
-        content: "\f0d7";
+    .view-schedule:hover {
+        text-decoration: underline;
     }
 
-    th.sortable:hover::after {
+    .appointment-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    /* Table Styling */
+    .table {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #eee;
+        padding: 12px 15px;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        padding: 15px;
+        border-bottom: 1px solid #f1f1f1;
+        font-size: 0.85rem;
         color: #333;
     }
-</style>
-<!-- CSS for Popup -->
-<style>
-    .popup {
-        display: none;
-        position: fixed;
-        z-index: 99999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        justify-content: center;
+
+    /* Date Sidebar Column */
+    .date-col {
+        background-color: #fff;
+        border-right: 1px solid #eee !important;
+        text-align: center;
+        width: 70px;
+    }
+
+    .date-day {
+        font-size: 0.75rem;
+        color: #adb5bd;
+        text-transform: capitalize;
+        display: block;
+    }
+
+    .date-num {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    /* Status Badge */
+    .status-scheduled {
+        border: 1px solid #d1e7dd;
+        background-color: #f8fffb;
+        color: #39b54a;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
         align-items: center;
     }
 
-    .popup-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 80%;
-        text-align: center;
+    .status-scheduled i {
+        font-size: 0.8rem;
+        margin-right: 5px;
     }
 
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 30px;
-        color: white;
-        cursor: pointer;
-    }
-</style>
-<?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
-<?php include 'layout/header.php'; ?>
-<style>
-    #advice-required-entry-ACCEPT_HANDLING {
-        width: 150px;
-        top: 20px;
-        position: absolute;
-    }
-
-    .StripeElement {
-        display: block;
-        width: 100%;
-        height: 34px;
-        padding: 6px 12px;
-        font-size: 14px;
-        line-height: 1.42857143;
-        color: #555;
-        background-color: #fff;
-        background-image: none;
-        border: 1px solid #ccc;
+    /* Provider Avatar */
+    .avatar-sm {
+        width: 24px;
+        height: 24px;
+        background-color: #ffeaa7;
+        color: #d63031;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 4px;
+        margin-right: 8px;
     }
 
-    .StripeElement--focus {
-        box-shadow: 0 1px 3px 0 #cfd7df;
+    .text-truncate-custom {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .StripeElement--invalid {
-        border-color: #fa755a;
+    .payments-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 1100px;
+        margin: auto;
     }
 
-    .StripeElement--webkit-autofill {
-        background-color: #fefde5 !important;
+    /* Summary Section */
+    .summary-row {
+        border-top: 1px dashed #dee2e6;
+        border-bottom: 1px dashed #dee2e6;
+        padding: 25px 0;
+        margin: 25px 0;
     }
 
-    nav-link {
-        border: 1px solid #555;
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .stat-divider {
+        border-left: 1px solid #eee;
+        height: 60px;
+        margin: 0 40px;
+    }
+
+    /* Toolbar */
+    .search-input {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 8px 12px 8px 35px;
+        font-size: 0.9rem;
+        width: 320px;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+    }
+
+    .btn-toolbar {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+        color: #495057;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 8px 16px;
+    }
+
+    /* Table Styling */
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.85rem;
+        padding: 12px 20px;
+        border-bottom: none;
+    }
+
+    .table tbody td {
+        padding: 18px 20px;
+        font-size: 0.9rem;
+        color: #333;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+    .table-responsive {
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        /* display: block; */
+        display: flex;
     }
 </style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-
         <div class="page-wrapper" style="padding-top: 0px !important;">
 
-            <div class="container-fluid body_content" style="position: sticky; z-index: 1; margin-top: 0px;">
-                <div class="row page-titles" style="width: 97%;">
-                    <!--<div class="col-md-6 align-self-center">
-                    <h4 class="text-themecolor"><?php /*if(!empty($_GET['id'])) {
-                            echo "Edit ".$FIRST_NAME." ".$LAST_NAME;
-                        }*/ ?></h4>
-                </div>-->
-                    <div class="col-md-2 align-self-end">
-                        <?php if (!empty($_GET['id'])) { ?>
-                            <select required name="NAME" id="NAME" onchange="editpage(this);">
-                                <option value="">Select Customer</option>
-                                <?php
-                                $row = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE (DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME");
-                                while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_USER']; ?>" data-master_id="<?php echo $row->fields['PK_USER_MASTER']; ?>" <?= ($row->fields['PK_USER_MASTER'] == $_GET['master_id']) ? 'selected' : '' ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' ?></option>
-                                <?php $row->MoveNext();
-                                } ?>
-                            </select>
-                        <?php } ?>
+            <div class="container-fluid mt-4">
+                <div class="card-box" style="margin-top: 20px;">
+                    <div class="d-flex mb-3 px-3"><i class="bi bi-chevron-left font-12"></i>
+                        <h6 class="mx-3">Customers</h6>
                     </div>
-                    <div class="col-md-8 align-self-center">
-                        <ul class="nav nav-pills navbar-expand-lg navbar-light bg-light px-2 py-1 d-non" role="tablist" style="width: 124%">
-                            <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                <li> <a class="nav-link active" id="profile_tab_link" data-bs-toggle="tab" href="#profile" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-id-badge"></i></span> <span class="hidden-xs-down">Profile</span></a> </li>
-                                <li id="login_info_tab" style="display: <?= ($CREATE_LOGIN == 1) ? '' : 'none' ?>"> <a class="nav-link" id="login_info_tab_link" data-bs-toggle="tab" href="#login" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-lock"></i></span> <span class="hidden-xs-down">Login Info</span></a> </li>
-                                <li> <a class="nav-link" data-bs-toggle="tab" href="#family" id="family_tab_link" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-user"></i></span> <span class="hidden-xs-down">Family</span></a> </li>
-                            <?php } ?>
-                            <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#interest" id="interest_tab_link" role="tab" ><span class="hidden-sm-up"><i class="ti-pencil-alt"></i></span> <span class="hidden-xs-down">Interests</span></a> </li>-->
-
-                            <?php if (!empty($_GET['id'])) { ?>
-                                <?php if (in_array('Customers Profile Edit', $PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link" id="document_tab_link" data-bs-toggle="tab" href="#document" onclick="showAgreementDocument()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-files"></i></span> <span class="hidden-xs-down">Documents</span></a> </li>
-                                    <li> <a class="nav-link" id="enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('normal')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-list"></i></span> <span class="hidden-xs-down">Active Enrollments</span></a> </li>
-                                    <li> <a class="nav-link" id="completed_enrollment_tab_link" data-bs-toggle="tab" href="#enrollment" onclick="enrollmentLoadMore('completed')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-view-list"></i></span> <span class="hidden-xs-down">Completed Enrollments</span></a> </li>
-                                    <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" onclick="getPaymentRegisterData()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                    <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#appointment" onclick="showAppointment(1, 'posted')" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Appointments</span></a> </li>
-                                    <li> <a class="nav-link" id="appointment_tab_link" data-bs-toggle="tab" href="#demo_appointment" onclick="showDemoAppointment(1)" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">For Record Only</span></a> </li>
-                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#billing" onclick="showBillingList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>-->
-                                    <!--<li> <a class="nav-link" data-bs-toggle="tab" href="#accounts" onclick="showLedgerList(1)" role="tab" ><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">Enrollment</span></a> </li>-->
-                                    <li> <a class="nav-link" id="comment_tab_link" data-bs-toggle="tab" href="#comments" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-comment"></i></span> <span class="hidden-xs-down">Comments</span></a> </li>
-                                    <li> <a class="nav-link" id="credit_card_tab_link" data-bs-toggle="tab" href="#credit_card" onclick="getSavedCreditCardList()" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
-                                    <li> <a class="nav-link" id="wallet_tab_link" data-bs-toggle="tab" href="#wallet" role="tab" onclick="getWalletDetails()" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-wallet"></i></span> <span class="hidden-xs-down">Wallet</span></a> </li>
-                                <?php } ?>
-                                <?php if (in_array('Customers Delete', $PERMISSION_ARRAY)) { ?>
-                                    <li> <a class="nav-link" id="delete_tab_link" data-bs-toggle="tab" href="#delete_customer" role="tab" style="font-weight: bold; font-size: 13px"><span class="hidden-sm-up"><i class="ti-trash"></i></span> <span class="hidden-xs-down">Delete</span></a> </li>
-                                <?php } ?>
-                            <?php } ?>
-                        </ul>
+                    <div class="d-flex justify-content-between align-items-center mb-0 pb-4 border-bottom px-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning-subtle text-warning-emphasis d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 50px; height: 50px; font-weight: bold; color: #fff !important; background-color: <?= $customer_color ?> !important;"><?= $customer_initial ?></div>
+                            <h3 class="mb-0"><?= $CUSTOMER_NAME ?></h3>
+                        </div>
+                        <button class="btn btn-outline-danger rounded-pill px-4">Delete</button>
                     </div>
-                    <!--<div class="col-md-1 align-self-center text-end">
-                    <div class="d-flex justify-content-end align-items-center" style="width: 240px;">
-                        <ol class="breadcrumb justify-content-end">
-                            <li class="breadcrumb-item active"><a href="all_customers.php">All Customers</a></li>
-                            <li class="breadcrumb-item active"><a href="customer.php"><?php /*=$title*/ ?></a></li>
-                        </ol>
-                    </div>
-                </div>-->
-                </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="card" style="margin-top: 40px;">
-                                            <!--<div class="row">
-                                        <div class="col-12 d-flex justify-content-end align-items-center" style="font-weight: bold; font-size: 15px; margin-top: 15px;">
-                                            <?php
-                                            /*                                            $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER FROM `DOA_ENROLLMENT_MASTER` WHERE DOA_ENROLLMENT_MASTER.PK_USER_MASTER='$_GET[master_id]' ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC");
-
-                                            $total_amount = 0;
-                                            $total_paid_amount = 0;
-                                            $total_used_amount = 0;
-                                            $total_session_count = 0;
-                                            $used_session_count = 0;
-
-                                            while (!$row->EOF) {
-                                                $billing_data = $db_account->Execute("SELECT SUM(TOTAL_AMOUNT) AS TOTAL_AMOUNT FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER`=".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                $total_amount += ($billing_data->RecordCount() > 0) ? $billing_data->fields['TOTAL_AMOUNT'] : 0;
-
-                                                $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_SERVICE_CODE JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = ".$row->fields['PK_ENROLLMENT_MASTER']);
-                                                while (!$serviceCodeData->EOF)
-                                                {
-                                                    $used_session = $db_account->Execute("SELECT COUNT(`PK_ENROLLMENT_MASTER`) AS USED_SESSION_COUNT FROM `DOA_APPOINTMENT_MASTER` WHERE PK_APPOINTMENT_STATUS = 2 AND `PK_ENROLLMENT_MASTER` = ".$row->fields['PK_ENROLLMENT_MASTER']." AND PK_SERVICE_CODE = ".$serviceCodeData->fields['PK_SERVICE_CODE']);
-                                                    $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? $serviceCodeData->fields['TOTAL_AMOUNT_PAID']/$serviceCodeData->fields['PRICE_PER_SESSION'] : 1;
-                                                    $total_paid_amount += $serviceCodeData->fields['TOTAL_AMOUNT_PAID'];
-                                                    $total_used_amount += ($serviceCodeData->fields['PRICE_PER_SESSION']*$used_session->fields['USED_SESSION_COUNT']);
-                                                    $total_session_count += $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                                    $used_session_count += $used_session->fields['USED_SESSION_COUNT'];
-
-                                                    $serviceCodeData->MoveNext();
-                                                }
-                                                $row->MoveNext();
-                                            }
-                                            */ ?>
-                                            <?php /*if (!empty($_GET['id'])) { */ ?>
-                                                <div class="col-2 text-center">Enrolled : <?php /*=number_format($total_amount, 2);*/ ?></div>
-                                                <div class="col-2 text-center">Paid : <?php /*=number_format($total_paid_amount, 2);*/ ?></div>
-                                                <div class="col-2 text-center">Used : <?php /*=number_format((float)$total_used_amount, 2);*/ ?></div>
-                                                <div class="col-2 text-center">Balance : <?php /*=number_format($total_amount-$total_paid_amount, 2)*/ ?></div>
-                                                <div class="col-2 text-center" style="color:<?php /*=($total_paid_amount-$total_used_amount<0)?'red':'black'*/ ?>;">Service Credit : <?php /*=number_format((float)$total_paid_amount-$total_used_amount, 2);*/ ?></div>
-                                                <div class="col-2 text-center">Session : <?php /*=$used_session_count.'/'.$total_session_count;*/ ?></div>
-                                            <?php /*}*/ ?>
-                                        </div>
-                                    </div>-->
-                                            <div class="card-body">
-                                                <div class="tab-content tabcontent-border">
-                                                    <div class="tab-pane active" id="profile" role="tabpanel">
-                                                        <form class="form-material form-horizontal" id="profile_form">
-                                                            <input type="hidden" name="FUNCTION_NAME" value="saveProfileData">
-                                                            <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-                                                            <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
-                                                            <div class="p-20">
-                                                                <div class="row">
-                                                                    <div class="col-4">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" required value="<?= $FIRST_NAME ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-4">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Last Name</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?= $LAST_NAME ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-2">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Customer ID</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control" placeholder="Enter User Name" value="<?= $CUSTOMER_ID ?>">
-                                                                                <div id="uname_result"></div>
-                                                                            </div>
-                                                                            <span id="lblError" style="color: red"></span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-1">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label" style="font-size: 16px"><strong>#<?= $UNIQUE_ID ?></strong></label>
-                                                                            <input type="hidden" id="UNIQUE_ID" name="UNIQUE_ID" value="<?= $UNIQUE_ID ?>">
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-2">
-                                                                        <input type="hidden" name="PK_ROLES[]" value="4">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Phone<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-1">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMorePhone();"><i class="ti-plus"></i> New</a>
-                                                                    </div>
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Email <?php if (empty($_GET['id'])) { ?> <span class="text-danger">*</span><?php } ?></label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>" <?= (empty($_GET['id'])) ? 'required' : '' ?>>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-1">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreEmail();"><i class="ti-plus"></i> New</a>
-                                                                    </div>
-                                                                    <div class="col-2">
-                                                                        <label class="col-md-12 mt-3"><input type="checkbox" id="CREATE_LOGIN" name="CREATE_LOGIN" class="form-check-inline" <?= ($CREATE_LOGIN == 1) ? 'checked' : '' ?> style="margin-top: 30px;" onchange="createLogin(this);"> Create Login</label>
-                                                                    </div>
-                                                                    <div class="col-md-2">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Created On</label>
-                                                                            <input type="text" class="form-control datepicker-normal" id="CREATED_ON" name="CREATED_ON" value="<?= ($CREATED_ON == '' || $CREATED_ON == '0000-00-00' || $CREATED_ON == '1969-12-31') ? date('m/d/Y') : date('m/d/Y', strtotime($CREATED_ON)) ?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row">
-                                                                    <div class="col-5" id="add_more_phone">
-                                                                        <?php
-                                                                        if (!empty($_GET['id'])) {
-                                                                            $customer_phone = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PHONE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                            while (!$customer_phone->EOF) { ?>
-                                                                                <div class="row">
-                                                                                    <div class="col-9">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Phone<span class="text-danger">*</span></label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?= $customer_phone->fields['PHONE'] ?>" required>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-2" style="padding-top: 25px;">
-                                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            <?php $customer_phone->MoveNext();
-                                                                            } ?>
-                                                                        <?php } ?>
-                                                                    </div>
-                                                                    <div class="col-5" id="add_more_email">
-                                                                        <?php
-                                                                        if (!empty($_GET['id'])) {
-                                                                            $customer_email = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_EMAIL WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                            while (!$customer_email->EOF) { ?>
-                                                                                <div class="row">
-                                                                                    <div class="col-9">
-                                                                                        <div class="form-group">
-                                                                                            <label class="col-md-12">Email<span class="text-danger">*</span></label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?= $customer_email->fields['EMAIL'] ?>" required>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-2" style="padding-top: 25px;">
-                                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            <?php $customer_email->MoveNext();
-                                                                            } ?>
-                                                                        <?php } ?>
-                                                                    </div>
-                                                                </div>
-
-                                                                <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
-                                                                <div class="row">
-                                                                    <div class="col-3">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Call Preference</label>
-                                                                            <div class="col-md-12 custom-select">
-                                                                                <select class="form-control" name="CALL_PREFERENCE">
-                                                                                    <option>Select</option>
-                                                                                    <option value="email" <?php if ($CALL_PREFERENCE == "email") echo 'selected = "selected"'; ?>>Email</option>
-                                                                                    <option value="text message" <?php if ($CALL_PREFERENCE == "text message") echo 'selected = "selected"'; ?>>Text Message</option>
-                                                                                    <option value="phone call" <?php if ($CALL_PREFERENCE == "phone call") echo 'selected = "selected"'; ?>>Phone Call</option>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-9">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Reminder Options</label>
-                                                                            <div class="row m-t-10">
-                                                                                <div class="col-md-4">
-                                                                                    <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?= in_array('Email', explode(',', $REMINDER_OPTION)) ? 'checked' : '' ?> value="Email"> Email</label>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                    <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?= in_array('Text Message', explode(',', $REMINDER_OPTION)) ? 'checked' : '' ?> value="Text Message"> Text Message</label>
-                                                                                </div>
-                                                                                <div class="col-md-4">
-                                                                                    <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?= in_array('Phone Call', explode(',', $REMINDER_OPTION)) ? 'checked' : '' ?> value="Phone Call"> Phone Call</label>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Gender</label>
-                                                                            <div class="custom-select">
-                                                                                <select class="form-control" id="GENDER" name="GENDER">
-                                                                                    <option value="">Select Gender</option>
-                                                                                    <option value="Male" <?php if ($GENDER == "Male") echo 'selected = "selected"'; ?>>Male</option>
-                                                                                    <option value="Female" <?php if ($GENDER == "Female") echo 'selected = "selected"'; ?>>Female</option>
-                                                                                    <option value="Other" <?php if ($GENDER == "Other") echo 'selected = "selected"'; ?>>Other</option>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Date of Birth</label>
-                                                                            <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Address</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Apt/Ste</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1 ?>">
-
-                                                                            </div>
-                                                                        </div>
-
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Country<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12">
-                                                                                <div class="col-sm-12 custom-select">
-                                                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                                                        <option>Select Country</option>
-                                                                                        <?php
-                                                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                                        while (!$row->EOF) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
-                                                                                        <?php $row->MoveNext();
-                                                                                        } ?>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">State<span class="text-danger">*</span></label>
-                                                                            <div class="col-md-12">
-                                                                                <div class="col-sm-12 custom-select">
-                                                                                    <div id="State_div"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">City</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Postal / Zip Code</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <label class="col-md-12">Primary Location<span class="text-danger">*</span></label>
-                                                                        <div class="custom-select" style="margin-bottom: 15px;">
-                                                                            <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
-                                                                                <option value="">Select Primary Location</option>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($primary_location == $row->fields['PK_LOCATION']) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                                                                                <?php $row->MoveNext();
-                                                                                } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="col-6">
-                                                                        <label class="col-md-12">Preferred Location</label>
-                                                                        <div class="col-md-12 multiselect-box" style="width: 100%;">
-                                                                            <?php
-                                                                            $selected_location = [];
-                                                                            if (!empty($_GET['id'])) {
-                                                                                $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$_GET[id]'");
-                                                                                while (!$selected_location_row->EOF) {
-                                                                                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                                                                                    $selected_location_row->MoveNext();
-                                                                                }
-                                                                            }
-                                                                            ?>
-                                                                            <input type="hidden" id="selected_location" value="<?= implode(',', $selected_location); ?>">
-                                                                            <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
-                                                                                <?php
-                                                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                                                                                <?php $row->MoveNext();
-                                                                                } ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-12">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Remarks</label>
-                                                                            <div class="col-md-12">
-                                                                                <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES ?></textarea>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <hr>
-                                                                <div class="row">
-                                                                    <div class="col-2" style="margin-left: 80%">
-                                                                        <div class="form-group">
-                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" onclick="addMoreSpecialDays(this);"><i class="ti-plus"></i> New</a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="add_more_special_days">
-                                                                    <?php
-                                                                    $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                    if ($customer_special_date->RecordCount() > 0) {
-                                                                        while (!$customer_special_date->EOF) { ?>
-                                                                            <div class="row">
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Special Date</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="CUSTOMER_SPECIAL_DATE[]" value="<?= $customer_special_date->fields['SPECIAL_DATE'] ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Date Name</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]" value="<?= $customer_special_date->fields['DATE_NAME'] ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-2" style="padding-top: 25px;">
-                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                        <?php $customer_special_date->MoveNext();
-                                                                        } ?>
-                                                                    <?php } else { ?>
-                                                                        <div class="row">
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Special Date</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="CUSTOMER_SPECIAL_DATE[]">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Date Name</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" class="form-control" name="CUSTOMER_SPECIAL_DATE_NAME[]">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-2" style="padding-top: 25px;">
-                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php } ?>
-                                                                </div>
-                                                                <hr>
-
-                                                                <div class="row">
-                                                                    <div class="col-8">
-                                                                        <div class="form-group">
-                                                                            <div class="row m-t-10">
-                                                                                <div class="col-md-4">
-                                                                                    <label class="form-label">Will you be attending your lessons</label>
-                                                                                </div>
-                                                                                <div class="col-md-2">
-                                                                                    <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideUp():$('#partner_details').slideDown()" value="Solo" <?= (($ATTENDING_WITH == '') ? 'checked' : (($ATTENDING_WITH == 'Solo') ? 'checked' : '')) ?>> Solo</label>
-                                                                                </div>
-                                                                                <div class="col-md-3">
-                                                                                    <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="($(this).is(':checked'))?$('#partner_details').slideDown():$('#partner_details').slideUp()" value="With a Partner" <?= (($ATTENDING_WITH == 'With a Partner') ? 'checked' : '') ?>> With a Partner</label>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div id="partner_details" style="display: <?= (($ATTENDING_WITH == 'With a Partner') ? '' : 'none') ?>;">
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's First Name<span class="text-danger">*</span></label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Enter Partner's First Name" name="PARTNER_FIRST_NAME" value="<?= $PARTNER_FIRST_NAME ?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's Last Name</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Enter Partner's Last Name" name="PARTNER_LAST_NAME" value="<?= $PARTNER_LAST_NAME ?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's Phone</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Enter Partner's Phone" name="PARTNER_PHONE" value="<?= $PARTNER_PHONE ?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's Email</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" class="form-control" placeholder="Enter Partner's Email" name="PARTNER_EMAIL" value="<?= $PARTNER_EMAIL ?>">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="row">
-                                                                        <div class="col-md-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's Gender</label>
-                                                                                <div class="custom-select">
-                                                                                    <select class="form-control" id="PARTNER_GENDER" name="PARTNER_GENDER">
-                                                                                        <option value="">Select Gender</option>
-                                                                                        <option value="Male" <?= (($PARTNER_GENDER == 'Male') ? 'selected' : '') ?>>Male</option>
-                                                                                        <option value="Female" <?= (($PARTNER_GENDER == 'Female') ? 'selected' : '') ?>>Female</option>
-                                                                                        <option value="Other" <?= (($PARTNER_GENDER == 'Other') ? 'selected' : '') ?>>Other</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Partner's Date of Birth</label>
-                                                                                <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" value="<?= ($PARTNER_DOB == '' || $PARTNER_DOB == '0000-00-00' || $PARTNER_DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($PARTNER_DOB)) ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">Image Upload</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control">
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <?php if ($USER_IMAGE != '') { ?><div style="width: 120px;height: 120px;margin-top: 25px;"><a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery"><img src="<?php echo $USER_IMAGE; ?>" style="width:120px; height:120px" /></a></div><?php } ?>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <?php if (!empty($_GET['id'])) { ?>
-                                                                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                        <div class="col-md-1">
-                                                                            <label class="form-label">Active : </label>
-                                                                        </div>
-                                                                        <div class="col-md-4">
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } ?>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <button type="submit" id="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="login" role="tabpanel">
-                                                        <form id="login_form">
-                                                            <input type="hidden" name="FUNCTION_NAME" value="saveLoginData">
-                                                            <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                            <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div class="p-20">
-                                                                <!-- <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">User Name</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="USER_NAME" name="USER_NAME" class="form-control" placeholder="Enter User Name" onkeyup="ValidateUsername()" value="<?= $USER_NAME ?>">
-                                                                                <a class="btn-link" onclick="$('#change_password_div').slideToggle();">Change Password</a>
-                                                                            </div>
-                                                                        </div>
-                                                                        <span id="lblError" style="color: red"></span>
-
-                                                                    </div>
-                                                                </div> -->
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="col-md-12">User Email</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email" onkeyup="ValidateUsername()" value="<?= $EMAIL_ID ?>" readonly>
-                                                                            </div>
-                                                                        </div>
-                                                                        <span id="lblError" style="color: red"></span>
-                                                                    </div>
-                                                                </div>
-
-                                                                <?php if (!empty($_GET['id'])) { ?>
-                                                                    <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
-                                                                        <div class="col-md-1">
-                                                                            <label class="form-label">Active : </label>
-                                                                        </div>
-                                                                        <div class="col-md-4">
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } ?>
-
-                                                                <?php if (empty($_GET['id']) || $PASSWORD == '') { ?>
-                                                                    <div class="row">
-                                                                        <div class="col-4">
-                                                                            <div class="form-group">
-                                                                                <label class="col-md-12">Password</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon3" name="PASSWORD" id="PASSWORD" onkeyup="isGood(this.value)">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
-                                                                            <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
-                                                                        </div>
-                                                                        <div class="col-4">
-                                                                            <div class="form-group">
-                                                                                <label class="col-md-12">Confirm Password</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="password" class="form-control" placeholder="Confirm Password" aria-label="Password" aria-describedby="basic-addon3" name="CONFIRM_PASSWORD" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-md-1" style="padding-top: 22px; width: 4%;">
-                                                                            <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <b id="password_error" style="color: red;"></b>
-                                                                    <div class="row" id="password_note">
-                                                                        <div class="col-12">
-                                                                            <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="row">
-                                                                        <input type="hidden" id="password_strength" value="0">
-                                                                        <div class="col-2">
-                                                                            Password Strength:
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <small id="password-text"></small>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } else { ?>
-                                                                    <div class="row">
-                                                                        <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: none;">
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">New Password</label>
-                                                                                    <input type="password" name="PASSWORD" class="form-control" id="PASSWORD" onkeyup="isGood(this.value)">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
-                                                                                <a href="javascript:" onclick="togglePasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
-                                                                            </div>
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Confirm New Password</label>
-                                                                                    <input type="password" name="CONFIRM_PASSWORD" class="form-control" id="CONFIRM_PASSWORD" onkeyup="isGood(this.value)">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-1" style="padding-top: 22px; width: 4%;">
-                                                                                <a href="javascript:" onclick="toggleConfirmPasswordVisibility()" style="font-size: 25px;"><i class="icon-eye"></i></a>
-                                                                            </div>
-                                                                            <b id="password_error" style="color: red;"></b>
-                                                                            <div class="row" id="password_note">
-                                                                                <div class="col-12">
-                                                                                    <span style="color: orange;">Note : Password Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="row">
-                                                                                <input type="hidden" id="password_strength" value="0">
-                                                                                <div class="col-2">
-                                                                                    Password Strength:
-                                                                                </div>
-                                                                                <div class="col-3">
-                                                                                    <small id="password-text"></small>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } ?>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <?php if (!empty($_GET['id']) && $PASSWORD != '') { ?>
-                                                                    <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
-                                                                <?php } ?>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-
-                                                    <?php $family_member_count = 0; ?>
-                                                    <div class="tab-pane" id="family" role="tabpanel">
-                                                        <form id="family_form" class="form-material form-horizontal">
-                                                            <input type="hidden" name="FUNCTION_NAME" value="saveFamilyData">
-                                                            <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-                                                            <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
-                                                            <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div class="row" style="margin-bottom: 25px;">
-                                                                <a href="javascript:;" style="float: right; margin-left: 91%; margin-top: 10px; color: green;" onclick="addMoreFamilyMember();"><b><i class="ti-plus"></i> New</b></a>
-                                                            </div>
-                                                            <?php
-                                                            $family_member_details = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DETAILS WHERE PK_CUSTOMER_PRIMARY = '$PK_CUSTOMER_DETAILS' AND IS_PRIMARY = 0");
-                                                            if ($PK_CUSTOMER_DETAILS > 0 && $family_member_details->RecordCount() > 0) {
-                                                                while (!$family_member_details->EOF) { ?>
-                                                                    <div class="row family_member" style="padding: 35px; margin-top: -60px;">
-                                                                        <div class="row">
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name" value="<?= $family_member_details->fields['FIRST_NAME'] ?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Last Name</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name" value="<?= $family_member_details->fields['LAST_NAME'] ?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Relationship</label>
-                                                                                    <div class="col-md-12 custom-select">
-                                                                                        <select class="form-control" name="PK_RELATIONSHIP[]">
-                                                                                            <option>Select Relationship</option>
-                                                                                            <?php
-                                                                                            $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
-                                                                                            while (!$row->EOF) { ?>
-                                                                                                <option value="<?php echo $row->fields['PK_RELATIONSHIP']; ?>" <?= ($family_member_details->fields['PK_RELATIONSHIP'] == $row->fields['PK_RELATIONSHIP']) ? 'selected' : '' ?>><?= $row->fields['RELATIONSHIP'] ?></option>
-                                                                                            <?php $row->MoveNext();
-                                                                                            } ?>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-2">
-                                                                                <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="$(this).closest('.row').next().slideToggle();"><i class="ti-arrow-circle-down"></i> More Info</a>
-                                                                            </div>
-                                                                            <div class="col-1">
-                                                                                <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" style="margin-top: 30px;" onclick="removeThisFamilyMember(this);"><b><i class="ti-trash"></i></b></a>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div style="display: none;">
-                                                                            <div class="row">
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Phone</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?= $family_member_details->fields['PHONE'] ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="col-md-12">Email</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address" value="<?= $family_member_details->fields['EMAIL'] ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div class="row">
-                                                                                <div class="col-md-6">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Gender</label>
-                                                                                        <div class="custom-select">
-                                                                                            <select class="form-control" name="FAMILY_GENDER[]">
-                                                                                                <option>Select Gender</option>
-                                                                                                <option value="Male" <?php if ($family_member_details->fields['GENDER'] == "Male") echo 'selected = "selected"'; ?>>Male</option>
-                                                                                                <option value="Female" <?php if ($family_member_details->fields['GENDER'] == "Female") echo 'selected = "selected"'; ?>>Female</option>
-                                                                                                <option value="Other" <?php if ($family_member_details->fields['GENDER'] == "Other") echo 'selected = "selected"'; ?>>Other</option>
-                                                                                            </select>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-md-6">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Date of Birth</label>
-                                                                                        <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]" value="<?= ($family_member_details->fields['DOB'] == '' || $family_member_details->fields['DOB'] == '0000-00-00' || $family_member_details->fields['DOB'] == '1969-12-31') ? '' : date('m/d/Y', strtotime($family_member_details->fields['DOB'])) ?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div class="row">
-                                                                                <div class="col-2" style="margin-left: 80%">
-                                                                                    <div class="form-group">
-                                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" data-counter="<?= $family_member_count ?>" onclick="addMoreSpecialDaysFamily(this);"><i class="ti-plus"></i> New</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="add_more_special_days">
-                                                                                <?php
-                                                                                $family_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = " . $family_member_details->fields['PK_CUSTOMER_DETAILS']);
-                                                                                if ($family_special_date->RecordCount() > 0) {
-                                                                                    while (!$family_special_date->EOF) { ?>
-                                                                                        <div class="row">
-                                                                                            <div class="col-5">
-                                                                                                <div class="form-group">
-                                                                                                    <label class="form-label">Special Date</label>
-                                                                                                    <div class="col-md-12">
-                                                                                                        <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?= $family_member_count ?>][]" value="<?= $family_special_date->fields['SPECIAL_DATE'] ?>">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div class="col-5">
-                                                                                                <div class="form-group">
-                                                                                                    <label class="form-label">Date Name</label>
-                                                                                                    <div class="col-md-12">
-                                                                                                        <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?= $family_member_count ?>][]" value="<?= $family_special_date->fields['DATE_NAME'] ?>">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div class="col-2" style="padding-top: 25px;">
-                                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    <?php $family_special_date->MoveNext();
-                                                                                    } ?>
-                                                                                <?php } else { ?>
-                                                                                    <div class="row">
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Special Date</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?= $family_member_count ?>][]">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Date Name</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?= $family_member_count ?>][]">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-2" style="padding-top: 25px;">
-                                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                <?php } ?>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php $family_member_details->MoveNext();
-                                                                    $family_member_count++;
-                                                                } ?>
-                                                            <?php } elseif (empty($_GET['id'])) { ?>
-                                                                <div class="rom family_member" style="padding: 35px; margin-top: -60px;">
-                                                                    <div class="row">
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">First Name<span class="text-danger">*</span></label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FAMILY_FIRST_NAME[]" class="form-control" placeholder="Enter First Name">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Last Name</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="FAMILY_LAST_NAME[]" class="form-control" placeholder="Enter Last Name">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-3">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Relationship</label>
-                                                                                <div class="col-md-12">
-                                                                                    <select class="form-control" name="PK_RELATIONSHIP[]">
-                                                                                        <option>Select Relationship</option>
-                                                                                        <?php
-                                                                                        $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
-                                                                                        while (!$row->EOF) { ?>
-                                                                                            <option value="<?php echo $row->fields['PK_RELATIONSHIP']; ?>"><?= $row->fields['RELATIONSHIP'] ?></option>
-                                                                                        <?php $row->MoveNext();
-                                                                                        } ?>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-2">
-                                                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="$(this).closest('.row').next().slideToggle();"><i class="ti-arrow-circle-down"></i> More Info</a>
-                                                                        </div>
-                                                                        <div class="col-1">
-                                                                            <a href="javascript:;" class="btn btn-danger waves-effect waves-light text-white" style="margin-top: 30px;" onclick="removeThisFamilyMember(this);"><b><i class="ti-trash"></i></b></a>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div style="display: none;">
-                                                                        <div class="row">
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Phone</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FAMILY_PHONE[]" class="form-control" placeholder="Enter Phone Number">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Email</label>
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="email" name="FAMILY_EMAIL[]" class="form-control" placeholder="Enter Email Address">
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row">
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Gender</label>
-                                                                                    <select class="form-control" name="FAMILY_GENDER[]">
-                                                                                        <option>Select Gender</option>
-                                                                                        <option value="Male" <?php if ($GENDER == "Male") echo 'selected = "selected"'; ?>>Male</option>
-                                                                                        <option value="Female" <?php if ($GENDER == "Female") echo 'selected = "selected"'; ?>>Female</option>
-                                                                                        <option value="Other" <?php if ($GENDER == "Other") echo 'selected = "selected"'; ?>>Other</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Date of Birth</label>
-                                                                                    <input type="text" class="form-control datepicker-past" name="FAMILY_DOB[]">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="row border-top">
-                                                                            <div class="col-2" style="margin-left: 80%">
-                                                                                <div class="form-group">
-                                                                                    <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 15px;" data-counter="<?= $family_member_count ?>" onclick="addMoreSpecialDaysFamily(this);"><i class="ti-plus"></i> New</a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="add_more_special_days">
-                                                                            <?php
-                                                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
-                                                                            if ($customer_special_date->RecordCount() > 0) {
-                                                                                while (!$customer_special_date->EOF) { ?>
-                                                                                    <div class="row">
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Special Date</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?= $family_member_count ?>][]" value="<?= $customer_special_date->fields['SPECIAL_DATE'] ?>">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-5">
-                                                                                            <div class="form-group">
-                                                                                                <label class="form-label">Date Name</label>
-                                                                                                <div class="col-md-12">
-                                                                                                    <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?= $family_member_count ?>][]" value="<?= $customer_special_date->fields['DATE_NAME'] ?>">
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="col-2" style="padding-top: 25px;">
-                                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                <?php $customer_special_date->MoveNext();
-                                                                                } ?>
-                                                                            <?php } else { ?>
-                                                                                <div class="row">
-                                                                                    <div class="col-5">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Special Date</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" placeholder="mm/dd" class="form-control datepicker-normal" name="FAMILY_SPECIAL_DATE[<?= $family_member_count ?>][]">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-5">
-                                                                                        <div class="form-group">
-                                                                                            <label class="form-label">Date Name</label>
-                                                                                            <div class="col-md-12">
-                                                                                                <input type="text" class="form-control" name="FAMILY_SPECIAL_DATE_NAME[<?= $family_member_count ?>][]">
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-2" style="padding-top: 25px;">
-                                                                                        <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            <?php } ?>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            <?php } ?>
-
-                                                            <div id="add_more_family_member"></div>
-                                                            <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="interest" role="tabpanel">
-                                                        <form id="interest_form">
-                                                            <input type="hidden" name="FUNCTION_NAME" value="saveInterestData">
-                                                            <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-                                                            <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
-                                                            <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div class="p-20">
-                                                                <div class="row">
-                                                                    <div class="col-12 mb-3 pb-3 border-bottom">
-                                                                        <label class="form-label">Interests</label>
-                                                                        <div class="col-md-12" style="margin-bottom: 0px;">
-                                                                            <div class="row">
-                                                                                <?php
-                                                                                $PK_USER = empty($_GET['id']) ? 0 : $_GET['id'];
-                                                                                $user_interest = $db_account->Execute("SELECT PK_INTERESTS FROM `DOA_CUSTOMER_INTEREST` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
-                                                                                $user_interest_array = [];
-                                                                                if ($user_interest->RecordCount() > 0) {
-                                                                                    while (!$user_interest->EOF) {
-                                                                                        $user_interest_array[] = $user_interest->fields['PK_INTERESTS'];
-                                                                                        $user_interest->MoveNext();
-                                                                                    }
-                                                                                }
-                                                                                $account_business_type = $db->Execute("SELECT PK_BUSINESS_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                                $row = $db_account->Execute("SELECT * FROM DOA_INTERESTS WHERE ACTIVE = 1");
-                                                                                while (!$row->EOF) { ?>
-                                                                                    <div class="col-3 mt-3">
-                                                                                        <label><input type="checkbox" name="PK_INTERESTS[]" value="<?php echo $row->fields['PK_INTERESTS']; ?>" <?= (in_array($row->fields['PK_INTERESTS'], $user_interest_array)) ? 'checked' : '' ?>> <?= $row->fields['INTERESTS'] ?></label>
-                                                                                    </div>
-                                                                                <?php $row->MoveNext();
-                                                                                } ?>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">What prompted you to inquire with us ?</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" class="form-control" name="WHAT_PROMPTED_YOU_TO_INQUIRE" value="<?= $WHAT_PROMPTED_YOU_TO_INQUIRE ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">How will you grade your present skills ?</label>
-                                                                            <div class="col-md-12">
-                                                                                <select class="form-control" name="PK_SKILL_LEVEL">
-                                                                                    <option value="">Select</option>
-                                                                                    <?php
-                                                                                    $row = $db_account->Execute("SELECT * FROM DOA_SKILL_LEVEL WHERE ACTIVE = 1");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_SKILL_LEVEL']; ?>" <?= ($row->fields['PK_SKILL_LEVEL'] == $PK_SKILL_LEVEL) ? 'selected' : '' ?>><?= $row->fields['SKILL_LEVEL'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Inquiry Method</label>
-                                                                            <div class="col-md-12">
-                                                                                <select class="form-control" name="PK_INQUIRY_METHOD">
-                                                                                    <option value="">Select</option>
-                                                                                    <?php
-                                                                                    $row = $db_account->Execute("SELECT * FROM DOA_INQUIRY_METHOD WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_INQUIRY_METHOD']; ?>" <?= ($row->fields['PK_INQUIRY_METHOD'] == $PK_INQUIRY_METHOD) ? 'selected' : '' ?>><?= $row->fields['INQUIRY_METHOD'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Inquiry Taker</label>
-                                                                            <div class="col-md-12">
-                                                                                <select class="form-control" name="INQUIRY_TAKER_ID">
-                                                                                    <option>Select</option>
-                                                                                    <?php
-                                                                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES IN(2,3,5,6,7) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($row->fields['PK_USER'] == $INQUIRY_TAKER_ID) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <div class="form-group">
-                                                                            <label class="form-label">Inquiry Date</label>
-                                                                            <div class="col-md-12">
-                                                                                <input type="text" name="INQUIRY_DATE" class="form-control datepicker-normal" value="<?= ($INQUIRY_DATE == '' || $INQUIRY_DATE == '0000-00-00' || $INQUIRY_DATE == '1969-12-31') ? '' : date('m/d/Y', strtotime($INQUIRY_DATE)) ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="document" role="tabpanel">
-                                                        <div class="card-body m-t-10" id="agreement_document">
-
-                                                        </div>
-                                                        <form id="document_form">
-                                                            <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
-                                                            <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                                            <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-                                                            <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
-                                                            <input type="hidden" class="TYPE" name="TYPE" value="2">
-                                                            <div>
-                                                                <div class="card-body" id="append_user_document">
-                                                                    <?php
-                                                                    if (!empty($_GET['id'])) {
-                                                                        $user_doc_count = 0;
-                                                                        $row = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <div class="row">
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Document Name</label>
-                                                                                        <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name" value="<?= $row->fields['DOCUMENT_NAME'] ?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-5">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Document File</label>
-                                                                                        <input type="file" name="FILE_PATH[]" class="form-control">
-                                                                                        <a target="_blank" href="<?= $row->fields['FILE_PATH'] ?>">View</a>
-                                                                                        <input type="hidden" name="FILE_PATH_URL[]" value="<?= $row->fields['FILE_PATH'] ?>">
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-2">
-                                                                                    <div class="form-group" style="margin-top: 30px;">
-                                                                                        <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        <?php $row->MoveNext();
-                                                                            $user_doc_count++;
-                                                                        } ?>
-                                                                    <?php } else {
-                                                                        $user_doc_count = 1; ?>
-                                                                        <div class="row">
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Document Name</label>
-                                                                                    <input type="text" name="DOCUMENT_NAME[]" class="form-control" placeholder="Enter Document Name">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-5">
-                                                                                <div class="form-group">
-                                                                                    <label class="form-label">Document File</label>
-                                                                                    <input type="file" name="FILE_PATH[]" class="form-control">
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-2">
-                                                                                <div class="form-group" style="margin-top: 30px;">
-                                                                                    <a href="javascript:;" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="removeUserDocument(this);"><i class="ti-trash"></i></a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php } ?>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-11">
-                                                                    <div class="form-group">
-                                                                        <a href="javascript:;" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addMoreUserDocument();"><i class="ti-plus"></i> New</a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white"><?= empty($_GET['id']) ? 'Continue' : 'Save' ?></button>
-                                                                <button type="button" id="cancel_button" class="btn btn-inverse waves-effect waves-light">Cancel</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-
-                                                    <!--Enrollment Model-->
-                                                    <div class="tab-pane" id="enrollment" role="tabpanel">
-                                                        <div id="enrollment_list" class="p-20">
-
-                                                            <div id="load-marker" style="text-align:center; padding:10px;">Loading <i class="fas fa-spinner fa-pulse" style="font-size: 15px;"></i></div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="payment_register" role="tabpanel" style="margin-top: 15px;">
-                                                        <div id="payment_register_list" class="p-20">
-
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="appointment" role="tabpanel">
-                                                        <div class="row">
-                                                            <div id="posted" class="col-md-3 align-self-center" style="margin-left: 20%">
-                                                                <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'posted')"> Show Posted</button>
-                                                            </div>
-                                                            <div id="unposted" class="col-md-3 align-self-center" style="margin-left: 20%">
-                                                                <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'unposted')"> Show Unposted</button>
-                                                            </div>
-                                                            <!--<div id="canceled" class="col-md-2 align-self-center" style="margin-left: -15%">
-                                                        <button type="button" class="btn btn-info d-none d-lg-block m-15 text-white" onclick="showAppointment(1, 'cancelled')"> Show Canceled</button>
-                                                    </div>-->
-                                                            <div class="col-md-4">
-                                                                <a class="btn btn-info d-none d-lg-block m-15 text-white" href="create_appointment.php?id_customer=<?= $_GET['id'] ?>&master_id_customer=<?= $_GET['master_id'] ?>&source=customer" style="width: 125px; float: right;"><i class="fa fa-plus-circle"></i> Appointment</a>
-                                                            </div>
-                                                        </div>
-                                                        <div id="posted_list" style="margin-left: 2%; font-weight: bold;">
-                                                            <label>List of Posted Appointments</label>
-                                                        </div>
-                                                        <div id="unposted_list" style="margin-left: 2%; font-weight: bold;">
-                                                            <label>List of Unposted Appointments</label>
-                                                        </div>
-                                                        <div id="canceled_list" style="margin-left: 2%; font-weight: bold;">
-                                                            <label>List of Canceled Appointments</label>
-                                                        </div>
-                                                        <div id="appointment_list" class="p-20">
-
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="demo_appointment" role="tabpanel">
-                                                        <div id="demo_appointment_list" class="p-20">
-
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="billing" role="tabpanel">
-                                                        <div id="billing_list" class="p-20">
-
-                                                        </div>
-                                                    </div>
-
-
-                                                    <!--<div id="paymentModel" class="modal">
-                                                <div class="modal-content" style="width: 50%;">
-                                                    <span class="close" style="margin-left: 96%;">&times;</span>
-
-                                                    <div class="card" id="payment_confirmation_form_div_customer" style="display: none;">
-                                                        <div class="card-body">
-                                                            <h4><b>Payment</b></h4>
-
-                                                            <form id="payment_confirmation_form" role="form" action="" method="post">
-                                                                <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
-                                                                <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
-                                                                <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
-                                                                <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                                                                <input type="hidden" name="SECRET_KEY" value="<?php /*=$SECRET_KEY*/ ?>">
-                                                                <input type="hidden" name="PAYMENT_GATEWAY" value="<?php /*=$PAYMENT_GATEWAY*/ ?>">
-                                                                <div class="p-20">
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Customer Name</label>
-                                                                                <div class="col-md-12">
-                                                                                    <p><?php /*=$FIRST_NAME." ".$LAST_NAME*/ ?></p>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Enrollment Number</label>
-                                                                                <div class="col-md-12">
-                                                                                    <p id="enrollment_number"></p>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Amount</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" class="form-control" readonly>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Payment Type</label>
-                                                                                <div class="col-md-12">
-                                                                                    <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE_CUSTOMER" onchange="selectPaymentTypeCustomer(this)">
-                                                                                        <option value="">Select</option>
-                                                                                        <?php
-                                                                                        /*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                                        while (!$row->EOF) { */ ?>
-                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/ ?>"><?php /*=$row->fields['PAYMENT_TYPE']*/ ?></option>
-                                                                                            <?php /*$row->MoveNext(); } */ ?>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <?php /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); */ ?>
-                                                                                <span id="wallet_balance_span" style="font-size: 10px;color: green; display: none;">Wallet Balance : $<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/ ?></span>
-                                                                                <input type="hidden" id="WALLET_BALANCE" name="WALLET_BALANCE" value="<?php /*=($wallet_data->RecordCount() > 0)?$wallet_data->fields['CURRENT_BALANCE']:0.00*/ ?>">
-                                                                                <input type="hidden" name="PK_USER_MASTER" value="<?php /*=$PK_USER_MASTER*/ ?>">
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-
-
-                                                                    <div class="row" id="remaining_amount_div" style="display: none;">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Remaining Amount</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="REMAINING_AMOUNT" id="REMAINING_AMOUNT_CUSTOMER" class="form-control" readonly>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Payment Type</label>
-                                                                                <div class="col-md-12">
-                                                                                    <select class="form-control" name="PK_PAYMENT_TYPE_REMAINING" id="PK_PAYMENT_TYPE_REMAINING_CUSTOMER" onchange="selectRemainingPaymentType(this)">
-                                                                                        <option value="">Select</option>
-                                                                                        <?php
-                                                                                        /*                                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
-                                                                                        while (!$row->EOF) { */ ?>
-                                                                                            <option value="<?php /*echo $row->fields['PK_PAYMENT_TYPE'];*/ ?>"><?php /*=$row->fields['PAYMENT_TYPE']*/ ?></option>
-                                                                                            <?php /*$row->MoveNext(); } */ ?>
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="row remaining_payment_type_div" id="remaining_credit_card_payment" style="display: none;">
-                                                                        <div class="col-12">
-                                                                            <div class="form-group" id="remaining_card_div">
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="row remaining_payment_type_div" id="remaining_check_payment" style="display: none;">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Check Number</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="CHECK_NUMBER_REMAINING" class="form-control">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Check Date</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="CHECK_DATE_REMAINING" class="form-control datepicker-normal">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-
-                                                                    <?php /*if ($PAYMENT_GATEWAY == 'Stripe'){ */ ?>
-                                                                        <div class="row payment_type_div" id="credit_card_payment_customer" style="display: none;">
-                                                                            <div class="col-12">
-                                                                                <div class="form-group" id="customer_card_div">
-
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php /*} elseif ($PAYMENT_GATEWAY == 'Square'){*/ ?>
-                                                                        <div class="payment_type_div" id="credit_card_payment_customer" style="display: none;">
-                                                                            <div class="row">
-                                                                                <div class="col-12">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Name (As it appears on your card)</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="NAME" id="NAME" class="form-control" value="<?php /*=$NAME*/ ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="row">
-                                                                                <div class="col-12">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Card Number</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?php /*=$CARD_NUMBER*/ ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="row">
-                                                                                <div class="col-6">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Expiration Date</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="EXPIRATION_DATE" id="EXPIRATION_DATE" class="form-control" value="<?php /*=$EXPIRATION_DATE*/ ?>" placeholder="MM/YYYY">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="col-6">
-                                                                                    <div class="form-group">
-                                                                                        <label class="form-label">Security Code</label>
-                                                                                        <div class="col-md-12">
-                                                                                            <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?php /*=$SECURITY_CODE*/ ?>">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    <?php /*} */ ?>
-
-
-                                                                    <div class="row payment_type_div" id="check_payment_customer" style="display: none;">
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Check Number</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="CHECK_NUMBER" class="form-control">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Check Date</label>
-                                                                                <div class="col-md-12">
-                                                                                    <input type="text" name="CHECK_DATE" class="form-control datepicker-normal">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-
-                                                                    <div class="row">
-                                                                        <div class="col-12">
-                                                                            <div class="form-group">
-                                                                                <label class="form-label">Notes</label>
-                                                                                <div class="col-md-12">
-                                                                                    <textarea class="form-control" name="NOTE" rows="3"></textarea>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                                                                    </div>
-                                                                </div>
-                                                            </form>
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>-->
-
-                                                    <div class="tab-pane" id="accounts" role="tabpanel">
-                                                        <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="viewPaymentList();" style="width: 150px; float: right;"><i class="fa fa-plus-circle"></i> Create Payment</a>
-                                                        <div id="ledger_list" class="p-20">
-
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="comments" role="tabpanel">
-                                                        <div class="p-20">
-                                                            <a class="btn btn-info d-none d-lg-block m-15 text-white" href="javascript:;" onclick="createUserComment();" style="width: 120px; float: right;"><i class="fa fa-plus-circle"></i> Create New</a>
-                                                            <table id="myTable" class="table table-striped border">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>Commented Date</th>
-                                                                        <th>Commented User</th>
-                                                                        <th>Comment</th>
-                                                                        <th>Actions</th>
-                                                                    </tr>
-                                                                </thead>
-
-                                                                <tbody>
-                                                                    <?php
-                                                                    $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
-                                                                    $i = 1;
-                                                                    while (!$comment_data->EOF) { ?>
-                                                                        <tr>
-                                                                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></td>
-                                                                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['FULL_NAME'] ?></td>
-                                                                            <td onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><?= $comment_data->fields['COMMENT'] ?></td>
-                                                                            <td>
-                                                                                <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="ti-pencil" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                <a href="javascript:;" onclick='javascript:deleteComment(<?= $comment_data->fields['PK_COMMENT'] ?>);return false;'><i class="ti-trash" style="font-size: 22px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                <?php if ($comment_data->fields['ACTIVE'] == 1) { ?>
-                                                                                    <span class="active-box-green"></span>
-                                                                                <?php } else { ?>
-                                                                                    <span class="active-box-red"></span>
-                                                                                <?php } ?>
-                                                                            </td>
-                                                                        </tr>
-                                                                    <?php $comment_data->MoveNext();
-                                                                        $i++;
-                                                                    } ?>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="wallet" role="tabpanel">
-                                                        <div class="p-20">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) AS WALLET_BALANCE_LEFT FROM DOA_CUSTOMER_WALLET WHERE CUSTOMER_WALLET_PARENT = 0 AND BALANCE_LEFT > 0 AND PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
-                                                                    <h3 id="wallet_balance_span">Wallet Balance : $<?= ($wallet_data->fields['WALLET_BALANCE_LEFT'] != null) ? $wallet_data->fields['WALLET_BALANCE_LEFT'] : 0.00 ?></h3>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="openWalletModel();" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Money to Wallet</a>
-                                                                </div>
-                                                            </div>
-
-                                                            <div id="wallet_details" style="display: none;">
-
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="credit_card" role="tabpanel">
-                                                        <div class="p-20">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h5 style="margin-top: 20px;">Credit Card <i id="credit_card_loader" class="fas fa-spinner fa-pulse" style="font-size: 20px;"></i></h5>
-                                                                </div>
-                                                            </div>
-                                                            <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
-                                                                <div class="alert alert-danger">
-                                                                    Payment Gateway is Not set Yet
-                                                                </div>
-                                                            <?php } else { ?>
-                                                                <div class="row">
-                                                                    <div class="col-md-12">
-                                                                        <div id="add_credit_card_div" style="display: none;">
-
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row" id="saved_credit_card_list" style="display: none;">
-
-                                                                </div>
-                                                            <?php } ?>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="tab-pane" id="delete_customer" role="tabpanel">
-                                                        <div class="p-20">
-                                                            <div class="form-group">
-                                                                <button type="button" class="btn btn-danger waves-effect waves-light m-r-10 text-white" onclick="deleteThisCustomer(<?= $PK_USER ?>)" style="margin-top: 2%; margin-left: 46%;">Delete This Account</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-
-
-                                                </div>
+                    <div class="row">
+                        <div class="col-md-2 border-right-light pt-4">
+                            <nav class="flex-column left-tabs">
+                                <a class="sidebar-link profile-active active" data-toggle-target=".tab-content-1" href="#"><i class="bi bi-grid me-2"></i> Profile</a>
+                                <a class="sidebar-link family-active" href="#" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
+                                <a class="sidebar-link enrollments-active" href="#" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
+                                <a class="sidebar-link appointments-active" href="#" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
+                                <a class="sidebar-link payments-active" href="#" data-toggle-target=".tab-content-5"><i class="bi bi-credit-card me-2"></i> Payments</a>
+                            </nav>
+                        </div>
+                        <div class="col-md-10 right-panel">
+                            <div class="tab-content tab-content-1 active row profile-section">
+
+                                <div class="col-md-8 pt-4">
+                                    <div class="profile-card">
+                                        <div class="d-flex justify-content-between border-bottom">
+                                            <div>
+                                                <div class="section-title">Personal Information</div>
+                                                <div class="section-desc">Optional settings section description</div>
                                             </div>
+                                            <form>
+                                                <!-- <button class="btn btn-outline-edit h-100 save-button">Save</button>
+                        <button class="btn btn-outline-edit h-100 cancel-button">Cancel</button>
+                    <button class="btn btn-outline-edit h-100 edit-button">Edit</button> -->
+                                                <a class="btn btn-outline-edit save-button">Save</a>
+                                                <a class="btn btn-outline-edit cancel-button">Cancel</a>
+                                                <a class="btn btn-outline-edit edit-button">Edit</a>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
+                                        <div class="avatar-placeholder mt-3"><i class="bi bi-person-fill text-white fs-1"></i></div>
 
-
-            <!--Refund Model-->
-            <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 450px;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="form-group">
-                                        <label class="form-label">How you want your money back?</label>
-                                        <div class="col-md-12">
-                                            <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
-                                                <option value="">Select</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="row" id="check_payment" style="display: none;">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Check Number</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Check Date</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
-                                        <div class="col-md-12">
-                                            <input class="form-control" name="REFUND_AMOUNT" id="REFUND_AMOUNT" value="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="$('.trigger_this').trigger('click');">Process</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!--Confirm Model-->
-            <div class="modal fade" id="move_to_wallet_model" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 450px;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="form-group">
-                                        <h5>Are you sure you want to move $<span id="move_amount">0.00</span> to wallet?</h5>
-                                        <input type="hidden" id="confirm_move" value="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#confirm_move').val(1);$('.trigger_this').trigger('click');">Yes</button>
-                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" onclick="$('#confirm_move').val(0);$('#move_to_wallet_model').modal('hide');">No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!--Export Model-->
-            <div class="modal fade" id="export_model" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 450px; margin-top: 200px;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4>How you want to Export?</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="form-group">
-                                        <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?= $_GET['id'] ?>&master_id_customer=<?= $PK_USER_MASTER ?>&source=customer&type=active">Only Active</a>
-                                        <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?= $_GET['id'] ?>&master_id_customer=<?= $PK_USER_MASTER ?>&source=customer&type=completed">Only Complete</a>
-                                        <a class="btn btn-info waves-effect waves-light text-white" href="create_csv.php?id_customer=<?= $_GET['id'] ?>&master_id_customer=<?= $PK_USER_MASTER ?>&source=customer&type=all">Active & Complete</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!--Comment Model-->
-            <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4><b id="comment_header">Add Comment</b></h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#commentModal').modal('hide');"></button>
-                        </div>
-                        <form id="comment_add_edit_form" role="form" action="" method="post">
-                            <div class="modal-body">
-                                <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
-                                <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                                <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
-                                <div class="p-20">
-                                    <div class="form-group">
-                                        <label class="form-label">Comments</label>
-                                        <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
-                                    </div>
-                                    <div class="form-group" id="comment_active" style="display: none;">
-                                        <label class="form-label">Active</label>
-                                        <div>
-                                            <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                            <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <?php require_once('../includes/footer.php'); ?>
-
-            <!--Payment Model-->
-            <?php include('includes/enrollment_payment.php'); ?>
-
-            <!--Wallet Payment-->
-            <?php include('includes/add_money_to_wallet.php'); ?>
-
-            <!--Edit Appointment Model-->
-            <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
-
-            </div>
-
-            <!--Auto-pay Credit Card Modal-->
-            <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4><b>Select Credit Card for Auto-Pay</b></h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#credit_card_modal').modal('hide');"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="tab-pane" id="credit_card" role="tabpanel">
-                                <div class="p-20">
-                                    <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
-                                        <div class="alert alert-danger">
-                                            Payment Gateway is Not set Yet
-                                        </div>
-                                    <?php } else { ?>
                                         <div class="row">
-                                            <div class="col-md-12">
-                                                <div id="add_credit_card_div_auto_pay" style="display: none; width: 150%;">
+                                            <div class="col-6">
+                                                <div class="label">First Name</div>
+                                                <div class="value"><?= $FIRST_NAME ?></div>
 
+                                                <div class="label">Customer ID</div>
+                                                <div class="value"><?= $CUSTOMER_ID == '' ? 'N/A' : $CUSTOMER_ID ?></div>
+
+                                                <div class="label">Primary Location</div>
+                                                <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+
+                                                <div class="label">Phone</div>
+                                                <div class="value"><?= $PHONE ?></div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="label">Last Name</div>
+                                                <div class="value"><?= $LAST_NAME == '' ? 'N/A' : $LAST_NAME ?></div>
+
+                                                <div class="label">Created On</div>
+                                                <div class="value"><?= date('m/d/Y - h:i A', strtotime($CREATED_ON)) ?></div>
+
+                                                <div class="label">Preferred Location</div>
+                                                <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+
+                                                <div class="label">Email</div>
+                                                <div class="value"><?= $EMAIL_ID ?></div>
+                                            </div>
+                                        </div>
+                                        </form>
+                                    </div>
+
+                                    <div class="profile-card">
+                                        <div class="d-flex justify-content-between border-bottom">
+                                            <div>
+                                                <div class="section-title">Address Information</div>
+                                                <div class="section-desc">Optional settings section description</div>
+                                            </div>
+                                            <!-- <button class="btn btn-outline-edit">Edit</button> -->
+                                            <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-6">
+                                                <div class="label">Address</div>
+                                                <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
+
+                                                <div class="label">City</div>
+                                                <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
+
+                                                <div class="label">Country</div>
+                                                <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="label">Apt/Ste</div>
+                                                <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
+
+                                                <div class="label">State</div>
+                                                <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
+
+                                                <div class="label">Postal / Zip Code</div>
+                                                <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="profile-card">
+                                        <div class="d-flex justify-content-between border-bottom">
+                                            <div>
+                                                <div class="section-title">Special Dates</div>
+                                                <div class="section-desc">Optional settings section description</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <?php
+                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                            if ($customer_special_date->RecordCount() > 0) {
+                                                while (!$customer_special_date->EOF) { ?>
+                                                    <div class="row mt-3" style="width: 95%; margin-left: auto; margin-right: auto;">
+                                                        <div class="col-4">
+                                                            <div class="label"><?= $customer_special_date->fields['DATE_NAME'] ?></div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="value"><?= date('m / d / Y', strtotime($customer_special_date->fields['SPECIAL_DATE'])) ?></div>
+                                                        </div>
+                                                        <div class="col-4 text-end">
+                                                            <i class="bi bi-pencil me-3 cursor-pointer"></i>
+                                                            <i class="bi bi-trash cursor-pointer"></i>
+                                                        </div>
+                                                    </div>
+                                            <?php $customer_special_date->MoveNext();
+                                                }
+                                            } ?>
+
+
+                                            <div class="mt-3">
+                                                <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-card">
+                                        <div class="d-flex justify-content-between border-bottom">
+                                            <div>
+                                                <div class="section-title">Documents</div>
+                                                <div class="section-desc">Optional settings section description</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <?php
+                                            if (!empty($_GET['id'])) {
+                                                $user_doc_count = 0;
+                                                $row = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
+                                                while (!$row->EOF) { ?>
+                                                    <div class="d-flex justify-content-between align-items-center py-2 mt-3" style="width: 95%; margin-left: auto; margin-right: auto;">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="bg-danger-subtle p-2 rounded me-3">
+                                                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                                            </div>
+                                                            <div>
+                                                                <a target="_blank" href="<?= $row->fields['FILE_PATH'] ?>">
+                                                                    <div class="fw-semibold mb-0" style="font-size: 0.9rem;"><?= $row->fields['DOCUMENT_NAME'] ?></div>
+                                                                </a>
+                                                                <!-- <div class="text-muted" style="font-size: 0.75rem;">2.4 MB</div> -->
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-secondary">
+                                                            <a href="javascript:;" onclick="removeUserDocument(this);">
+                                                                <i class="bi bi-trash cursor-pointer"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                <?php $row->MoveNext();
+                                                    $user_doc_count++;
+                                                } ?>
+                                            <?php } ?>
+
+
+
+                                            <div class="mt-3">
+                                                <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 pt-4">
+                                    <div class="profile-card">
+                                        <div class="section-title border-bottom pb-2">Internal Notes</div>
+                                        <div class="mt-3">
+                                            <?php
+                                            $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
+                                            $i = 1;
+                                            while (!$comment_data->EOF) { ?>
+
+                                                <div class="internal-note">
+                                                    <div class="d-flex justify-content-between"><strong><?= $comment_data->fields['FULL_NAME'] ?></strong> <small class="text-muted"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></small></div>
+                                                    <p class="mb-0"><?= $comment_data->fields['COMMENT'] ?></p>
+                                                </div>
+                                            <?php $comment_data->MoveNext();
+                                                $i++;
+                                            } ?>
+                                            <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-content tab-content-2 row family-section">
+                                <div class="col-md-10 p-4">
+                                    <div class="main-card mr-auto">
+                                        <div class="section-title">Family Information</div>
+                                        <div class="section-desc border-bottom pb-3">Optional settings section description</div>
+
+                                        <div class="mt-4">
+                                            <div class="family-member-card d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="member-name">Daniel Williams</div>
+                                                    <div class="member-role">Husband</div>
+                                                    <div class="contact-info">
+                                                        <span>danielwilliams@email.com <i class="bi bi-copy copy-icon"></i></span>
+                                                        <span>310-123-4567 <i class="bi bi-copy copy-icon"></i></span>
+                                                    </div>
+                                                </div>
+                                                <div class="action-icons">
+                                                    <i class="bi bi-pencil me-2"></i>
+                                                    <i class="bi bi-trash"></i>
+                                                </div>
+                                            </div>
+
+                                            <div class="family-member-card d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="member-name">Maggie Williams</div>
+                                                    <div class="member-role">Daughter</div>
+                                                </div>
+                                                <div class="action-icons">
+                                                    <i class="bi bi-pencil me-2"></i>
+                                                    <i class="bi bi-trash"></i>
+                                                </div>
+                                            </div>
+
+                                            <div class="family-member-card d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="member-name">Cheryl Rockefeller</div>
+                                                    <div class="member-role">Friend</div>
+                                                    <div class="contact-info">
+                                                        <span>cheryl@email.com <i class="bi bi-copy copy-icon"></i></span>
+                                                        <span>310-123-4567 <i class="bi bi-copy copy-icon"></i></span>
+                                                    </div>
+                                                </div>
+                                                <div class="action-icons">
+                                                    <i class="bi bi-pencil me-2"></i>
+                                                    <i class="bi bi-trash"></i>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="row" id="saved_credit_card_list_auto_pay" style="display: none; padding-left: 6%;">
-
-                                        </div>
-                                    <?php } ?>
+                                        <a href="#" class="add-family-btn mt-2">
+                                            <i class="bi bi-plus-lg me-2"></i> Add Family
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                            <input type="hidden" name="AUTO_PAY_ENROLLMENT_ID" id="AUTO_PAY_ENROLLMENT_ID">
-                            <input type="hidden" name="AUTO_PAY_PAYMENT_METHOD_ID" id="AUTO_PAY_PAYMENT_METHOD_ID">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
-                            <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="addEnrollmentAutoPayCreditCard()">Process</button>
+                            <div class="tab-content tab-content-3 row enrollments-section">
+                                <div class="col-md-12 px-3 pt-4 pb-4">
+                                    <div class="enrollment-container">
+                                        <h4 class="fw-bold mb-1">Enrollments</h4>
+                                        <p class="text-muted mb-4 small">Optional settings section description</p>
+
+                                        <div class="d-flex align-items-center border-top border-bottom py-4 mb-4">
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Total Balance</div>
+                                                <div class="stat-value">$2,000.00</div>
+                                            </div>
+                                            <div class="stat-divider"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Miscellaneous Balance</div>
+                                                <div class="stat-value">$0.00</div>
+                                            </div>
+                                            <div class="stat-divider"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Wallet Balance</div>
+                                                <div class="stat-value">$100.00</div>
+                                            </div>
+                                        </div>
+
+                                        <h6 class="fw-bold mb-3">List of Pending Services</h6>
+                                        <div class="table-responsive mb-5">
+                                            <table class="table border-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Service Code</th>
+                                                        <th>Enroll</th>
+                                                        <th>Used</th>
+                                                        <th>Scheduled</th>
+                                                        <th>Remain</th>
+                                                        <th>Balance</th>
+                                                        <th>Paid <i class="bi bi-caret-up-fill small"></i></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-pri">PRI</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>46</td>
+                                                        <td>19</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-grp">GRP</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>46</td>
+                                                        <td>19</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-ext">EXT</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>46</td>
+                                                        <td>19</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="fw-bold mb-0">Demo 2 | -3 PRI || GRP || PTY <span class="text-muted fw-normal ms-2">11/14/2025</span></h6>
+                                            <a href="#" class="view-schedule text-primary">View Payment Schedule</a>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Service Code</th>
+                                                        <th>Enrolled</th>
+                                                        <th>Used</th>
+                                                        <th>Scheduled</th>
+                                                        <th>Balance</th>
+                                                        <th>Paid</th>
+                                                        <th>Service Credit</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-pri">PRI</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>19</td>
+                                                        <td>17.00</td>
+                                                        <td>17.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-grp">GRP</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>19</td>
+                                                        <td>0</td>
+                                                        <td>25.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><span class="badge-service bg-pty">PTY</span></td>
+                                                        <td>52</td>
+                                                        <td>0</td>
+                                                        <td>6</td>
+                                                        <td>19</td>
+                                                        <td>0</td>
+                                                        <td>15.00</td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot class="border-top-0">
+                                                    <tr class="fw-bold">
+                                                        <td>Amount</td>
+                                                        <td>4,250.00</td>
+                                                        <td>0.00</td>
+                                                        <td>340.00</td>
+                                                        <td>2,750.00</td>
+                                                        <td>$1,500.00</td>
+                                                        <td>1,500.00</td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end align-items-center mt-3">
+                                            <div class="form-check form-switch d-flex align-items-center">
+                                                <input class="form-check-input me-2" type="checkbox" role="switch" id="autoPaySwitch">
+                                                <label class="form-check-label autopay-label" for="autoPaySwitch">AutoPay</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-content tab-content-4 row appointment-section">
+                                <div class="col-md-12 px-3 pt-4 pb-4">
+                                    <div class="appointment-card">
+                                        <div class="d-flex justify-content-between align-items-start mb-4">
+                                            <div>
+                                                <h5 class="fw-bold mb-1">Appointments</h5>
+                                                <p class="text-muted small">Optional settings section description</p>
+                                            </div>
+                                            <button class="btn btn-light btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
+                                                <i class="bi bi-plus"></i> New Appointment
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="border-end"></th>
+                                                        <th>Appointment</th>
+                                                        <th>Enrollment ID</th>
+                                                        <th>Time <i class="bi bi-chevron-expand"></i></th>
+                                                        <th>Service Provider <i class="bi bi-chevron-expand"></i></th>
+                                                        <th>Status <i class="bi bi-chevron-expand"></i></th>
+                                                        <th>Comments <i class="bi bi-chevron-expand"></i></th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td rowspan="2" class="date-col">
+                                                            <span class="date-day">Mon</span>
+                                                            <span class="date-num">7</span>
+                                                        </td>
+                                                        <td>Salsa Intermed...</td>
+                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
+                                                        <td>9AM–10AM</td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="avatar-sm">S</span> Sophia Williams
+                                                            </div>
+                                                        </td>
+                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted">Comments go he...</td>
+                                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Salsa Intermed...</td>
+                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
+                                                        <td>9AM–10AM</td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
+                                                        </td>
+                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted">Comments go he...</td>
+                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td rowspan="2" class="date-col border-top">
+                                                            <span class="date-day">Tues</span>
+                                                            <span class="date-num">8</span>
+                                                        </td>
+                                                        <td class="border-top">Salsa Intermed...</td>
+                                                        <td class="text-muted border-top">-3 PRI: 50, GRP:...</td>
+                                                        <td class="border-top">9AM–10AM</td>
+                                                        <td class="border-top">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="avatar-sm">S</span> Sophia Williams
+                                                            </div>
+                                                        </td>
+                                                        <td class="border-top"><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted border-top">Comments go he...</td>
+                                                        <td class="border-top"><i class="bi bi-three-dots-vertical text-muted"></i></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Salsa Intermed...</td>
+                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
+                                                        <td>9AM–10AM</td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
+                                                        </td>
+                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted">Comments go he...</td>
+                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td rowspan="4" class="date-col border-top">
+                                                            <span class="date-day">Wed</span>
+                                                            <span class="date-num">9</span>
+                                                        </td>
+                                                        <td class="border-top">Salsa Intermed...</td>
+                                                        <td class="text-muted border-top">-3 PRI: 50, GRP:...</td>
+                                                        <td class="border-top">9AM–10AM</td>
+                                                        <td class="border-top">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="avatar-sm">S</span> Sophia Williams
+                                                            </div>
+                                                        </td>
+                                                        <td class="border-top"><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted border-top">Comments go he...</td>
+                                                        <td class="border-top"><i class="bi bi-three-dots-vertical text-muted"></i></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Salsa Intermed...</td>
+                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
+                                                        <td>9AM–10AM</td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
+                                                        </td>
+                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
+                                                        <td class="text-muted">Comments go he...</td>
+                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-content tab-content-5 row payments-section">
+                                <div class="col-md-12 px-3 pt-4 pb-4">
+                                    <div class="payments-card">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="fw-bold mb-1">Payments</h5>
+                                                <p class="text-muted small mb-0">Optional settings section description</p>
+                                            </div>
+                                            <button class="btn btn-light btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
+                                                <i class="bi bi-plus"></i> New Payment
+                                            </button>
+                                        </div>
+
+                                        <div class="summary-row d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Total Payments</div>
+                                                <div class="stat-value">$2,000.00</div>
+                                            </div>
+                                            <div class="stat-divider"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Pending Payments</div>
+                                                <div class="stat-value">$0.00</div>
+                                            </div>
+                                            <div class="stat-divider"></div>
+                                            <div class="flex-grow-1">
+                                                <div class="stat-label">Wallet Balance</div>
+                                                <div class="stat-value">$100.00</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div class="search-wrapper">
+                                                <i class="bi bi-search"></i>
+                                                <input type="text" class="search-input" placeholder="Search...">
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-toolbar"><i class="bi bi-filter-left me-1"></i> Filter</button>
+                                                <button class="btn btn-toolbar"><i class="bi bi-download me-1"></i> Export to Excel</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="table-responsive  border-0">
+                                            <table class="table mb-0 border-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Receipt</th>
+                                                        <th>Date</th>
+                                                        <th>Enrollment</th>
+                                                        <th>Method</th>
+                                                        <th>Memo</th>
+                                                        <th>Paid <i class="bi bi-chevron-expand small"></i></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>D2-19</td>
+                                                        <td>11/14/2025</td>
+                                                        <td># -3</td>
+                                                        <td>Cash</td>
+                                                        <td>-</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>D2-19</td>
+                                                        <td>11/14/2025</td>
+                                                        <td># -3</td>
+                                                        <td>Cash</td>
+                                                        <td>-</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>D2-19</td>
+                                                        <td>11/14/2025</td>
+                                                        <td># -3</td>
+                                                        <td>Cash</td>
+                                                        <td>-</td>
+                                                        <td>$1,600.00</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!--Verify Password Model-->
-            <div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form id="verify_password_form" method="post">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4><b>Verify Password</b></h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Enter your profile password</label>
-                                            <input type="password" id="verify_password" name="verify_password" class="form-control" placeholder="Password" required>
-                                            <p id="verify_password_error" style="color: red;"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!--Edit Billing Due Date Model-->
-            <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form id="edit_due_date_form" method="post">
-                        <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
-                        <input type="hidden" name="old_due_date" id="old_due_date">
-                        <input type="hidden" name="edit_type" id="edit_type">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4><b>Edit Due Date</b></h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Due Date</label>
-                                            <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label class="form-label">Enter your profile password</label>
-                                            <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
-                                            <p id="due_date_verify_password_error" style="color: red;"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Delete Enrollment Modal -->
-            <div class="modal fade" id="delete_enrollment_model" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form id="delete_enrollment_form" method="post">
-                        <input type="hidden" name="FUNCTION_NAME" value="deleteActiveEnrollmentData">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4><b>Delete Enrollment</b></h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <input type="hidden" name="PK_ENROLLMENT_MASTER" id="DELETE_ENROLLMENT_ID">
-                            <div class="modal-body">
-                                <div class="row p-20">
-                                    <div>
-                                        <label><input type="radio" id="delete_type_1" name="delete_type" value="1" checked>&nbsp;&nbsp;&nbsp;Delete All Appointment</label><br><br>
-                                        <label><input type="radio" id="delete_type_0" name="delete_type" value="0">&nbsp;&nbsp;&nbsp;Move Appointment to Ad-Hoc</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <style>
-                .progress-bar {
-                    border-radius: 5px;
-                    height: 18px !important;
-                }
-            </style>
-
-
-            <!-- Popup Modal -->
-            <div id="mediaPopup" class="popup" onclick="closePopup()">
-                <span class="close" onclick="closePopup()">&times;</span>
-                <div class="popup-content" onclick="event.stopPropagation();">
-                    <img id="popupImage" src="" style="display:none; max-width: 100%;">
-                    <video id="popupVideo" controls style="display:none; max-width: 100%;">
-                        <source id="popupVideoSource" src="" type="video/mp4">
-                    </video>
-                </div>
-            </div>
+        </div>
+    </div>
 </body>
 
 
+<?php require_once('../includes/footer.php'); ?>
 
-<!-- Buttons extension -->
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 
-<!-- JSZip (needed for Excel export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
+
+
+
+
+<script>
+    // click edit btn
+    $(window).on("load", function() {
+
+        $('.save-button').on('click', save_onclick);
+        $('.cancel-button').on('click', cancel_onclick);
+        $('.edit-button').on('click', edit_onclick);
+
+        $('.save-button, .cancel-button').hide();
+    });
+
+    function edit_onclick() {
+        setFormMode($(this).closest("form"), 'edit');
+    }
+
+    function cancel_onclick() {
+        setFormMode($(this).closest("form"), 'view');
+
+        //TODO: Undo input changes?
+    }
+
+    function save_onclick() {
+        setFormMode($(this).closest("form"), 'view');
+
+        //TODO: Send data to server?
+    }
+
+
+    function setFormMode($form, mode) {
+        switch (mode) {
+            case 'view':
+                $form.find('.save-button, .cancel-button').hide();
+                $form.find('.edit-button').show();
+                $('.show-edit').addClass('d-none');
+                $('.hide-edit').removeClass('d-none');
+                $form.find("input, select").prop("disabled", true);
+                break;
+            case 'edit':
+                $form.find('.save-button, .cancel-button').show();
+                $form.find('.edit-button').hide();
+                $('.hide-edit').addClass('d-none');
+                $('.show-edit').removeClass('d-none');
+                $form.find("input, select").prop("disabled", false);
+                break;
+        }
+    }
+    // end
+
+    $('.sidebar-link').on('click', function(evt) {
+        evt.preventDefault();
+
+        // 1. Manage Sidebar Links: Remove active from all, add to the clicked one
+        $('.sidebar-link').removeClass('active');
+        $(this).addClass('active');
+
+        // 2. Manage Tab Content: Hide all, then show the one matching the data-attribute
+        var sel = $(this).data('toggle-target'); // Using .data() is cleaner jQuery style
+        $('.tab-content').removeClass('active');
+        $(sel).addClass('active');
+    });
+</script>
 
 <script>
     let PK_USER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);

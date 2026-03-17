@@ -202,9 +202,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                         <!-- <img src="assets/images/logo.jpg" width="40" class="me-2 d-flex" alt="user-image" /> -->
                         <div class="d-flex align-items-center gap-1">
                             <span>
-                                <h6 class="my-0 f14 lh-1 pro-username text-white location-display-name"><?= implode(', ', $selected_location_names) ?></h6>
+                                <h6 class="my-0 f14 lh-1 pro-username text-white location-display-name"><?= implode(', ', $selected_location_names) ?> <i class="fa fa-angle-down" style="font-size: 20px; margin: 0px 3px 0px 10px;"></i></h6>
                             </span>
-                            <i class="ti ti-chevron-down align-middle"></i>
                         </div>
                     </a>
 
@@ -257,9 +256,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 </div>
             </div>
             <nav class="navbar navbar-expand-lg navbar-dark py-0">
-                <div class="topbar-item d-none d-sm-flex" style="margin-left: -20px; margin-right: 20px;">
+                <div class="topbar-item d-none d-sm-flex" style="margin-right: 18px; margin-bottom: 3px;">
                     <a class="top-bar-icon" href="#">
-                        <i class="fa fa-search" aria-hidden="true"></i>
+                        <i class="fa fa-search" aria-hidden="true" style="font-size: 18px;"></i>
                     </a>
                 </div>
                 <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
@@ -272,10 +271,10 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="nav-link <?= (('email.php' === $current_address) ? 'active' : '') ?>" href="../email/email.php?type=inbox">Messages</a>
                             </li>
                             <li class="dropdown drop-menu">
-                                <a href="javascript:;" class="nav-link dropdown-toggle <?= (('all_customers.php' === $current_address || 'all_enrollments.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Customers <span class="caret"></span></a>
+                                <a href="javascript:;" class="nav-link dropdown-toggle <?= (('all_customers.php' === $current_address || 'all_enrollments.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Customers <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
                                 <ul class="dropdown-menu sub-menu">
-                                    <li><a href="all_customers.php">Customers</a></li>
-                                    <li><a href="all_enrollments.php">Enrollments</a></li>
+                                    <li><a href="all_customers.php"><i class="bi bi-people" aria-hidden="true"></i> Customers</a></li>
+                                    <li><a href="all_enrollments.php"><i class="bi bi-journal-text" aria-hidden="true"></i> Enrollments</a></li>
                                 </ul>
                             </li>
                             <li class="">
@@ -315,30 +314,29 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="to_do_list.php">
-                    <i class="fa fa-tasks" aria-hidden="true"></i>
+                    <i class="fa fa-tasks" aria-hidden="true" style="font-size: 18px;"></i>
                 </a>
             </div>
 
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="#">
-                    <i class="fa fa-bell" aria-hidden="true"></i>
+                    <i class="fa fa-bell" aria-hidden="true" style="font-size: 18px;"></i>
                 </a>
             </div>
 
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="setup.php">
-                    <i class="fa fa-cog" aria-hidden="true"></i>
+                    <i class="fa fa-cog" aria-hidden="true" style="font-size: 18px;"></i>
                 </a>
             </div>
 
 
             <div id="user-dropdown-detailed" class="topbar-item nav-user">
                 <div class="dropdown">
-                    <a class="topbar-link dropdown-toggle px-2" data-bs-toggle="dropdown" href="profile-menu" aria-haspopup="false" aria-expanded="false">
+                    <a class="topbar-link dropdown-toggle px-2" data-bs-toggle="dropdown" href="profile-menu" aria-haspopup="false" aria-expanded="false" style="margin-top: 11px;">
                         <img src="assets/images/profile.png" width="32" class="rounded-circle me-2 d-flex" alt="user-image" />
                         <div class="d-flex align-items-center gap-1">
-                            <h6 class="my-0 f14 lh-1 pro-username text-white fw-normal"><?= $_SESSION["FIRST_NAME"] . " " . $_SESSION["LAST_NAME"] ?></h6>
-                            <i class="ti ti-chevron-down align-middle"></i>
+                            <h6 class="my-0 f14 lh-1 pro-username text-white fw-normal"><?= $_SESSION["FIRST_NAME"] . " " . $_SESSION["LAST_NAME"] ?> <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px -10px 0px 8px;"></i></h6>
                         </div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
