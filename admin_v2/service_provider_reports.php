@@ -31,6 +31,8 @@ if (!empty($_GET['NAME'])) {
             header('location:sales_by_enrollment_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
         } elseif ($_GET['NAME'] == 'enrollment_details_report') {
             header('location:enrollment_details_report.php?start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&view=1');
+        } elseif ($_GET['NAME'] == 'lessons_taught_by_service_provider_report') {
+            header('location:lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
         }
     }
 }
@@ -101,6 +103,7 @@ if (!empty($_GET['NAME'])) {
                                                     <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
                                                     <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
                                                     <option value="enrollment_details_report">ENROLLMENT TYPE DETAILED REPORT</option>
+                                                    <option value="lessons_taught_by_service_provider_report">LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
