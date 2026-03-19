@@ -65,7 +65,7 @@ if (!empty($_GET['START_DATE'])) {
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name . '&PK_USER=' . implode(',', $PK_USER));
     } else {
-        header('location:lessons_taught_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
+        header('location:lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&include_no_provider=' . $include_no_provider);
     }
 }
 ?>
@@ -146,12 +146,12 @@ if (!empty($_GET['START_DATE'])) {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <!-- <div class="col-2">
                                             <div class="no-provider-checkbox" id="no_provider_checkbox">
                                                 <input type="checkbox" id="include_no_provider" name="include_no_provider" value="1" <?= isset($_GET['include_no_provider']) && $_GET['include_no_provider'] == 1 ? 'checked' : '' ?>>
                                                 <label for="include_no_provider">Include Lessons Without Provider</label>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="col-2">
                                             <div class="form-group">
                                                 <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['start_date']) ? date('m/d/Y', strtotime($_GET['start_date'])) : '' ?>" required>
@@ -285,7 +285,7 @@ if (!empty($_GET['START_DATE'])) {
 
                                             while (!$lessons_query->EOF) {
                                                 $appointment_id = $lessons_query->fields['PK_APPOINTMENT_MASTER'];
-                                                $num_sessions = $lessons_query->fields['NUMBER_OF_SESSION'] ? $lessons_query->fields['NUMBER_OF_SESSION'] : 1;
+                                                $num_sessions = $lessons_query->fields['NUMBER_OF_SESSION'] ? 1 : $lessons_query->fields['NUMBER_OF_SESSION'];
                                                 $customer_id = $lessons_query->fields['PK_USER_MASTER'];
                                                 $customer_name = $lessons_query->fields['CUSTOMER_NAME'] ? $lessons_query->fields['CUSTOMER_NAME'] : 'Unknown';
                                                 $service_date = $lessons_query->fields['DATE'];
