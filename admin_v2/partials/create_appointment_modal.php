@@ -117,7 +117,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
+                                <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -199,7 +199,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select Scheduling Code</option>
                                 </select>
                             </div>
@@ -218,7 +218,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-3" id="datetime">
-                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
+                                <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE_CREATION" style="min-width: 110px;" placeholder="MM/DD/YYYY" required>
                                 <!-- <input type="time" class="form-control"> -->
                             </div>
                             <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
@@ -700,7 +700,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group serviceprovider">
-                                <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlots(this)" required>
+                                <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -754,7 +754,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlots(this)" required>
+                                <select class="form-control" id="PK_SCHEDULING_CODE" name="PK_SCHEDULING_CODE" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select Scheduling Code</option>
                                     <?php
                                     $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE WHERE DOA_SCHEDULING_CODE.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.`ACTIVE` = 1 AND DOA_SCHEDULING_SERVICE.PK_SERVICE_MASTER=" . $PK_SERVICE_MASTER . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
@@ -829,15 +829,15 @@ if ($location_operational_hour->RecordCount() > 0) {
         searchText: 'Search...'
     });
 
-    $('#APPOINTMENT_DATE').datepicker({
+    $('#APPOINTMENT_DATE_CREATION').datepicker({
         onSelect: function() {
-            getSlots(this);
+            getSlotsForAppointmentCreation(this);
         }
     });
 
-    $('#RECORD_ONLY_APPOINTMENT_DATE').datepicker({
+    $('#create_record_only_form #RECORD_ONLY_APPOINTMENT_DATE').datepicker({
         onSelect: function() {
-            getSlots(this);
+            getSlotsForAppointmentCreation(this);
         }
     });
 
@@ -932,7 +932,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('#PK_SCHEDULING_CODE').html(result);
+                    $('#create_appointment_form #PK_SCHEDULING_CODE').html(result);
                 }
             });
         }
@@ -954,7 +954,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         });
     }
 
-    function getSlots(param) {
+    function getSlotsForAppointmentCreation(param) {
         let PK_SERVICE_PROVIDER = $(param).closest('.tab-pane').find('#PK_SERVICE_PROVIDER').val();
         let PK_LOCATION = $(param).closest('.tab-pane').find('#SELECTED_CUSTOMER_ID').find(':selected').data('location_id');
         $(param).closest('.tab-pane').find('#PK_LOCATION').val(PK_LOCATION);
@@ -963,7 +963,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         let form_name = $('#FORM_NAME').val();
         let selected_date = '';
         if (form_name == 'create_appointment_form') {
-            selected_date = $('#APPOINTMENT_DATE').val();
+            selected_date = $('#APPOINTMENT_DATE_CREATION').val();
         } else {
             selected_date = $('#RECORD_ONLY_APPOINTMENT_DATE').val();
         }
@@ -983,6 +983,17 @@ if ($location_operational_hour->RecordCount() > 0) {
         } else {
             slot_time = '';
         }
+
+        console.log({
+            PK_SERVICE_PROVIDER,
+            PK_LOCATION,
+            duration,
+            day,
+            date,
+            START_TIME,
+            END_TIME,
+            slot_time
+        });
 
 
         if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {

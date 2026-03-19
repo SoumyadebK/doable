@@ -174,18 +174,12 @@ if ($TYPE == 'appointment') {
                         <?php
                         $serviceCodeData = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.SERVICE_NAME FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                         while (!$serviceCodeData->EOF) {
-                            if ($PK_ENROLLMENT_SERVICE != 0) {
-                                $appointment_position = 0;
-                                $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-                                if ($enr_service_data->RecordCount() > 0) {
-                                    $appointment_position = getAppointmentPosition($PK_ENROLLMENT_SERVICE, $PK_APPOINTMENT_MASTER);
-                                    $PAID_COUNT = getPaidCount($PK_ENROLLMENT_SERVICE);
-                                    $paid_status = (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
-                                    $appointment_number = ($appointment_position > 0) ? '  ' . ($appointment_position) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
-                                }
+                            $PK_ENROLLMENT_SERVICE_NEW = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
+                            if ($PK_ENROLLMENT_SERVICE_NEW > 0) {
+                                $used_session_count = getSessionCompletedCount($PK_ENROLLMENT_SERVICE_NEW);
+                                $appointment_number = $used_session_count . '/' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
                             } else {
-                                $appointment_number = '';
-                                $paid_status = '';
+                                $appointment_number = 0 / 0;
                             }
                         ?>
                             <span><?= $serviceCodeData->fields['SERVICE_NAME'] ?>: <?= $appointment_number ?></span>
@@ -392,7 +386,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group d-flex gap-3" id="datetime">
-                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
+                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE_EDIT" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= date('m/d/Y', strtotime($DATE)) ?>" style="min-width: 110px;">
                     <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
                 </div>
                 <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
@@ -571,84 +565,12 @@ if ($TYPE == 'appointment') {
     <!-- End Appointment Details -->
 
     <script>
-        $('.datepicker-normal').datepicker({
+        $('#APPOINTMENT_DATE_EDIT').datepicker({
             format: 'mm/dd/yyyy',
             onSelect: function() {
                 getSlots(this);
             }
         });
-
-        function getSlots(param) {
-            let PK_SERVICE_PROVIDER = $(param).closest('#edit_appointment_form').find('#SERVICE_PROVIDER_ID').val();
-            let PK_LOCATION = <?= $PK_LOCATION ?>;
-            let duration = $(param).closest('#edit_appointment_form').find('#PK_SCHEDULING_CODE').find(':selected').data('duration');
-
-            let selected_date = $(param).closest('#edit_appointment_form').find('#APPOINTMENT_DATE').val();
-            let dateObj = new Date(selected_date);
-            let day = String(dateObj.getDate()).padStart(2, '0');
-            let month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            let year = dateObj.getFullYear();
-            let date = `${year}-${month}-${day}`;
-
-            let START_TIME = $(param).closest('#edit_appointment_form').find('#START_TIME').val();
-            let END_TIME = $(param).closest('#edit_appointment_form').find('#END_TIME').val();
-
-            if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {
-                start_time_array = [];
-                end_time_array = [];
-                $.ajax({
-                    url: "ajax/get_slots.php",
-                    type: "POST",
-                    data: {
-                        SERVICE_PROVIDER_ID: PK_SERVICE_PROVIDER,
-                        PK_LOCATION: PK_LOCATION,
-                        duration: duration,
-                        day: day,
-                        date: date,
-                        START_TIME: START_TIME,
-                        END_TIME: END_TIME,
-                        slot_time: ''
-                    },
-                    async: false,
-                    cache: false,
-                    success: function(result) {
-                        $(param).closest('#edit_appointment_form').find('.slot_div').html(result);
-                    }
-                });
-            } else {
-                $(param).closest('#edit_appointment_form').find('.slot_div').html('');
-            }
-        }
-
-        function selectSlot(param, id, start_time, end_time) {
-            if ($(param).data('is_selected') == 0) {
-                start_time_array.push(start_time);
-                end_time_array.push(end_time);
-                $(param).closest('#edit_appointment_form').find('#START_TIME').val(start_time_array.sort());
-                $(param).closest('#edit_appointment_form').find('#END_TIME').val(end_time_array.sort());
-                $(param).closest('#edit_appointment_form').find('#slot_btn_' + id).data('is_selected', 1);
-                document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#39b54a', 'important');
-                document.getElementById('slot_btn_' + id).style.setProperty('color', '#fff', 'important');
-            } else {
-                const start_time_index = start_time_array.indexOf(start_time);
-                if (start_time_index > -1) {
-                    start_time_array.splice(start_time_index, 1);
-                }
-
-                const end_time_index = end_time_array.indexOf(end_time);
-                if (end_time_index > -1) {
-                    end_time_array.splice(end_time_index, 1);
-                }
-
-                $(param).closest('#edit_appointment_form').find('#START_TIME').val(start_time_array.sort());
-                $(param).closest('#edit_appointment_form').find('#END_TIME').val(end_time_array.sort());
-                $(param).closest('#edit_appointment_form').find('#slot_btn_' + id).data('is_selected', 0);
-                document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#f8f9fa', 'important');
-                document.getElementById('slot_btn_' + id).style.setProperty('color', '#000', 'important');
-            }
-
-            console.log(start_time_array.sort(), end_time_array.sort());
-        }
     </script>
 <?php } elseif ($TYPE == 'group_class') {
     /* --------------------------------------------------------------- Group Class Details --------------------------------------------------------------- */
@@ -1204,3 +1126,77 @@ if ($TYPE == 'appointment') {
     </script>
 <?php }
 ?>
+
+<script>
+    function getSlots(param) {
+        let PK_SERVICE_PROVIDER = $(param).closest('#edit_appointment_form').find('#SERVICE_PROVIDER_ID').val();
+        let PK_LOCATION = <?= $PK_LOCATION ?>;
+        let duration = $(param).closest('#edit_appointment_form').find('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+
+        let selected_date = $(param).closest('#edit_appointment_form').find('#APPOINTMENT_DATE_EDIT').val();
+        let dateObj = new Date(selected_date);
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        let date = `${year}-${month}-${day}`;
+
+        let START_TIME = $(param).closest('#edit_appointment_form').find('#START_TIME').val();
+        let END_TIME = $(param).closest('#edit_appointment_form').find('#END_TIME').val();
+
+        if (parseInt(PK_SERVICE_PROVIDER) > 0 && parseInt(duration) > 0 && day > 0) {
+            start_time_array = [];
+            end_time_array = [];
+            $.ajax({
+                url: "ajax/get_slots.php",
+                type: "POST",
+                data: {
+                    SERVICE_PROVIDER_ID: PK_SERVICE_PROVIDER,
+                    PK_LOCATION: PK_LOCATION,
+                    duration: duration,
+                    day: day,
+                    date: date,
+                    START_TIME: START_TIME,
+                    END_TIME: END_TIME,
+                    slot_time: ''
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $(param).closest('#edit_appointment_form').find('.slot_div').html(result);
+                }
+            });
+        } else {
+            $(param).closest('#edit_appointment_form').find('.slot_div').html('');
+        }
+    }
+
+    function selectSlot(param, id, start_time, end_time) {
+        if ($(param).data('is_selected') == 0) {
+            start_time_array.push(start_time);
+            end_time_array.push(end_time);
+            $(param).closest('#edit_appointment_form').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('#edit_appointment_form').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('#edit_appointment_form').find('#slot_btn_' + id).data('is_selected', 1);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#39b54a', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#fff', 'important');
+        } else {
+            const start_time_index = start_time_array.indexOf(start_time);
+            if (start_time_index > -1) {
+                start_time_array.splice(start_time_index, 1);
+            }
+
+            const end_time_index = end_time_array.indexOf(end_time);
+            if (end_time_index > -1) {
+                end_time_array.splice(end_time_index, 1);
+            }
+
+            $(param).closest('#edit_appointment_form').find('#START_TIME').val(start_time_array.sort());
+            $(param).closest('#edit_appointment_form').find('#END_TIME').val(end_time_array.sort());
+            $(param).closest('#edit_appointment_form').find('#slot_btn_' + id).data('is_selected', 0);
+            document.getElementById('slot_btn_' + id).style.setProperty('background-color', '#f8f9fa', 'important');
+            document.getElementById('slot_btn_' + id).style.setProperty('color', '#000', 'important');
+        }
+
+        console.log(start_time_array.sort(), end_time_array.sort());
+    }
+</script>
