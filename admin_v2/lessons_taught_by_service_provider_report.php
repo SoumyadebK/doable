@@ -16,7 +16,6 @@ $include_no_provider = isset($_GET['include_no_provider']) ? $_GET['include_no_p
 
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
-$date_condition = "DATE(es.SERVICE_DATE) BETWEEN '" . $from_date . "' AND '" . $to_date . "'";
 
 // Fix for handling multiple service provider IDs
 if (isset($_GET['PK_USER']) && is_array($_GET['PK_USER'])) {
@@ -199,12 +198,6 @@ if (!empty($_GET['START_DATE'])) {
                                     </div>
 
                                     <?php
-                                    // Get all selected service providers
-                                    $service_provider_condition = "";
-                                    if (!empty($service_provider_id) && $service_provider_id != '0') {
-                                        $service_provider_condition = " AND esp.SERVICE_PROVIDER_ID IN ($service_provider_id)";
-                                    }
-
                                     // Get enrollment types mapping
                                     $enrollment_types = [
                                         5 => 'Pre Original',
@@ -212,7 +205,6 @@ if (!empty($_GET['START_DATE'])) {
                                         9 => 'Extension',
                                         13 => 'Renewal'
                                     ];
-                                    $type_ids = implode(',', array_keys($enrollment_types));
 
                                     // Get all service providers
                                     $providers_query = $db->Execute("
@@ -225,7 +217,6 @@ if (!empty($_GET['START_DATE'])) {
                                         ORDER BY DU.FIRST_NAME, DU.LAST_NAME
                                     ");
 
-                                    $all_providers = [];
                                     $all_providers_data = [];
                                     $grand_totals = [
                                         'pre_original' => ['lessons' => 0, 'customers' => 0],
@@ -247,15 +238,13 @@ if (!empty($_GET['START_DATE'])) {
                                             continue;
                                         }
 
-                                        $all_providers[$provider_id] = $provider_name;
-
                                         // Initialize provider data
                                         $provider_data = [
                                             'name' => $provider_name,
-                                            'pre_original' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                            'original' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                            'extension' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                            'renewal' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
+                                            'pre_original' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                            'original' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                            'extension' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                            'renewal' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
                                             'group' => ['lessons' => 0, 'customers' => 0, 'sessions' => []]
                                         ];
 
@@ -263,42 +252,25 @@ if (!empty($_GET['START_DATE'])) {
                                         foreach ($enrollment_types as $type_id => $type_name) {
                                             $type_key = strtolower(str_replace(' ', '_', $type_name));
 
-                                            // Query for lessons taught
+                                            // Query for lessons taught - CORRECTED
                                             $lessons_query = $db_account->Execute("
                                                 SELECT
-                                                am.PK_APPOINTMENT_MASTER,
-                                                am.PK_ENROLLMENT_SERVICE,
-                                                am.PK_ENROLLMENT_MASTER,
-                                                am.PK_APPOINTMENT_STATUS,
-                                                am.DATE,
-                                                es.NUMBER_OF_SESSION,
-                                                em.PK_ENROLLMENT_TYPE,
-                                                ac.PK_USER_MASTER,
-                                                CONCAT(us.FIRST_NAME, ' ', us.LAST_NAME) AS CUSTOMER_NAME,
-                                                sm.SERVICE_NAME,
-                                                sc.IS_GROUP
-                                            FROM
-                                                DOA_APPOINTMENT_MASTER am
-                                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ac ON
-                                                am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
-                                            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON
-                                                am.PK_ENROLLMENT_SERVICE = es.PK_ENROLLMENT_SERVICE
-                                            LEFT JOIN DOA_ENROLLMENT_MASTER em ON
-                                                am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
-                                            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp ON
-                                                am.PK_APPOINTMENT_MASTER = asp.PK_APPOINTMENT_MASTER
-                                            LEFT JOIN DOA_MASTER.DOA_USER_MASTER dc
-                                            ON
-                                                ac.PK_USER_MASTER = dc.PK_USER_MASTER
-                                            LEFT JOIN DOA_MASTER.DOA_USERS us
-                                            ON
-                                                us.PK_USER = dc.PK_USER
-                                            LEFT JOIN DOA_SERVICE_MASTER sm ON
-                                                sm.PK_SERVICE_MASTER = am.PK_SERVICE_MASTER
-                                            LEFT JOIN DOA_SERVICE_CODE sc ON
-                                                am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-                                            WHERE
-                                                am.DATE BETWEEN '$from_date' AND '$to_date'
+                                                    am.PK_APPOINTMENT_MASTER,
+                                                    am.DATE,
+                                                    es.NUMBER_OF_SESSION,
+                                                    ac.PK_USER_MASTER,
+                                                    CONCAT(us.FIRST_NAME, ' ', us.LAST_NAME) AS CUSTOMER_NAME,
+                                                    sm.SERVICE_NAME
+                                                FROM DOA_APPOINTMENT_MASTER am
+                                                INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp ON am.PK_APPOINTMENT_MASTER = asp.PK_APPOINTMENT_MASTER
+                                                LEFT JOIN DOA_APPOINTMENT_CUSTOMER ac ON am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
+                                                LEFT JOIN DOA_ENROLLMENT_SERVICE es ON am.PK_ENROLLMENT_SERVICE = es.PK_ENROLLMENT_SERVICE
+                                                LEFT JOIN DOA_ENROLLMENT_MASTER em ON am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                                LEFT JOIN DOA_MASTER.DOA_USER_MASTER dc ON ac.PK_USER_MASTER = dc.PK_USER_MASTER
+                                                LEFT JOIN DOA_MASTER.DOA_USERS us ON us.PK_USER = dc.PK_USER
+                                                LEFT JOIN DOA_SERVICE_MASTER sm ON sm.PK_SERVICE_MASTER = am.PK_SERVICE_MASTER
+                                                LEFT JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
                                                 AND am.PK_APPOINTMENT_STATUS = 2
                                                 AND asp.PK_USER = $provider_id
                                                 AND em.PK_ENROLLMENT_TYPE = $type_id
@@ -307,71 +279,63 @@ if (!empty($_GET['START_DATE'])) {
                                             ");
 
                                             $lesson_count = 0;
-                                            $customer_count = 0;
                                             $unique_customers = [];
                                             $session_details = [];
+                                            $processed_appointments = [];
 
                                             while (!$lessons_query->EOF) {
-                                                $num_sessions = count($lessons_query->fields['PK_APPOINTMENT_MASTER']);
+                                                $appointment_id = $lessons_query->fields['PK_APPOINTMENT_MASTER'];
+                                                $num_sessions = $lessons_query->fields['NUMBER_OF_SESSION'] ? $lessons_query->fields['NUMBER_OF_SESSION'] : 1;
                                                 $customer_id = $lessons_query->fields['PK_USER_MASTER'];
-                                                $customer_name = $lessons_query->fields['CUSTOMER_NAME'];
+                                                $customer_name = $lessons_query->fields['CUSTOMER_NAME'] ? $lessons_query->fields['CUSTOMER_NAME'] : 'Unknown';
                                                 $service_date = $lessons_query->fields['DATE'];
 
+                                                // Count lessons (use NUMBER_OF_SESSION which can be > 1)
                                                 $lesson_count += $num_sessions;
 
                                                 // Track unique customers
-                                                if (!in_array($customer_id, $unique_customers) && $customer_id > 0) {
+                                                if ($customer_id > 0 && !in_array($customer_id, $unique_customers)) {
                                                     $unique_customers[] = $customer_id;
                                                 }
 
-                                                // Store session details for display
-                                                $session_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
+                                                // Store session details (only once per appointment)
+                                                if (!in_array($appointment_id, $processed_appointments)) {
+                                                    $session_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
+                                                    $processed_appointments[] = $appointment_id;
+                                                }
 
                                                 $lessons_query->MoveNext();
                                             }
 
-                                            $customer_count = count($unique_customers);
-
                                             $provider_data[$type_key]['lessons'] = $lesson_count;
-                                            $provider_data[$type_key]['customers'] = $customer_count;
+                                            $provider_data[$type_key]['customers'] = $unique_customers;
                                             $provider_data[$type_key]['sessions'] = $session_details;
 
                                             // Add to grand totals
                                             $grand_totals[$type_key]['lessons'] += $lesson_count;
-                                            $grand_totals[$type_key]['customers'] += $customer_count;
+                                            $grand_totals[$type_key]['customers'] += count($unique_customers);
                                         }
 
-                                        // Get group lessons for this provider
+                                        // Get group lessons for this provider - CORRECTED
                                         $group_query = $db_account->Execute("
-                                        SELECT
-                                                es.PK_ENROLLMENT_SERVICE,
-                                                es.PK_ENROLLMENT_MASTER,
+                                            SELECT
+                                                am.PK_APPOINTMENT_MASTER,
                                                 am.DATE,
                                                 es.NUMBER_OF_SESSION,
-                                                em.PK_ENROLLMENT_TYPE,
-                                                ac.PK_USER_MASTER,
-                                                CONCAT(us.FIRST_NAME, ' ', us.LAST_NAME) AS CUSTOMER_NAME,
-                                                sm.SERVICE_NAME,
-                                                sc.IS_GROUP
-                                            FROM
-                                                DOA_APPOINTMENT_MASTER am
-                                                LEFT JOIN DOA_APPOINTMENT_CUSTOMER ac ON am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
-                                                LEFT JOIN DOA_ENROLLMENT_SERVICE es ON am.PK_APPOINTMENT_MASTER = es.PK_ENROLLMENT_MASTER
-                                                LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
-                                                LEFT JOIN DOA_ENROLLMENT_SERVICE_PROVIDER esp ON es.PK_ENROLLMENT_MASTER = esp.PK_ENROLLMENT_MASTER
-                                            LEFT JOIN $master_database.DOA_USER_MASTER dc ON
-                                                ac.PK_USER_MASTER = dc.PK_USER_MASTER
-                                            LEFT JOIN $master_database.DOA_USERS us ON
-                                                us.PK_USER = dc.PK_USER
-                                            LEFT JOIN DOA_SERVICE_MASTER sm ON
-                                                sm.PK_SERVICE_MASTER = es.PK_SERVICE_MASTER
-                                            LEFT JOIN DOA_SERVICE_CODE sc ON
-                                                es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-                                            WHERE
-                                                am.DATE BETWEEN '$from_date' AND '$to_date'
-                                                AND am.PK_APPOINTMENT_STATUS = 2
-                                                AND esp.SERVICE_PROVIDER_ID = $provider_id
+                                                COUNT(DISTINCT ac.PK_USER_MASTER) AS ATTENDEE_COUNT,
+                                                sm.SERVICE_NAME
+                                            FROM DOA_APPOINTMENT_MASTER am
+                                            INNER JOIN DOA_APPOINTMENT_SERVICE_PROVIDER asp ON am.PK_APPOINTMENT_MASTER = asp.PK_APPOINTMENT_MASTER
+                                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ac ON am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
+                                            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON am.PK_ENROLLMENT_SERVICE = es.PK_ENROLLMENT_SERVICE
+                                            LEFT JOIN DOA_ENROLLMENT_MASTER em ON am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                            LEFT JOIN DOA_SERVICE_MASTER sm ON sm.PK_SERVICE_MASTER = am.PK_SERVICE_MASTER
+                                            LEFT JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                            WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
+                                            AND am.PK_APPOINTMENT_STATUS = 2
+                                            AND asp.PK_USER = $provider_id
                                             AND sc.IS_GROUP = 1
+                                            GROUP BY am.PK_APPOINTMENT_MASTER, am.DATE, es.NUMBER_OF_SESSION, sm.SERVICE_NAME
                                             ORDER BY am.DATE
                                         ");
 
@@ -380,15 +344,15 @@ if (!empty($_GET['START_DATE'])) {
                                         $group_details = [];
 
                                         while (!$group_query->EOF) {
-                                            $num_sessions = $group_query->fields['NUMBER_OF_SESSION'];
-                                            $num_attendees = count($group_query->fields['PK_USER_MASTER']);
+                                            $num_sessions = $group_query->fields['NUMBER_OF_SESSION'] ? $group_query->fields['NUMBER_OF_SESSION'] : 1;
+                                            $attendee_count = $group_query->fields['ATTENDEE_COUNT'] ? $group_query->fields['ATTENDEE_COUNT'] : 0;
                                             $service_date = $group_query->fields['DATE'];
-                                            $service_name = $group_query->fields['SERVICE_NAME'];
+                                            $service_name = $group_query->fields['SERVICE_NAME'] ? $group_query->fields['SERVICE_NAME'] : 'Group Lesson';
 
                                             $group_lesson_count += $num_sessions;
-                                            $group_customer_count += ($num_attendees);
+                                            $group_customer_count += $attendee_count;
 
-                                            $group_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . ": " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $num_attendees . " attendees)";
+                                            $group_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . ": " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
 
                                             $group_query->MoveNext();
                                         }
@@ -401,9 +365,27 @@ if (!empty($_GET['START_DATE'])) {
                                         $grand_totals['group']['lessons'] += $group_lesson_count;
                                         $grand_totals['group']['customers'] += $group_customer_count;
 
-                                        // Calculate provider totals
-                                        $provider_data['total_lessons'] = $provider_data['pre_original']['lessons'] + $provider_data['original']['lessons'] + $provider_data['extension']['lessons'] + $provider_data['renewal']['lessons'] + $group_lesson_count;
-                                        $provider_data['total_customers'] = $provider_data['pre_original']['customers'] + $provider_data['original']['customers'] + $provider_data['extension']['customers'] + $provider_data['renewal']['customers'] + $group_customer_count;
+                                        // Calculate provider totals (convert customer arrays to counts)
+                                        $provider_total_lessons = $provider_data['pre_original']['lessons'] +
+                                            $provider_data['original']['lessons'] +
+                                            $provider_data['extension']['lessons'] +
+                                            $provider_data['renewal']['lessons'] +
+                                            $group_lesson_count;
+
+                                        $provider_total_customers = count($provider_data['pre_original']['customers']) +
+                                            count($provider_data['original']['customers']) +
+                                            count($provider_data['extension']['customers']) +
+                                            count($provider_data['renewal']['customers']) +
+                                            $group_customer_count;
+
+                                        $provider_data['total_lessons'] = $provider_total_lessons;
+                                        $provider_data['total_customers'] = $provider_total_customers;
+
+                                        // Convert customer arrays to counts for display
+                                        $provider_data['pre_original']['customer_count'] = count($provider_data['pre_original']['customers']);
+                                        $provider_data['original']['customer_count'] = count($provider_data['original']['customers']);
+                                        $provider_data['extension']['customer_count'] = count($provider_data['extension']['customers']);
+                                        $provider_data['renewal']['customer_count'] = count($provider_data['renewal']['customers']);
 
                                         $all_providers_data[] = $provider_data;
 
@@ -411,8 +393,17 @@ if (!empty($_GET['START_DATE'])) {
                                     }
 
                                     // Calculate grand totals
-                                    $grand_totals['total_lessons'] = $grand_totals['pre_original']['lessons'] + $grand_totals['original']['lessons'] + $grand_totals['extension']['lessons'] + $grand_totals['renewal']['lessons'] + $grand_totals['group']['lessons'];
-                                    $grand_totals['total_customers'] = $grand_totals['pre_original']['customers'] + $grand_totals['original']['customers'] + $grand_totals['extension']['customers'] + $grand_totals['renewal']['customers'] + $grand_totals['group']['customers'];
+                                    $grand_totals['total_lessons'] = $grand_totals['pre_original']['lessons'] +
+                                        $grand_totals['original']['lessons'] +
+                                        $grand_totals['extension']['lessons'] +
+                                        $grand_totals['renewal']['lessons'] +
+                                        $grand_totals['group']['lessons'];
+
+                                    $grand_totals['total_customers'] = $grand_totals['pre_original']['customers'] +
+                                        $grand_totals['original']['customers'] +
+                                        $grand_totals['extension']['customers'] +
+                                        $grand_totals['renewal']['customers'] +
+                                        $grand_totals['group']['customers'];
                                     ?>
 
                                     <!-- Summary Totals Table -->
@@ -461,7 +452,7 @@ if (!empty($_GET['START_DATE'])) {
                                             <table class="table table-bordered" data-page-length='50'>
                                                 <thead>
                                                     <tr>
-                                                        <th style="width:60%; text-align: center; vertical-align:auto; font-weight: bold; background-color: #e9ecef;" colspan="5"><?= $provider_data['name'] ?></th>
+                                                        <th style="width:60%; text-align: center; vertical-align:auto; font-weight: bold; background-color: #e9ecef;" colspan="4"><?= $provider_data['name'] ?></th>
                                                     </tr>
                                                     <tr>
                                                         <th style="width:12%; text-align: center">Enrollment Type</th>
@@ -475,7 +466,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center">Pre Original</td>
                                                         <td style="text-align: center"><?= $provider_data['pre_original']['lessons'] ?></td>
-                                                        <td style="text-align: center"><?= $provider_data['pre_original']['customers'] ?></td>
+                                                        <td style="text-align: center"><?= $provider_data['pre_original']['customer_count'] ?></td>
                                                         <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                             <?php
                                                             $sessions = $provider_data['pre_original']['sessions'];
@@ -487,6 +478,7 @@ if (!empty($_GET['START_DATE'])) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
                                                                     } elseif ($display_count == 5) {
                                                                         echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                        break;
                                                                     }
                                                                     $display_count++;
                                                                 }
@@ -502,7 +494,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center">Original</td>
                                                         <td style="text-align: center"><?= $provider_data['original']['lessons'] ?></td>
-                                                        <td style="text-align: center"><?= $provider_data['original']['customers'] ?></td>
+                                                        <td style="text-align: center"><?= $provider_data['original']['customer_count'] ?></td>
                                                         <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                             <?php
                                                             $sessions = $provider_data['original']['sessions'];
@@ -514,6 +506,7 @@ if (!empty($_GET['START_DATE'])) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
                                                                     } elseif ($display_count == 5) {
                                                                         echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                        break;
                                                                     }
                                                                     $display_count++;
                                                                 }
@@ -529,7 +522,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center">Extension</td>
                                                         <td style="text-align: center"><?= $provider_data['extension']['lessons'] ?></td>
-                                                        <td style="text-align: center"><?= $provider_data['extension']['customers'] ?></td>
+                                                        <td style="text-align: center"><?= $provider_data['extension']['customer_count'] ?></td>
                                                         <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                             <?php
                                                             $sessions = $provider_data['extension']['sessions'];
@@ -541,6 +534,7 @@ if (!empty($_GET['START_DATE'])) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
                                                                     } elseif ($display_count == 5) {
                                                                         echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                        break;
                                                                     }
                                                                     $display_count++;
                                                                 }
@@ -556,7 +550,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center">Renewal</td>
                                                         <td style="text-align: center"><?= $provider_data['renewal']['lessons'] ?></td>
-                                                        <td style="text-align: center"><?= $provider_data['renewal']['customers'] ?></td>
+                                                        <td style="text-align: center"><?= $provider_data['renewal']['customer_count'] ?></td>
                                                         <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                             <?php
                                                             $sessions = $provider_data['renewal']['sessions'];
@@ -568,6 +562,7 @@ if (!empty($_GET['START_DATE'])) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
                                                                     } elseif ($display_count == 5) {
                                                                         echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                        break;
                                                                     }
                                                                     $display_count++;
                                                                 }
@@ -595,6 +590,7 @@ if (!empty($_GET['START_DATE'])) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
                                                                     } elseif ($display_count == 5) {
                                                                         echo '<li>... and ' . (count($group_sessions) - 5) . ' more</li>';
+                                                                        break;
                                                                     }
                                                                     $display_count++;
                                                                 }
@@ -621,51 +617,71 @@ if (!empty($_GET['START_DATE'])) {
                                     <?php
                                     // Handle no provider lessons if checkbox is checked
                                     if ($include_no_provider == 1) {
+                                        // Get lessons with no service provider - CORRECTED
                                         $no_provider_query = $db_account->Execute("
                                             SELECT 
-                                                es.PK_ENROLLMENT_SERVICE,
-                                                es.PK_ENROLLMENT_MASTER,
-                                                es.SERVICE_DATE,
+                                                am.PK_APPOINTMENT_MASTER,
+                                                am.DATE,
                                                 es.NUMBER_OF_SESSION,
-                                                es.NUMBER_OF_ATTENDEE,
                                                 em.PK_ENROLLMENT_TYPE,
-                                                em.PK_CUSTOMER,
-                                                CONCAT(dc.FIRST_NAME, ' ', dc.LAST_NAME) AS CUSTOMER_NAME,
-                                                sc.SERVICE_NAME,
-                                                sc.IS_GROUP
-                                            FROM DOA_ENROLLMENT_SERVICE es
-                                            INNER JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
-                                            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
-                                            WHERE DATE(es.SERVICE_DATE) BETWEEN '$from_date' AND '$to_date'
+                                                ac.PK_USER_MASTER,
+                                                CONCAT(us.FIRST_NAME, ' ', us.LAST_NAME) AS CUSTOMER_NAME,
+                                                sm.SERVICE_NAME,
+                                                sc.IS_GROUP,
+                                                (SELECT COUNT(DISTINCT ac2.PK_USER_MASTER) 
+                                                 FROM DOA_APPOINTMENT_CUSTOMER ac2 
+                                                 WHERE ac2.PK_APPOINTMENT_MASTER = am.PK_APPOINTMENT_MASTER) AS ATTENDEE_COUNT
+                                            FROM DOA_APPOINTMENT_MASTER am
+                                            LEFT JOIN DOA_APPOINTMENT_CUSTOMER ac ON am.PK_APPOINTMENT_MASTER = ac.PK_APPOINTMENT_MASTER
+                                            LEFT JOIN DOA_ENROLLMENT_SERVICE es ON am.PK_ENROLLMENT_SERVICE = es.PK_ENROLLMENT_SERVICE
+                                            LEFT JOIN DOA_ENROLLMENT_MASTER em ON am.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                            LEFT JOIN DOA_MASTER.DOA_USER_MASTER dc ON ac.PK_USER_MASTER = dc.PK_USER_MASTER
+                                            LEFT JOIN DOA_MASTER.DOA_USERS us ON us.PK_USER = dc.PK_USER
+                                            LEFT JOIN DOA_SERVICE_MASTER sm ON sm.PK_SERVICE_MASTER = am.PK_SERVICE_MASTER
+                                            LEFT JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                            WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
+                                            AND am.PK_APPOINTMENT_STATUS = 2
                                             AND NOT EXISTS (
-                                                SELECT 1 FROM DOA_ENROLLMENT_SERVICE_PROVIDER esp 
-                                                WHERE esp.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                                                SELECT 1 FROM DOA_APPOINTMENT_SERVICE_PROVIDER asp 
+                                                WHERE asp.PK_APPOINTMENT_MASTER = am.PK_APPOINTMENT_MASTER
                                             )
+                                            ORDER BY am.DATE
                                         ");
 
                                         if ($no_provider_query && $no_provider_query->RecordCount() > 0) {
                                             $no_provider_private = [
-                                                'pre_original' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                                'original' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                                'extension' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
-                                                'renewal' => ['lessons' => 0, 'customers' => 0, 'sessions' => []]
+                                                'pre_original' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                                'original' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                                'extension' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
+                                                'renewal' => ['lessons' => 0, 'customers' => [], 'sessions' => []]
                                             ];
                                             $no_provider_group = ['lessons' => 0, 'customers' => 0, 'sessions' => []];
+                                            $processed_group_appointments = [];
 
                                             while (!$no_provider_query->EOF) {
                                                 $type_id = $no_provider_query->fields['PK_ENROLLMENT_TYPE'];
                                                 $is_group = $no_provider_query->fields['IS_GROUP'];
-                                                $num_sessions = $no_provider_query->fields['NUMBER_OF_SESSION'];
-                                                $num_attendees = $no_provider_query->fields['NUMBER_OF_ATTENDEE'];
-                                                $customer_id = $no_provider_query->fields['PK_CUSTOMER'];
-                                                $customer_name = $no_provider_query->fields['CUSTOMER_NAME'];
-                                                $service_date = $no_provider_query->fields['SERVICE_DATE'];
-                                                $service_name = $no_provider_query->fields['SERVICE_NAME'];
+                                                $num_sessions = $no_provider_query->fields['NUMBER_OF_SESSION'] ? $no_provider_query->fields['NUMBER_OF_SESSION'] : 1;
+                                                $attendee_count = $no_provider_query->fields['ATTENDEE_COUNT'] ? $no_provider_query->fields['ATTENDEE_COUNT'] : 0;
+                                                $customer_id = $no_provider_query->fields['PK_USER_MASTER'];
+                                                $customer_name = $no_provider_query->fields['CUSTOMER_NAME'] ? $no_provider_query->fields['CUSTOMER_NAME'] : 'Unknown';
+                                                $service_date = $no_provider_query->fields['DATE'];
+                                                $service_name = $no_provider_query->fields['SERVICE_NAME'] ? $no_provider_query->fields['SERVICE_NAME'] : 'Lesson';
+                                                $appointment_id = $no_provider_query->fields['PK_APPOINTMENT_MASTER'];
 
                                                 if ($is_group == 1) {
-                                                    $no_provider_group['lessons'] += $num_sessions;
-                                                    $no_provider_group['customers'] += ($num_attendees * $num_sessions);
-                                                    $no_provider_group['sessions'][] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . ": " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $num_attendees . " attendees)";
+                                                    // For group lessons
+                                                    if (!in_array($appointment_id, $processed_group_appointments)) {
+                                                        $no_provider_group['lessons'] += $num_sessions;
+                                                        $processed_group_appointments[] = $appointment_id;
+                                                    }
+                                                    $no_provider_group['customers'] += $attendee_count;
+
+                                                    // Store session details (only once per appointment)
+                                                    $session_key = $appointment_id . '_group';
+                                                    if (!isset($no_provider_group['sessions'][$session_key])) {
+                                                        $no_provider_group['sessions'][$session_key] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . ": " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
+                                                    }
                                                 } else {
                                                     $type_key = '';
                                                     switch ($type_id) {
@@ -682,16 +698,51 @@ if (!empty($_GET['START_DATE'])) {
                                                             $type_key = 'renewal';
                                                             break;
                                                         default:
+                                                            $no_provider_query->MoveNext();
                                                             continue 2;
                                                     }
 
                                                     $no_provider_private[$type_key]['lessons'] += $num_sessions;
-                                                    $no_provider_private[$type_key]['customers'] += 1; // Count unique customers separately
-                                                    $no_provider_private[$type_key]['sessions'][] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
+
+                                                    // Track unique customers
+                                                    if ($customer_id > 0 && !in_array($customer_id, $no_provider_private[$type_key]['customers'])) {
+                                                        $no_provider_private[$type_key]['customers'][] = $customer_id;
+                                                    }
+
+                                                    // Store session details (only once per appointment)
+                                                    $session_key = $appointment_id . '_' . $type_key;
+                                                    if (!isset($no_provider_private[$type_key]['sessions'][$session_key])) {
+                                                        $no_provider_private[$type_key]['sessions'][$session_key] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
+                                                    }
                                                 }
 
                                                 $no_provider_query->MoveNext();
                                             }
+
+                                            // Convert sessions arrays to simple lists
+                                            foreach ($no_provider_private as $key => $data) {
+                                                $no_provider_private[$key]['sessions'] = array_values($data['sessions']);
+                                            }
+                                            $no_provider_group['sessions'] = array_values($no_provider_group['sessions']);
+
+                                            // Calculate totals
+                                            $no_provider_total_lessons = 0;
+                                            $no_provider_total_customers = 0;
+
+                                            $no_provider_private_counts = [];
+                                            foreach ($no_provider_private as $key => $data) {
+                                                $customer_count = count($data['customers']);
+                                                $no_provider_private_counts[$key] = [
+                                                    'lessons' => $data['lessons'],
+                                                    'customers' => $customer_count,
+                                                    'sessions' => $data['sessions']
+                                                ];
+                                                $no_provider_total_lessons += $data['lessons'];
+                                                $no_provider_total_customers += $customer_count;
+                                            }
+
+                                            $no_provider_total_lessons += $no_provider_group['lessons'];
+                                            $no_provider_total_customers += $no_provider_group['customers'];
 
                                             // Display No Provider table
                                     ?>
@@ -717,49 +768,63 @@ if (!empty($_GET['START_DATE'])) {
                                                             'renewal' => 'Renewal'
                                                         ];
 
-                                                        $no_provider_total_lessons = 0;
-                                                        $no_provider_total_customers = 0;
-
-                                                        foreach ($no_provider_types as $key => $label) {
-                                                            if ($no_provider_private[$key]['lessons'] > 0) {
-                                                                $no_provider_total_lessons += $no_provider_private[$key]['lessons'];
-                                                                $no_provider_total_customers += $no_provider_private[$key]['customers'];
+                                                        foreach ($no_provider_types as $key => $label):
+                                                            if ($no_provider_private_counts[$key]['lessons'] > 0):
                                                         ?>
                                                                 <tr>
                                                                     <td style="text-align: center"><?= $label ?></td>
-                                                                    <td style="text-align: center"><?= $no_provider_private[$key]['lessons'] ?></td>
-                                                                    <td style="text-align: center"><?= $no_provider_private[$key]['customers'] ?></td>
+                                                                    <td style="text-align: center"><?= $no_provider_private_counts[$key]['lessons'] ?></td>
+                                                                    <td style="text-align: center"><?= $no_provider_private_counts[$key]['customers'] ?></td>
                                                                     <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                                         <ul style="margin: 0; padding-left: 15px;">
-                                                                            <?php foreach ($no_provider_private[$key]['sessions'] as $session): ?>
-                                                                                <li><?= htmlspecialchars($session) ?></li>
-                                                                            <?php endforeach; ?>
+                                                                            <?php
+                                                                            $display_count = 0;
+                                                                            foreach ($no_provider_private_counts[$key]['sessions'] as $session):
+                                                                                if ($display_count < 5):
+                                                                            ?>
+                                                                                    <li><?= htmlspecialchars($session) ?></li>
+                                                                            <?php
+                                                                                elseif ($display_count == 5):
+                                                                                    echo '<li>... and ' . (count($no_provider_private_counts[$key]['sessions']) - 5) . ' more</li>';
+                                                                                    break;
+                                                                                endif;
+                                                                                $display_count++;
+                                                                            endforeach;
+                                                                            ?>
                                                                         </ul>
                                                                     </td>
                                                                 </tr>
-                                                            <?php
-                                                            }
-                                                        }
+                                                        <?php
+                                                            endif;
+                                                        endforeach;
+                                                        ?>
 
-                                                        if ($no_provider_group['lessons'] > 0) {
-                                                            $no_provider_total_lessons += $no_provider_group['lessons'];
-                                                            $no_provider_total_customers += $no_provider_group['customers'];
-                                                            ?>
+                                                        <?php if ($no_provider_group['lessons'] > 0): ?>
                                                             <tr style="background-color: #fff3cd;">
                                                                 <td style="text-align: center; font-weight: bold">Group Lessons</td>
                                                                 <td style="text-align: center; font-weight: bold"><?= $no_provider_group['lessons'] ?></td>
                                                                 <td style="text-align: center; font-weight: bold"><?= $no_provider_group['customers'] ?></td>
                                                                 <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                                     <ul style="margin: 0; padding-left: 15px;">
-                                                                        <?php foreach ($no_provider_group['sessions'] as $session): ?>
-                                                                            <li><?= htmlspecialchars($session) ?></li>
-                                                                        <?php endforeach; ?>
+                                                                        <?php
+                                                                        $display_count = 0;
+                                                                        foreach ($no_provider_group['sessions'] as $session):
+                                                                            if ($display_count < 5):
+                                                                        ?>
+                                                                                <li><?= htmlspecialchars($session) ?></li>
+                                                                        <?php
+                                                                            elseif ($display_count == 5):
+                                                                                echo '<li>... and ' . (count($no_provider_group['sessions']) - 5) . ' more</li>';
+                                                                                break;
+                                                                            endif;
+                                                                            $display_count++;
+                                                                        endforeach;
+                                                                        ?>
                                                                     </ul>
                                                                 </td>
                                                             </tr>
-                                                        <?php
-                                                        }
-                                                        ?>
+                                                        <?php endif; ?>
+
                                                         <tr style="background-color: #f8d7da; font-weight: bold;">
                                                             <td style="text-align: center">NO PROVIDER TOTAL</td>
                                                             <td style="text-align: center"><?= $no_provider_total_lessons ?></td>
@@ -808,14 +873,12 @@ if (!empty($_GET['START_DATE'])) {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
 
-            // Validate dates are filled
             if (!startDate || !endDate) {
                 alert('Please select both start date and end date.');
                 e.preventDefault();
                 return false;
             }
 
-            // Validate date range
             var start = new Date(startDate);
             var end = new Date(endDate);
 
