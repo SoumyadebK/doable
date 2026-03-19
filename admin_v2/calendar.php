@@ -1462,7 +1462,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             let month = ('0' + (converted_date.getMonth() + 1)).slice(-2);
             let day = ('0' + converted_date.getDate()).slice(-2);
             let formatted_date = month + '/' + day + '/' + year;
-            $('#APPOINTMENT_DATE').val(formatted_date);
+            $('#APPOINTMENT_DATE_CREATION').val(formatted_date);
             $('#STARTING_ON').val(formatted_date);
             $('#TO_DO_DATE').val(formatted_date);
             $('#RECORD_ONLY_APPOINTMENT_DATE').val(formatted_date);

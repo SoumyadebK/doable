@@ -158,9 +158,9 @@ $page_first_result = ($page - 1) * $results_per_page;
                             </div>
                         </div>
 
-                        <button class="btn-new">
+                        <a class="btn-new" href="../admin/customer.php">
                             + Create New Customer
-                        </button>
+                        </a>
                     </div>
 
 

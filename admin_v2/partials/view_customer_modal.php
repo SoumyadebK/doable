@@ -259,11 +259,8 @@ while (!$row->EOF) {
                         while (!$serviceCodeData->EOF) {
                             $appointment_position = 0;
                             $PK_ENROLLMENT_SERVICE = $serviceCodeData->fields['PK_ENROLLMENT_SERVICE'];
-                            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
-                            if ($enr_service_data->RecordCount() > 0) {
-                                $used_session_count = getSessionCompletedCount($PK_ENROLLMENT_SERVICE);
-                                $appointment_number = $used_session_count . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'];
-                            }
+                            $used_session_count = getSessionCompletedCount($PK_ENROLLMENT_SERVICE);
+                            $appointment_number = $used_session_count . '/' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
                         ?>
                             <span><?= $serviceCodeData->fields['SERVICE_NAME'] ?>: <?= $appointment_number ?></span>
                         <?php
