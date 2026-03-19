@@ -402,7 +402,7 @@ function roundToNearestFiveCents($num)
                                 ?>
                                 <tr>
                                     <th style="width:5%; text-align: center; vertical-align:center; font-weight: bold" rowspan="3">Week</th>
-                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 ?></th>
+                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_original_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_original_sold->fields['SOLD'] ?></th>
@@ -410,7 +410,7 @@ function roundToNearestFiveCents($num)
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_extension_sold->fields['SOLD'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_renewal_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_renewal_sold->fields['SOLD'] ?></th>
-                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED'] ?></th>
+                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] + $weekly_original_sold->fields['SOLD'] + $weekly_extension_sold->fields['SOLD'] + $weekly_renewal_sold->fields['SOLD'] ?></th>
                                 </tr>
                                 <tr>
@@ -474,7 +474,7 @@ function roundToNearestFiveCents($num)
                                 ?>
                                 <tr>
                                     <th style="width:5%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Net YTD</th>
-                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_showed_data->fields['SHOWED_COUNT'] ?? 0 ?></th>
+                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_booked_data->fields['BOOKED_COUNT'] ?? 0 ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_pre_original_sold->fields['SOLD'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_original_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_original_sold->fields['SOLD'] ?></th>
@@ -482,7 +482,7 @@ function roundToNearestFiveCents($num)
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_extension_sold->fields['SOLD'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_renewal_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_renewal_sold->fields['SOLD'] ?></th>
-                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_showed_data->fields['SHOWED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED'] ?></th>
+                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_booked_data->fields['BOOKED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED'] ?></th>
                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_pre_original_sold->fields['SOLD'] + $yearly_original_sold->fields['SOLD'] + $yearly_extension_sold->fields['SOLD'] + $yearly_renewal_sold->fields['SOLD'] ?></th>
                                 </tr>
                                 <tr>

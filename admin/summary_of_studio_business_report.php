@@ -218,7 +218,7 @@ if ($type === 'export') {
         $weekly_renewal_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
         $weekly_renewal_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
 
-        $pre_original_tried = $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 > 0 ? $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 : 0;
+        $pre_original_tried = $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 > 0 ? $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 : 0;
         $pre_original_sold = $weekly_pre_original_sold->fields['SOLD'] > 0 ? $weekly_pre_original_sold->fields['SOLD'] : 0;
         $original_tried = $weekly_original_tried->fields['TRIED'] > 0 ? $weekly_original_tried->fields['TRIED'] : 0;
         $original_sold = $weekly_original_sold->fields['SOLD'] > 0 ? $weekly_original_sold->fields['SOLD'] : 0;
@@ -738,7 +738,7 @@ function firstSundayOfYear($year)
                                                 ?>
                                                 <tr>
                                                     <th style="width:5%; text-align: center; vertical-align:center; font-weight: bold" rowspan="3">Week</th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_original_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_original_sold->fields['SOLD'] ?></th>
@@ -746,7 +746,7 @@ function firstSundayOfYear($year)
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_extension_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $weekly_renewal_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_renewal_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= ($weekly_showed_data->fields['SHOWED_COUNT'] ?? 0) + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= ($weekly_booked_data->fields['BOOKED_COUNT'] ?? 0) + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $weekly_pre_original_sold->fields['SOLD'] + $weekly_original_sold->fields['SOLD'] + $weekly_extension_sold->fields['SOLD'] + $weekly_renewal_sold->fields['SOLD'] ?></th>
                                                 </tr>
                                                 <tr>
@@ -810,7 +810,7 @@ function firstSundayOfYear($year)
                                                 ?>
                                                 <tr>
                                                     <th style="width:5%; text-align: center; vertical-align:auto; font-weight: bold" rowspan="3">Net YTD</th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_showed_data->fields['SHOWED_COUNT'] ?? 0 ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_booked_data->fields['BOOKED_COUNT'] ?? 0 ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_pre_original_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_original_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_original_sold->fields['SOLD'] ?></th>
@@ -818,7 +818,7 @@ function firstSundayOfYear($year)
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_extension_sold->fields['SOLD'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_renewal_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_renewal_sold->fields['SOLD'] ?></th>
-                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_showed_data->fields['SHOWED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED'] ?></th>
+                                                    <th style="width:9%; text-align: center; font-weight: normal !important">T : <?= $yearly_booked_data->fields['BOOKED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED'] ?></th>
                                                     <th style="width:9%; text-align: center; font-weight: normal !important">S : <?= $yearly_pre_original_sold->fields['SOLD'] + $yearly_original_sold->fields['SOLD'] + $yearly_extension_sold->fields['SOLD'] + $yearly_renewal_sold->fields['SOLD'] ?></th>
                                                 </tr>
                                                 <tr>

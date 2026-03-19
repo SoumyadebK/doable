@@ -47,8 +47,9 @@ if (!empty($_GET['END_DATE'])) {
 $search_text = '';
 $search = $START_DATE . $END_DATE . ' ';
 if (!empty($_GET['search_text'])) {
-    $search_text = $_GET['search_text'];
-    $search .= $STATUS_CONDITION . $START_DATE . $END_DATE . " AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%" . $search_text . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%" . $search_text . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%'OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%') ";
+    $search_text = trim($_GET['search_text']);
+    $search_text_esc = addslashes($search_text);
+    $search .= $START_DATE . $END_DATE . " AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%" . $search_text_esc . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%" . $search_text_esc . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%" . $search_text_esc . "%' OR CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) LIKE '%" . $search_text_esc . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text_esc . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text_esc . "%') ";
 }
 
 $STATUS = empty($_GET['STATUS']) ? 'A' : $_GET['STATUS'];
@@ -376,6 +377,10 @@ if (isset($_POST['SUBMIT'])) {
         border: none;
     }
 
+    .btn-new:hover {
+        background: #2e8c3e;
+        color: #fff;
+    }
 
     .view-toggle {
         display: flex;
@@ -417,7 +422,8 @@ if (isset($_POST['SUBMIT'])) {
 <?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
-    <?php require_once('../includes/loader.php'); ?>
+    <?php //require_once('../includes/loader.php'); 
+    ?>
     <div id="main-wrapper">
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid mt-4">
@@ -443,7 +449,15 @@ if (isset($_POST['SUBMIT'])) {
 
                     <!-- Filters -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <input type="text" class="form-control search-box" placeholder="Search...">
+                        <form method="get" class="d-flex align-items-center" style="gap: 8px;">
+                            <div class="input-group">
+                                <input type="text" name="search_text" class="form-control search-box" placeholder="Search..." value="<?= htmlspecialchars($search_text) ?>" style="border-radius: 50px 0px 0px 50px; width: 280px;">
+                                <button type="submit" class="btn-new" style="padding: 8px 16px !important; font-size: 16px;">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="status" value="<?= htmlspecialchars($status_check) ?>">
+                        </form>
 
 
                         <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto; margin-right: 12px;">

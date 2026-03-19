@@ -24,8 +24,9 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 if (isset($_GET['search_text'])) {
-    $search_text = $_GET['search_text'];
-    $search = " AND (DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME LIKE '%" . $search_text . "%')";
+    $search_text = trim($_GET['search_text']);
+    $search_text_esc = addslashes($search_text);
+    $search = " AND (CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) LIKE '%" . $search_text_esc . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.USER_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text_esc . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text_esc . "%' OR CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) LIKE '%" . $search_text_esc . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME LIKE '%" . $search_text_esc . "%')";
 } else {
     $search_text = '';
     $search = ' ';
@@ -91,6 +92,11 @@ $page_first_result = ($page - 1) * $results_per_page;
         padding: 8px 20px !important;
         font-size: 14px;
         border: none;
+    }
+
+    .btn-new:hover {
+        background: #2e8c3e;
+        color: #fff;
     }
 
 
@@ -160,8 +166,15 @@ $page_first_result = ($page - 1) * $results_per_page;
 
                     <!-- Filters -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <input type="text" class="form-control search-box" placeholder="Search...">
-
+                        <form method="get" class="d-flex align-items-center" style="gap: 8px;">
+                            <div class="input-group">
+                                <input type="text" name="search_text" class="form-control search-box" placeholder="Search..." value="<?= htmlspecialchars($search_text) ?>" style="border-radius: 50px 0px 0px 50px; width: 280px;">
+                                <button type="submit" class="btn-new" style="padding: 8px 16px !important; font-size: 16px;">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="status" value="<?= htmlspecialchars($status_check) ?>">
+                        </form>
 
                         <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto; margin-right: 12px;">
                             <button class="view-btn-icon <?= ($status_check == 'active') ? 'active' : '' ?>" onclick="window.location.href='all_customers.php?status=active'">
@@ -197,6 +210,15 @@ $page_first_result = ($page - 1) * $results_per_page;
                                     <th>
                                         <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
                                             <span class="fw-semibold">Customer Name / Email</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                            <span class="fw-semibold">Partner</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
                                                 <path d="M5 9h6l-3 4z" />
@@ -307,6 +329,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                 <small class="text-muted"><?= $customer_data->fields['EMAIL_ID'] ?></small>
                                             </div>
                                         </td>
+                                        <td><?= $customer_data->fields['PARTNER_NAME'] ?></td>
                                         <td><?= $customer_data->fields['LOCATION_NAME'] ?></td>
                                         <td><?= $customer_data->fields['PHONE'] ?></td>
                                         <td>$<?= str_replace(",", "", number_format(($total_paid), 2)) ?></td>

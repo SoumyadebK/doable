@@ -862,7 +862,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             placeholder: 'All Staff',
             selectAll: true,
             okCancelInMulti: true,
-            triggerChangeCombined: true
+            triggerChangeCombined: true,
+            csvDispCount: 1 // show item names only when <= 3 selected; otherwise show "X selected"
         });
 
         let calendar;
@@ -874,6 +875,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         let activePopoverEl = null;
         let hideTimer = null;
 
+        function destroyActivePopover() {
+            if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+            }
+
+            if (activePopoverInstance) {
+                activePopoverInstance.dispose();
+                activePopoverInstance = null;
+                activePopoverEl = null;
+            }
+        }
 
         function renderCalendar(date) {
             const day = date.getDay();
@@ -1095,22 +1108,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
                     if (event_data.comment || event_data.internal_comment) {
                         $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
-                    }
-
-
-
-
-                    function destroyActivePopover() {
-                        if (hideTimer) {
-                            clearTimeout(hideTimer);
-                            hideTimer = null;
-                        }
-
-                        if (activePopoverInstance) {
-                            activePopoverInstance.dispose();
-                            activePopoverInstance = null;
-                            activePopoverEl = null;
-                        }
                     }
 
 

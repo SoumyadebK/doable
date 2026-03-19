@@ -715,7 +715,7 @@ $weekly_renewal_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS U
 $weekly_renewal_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_CODE.IS_GROUP = 0 AND PK_ENROLLMENT_TYPE = 13 AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
 
 $cell_no = 'B' . $line;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . $weekly_showed_data->fields['SHOWED_COUNT'] ?? 0);
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . $weekly_booked_data->fields['BOOKED_COUNT'] ?? 0);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -755,7 +755,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = 'J' . $line;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . ($weekly_showed_data->fields['SHOWED_COUNT'] ?? 0 + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED']));
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . ($weekly_booked_data->fields['BOOKED_COUNT'] ?? 0 + $weekly_original_tried->fields['TRIED'] + $weekly_extension_tried->fields['TRIED'] + $weekly_renewal_tried->fields['TRIED']));
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -1005,7 +1005,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = 'J' . $line;
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . ($yearly_showed_data->fields['SHOWED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED']));
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("T : " . ($yearly_booked_data->fields['BOOKED_COUNT'] ?? 0 + $yearly_original_tried->fields['TRIED'] + $yearly_extension_tried->fields['TRIED'] + $yearly_renewal_tried->fields['TRIED']));
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 

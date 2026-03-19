@@ -109,7 +109,8 @@ if ($TYPE == 'appointment') {
     $profile_name = $profile['initials'];
     $profile_color = $profile['color'];
 ?>
-    <div class="p-2">
+    <div class="p-2" style="position: relative;">
+        <div class="popover-close" style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #ff4d4f; font-weight: 700; cursor: pointer; z-index: 10; font-size: 25px;" onclick="destroyActivePopover()">×</div>
         <div class="appointment-profile d-flex">
             <div class="d-flex align-items-center gap-3 f12 theme-text-light">
                 <div class="profilename-data">
@@ -232,7 +233,8 @@ if ($TYPE == 'appointment') {
     $profile_name = $profile['initials'];
     $profile_color = $profile['color'];
 ?>
-    <div class="p-2">
+    <div class="p-2" style="position: relative;">
+        <div class="popover-close" style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #ff4d4f; font-weight: 700; cursor: pointer; z-index: 10; font-size: 25px;" onclick="destroyActivePopover()">×</div>
         <div class="appointment-profile d-flex">
             <div class="d-flex align-items-center gap-3 f12 theme-text-light">
                 <div class="profilename-data">
@@ -350,7 +352,8 @@ if ($TYPE == 'appointment') {
     $profile_color = $profile['color'];
 
 ?>
-    <div class="p-2">
+    <div class="p-2" style="position: relative;">
+        <div class="popover-close" style="position: absolute; top: 0px; left: 0px; width: 0px; height: 0px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #ff4d4f; font-weight: 700; cursor: pointer; z-index: 10; font-size: 25px;" onclick="destroyActivePopover()">×</div>
         <div class="appointment-profile d-flex">
             <div class="d-flex align-items-center gap-3 f12 theme-text-light">
                 <div class="profilename-data">
