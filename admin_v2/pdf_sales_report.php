@@ -101,13 +101,14 @@ foreach ($resultsArray as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="4"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
-                                    <th style="width:50%; text-align: center; font-weight: bold" colspan="5">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
+                                    <th style="width:50%; text-align: center; font-weight: bold" colspan="4">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                                 <tr>
                                     <th style="width:10%; text-align: center">Date</th>
                                     <th style="width:10%; text-align: center">Student</th>
                                     <th style="width:10%; text-align: center">Amount of Sale</th>
+                                    <th style="width:10%; text-align: center">Service Provider Amount</th>
                                     <th style="width:10%; text-align: center">Enrollment Name</th>
                                     <th style="width:10%; text-align: center">Services</th>
                                     <th style="width:10%; text-align: center">Executive</th>
@@ -120,6 +121,8 @@ foreach ($resultsArray as $key => $result) {
                                 <?php
                                 $i = 1;
                                 $total_amount = 0;
+                                $service_provider_total = 0;
+
                                 // Build the service provider filter condition
                                 $service_provider_filter = "";
                                 if (!empty($service_provider_id)) {
@@ -238,6 +241,11 @@ foreach ($resultsArray as $key => $result) {
                                         $resultsArray[] = $results->fields['SERVICE_PROVIDER'] . ' (' . number_format($results->fields['SERVICE_PROVIDER_PERCENTAGE']) . '%)';
                                         $results->MoveNext();
                                     }
+                                    if ($enr_status == 'CANCELLED') {
+                                        $service_provider_total -= ($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+                                    } else {
+                                        $service_provider_total += ($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+                                    }
                                 ?>
                                     <tr <?php if ($enr_status == 'CANCELLED') {
                                             echo 'style="color: #f83e4dff;"';
@@ -245,6 +253,7 @@ foreach ($resultsArray as $key => $result) {
                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
                                         <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
                                         <td style="text-align: right">$<?= number_format($row->fields['TOTAL_AMOUNT'], 2) ?></td>
+                                        <td style="text-align: right">$<?= number_format(($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
                                         <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
                                         <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
                                         <td style="text-align: center"><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>
@@ -258,6 +267,7 @@ foreach ($resultsArray as $key => $result) {
                                 <tr>
                                     <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="2"></th>
                                     <th style="text-align: right; vertical-align:auto; font-weight: bold" colspan="1">Total: $<?= number_format($total_amount, 2) ?></th>
+                                    <th style="text-align: right; vertical-align:auto; font-weight: bold" colspan="1">Service Provider Total: $<?= number_format($service_provider_total, 2) ?></th>
                                     <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="6"></th>
                                 </tr>
                             </tbody>

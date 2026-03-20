@@ -105,7 +105,7 @@ $objPHPExcel->getActiveSheet()->getColumnDimension("E")->setWidth(18);
 
 $cell_no = "A1";
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($title);
-$objPHPExcel->getActiveSheet()->mergeCells('A1:I1');
+$objPHPExcel->getActiveSheet()->mergeCells('A1:J1');
 $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18); // Set font size to 16
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 //$objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(36);
@@ -123,7 +123,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "G2";
-$objPHPExcel->getActiveSheet()->mergeCells('G2:I2');
+$objPHPExcel->getActiveSheet()->mergeCells('G2:J2');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('(' . date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)) . ')');
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
@@ -166,40 +166,47 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "D4";
 //$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Name");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Service Provider Amount");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "E4";
-$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Services");
+//$objPHPExcel->getActiveSheet()->mergeCells('E3:G3');
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Name");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "F4";
 $objPHPExcel->getActiveSheet()->mergeCells('H3:I3');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Executive");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Services");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "G4";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($service_provider_title . "1");
+$objPHPExcel->getActiveSheet()->mergeCells('H3:I3');
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Executive");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "H4";
 //$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($service_provider_title . "2");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($service_provider_title . "1");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "I4";
+//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($service_provider_title . "2");
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+$cell_no = "J4";
 //$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($service_provider_title . "3");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
@@ -208,6 +215,8 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $i = 5;
 $total_amount = 0;
+$service_provider_total = 0;
+
 // Build the service provider filter condition
 $service_provider_filter = "";
 if (!empty($service_provider_id)) {
@@ -219,70 +228,71 @@ if (!empty($service_provider_id)) {
 }
 
 $row = $db_account->Execute("
-                            SELECT 
-                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE AS DATE,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                DOA_ENROLLMENT_MASTER.MISC_ID,
-                                CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
-                                DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT AS TOTAL_AMOUNT,
-                                'PAID' AS STATUS
-                            FROM DOA_ENROLLMENT_MASTER
-                            INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
-                                ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                            INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
-                                ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                            LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
-                                ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                            LEFT JOIN DOA_ENROLLMENT_BILLING 
-                                ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                            WHERE DOA_USERS.IS_DELETED = 0 
-                            AND DOA_USERS.ACTIVE = 1
-                            AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                            AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
-                                AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                            $service_provider_filter
+                                                    SELECT 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE AS DATE,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                        DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT AS TOTAL_AMOUNT,
+                                                        'PAID' AS STATUS
+                                                    FROM DOA_ENROLLMENT_MASTER
+                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                    LEFT JOIN DOA_ENROLLMENT_BILLING 
+                                                        ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+                                                    WHERE DOA_USERS.IS_DELETED = 0 
+                                                    AND DOA_USERS.ACTIVE = 1
+                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                    $service_provider_filter
 
-                            UNION ALL
+                                                    UNION ALL
 
-                            SELECT 
-                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                MAX(DOA_ENROLLMENT_CANCEL.CANCEL_DATE) AS DATE,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                DOA_ENROLLMENT_MASTER.MISC_ID,
-                                CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
-                                SUM(DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT) AS TOTAL_AMOUNT,
-                                'CANCELLED' AS STATUS
-                            FROM DOA_ENROLLMENT_CANCEL
-                            INNER JOIN DOA_ENROLLMENT_MASTER 
-                                ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_MASTER
-                            INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
-                                ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                            INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
-                                ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
-                            LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
-                                ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
-                            WHERE DOA_USERS.IS_DELETED = 0 
-                            AND DOA_USERS.ACTIVE = 1
-                            AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
-                            AND DOA_ENROLLMENT_CANCEL.CANCEL_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
-                                AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                            $service_provider_filter
-                            GROUP BY 
-                                DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
-                                DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
-                                DOA_ENROLLMENT_MASTER.MISC_ID,
-                                DOA_USERS.FIRST_NAME, 
-                                DOA_USERS.LAST_NAME
+                                                    SELECT 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        MAX(DOA_ENROLLMENT_CANCEL.CANCEL_DATE) AS DATE,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT,
+                                                        SUM(DOA_ENROLLMENT_CANCEL.CANCEL_AMOUNT) AS TOTAL_AMOUNT,
+                                                        'CANCELLED' AS STATUS
+                                                    FROM DOA_ENROLLMENT_CANCEL
+                                                    INNER JOIN DOA_ENROLLMENT_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_CANCEL.PK_ENROLLMENT_MASTER
+                                                    INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
+                                                        ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+                                                    INNER JOIN $master_database.DOA_USERS AS DOA_USERS 
+                                                        ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER
+                                                    LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION
+                                                    WHERE DOA_USERS.IS_DELETED = 0 
+                                                    AND DOA_USERS.ACTIVE = 1
+                                                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                                                    AND DOA_ENROLLMENT_CANCEL.CANCEL_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' 
+                                                        AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                                                    $service_provider_filter
+                                                    GROUP BY 
+                                                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
+                                                        DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                                                        DOA_ENROLLMENT_MASTER.MISC_ID,
+                                                        DOA_USERS.FIRST_NAME, 
+                                                        DOA_USERS.LAST_NAME
 
-                            ORDER BY DATE DESC
-                        ");
+                                                    ORDER BY DATE DESC
+                                                ");
+
 while (!$row->EOF) {
     $enr_status = $row->fields['STATUS'];
     $name = $row->fields['ENROLLMENT_NAME'];
@@ -325,6 +335,11 @@ while (!$row->EOF) {
         $resultsArray[] = $results->fields['SERVICE_PROVIDER'] . ' (' . number_format($results->fields['SERVICE_PROVIDER_PERCENTAGE']) . '%)';
         $results->MoveNext();
     }
+    if ($enr_status == 'CANCELLED') {
+        $service_provider_total -= ($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+    } else {
+        $service_provider_total += ($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100);
+    }
 
 
     $cell_no = "A" . $i;
@@ -338,27 +353,27 @@ while (!$row->EOF) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "C" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("$" . $row->fields['TOTAL_AMOUNT']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("$" . number_format($row->fields['TOTAL_AMOUNT'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "D" . $i;
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("$" . number_format(($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2));
+    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+    $cell_no = "E" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-    $cell_no = "E" . $i;
+    $cell_no = "F" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(implode(', ', $serviceCode));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-    $cell_no = "F" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE']));
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
     $cell_no = "G" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '');
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE']));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -372,12 +387,23 @@ while (!$row->EOF) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+    $cell_no = "J" . $i;
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[3]) && $resultsArray[3]) ? $resultsArray[3] : '');
+    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+    $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
     $row->MoveNext();
     $i++;
 }
 
 $cell_no = "C" . $i;
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('Total: $' . number_format($total_amount, 2));
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+$objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+$cell_no = "D" . $i;
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('Service Provider Total: $' . number_format($service_provider_total, 2));
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);

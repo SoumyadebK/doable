@@ -474,10 +474,10 @@ if (!empty($_GET['START_DATE'])) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
                                                                 foreach ($sessions as $session) {
-                                                                    if ($display_count < 5) {
+                                                                    if ($display_count < 100) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
-                                                                    } elseif ($display_count == 5) {
-                                                                        echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($sessions) - 100) . ' more</li>';
                                                                         break;
                                                                     }
                                                                     $display_count++;
@@ -502,10 +502,10 @@ if (!empty($_GET['START_DATE'])) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
                                                                 foreach ($sessions as $session) {
-                                                                    if ($display_count < 5) {
+                                                                    if ($display_count < 100) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
-                                                                    } elseif ($display_count == 5) {
-                                                                        echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($sessions) - 100) . ' more</li>';
                                                                         break;
                                                                     }
                                                                     $display_count++;
@@ -530,10 +530,10 @@ if (!empty($_GET['START_DATE'])) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
                                                                 foreach ($sessions as $session) {
-                                                                    if ($display_count < 5) {
+                                                                    if ($display_count < 100) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
-                                                                    } elseif ($display_count == 5) {
-                                                                        echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($sessions) - 100) . ' more</li>';
                                                                         break;
                                                                     }
                                                                     $display_count++;
@@ -558,10 +558,10 @@ if (!empty($_GET['START_DATE'])) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
                                                                 foreach ($sessions as $session) {
-                                                                    if ($display_count < 5) {
+                                                                    if ($display_count < 100) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
-                                                                    } elseif ($display_count == 5) {
-                                                                        echo '<li>... and ' . (count($sessions) - 5) . ' more</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($sessions) - 100) . ' more</li>';
                                                                         break;
                                                                     }
                                                                     $display_count++;
@@ -586,10 +586,10 @@ if (!empty($_GET['START_DATE'])) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
                                                                 foreach ($group_sessions as $session) {
-                                                                    if ($display_count < 5) {
+                                                                    if ($display_count < 100) {
                                                                         echo '<li>' . htmlspecialchars($session) . '</li>';
-                                                                    } elseif ($display_count == 5) {
-                                                                        echo '<li>... and ' . (count($group_sessions) - 5) . ' more</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($group_sessions) - 100) . ' more</li>';
                                                                         break;
                                                                     }
                                                                     $display_count++;
