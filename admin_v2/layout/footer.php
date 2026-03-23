@@ -1,1 +1,1 @@
-<footer class="footer">© <?php date('Y'); ?> Doable LLC</footer>
+<footer class="footer">© <?= date('Y'); ?> Doable LLC</footer>

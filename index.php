@@ -748,7 +748,7 @@ require_once('global/config.php');
                     </h5>
                 </div>
                 <div class="col-md-4 text-right pt-2" style="text-align: right;">
-                    <small class="mb-0">2025 DOable.net</small><br />
+                    <small class="mb-0"><?= date('Y'); ?> DOable.net</small><br />
                     <small class="mb-0">Made with
                         <img src="demo1/images/heart.png" /> for small businesses</small>
                 </div>
