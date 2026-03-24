@@ -342,7 +342,7 @@
     }
 
     .btn.primary:hover {
-        background: #0c447c;
+        background: #2d8e3a;
     }
 
     /* ── Checkboxes ── */
