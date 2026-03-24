@@ -14,6 +14,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 $service_provider_id = $_GET['service_provider_id'];
+$service_provider_title = "Teacher"; // Add this line
 
 $selected_service_provider = [];
 $selected_service_provider_name = [];
@@ -76,15 +77,122 @@ foreach ($resultsArray as $key => $result) {
     td,
     th {
         border: 1px solid black;
-        padding: 10px;
+        padding: 6px;
     }
 
     #collapseTable {
         border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
+        /* This helps control column widths */
     }
 
     body {
-        font-size: 12px;
+        font-size: 10px;
+        /* Reduced font size to fit more content */
+    }
+
+    /* Define fixed column widths */
+    #collapseTable th:nth-child(1),
+    #collapseTable td:nth-child(1) {
+        width: 8%;
+    }
+
+    /* Date */
+    #collapseTable th:nth-child(2),
+    #collapseTable td:nth-child(2) {
+        width: 10%;
+    }
+
+    /* Student */
+    #collapseTable th:nth-child(3),
+    #collapseTable td:nth-child(3) {
+        width: 9%;
+    }
+
+    /* Amount of Sale */
+    #collapseTable th:nth-child(4),
+    #collapseTable td:nth-child(4) {
+        width: 12%;
+    }
+
+    /* Service Provider Amount */
+    #collapseTable th:nth-child(5),
+    #collapseTable td:nth-child(5) {
+        width: 10%;
+    }
+
+    /* Enrollment Name */
+    #collapseTable th:nth-child(6),
+    #collapseTable td:nth-child(6) {
+        width: 15%;
+    }
+
+    /* Services */
+    #collapseTable th:nth-child(7),
+    #collapseTable td:nth-child(7) {
+        width: 8%;
+    }
+
+    /* Executive */
+    #collapseTable th:nth-child(8),
+    #collapseTable td:nth-child(8) {
+        width: 9%;
+    }
+
+    /* Teacher 1 */
+    #collapseTable th:nth-child(9),
+    #collapseTable td:nth-child(9) {
+        width: 9%;
+    }
+
+    /* Teacher 2 */
+    #collapseTable th:nth-child(10),
+    #collapseTable td:nth-child(10) {
+        width: 10%;
+    }
+
+    /* Teacher 3 */
+
+    /* Allow text wrapping */
+    #collapseTable td,
+    #collapseTable th {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    /* Right align amount columns */
+    #collapseTable td:nth-child(3),
+    #collapseTable td:nth-child(4) {
+        text-align: right;
+    }
+
+    /* Center align other columns */
+    #collapseTable td:nth-child(1),
+    #collapseTable td:nth-child(2),
+    #collapseTable td:nth-child(5),
+    #collapseTable td:nth-child(6),
+    #collapseTable td:nth-child(7),
+    #collapseTable td:nth-child(8),
+    #collapseTable td:nth-child(9),
+    #collapseTable td:nth-child(10) {
+        text-align: center;
+    }
+
+    /* Cancelled row styling */
+    .cancelled-row {
+        color: #f83e4d !important;
+    }
+
+    @media print {
+        body {
+            font-size: 9pt;
+        }
+
+        #collapseTable td,
+        #collapseTable th {
+            padding: 4px;
+        }
     }
 </style>
 
@@ -101,20 +209,19 @@ foreach ($resultsArray as $key => $result) {
                         <table id="collapseTable" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?></th>
-                                    <th style="width:50%; text-align: center; font-weight: bold" colspan="4">(<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
+                                    <th style="text-align: center; vertical-align:auto; font-weight: bold" colspan="10"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= " (" . $concatenatedResults . ")" . " (" . $concatenatedServiceProviders . ")" ?> - (<?= date('m/d/Y', strtotime($from_date)) ?> to <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                                 <tr>
-                                    <th style="width:10%; text-align: center">Date</th>
-                                    <th style="width:10%; text-align: center">Student</th>
-                                    <th style="width:10%; text-align: center">Amount of Sale</th>
-                                    <th style="width:10%; text-align: center">Service Provider Amount</th>
-                                    <th style="width:10%; text-align: center">Enrollment Name</th>
-                                    <th style="width:10%; text-align: center">Services</th>
-                                    <th style="width:10%; text-align: center">Executive</th>
-                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 1</th>
-                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 2</th>
-                                    <th style="width:12%; text-align: center"><?= $service_provider_title ?> 3</th>
+                                    <th style="text-align: center">Date</th>
+                                    <th style="text-align: center">Student</th>
+                                    <th style="text-align: center">Amount of Sale</th>
+                                    <th style="text-align: center">Service Provider Amount</th>
+                                    <th style="text-align: center">Enrollment Name</th>
+                                    <th style="text-align: center">Services</th>
+                                    <th style="text-align: center">Executive</th>
+                                    <th style="text-align: center"><?= $service_provider_title ?> 1</th>
+                                    <th style="text-align: center"><?= $service_provider_title ?> 2</th>
+                                    <th style="text-align: center"><?= $service_provider_title ?> 3</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -248,18 +355,18 @@ foreach ($resultsArray as $key => $result) {
                                     }
                                 ?>
                                     <tr <?php if ($enr_status == 'CANCELLED') {
-                                            echo 'style="color: #f83e4dff;"';
+                                            echo 'class="cancelled-row"';
                                         } ?>>
-                                        <td style="text-align: center"><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
-                                        <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
-                                        <td style="text-align: right">$<?= number_format($row->fields['TOTAL_AMOUNT'], 2) ?></td>
-                                        <td style="text-align: right">$<?= number_format(($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
-                                        <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
-                                        <td style="text-align: center"><?= implode(', ', $serviceCode) ?></td>
-                                        <td style="text-align: center"><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>
-                                        <td style="text-align: center"><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '' ?></td>
-                                        <td style="text-align: center"><?= (isset($resultsArray[1]) && $resultsArray[1]) ? $resultsArray[1] : '' ?></td>
-                                        <td style="text-align: center"><?= (isset($resultsArray[2]) && $resultsArray[2]) ? $resultsArray[2] : '' ?></td>
+                                        <td><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
+                                        <td><?= $row->fields['CLIENT'] ?></td>
+                                        <td>$<?= number_format($row->fields['TOTAL_AMOUNT'], 2) ?></td>
+                                        <td>$<?= number_format(($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2) ?></td>
+                                        <td><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
+                                        <td><?= implode(', ', $serviceCode) ?></td>
+                                        <td><?= empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE'] ?></td>
+                                        <td><?= (isset($resultsArray[0]) && $resultsArray[0]) ? $resultsArray[0] : '' ?></td>
+                                        <td><?= (isset($resultsArray[1]) && $resultsArray[1]) ? $resultsArray[1] : '' ?></td>
+                                        <td><?= (isset($resultsArray[2]) && $resultsArray[2]) ? $resultsArray[2] : '' ?></td>
                                     </tr>
                                 <?php $row->MoveNext();
                                     $i++;

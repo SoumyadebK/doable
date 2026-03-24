@@ -92,6 +92,12 @@ if (!empty($_GET['START_DATE'])) {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+<style>
+    table.table tbody tr[style*="color"] td,
+    table.table tbody tr.cancelled-row td {
+        color: #f83e4d !important;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -363,7 +369,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     }
                                                 ?>
                                                     <tr <?php if ($enr_status == 'CANCELLED') {
-                                                            echo 'style="color: #f83e4dff;"';
+                                                            echo 'class="cancelled-row"';;
                                                         } ?>>
                                                         <td style="text-align: center"><?= date('m/d/Y', strtotime($row->fields['DATE'])) ?></td>
                                                         <td style="text-align: center"><?= $row->fields['CLIENT'] ?></td>
