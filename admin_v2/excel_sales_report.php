@@ -20,6 +20,7 @@ $type = $_GET['type'];
 $from_date = date('Y-m-d', strtotime($_GET['start_date']));
 $to_date = date('Y-m-d', strtotime($_GET['end_date']));
 $service_provider_id = $_GET['service_provider_id'];
+$service_provider_title = "Teacher"; // Add this line if not defined elsewhere
 
 $selected_service_provider = [];
 $selected_service_provider_name = [];
@@ -347,50 +348,100 @@ while (!$row->EOF) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
+
     $cell_no = "B" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($row->fields['CLIENT']);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
 
     $cell_no = "C" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("$" . number_format($row->fields['TOTAL_AMOUNT'], 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
+
     $cell_no = "D" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("$" . number_format(($row->fields['TOTAL_AMOUNT'] * $results->fields['SERVICE_PROVIDER_PERCENTAGE'] / 100), 2));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
 
     $cell_no = "E" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $row->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
+
     $cell_no = "F" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(implode(', ', $serviceCode));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
 
     $cell_no = "G" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((empty($executive->fields['EXECUTIVE']) ? '' : $executive->fields['EXECUTIVE']));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
+
     $cell_no = "H" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[1]) && $resultsArray[1]) ? $resultsArray[1] : '');
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
 
     $cell_no = "I" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[2]) && $resultsArray[2]) ? $resultsArray[2] : '');
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
+
     $cell_no = "J" . $i;
     $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue((isset($resultsArray[3]) && $resultsArray[3]) ? $resultsArray[3] : '');
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+    // Apply red color for cancelled rows
+    if ($enr_status == 'CANCELLED') {
+        $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->getColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);
+    }
 
     $row->MoveNext();
     $i++;
