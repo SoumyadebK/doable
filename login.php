@@ -101,7 +101,7 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
     } elseif ($_SESSION['PK_ROLES'] == 5) {
         header("location: admin_v2/calendar.php");
     } elseif ($_SESSION['IS_NEW'] == 1) {
-        header("location: admin/wizard_corporation.php");
+        header("location: admin_v2/setup_new_account.php");
     } else {
         header("location: admin_v2/calendar.php");
     }
