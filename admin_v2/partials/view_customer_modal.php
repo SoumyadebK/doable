@@ -541,13 +541,18 @@ while (!$row->EOF) {
                                     $enrollment_name = '';
                                 } else {
                                     $enrollment_name = "$name" . " - ";
+                                }
+                                if ($payment_due->fields['AMOUNT_REMAIN'] > 0) {
+                                    $BILLED_AMOUNT = $payment_due->fields['AMOUNT_REMAIN'];
+                                } else {
+                                    $BILLED_AMOUNT = $payment_due->fields['BILLED_AMOUNT'];
                                 } ?>
                                 <tr>
                                     <td><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
                                     <td><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
-                                    <td>$<?= number_format($payment_due->fields['BILLED_AMOUNT'], 2) ?></td>
+                                    <td>$<?= number_format($BILLED_AMOUNT, 2) ?></td>
                                     <td>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $payment_due->fields['BILLED_AMOUNT'] ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $BILLED_AMOUNT ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="editDueDate(<?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?>', 'billing')">Edit Date</button>
                                     </td>
                                 </tr>
