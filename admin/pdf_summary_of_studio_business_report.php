@@ -366,10 +366,10 @@ function roundToNearestFiveCents($num)
                             <thead>
                                 <tr>
                                     <th style="width:5%; text-align: center; vertical-align:auto; font-weight: normal !important"></th>
-                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">Pre Original</th>
-                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">Original</th>
-                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">Extension</th>
-                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">Renewal</th>
+                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">1st Enrollment</th>
+                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">2nd Enrollment</th>
+                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">3rd Enrollment</th>
+                                    <th style="width:19%; text-align: center; font-weight: bold" colspan="2">4+ Enrollment</th>
                                     <th style="width:19%; text-align: center; font-weight: bold" colspan="2">Total</th>
                                 </tr>
                                 <?php

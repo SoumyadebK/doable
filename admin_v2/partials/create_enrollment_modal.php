@@ -275,12 +275,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if ($payment_gateway_type->RecordCount() > 0) { ?>
                         <div class="d-flex gap-3 mt-1 mb-2 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>"">
                             <label class=" radio" for="Session">
-                            <input type="radio" id="Session" name="CHARGE_TYPE" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?> onchange="chargeBySessions(this);">
+                            <input type="checkbox" id="Session" name="CHARGE_TYPE" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?>>
                             <span></span>
                             Charge by sessions
                             </label>
                             <label class="radio" for="Membership">
-                                <input type="radio" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?> onchange="chargeByMembership(this);">
+                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?>>
                                 <span></span>
                                 Membership
                             </label>
@@ -313,7 +313,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required>
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" readonly required>
                         <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
@@ -534,7 +534,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>">
+                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" readonly>
                     </div>
                 </div>
             </div>
@@ -604,7 +604,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-normal installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-normal installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?> readonly>
                         </div>
                     </div>
                 </div>
@@ -653,7 +653,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8" id="next_payment_dates_div">
                         <div class="form-group d-flex gap-2 mb-2">
-                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-normal">
+                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-normal" readonly>
                             <div class="position-relative">
                                 <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                 <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
@@ -1443,7 +1443,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
             $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
-                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future">
+                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" placeholder="Select date" required readonly>
                                                     <div class="position-relative">
                                                         <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                                         <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>

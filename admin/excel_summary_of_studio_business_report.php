@@ -628,7 +628,7 @@ $objPHPExcel->getActiveSheet()->getRowDimension($line)->setRowHeight(35);
 
 $cell_no = "B" . $line;
 $objPHPExcel->getActiveSheet()->mergeCells('B' . $line . ':C' . $line);
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Pre Original");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("1st Enrollment");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -636,7 +636,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "D" . $line;
 $objPHPExcel->getActiveSheet()->mergeCells('D' . $line . ':E' . $line);
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Original");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("2nd Enrollment");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -644,7 +644,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "F" . $line;
 $objPHPExcel->getActiveSheet()->mergeCells('F' . $line . ':G' . $line);
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Extension");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("3rd Enrollment");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -652,7 +652,7 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $cell_no = "H" . $line;
 $objPHPExcel->getActiveSheet()->mergeCells('H' . $line . ':I' . $line);
-$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Renewal");
+$objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("4+ Enrollment");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setWrapText(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);

@@ -538,6 +538,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #2e9a3e;
         }
 
+        .btn.primary:hover {
+            background: #2d8e3a;
+        }
+
         .checkrow {
             display: flex;
             align-items: center;
