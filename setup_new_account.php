@@ -4,6 +4,11 @@ require_once('global/config.php');
 global $db;
 global $db_account;
 
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
+    header("location:../login.php");
+    exit;
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Debug: Log all POST data
@@ -19,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $CORPORATION_DATA = array(
             'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
             'CORPORATION_NAME' => $corpName,
-            'CREDIT_CARD' => $corpCard,
             'ACTIVE' => 1,
             'CREATED_BY' => $_SESSION['PK_USER'],
             'CREATED_ON' => date("Y-m-d H:i:s")
         );
+        //pre_r($CORPORATION_DATA);
 
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'insert');
         $PK_CORPORATION = $db->insert_ID();
@@ -36,20 +41,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($_POST['location'] as $location) {
                     if (!empty($location['name'])) {
                         $LOCATION_DATA = array(
+                            'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
                             'PK_CORPORATION' => $PK_CORPORATION,
                             'LOCATION_NAME' => trim($location['name'] ?? ''),
                             'CITY' => trim($location['city'] ?? ''),
-                            'STATE' => trim($location['state'] ?? ''),
+                            'PK_STATES' => trim($location['state'] ?? ''),
                             'ZIP_CODE' => trim($location['zip'] ?? ''),
                             'EMAIL' => trim($location['email'] ?? ''),
-                            'TIMEZONE' => trim($location['timezone'] ?? ''),
-                            'OPERATIONAL_HOURS' => trim($location['hours'] ?? ''),
-                            'CREDIT_CARD' => trim($location['card'] ?? ''),
+                            'PK_TIMEZONE' => trim($location['timezone'] ?? ''),
+                            //'OPERATIONAL_HOURS' => trim($location['hours'] ?? ''),
+                            //'CREDIT_CARD' => trim($location['card'] ?? ''),
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
+                        //pre_r($LOCATION_DATA);
                         db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+                        $PK_LOCATION = $db->insert_ID();
                     }
                 }
             }
@@ -59,18 +67,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($_POST['user'] as $user) {
                     if (!empty($user['name'])) {
                         $USER_DATA = array(
-                            'PK_CORPORATION' => $PK_CORPORATION,
-                            'USER_NAME' => trim($user['name'] ?? ''),
-                            'EMAIL' => trim($user['email'] ?? ''),
-                            'LOGIN' => trim($user['login'] ?? ''),
-                            'ROLE' => trim($user['role'] ?? ''),
-                            'SERVICE_HOURS' => trim($user['hours'] ?? ''),
+                            'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
+                            'FIRST_NAME' => trim($user['name'] ?? ''),
+                            'LAST_NAME' => '', // Assuming last name is not collected in this form
+                            'EMAIL_ID' => trim($user['email'] ?? ''),
+                            'USER_NAME' => trim($user['login'] ?? ''),
+                            'CREATE_LOGIN' => 1,
+
+                            //'SERVICE_HOURS' => trim($user['hours'] ?? ''),
                             'APPEAR_IN_CALENDAR' => isset($user['calendar']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
-                        db_perform('DOA_USER', $USER_DATA, 'insert');
+                        //pre_r($USER_DATA);
+                        db_perform('DOA_USERS', $USER_DATA, 'insert');
+                        $PK_USER = $db->insert_ID();
+
+                        // Assign role to user
+                        if (!empty($user['role']) && $PK_USER) {
+                            $ROLE_DATA = array(
+                                'PK_USER' => $PK_USER,
+                                'PK_ROLES' => trim($user['role'] ?? '')
+                            );
+                            //pre_r($ROLE_DATA);
+                            db_perform('DOA_USER_ROLES', $ROLE_DATA, 'insert');
+                        }
                     }
                 }
             }
@@ -80,21 +102,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($_POST['service'] as $service) {
                     if (!empty($service['name'])) {
                         $SERVICE_DATA = array(
-                            'PK_CORPORATION' => $PK_CORPORATION,
+                            'PK_LOCATION' => $PK_LOCATION,
                             'SERVICE_NAME' => trim($service['name'] ?? ''),
-                            'SERVICE_CODE' => trim($service['code'] ?? ''),
-                            'PRICE' => floatval($service['price'] ?? 0),
-                            'SERVICE_CLASS' => trim($service['class'] ?? ''),
+                            'PK_SERVICE_CLASS' => trim($service['class'] ?? ''),
                             'DESCRIPTION' => trim($service['description'] ?? ''),
-                            'SORT_NUMBER' => intval($service['sort'] ?? 0),
-                            'CHARGEABLE' => isset($service['chargeable']) ? 1 : 0,
-                            'IS_GROUP_SERVICE' => isset($service['group']) ? 1 : 0,
-                            'SHOW_IN_CALENDAR' => isset($service['calendar']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
-                        db_perform('DOA_SERVICE', $SERVICE_DATA, 'insert');
+                        //pre_r($SERVICE_DATA);
+                        db_perform_account('DOA_SERVICE_MASTER', $SERVICE_DATA, 'insert');
+                        $PK_SERVICE_MASTER = $db_account->insert_ID();
+
+                        if ($PK_SERVICE_MASTER) {
+                            // Link service to service code
+                            $SERVICE_CODE_DATA = array(
+                                'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                                'PK_LOCATION' => $PK_LOCATION,
+                                'SERVICE_CODE' => trim($service['code'] ?? ''),
+                                'DESCRIPTION' => trim($service['description'] ?? ''),
+                                'IS_GROUP' => isset($service['group']) ? 1 : 0,
+                                'IS_CHARGEABLE' => isset($service['chargeable']) ? 1 : 0,
+                                'PRICE' => floatval(number_format($service['price'], 2) ?? 0),
+                                'ACTIVE' => 1,
+                                'SHOW_IN_CALENDAR' => isset($service['calendar']) ? 1 : 0,
+                                'SORT_ORDER' => intval($service['sort'] ?? 0)
+                            );
+                            //pre_r($SERVICE_CODE_DATA);
+                            db_perform_account('DOA_SERVICE_CODE', $SERVICE_CODE_DATA, 'insert');
+                            $PK_SERVICE_CODE = $db_account->insert_ID();
+                        }
                     }
                 }
             }
@@ -104,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($_POST['package'] as $package) {
                     if (!empty($package['name'])) {
                         $PACKAGE_DATA = array(
-                            'PK_CORPORATION' => $PK_CORPORATION,
+                            'PK_LOCATION' => $PK_LOCATION,
                             'PACKAGE_NAME' => trim($package['name'] ?? ''),
                             'PACKAGE_CODE' => trim($package['code'] ?? ''),
                             'PRICE' => floatval($package['price'] ?? 0),
@@ -112,15 +149,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'DESCRIPTION' => trim($package['description'] ?? ''),
                             'SERVICES_INCLUDED' => trim($package['services'] ?? ''),
                             'SESSION_LIMIT' => !empty($package['limit']) ? intval($package['limit']) : null,
-                            'EXPIRY_DAYS' => !empty($package['expiry']) ? intval($package['expiry']) : null,
-                            'SORT_NUMBER' => intval($package['sort'] ?? 0),
-                            'IS_ACTIVE' => isset($package['active']) ? 1 : 0,
+                            'EXPIRY_DATE' => !empty($package['expiry']) ? intval($package['expiry']) : null,
+                            'SORT_ORDER' => intval($package['sort'] ?? 0),
+                            'ACTIVE' => isset($package['active']) ? 1 : 0,
                             'CHARGEABLE' => isset($package['chargeable']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
-                        db_perform('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+                        pre_r($PACKAGE_DATA);
+                        db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
+                        $PK_PACKAGE = $db_account->insert_ID();
+
+                        if ($PK_PACKAGE) {
+                            $PACKAGE_LOCATION_DATA = array(
+                                'PK_PACKAGE' => $PK_PACKAGE,
+                                'PK_LOCATION' => $PK_LOCATION
+                            );
+                            db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+                            // Link package to services
+                            if (isset($package['services_included']) && is_array($package['services_included'])) {
+                                foreach ($package['services_included'] as $serviceId) {
+                                    $PACKAGE_SERVICE_DATA = array(
+                                        'PK_PACKAGE' => $PK_PACKAGE,
+                                        'PK_SERVICE_MASTER' => trim($serviceId),
+                                        'SERVICE_DETAILS' => trim($package['services'] ?? ''),
+
+                                    );
+                                    //pre_r($PACKAGE_SERVICE_DATA);
+                                    db_perform_account('DOA_PACKAGE_SERVICES', $PACKAGE_SERVICE_DATA, 'insert');
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -648,45 +708,202 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
 
     <script>
-        const steps = [{
-                id: 'corp',
-                label: 'Corporation'
-            },
-            {
-                id: 'location',
-                label: 'Locations'
-            },
-            {
-                id: 'users',
-                label: 'Users'
-            },
-            {
-                id: 'services',
-                label: 'Services'
-            },
-            {
-                id: 'packages',
-                label: 'Packages'
+        // Simple solution - ensure all fields are visible and submitted
+        let currentStep = 0;
+        const steps = ['corp', 'location', 'users', 'services', 'packages'];
+
+        // Store data in hidden fields to ensure submission
+        function updateCorpData() {
+            const corpName = document.querySelector('input[name="corp_name"]');
+            const corpCard = document.querySelector('input[name="corp_card"]');
+
+            if (corpName) {
+                console.log('Corp name value:', corpName.value);
             }
-        ];
+        }
 
-        let current = 0;
-        const counters = {
-            location: 0,
-            user: 0,
-            service: 0,
-            package: 0
-        };
+        function showStep(step) {
+            // Hide all panels
+            document.querySelectorAll('.panel-step').forEach(panel => {
+                panel.style.display = 'none';
+            });
 
-        // Store all form data
-        let formData = {
-            corp_name: '',
-            corp_card: '',
-            location: {},
-            user: {},
-            service: {},
-            package: {}
-        };
+            // Show current panel
+            const currentPanel = document.getElementById('step-' + steps[step]);
+            if (currentPanel) {
+                currentPanel.style.display = 'block';
+            }
+
+            // Update sidebar
+            updateSidebar(step);
+
+            // Update buttons
+            document.getElementById('backBtn').style.visibility = step === 0 ? 'hidden' : 'visible';
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.textContent = step === steps.length - 1 ? 'Submit ✓' : 'Next →';
+            document.getElementById('stepCounter').textContent = `Step ${step + 1} of ${steps.length}`;
+        }
+
+        function updateSidebar(activeStep) {
+            const sidebar = document.getElementById('sidebar');
+            const stepNames = ['Corporation', 'Locations', 'Users', 'Services', 'Packages'];
+
+            sidebar.innerHTML = stepNames.map((name, idx) => {
+                let dotClass = '';
+                let labelClass = '';
+                let lineClass = '';
+                let symbol = idx + 1;
+
+                if (idx < activeStep) {
+                    dotClass = 'done';
+                    labelClass = 'done';
+                    lineClass = 'done';
+                    symbol = '✓';
+                } else if (idx === activeStep) {
+                    dotClass = 'active';
+                    labelClass = 'active';
+                }
+
+                return `
+                    <div class="side-step" onclick="goToStep(${idx})">
+                        ${idx < steps.length - 1 ? `<div class="side-line ${lineClass}"></div>` : ''}
+                        <div class="dot ${dotClass}">${symbol}</div>
+                        <span class="side-label ${labelClass}">${name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function goToStep(step) {
+            currentStep = step;
+            showStep(currentStep);
+        }
+
+        function navigate(direction) {
+            if (direction === 1 && currentStep === steps.length - 1) {
+                // Before submitting, make sure all data is captured
+                updateCorpData();
+
+                if (confirm('Are you sure you want to submit all data?')) {
+                    document.getElementById('wizardForm').submit();
+                }
+                return;
+            }
+
+            currentStep += direction;
+            if (currentStep < 0) currentStep = 0;
+            if (currentStep >= steps.length) currentStep = steps.length - 1;
+            showStep(currentStep);
+        }
+
+        function addRecord(type) {
+            const list = document.getElementById(type + '-list');
+            if (!list) return;
+
+            const counter = list.querySelectorAll('.record-block').length + 1;
+            const uid = type + '-' + counter;
+
+            let fieldsHtml = '';
+            if (type === 'location') {
+                fieldsHtml = getLocationFields(counter);
+            } else if (type === 'user') {
+                fieldsHtml = getUserFields(counter);
+            } else if (type === 'service') {
+                fieldsHtml = getServiceFields(counter);
+            } else if (type === 'package') {
+                fieldsHtml = getPackageFields(counter);
+            }
+
+            const div = document.createElement('div');
+            div.className = 'record-block';
+            div.id = uid;
+            div.innerHTML = `
+                <div class="record-header" onclick="toggleRecord('${uid}')">
+                    <span class="record-label">
+                        <span class="chevron open" id="chev-${uid}">▼</span>
+                        ${type.charAt(0).toUpperCase() + type.slice(1)} #${counter}
+                    </span>
+                    ${counter > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
+                </div>
+                <div class="record-body open" id="body-${uid}">${fieldsHtml}</div>
+            `;
+            list.appendChild(div);
+        }
+
+        function getLocationFields(i) {
+            return `<div class="field-grid">
+                <div class="field-group full"><label>Location Name / Business Name / DBA <span class="req">*</span></label><input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch"></div>
+                <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City"></div>
+                <div class="field-group"><label>State <span class="req">*</span></label><input type="text" name="location[${i}][state]" placeholder="State"></div>
+                <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP"></div>
+                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="location[${i}][email]" placeholder="location@email.com"></div>
+                <div class="field-group"><label>Time Zone <span class="req">*</span></label>
+                    <select name="location[${i}][timezone]"><option value="">Select time zone</option><option>Eastern Time (ET)</option><option>Central Time (CT)</option><option>Mountain Time (MT)</option><option>Pacific Time (PT)</option></select>
+                </div>
+                <div class="field-group"><label>Operational Hours <span class="req">*</span></label><input type="text" name="location[${i}][hours]" placeholder="e.g. Mon–Fri 9am–6pm"></div>
+                <div class="field-group full"><label>Credit Card <span class="req">*</span></label><input type="text" name="location[${i}][card]" placeholder="Card on file for this location"></div>
+            </div>`;
+        }
+
+        function getUserFields(i) {
+            return `<div class="field-grid">
+                <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name"></div>
+                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com"></div>
+                <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID"></div>
+                <div class="field-group"><label>Role <span class="req">*</span></label>
+                    <select name="user[${i}][role]"><option value="">Select role</option><option value="2">Account Admin</option><option value="3">Manager</option><option value="4">Administrative Assistant</option><option value="5">Counsellor</option><option value="6">Supervisor</option><option value="7">Service Provider</option><option value="8">Account User</option><option value="9">Account Accountant</option><option value="10">Customer</option></select>
+                </div>
+                <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm"></div>
+                <div class="field-group" style="justify-content:flex-end;padding-top:20px">
+                    <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1"><label for="cal-${i}">Appear in Calendar</label></div>
+                </div>
+            </div>`;
+        }
+
+        function getServiceFields(i) {
+            return `<div class="field-grid">
+                <div class="field-group"><label>Service Name <span class="req">*</span></label><input type="text" name="service[${i}][name]" placeholder="e.g. Initial Consultation"></div>
+                <div class="field-group"><label>Code <span class="req">*</span></label><input type="text" name="service[${i}][code]" placeholder="e.g. SVC-001"></div>
+                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="service[${i}][price]" placeholder="$0.00"></div>
+                <div class="field-group"><label>Service Class <span class="req">*</span></label>
+                    <select name="service[${i}][class]"><option value="">Select class</option><option value="1">Membership</option><option value="2">Sessions</option><option value="5">MISC</option></select>
+                </div>
+                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="service[${i}][description]" placeholder="Brief description of this service"></textarea></div>
+                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1"></div>
+                <div class="field-group" style="padding-top:4px">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <div class="checkrow"><input type="checkbox" name="service[${i}][chargeable]" id="chargeable-${i}" value="1"><label for="chargeable-${i}">Chargeable to client account</label></div>
+                        <div class="checkrow"><input type="checkbox" name="service[${i}][group]" id="group-${i}" value="1"><label for="group-${i}">Is this a group service?</label></div>
+                        <div class="checkrow"><input type="checkbox" name="service[${i}][calendar]" id="calcount-${i}" value="1"><label for="calcount-${i}">Show in calendar count</label></div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function getPackageFields(i) {
+            return `<div class="field-grid">
+                <div class="pkg-divider">Package Details</div>
+                <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${i}][name]" placeholder="e.g. Starter Pack"></div>
+                <div class="field-group"><label>Package Code <span class="req">*</span></label><input type="text" name="package[${i}][code]" placeholder="e.g. PKG-001"></div>
+                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="package[${i}][price]" placeholder="$0.00"></div>
+                <div class="field-group"><label>Billing Cycle <span class="req">*</span></label>
+                    <select name="package[${i}][billing]"><option value="">Select</option><option>One-time</option><option>Weekly</option><option>Monthly</option><option>Annually</option></select>
+                </div>
+                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="package[${i}][description]" placeholder="What's included in this package?"></textarea></div>
+                <div class="pkg-divider">Services Included</div>
+                <div class="field-group full"><label>Services <span class="req">*</span></label><input type="text" name="package[${i}][services]" placeholder="e.g. SVC-001, SVC-002 (comma-separated codes)"></div>
+                <div class="field-group"><label>Session / Visit Limit</label><input type="number" name="package[${i}][limit]" placeholder="Leave blank for unlimited"></div>
+                <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${i}][expiry]" placeholder="Leave blank if none"></div>
+                <div class="pkg-divider">Options</div>
+                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="package[${i}][sort]" placeholder="1"></div>
+                <div class="field-group" style="padding-top:4px">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <div class="checkrow"><input type="checkbox" name="package[${i}][active]" id="pkg-active-${i}" value="1"><label for="pkg-active-${i}">Active / available for purchase</label></div>
+                        <div class="checkrow"><input type="checkbox" name="package[${i}][chargeable]" id="pkg-client-${i}" value="1"><label for="pkg-client-${i}">Chargeable to client account</label></div>
+                    </div>
+                </div>
+            </div>`;
+        }
 
         function toggleRecord(uid) {
             const body = document.getElementById('body-' + uid);
@@ -698,414 +915,188 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        function saveCurrentPanelData() {
-            const currentId = steps[current].id;
-
-            if (currentId === 'corp') {
-                const corpName = document.querySelector('input[name="corp_name"]');
-                const corpCard = document.querySelector('input[name="corp_card"]');
-                if (corpName) formData.corp_name = corpName.value;
-                if (corpCard) formData.corp_card = corpCard.value;
-            } else if (currentId === 'location') {
-                // Save location data
-                const locations = document.querySelectorAll('[id^="location-"]');
-                locations.forEach((location, idx) => {
-                    const i = idx + 1;
-                    formData.location[i] = {
-                        name: document.querySelector(`input[name="location[${i}][name]"]`)?.value || '',
-                        city: document.querySelector(`input[name="location[${i}][city]"]`)?.value || '',
-                        state: document.querySelector(`input[name="location[${i}][state]"]`)?.value || '',
-                        zip: document.querySelector(`input[name="location[${i}][zip]"]`)?.value || '',
-                        email: document.querySelector(`input[name="location[${i}][email]"]`)?.value || '',
-                        timezone: document.querySelector(`select[name="location[${i}][timezone]"]`)?.value || '',
-                        hours: document.querySelector(`input[name="location[${i}][hours]"]`)?.value || '',
-                        card: document.querySelector(`input[name="location[${i}][card]"]`)?.value || ''
-                    };
-                });
-            } else if (currentId === 'users') {
-                // Save user data
-                const users = document.querySelectorAll('[id^="user-"]');
-                users.forEach((user, idx) => {
-                    const i = idx + 1;
-                    formData.user[i] = {
-                        name: document.querySelector(`input[name="user[${i}][name]"]`)?.value || '',
-                        email: document.querySelector(`input[name="user[${i}][email]"]`)?.value || '',
-                        login: document.querySelector(`input[name="user[${i}][login]"]`)?.value || '',
-                        role: document.querySelector(`select[name="user[${i}][role]"]`)?.value || '',
-                        hours: document.querySelector(`input[name="user[${i}][hours]"]`)?.value || '',
-                        calendar: document.querySelector(`input[name="user[${i}][calendar]"]`)?.checked || false
-                    };
-                });
-            } else if (currentId === 'services') {
-                // Save service data
-                const services = document.querySelectorAll('[id^="service-"]');
-                services.forEach((service, idx) => {
-                    const i = idx + 1;
-                    formData.service[i] = {
-                        name: document.querySelector(`input[name="service[${i}][name]"]`)?.value || '',
-                        code: document.querySelector(`input[name="service[${i}][code]"]`)?.value || '',
-                        price: document.querySelector(`input[name="service[${i}][price]"]`)?.value || '',
-                        class: document.querySelector(`input[name="service[${i}][class]"]`)?.value || '',
-                        description: document.querySelector(`textarea[name="service[${i}][description]"]`)?.value || '',
-                        sort: document.querySelector(`input[name="service[${i}][sort]"]`)?.value || '',
-                        chargeable: document.querySelector(`input[name="service[${i}][chargeable]"]`)?.checked || false,
-                        group: document.querySelector(`input[name="service[${i}][group]"]`)?.checked || false,
-                        calendar: document.querySelector(`input[name="service[${i}][calendar]"]`)?.checked || false
-                    };
-                });
-            } else if (currentId === 'packages') {
-                // Save package data
-                const packages = document.querySelectorAll('[id^="package-"]');
-                packages.forEach((pkg, idx) => {
-                    const i = idx + 1;
-                    formData.package[i] = {
-                        name: document.querySelector(`input[name="package[${i}][name]"]`)?.value || '',
-                        code: document.querySelector(`input[name="package[${i}][code]"]`)?.value || '',
-                        price: document.querySelector(`input[name="package[${i}][price]"]`)?.value || '',
-                        billing: document.querySelector(`select[name="package[${i}][billing]"]`)?.value || '',
-                        description: document.querySelector(`textarea[name="package[${i}][description]"]`)?.value || '',
-                        services: document.querySelector(`input[name="package[${i}][services]"]`)?.value || '',
-                        limit: document.querySelector(`input[name="package[${i}][limit]"]`)?.value || '',
-                        expiry: document.querySelector(`input[name="package[${i}][expiry]"]`)?.value || '',
-                        sort: document.querySelector(`input[name="package[${i}][sort]"]`)?.value || '',
-                        active: document.querySelector(`input[name="package[${i}][active]"]`)?.checked || false,
-                        chargeable: document.querySelector(`input[name="package[${i}][chargeable]"]`)?.checked || false
-                    };
-                });
-            }
-        }
-
-        function loadPanelData() {
-            const currentId = steps[current].id;
-
-            if (currentId === 'corp') {
-                const corpName = document.querySelector('input[name="corp_name"]');
-                const corpCard = document.querySelector('input[name="corp_card"]');
-                if (corpName && formData.corp_name) corpName.value = formData.corp_name;
-                if (corpCard && formData.corp_card) corpCard.value = formData.corp_card;
-            }
-        }
-
-        function rebuildFieldsFromSavedData(type) {
-            // Clear existing fields
-            const list = document.getElementById(type + '-list');
-            list.innerHTML = '';
-
-            // Get saved data for this type
-            const savedData = formData[type];
-
-            if (type === 'location') {
-                // Rebuild location fields
-                const locationKeys = Object.keys(savedData);
-                if (locationKeys.length === 0) {
-                    // Add default empty location
-                    counters[type] = 0;
-                    addRecord(type, true);
-                } else {
-                    counters[type] = 0;
-                    locationKeys.forEach(key => {
-                        counters[type]++;
-                        const i = counters[type];
-                        const uid = type + '-' + i;
-                        const div = document.createElement('div');
-                        div.className = 'record-block';
-                        div.id = uid;
-                        div.innerHTML = `
-                        <div class="record-header" onclick="toggleRecord('${uid}')">
-                            <span class="record-label">
-                                <span class="chevron open" id="chev-${uid}">▼</span>
-                                ${type === 'location' ? 'Location' : type === 'user' ? 'User / Employee' : type === 'service' ? 'Service' : 'Package'} #${i}
-                            </span>
-                            ${i > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-                        </div>
-                        <div class="record-body open" id="body-${uid}">${getFieldsHtml(type, i)}</div>`;
-                        list.appendChild(div);
-                    });
-                }
-            } else if (type === 'user') {
-                const userKeys = Object.keys(savedData);
-                if (userKeys.length === 0) {
-                    counters[type] = 0;
-                    addRecord(type, true);
-                } else {
-                    counters[type] = 0;
-                    userKeys.forEach(key => {
-                        counters[type]++;
-                        const i = counters[type];
-                        const uid = type + '-' + i;
-                        const div = document.createElement('div');
-                        div.className = 'record-block';
-                        div.id = uid;
-                        div.innerHTML = `
-                        <div class="record-header" onclick="toggleRecord('${uid}')">
-                            <span class="record-label">
-                                <span class="chevron open" id="chev-${uid}">▼</span>
-                                ${type === 'location' ? 'Location' : type === 'user' ? 'User / Employee' : type === 'service' ? 'Service' : 'Package'} #${i}
-                            </span>
-                            ${i > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-                        </div>
-                        <div class="record-body open" id="body-${uid}">${getFieldsHtml(type, i)}</div>`;
-                        list.appendChild(div);
-                    });
-                }
-            } else if (type === 'service') {
-                const serviceKeys = Object.keys(savedData);
-                if (serviceKeys.length === 0) {
-                    counters[type] = 0;
-                    addRecord(type, true);
-                } else {
-                    counters[type] = 0;
-                    serviceKeys.forEach(key => {
-                        counters[type]++;
-                        const i = counters[type];
-                        const uid = type + '-' + i;
-                        const div = document.createElement('div');
-                        div.className = 'record-block';
-                        div.id = uid;
-                        div.innerHTML = `
-                        <div class="record-header" onclick="toggleRecord('${uid}')">
-                            <span class="record-label">
-                                <span class="chevron open" id="chev-${uid}">▼</span>
-                                ${type === 'location' ? 'Location' : type === 'user' ? 'User / Employee' : type === 'service' ? 'Service' : 'Package'} #${i}
-                            </span>
-                            ${i > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-                        </div>
-                        <div class="record-body open" id="body-${uid}">${getFieldsHtml(type, i)}</div>`;
-                        list.appendChild(div);
-                    });
-                }
-            } else if (type === 'package') {
-                const packageKeys = Object.keys(savedData);
-                if (packageKeys.length === 0) {
-                    counters[type] = 0;
-                    addRecord(type, true);
-                } else {
-                    counters[type] = 0;
-                    packageKeys.forEach(key => {
-                        counters[type]++;
-                        const i = counters[type];
-                        const uid = type + '-' + i;
-                        const div = document.createElement('div');
-                        div.className = 'record-block';
-                        div.id = uid;
-                        div.innerHTML = `
-                        <div class="record-header" onclick="toggleRecord('${uid}')">
-                            <span class="record-label">
-                                <span class="chevron open" id="chev-${uid}">▼</span>
-                                ${type === 'location' ? 'Location' : type === 'user' ? 'User / Employee' : type === 'service' ? 'Service' : 'Package'} #${i}
-                            </span>
-                            ${i > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-                        </div>
-                        <div class="record-body open" id="body-${uid}">${getFieldsHtml(type, i)}</div>`;
-                        list.appendChild(div);
-                    });
-                }
-            }
-        }
-
-        function getFieldsHtml(type, i) {
-            if (type === 'location') {
-                return `<div class="field-grid">
-                <div class="field-group full"><label>Location Name / Business Name / DBA <span class="req">*</span></label><input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch" value="${formData.location[i]?.name || ''}"></div>
-                <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City" value="${formData.location[i]?.city || ''}"></div>
-                <div class="field-group"><label>State <span class="req">*</span></label><input type="text" name="location[${i}][state]" placeholder="State" value="${formData.location[i]?.state || ''}"></div>
-                <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP" value="${formData.location[i]?.zip || ''}"></div>
-                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="location[${i}][email]" placeholder="location@email.com" value="${formData.location[i]?.email || ''}"></div>
-                <div class="field-group"><label>Time Zone <span class="req">*</span></label>
-                    <select name="location[${i}][timezone]"><option value="">Select time zone</option><option ${formData.location[i]?.timezone === 'Eastern Time (ET)' ? 'selected' : ''}>Eastern Time (ET)</option><option ${formData.location[i]?.timezone === 'Central Time (CT)' ? 'selected' : ''}>Central Time (CT)</option><option ${formData.location[i]?.timezone === 'Mountain Time (MT)' ? 'selected' : ''}>Mountain Time (MT)</option><option ${formData.location[i]?.timezone === 'Pacific Time (PT)' ? 'selected' : ''}>Pacific Time (PT)</option></select>
-                </div>
-                <div class="field-group"><label>Operational Hours <span class="req">*</span></label><input type="text" name="location[${i}][hours]" placeholder="e.g. Mon–Fri 9am–6pm" value="${formData.location[i]?.hours || ''}"></div>
-                <div class="field-group full"><label>Credit Card <span class="req">*</span></label><input type="text" name="location[${i}][card]" placeholder="Card on file for this location" value="${formData.location[i]?.card || ''}"></div>
-            </div>`;
-            } else if (type === 'user') {
-                return `<div class="field-grid">
-                <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name" value="${formData.user[i]?.name || ''}"></div>
-                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com" value="${formData.user[i]?.email || ''}"></div>
-                <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID" value="${formData.user[i]?.login || ''}"></div>
-                <div class="field-group"><label>Role <span class="req">*</span></label>
-                    <select name="user[${i}][role]"><option value="">Select role</option><option ${formData.user[i]?.role === 'Admin' ? 'selected' : ''}>Admin</option><option ${formData.user[i]?.role === 'Employee' ? 'selected' : ''}>Employee</option><option ${formData.user[i]?.role === 'Contractor' ? 'selected' : ''}>Contractor</option><option ${formData.user[i]?.role === 'Manager' ? 'selected' : ''}>Manager</option></select>
-                </div>
-                <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm" value="${formData.user[i]?.hours || ''}"></div>
-                <div class="field-group" style="justify-content:flex-end;padding-top:20px">
-                    <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1" ${formData.user[i]?.calendar ? 'checked' : ''}><label for="cal-${i}">Appear in Calendar</label></div>
-                </div>
-            </div>`;
-            } else if (type === 'service') {
-                return `<div class="field-grid">
-                <div class="field-group"><label>Service Name <span class="req">*</span></label><input type="text" name="service[${i}][name]" placeholder="e.g. Initial Consultation" value="${formData.service[i]?.name || ''}"></div>
-                <div class="field-group"><label>Code <span class="req">*</span></label><input type="text" name="service[${i}][code]" placeholder="e.g. SVC-001" value="${formData.service[i]?.code || ''}"></div>
-                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="service[${i}][price]" placeholder="$0.00" value="${formData.service[i]?.price || ''}"></div>
-                <div class="field-group"><label>Service Class <span class="req">*</span></label><input type="text" name="service[${i}][class]" placeholder="Class" value="${formData.service[i]?.class || ''}"></div>
-                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="service[${i}][description]" placeholder="Brief description of this service">${formData.service[i]?.description || ''}</textarea></div>
-                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1" value="${formData.service[i]?.sort || ''}"></div>
-                <div class="field-group" style="padding-top:4px">
-                    <div style="display:flex;flex-direction:column;gap:8px">
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][chargeable]" id="chargeable-${i}" value="1" ${formData.service[i]?.chargeable ? 'checked' : ''}><label for="chargeable-${i}">Chargeable to client account</label></div>
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][group]" id="group-${i}" value="1" ${formData.service[i]?.group ? 'checked' : ''}><label for="group-${i}">Is this a group service?</label></div>
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][calendar]" id="calcount-${i}" value="1" ${formData.service[i]?.calendar ? 'checked' : ''}><label for="calcount-${i}">Show in calendar count</label></div>
-                    </div>
-                </div>
-            </div>`;
-            } else if (type === 'package') {
-                return `<div class="field-grid">
-                <div class="pkg-divider">Package Details</div>
-                <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${i}][name]" placeholder="e.g. Starter Pack" value="${formData.package[i]?.name || ''}"></div>
-                <div class="field-group"><label>Package Code <span class="req">*</span></label><input type="text" name="package[${i}][code]" placeholder="e.g. PKG-001" value="${formData.package[i]?.code || ''}"></div>
-                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="package[${i}][price]" placeholder="$0.00" value="${formData.package[i]?.price || ''}"></div>
-                <div class="field-group"><label>Billing Cycle <span class="req">*</span></label>
-                    <select name="package[${i}][billing]"><option value="">Select</option><option ${formData.package[i]?.billing === 'One-time' ? 'selected' : ''}>One-time</option><option ${formData.package[i]?.billing === 'Weekly' ? 'selected' : ''}>Weekly</option><option ${formData.package[i]?.billing === 'Monthly' ? 'selected' : ''}>Monthly</option><option ${formData.package[i]?.billing === 'Annually' ? 'selected' : ''}>Annually</option></select>
-                </div>
-                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="package[${i}][description]" placeholder="What's included in this package?">${formData.package[i]?.description || ''}</textarea></div>
-                <div class="pkg-divider">Services Included</div>
-                <div class="field-group full"><label>Services <span class="req">*</span></label><input type="text" name="package[${i}][services]" placeholder="e.g. SVC-001, SVC-002 (comma-separated codes)" value="${formData.package[i]?.services || ''}"></div>
-                <div class="field-group"><label>Session / Visit Limit</label><input type="number" name="package[${i}][limit]" placeholder="Leave blank for unlimited" value="${formData.package[i]?.limit || ''}"></div>
-                <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${i}][expiry]" placeholder="Leave blank if none" value="${formData.package[i]?.expiry || ''}"></div>
-                <div class="pkg-divider">Options</div>
-                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="package[${i}][sort]" placeholder="1" value="${formData.package[i]?.sort || ''}"></div>
-                <div class="field-group" style="padding-top:4px">
-                    <div style="display:flex;flex-direction:column;gap:8px">
-                        <div class="checkrow"><input type="checkbox" name="package[${i}][active]" id="pkg-active-${i}" value="1" ${formData.package[i]?.active ? 'checked' : ''}><label for="pkg-active-${i}">Active / available for purchase</label></div>
-                        <div class="checkrow"><input type="checkbox" name="package[${i}][chargeable]" id="pkg-client-${i}" value="1" ${formData.package[i]?.chargeable ? 'checked' : ''}><label for="pkg-client-${i}">Chargeable to client account</label></div>
-                    </div>
-                </div>
-            </div>`;
-            }
-        }
-
-        function addRecord(type, openBody) {
-            counters[type]++;
-            const i = counters[type];
-            const list = document.getElementById(type + '-list');
-            const labels = {
-                location: 'Location',
-                user: 'User / Employee',
-                service: 'Service',
-                package: 'Package'
-            };
-            const uid = type + '-' + i;
-            const div = document.createElement('div');
-            div.className = 'record-block';
-            div.id = uid;
-            div.innerHTML = `
-            <div class="record-header" onclick="toggleRecord('${uid}')">
-                <span class="record-label">
-                    <span class="chevron ${openBody ? 'open' : ''}" id="chev-${uid}">▼</span>
-                    ${labels[type]} #${i}
-                </span>
-                ${i > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-            </div>
-            <div class="record-body ${openBody ? 'open' : ''}" id="body-${uid}">${getFieldsHtml(type, i)}</div>`;
-            list.appendChild(div);
-        }
-
         function removeRecord(uid) {
             const el = document.getElementById(uid);
             if (el) el.remove();
         }
 
-        const panelHTML = {
-            corp: `<div class="panel-title">Corporation / Entity</div>
-            <div class="panel-sub">Basic information about your corporation or business entity.</div>
-            <div class="field-grid">
-                <div class="field-group full"><label>Corporation / Entity Name <span class="req">*</span></label><input type="text" name="corp_name" placeholder="e.g. Acme Corp — or owner's name if no formal entity" value="${formData.corp_name}"></div>
-                <div class="field-group full"><label>Credit Card <span class="req">*</span></label><input type="text" name="corp_card" placeholder="Card on file" value="${formData.corp_card}"></div>
-            </div>`,
-            location: `<div class="panel-title">Locations</div>
-            <div class="panel-sub">Add one or more business locations. Click a header to expand or collapse.</div>
-            <div id="location-list"></div>
-            <button type="button" class="add-btn" onclick="addRecord('location', true)">+ Add another location</button>`,
-            users: `<div class="panel-title">Users / Employees / Contractors</div>
-            <div class="panel-sub">Add all team members who will use the system.</div>
-            <div id="user-list"></div>
-            <button type="button" class="add-btn" onclick="addRecord('user', true)">+ Add another user</button>`,
-            services: `<div class="panel-title">Services</div>
-            <div class="panel-sub">Define the services your business offers. A default scheduling code is applied automatically.</div>
-            <div id="service-list"></div>
-            <button type="button" class="add-btn" onclick="addRecord('service', true)">+ Add another service</button>`,
-            packages: `<div class="panel-title">Packages</div>
-            <div class="panel-sub">Bundle services into packages for client purchase or subscription.</div>
-            <div id="package-list"></div>
-            <button type="button" class="add-btn" onclick="addRecord('package', true)">+ Add another package</button>`
-        };
+        // Initialize the wizard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create panels container
+            const panelsContainer = document.getElementById('panels');
 
-        function renderSidebar() {
-            document.getElementById('sidebar').innerHTML = steps.map((s, idx) => {
-                const dotCls = idx < current ? 'done' : idx === current ? 'active' : '';
-                const labelCls = idx < current ? 'done' : idx === current ? 'active' : '';
-                const sym = idx < current ? '✓' : idx + 1;
-                const lineDone = idx < current ? 'done' : '';
-                return `<div class="side-step" onclick="goTo(${idx})">
-                ${idx < steps.length - 1 ? `<div class="side-line ${lineDone}"></div>` : ''}
-                <div class="dot ${dotCls}">${sym}</div>
-                <span class="side-label ${labelCls}">${s.label}</span>
-            </div>`;
+            // Create corporation panel
+            const corpPanel = document.createElement('div');
+            corpPanel.id = 'step-corp';
+            corpPanel.className = 'panel-step';
+            corpPanel.innerHTML = `
+                <div class="panel">
+                    <div class="panel-title">Corporation / Entity</div>
+                    <div class="panel-sub">Basic information about your corporation or business entity.</div>
+                    <div class="field-grid">
+                        <div class="field-group full">
+                            <label>Corporation / Entity Name <span class="req">*</span></label>
+                            <input type="text" name="corp_name" id="corp_name" placeholder="e.g. Acme Corp — or owner's name if no formal entity">
+                        </div>
+                        <div class="field-group full">
+                            <label>Credit Card <span class="req">*</span></label>
+                            <input type="text" name="corp_card" id="corp_card" placeholder="Card on file">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create location panel
+            const locationPanel = document.createElement('div');
+            locationPanel.id = 'step-location';
+            locationPanel.className = 'panel-step';
+            locationPanel.style.display = 'none';
+            locationPanel.innerHTML = `
+                <div class="panel">
+                    <div class="panel-title">Locations</div>
+                    <div class="panel-sub">Add one or more business locations. Click a header to expand or collapse.</div>
+                    <div id="location-list"></div>
+                    <button type="button" class="add-btn" onclick="addRecord('location')">+ Add another location</button>
+                </div>
+            `;
+
+            // Create users panel
+            const usersPanel = document.createElement('div');
+            usersPanel.id = 'step-users';
+            usersPanel.className = 'panel-step';
+            usersPanel.style.display = 'none';
+            usersPanel.innerHTML = `
+                <div class="panel">
+                    <div class="panel-title">Users / Employees / Contractors</div>
+                    <div class="panel-sub">Add all team members who will use the system.</div>
+                    <div id="user-list"></div>
+                    <button type="button" class="add-btn" onclick="addRecord('user')">+ Add another user</button>
+                </div>
+            `;
+
+            // Create services panel
+            const servicesPanel = document.createElement('div');
+            servicesPanel.id = 'step-services';
+            servicesPanel.className = 'panel-step';
+            servicesPanel.style.display = 'none';
+            servicesPanel.innerHTML = `
+                <div class="panel">
+                    <div class="panel-title">Services</div>
+                    <div class="panel-sub">Define the services your business offers. A default scheduling code is applied automatically.</div>
+                    <div id="service-list"></div>
+                    <button type="button" class="add-btn" onclick="addRecord('service')">+ Add another service</button>
+                </div>
+            `;
+
+            // Create packages panel
+            const packagesPanel = document.createElement('div');
+            packagesPanel.id = 'step-packages';
+            packagesPanel.className = 'panel-step';
+            packagesPanel.style.display = 'none';
+            packagesPanel.innerHTML = `
+                <div class="panel">
+                    <div class="panel-title">Packages</div>
+                    <div class="panel-sub">Bundle services into packages for client purchase or subscription.</div>
+                    <div id="package-list"></div>
+                    <button type="button" class="add-btn" onclick="addRecord('package')">+ Add another package</button>
+                </div>
+            `;
+
+            panelsContainer.appendChild(corpPanel);
+            panelsContainer.appendChild(locationPanel);
+            panelsContainer.appendChild(usersPanel);
+            panelsContainer.appendChild(servicesPanel);
+            panelsContainer.appendChild(packagesPanel);
+
+            // Add default records
+            addRecord('location');
+            addRecord('user');
+            addRecord('service');
+            addRecord('package');
+
+            // Show first step
+            showStep(0);
+        });
+
+        function showStep(step) {
+            currentStep = step;
+            // Hide all panels
+            document.querySelectorAll('.panel-step').forEach(panel => {
+                panel.style.display = 'none';
+            });
+
+            // Show current panel
+            const currentPanel = document.getElementById('step-' + steps[step]);
+            if (currentPanel) {
+                currentPanel.style.display = 'block';
+            }
+
+            // Update sidebar
+            updateSidebar(step);
+
+            // Update buttons
+            const backBtn = document.getElementById('backBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            if (backBtn) backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+            if (nextBtn) nextBtn.textContent = step === steps.length - 1 ? 'Submit ✓' : 'Next →';
+            const stepCounter = document.getElementById('stepCounter');
+            if (stepCounter) stepCounter.textContent = `Step ${step + 1} of ${steps.length}`;
+        }
+
+        function updateSidebar(activeStep) {
+            const sidebar = document.getElementById('sidebar');
+            const stepNames = ['Corporation', 'Locations', 'Users', 'Services', 'Packages'];
+
+            sidebar.innerHTML = stepNames.map((name, idx) => {
+                let dotClass = '';
+                let labelClass = '';
+                let lineClass = '';
+                let symbol = idx + 1;
+
+                if (idx < activeStep) {
+                    dotClass = 'done';
+                    labelClass = 'done';
+                    lineClass = 'done';
+                    symbol = '✓';
+                } else if (idx === activeStep) {
+                    dotClass = 'active';
+                    labelClass = 'active';
+                }
+
+                return `
+                    <div class="side-step" onclick="goToStep(${idx})">
+                        ${idx < steps.length - 1 ? `<div class="side-line ${lineClass}"></div>` : ''}
+                        <div class="dot ${dotClass}">${symbol}</div>
+                        <span class="side-label ${labelClass}">${name}</span>
+                    </div>
+                `;
             }).join('');
         }
 
-        function renderPanel() {
-            saveCurrentPanelData();
-            const id = steps[current].id;
-            document.getElementById('panels').innerHTML = `<div class="panel">${panelHTML[id]}</div>`;
-
-            if (id === 'location') {
-                if (counters.location === 0) {
-                    rebuildFieldsFromSavedData('location');
-                }
-            }
-            if (id === 'users') {
-                if (counters.user === 0) {
-                    rebuildFieldsFromSavedData('user');
-                }
-            }
-            if (id === 'services') {
-                if (counters.service === 0) {
-                    rebuildFieldsFromSavedData('service');
-                }
-            }
-            if (id === 'packages') {
-                if (counters.package === 0) {
-                    rebuildFieldsFromSavedData('package');
-                }
-            }
-
-            loadPanelData();
-            document.getElementById('backBtn').style.visibility = current === 0 ? 'hidden' : 'visible';
-            document.getElementById('nextBtn').textContent = current === steps.length - 1 ? 'Submit ✓' : 'Next →';
-            document.getElementById('stepCounter').textContent = `Step ${current + 1} of ${steps.length}`;
+        function goToStep(step) {
+            showStep(step);
         }
 
-        function navigate(dir) {
-            if (dir === 1 && current === steps.length - 1) {
-                saveCurrentPanelData();
+        function navigate(direction) {
+            if (direction === 1 && currentStep === steps.length - 1) {
                 if (confirm('Are you sure you want to submit all data?')) {
                     document.getElementById('wizardForm').submit();
                 }
                 return;
             }
-            current = Math.max(0, Math.min(steps.length - 1, current + dir));
-            renderSidebar();
-            renderPanel();
+
+            const newStep = currentStep + direction;
+            if (newStep >= 0 && newStep < steps.length) {
+                showStep(newStep);
+            }
         }
 
-        function goTo(idx) {
-            saveCurrentPanelData();
-            current = idx;
-            renderSidebar();
-            renderPanel();
-        }
-
-        // Add form submission handler to ensure all data is captured
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('wizardForm');
-            form.addEventListener('submit', function(e) {
-                saveCurrentPanelData();
-                // The form will submit with all fields properly named
-            });
-        });
-
-        // Initialize
-        renderSidebar();
-        renderPanel();
+        // Make functions globally available
+        window.addRecord = addRecord;
+        window.toggleRecord = toggleRecord;
+        window.removeRecord = removeRecord;
+        window.navigate = navigate;
+        window.goToStep = goToStep;
     </script>
 </body>
 
