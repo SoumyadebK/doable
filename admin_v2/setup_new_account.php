@@ -1,5 +1,5 @@
 <?php
-require_once('global/config.php');
+require_once('../global/config.php');
 
 global $db;
 global $db_account;
@@ -84,6 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         db_perform('DOA_USERS', $USER_DATA, 'insert');
                         $PK_USER = $db->insert_ID();
 
+                        $USER_LOCATION_DATA = array(
+                            'PK_USER' => $PK_USER,
+                            'PK_LOCATION' => $PK_LOCATION
+                        );
+                        //pre_r($USER_LOCATION_DATA);
+                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
                         // Assign role to user
                         if (!empty($user['role']) && $PK_USER) {
                             $ROLE_DATA = array(
@@ -143,21 +150,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $PACKAGE_DATA = array(
                             'PK_LOCATION' => $PK_LOCATION,
                             'PACKAGE_NAME' => trim($package['name'] ?? ''),
-                            'PACKAGE_CODE' => trim($package['code'] ?? ''),
-                            'PRICE' => floatval($package['price'] ?? 0),
-                            'BILLING_CYCLE' => trim($package['billing'] ?? ''),
-                            'DESCRIPTION' => trim($package['description'] ?? ''),
-                            'SERVICES_INCLUDED' => trim($package['services'] ?? ''),
-                            'SESSION_LIMIT' => !empty($package['limit']) ? intval($package['limit']) : null,
+                            //'PACKAGE_CODE' => trim($package['code'] ?? ''),
+                            //'PRICE' => floatval($package['price'] ?? 0),
+                            //'BILLING_CYCLE' => trim($package['billing'] ?? ''),
+                            //'DESCRIPTION' => trim($package['description'] ?? ''),
+                            //'SERVICES_INCLUDED' => trim($package['services'] ?? ''),
+                            //'SESSION_LIMIT' => !empty($package['limit']) ? intval($package['limit']) : null,
                             'EXPIRY_DATE' => !empty($package['expiry']) ? intval($package['expiry']) : null,
                             'SORT_ORDER' => intval($package['sort'] ?? 0),
                             'ACTIVE' => isset($package['active']) ? 1 : 0,
-                            'CHARGEABLE' => isset($package['chargeable']) ? 1 : 0,
+                            //'CHARGEABLE' => isset($package['chargeable']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
-                        pre_r($PACKAGE_DATA);
+                        //pre_r($PACKAGE_DATA);
                         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
                         $PK_PACKAGE = $db_account->insert_ID();
 
@@ -166,23 +173,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'PK_PACKAGE' => $PK_PACKAGE,
                                 'PK_LOCATION' => $PK_LOCATION
                             );
+                            //pre_r($PACKAGE_LOCATION_DATA);
                             db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
 
                             // Link package to services
-                            if (isset($package['services_included']) && is_array($package['services_included'])) {
-                                foreach ($package['services_included'] as $serviceId) {
-                                    $PACKAGE_SERVICE_DATA = array(
-                                        'PK_PACKAGE' => $PK_PACKAGE,
-                                        'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
-                                        'PK_SERVICE_CODE' => $PK_SERVICE_CODE,
 
-                                        'SERVICE_DETAILS' => trim($package['services'] ?? ''),
-
-                                    );
-                                    //pre_r($PACKAGE_SERVICE_DATA);
-                                    db_perform_account('DOA_PACKAGE_SERVICES', $PACKAGE_SERVICE_DATA, 'insert');
-                                }
-                            }
+                            $PACKAGE_SERVICE_DATA = array(
+                                'PK_PACKAGE' => $PK_PACKAGE,
+                                'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                                'PK_SERVICE_CODE' => $PK_SERVICE_CODE,
+                                'SERVICE_DETAILS' => trim($package['services'] ?? ''),
+                                'FINAL_AMOUNT' => floatval($package['price'] ?? 0),
+                                'ACTIVE' => 1
+                            );
+                            //pre_r($PACKAGE_SERVICE_DATA);
+                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
                         }
                     }
                 }
@@ -668,10 +673,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-    <nav class="container-fluid d-flex justify-content-between align-items-center py-3 px-5 nav-new">
+    <nav class="container-fluid d-flex justify-content-between align-items-center py-3 px-10 nav-new">
         <div class="fw-bold fs-4" style="padding: 5px;">
-            <a href="index.php">
-                <img width="150" src="demo1/images/doable_logo.png" alt="Doable Logo" onerror="this.src='https://via.placeholder.com/150x50?text=Doable'">
+            <a href="https://doable.net/">
+                <img width="150" src="../demo1/images/doable_logo.png" alt="Doable Logo" onerror="this.src='https://via.placeholder.com/150x50?text=Doable'">
             </a>
         </div>
     </nav>
@@ -684,7 +689,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
 
                 <?php if (isset($success) && $success): ?>
-                    <div class="success-message">✓ Setup completed successfully! Corporation ID: <?= $PK_CORPORATION ?></div>
+                    <div class="success-message">✓ Setup completed successfully!</div>
+                    <div><a href="calendar.php">Click here to go to the main page.</a></div>
                 <?php endif; ?>
 
                 <?php if (!isset($success) || !$success): ?>
