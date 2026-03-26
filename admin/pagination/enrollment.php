@@ -119,7 +119,7 @@ while (!$enrollment_data->EOF) {
             $enr_refund_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Move' OR TYPE = 'Refund') AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
             if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] < $enr_total_amount->fields['TOTAL_AMOUNT'])) {
                 $amount_to_pay = $enr_total_amount->fields['TOTAL_AMOUNT'] - $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
-                $ledger_data = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+                $ledger_data = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_LEDGER.STATUS = 'A' AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                 $unpaid_count = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['PAID'] : 0;
             } elseif (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && (($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT']) > $enr_total_amount->fields['TOTAL_AMOUNT'])) {
                 $amount_to_return = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT'] - $enr_total_amount->fields['TOTAL_AMOUNT'];

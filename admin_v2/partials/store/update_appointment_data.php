@@ -41,6 +41,19 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     $GROUP_CLASS_USER_DATA['PK_USER'] = $_POST['SERVICE_PROVIDER_ID'];
     db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_USER_DATA, 'insert');
 
+
+    $group_class_customers = $db_account->Execute("SELECT PK_USER_MASTER FROM DOA_APPOINTMENT_CUSTOMER WHERE PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+    while (!$group_class_customers->EOF) {
+        $SELECTED_CUSTOMER = $group_class_customers->fields['PK_USER_MASTER'];
+        if ($GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] == 2) {
+            updateSessionCompletedCountGroupClass($PK_APPOINTMENT_MASTER, $SELECTED_CUSTOMER);
+        } else {
+            updateSessionCreatedCountGroupClass($PK_APPOINTMENT_MASTER, $SELECTED_CUSTOMER);
+        }
+        $group_class_customers->MoveNext();
+    }
+
+
     if (isset($_POST['PK_APPOINTMENT_STATUS'])) {
         $APPOINTMENT_STATUS_HISTORY_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
         $APPOINTMENT_STATUS_HISTORY_DATA['PK_USER'] = $_SESSION['PK_USER'];
