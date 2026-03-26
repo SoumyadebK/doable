@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
                             'PK_CORPORATION' => $PK_CORPORATION,
                             'LOCATION_NAME' => trim($location['name'] ?? ''),
+                            'LOCATION_CODE' => trim($location['code'] ?? ''),
                             'CITY' => trim($location['city'] ?? ''),
                             'PK_STATES' => trim($location['state'] ?? ''),
                             'ZIP_CODE' => trim($location['zip'] ?? ''),
@@ -100,15 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['user']) && is_array($_POST['user'])) {
                 foreach ($_POST['user'] as $user) {
                     if (!empty($user['name'])) {
+                        // Hash the password if provided
+                        $hashedPassword = '';
+                        if (!empty($user['password'])) {
+                            $hashedPassword = password_hash($user['password'], PASSWORD_DEFAULT);
+                        }
+
                         $USER_DATA = array(
                             'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
                             'FIRST_NAME' => trim($user['name'] ?? ''),
                             'LAST_NAME' => '', // Assuming last name is not collected in this form
                             'EMAIL_ID' => trim($user['email'] ?? ''),
                             'USER_NAME' => trim($user['login'] ?? ''),
+                            'PASSWORD' => $hashedPassword, // Store encrypted password
                             'CREATE_LOGIN' => 1,
-
-                            //'SERVICE_HOURS' => trim($user['hours'] ?? ''),
                             'APPEAR_IN_CALENDAR' => isset($user['calendar']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
@@ -118,21 +124,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         db_perform('DOA_USERS', $USER_DATA, 'insert');
                         $PK_USER = $db->insert_ID();
 
-                        $USER_LOCATION_DATA = array(
-                            'PK_USER' => $PK_USER,
-                            'PK_LOCATION' => $PK_LOCATION
-                        );
-                        //pre_r($USER_LOCATION_DATA);
-                        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
-
-                        // Assign role to user
-                        if (!empty($user['role']) && $PK_USER) {
-                            $ROLE_DATA = array(
+                        if ($PK_USER) {
+                            $USER_LOCATION_DATA = array(
                                 'PK_USER' => $PK_USER,
-                                'PK_ROLES' => trim($user['role'] ?? '')
+                                'PK_LOCATION' => $PK_LOCATION
                             );
-                            //pre_r($ROLE_DATA);
-                            db_perform('DOA_USER_ROLES', $ROLE_DATA, 'insert');
+                            db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
+                            // Assign role to user
+                            if (!empty($user['role']) && $PK_USER) {
+                                $ROLE_DATA = array(
+                                    'PK_USER' => $PK_USER,
+                                    'PK_ROLES' => trim($user['role'] ?? '')
+                                );
+                                db_perform('DOA_USER_ROLES', $ROLE_DATA, 'insert');
+                            }
                         }
                     }
                 }
@@ -288,6 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doable Setup Wizard</title>
@@ -535,6 +542,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         input[type=email],
         input[type=tel],
         input[type=number],
+        input[type=password],
         select,
         textarea {
             width: 100%;
@@ -788,6 +796,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 12px;
             margin-bottom: 20px;
             text-align: center;
+        }
+
+        /* Password strength indicator styles */
+        .password-field {
+            position: relative;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .strength-meter {
+            margin-top: 5px;
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-text {
+            font-size: 11px;
+            margin-top: 4px;
+            color: #666;
+        }
+
+        .strength-text.weak {
+            color: #e24b4a;
+        }
+
+        .strength-text.fair {
+            color: #f39c12;
+        }
+
+        .strength-text.good {
+            color: #3498db;
+        }
+
+        .strength-text.strong {
+            color: #39B54A;
+        }
+
+        .password-requirements {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .password-requirements li {
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .password-requirements li.valid {
+            color: #39B54A;
+        }
+
+        .password-requirements li.invalid {
+            color: #e24b4a;
+        }
+
+        .password-requirements li i {
+            font-style: normal;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -1107,17 +1202,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             div.className = 'record-block';
             div.id = uid;
             div.innerHTML = `
-        <div class="record-header" onclick="toggleRecord('${uid}')">
-            <span class="record-label">
-                <span class="chevron open" id="chev-${uid}">▼</span>
-                ${type.charAt(0).toUpperCase() + type.slice(1)} #${counter}
-            </span>
-            ${counter > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-        </div>
-        <div class="record-body open" id="body-${uid}">${fieldsHtml}</div>
-    `;
+                <div class="record-header" onclick="toggleRecord('${uid}')">
+                    <span class="record-label">
+                        <span class="chevron open" id="chev-${uid}">▼</span>
+                        ${type.charAt(0).toUpperCase() + type.slice(1)} #${counter}
+                    </span>
+                    ${counter > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
+                </div>
+                <div class="record-body open" id="body-${uid}">${fieldsHtml}</div>
+            `;
             list.appendChild(div);
 
+            // If adding a user, we don't need to do anything extra as the password field is already in the HTML
             // If adding a service, save services data
             if (type === 'service') {
                 saveServicesData();
@@ -1284,7 +1380,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function getLocationFields(i) {
             return `<div class="field-grid">
-                <div class="field-group full"><label>Location Name / Business Name / DBA <span class="req">*</span></label><input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch"></div>
+                <div class="field-group"><label>Location Name <span class="req">*</span></label><input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch"></div>
+                <div class="field-group"><label>Location Code <span class="req">*</span></label><input type="text" name="location[${i}][code]" placeholder="e.g. MSB-001"></div>
                 <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City"></div>
                 <div class="field-group"><label>State <span class="req">*</span></label><input type="text" name="location[${i}][state]" placeholder="State"></div>
                 <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP"></div>
@@ -1297,17 +1394,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function getUserFields(i) {
             return `<div class="field-grid">
-                <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name"></div>
-                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com"></div>
-                <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID"></div>
-                <div class="field-group"><label>Role <span class="req">*</span></label>
-                    <select name="user[${i}][role]"><option value="">Select role</option><option value="2">Account Admin</option><option value="3">Manager</option><option value="4">Administrative Assistant</option><option value="5">Counsellor</option><option value="6">Supervisor</option><option value="7">Service Provider</option><option value="8">Account User</option><option value="9">Account Accountant</option><option value="10">Customer</option></select>
-                </div>
-                <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm"></div>
-                <div class="field-group" style="justify-content:flex-end;padding-top:20px">
-                    <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1"><label for="cal-${i}">Appear in Calendar</label></div>
-                </div>
-            </div>`;
+        <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name" onchange="validateUserFields(${i})"></div>
+        <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com" onchange="validateUserFields(${i})"></div>
+        <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID" onchange="validateUserFields(${i})"></div>
+        <div class="field-group password-field">
+            <label>Password <span class="req">*</span></label>
+            <div class="password-wrapper">
+                <input type="password" name="user[${i}][password]" id="password-${i}" placeholder="Enter password" onkeyup="checkPasswordStrength(${i})">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility(${i})"><i class="fas fa-eye"></i></button>
+            </div>
+            <div class="strength-meter">
+                <div class="strength-bar" id="strength-bar-${i}"></div>
+            </div>
+            <div class="strength-text" id="strength-text-${i}"></div>
+            
+        </div>
+        <div class="field-group"><label>Role <span class="req">*</span></label>
+            <select name="user[${i}][role]"><option value="">Select role</option><option value="2">Account Admin</option><option value="3">Manager</option><option value="4">Administrative Assistant</option><option value="5">Counsellor</option><option value="6">Supervisor</option><option value="7">Service Provider</option><option value="8">Account User</option><option value="9">Account Accountant</option><option value="10">Customer</option></select>
+        </div>
+        <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm"></div>
+        <div class="field-group" style="justify-content:flex-end;padding-top:20px">
+            <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1"><label for="cal-${i}">Appear in Calendar</label></div>
+        </div>
+    </div>`;
         }
 
         function getServiceFields(i) {
@@ -1631,9 +1740,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             showStep(step);
         }
 
-        // Update the navigation function to save services before moving to packages
+        // Update the navigate function to validate users before submission
         function navigate(direction) {
             if (direction === 1 && currentStep === steps.length - 1) {
+                // Validate all users before submission
+                // if (!validateAllUsers()) {
+                //     alert('Please fix the validation errors before submitting. Make sure all users have valid passwords (at least 8 characters with uppercase, lowercase, numbers, and special characters).');
+                //     return;
+                // }
+
                 if (confirm('Are you sure you want to submit all data?')) {
                     document.getElementById('wizardForm').submit();
                 }
@@ -1643,7 +1758,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // When moving from services to packages, save services data
             if (direction === 1 && steps[currentStep] === 'services' && steps[currentStep + 1] === 'packages') {
                 saveServicesData();
-                // Refresh package service dropdowns if packages panel is already created
                 refreshAllServiceOptions();
             }
 
@@ -1700,6 +1814,166 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 saveServicesData();
             }
             showStep(step);
+        }
+
+        // Password strength checker function
+        function checkPasswordStrength(userIndex) {
+            const password = document.getElementById(`password-${userIndex}`).value;
+            const strengthBar = document.getElementById(`strength-bar-${userIndex}`);
+            const strengthText = document.getElementById(`strength-text-${userIndex}`);
+
+            // Check requirements
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            };
+
+            // Update requirement indicators
+            updateRequirementIndicator(userIndex, 'length', requirements.length);
+            updateRequirementIndicator(userIndex, 'upper', requirements.uppercase);
+            updateRequirementIndicator(userIndex, 'lower', requirements.lowercase);
+            updateRequirementIndicator(userIndex, 'number', requirements.number);
+            updateRequirementIndicator(userIndex, 'special', requirements.special);
+
+            // Calculate strength score (0-100)
+            let score = 0;
+            if (requirements.length) score += 20;
+            if (requirements.uppercase) score += 20;
+            if (requirements.lowercase) score += 20;
+            if (requirements.number) score += 20;
+            if (requirements.special) score += 20;
+
+            // Determine strength level
+            let strength = '';
+            let color = '';
+            let text = '';
+
+            if (score === 0) {
+                strength = '';
+                color = '#e0e0e0';
+                text = '';
+            } else if (score <= 20) {
+                strength = 'weak';
+                color = '#e24b4a';
+                text = 'Very Weak';
+            } else if (score <= 40) {
+                strength = 'weak';
+                color = '#e24b4a';
+                text = 'Weak';
+            } else if (score <= 60) {
+                strength = 'fair';
+                color = '#f39c12';
+                text = 'Fair';
+            } else if (score <= 80) {
+                strength = 'good';
+                color = '#3498db';
+                text = 'Good';
+            } else {
+                strength = 'strong';
+                color = '#39B54A';
+                text = 'Strong';
+            }
+
+            // Update strength meter
+            strengthBar.style.width = score + '%';
+            strengthBar.style.backgroundColor = color;
+
+            // Update strength text
+            strengthText.textContent = text;
+            strengthText.className = `strength-text ${strength}`;
+
+            return score === 100; // Return true if password meets all requirements
+        }
+
+        // Update individual requirement indicator
+        function updateRequirementIndicator(userIndex, requirement, isValid) {
+            const reqElement = document.getElementById(`req-${requirement}-${userIndex}`);
+            if (reqElement) {
+                reqElement.innerHTML = isValid ? '✓ ' + reqElement.textContent.substring(2) : '✗ ' + reqElement.textContent.substring(2);
+                reqElement.className = isValid ? 'valid' : 'invalid';
+            }
+        }
+
+        // Toggle password visibility with Font Awesome icons
+        function togglePasswordVisibility(userIndex) {
+            const passwordInput = document.getElementById(`password-${userIndex}`);
+            const toggleBtn = event.currentTarget; // Use currentTarget instead of target for reliability
+            const icon = toggleBtn.querySelector('i'); // Get the icon element
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                // Change icon to 'visible' state
+                icon.className = 'fas fa-eye-slash'; // Font Awesome eye-slash for visible
+            } else {
+                passwordInput.type = 'password';
+                // Change icon to 'hidden' state
+                icon.className = 'fas fa-eye'; // Font Awesome eye for hidden
+            }
+        }
+
+        // Validate user fields (optional)
+        function validateUserFields(userIndex) {
+            // You can add additional validation here if needed
+            const nameInput = document.querySelector(`input[name="user[${userIndex}][name]"]`);
+            const emailInput = document.querySelector(`input[name="user[${userIndex}][email]"]`);
+            const loginInput = document.querySelector(`input[name="user[${userIndex}][login]"]`);
+            const passwordInput = document.getElementById(`password-${userIndex}`);
+
+            let isValid = true;
+
+            if (nameInput && !nameInput.value.trim()) {
+                nameInput.style.borderColor = '#e24b4a';
+                isValid = false;
+            } else if (nameInput) {
+                nameInput.style.borderColor = '#b0b8c4';
+            }
+
+            if (emailInput && !emailInput.value.trim()) {
+                emailInput.style.borderColor = '#e24b4a';
+                isValid = false;
+            } else if (emailInput) {
+                emailInput.style.borderColor = '#b0b8c4';
+            }
+
+            if (loginInput && !loginInput.value.trim()) {
+                loginInput.style.borderColor = '#e24b4a';
+                isValid = false;
+            } else if (loginInput) {
+                loginInput.style.borderColor = '#b0b8c4';
+            }
+
+            if (passwordInput && passwordInput.value) {
+                const isStrong = checkPasswordStrength(userIndex);
+                if (!isStrong) {
+                    passwordInput.style.borderColor = '#e24b4a';
+                    isValid = false;
+                } else {
+                    passwordInput.style.borderColor = '#39B54A';
+                }
+            } else if (passwordInput && !passwordInput.value) {
+                passwordInput.style.borderColor = '#e24b4a';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Add this function to validate all users before form submission
+        function validateAllUsers() {
+            const userBlocks = document.querySelectorAll('#user-list .record-block');
+            let allValid = true;
+
+            userBlocks.forEach((block, index) => {
+                const userIndex = index + 1;
+                if (!validateUserFields(userIndex)) {
+                    allValid = false;
+                }
+            });
+
+            return allValid;
         }
 
         // Make additional functions globally available
