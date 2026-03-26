@@ -9,6 +9,40 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+// Fetch timezones from database
+$timezones = [];
+$timezoneQuery = "SELECT PK_TIMEZONE, NAME FROM DOA_TIMEZONE WHERE ACTIVE = 1";
+$timezoneResult = $db->Execute($timezoneQuery);
+if ($timezoneResult && !$timezoneResult->EOF) {
+    while (!$timezoneResult->EOF) {
+        $timezones[] = array(
+            'PK_TIMEZONE' => $timezoneResult->fields['PK_TIMEZONE'],
+            'NAME' => $timezoneResult->fields['NAME']
+        );
+        $timezoneResult->MoveNext();
+    }
+}
+
+// Convert to JSON for JavaScript
+$timezonesJSON = json_encode($timezones);
+
+// Fetch locations (for package location selection)
+$locations = [];
+$locationQuery = "SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'];
+$locationResult = $db->Execute($locationQuery);
+if ($locationResult && !$locationResult->EOF) {
+    while (!$locationResult->EOF) {
+        $locations[] = array(
+            'PK_LOCATION' => $locationResult->fields['PK_LOCATION'],
+            'LOCATION_NAME' => $locationResult->fields['LOCATION_NAME']
+        );
+        $locationResult->MoveNext();
+    }
+}
+
+$locationsJSON = json_encode($locations);
+
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Debug: Log all POST data
@@ -145,49 +179,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert packages
             if (isset($_POST['package']) && is_array($_POST['package'])) {
-                foreach ($_POST['package'] as $package) {
+                // First, create an array to store service master IDs for quick lookup
+                $serviceMasterIds = [];
+
+                // Query all service masters for this location to map names to IDs
+                if (isset($PK_LOCATION)) {
+                    $serviceQuery = "SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_LOCATION = " . $PK_LOCATION . " AND ACTIVE = 1";
+                    $serviceResult = $db_account->Execute($serviceQuery);
+                    if ($serviceResult && !$serviceResult->EOF) {
+                        while (!$serviceResult->EOF) {
+                            $serviceMasterIds[trim($serviceResult->fields['SERVICE_NAME'])] = $serviceResult->fields['PK_SERVICE_MASTER'];
+                            $serviceResult->MoveNext();
+                        }
+                    }
+
+                    // Also get service code IDs
+                    $serviceCodeIds = [];
+                    $codeQuery = "SELECT sc.PK_SERVICE_CODE, sm.SERVICE_NAME 
+                      FROM DOA_SERVICE_CODE sc 
+                      JOIN DOA_SERVICE_MASTER sm ON sc.PK_SERVICE_MASTER = sm.PK_SERVICE_MASTER 
+                      WHERE sc.PK_LOCATION = " . $PK_LOCATION . " AND sc.ACTIVE = 1";
+                    $codeResult = $db_account->Execute($codeQuery);
+                    if ($codeResult && !$codeResult->EOF) {
+                        while (!$codeResult->EOF) {
+                            $serviceCodeIds[trim($codeResult->fields['SERVICE_NAME'])] = $codeResult->fields['PK_SERVICE_CODE'];
+                            $codeResult->MoveNext();
+                        }
+                    }
+                }
+
+                foreach ($_POST['package'] as $packageIndex => $package) {
                     if (!empty($package['name'])) {
                         $PACKAGE_DATA = array(
                             'PK_LOCATION' => $PK_LOCATION,
                             'PACKAGE_NAME' => trim($package['name'] ?? ''),
-                            //'PACKAGE_CODE' => trim($package['code'] ?? ''),
-                            //'PRICE' => floatval($package['price'] ?? 0),
-                            //'BILLING_CYCLE' => trim($package['billing'] ?? ''),
-                            //'DESCRIPTION' => trim($package['description'] ?? ''),
-                            //'SERVICES_INCLUDED' => trim($package['services'] ?? ''),
-                            //'SESSION_LIMIT' => !empty($package['limit']) ? intval($package['limit']) : null,
                             'EXPIRY_DATE' => !empty($package['expiry']) ? intval($package['expiry']) : null,
                             'SORT_ORDER' => intval($package['sort'] ?? 0),
-                            'ACTIVE' => isset($package['active']) ? 1 : 0,
-                            //'CHARGEABLE' => isset($package['chargeable']) ? 1 : 0,
                             'ACTIVE' => 1,
                             'CREATED_BY' => $_SESSION['PK_USER'],
                             'CREATED_ON' => date("Y-m-d H:i:s")
                         );
-                        //pre_r($PACKAGE_DATA);
+
                         db_perform_account('DOA_PACKAGE', $PACKAGE_DATA, 'insert');
                         $PK_PACKAGE = $db_account->insert_ID();
 
                         if ($PK_PACKAGE) {
-                            $PACKAGE_LOCATION_DATA = array(
-                                'PK_PACKAGE' => $PK_PACKAGE,
-                                'PK_LOCATION' => $PK_LOCATION
-                            );
-                            //pre_r($PACKAGE_LOCATION_DATA);
-                            db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+                            // Link package to location
+                            if (isset($package['location']) && !empty($package['location'])) {
+                                $PACKAGE_LOCATION_DATA = array(
+                                    'PK_PACKAGE' => $PK_PACKAGE,
+                                    'PK_LOCATION' => $package['location']
+                                );
+                                db_perform_account('DOA_PACKAGE_LOCATION', $PACKAGE_LOCATION_DATA, 'insert');
+                            }
 
-                            // Link package to services
+                            // Insert multiple services for the package
+                            if (isset($package['service_item']) && is_array($package['service_item'])) {
+                                foreach ($package['service_item'] as $serviceCounter => $serviceItem) {
+                                    // Get the service name from the selected option
+                                    $serviceName = trim($serviceItem['service_name'] ?? '');
 
-                            $PACKAGE_SERVICE_DATA = array(
-                                'PK_PACKAGE' => $PK_PACKAGE,
-                                'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
-                                'PK_SERVICE_CODE' => $PK_SERVICE_CODE,
-                                'SERVICE_DETAILS' => trim($package['services'] ?? ''),
-                                'FINAL_AMOUNT' => floatval($package['price'] ?? 0),
-                                'ACTIVE' => 1
-                            );
-                            //pre_r($PACKAGE_SERVICE_DATA);
-                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+                                    if (!empty($serviceName)) {
+                                        // Look up the service master ID and service code ID
+                                        $PK_SERVICE_MASTER = isset($serviceMasterIds[$serviceName]) ? $serviceMasterIds[$serviceName] : 0;
+                                        $PK_SERVICE_CODE = isset($serviceCodeIds[$serviceName]) ? $serviceCodeIds[$serviceName] : 0;
+
+                                        if ($PK_SERVICE_MASTER > 0 && $PK_SERVICE_CODE > 0) {
+                                            $PACKAGE_SERVICE_DATA = array(
+                                                'PK_PACKAGE' => $PK_PACKAGE,
+                                                'PK_SERVICE_MASTER' => $PK_SERVICE_MASTER,
+                                                'PK_SERVICE_CODE' => $PK_SERVICE_CODE,
+                                                'SERVICE_DETAILS' => trim($serviceItem['details'] ?? ''),
+                                                'NUMBER_OF_SESSION' => !empty($serviceItem['sessions']) ? intval($serviceItem['sessions']) : null,
+                                                'PRICE_PER_SESSION' => floatval($serviceItem['price_per_session'] ?? 0),
+                                                'TOTAL' => floatval($serviceItem['total_price'] ?? 0),
+                                                'DISCOUNT_TYPE' => trim($serviceItem['discount_type'] ?? ''),
+                                                'DISCOUNT' => floatval($serviceItem['discount'] ?? 0),
+                                                'FINAL_AMOUNT' => floatval($serviceItem['final_amount'] ?? 0),
+                                                'ACTIVE' => 1
+                                            );
+
+                                            // Debug log
+                                            error_log("Package Service Data: " . print_r($PACKAGE_SERVICE_DATA, true));
+                                            //pre_r($PACKAGE_SERVICE_DATA);
+                                            db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
+
+                                            if ($db_account->insert_ID()) {
+                                                error_log("Package service inserted successfully for: " . $serviceName);
+                                            } else {
+                                                error_log("Failed to insert package service for: " . $serviceName);
+                                            }
+                                        } else {
+                                            error_log("Could not find service IDs for: " . $serviceName);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -578,6 +665,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             grid-column: 1 / -1;
         }
 
+        .service-item {
+            background: #f9fafb;
+            border: 1px solid #e0e4ea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .service-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e4ea;
+        }
+
+        .service-item-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #39B54A;
+        }
+
+        .remove-service-btn {
+            font-size: 11px;
+            color: #a32d2d;
+            background: none;
+            border: 1px solid #f09595;
+            border-radius: 6px;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+
         .success-panel {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -717,6 +837,166 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
 
     <script>
+        // Pass PHP data to JavaScript
+        const timezonesData = <?php echo $timezonesJSON; ?>;
+        const locationsData = <?php echo $locationsJSON; ?>;
+
+        // Log for debugging
+        console.log('Timezones:', timezonesData);
+        console.log('Locations:', locationsData);
+
+        // Function to generate timezone options
+        function getTimezoneOptions(selectedValue = '') {
+            let options = '<option value="">Select time zone</option>';
+
+            if (timezonesData && timezonesData.length > 0) {
+                timezonesData.forEach(timezone => {
+                    const selected = (selectedValue == timezone.PK_TIMEZONE) ? 'selected' : '';
+                    const displayText = timezone.NAME;
+                    options += `<option value="${timezone.PK_TIMEZONE}" ${selected}>${(displayText)}</option>`;
+                });
+            } else {
+                // Fallback timezones if no data found
+                options += `
+                <option value="1">Eastern Time (ET)</option>
+                <option value="2">Central Time (CT)</option>
+                <option value="3">Mountain Time (MT)</option>
+                <option value="4">Pacific Time (PT)</option>
+            `;
+            }
+
+            return options;
+        }
+
+        // Function to save services data from services step
+        function saveServicesData() {
+            servicesData = [];
+            const serviceBlocks = document.querySelectorAll('#service-list .record-block');
+            serviceBlocks.forEach((block, index) => {
+                const nameInput = block.querySelector('input[name*="[name]"]');
+                const codeInput = block.querySelector('input[name*="[code]"]');
+                const priceInput = block.querySelector('input[name*="[price]"]');
+                const descriptionInput = block.querySelector('textarea[name*="[description]"]');
+
+                if (nameInput && nameInput.value) {
+                    servicesData.push({
+                        id: index + 1,
+                        name: nameInput.value,
+                        code: codeInput ? codeInput.value : '',
+                        price: priceInput ? priceInput.value : 0,
+                        description: descriptionInput ? descriptionInput.value : ''
+                    });
+                }
+            });
+            console.log('Services saved:', servicesData);
+        }
+
+        // Function to get service options for package dropdown
+        function getServiceOptions(selectedValue = '') {
+            let options = '<option value="">Select service</option>';
+
+            if (servicesData && servicesData.length > 0) {
+                servicesData.forEach(service => {
+                    const selected = (selectedValue == service.name) ? 'selected' : '';
+                    options += `<option value="${escapeHtml(service.name)}" data-code="${escapeHtml(service.code)}" data-price="${service.price}" data-description="${escapeHtml(service.description)}" ${selected}>${escapeHtml(service.name)} (${escapeHtml(service.code)})</option>`;
+                });
+            } else {
+                options += '<option value="" disabled>No services available. Please add services first.</option>';
+            }
+
+            return options;
+        }
+
+        // Function to get location options for packages
+        function getLocationOptions(selectedValue = '') {
+            let options = '<option value="">Select location</option>';
+
+            if (locationsData && locationsData.length > 0) {
+                locationsData.forEach(location => {
+                    const selected = (selectedValue == location.PK_LOCATION) ? 'selected' : '';
+                    options += `<option value="${location.PK_LOCATION}" ${selected}>${escapeHtml(location.LOCATION_NAME)}</option>`;
+                });
+            } else {
+                options += '<option value="" disabled>No locations available. Please add locations first.</option>';
+            }
+
+            return options;
+        }
+
+        // Function to calculate totals for a service item
+        function calculateServiceTotals(packageId, counter) {
+            const sessionsInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][sessions]"]`);
+            const pricePerSessionInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][price_per_session]"]`);
+            const totalPriceInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][total_price]"]`);
+            const discountTypeSelect = document.querySelector(`select[name="package[${packageId}][service_item][${counter}][discount_type]"]`);
+            const discountInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][discount]"]`);
+            const finalAmountInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][final_amount]"]`);
+
+            if (sessionsInput && pricePerSessionInput && totalPriceInput) {
+                const sessions = parseFloat(sessionsInput.value) || 0;
+                const pricePerSession = parseFloat(pricePerSessionInput.value) || 0;
+                const totalPrice = sessions * pricePerSession;
+                totalPriceInput.value = totalPrice.toFixed(2);
+
+                // Calculate final amount based on discount
+                if (finalAmountInput && discountInput) {
+                    const discountType = discountTypeSelect ? discountTypeSelect.value : '';
+                    const discount = parseFloat(discountInput.value) || 0;
+                    let finalAmount = totalPrice;
+
+                    if (discountType === '1') {
+                        finalAmount = totalPrice - discount;
+                        if (finalAmount < 0) finalAmount = 0;
+                    } else if (discountType === '2') {
+                        finalAmount = totalPrice - (totalPrice * discount / 100);
+                        if (finalAmount < 0) finalAmount = 0;
+                    }
+
+                    finalAmountInput.value = finalAmount.toFixed(2);
+                }
+            }
+        }
+
+        // Function to handle service selection change
+        function onServiceChange(packageId, serviceCounter) {
+            const serviceSelect = document.querySelector(`select[name="package[${packageId}][service_item][${serviceCounter}][service_name]"]`);
+            if (serviceSelect && serviceSelect.value) {
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const serviceCode = selectedOption.getAttribute('data-code') || '';
+                const servicePrice = selectedOption.getAttribute('data-price') || 0;
+                const serviceDescription = selectedOption.getAttribute('data-description') || '';
+
+                // Auto-fill service code
+                const codeInput = document.querySelector(`input[name="package[${packageId}][service_item][${serviceCounter}][code]"]`);
+                if (codeInput) {
+                    codeInput.value = serviceCode;
+                }
+
+                // Auto-fill service details
+                const detailsInput = document.querySelector(`input[name="package[${packageId}][service_item][${serviceCounter}][details]"]`);
+                if (detailsInput) {
+                    detailsInput.value = serviceDescription;
+                }
+
+                // Optionally auto-fill price per session
+                const pricePerSessionInput = document.querySelector(`input[name="package[${packageId}][service_item][${serviceCounter}][price_per_session]"]`);
+                if (pricePerSessionInput && !pricePerSessionInput.value) {
+                    pricePerSessionInput.value = servicePrice;
+                }
+
+                // Recalculate totals
+                calculateServiceTotals(packageId, serviceCounter);
+            }
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Simple solution - ensure all fields are visible and submitted
         let currentStep = 0;
         const steps = ['corp', 'location', 'users', 'services', 'packages'];
@@ -827,17 +1107,180 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             div.className = 'record-block';
             div.id = uid;
             div.innerHTML = `
-                <div class="record-header" onclick="toggleRecord('${uid}')">
-                    <span class="record-label">
-                        <span class="chevron open" id="chev-${uid}">▼</span>
-                        ${type.charAt(0).toUpperCase() + type.slice(1)} #${counter}
-                    </span>
-                    ${counter > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
-                </div>
-                <div class="record-body open" id="body-${uid}">${fieldsHtml}</div>
-            `;
+        <div class="record-header" onclick="toggleRecord('${uid}')">
+            <span class="record-label">
+                <span class="chevron open" id="chev-${uid}">▼</span>
+                ${type.charAt(0).toUpperCase() + type.slice(1)} #${counter}
+            </span>
+            ${counter > 1 ? `<button type="button" class="remove-btn" onclick="event.stopPropagation();removeRecord('${uid}')">Remove</button>` : ''}
+        </div>
+        <div class="record-body open" id="body-${uid}">${fieldsHtml}</div>
+    `;
             list.appendChild(div);
+
+            // If adding a service, save services data
+            if (type === 'service') {
+                saveServicesData();
+                refreshAllServiceOptions();
+            }
         }
+
+        function addServiceItem(packageId) {
+            const container = document.getElementById(`services-container-${packageId}`);
+            if (!container) return;
+
+            // Get current number of service items
+            const serviceCounter = container.querySelectorAll('.service-item').length + 1;
+
+            // Create new service item (not first, so remove button will be shown)
+            const serviceHtml = getServiceItemFields(packageId, serviceCounter, false);
+
+            const div = document.createElement('div');
+            div.className = 'service-item';
+            div.id = `service-item-${packageId}-${serviceCounter}`;
+            div.innerHTML = serviceHtml;
+            container.appendChild(div);
+        }
+
+        function removeServiceItem(counter, packageId) {
+            const element = document.getElementById(`service-item-${packageId}-${counter}`);
+            if (element) {
+                element.remove();
+
+                // Renumber remaining service items
+                const container = document.getElementById(`services-container-${packageId}`);
+                if (container) {
+                    const services = container.querySelectorAll('.service-item');
+                    services.forEach((service, index) => {
+                        const newNumber = index + 1;
+                        const isFirst = newNumber === 1;
+
+                        // Update the service item ID
+                        service.id = `service-item-${packageId}-${newNumber}`;
+
+                        // Update the title text
+                        const titleSpan = service.querySelector('.service-item-title');
+                        if (titleSpan) {
+                            titleSpan.textContent = `Service #${newNumber}`;
+                        }
+
+                        // Update all input names to reflect new numbering
+                        const inputs = service.querySelectorAll('input, select, textarea');
+                        inputs.forEach(input => {
+                            const name = input.getAttribute('name');
+                            if (name) {
+                                const updatedName = name.replace(/service_item\]\[\d+\]/, `service_item][${newNumber}]`);
+                                input.setAttribute('name', updatedName);
+
+                                // Update onchange/onkeyup attributes
+                                if (input.hasAttribute('onchange')) {
+                                    const onchange = input.getAttribute('onchange');
+                                    const updatedOnchange = onchange.replace(/,\s*\d+\)/g, `, ${newNumber})`);
+                                    input.setAttribute('onchange', updatedOnchange);
+                                }
+                                if (input.hasAttribute('onkeyup')) {
+                                    const onkeyup = input.getAttribute('onkeyup');
+                                    const updatedOnkeyup = onkeyup.replace(/,\s*\d+\)/g, `, ${newNumber})`);
+                                    input.setAttribute('onkeyup', updatedOnkeyup);
+                                }
+                            }
+                        });
+
+                        // Handle remove button visibility
+                        const removeBtn = service.querySelector('.remove-service-btn');
+                        if (isFirst) {
+                            // First item should not have remove button
+                            if (removeBtn) {
+                                removeBtn.remove();
+                            }
+                        } else {
+                            // Non-first items should have remove button
+                            if (!removeBtn) {
+                                const headerDiv = service.querySelector('.service-item-header');
+                                if (headerDiv) {
+                                    const newRemoveBtn = document.createElement('button');
+                                    newRemoveBtn.type = 'button';
+                                    newRemoveBtn.className = 'remove-service-btn';
+                                    newRemoveBtn.setAttribute('onclick', `removeServiceItem(${newNumber}, '${packageId}')`);
+                                    newRemoveBtn.textContent = 'Remove';
+                                    headerDiv.appendChild(newRemoveBtn);
+                                }
+                            } else {
+                                // Update existing remove button onclick event
+                                removeBtn.setAttribute('onclick', `removeServiceItem(${newNumber}, '${packageId}')`);
+                            }
+                        }
+
+                        // Reattach event listeners for the renumbered service item
+                        attachServiceItemEventListeners(packageId, newNumber);
+
+                        // Recalculate totals for the renumbered service item
+                        calculateServiceTotals(packageId, newNumber);
+                    });
+                }
+            }
+        }
+
+        function getServiceItemFields(packageId, counter, isFirst = false) {
+            return `
+        <div class="service-item-header">
+            <span class="service-item-title">Service #${counter}</span>
+            ${!isFirst ? `<button type="button" class="remove-service-btn" onclick="removeServiceItem(${counter}, '${packageId}')">Remove</button>` : ''}
+        </div>
+        <div class="field-grid">
+            <div class="field-group"><label>Service Name <span class="req">*</span></label>
+                <select name="package[${packageId}][service_item][${counter}][service_name]" 
+                        onchange="handleServiceSelection('${packageId}', ${counter})"
+                        class="service-select">
+                    ${getServiceOptions()}
+                </select>
+            </div>
+            <div class="field-group"><label>Service Code <span class="req">*</span></label>
+                <input type="text" name="package[${packageId}][service_item][${counter}][code]" 
+                       class="service-code" readonly style="background-color: #f5f5f5;">
+            </div>
+            <div class="field-group"><label>Service Details</label>
+                <textarea name="package[${packageId}][service_item][${counter}][details]" 
+                          class="service-details" rows="2" style="resize: vertical;"></textarea>
+            </div>
+            <div class="field-group"><label>Number of Sessions</label>
+                <input type="number" name="package[${packageId}][service_item][${counter}][sessions]" 
+                       class="sessions-input" placeholder="Leave blank for unlimited" 
+                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+            </div>
+            <div class="field-group"><label>Price per Session</label>
+                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][price_per_session]" 
+                       class="price-per-session" placeholder="$0.00" 
+                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+            </div>
+            <div class="field-group"><label>Total Price</label>
+                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][total_price]" 
+                       class="total-price" placeholder="$0.00" readonly style="background-color: #f5f5f5;">
+            </div>
+            <div class="field-group"><label>Discount Type</label>
+                <select name="package[${packageId}][service_item][${counter}][discount_type]" 
+                        class="discount-type" onchange="calculateServiceTotals('${packageId}', ${counter})">
+                    <option value="">Select</option>
+                    <option value="1">Fixed</option>
+                    <option value="2">Percent</option>
+                </select>
+            </div>
+            <div class="field-group"><label>Discount</label>
+                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][discount]" 
+                       class="discount-input" placeholder="0.00" 
+                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+            </div>
+            <div class="field-group"><label>Final Amount</label>
+                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][final_amount]" 
+                       class="final-amount" placeholder="0.00" readonly style="background-color: #f5f5f5;">
+            </div>
+        </div>
+    `;
+        }
+
 
         function getLocationFields(i) {
             return `<div class="field-grid">
@@ -847,10 +1290,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP"></div>
                 <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="location[${i}][email]" placeholder="location@email.com"></div>
                 <div class="field-group"><label>Time Zone <span class="req">*</span></label>
-                    <select name="location[${i}][timezone]"><option value="">Select time zone</option><option>Eastern Time (ET)</option><option>Central Time (CT)</option><option>Mountain Time (MT)</option><option>Pacific Time (PT)</option></select>
+                    <select name="location[${i}][timezone]">${getTimezoneOptions()}</select>
                 </div>
-                <div class="field-group"><label>Operational Hours <span class="req">*</span></label><input type="text" name="location[${i}][hours]" placeholder="e.g. Mon–Fri 9am–6pm"></div>
-                <div class="field-group full"><label>Credit Card <span class="req">*</span></label><input type="text" name="location[${i}][card]" placeholder="Card on file for this location"></div>
             </div>`;
         }
 
@@ -889,29 +1330,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>`;
         }
 
-        function getPackageFields(i) {
-            return `<div class="field-grid">
+        function getPackageFields(packageId) {
+            return `
+            <div class="field-grid">
                 <div class="pkg-divider">Package Details</div>
-                <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${i}][name]" placeholder="e.g. Starter Pack"></div>
-                <div class="field-group"><label>Package Code <span class="req">*</span></label><input type="text" name="package[${i}][code]" placeholder="e.g. PKG-001"></div>
-                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="package[${i}][price]" placeholder="$0.00"></div>
-                <div class="field-group"><label>Billing Cycle <span class="req">*</span></label>
-                    <select name="package[${i}][billing]"><option value="">Select</option><option>One-time</option><option>Weekly</option><option>Monthly</option><option>Annually</option></select>
+                <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${packageId}][name]" placeholder="e.g. Starter Pack"></div>
+                <div class="field-group"><label>Location <span class="req">*</span></label>
+                    <select name="package[${packageId}][location]">${getLocationOptions()}</select>
                 </div>
-                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="package[${i}][description]" placeholder="What's included in this package?"></textarea></div>
-                <div class="pkg-divider">Services Included</div>
-                <div class="field-group full"><label>Services <span class="req">*</span></label><input type="text" name="package[${i}][services]" placeholder="e.g. SVC-001, SVC-002 (comma-separated codes)"></div>
-                <div class="field-group"><label>Session / Visit Limit</label><input type="number" name="package[${i}][limit]" placeholder="Leave blank for unlimited"></div>
-                <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${i}][expiry]" placeholder="Leave blank if none"></div>
-                <div class="pkg-divider">Options</div>
-                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="package[${i}][sort]" placeholder="1"></div>
-                <div class="field-group" style="padding-top:4px">
-                    <div style="display:flex;flex-direction:column;gap:8px">
-                        <div class="checkrow"><input type="checkbox" name="package[${i}][active]" id="pkg-active-${i}" value="1"><label for="pkg-active-${i}">Active / available for purchase</label></div>
-                        <div class="checkrow"><input type="checkbox" name="package[${i}][chargeable]" id="pkg-client-${i}" value="1"><label for="pkg-client-${i}">Chargeable to client account</label></div>
-                    </div>
-                </div>
-            </div>`;
+                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="package[${packageId}][sort]" placeholder="1"></div>
+                <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${packageId}][expiry]" placeholder="Leave blank if none"></div>
+            </div>
+            
+            <div class="pkg-divider" style="margin-top: 20px;">Services Included</div>
+            <div id="services-container-${packageId}">
+                ${getServiceItemFields(packageId, 1, true)}
+            </div>
+            <button type="button" class="add-btn" onclick="addServiceItem('${packageId}')" style="margin-top: 10px; width: 100%;">+ Add another service</button>
+        `;
+        }
+
+        function addServiceItem(packageId) {
+            const container = document.getElementById(`services-container-${packageId}`);
+            if (!container) return;
+
+            // Get current number of service items
+            const serviceCounter = container.querySelectorAll('.service-item').length + 1;
+
+            // Create new service item (not first, so remove button will be shown)
+            const serviceHtml = getServiceItemFields(packageId, serviceCounter, false);
+
+            const div = document.createElement('div');
+            div.className = 'service-item';
+            div.id = `service-item-${packageId}-${serviceCounter}`;
+            div.innerHTML = serviceHtml;
+            container.appendChild(div);
+
+            // Refresh service options for all service items to ensure consistent data
+            refreshAllServiceOptions();
+
+            // Attach event listeners to the newly created service item
+            attachServiceItemEventListeners(packageId, serviceCounter);
+        }
+
+        function attachServiceItemEventListeners(packageId, counter) {
+            // Get all input elements for this service item
+            const sessionsInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][sessions]"]`);
+            const pricePerSessionInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][price_per_session]"]`);
+            const discountInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][discount]"]`);
+            const discountTypeSelect = document.querySelector(`select[name="package[${packageId}][service_item][${counter}][discount_type]"]`);
+
+            // Add event listeners if they exist
+            if (sessionsInput) {
+                sessionsInput.addEventListener('input', () => calculateServiceTotals(packageId, counter));
+                sessionsInput.addEventListener('change', () => calculateServiceTotals(packageId, counter));
+            }
+
+            if (pricePerSessionInput) {
+                pricePerSessionInput.addEventListener('input', () => calculateServiceTotals(packageId, counter));
+                pricePerSessionInput.addEventListener('change', () => calculateServiceTotals(packageId, counter));
+            }
+
+            if (discountInput) {
+                discountInput.addEventListener('input', () => calculateServiceTotals(packageId, counter));
+                discountInput.addEventListener('change', () => calculateServiceTotals(packageId, counter));
+            }
+
+            if (discountTypeSelect) {
+                discountTypeSelect.addEventListener('change', () => calculateServiceTotals(packageId, counter));
+            }
+        }
+
+        function handleServiceSelection(packageId, counter) {
+            const serviceSelect = document.querySelector(`select[name="package[${packageId}][service_item][${counter}][service_name]"]`);
+            if (serviceSelect && serviceSelect.value) {
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const serviceCode = selectedOption.getAttribute('data-code') || '';
+                const servicePrice = selectedOption.getAttribute('data-price') || 0;
+                const serviceDescription = selectedOption.getAttribute('data-description') || '';
+
+                // Auto-fill service code
+                const codeInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][code]"]`);
+                if (codeInput) {
+                    codeInput.value = serviceCode;
+                }
+
+                // Auto-fill service details
+                const detailsInput = document.querySelector(`textarea[name="package[${packageId}][service_item][${counter}][details]"]`);
+                if (detailsInput && !detailsInput.value) {
+                    detailsInput.value = serviceDescription;
+                }
+
+                // Auto-fill price per session if empty
+                const pricePerSessionInput = document.querySelector(`input[name="package[${packageId}][service_item][${counter}][price_per_session]"]`);
+                if (pricePerSessionInput && (!pricePerSessionInput.value || pricePerSessionInput.value === '0')) {
+                    pricePerSessionInput.value = servicePrice;
+                }
+
+                // Recalculate totals
+                calculateServiceTotals(packageId, counter);
+            }
+        }
+
+        function refreshAllServiceOptions() {
+            const serviceSelects = document.querySelectorAll('select[name*="[service_name]"]');
+            const serviceOptions = getServiceOptions();
+            serviceSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = serviceOptions;
+                if (currentValue) {
+                    select.value = currentValue;
+                    // Trigger the change event to refill data
+                    const packageId = select.getAttribute('name').match(/package\[(\d+)\]/)[1];
+                    const counter = select.getAttribute('name').match(/service_item\]\[(\d+)\]/)[1];
+                    if (packageId && counter) {
+                        handleServiceSelection(packageId, counter);
+                    }
+                }
+            });
         }
 
         function toggleRecord(uid) {
@@ -926,7 +1462,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function removeRecord(uid) {
             const el = document.getElementById(uid);
-            if (el) el.remove();
+            if (el) {
+                const isServiceRecord = uid.startsWith('service-');
+                el.remove();
+
+                // If removing a service, save services data
+                if (isServiceRecord) {
+                    saveServicesData();
+                    refreshAllServiceOptions();
+                }
+            }
         }
 
         // Initialize the wizard
@@ -1007,7 +1552,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="panel-title">Packages</div>
                     <div class="panel-sub">Bundle services into packages for client purchase or subscription.</div>
                     <div id="package-list"></div>
-                    <button type="button" class="add-btn" onclick="addRecord('package')">+ Add another package</button>
+                    
                 </div>
             `;
 
@@ -1086,6 +1631,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             showStep(step);
         }
 
+        // Update the navigation function to save services before moving to packages
         function navigate(direction) {
             if (direction === 1 && currentStep === steps.length - 1) {
                 if (confirm('Are you sure you want to submit all data?')) {
@@ -1094,18 +1640,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return;
             }
 
+            // When moving from services to packages, save services data
+            if (direction === 1 && steps[currentStep] === 'services' && steps[currentStep + 1] === 'packages') {
+                saveServicesData();
+                // Refresh package service dropdowns if packages panel is already created
+                refreshAllServiceOptions();
+            }
+
             const newStep = currentStep + direction;
             if (newStep >= 0 && newStep < steps.length) {
                 showStep(newStep);
             }
         }
 
-        // Make functions globally available
-        window.addRecord = addRecord;
-        window.toggleRecord = toggleRecord;
-        window.removeRecord = removeRecord;
-        window.navigate = navigate;
-        window.goToStep = goToStep;
+        // Update showStep to refresh package dropdowns when showing packages step
+        function showStep(step) {
+            currentStep = step;
+            // Hide all panels
+            document.querySelectorAll('.panel-step').forEach(panel => {
+                panel.style.display = 'none';
+            });
+
+            // Show current panel
+            const currentPanel = document.getElementById('step-' + steps[step]);
+            if (currentPanel) {
+                currentPanel.style.display = 'block';
+
+                // If showing packages step, refresh service and location dropdowns
+                if (steps[step] === 'packages') {
+                    refreshAllServiceOptions();
+                    // Also refresh location dropdowns in packages
+                    const locationSelects = document.querySelectorAll('select[name*="[location]"]');
+                    const locationOptions = getLocationOptions();
+                    locationSelects.forEach(select => {
+                        const currentValue = select.value;
+                        select.innerHTML = locationOptions;
+                        if (currentValue) {
+                            select.value = currentValue;
+                        }
+                    });
+                }
+            }
+
+            // Update sidebar
+            updateSidebar(step);
+
+            // Update buttons
+            const backBtn = document.getElementById('backBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            if (backBtn) backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+            if (nextBtn) nextBtn.textContent = step === steps.length - 1 ? 'Submit ✓' : 'Next →';
+            const stepCounter = document.getElementById('stepCounter');
+            if (stepCounter) stepCounter.textContent = `Step ${step + 1} of ${steps.length}`;
+        }
+
+        // Also save services when navigating away from services step via sidebar
+        function goToStep(step) {
+            if (currentStep === 2 && step === 4) { // Moving from services (index 2) to packages (index 4)
+                saveServicesData();
+            }
+            showStep(step);
+        }
+
+        // Make additional functions globally available
+        window.onServiceChange = onServiceChange;
+        window.calculateServiceTotals = calculateServiceTotals;
+        window.saveServicesData = saveServicesData;
+        window.refreshAllServiceOptions = refreshAllServiceOptions;
     </script>
 </body>
 
