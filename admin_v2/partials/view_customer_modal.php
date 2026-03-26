@@ -156,7 +156,7 @@ while (!$row->EOF) {
         </div>
         <div class="profilename-data">
             <h6 class="mb-1">
-                <?= $selected_customer; ?>
+                <a href="../admin/customer.php?id=<?= $PK_USER ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $selected_customer; ?></a>
             </h6>
             <span><?= htmlspecialchars($LOCATION_NAME ?: 'Studio Location'); ?></span>
         </div>
@@ -201,7 +201,8 @@ while (!$row->EOF) {
     <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Payment" type="button">
             <span>Payment</span>
-            <?php $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_LEDGER.DUE_DATE < CURDATE() AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE");
+
+            <?php $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_LEDGER.DUE_DATE < '" . date("Y-m-d") . "' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE");
             if ($payment_due->RecordCount() > 0) { ?>
                 <span class="badge bg-danger rounded-pill"><?= $payment_due->RecordCount() ?></span>
             <?php } ?>

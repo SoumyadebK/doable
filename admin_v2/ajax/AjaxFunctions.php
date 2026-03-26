@@ -780,9 +780,40 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
     global $db_account;
     require_once('../../global/vendor/autoload.php');
 
-    $mpdf = new Mpdf();
-    $mpdf->WriteHTML($html);
-    $mpdf->keep_table_proportions = true;
+    // Add pagebreak before TERMS AND CONDITIONS
+    $html = str_replace(
+        '<h3>TERMS AND CONDITIONS</h3>',
+        '<pagebreak /><h3>TERMS AND CONDITIONS</h3>',
+        $html
+    );
+
+    $style = "<style>
+                body {
+                    font-size: 14px !important;
+                }
+
+                table {
+                    border-collapse: collapse;
+                    font-size: 14px !important;
+                }
+
+                th, td {
+                    padding: 5px;
+                    vertical-align: top;
+                    font-size: 14px !important;
+                }
+
+                h3 {
+                    text-align: center;
+                }
+            </style>";
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+    ]);
+    $mpdf->WriteHTML($style . $html);
+    //$mpdf->keep_table_proportions = true;
     $mpdf->AddPage();
 
     if (!file_exists('../../' . $upload_path . '/enrollment_pdf/')) {

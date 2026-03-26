@@ -313,7 +313,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" readonly required>
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required onkeydown="return false;">
                         <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
@@ -604,7 +604,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-normal installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?> readonly>
+                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" class="form-control datepicker-normal installment-input" onkeydown="return false;">
                         </div>
                     </div>
                 </div>
@@ -653,7 +653,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8" id="next_payment_dates_div">
                         <div class="form-group d-flex gap-2 mb-2">
-                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-normal" readonly>
+                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-normal" value="<?= date('m/d/Y') ?>" readonly>
                             <div class="position-relative">
                                 <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                 <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
@@ -1443,7 +1443,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
             $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
-                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" placeholder="Select date" required readonly>
+                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" placeholder="Select date" required onkeydown="return false;">
                                                     <div class="position-relative">
                                                         <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                                         <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
@@ -1538,6 +1538,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
         $('#auto-pay-div').slideUp();
+        $('.FLEXIBLE_PAYMENT_AMOUNT').val(0);
         //$('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time') {
             $('#one_time_div').slideDown();
