@@ -198,7 +198,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     }
                     ?>
 
-                    <a class="topbar-link dropdown-toggle px-2" data-bs-toggle="dropdown" href="location" aria-haspopup="false" aria-expanded="false">
+                    <a class="topbar-link px-2" data-bs-toggle="dropdown" href="location" aria-haspopup="false" aria-expanded="false">
                         <!-- <img src="assets/images/logo.jpg" width="40" class="me-2 d-flex" alt="user-image" /> -->
                         <div class="d-flex align-items-center gap-1">
                             <span>
@@ -271,7 +271,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="nav-link <?= (('email.php' === $current_address) ? 'active' : '') ?>" href="../email/email.php?type=inbox">Messages</a>
                             </li>
                             <li class="dropdown drop-menu">
-                                <a href="javascript:;" class="nav-link dropdown-toggle <?= (('all_customers.php' === $current_address || 'all_enrollments.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Customers <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
+                                <a href="javascript:;" class="nav-link <?= (('all_customers.php' === $current_address || 'all_enrollments.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Customers <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
                                 <ul class="dropdown-menu sub-menu">
                                     <li><a href="all_customers.php"><i class="bi bi-people" aria-hidden="true"></i> Customers</a></li>
                                     <li><a href="all_enrollments.php"><i class="bi bi-journal-text" aria-hidden="true"></i> Enrollments</a></li>
@@ -333,7 +333,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 
             <div id="user-dropdown-detailed" class="topbar-item nav-user">
                 <div class="dropdown">
-                    <a class="topbar-link dropdown-toggle px-2" data-bs-toggle="dropdown" href="profile-menu" aria-haspopup="false" aria-expanded="false" style="margin-top: 11px;">
+                    <a class="topbar-link px-2" data-bs-toggle="dropdown" href="profile-menu" aria-haspopup="false" aria-expanded="false" style="margin-top: 11px;">
                         <img src="assets/images/profile.png" width="32" class="rounded-circle me-2 d-flex" alt="user-image" />
                         <div class="d-flex align-items-center gap-1">
                             <h6 class="my-0 f14 lh-1 pro-username text-white fw-normal"><?= $_SESSION["FIRST_NAME"] . " " . $_SESSION["LAST_NAME"] ?> <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px -10px 0px 8px;"></i></h6>

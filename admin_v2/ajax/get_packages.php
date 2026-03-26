@@ -83,7 +83,8 @@ while (!$package_service_data->EOF) {
             <div class="d-inline-flex gap-1">
                 <div class="session-item">
                     <label class="small text-muted">Type</label>
-                    <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)">
+                    <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" onchange="calculateServiceTotal(this)" <?= ($package_service_data->fields['DISCOUNT'] > 0) ? '' : 'disabled' ?>>
+                        <option value="">Select</option>
                         <option value="1" <?= ($package_service_data->fields['DISCOUNT_TYPE'] == 1) ? 'selected' : '' ?>>Fixed</option>
                         <option value="2" <?= ($package_service_data->fields['DISCOUNT_TYPE'] == 2) ? 'selected' : '' ?>>Percent</option>
                     </select>
@@ -91,7 +92,7 @@ while (!$package_service_data->EOF) {
                 <div class="session-item">
                     <label class="small text-muted">Value</label>
                     <div class="session-item position-relative">
-                        <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" value="<?= $package_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;">
+                        <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" value="<?= $package_service_data->fields['DISCOUNT'] ?>" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;" <?= ($package_service_data->fields['DISCOUNT'] > 0) ? '' : 'disabled' ?>>
                         <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
                     </div>
                 </div>

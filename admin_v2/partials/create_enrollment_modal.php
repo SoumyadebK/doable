@@ -604,7 +604,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" class="form-control datepicker-normal installment-input" onkeydown="return false;">
+                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" class="form-control datepicker-future installment-input" onkeydown="return false;">
                         </div>
                     </div>
                 </div>
@@ -653,7 +653,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8" id="next_payment_dates_div">
                         <div class="form-group d-flex gap-2 mb-2">
-                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-normal" value="<?= date('m/d/Y') ?>" readonly>
+                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" onkeydown="return false;">
                             <div class="position-relative">
                                 <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                 <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
@@ -1109,11 +1109,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         const discountTypeSelect = checkbox.closest('.d-flex').nextElementSibling.querySelector('select');
         const discountValueInput = checkbox.closest('.d-flex').nextElementSibling.querySelector('input');
         if (checkbox.checked) {
-            discountTypeSelect.removeAttribute('readonly');
-            discountValueInput.removeAttribute('readonly');
+            discountTypeSelect.removeAttribute('disabled');
+            discountValueInput.removeAttribute('disabled');
         } else {
-            discountTypeSelect.setAttribute('readonly', 'readonly');
-            discountValueInput.setAttribute('readonly', 'readonly');
+            discountTypeSelect.setAttribute('disabled', 'disabled');
+            discountValueInput.setAttribute('disabled', 'disabled');
             discountTypeSelect.value = '';
             discountValueInput.value = '';
             calculateServiceTotal(discountValueInput);
@@ -1216,7 +1216,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                 <div class="d-inline-flex gap-1">
                                                     <div class="session-item">
                                                         <label class="small text-muted">Type</label>
-                                                        <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" readonly onchange="calculateServiceTotal(this)">
+                                                        <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" disabled onchange="calculateServiceTotal(this)">
                                                             <option value="">Select</option>
                                                             <option value="1">Fixed</option>
                                                             <option value="2">Percent</option>
@@ -1225,7 +1225,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                     <div class="session-item">
                                                         <label class="small text-muted">Value</label>
                                                         <div class="session-item position-relative">
-                                                            <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" readonly onkeyup="calculateServiceTotal(this)">
+                                                            <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" disabled onkeyup="calculateServiceTotal(this)">
                                                             <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
                                                         </div>
                                                     </div>
@@ -1258,7 +1258,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     }
 
     function removeThisAmount(param) {
-        $(param).closest('.row').remove();
+        $(param).closest('.form-group').remove();
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let total_flexible_payment = 0;
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
@@ -1443,11 +1443,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
             $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
-                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" placeholder="Select date" required onkeydown="return false;">
+                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;">
                                                     <div class="position-relative">
                                                         <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                                         <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
                                                     </div>
+                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
                                                 </div>`);
             $('.datepicker-future').datepicker({
                 dateFormat: 'mm/dd/yy',
@@ -1537,6 +1538,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $('.payment_method_div').slideUp();
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
+        $('.FLEXIBLE_PAYMENT_DATE').prop('required', false);
         $('#auto-pay-div').slideUp();
         $('.FLEXIBLE_PAYMENT_AMOUNT').val(0);
         //$('#IS_ONE_TIME_PAY').val(0);
@@ -1561,6 +1563,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
         if ($(this).val() == 'Flexible Payments') {
             $('#flexible_plans_div').slideDown();
+            $('.FLEXIBLE_PAYMENT_DATE').prop('required', true);
             let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
