@@ -39,6 +39,7 @@ $ENROLLMENT_BY_PERCENTAGE = '';
 $MEMO = '';
 $ACTIVE = '';
 $ACTIVE_AUTO_PAY = 0;
+$ENROLLMENT_STATUS = '';
 
 $PK_ENROLLMENT_BILLING = '';
 $BILLING_REF = '';
@@ -99,6 +100,7 @@ if (!empty($_GET['id'])) {
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
     $ACTIVE_AUTO_PAY = $res->fields['ACTIVE_AUTO_PAY'];
+    $ENROLLMENT_STATUS = $res->fields['STATUS'];
 
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
@@ -937,25 +939,50 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
-                                                                        <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                <?php
+                                                                if ($ENROLLMENT_STATUS == 'A') { ?>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
-                                                                        <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Installment Amount</label>
-                                                                        <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Installment Amount</label>
+                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                <?php } else {
+                                                                    $ledger_count = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND (STATUS = 'A' OR IS_PAID = 1) AND PK_ENROLLMENT_MASTER = '$_GET[id]'")->RecordCount(); ?>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" value="<?= $ledger_count ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Installment Amount</label>
+                                                                            <input type="text" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php }
+                                                                ?>
                                                             </div>
                                                         </div>
 
@@ -978,7 +1005,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <?php
                                                             if (!empty($_GET['id'])) {
                                                                 $i = 0;
-                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND (STATUS = 'A' OR IS_PAID = 1) AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
                                                                 while (!$flexible_payment_data->EOF) {
                                                                     if ($DOWN_PAYMENT > 0 && $i > 0) { ?>
                                                                         <div class="row">
@@ -1064,7 +1091,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <?php
                                                         $billed_amount = 0;
                                                         $balance = 0;
-                                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = " . $_GET['id'] . " AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = " . $_GET['id'] . " AND (STATUS = 'A' OR IS_PAID = 1) AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                                                         while (!$billing_details->EOF) {
                                                             $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                                                             $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
@@ -2106,7 +2133,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         function calculatePaymentPlans() {
             let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
             let NUMBER_OF_PAYMENT = parseInt(($('#NUMBER_OF_PAYMENT').val()) ? $('#NUMBER_OF_PAYMENT').val() : 1);
-            $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable / NUMBER_OF_PAYMENT).toFixed(2));
+            if (balance_payable > 0 && NUMBER_OF_PAYMENT > 0) {
+                $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable / NUMBER_OF_PAYMENT).toFixed(2));
+            }
         }
 
         function calculateNumberOfPayment(param) {

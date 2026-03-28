@@ -1443,12 +1443,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
             $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
+                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
                                                     <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;">
                                                     <div class="position-relative">
                                                         <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
                                                         <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
                                                     </div>
-                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
                                                 </div>`);
             $('.datepicker-future').datepicker({
                 dateFormat: 'mm/dd/yy',
