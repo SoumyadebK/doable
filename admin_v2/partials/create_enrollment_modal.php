@@ -238,10 +238,10 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <div class="form-group">
                         <select class="form-control form-select customerselect" name="PK_ENROLLMENT_TYPE" id="PK_ENROLLMENT_TYPE">
                             <option value="">Select Enrollment Type</option>
-                            <option value="5" <?= ($PK_ENROLLMENT_TYPE == 5) ? 'selected' : '' ?>>PORI</option>
-                            <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>ORI</option>
-                            <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>EXT</option>
-                            <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>REN</option>
+                            <option value="5" <?= ($PK_ENROLLMENT_TYPE == 5) ? 'selected' : '' ?>>1st Enrollment</option>
+                            <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>2nd Enrollment</option>
+                            <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>3rd Enrollment</option>
+                            <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>4+ Enrollment</option>
                             <option value="16" <?= ($PK_ENROLLMENT_TYPE == 16) ? 'selected' : '' ?>>MISC</option>
                         </select>
                     </div>
