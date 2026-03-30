@@ -414,6 +414,8 @@ if (!empty($_POST)) {
                 $PK_USER = $customer_exist->fields['PK_USER'];
                 $PK_USER_MASTER = $customer_exist->fields['PK_USER_MASTER'];
 
+                $db->Execute("UPDATE DOA_USERS SET IS_DELETED = 0, ACTIVE = 1 WHERE PK_USER = $PK_USER");
+
                 //COMPLETED ENROLLMENT SECTION
 
                 //$ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 0;
