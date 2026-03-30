@@ -1456,6 +1456,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         }
 
         function setDateOnAppointment() {
+            $('#create_appointment_form')[0].reset();
+            $('.customer_select').val('');
+            $('.customer_select')[0].sumo.reload();
+            $('#create_appointment_form .enrollment_area').addClass('d-none');
+            $('#create_appointment_form .schedule_code_area').addClass('d-none');
+            $('.slot_div').html('');
+
+
             let date = $('#CHOOSE_DATE').val();
             let converted_date = new Date(date);
             let year = converted_date.getFullYear();

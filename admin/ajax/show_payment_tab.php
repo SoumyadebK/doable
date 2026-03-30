@@ -138,12 +138,12 @@ $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLME
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" disabled>
+                    <input type="text" class="form-control PRICE_PER_SESSION" value="<?= number_format($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION'], 2, '.', '') ?>" disabled>
                 </div>
             </div>
             <div class="col-1">
                 <div class="form-group">
-                    <input type="text" class="form-control TOTAL" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" disabled>
+                    <input type="text" class="form-control TOTAL" value="<?= number_format($enrollment_service_data->fields['TOTAL'], 2, '.', '') ?>" disabled>
                 </div>
             </div>
             <div class="col-1">

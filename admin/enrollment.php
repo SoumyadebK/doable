@@ -432,12 +432,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" onkeyup="calculateServiceTotal(this)" required>
+                                                                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?= number_format($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION'], 2, '.', '') ?>" onkeyup="calculateServiceTotal(this)" required>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control TOTAL" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" onkeyup="calculateServiceTotal(this)" readonly>
+                                                                        <input type="text" class="form-control TOTAL" value="<?= number_format($enrollment_service_data->fields['TOTAL'], 2, '.', '') ?>" onkeyup="calculateServiceTotal(this)" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
