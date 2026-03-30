@@ -458,10 +458,10 @@ if (!empty($_POST)) {
                 $PRICE_PER_SESSION = $TOTAL_COST / $TOTAL_LESSONS;
                 if ($getData[4] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Private%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 12");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[4];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
@@ -475,10 +475,10 @@ if (!empty($_POST)) {
 
                 if ($getData[5] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Group%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 4");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[5];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
@@ -492,10 +492,10 @@ if (!empty($_POST)) {
 
                 if ($getData[6] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Party%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 16");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[6];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
@@ -608,10 +608,10 @@ if (!empty($_POST)) {
                 $PRICE_PER_SESSION = $TOTAL_COST / $TOTAL_LESSONS;
                 if ($getData[9] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 12;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  12;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Private%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 12");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[9];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
@@ -625,10 +625,10 @@ if (!empty($_POST)) {
 
                 if ($getData[10] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 4;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  4;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Group%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 4");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[10];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
@@ -642,10 +642,10 @@ if (!empty($_POST)) {
 
                 if ($getData[11] > 0) {
                     $SERVICE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                    $SERVICE_DATA['PK_SERVICE_MASTER'] = 16;
-                    $SERVICE_DATA['PK_SERVICE_CODE'] =  16;
+                    $service_details = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_CODE.PK_SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE SERVICE_NAME LIKE '%Party%'");
+                    $SERVICE_DATA['PK_SERVICE_MASTER'] = $service_details->fields['PK_SERVICE_MASTER'];
+                    $SERVICE_DATA['PK_SERVICE_CODE'] = $service_details->fields['PK_SERVICE_CODE'];
                     //$SERVICE_DATA['PK_SCHEDULING_CODE'] =  $PK_SCHEDULING_CODE;
-                    $service_details = $db_account->Execute("SELECT DESCRIPTION FROM DOA_SERVICE_MASTER WHERE PK_SERVICE_MASTER = 16");
                     $SERVICE_DATA['SERVICE_DETAILS'] = $service_details->fields['DESCRIPTION'];
                     $SERVICE_DATA['NUMBER_OF_SESSION'] = $getData[11];
                     $SERVICE_DATA['PRICE_PER_SESSION'] = $PRICE_PER_SESSION;
