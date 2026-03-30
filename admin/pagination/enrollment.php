@@ -131,10 +131,10 @@ while (!$enrollment_data->EOF) {
                         <tr>
                             <th></th>
                             <th style="text-align: right;">Enrolled</th>
-                            <th style="text-align: right;">Used</th>
                             <th style="text-align: right;">Scheduled</th>
-                            <th style="text-align: right;">Balance</th>
+                            <th style="text-align: right;">Used</th>
                             <th style="text-align: right;">Paid</th>
+                            <th style="text-align: right;">Remaining</th>
                             <th style="text-align: right;">Service Credit</th>
                         </tr>
                     </thead>
@@ -196,10 +196,10 @@ while (!$enrollment_data->EOF) {
                             <tr>
                                 <td><?= $serviceCodeData->fields['SERVICE_CODE'] ?></td>
                                 <td style="text-align: right"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $NUMBER_OF_SESSION <= 0) ? 'XX' : $NUMBER_OF_SESSION ?></td>
-                                <td style="text-align: right;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
                                 <td style="text-align: right;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_SCHEDULED <= 0) ? 'XX' : $SESSION_SCHEDULED ?></td>
-                                <td style="text-align: right; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
+                                <td style="text-align: right;"><?= ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership' && $SESSION_COMPLETED <= 0) ? 'XX' : $SESSION_COMPLETED ?></td>
                                 <td style="text-align: right"><?= number_format($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / (($PRICE_PER_SESSION == 0) ? 1 : $PRICE_PER_SESSION), 2) ?></td>
+                                <td style="text-align: right; color:<?= ($ENR_BALANCE < 0) ? 'red' : 'black' ?>;"><?= number_format($ENR_BALANCE, 2) ?></td>
                                 <td style="text-align: right; color:<?= ($SERVICE_CREDIT < 0) ? 'red' : 'black' ?>;"><?= number_format($SERVICE_CREDIT, 2) ?></td>
                             </tr>
                         <?php $serviceCodeData->MoveNext();
