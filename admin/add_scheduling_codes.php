@@ -11,6 +11,19 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
+// Simple fix - convert to array if it's a string
+if (!is_array($DEFAULT_LOCATION_ID)) {
+    // If it's a comma-separated string like "13, 27"
+    if (strpos($DEFAULT_LOCATION_ID, ',') !== false) {
+        $location_count = array_map('trim', explode(',', $DEFAULT_LOCATION_ID));
+    } else {
+        // If it's a single value
+        $location_count = !empty($DEFAULT_LOCATION_ID) ? [$DEFAULT_LOCATION_ID] : [];
+    }
+}
+
 if (!empty($_POST)) {
     //$SCHEDULING_DATA = $_POST;
     $SCHEDULING_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -93,15 +106,16 @@ if ($help->RecordCount() > 0) {
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid extra-space body_content">
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+
+            <div class="container-fluid body_content" style="margin-top: 0px;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
@@ -118,46 +132,52 @@ if ($help->RecordCount() > 0) {
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-8">
-                        <div class="card">
-                            <div class="card-body">
-                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                    <div class="col-md-12 mb-3">
-                                        <label for="SCHEDULING_CODE">Scheduling Code</label>
-                                        <input type="text" class="form-control" id="SCHEDULING_CODE" name="SCHEDULING_CODE" value="<?php echo $SCHEDULING_CODE ?>" required>
-                                        <div class="invalid-feedback">
-                                            Enter Scheduling Code
-                                        </div>
-                                    </div>
 
-                                    <div class="col-md-12 mb-3">
-                                        <label for="SCHEDULING_NAME">Scheduling Name</label>
-                                        <input type="text" class="form-control" id="SCHEDULING_NAME" name="SCHEDULING_NAME" value="<?php echo $SCHEDULING_NAME ?>" required>
-                                        <div class="invalid-feedback">
-                                            Enter Scheduling Name
+                <?php if (count($location_count) > 1) { ?>
+                    <div class="alert alert-warning" role="alert">
+                        ⚠️ Please select one Location on the top to add or edit Scheduling Codes.
+                    </div>
+                <?php } else { ?>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="SCHEDULING_CODE">Scheduling Code</label>
+                                            <input type="text" class="form-control" id="SCHEDULING_CODE" name="SCHEDULING_CODE" value="<?php echo $SCHEDULING_CODE ?>" required>
+                                            <div class="invalid-feedback">
+                                                Enter Scheduling Code
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <label class="form-label">Location</label>
+                                        <div class="col-md-12 mb-3">
+                                            <label for="SCHEDULING_NAME">Scheduling Name</label>
+                                            <input type="text" class="form-control" id="SCHEDULING_NAME" name="SCHEDULING_NAME" value="<?php echo $SCHEDULING_NAME ?>" required>
+                                            <div class="invalid-feedback">
+                                                Enter Scheduling Name
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
                                             <div class="col-12">
-                                                <div class="form-group">
-                                                    <select class="form-control PK_LOCATION" name="PK_LOCATION">
-                                                        <?php
-                                                        $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                                                        <?php $row->MoveNext();
-                                                        } ?>
-                                                    </select>
+                                                <label class="form-label">Location</label>
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <select class="form-control PK_LOCATION" name="PK_LOCATION">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!--<div class="col-md-12 mb-3">
+                                        <!--<div class="col-md-12 mb-3">
                                     <label for="PK_SCHEDULING_EVENT">Scheduling Event</label>
                                     <select id="PK_SCHEDULING_EVENT" name="PK_SCHEDULING_EVENT" class="form-control">
                                         <option disabled selected>Select Scheduling Event</option>
@@ -191,7 +211,7 @@ if ($help->RecordCount() > 0) {
                                     </select>
                                 </div>-->
 
-                                    <!--<div class="col-6">
+                                        <!--<div class="col-6">
                                     <label class="col-md-12">Services</label>
                                     <div class="col-md-12 multiselect-box" style="width: 100%;">
                                         <select class="multi_sumo_select" name="PK_SERVICE_MASTER[]" id="PK_SERVICE_MASTER" multiple required>
@@ -213,11 +233,11 @@ if ($help->RecordCount() > 0) {
                                         </select>
                                     </div>
                                 </div>-->
-                                    <div class="form-group">
-                                        <label class="" for="example-text">To Dos</label>
-                                        <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?= ($TO_DOS == 1) ? 'checked' : '' ?>>
-                                    </div>
-                                    <!--<div class="form-group" style="margin-top: 15px">
+                                        <div class="form-group">
+                                            <label class="" for="example-text">To Dos</label>
+                                            <input type="checkbox" id="TO_DOS" name="TO_DOS" class="form-check-inline" style="margin-left: 10px;" <?= ($TO_DOS == 1) ? 'checked' : '' ?>>
+                                        </div>
+                                        <!--<div class="form-group" style="margin-top: 15px">
                                     <label class="" for="example-text">Is Group</label>
                                     <input type="checkbox" id="IS_GROUP" name="IS_GROUP" class="form-check-inline" style="margin-left: 10px;" <?php /*=($IS_GROUP == 1)?'checked':''*/ ?>
                                 </div>
@@ -225,85 +245,86 @@ if ($help->RecordCount() > 0) {
                                     <label class="" for="example-text">Customer Required</label>
                                     <input type="checkbox" id="IS_DEFAULT" name="IS_DEFAULT" class="form-check-inline" style="margin-left: 10px; margin-top: 15px" <?php /*=($IS_DEFAULT == 1)?'checked':''*/ ?>
                                 </div>-->
-                                    <div class="form-group" style="margin-top: 10px">
-                                        <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
-                                        </label>
-                                        <div class="col-md-3">
-                                            <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE ?>" style="margin: 10px; width: 150px;">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Unit<span class="text-danger">*</span></label>
-                                        <div class="col-md-3">
-                                            <select class="form-control" name="UNIT" required>
-                                                <option value="">Select</option>
-                                                <option value="0.5" <?= ($UNIT == '0.5') ? 'selected' : '' ?>>0.5</option>
-                                                <option value="1" <?= ($UNIT == '1') ? 'selected' : '' ?>>1</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="col-md-12" for="example-text">Duration</label>
-                                        <div class="row">
+                                        <div class="form-group" style="margin-top: 10px">
+                                            <label class="col-md-12" for="example-text">Color Code<span class="text-danger">*</span>
+                                            </label>
                                             <div class="col-md-3">
-                                                <input type="text" class="form-control" id="DURATION" name="DURATION" value="<?php echo $DURATION ?>">
-                                            </div>
-                                            <div class="col-md-1" style="margin-top: 10px; margin-left: -10px">
-                                                Min
+                                                <input type="color" id="COLOR_CODE" name="COLOR_CODE" value="<?php echo $COLOR_CODE ?>" style="margin: 10px; width: 150px;">
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="col-md-12" for="example-text">Sort Order</label>
-                                        <div class="row">
+
+                                        <div class="form-group">
+                                            <label class="form-label">Unit<span class="text-danger">*</span></label>
                                             <div class="col-md-3">
-                                                <input type="text" class="form-control" id="SORT_ORDER" name="SORT_ORDER" value="<?php echo $SORT_ORDER ?>">
+                                                <select class="form-control" name="UNIT" required>
+                                                    <option value="">Select</option>
+                                                    <option value="0.5" <?= ($UNIT == '0.5') ? 'selected' : '' ?>>0.5</option>
+                                                    <option value="1" <?= ($UNIT == '1') ? 'selected' : '' ?>>1</option>
+                                                </select>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <?php if (!empty($_GET['id'])) { ?>
-                                        <input type="hidden" name="PK_TEXT_TEMPLATE" value="<?php echo $_GET['id'] ?>">
-                                        <div class="col-md-12 mb-3">
-                                            <label for="IMAGE">Active</label>
-                                            <div class="custom-control custom-radio ">
-                                                <input type="radio" id="ACTIVE1" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '1' ? 'checked' : '' ?> value="1">
-                                                <label class="custom-control-label" for="ACTIVE1">Yes</label>
-                                            </div>
-                                            <div class="custom-control custom-radio">
-                                                <input type="radio" id="ACTIVE2" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '0' ? 'checked' : '' ?> value="0">
-                                                <label class="custom-control-label" for="ACTIVE2">No</label>
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Duration</label>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control" id="DURATION" name="DURATION" value="<?php echo $DURATION ?>">
+                                                </div>
+                                                <div class="col-md-1" style="margin-top: 10px; margin-left: -10px">
+                                                    Min
+                                                </div>
                                             </div>
                                         </div>
-                                    <?php } ?>
+                                        <div class="form-group">
+                                            <label class="col-md-12" for="example-text">Sort Order</label>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control" id="SORT_ORDER" name="SORT_ORDER" value="<?php echo $SORT_ORDER ?>">
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                    <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if (empty($_GET['id'])) {
-                                                                                                                                echo 'Save';
-                                                                                                                            } else {
-                                                                                                                                echo 'Update';
-                                                                                                                            } ?></button>
-                                    <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_scheduling_codes.php'">Cancel</button>
-                                </form>
+                                        <?php if (!empty($_GET['id'])) { ?>
+                                            <input type="hidden" name="PK_TEXT_TEMPLATE" value="<?php echo $_GET['id'] ?>">
+                                            <div class="col-md-12 mb-3">
+                                                <label for="IMAGE">Active</label>
+                                                <div class="custom-control custom-radio ">
+                                                    <input type="radio" id="ACTIVE1" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '1' ? 'checked' : '' ?> value="1">
+                                                    <label class="custom-control-label" for="ACTIVE1">Yes</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" id="ACTIVE2" name="ACTIVE" class="custom-control-input" <?php echo $ACTIVE == '0' ? 'checked' : '' ?> value="0">
+                                                    <label class="custom-control-label" for="ACTIVE2">No</label>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+
+                                        <button class="btn btn-info waves-effect waves-light m-r-10 text-white" type="submit"> <?php if (empty($_GET['id'])) {
+                                                                                                                                    echo 'Save';
+                                                                                                                                } else {
+                                                                                                                                    echo 'Update';
+                                                                                                                                } ?></button>
+                                        <button class="btn btn-inverse waves-effect waves-light" type="button" onclick="window.location.href='all_scheduling_codes.php'">Cancel</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <h4 class="col-md-12" STYLE="text-align: center">
-                                        <?= $help_title ?>
-                                    </h4>
-                                    <div class="col-md-12">
-                                        <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                        <div class="col-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <h4 class="col-md-12" STYLE="text-align: center">
+                                            <?= $help_title ?>
+                                        </h4>
+                                        <div class="col-md-12">
+                                            <text class="required-entry rich" id="DESCRIPTION"><?= $help_description ?></text>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                <?php } ?>
             </div>
             <input type="hidden" id="row_id" value="" />
         </div>
