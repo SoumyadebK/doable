@@ -601,6 +601,7 @@ if (isset($_POST['SUBMIT'])) {
 
                                     $results = $db_account->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS SERVICE_PROVIDER FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $enrollment_data->fields['PK_ENROLLMENT_MASTER']);
                                     $resultsArray = [];
+                                    $service_provider = " ";
                                     while (!$results->EOF) {
                                         $service_provider = ($results->fields['SERVICE_PROVIDER'] == null) ? " " : $results->fields['SERVICE_PROVIDER'];
                                         $resultsArray[] = $results->fields['SERVICE_PROVIDER'];
