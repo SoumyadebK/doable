@@ -4,6 +4,19 @@ $title = "All Scheduling Codes";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+// Add multiple location handling
+if (!is_array($DEFAULT_LOCATION_ID)) {
+    if (strpos($DEFAULT_LOCATION_ID, ',') !== false) {
+        $DEFAULT_LOCATION_ID = array_map('trim', explode(',', $DEFAULT_LOCATION_ID));
+    } else {
+        $DEFAULT_LOCATION_ID = !empty($DEFAULT_LOCATION_ID) ? [$DEFAULT_LOCATION_ID] : [];
+    }
+}
+
+$location_count = count($DEFAULT_LOCATION_ID);
+$multiple_locations = ($location_count > 1);
+$location_ids_for_sql = implode(',', $DEFAULT_LOCATION_ID);
+
 $status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
 
 if ($status_check == 'active') {
@@ -64,7 +77,9 @@ if ($header_data->RecordCount() > 0) {
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                                 <li class="breadcrumb-item active"><?= $title ?></li>
                             </ol>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='add_scheduling_codes.php'"><i class="fa fa-plus-circle"></i> Create New</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="createNewSchedulingCode()">
+                                <i class="fa fa-plus-circle"></i> Create New
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -95,39 +110,45 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_LOCATION.LOCATION_NAME, DOA_SCHEDULING_CODE.DURATION, DOA_SCHEDULING_CODE.UNIT, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_SCHEDULING_CODE.PK_LOCATION WHERE DOA_SCHEDULING_CODE.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.ACTIVE =" . $status . " AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
-                                            while (!$row->EOF) { ?>
-                                                <tr data-id="<?= $row->fields['PK_SCHEDULING_CODE'] ?>">
-                                                    <td class="code"><?= $row->fields['SCHEDULING_CODE'] ?></td>
-                                                    <td class="name"><?= $row->fields['SCHEDULING_NAME'] ?></td>
-                                                    <td class="name"><?= $row->fields['LOCATION_NAME'] ?></td>
-                                                    <td class="duration"><?= $row->fields['DURATION'] ?></td>
-                                                    <td class="unit"><?= $row->fields['UNIT'] ?></td>
-                                                    <td class="color" data-value="<?= $row->fields['COLOR_CODE'] ?>"><span style="display: block; width: 44px; height: 22px; background-color: <?= $row->fields['COLOR_CODE'] ?>"></span></td>
-                                                    <td class="order"><?= $row->fields['SORT_ORDER'] ?></td>
-                                                    <td class="todos" data-value="<?= $row->fields['TO_DOS'] ?>" style="text-align: center">
-                                                        <?php if ($row->fields['TO_DOS'] == 1) { ?>
-                                                            <input type="checkbox" class="active-checkbox" checked disabled>
-                                                        <?php } else { ?>
-                                                            <input type="checkbox" class="active-checkbox" disabled>
-                                                        <?php } ?>
-                                                    </td>
-                                                    <td class="is_active" data-value="<?= $row->fields['ACTIVE'] ?>">
-                                                        <?php if ($row->fields['ACTIVE'] == 1) { ?>
-                                                            <span class="active-box-green"></span>
-                                                        <?php } else { ?>
-                                                            <span class="active-box-red"></span>
-                                                        <?php } ?>
-                                                        <!--<a href="add_scheduling_codes.php?id=<?php /*=$row->fields['PK_SCHEDULING_CODE']*/ ?>"><img src="../assets/images/edit.png" title="Edit" style="padding-top:5px"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-                                                    </td>
-                                                    <td>
-                                                        <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit</button>
-                                                        <button class="saveBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save</button>
-                                                    </td>
+                                            if (!empty($location_ids_for_sql)) {
+                                                $row = $db_account->Execute("SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_CODE, DOA_SCHEDULING_CODE.SCHEDULING_NAME, DOA_LOCATION.LOCATION_NAME, DOA_SCHEDULING_CODE.DURATION, DOA_SCHEDULING_CODE.UNIT, DOA_SCHEDULING_CODE.COLOR_CODE, DOA_SCHEDULING_CODE.SORT_ORDER, DOA_SCHEDULING_CODE.TO_DOS, DOA_SCHEDULING_CODE.ACTIVE FROM `DOA_SCHEDULING_CODE` LEFT JOIN DOA_SCHEDULING_SERVICE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE=DOA_SCHEDULING_SERVICE.PK_SCHEDULING_CODE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_SCHEDULING_CODE.PK_LOCATION WHERE DOA_SCHEDULING_CODE.PK_LOCATION IN (" . $location_ids_for_sql . ") AND DOA_SCHEDULING_CODE.ACTIVE =" . $status . " AND DOA_SCHEDULING_CODE.PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY CASE WHEN DOA_SCHEDULING_CODE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_SCHEDULING_CODE.SORT_ORDER");
+
+                                                while (!$row->EOF) { ?>
+                                                    <tr data-id="<?= $row->fields['PK_SCHEDULING_CODE'] ?>">
+                                                        <td class="code"><?= $row->fields['SCHEDULING_CODE'] ?></td>
+                                                        <td class="name"><?= $row->fields['SCHEDULING_NAME'] ?></td>
+                                                        <td class="location_name"><?= $row->fields['LOCATION_NAME'] ?></td>
+                                                        <td class="duration"><?= $row->fields['DURATION'] ?></td>
+                                                        <td class="unit"><?= $row->fields['UNIT'] ?></td>
+                                                        <td class="color" data-value="<?= $row->fields['COLOR_CODE'] ?>"><span style="display: block; width: 44px; height: 22px; background-color: <?= $row->fields['COLOR_CODE'] ?>"></span></td>
+                                                        <td class="order"><?= $row->fields['SORT_ORDER'] ?></td>
+                                                        <td class="todos" data-value="<?= $row->fields['TO_DOS'] ?>" style="text-align: center">
+                                                            <?php if ($row->fields['TO_DOS'] == 1) { ?>
+                                                                <input type="checkbox" class="active-checkbox" checked disabled>
+                                                            <?php } else { ?>
+                                                                <input type="checkbox" class="active-checkbox" disabled>
+                                                            <?php } ?>
+                                                        </td>
+                                                        <td class="is_active" data-value="<?= $row->fields['ACTIVE'] ?>" style="text-align: center">
+                                                            <?php if ($row->fields['ACTIVE'] == 1) { ?>
+                                                                <span class="active-box-green"></span>
+                                                            <?php } else { ?>
+                                                                <span class="active-box-red"></span>
+                                                            <?php } ?>
+                                                        </td>
+                                                        <td>
+                                                            <button class="editBtn btn btn-info waves-effect waves-light m-r-10 text-white myBtn">Edit</button>
+                                                            <button class="saveBtn btn btn-success waves-effect waves-light m-r-10 text-white myBtn" style="display: none">Save</button>
+                                                        </td>
+                                                    </tr>
+                                                <?php $row->MoveNext();
+                                                    $i++;
+                                                }
+                                            } else { ?>
+                                                <tr>
+                                                    <td colspan="10" style="text-align: center;">No locations selected. Please update your profile settings.</td>
                                                 </tr>
-                                            <?php $row->MoveNext();
-                                                $i++;
-                                            } ?>
+                                            <?php } ?>
                                         </tbody>
                                     </table>
 
@@ -186,16 +207,22 @@ if ($header_data->RecordCount() > 0) {
                 window.location = anchor.attr("href");
         }
 
-        function editpage(id) {
-            //alert(i);
-            window.location.href = "add_scheduling_codes.php?id=" + id;
+        // Handle Create New button click
+        function createNewSchedulingCode() {
+            <?php if ($multiple_locations) { ?>
+                Swal.fire({
+                    title: 'Multiple Locations Selected!',
+                    html: `You have selected <strong><?= $location_count ?></strong> locations.<br><br>Please select a single location to create a new Scheduling Code.`,
+                    icon: 'warning',
+                    cancelButtonText: 'Cancel',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                })
+            <?php } else { ?>
+                window.location.href = 'add_scheduling_codes.php';
+            <?php } ?>
         }
-
-        /*function editSortOrder(PK_SCHEDULING_CODE, SORT_ORDER) {
-            $('#PK_SCHEDULING_CODE').val(PK_SCHEDULING_CODE);
-            $('#ORDER_NUMBER').val(SORT_ORDER);
-            $('#sort_order_modal').modal('show');
-        }*/
 
         // Get all the edit buttons and save buttons in the table
         const editButtons = document.querySelectorAll('.editBtn');
@@ -204,6 +231,19 @@ if ($header_data->RecordCount() > 0) {
         // Loop through each edit button and add an event listener
         editButtons.forEach((editButton, index) => {
             editButton.addEventListener('click', function() {
+                <?php if ($multiple_locations) { ?>
+                    Swal.fire({
+                        title: 'Multiple Locations Selected!',
+                        html: 'You have selected <?= $location_count ?> locations. <br><br> Please select a single location to edit Scheduling Codes.',
+                        icon: 'warning',
+                        cancelButtonText: 'Cancel',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33'
+                    })
+                    return;
+                <?php } ?>
+
                 // Find the row containing the clicked button
                 const row = editButton.closest('tr');
                 const codeCell = row.querySelector('.code');
@@ -215,15 +255,19 @@ if ($header_data->RecordCount() > 0) {
                 const todosCell = row.querySelector('.todos');
                 const activeCell = row.querySelector('.is_active');
 
-                // Replace the cell content with input fields containing the current text
-                codeCell.innerHTML = `<input type="text" value="${codeCell.textContent}" class="edit-code">`;
-                nameCell.innerHTML = `<input type="text" value="${nameCell.textContent}" class="edit-name">`;
-                durationCell.innerHTML = `<input type="text" value="${durationCell.textContent}" class="edit-duration">`;
-                unitCell.innerHTML = `<input type="text" value="${unitCell.textContent}" class="edit-unit">`;
-                colorCell.innerHTML = `<input type="color" value="${colorCell.getAttribute('data-value')}" class="edit-color">`;
-                orderCell.innerHTML = `<input type="text" value="${orderCell.textContent}" class="edit-order">`;
-                todosCell.innerHTML = `<input type="checkbox" class="edit-todos" ${(todosCell.getAttribute('data-value') == 1) ? 'checked' : ''}>`;
-                activeCell.innerHTML = `<input type="checkbox" class="edit-active" ${(activeCell.getAttribute('data-value') == 1) ? 'checked' : ''}>`;
+                // Store current values
+                //const currentTodos = todosCell.getAttribute('data-value') == '1';
+                //const currentActive = activeCell.getAttribute('data-value') == '1';
+
+                // Replace the cell content with input fields
+                codeCell.innerHTML = `<input type="text" value="${codeCell.textContent}" class="edit-code" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">`;
+                nameCell.innerHTML = `<input type="text" value="${nameCell.textContent}" class="edit-name" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">`;
+                durationCell.innerHTML = `<input type="text" value="${durationCell.textContent}" class="edit-duration" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">`;
+                unitCell.innerHTML = `<input type="text" value="${unitCell.textContent}" class="edit-unit" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">`;
+                colorCell.innerHTML = `<input type="color" value="${colorCell.getAttribute('data-value')}" class="edit-color" style="width: 50px; height: 30px; border: 1px solid #ddd; border-radius: 4px;">`;
+                orderCell.innerHTML = `<input type="text" value="${orderCell.textContent}" class="edit-order" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">`;
+                todosCell.innerHTML = `<input type="checkbox" class="edit-todos" ${(todosCell.getAttribute('data-value') == 1) ? 'checked' : ''} style="width: 18px; height: 18px;">`;
+                activeCell.innerHTML = `<input type="checkbox" class="edit-active" ${(activeCell.getAttribute('data-value') == 1) ? 'checked' : ''} style="width: 18px; height: 18px;">`;
 
                 // Show the save button and hide the edit button
                 editButton.style.display = 'none';
