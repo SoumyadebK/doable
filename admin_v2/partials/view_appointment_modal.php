@@ -673,7 +673,7 @@ if ($TYPE == 'appointment') {
 ?>
 
     <?php
-    $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'";
+    $appointment_customer_query = "SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER FROM $master_database.DOA_USERS AS DOA_USERS INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_USER_MASTER.PK_USER_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER WHERE DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER' ORDER BY DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_CUSTOMER ASC, DOA_APPOINTMENT_CUSTOMER.IS_PARTNER ASC";
     $appointment_customer_data = $db_account->Execute($appointment_customer_query);
     ?>
     <div class="appointment-profile d-flex gap-3 f12 theme-text-light mb-2">
@@ -684,31 +684,48 @@ if ($TYPE == 'appointment') {
     <div class="collapse multi-collapse show" id="collaseexample1">
         <?php
         while (!$appointment_customer_data->EOF) {
-            $selected_customer = $appointment_customer_data->fields['NAME'];
-            $customer_phone = $appointment_customer_data->fields['PHONE'];
-            $customer_email = $appointment_customer_data->fields['EMAIL_ID'];
-            $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
-            $selected_user_id = $appointment_customer_data->fields['PK_USER'];
+            if ($appointment_customer_data->fields['IS_PARTNER'] == 1) {
+                $partner_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = " . $appointment_customer_data->fields['PK_USER_MASTER']);
+                $selected_customer = $partner_data->fields['PARTNER_FIRST_NAME'] . ' ' . $partner_data->fields['PARTNER_LAST_NAME'];
+                $customer_phone = $partner_data->fields['PARTNER_PHONE'];
+                $customer_email = $partner_data->fields['PARTNER_EMAIL'];
+                $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
+                $selected_user_id = $appointment_customer_data->fields['PK_USER'];
         ?>
-            <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
-                <div>
-                    <span class="badge bgsuccess d-inline-block p-1"></span>
-                    <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold" onclick="loadViewCustomerModal(<?= $selected_user_id ?>, 0)"><?= $selected_customer ?></a>
-                    <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
+                <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
+                    <div>
+                        <span class="badge bgsuccess d-inline-block p-1"></span>
+                        <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold"><?= $selected_customer ?></a>
+                        <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
+                    </div>
                 </div>
-                <div class="d-flex gap-2 ms-auto">
-                    <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>)">
-                        <i class="fa fa-times" aria-hidden="true"></i>
-                    </a>
-                    <a href="javascript:;" class="btn-icon">
-                        <i class="fa fa-envelope" aria-hidden="true"></i>
-                    </a>
-                    <a href="javascript:;" class="btn-icon">
-                        <i class="fa fa-comment" aria-hidden="true"></i>
-                    </a>
+
+            <?php } else {
+                $selected_customer = $appointment_customer_data->fields['NAME'];
+                $customer_phone = $appointment_customer_data->fields['PHONE'];
+                $customer_email = $appointment_customer_data->fields['EMAIL_ID'];
+                $selected_customer_id = $appointment_customer_data->fields['PK_USER_MASTER'];
+                $selected_user_id = $appointment_customer_data->fields['PK_USER']; ?>
+
+                <div class="d-flex align-items-center gap-3 f12 theme-text-light mb-2">
+                    <div>
+                        <span class="badge bgsuccess d-inline-block p-1"></span>
+                        <a href="javascript:;" class="name text-decoration-underline f12 fw-semibold" onclick="loadViewCustomerModal(<?= $selected_user_id ?>, 0)"><?= $selected_customer ?></a>
+                        <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
+                    </div>
+                    <div class="d-flex gap-2 ms-auto">
+                        <a href="javascript:;" class="btn-icon" onclick="removeThisCustomerFromGroupClass(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_customer_id ?>)">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:;" class="btn-icon">
+                            <i class="fa fa-envelope" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:;" class="btn-icon">
+                            <i class="fa fa-comment" aria-hidden="true"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
-        <?php
+        <?php }
             $appointment_customer_data->MoveNext();
         }
         ?>
@@ -899,6 +916,31 @@ if ($TYPE == 'appointment') {
             </div>
         </div>
     </form>
+
+    <hr class="mb-3">
+
+    <div class="row">
+        <div class="col-4 col-md-4">
+            <div class="d-flex gap-2 align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="transparent">
+                    <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                </svg>
+                <label class="mb-0">Update History</label>
+            </div>
+        </div>
+        <div class="col-8 col-md-8">
+            <div class="form-group">
+                <?php
+                $customer_update_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER_UPDATE_HISTORY` WHERE PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER ORDER BY PK_APPOINTMENT_CUSTOMER_UPDATE_HISTORY DESC");
+                $CUSTOMER_UPDATE_DETAILS = '';
+                while (!$customer_update_data->EOF) {
+                    echo "<p style='font-size: 10px; margin-bottom: 0;'>" . $customer_update_data->fields['DETAILS'] . '</p>';
+                    $customer_update_data->MoveNext();
+                }
+                ?>
+            </div>
+        </div>
+    </div>
     <!-- End Appointment Details -->
 
     <script>

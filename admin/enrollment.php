@@ -1006,28 +1006,27 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             if (!empty($_GET['id'])) {
                                                                 $i = 0;
                                                                 $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND (STATUS = 'A' OR IS_PAID = 1) AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                                                                while (!$flexible_payment_data->EOF) {
-                                                                    if ($DOWN_PAYMENT > 0 && $i > 0) { ?>
-                                                                        <div class="row">
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
-                                                                                    </div>
+                                                                while (!$flexible_payment_data->EOF) { ?>
+                                                                    <div class="row">
+                                                                        <div class="col-3">
+                                                                            <div class="form-group">
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-3" style="padding-top: 5px;">
-                                                                                <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                             </div>
                                                                         </div>
-                                                                <?php }
+                                                                        <div class="col-3">
+                                                                            <div class="form-group">
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-3" style="padding-top: 5px;">
+                                                                            <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php
                                                                     $i++;
                                                                     $flexible_payment_data->MoveNext();
                                                                 } ?>

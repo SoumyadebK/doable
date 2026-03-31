@@ -651,7 +651,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <label class="mb-0">Next Payment Dates</label>
                         </div>
                     </div>
-                    <div class="col-8 col-md-8" id="next_payment_dates_div">
+                    <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2 mb-2">
                             <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" onkeydown="return false;">
                             <div class="position-relative">
@@ -659,6 +659,19 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                 <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-3 col-md-3">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="col-9 col-md-9" id="next_payment_dates_div">
+
                     </div>
                 </div>
 
@@ -1442,7 +1455,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             total_flexible_payment += parseFloat($(this).val());
         });
         if ((total_flexible_payment + down_payment) < total_bill) {
-            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2">
+            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2" style="margin-left: 16px;">
                                                     <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
                                                     <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;">
                                                     <div class="position-relative">

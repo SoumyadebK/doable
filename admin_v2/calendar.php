@@ -770,12 +770,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <script>
+        function parseYMDDate(dateString) {
+            if (!dateString) return null;
+            let parts = dateString.split('-'); // "YYYY-MM-DD"
+            if (parts.length !== 3) return null;
+            let year = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1;
+            let day = parseInt(parts[2], 10);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+            return new Date(year, month, day);
+        }
+
         $(window).on('load', function() {
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
-                let parts = redirect_date.split('-'); // "YYYY-MM-DD"
-                let currentDate = new Date(parts[0], parts[1] - 1, parts[2]); // Local date
-                renderCalendar(currentDate);
+                let currentDate = parseYMDDate(redirect_date);
+                if (currentDate) {
+                    renderCalendar(currentDate);
+                }
             }
         });
 
@@ -868,7 +880,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         let calendar;
         let redirect_date = '<?= $redirect_date ?>';
-        let todayDate = redirect_date ? new Date(redirect_date) : new Date();
+        let todayDate = redirect_date ? (parseYMDDate(redirect_date) || new Date()) : new Date();
         const dayConfigs = <?= json_encode($dayConfig) ?>;
 
         let activePopoverInstance = null;
@@ -1457,11 +1469,26 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         function setDateOnAppointment() {
             $('#create_appointment_form')[0].reset();
-            $('.customer_select').val('');
-            $('.customer_select')[0].sumo.reload();
+
             $('#create_appointment_form .enrollment_area').addClass('d-none');
             $('#create_appointment_form .schedule_code_area').addClass('d-none');
             $('.slot_div').html('');
+
+            $('#create_group_class_form')[0].reset();
+            $('.custom-date-time-format').addClass('d-none');
+
+            $('#create_to_do_form')[0].reset();
+            $('#TO_DO_SERVICE_PROVIDER').val('');
+            $('#TO_DO_SERVICE_PROVIDER')[0].sumo.reload();
+
+            $('#create_record_only_form')[0].reset();
+
+            $('.customer_select').val('');
+            $('.customer_select').each(function() {
+                if (this.sumo && typeof this.sumo.reload === 'function') {
+                    this.sumo.reload();
+                }
+            });
 
 
             let date = $('#CHOOSE_DATE').val();

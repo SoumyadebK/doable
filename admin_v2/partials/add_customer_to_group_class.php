@@ -7,8 +7,8 @@ global $master_database;
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 ?>
-<form class="mb-0" id="add_customer_to_group_class_form" onsubmit="addCustomerToGroupClass(this)">
-    <input type="hidden" name="FUNCTION_NAME" value="addCustomerToGroupClass">
+<form class="mb-0" id="add_customer_to_group_class_form" onsubmit="addCustomerToGroupClassProcess(this)">
+    <input type="hidden" name="FUNCTION_NAME" value="addCustomerToGroupClassProcess">
     <input type="hidden" name="PK_APPOINTMENT_MASTER" id="PK_APPOINTMENT_MASTER" value="<?= $_POST['PK_APPOINTMENT_MASTER'] ?>">
     <input type="hidden" name="PK_SERVICE_CODE" id="PK_SERVICE_CODE" value="<?= $_POST['PK_SERVICE_CODE'] ?>">
     <h6 class="mb-4">Add New Customer</h6>
@@ -38,18 +38,11 @@ $LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
         </div>
     </div>
 
-    <div class="row mb-3 enrollment_area mt-3 d-none">
-        <div class="col-4 col-md-4">
-            <div class="d-flex gap-2 align-items-center">
-                <label class="mb-0" style="margin-left: 33px;">Enrollment ID</label>
-            </div>
-        </div>
-        <div class="col-8 col-md-8">
-            <div class="form-group" id="enrollment_div">
+    <div id="enrollment_div">
 
-            </div>
-        </div>
     </div>
+
+
 
     <hr class="mb-3">
     <!-- <div class="row mt-2">
@@ -105,7 +98,7 @@ $LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
         });
     }
 
-    function addCustomerToGroupClass(param) {
+    function addCustomerToGroupClassProcess(param) {
         event.preventDefault();
         let PK_APPOINTMENT_MASTER = $('#add_customer_to_group_class_form #PK_APPOINTMENT_MASTER').val();
         let form_data = $('#add_customer_to_group_class_form').serialize();
