@@ -6,6 +6,21 @@ global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+// Simple fix - convert to array if it's a string
+if (!is_array($DEFAULT_LOCATION_ID)) {
+    // If it's a comma-separated string like "13, 27"
+    if (strpos($DEFAULT_LOCATION_ID, ',') !== false) {
+        $DEFAULT_LOCATION_ID = array_map('trim', explode(',', $DEFAULT_LOCATION_ID));
+    } else {
+        // If it's a single value
+        $DEFAULT_LOCATION_ID = !empty($DEFAULT_LOCATION_ID) ? [$DEFAULT_LOCATION_ID] : [];
+    }
+}
+
+// Get location count
+$location_count = count($DEFAULT_LOCATION_ID);
+$multiple_locations = ($location_count > 1);
+
 $title = "All Services / Service Codes";
 
 $status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
@@ -26,10 +41,15 @@ $header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AN
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
+
+// Convert array to string for SQL IN clause
+$location_ids_for_sql = implode(',', $DEFAULT_LOCATION_ID);
 ?>
 
 <!DOCTYPE html>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
@@ -68,7 +88,9 @@ if ($header_data->RecordCount() > 0) {
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
                                 <li class="breadcrumb-item active"><?= $title ?></li>
                             </ol>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='service_codes.php'"><i class="fa fa-plus-circle"></i> Create New</button>
+                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="createNewService()">
+                                <i class="fa fa-plus-circle"></i> Create New
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -98,41 +120,50 @@ if ($header_data->RecordCount() > 0) {
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.COUNT_ON_CALENDAR, DOA_SERVICE_CODE.SORT_ORDER, DOA_LOCATION.LOCATION_NAME FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_SERVICE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0 AND DOA_SERVICE_MASTER.ACTIVE = '$status' ORDER BY DOA_SERVICE_CODE.SORT_ORDER ASC");
-                                            while (!$row->EOF) { ?>
+
+                                            // Check if there are locations selected
+                                            if (!empty($location_ids_for_sql)) {
+                                                $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.COUNT_ON_CALENDAR, DOA_SERVICE_CODE.SORT_ORDER, DOA_LOCATION.LOCATION_NAME FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_SERVICE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $location_ids_for_sql . ") AND IS_DELETED = 0 AND DOA_SERVICE_MASTER.ACTIVE = '$status' ORDER BY DOA_SERVICE_CODE.SORT_ORDER ASC");
+
+                                                while (!$row->EOF) { ?>
+                                                    <tr>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
+                                                            <?php
+                                                            $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = " . $row->fields['PK_SERVICE_MASTER']);
+                                                            $doc_count = $doc_row->RecordCount();
+                                                            ?>
+                                                            <i class="fas fa-upload"></i> (<?= $doc_count; ?>)
+                                                        </td>
+                                                        <td style="text-align: center" onclick="changeCountOnCalendar(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
+                                                            <label class="switch">
+                                                                <input type="checkbox" <?= ($row->fields['COUNT_ON_CALENDAR'] == 1) ? 'checked' : '' ?>>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </td>
+                                                        <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SORT_ORDER'] ?></td>
+                                                        <td style="text-align: center">
+                                                            <a href="javascript:;" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <?php if ($row->fields['ACTIVE'] == 1) { ?>
+                                                                <span class="active-box-green"></span>
+                                                            <?php } else { ?>
+                                                                <span class="active-box-red"></span>
+                                                            <?php } ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php $row->MoveNext();
+                                                    $i++;
+                                                }
+                                            } else { ?>
                                                 <tr>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $i; ?></td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_NAME'] ?></td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SERVICE_CODE'] ?></td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['DESCRIPTION'] ?></td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
-                                                        <?php
-                                                        $doc_row = $db_account->Execute("SELECT PK_SERVICE_DOCUMENTS FROM `DOA_SERVICE_DOCUMENTS` WHERE PK_SERVICE_MASTER = " . $row->fields['PK_SERVICE_MASTER']);
-                                                        $doc_count = $doc_row->RecordCount();
-                                                        ?>
-                                                        <i class="fas fa-upload"></i> (<?= $doc_count; ?>)
-                                                    </td>
-                                                    <td style="text-align: center" onclick="changeCountOnCalendar(<?= $row->fields['PK_SERVICE_MASTER'] ?>);">
-                                                        <label class="switch">
-                                                            <input type="checkbox" <?= ($row->fields['COUNT_ON_CALENDAR'] == 1) ? 'checked' : '' ?>>
-                                                            <span class="slider"></span>
-                                                        </label>
-                                                    </td>
-                                                    <td style="text-align: center" onclick="editpage(<?= $row->fields['PK_SERVICE_MASTER'] ?>);"><?= $row->fields['SORT_ORDER'] ?></td>
-                                                    <td style="text-align: center">
-                                                        <a href="service_codes.php?id=<?= $row->fields['PK_SERVICE_MASTER'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_SERVICE_MASTER'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php if ($row->fields['ACTIVE'] == 1) { ?>
-                                                            <span class="active-box-green"></span>
-                                                        <?php } else { ?>
-                                                            <span class="active-box-red"></span>
-                                                        <?php } ?>
-                                                    </td>
+                                                    <td colspan="9" style="text-align: center;">No locations selected. Please update your profile settings.</td>
                                                 </tr>
-                                            <?php $row->MoveNext();
-                                                $i++;
-                                            } ?>
+                                            <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -168,7 +199,20 @@ if ($header_data->RecordCount() > 0) {
         }
 
         function editpage(id) {
-            window.location.href = "service_codes.php?id=" + id;
+            // Check if multiple locations are selected
+            <?php if ($multiple_locations) { ?>
+                Swal.fire({
+                    title: 'Multiple Locations Selected!',
+                    html: 'You have selected <?= $location_count ?> locations. <br><br>Please select one location to edit Services / Service Codes.',
+                    icon: 'warning',
+                    cancelButtonText: 'Cancel',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                })
+            <?php } else { ?>
+                window.location.href = "service_codes.php?id=" + id;
+            <?php } ?>
         }
 
         function changeCountOnCalendar(PK_SERVICE_MASTER) {
@@ -187,6 +231,23 @@ if ($header_data->RecordCount() > 0) {
 
                 }
             });
+        }
+
+        // Handle Create New button click
+        function createNewService() {
+            <?php if ($multiple_locations) { ?>
+                Swal.fire({
+                    title: 'Multiple Locations Selected!',
+                    html: `You have selected <strong><?= $location_count ?></strong> locations.<br><br>Please select one location to create a new Service / Service Code.`,
+                    icon: 'warning',
+                    cancelButtonText: 'Cancel',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                })
+            <?php } else { ?>
+                window.location.href = 'service_codes.php';
+            <?php } ?>
         }
     </script>
 </body>
