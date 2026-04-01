@@ -128,6 +128,35 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         padding-bottom: 10px !important;
     }
 
+    /* Keep resource and date headers fixed while vertical scrolling in scheduler views */
+    #calendar .fc-resource-area,
+    #calendar .fc-col-header,
+    #calendar .fc-resource-area .fc-widget-header,
+    #calendar .fc-col-header-cell {
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        background: #ffffff;
+    }
+
+    #calendar .fc-resource-area {
+        z-index: 100;
+        overflow: hidden;
+    }
+
+    #calendar .fc-scroller,
+    #calendar .fc-time-grid .fc-scroller,
+    #calendar .fc-timegrid .fc-scroller {
+        overflow-y: auto !important;
+        max-height: calc(100vh - 260px) !important;
+    }
+
+    /* Ensure the calendar content reflows into the available height */
+    #calendar .fc-view-harness,
+    #calendar .fc-scroller-harness {
+        height: 100% !important;
+    }
+
     .fc-time-grid-event .fc-time {
         font-size: 11px;
     }
@@ -770,12 +799,24 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <script>
+        function parseYMDDate(dateString) {
+            if (!dateString) return null;
+            let parts = dateString.split('-'); // "YYYY-MM-DD"
+            if (parts.length !== 3) return null;
+            let year = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1;
+            let day = parseInt(parts[2], 10);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+            return new Date(year, month, day);
+        }
+
         $(window).on('load', function() {
             let redirect_date = '<?= $redirect_date ?>';
             if (redirect_date) {
-                let parts = redirect_date.split('-'); // "YYYY-MM-DD"
-                let currentDate = new Date(parts[0], parts[1] - 1, parts[2]); // Local date
-                renderCalendar(currentDate);
+                let currentDate = parseYMDDate(redirect_date);
+                if (currentDate) {
+                    renderCalendar(currentDate);
+                }
             }
         });
 
@@ -868,7 +909,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         let calendar;
         let redirect_date = '<?= $redirect_date ?>';
-        let todayDate = redirect_date ? new Date(redirect_date) : new Date();
+        let todayDate = redirect_date ? (parseYMDDate(redirect_date) || new Date()) : new Date();
         const dayConfigs = <?= json_encode($dayConfig) ?>;
 
         let activePopoverInstance = null;
@@ -886,6 +927,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 activePopoverInstance = null;
                 activePopoverEl = null;
             }
+        }
+
+        function getCalendarHeight() {
+            // Calculate available space beneath the header and top elements
+            let windowHeight = window.innerHeight;
+            let headerHeight = document.querySelector('.calendar-header')?.offsetHeight || 0;
+            let wrapperTop = document.getElementById('main-wrapper')?.getBoundingClientRect().top || 0;
+            let footerHeight = document.querySelector('footer')?.offsetHeight || 0;
+            let reserved = 10; // reduced spacing/padding to minimize footer gap
+
+            let available = windowHeight - headerHeight - wrapperTop - footerHeight - reserved;
+            return available > 400 ? available : 400; // ensure a minimum usable height
         }
 
         function renderCalendar(date) {
@@ -1010,8 +1063,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 },
                 minTime: config.minTime,
                 maxTime: config.maxTime,
-                contentHeight: 1000,
-                windowResize: true,
+                height: getCalendarHeight(),
+                contentHeight: getCalendarHeight(),
+                windowResize: function() {
+                    calendar.setOption('height', getCalendarHeight());
+                    calendar.setOption('contentHeight', getCalendarHeight());
+                },
                 droppable: true,
                 allDaySlot: false,
                 drop: function(info) {
@@ -1026,6 +1083,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     arg.event.remove();
                 },
                 resourceOrder: 'sortOrder',
+                stickyHeaderDates: true,
                 resources: function(info, successCallback, failureCallback) {
                     //console.log(info);
                     let selected_service_provider = [];
@@ -1457,11 +1515,26 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         function setDateOnAppointment() {
             $('#create_appointment_form')[0].reset();
-            $('.customer_select').val('');
-            $('.customer_select')[0].sumo.reload();
+
             $('#create_appointment_form .enrollment_area').addClass('d-none');
             $('#create_appointment_form .schedule_code_area').addClass('d-none');
             $('.slot_div').html('');
+
+            $('#create_group_class_form')[0].reset();
+            $('.custom-date-time-format').addClass('d-none');
+
+            $('#create_to_do_form')[0].reset();
+            $('#TO_DO_SERVICE_PROVIDER').val('');
+            $('#TO_DO_SERVICE_PROVIDER')[0].sumo.reload();
+
+            $('#create_record_only_form')[0].reset();
+
+            $('.customer_select').val('');
+            $('.customer_select').each(function() {
+                if (this.sumo && typeof this.sumo.reload === 'function') {
+                    this.sumo.reload();
+                }
+            });
 
 
             let date = $('#CHOOSE_DATE').val();
@@ -2168,6 +2241,28 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             return `${formattedHours}:${formattedMinutes} ${ampm}`;
         }
     </script>
+
+    <style>
+        .page-wrapper {
+            min-height: calc(100vh - 200px) !important;
+        }
+
+        #calendar-container,
+        #calendar,
+        .fc-view-container {
+            width: 100%;
+            min-height: calc(100vh - 182px) !important;
+            height: calc(100vh - 182px) !important;
+            overflow: hidden;
+        }
+
+        #calendar .fc-view-harness,
+        #calendar .fc-scroller-harness {
+            max-height: calc(100vh - 50px) !important;
+            min-height: calc(100vh - 50px) !important;
+            height: calc(100vh - 50px) !important;
+        }
+    </style>
 
 </body>
 
