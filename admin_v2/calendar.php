@@ -128,6 +128,35 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         padding-bottom: 10px !important;
     }
 
+    /* Keep resource and date headers fixed while vertical scrolling in scheduler views */
+    #calendar .fc-resource-area,
+    #calendar .fc-col-header,
+    #calendar .fc-resource-area .fc-widget-header,
+    #calendar .fc-col-header-cell {
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        background: #ffffff;
+    }
+
+    #calendar .fc-resource-area {
+        z-index: 100;
+        overflow: hidden;
+    }
+
+    #calendar .fc-scroller,
+    #calendar .fc-time-grid .fc-scroller,
+    #calendar .fc-timegrid .fc-scroller {
+        overflow-y: auto !important;
+        max-height: calc(100vh - 260px) !important;
+    }
+
+    /* Ensure the calendar content reflows into the available height */
+    #calendar .fc-view-harness,
+    #calendar .fc-scroller-harness {
+        height: 100% !important;
+    }
+
     .fc-time-grid-event .fc-time {
         font-size: 11px;
     }
@@ -900,6 +929,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         }
 
+        function getCalendarHeight() {
+            // Calculate available space beneath the header and top elements
+            let windowHeight = window.innerHeight;
+            let headerHeight = document.querySelector('.calendar-header')?.offsetHeight || 0;
+            let wrapperTop = document.getElementById('main-wrapper')?.getBoundingClientRect().top || 0;
+            let footerHeight = document.querySelector('footer')?.offsetHeight || 0;
+            let reserved = 10; // reduced spacing/padding to minimize footer gap
+
+            let available = windowHeight - headerHeight - wrapperTop - footerHeight - reserved;
+            return available > 400 ? available : 400; // ensure a minimum usable height
+        }
+
         function renderCalendar(date) {
             const day = date.getDay();
             const config = dayConfigs[day] || {
@@ -1022,8 +1063,12 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 },
                 minTime: config.minTime,
                 maxTime: config.maxTime,
-                contentHeight: 1000,
-                windowResize: true,
+                height: getCalendarHeight(),
+                contentHeight: getCalendarHeight(),
+                windowResize: function() {
+                    calendar.setOption('height', getCalendarHeight());
+                    calendar.setOption('contentHeight', getCalendarHeight());
+                },
                 droppable: true,
                 allDaySlot: false,
                 drop: function(info) {
@@ -1038,6 +1083,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     arg.event.remove();
                 },
                 resourceOrder: 'sortOrder',
+                stickyHeaderDates: true,
                 resources: function(info, successCallback, failureCallback) {
                     //console.log(info);
                     let selected_service_provider = [];
@@ -2195,6 +2241,28 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             return `${formattedHours}:${formattedMinutes} ${ampm}`;
         }
     </script>
+
+    <style>
+        .page-wrapper {
+            min-height: calc(100vh - 200px) !important;
+        }
+
+        #calendar-container,
+        #calendar,
+        .fc-view-container {
+            width: 100%;
+            min-height: calc(100vh - 182px) !important;
+            height: calc(100vh - 182px) !important;
+            overflow: hidden;
+        }
+
+        #calendar .fc-view-harness,
+        #calendar .fc-scroller-harness {
+            max-height: calc(100vh - 50px) !important;
+            min-height: calc(100vh - 50px) !important;
+            height: calc(100vh - 50px) !important;
+        }
+    </style>
 
 </body>
 

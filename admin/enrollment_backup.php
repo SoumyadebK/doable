@@ -39,6 +39,7 @@ $ENROLLMENT_BY_PERCENTAGE = '';
 $MEMO = '';
 $ACTIVE = '';
 $ACTIVE_AUTO_PAY = 0;
+$ENROLLMENT_STATUS = '';
 
 $PK_ENROLLMENT_BILLING = '';
 $BILLING_REF = '';
@@ -99,6 +100,7 @@ if (!empty($_GET['id'])) {
     $MEMO = $res->fields['MEMO'];
     $ACTIVE = $res->fields['ACTIVE'];
     $ACTIVE_AUTO_PAY = $res->fields['ACTIVE_AUTO_PAY'];
+    $ENROLLMENT_STATUS = $res->fields['STATUS'];
 
     $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
     $interval = $EXPIRY_DATE->diff($CREATED_ON);
@@ -214,7 +216,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="history_link" href="#history" role="tab"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">History</span></a> </li>
                                         <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                            <li> <a class="nav-link" href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
+                                            <!-- <li> <a class="nav-link" href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li> -->
+                                            <li> <a class="nav-link" data-bs-toggle="tab" id="agreement_link" href="#agreement" role="tab"><span class="hidden-sm-up"> <span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
                                         <?php } ?>
                                     <?php } ?>
                                 </ul>
@@ -271,6 +274,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>2nd enrollment</option>
                                                                 <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>3rd enrollment</option>
                                                                 <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>4+ enrollment</option>
+                                                                <option value="16" <?= ($PK_ENROLLMENT_TYPE == 16) ? 'selected' : '' ?>>MISC</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -428,12 +432,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?= ($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION']) ?>" onkeyup="calculateServiceTotal(this)" required>
+                                                                        <input type="text" class="form-control PRICE_PER_SESSION" value="<?= number_format($enrollment_service_data->fields['TOTAL'] / $enrollment_service_data->fields['NUMBER_OF_SESSION'], 2, '.', '') ?>" onkeyup="calculateServiceTotal(this)" required>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
                                                                     <div class="form-group">
-                                                                        <input type="text" class="form-control TOTAL" value="<?= $enrollment_service_data->fields['TOTAL'] ?>" onkeyup="calculateServiceTotal(this)" readonly>
+                                                                        <input type="text" class="form-control TOTAL" value="<?= number_format($enrollment_service_data->fields['TOTAL'], 2, '.', '') ?>" onkeyup="calculateServiceTotal(this)" readonly>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-1">
@@ -609,12 +613,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                     </div>
                                                     <div class="col-5">
                                                         <div class="row">
-                                                            <div class="col-4">
+                                                            <div class="col-5">
                                                                 <div class="form-group">
                                                                     <label class="form-label"><?= $service_provider_title ?></label>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-8">
+                                                            <div class="col-5">
                                                                 <div class="form-group">
                                                                     <label class="form-label">Percentage</label>
                                                                 </div>
@@ -935,25 +939,53 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
-                                                                        <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
-                                                                        <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                <?php
+                                                                if ($ENROLLMENT_STATUS == 'A') { ?>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
-                                                                        <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Installment Amount</label>
-                                                                        <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Installment Amount</label>
+                                                                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                <?php } else {
+                                                                    $ledger_count = '';
+                                                                    if (!empty($_GET['id'])) {
+                                                                        $ledger_count = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND (STATUS = 'A' OR IS_PAID = 1) AND PK_ENROLLMENT_MASTER = '$_GET[id]'")->RecordCount();
+                                                                    } ?>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Number of Payments<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" value="<?= $ledger_count ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                            <p id="number_of_payment_error" style="color: red; display: none; font-size: 10px;">This value should be a whole number. Please correct</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">First Scheduled Payment Date<span class="text-danger">*</span></label></label>
+                                                                            <input type="text" value="<?= ($FIRST_DUE_DATE) ? date('m/d/Y', strtotime($FIRST_DUE_DATE)) : '' ?>" class="form-control datepicker-future installment-input" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-3">
+                                                                        <div class="form-group">
+                                                                            <label class="form-label">Installment Amount</label>
+                                                                            <input type="text" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php }
+                                                                ?>
                                                             </div>
                                                         </div>
 
@@ -976,29 +1008,28 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <?php
                                                             if (!empty($_GET['id'])) {
                                                                 $i = 0;
-                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                                                                while (!$flexible_payment_data->EOF) {
-                                                                    if ($DOWN_PAYMENT > 0 && $i > 0) { ?>
-                                                                        <div class="row">
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
-                                                                                    </div>
+                                                                $flexible_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Billing' AND (STATUS = 'A' OR IS_PAID = 1) AND PK_ENROLLMENT_MASTER = '$_GET[id]'");
+                                                                while (!$flexible_payment_data->EOF) { ?>
+                                                                    <div class="row">
+                                                                        <div class="col-3">
+                                                                            <div class="form-group">
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future" value="<?= ($flexible_payment_data->fields['DUE_DATE']) ? date('m/d/Y', strtotime($flexible_payment_data->fields['DUE_DATE'])) : '' ?>" required>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div class="col-3">
-                                                                                <div class="form-group">
-                                                                                    <div class="col-md-12">
-                                                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-3" style="padding-top: 5px;">
-                                                                                <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
                                                                             </div>
                                                                         </div>
-                                                                <?php }
+                                                                        <div class="col-3">
+                                                                            <div class="form-group">
+                                                                                <div class="col-md-12">
+                                                                                    <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" value="<?= $flexible_payment_data->fields['BILLED_AMOUNT'] ?>" required>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-3" style="padding-top: 5px;">
+                                                                            <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php
                                                                     $i++;
                                                                     $flexible_payment_data->MoveNext();
                                                                 } ?>
@@ -1062,7 +1093,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <?php
                                                         $billed_amount = 0;
                                                         $balance = 0;
-                                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = " . $_GET['id'] . " AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
+                                                        $billing_details = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_LEDGER WHERE PK_ENROLLMENT_MASTER = " . $_GET['id'] . " AND (STATUS = 'A' OR IS_PAID = 1) AND ENROLLMENT_LEDGER_PARENT = 0 ORDER BY DUE_DATE ASC, PK_ENROLLMENT_LEDGER ASC");
                                                         while (!$billing_details->EOF) {
                                                             $billed_amount = $billing_details->fields['BILLED_AMOUNT'];
                                                             $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
@@ -1175,6 +1206,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                         </div>
                                     <?php } ?>
+
+                                    <!-- Agreement Tab -->
+                                    <div class="tab-pane" id="agreement" role="tabpanel">
+                                        <button id="openSign" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right; margin: 15px;" onclick="$('#signature_modal').modal('show');">Sign Agreement</button>
+                                        <iframe src="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" width="100%" height="800px"></iframe>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1184,7 +1221,27 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 
+
+    <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Add Signature</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#signature_modal').modal('hide');"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="signature-pad" width="710" height="200" style="border:1px solid #000;"></canvas>
+                    <br>
+                    <button id="clear" class="btn btn-inverse waves-effect waves-light" style="float: right;">Clear</button>
+                    <button id="save" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Sign Agreement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once('../includes/footer.php'); ?>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <!--Payment Model-->
     <?php include('includes/enrollment_payment.php'); ?>
@@ -1238,7 +1295,62 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
+
+
+
     <script>
+        const canvas = document.getElementById('signature-pad');
+        const signaturePad = new SignaturePad(canvas);
+
+        document.getElementById('clear').addEventListener('click', () => {
+            signaturePad.clear();
+        });
+
+        document.getElementById('save').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                alert("Please provide signature");
+                return;
+            }
+
+            const dataURL = signaturePad.toDataURL(); // base64 image
+
+            fetch('save_signature.php', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        PK_ENROLLMENT_MASTER: <?= empty($_GET['id']) ? "''" : $_GET['id'] ?>,
+                        image: dataURL
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // ✅ Reload page
+                        window.location.href = window.location.pathname + '?id=' + <?= empty($_GET['id']) ? "''" : $_GET['id'] ?> + '&tab=agreement_link';
+                    } else {
+                        alert('Failed to sign PDF');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Something went wrong');
+                });
+        });
+    </script>
+
+
+
+    <script>
+        $(document).ready(function() {
+            let tab_link = <?= empty($_GET['tab']) ? 0 : $_GET['tab'] ?>;
+            if (tab_link != 0) {
+                $('#' + tab_link.id)[0].click();
+            }
+        });
+
+
         $(document).ready(function() {
             $('#PK_USER_MASTER').trigger("change");
         });
@@ -2025,7 +2137,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         function calculatePaymentPlans() {
             let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
             let NUMBER_OF_PAYMENT = parseInt(($('#NUMBER_OF_PAYMENT').val()) ? $('#NUMBER_OF_PAYMENT').val() : 1);
-            $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable / NUMBER_OF_PAYMENT).toFixed(2));
+            if (balance_payable > 0 && NUMBER_OF_PAYMENT > 0) {
+                $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable / NUMBER_OF_PAYMENT).toFixed(2));
+            }
         }
 
         function calculateNumberOfPayment(param) {
