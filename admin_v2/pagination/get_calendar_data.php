@@ -428,6 +428,20 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
             $type = "group_class";
         }
 
+        if ($PK_ENROLLMENT_SERVICE != 0) {
+            $appointment_position = 0;
+            $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+            if ($enr_service_data->RecordCount() > 0) {
+                $appointment_position = getAppointmentPosition($PK_ENROLLMENT_SERVICE, $PK_APPOINTMENT_MASTER);
+                $PAID_COUNT = getPaidCount($PK_ENROLLMENT_SERVICE);
+                $paid_status = (($appointment_position <= $PAID_COUNT) ? ' (' . ($PAID_COUNT - $appointment_position) . ' Paid)' : ' (Unpaid)');
+                $appointment_number = ($appointment_position > 0) ? '  ' . ($appointment_position) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
+            }
+        } else {
+            $appointment_number = '';
+            $paid_status = '';
+        }
+
         //$appointment_number = ($appointment_position > 0) ? '  ' . ($appointment_position) . '/' . $enr_service_data->fields['NUMBER_OF_SESSION'] : '';
 
         $appointment_array[] = [

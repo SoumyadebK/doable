@@ -931,6 +931,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                                         <label class="form-label">Payment Term<span class="text-danger">*</span></label></label>
                                                                         <select class="form-control installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
                                                                             <option value="">Select</option>
+                                                                            <option value="Weekly" <?= ($PAYMENT_TERM == 'Weekly') ? 'selected' : '' ?>>Weekly</option>
                                                                             <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
                                                                             <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
                                                                         </select>

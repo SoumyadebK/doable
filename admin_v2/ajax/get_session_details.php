@@ -130,9 +130,9 @@ if ($TYPE == 'appointment') {
             <span class="badge ms-auto f-12" style="color: <?= $COLOR_CODE ?>; background-color: <?= $COLOR_CODE ?>20;"><?= $SERVICE_CODE ?></span>&nbsp;
             <span class="ms-auto f-12" style="color:<?= $STATUS_COLOR ?>"><?= $APPOINTMENT_STATUS ?></span>&nbsp;&nbsp;
             <span class="ms-auto f-12"><?= $appointment_number ?></span>&nbsp;&nbsp;
-            <span class="ms-auto f-12"><?= $paid_status ?></span>&nbsp;&nbsp;
+            <span class="ms-auto f-12" style="color: <?= ($paid_status == ' (Unpaid)') ? '#FF0000' : '' ?>;"><strong><?= $paid_status ?></strong></span>&nbsp;&nbsp;
         </div>
-        <div class="statusareatext f12 theme-text-light mt-2">
+        <div class=" statusareatext f12 theme-text-light mt-2">
             <span class=""><?= date('l, M d', strtotime($DATE)) ?>, <?= date('h:i A', strtotime($START_TIME)) ?> - <?= date('h:i A', strtotime($END_TIME)) ?></span>
             <ul class="list-inline mb-0 mt-1">
                 <li class="list-inline-item fw-semibold">
