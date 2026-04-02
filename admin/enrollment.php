@@ -214,7 +214,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                     <?php if (!empty($_GET['id'])) { ?>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="history_link" href="#history" role="tab"><span class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">History</span></a> </li>
                                         <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                            <li> <a class="nav-link" href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
+                                            <!-- <li> <a class="nav-link" href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" target="_blank"><span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li> -->
+                                            <li> <a class="nav-link" data-bs-toggle="tab" id="agreement_link" href="#agreement" role="tab"><span class="hidden-sm-up"> <span class="hidden-sm-up"><i class="ti-file"></i></span> <span class="hidden-xs-down">PDF Agreement</span></a> </li>
                                         <?php } ?>
                                     <?php } ?>
                                 </ul>
@@ -1175,6 +1176,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
                                         </div>
                                     <?php } ?>
+
+
+                                    <!-- Agreement Tab -->
+                                    <div class="tab-pane" id="agreement" role="tabpanel">
+                                        <button id="openSign" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right; margin: 15px;" onclick="$('#signature_modal').modal('show');">Sign Agreement</button>
+                                        <iframe src="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" width="100%" height="800px"></iframe>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1184,7 +1192,26 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 
+    <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Add Signature</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#signature_modal').modal('hide');"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="signature-pad" width="710" height="200" style="border:1px solid #000;"></canvas>
+                    <br>
+                    <button id="clear" class="btn btn-inverse waves-effect waves-light" style="float: right;">Clear</button>
+                    <button id="save" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Sign Agreement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once('../includes/footer.php'); ?>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <!--Payment Model-->
     <?php include('includes/enrollment_payment.php'); ?>
@@ -1238,7 +1265,59 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
+
     <script>
+        const canvas = document.getElementById('signature-pad');
+        const signaturePad = new SignaturePad(canvas);
+
+        document.getElementById('clear').addEventListener('click', () => {
+            signaturePad.clear();
+        });
+
+        document.getElementById('save').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                alert("Please provide signature");
+                return;
+            }
+
+            const dataURL = signaturePad.toDataURL(); // base64 image
+
+            fetch('save_signature.php', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        PK_ENROLLMENT_MASTER: <?= empty($_GET['id']) ? "''" : $_GET['id'] ?>,
+                        image: dataURL
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // ✅ Reload page
+                        window.location.href = window.location.pathname + '?id=' + <?= empty($_GET['id']) ? "''" : $_GET['id'] ?> + '&tab=agreement_link';
+                    } else {
+                        alert('Failed to sign PDF');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Something went wrong');
+                });
+        });
+    </script>
+
+
+    <script>
+        $(document).ready(function() {
+            let tab_link = <?= empty($_GET['tab']) ? 0 : $_GET['tab'] ?>;
+            if (tab_link != 0) {
+                $('#' + tab_link.id)[0].click();
+            }
+        });
+
+
         $(document).ready(function() {
             $('#PK_USER_MASTER').trigger("change");
         });

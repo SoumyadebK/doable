@@ -330,18 +330,18 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
 
     $style = "<style>
                 body {
-                    font-size: 12px !important;
+                    font-size: 10px !important;
                 }
 
                 table {
                     border-collapse: collapse;
-                    font-size: 12px !important;
+                    font-size: 10px !important;
                 }
 
                 th, td {
                     padding: 5px;
                     vertical-align: top;
-                    font-size: 12px !important;
+                    font-size: 10px !important;
                 }
 
                 h3 {
@@ -360,9 +360,9 @@ function generatePdf($html, $PK_ENROLLMENT_MASTER): string
 
 
     $mpdf->keep_table_proportions = true;
-    $mpdf->shrink_tables_to_fit = 1;
+    //$mpdf->shrink_tables_to_fit = 1;
 
-    $mpdf->WriteHTML($html);
+    $mpdf->WriteHTML($style . $html);
     $mpdf->AddPage();
 
     if (!file_exists('../' . $upload_path . '/enrollment_pdf/')) {

@@ -39,7 +39,7 @@ for ($i = 1; $i <= $pageCount; $i++) {
 
     // Add signature on first page (adjust position)
     if ($i == 1) {
-        $pdf->Image($http_path . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', 120, 250, 60); // X, Y, Width
+        $pdf->Image($http_path . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', 90, 230, 60); // X, Y, Width
     }
 }
 
