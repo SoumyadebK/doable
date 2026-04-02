@@ -182,6 +182,12 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     }
     $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
     $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime)); */
+
+    if (isset($_POST['START_TIME']) && isset($_POST['END_TIME'])) {
+        $APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+        $APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+    }
+
     $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $PK_APPOINTMENT_STATUS;
     $APPOINTMENT_DATA['COMMENT'] = $_POST['COMMENT'];

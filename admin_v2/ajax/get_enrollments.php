@@ -5,6 +5,7 @@ global $db_account;
 global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$SELECTED_PK_ENROLLMENT_MASTER = (isset($_POST['PK_ENROLLMENT_MASTER'])) ? $_POST['PK_ENROLLMENT_MASTER'] : 0;
 ?>
 <?php
 $row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_PACKAGE.PACKAGE_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.PK_LOCATION, DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT FROM DOA_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_SERVICE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE LEFT JOIN DOA_PACKAGE ON DOA_ENROLLMENT_MASTER.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_SERVICE_MASTER.PK_SERVICE_CLASS != 5 AND DOA_SERVICE_CODE.IS_GROUP != 1 AND DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ALL_APPOINTMENT_DONE = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $_POST['PK_USER_MASTER'] . " ORDER BY DOA_SERVICE_CODE.SORT_ORDER");
@@ -38,7 +39,7 @@ while (!$row->EOF) {
     if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($row->fields['CHARGE_TYPE'] == 'Membership')) { ?>
         <div class="form-check border rounded-2 p-2 mb-2">
             <label class="form-check-label">
-                <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $row->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'] . ',' . $row->fields['PK_ENROLLMENT_SERVICE'] . ',' . $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)" <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $row->fields['ENROLLMENT_ID'] . $PACKAGE ?>
+                <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $row->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $row->fields['PK_ENROLLMENT_MASTER'] . ',' . $row->fields['PK_ENROLLMENT_SERVICE'] . ',' . $row->fields['PK_SERVICE_MASTER'] . ',' . $row->fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)" <?= ($SELECTED_PK_ENROLLMENT_MASTER == $PK_ENROLLMENT_MASTER) ? 'checked' : '' ?> <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $row->fields['ENROLLMENT_ID'] . $PACKAGE ?>
             </label>
             <?php if ($TOTAL_AMOUNT_PAID >= $row->fields['FINAL_AMOUNT']) { ?>
                 <span class="checkicon float-end">
@@ -51,12 +52,13 @@ while (!$row->EOF) {
                 <span><?= $row->fields['SERVICE_NAME'] . ' (' . $row->fields['SERVICE_CODE'] . ')' ?> : <?= $USED_SESSION_COUNT ?>/<?= $NUMBER_OF_SESSION ?></span>
             </div>
         </div>
-<?php }
+    <?php }
     $row->MoveNext();
-} ?>
-
-<div class="form-check border rounded-2 p-2 mb-2">
-    <label class="form-check-label">
-        <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC" onclick="selectThisEnrollment(this)">Ad-Hoc
-    </label>
-</div>
+}
+if ($SELECTED_PK_ENROLLMENT_MASTER == 0) { ?>
+    <div class="form-check border rounded-2 p-2 mb-2">
+        <label class="form-check-label">
+            <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC" onclick="selectThisEnrollment(this)">Ad-Hoc
+        </label>
+    </div>
+<?php } ?>

@@ -151,6 +151,7 @@ if ($TYPE == 'appointment') {
 
         <div class="booking-lesson border-bottom">
             <?php if ($APPOINTMENT_TYPE == 'NORMAL') { ?>
+                <button type="button" class="btn btn-secondary gap-1 px-2 py-1 border-1" style="font-size: 10px; float: right; margin: 5px;" onclick="changeEnrollment(<?= $selected_customer_id ?>, <?= $PK_ENROLLMENT_MASTER ?>)"><i class="fa fa-edit"></i> Change</button>
                 <div class="form-check border rounded-2 p-2 mb-2">
                     <div class="d-flex">
                         <span class="checkicon d-inline-flex me-2 align-items-center">
@@ -189,6 +190,9 @@ if ($TYPE == 'appointment') {
                             $serviceCodeData->MoveNext();
                         } ?>
                     </div>
+                </div>
+
+                <div class="form-check border rounded-2 p-2 mb-2 d-none enrollment_area" id="enrollment_div">
                 </div>
             <?php } elseif ($APPOINTMENT_TYPE == 'AD-HOC') { ?>
                 <div class="form-check border rounded-2 p-2 mb-2">
@@ -391,13 +395,13 @@ if ($TYPE == 'appointment') {
                     <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE_EDIT" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= date('m/d/Y', strtotime($DATE)) ?>" style="min-width: 110px;">
                     <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
                 </div>
-                <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
+                <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2" onclick="getSlots(this)">
                     <span>Show Availability</span>
                     <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
                         <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
                     </svg>
                 </button>
-                <div class="slot_div mt-2">
+                <div class="slot_div mt-2" style="display: none;">
 
                 </div>
             </div>
@@ -620,6 +624,49 @@ if ($TYPE == 'appointment') {
                 getSlots(this);
             }
         });
+
+        $(".btn-available").click(function() {
+            $(this).toggleClass("active");
+            $("#edit_appointment_form .slot_div").toggle();
+        });
+
+        function changeEnrollment(PK_USER_MASTER, PK_ENROLLMENT_MASTER) {
+            $('#edit_appointment_form .enrollment_area').removeClass('d-none');
+            $.ajax({
+                url: "ajax/get_enrollments.php",
+                type: "POST",
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $('#edit_appointment_form #enrollment_div').html(result);
+                }
+            });
+        }
+
+        function selectThisEnrollment(param) {
+            let PK_ENROLLMENT_MASTER = $(param).val();
+            let no_of_session = $(param).data('no_of_session');
+            let used_session = $(param).data('used_session');
+
+            $.ajax({
+                url: "ajax/get_scheduling_codes.php",
+                type: "POST",
+                data: {
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                    no_of_session: no_of_session,
+                    used_session: used_session
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    $('#edit_appointment_form #PK_SCHEDULING_CODE').html(result);
+                }
+            });
+        }
     </script>
 <?php } elseif ($TYPE == 'group_class') {
     /* --------------------------------------------------------------- Group Class Details --------------------------------------------------------------- */
@@ -1269,6 +1316,11 @@ if ($TYPE == 'appointment') {
     }
 
     function selectSlot(param, id, start_time, end_time) {
+        $(param).closest('#edit_appointment_form').find('.slot_btn').data('is_selected', 0);
+        $(param).closest('#edit_appointment_form').find('.slot_btn').css('background-color', '#f8f9fa', 'important');
+        $(param).closest('#edit_appointment_form').find('.slot_btn').css('color', '#000', 'important');
+        start_time_array = [];
+        end_time_array = [];
         if ($(param).data('is_selected') == 0) {
             start_time_array.push(start_time);
             end_time_array.push(end_time);
