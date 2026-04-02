@@ -233,7 +233,125 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                         </div>
                     </div>
+
                     <hr class="mb-3">
+                    <div class="row mb-3 align-items-center custom-date-time">
+                        <div class="col-4 col-md-4">
+                            <div class="d-flex gap-2 align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="25px" height="22px" fill="#ccc">
+                                    <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                                    <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                                </svg>
+                                <label class="mb-0">Create Standing</label>
+                            </div>
+                        </div>
+
+                        <div class="col-8 col-md-8">
+                            <div class="form-group mt-2">
+                                <select class="form-control" id="REPEAT" name="REPEAT" onchange="repeatSchedule(this)">
+                                    <option value="">-- Select --</option>
+                                    <option value="Daily">Daily</option>
+                                    <option value="Weekly on Thursday">Weekly on Thursday</option>
+                                    <option value="Monday on the first Thursday">Monday on the first Thursday</option>
+                                    <option value="Custom">Custom...</option>
+                                </select>
+                            </div>
+
+                            <div class="datetime-area mt-2 d-none">
+
+                            </div>
+
+                            <div class="custom-date-time-format d-none mt-2">
+                                <div class="repeat-box">
+                                    <div class="row gx-1">
+                                        <div class="col-12 col-lg-6 mb-2">
+                                            <label class="theme-text-light">Repeat every:</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
+                                                <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
+                                                    <option value="week">Week(S)</option>
+                                                    <option value="month">Month(S)</option>
+                                                    <option value="year">Year(S)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6 mb-2">
+                                            <label class="theme-text-light">Repeat on:</label>
+                                            <div class="weekday-radio mt-1">
+                                                <label>
+                                                    <input type="checkbox" name="sunday">
+                                                    <span>S</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="monday">
+                                                    <span>M</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="tuesday">
+                                                    <span>T</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="wednesday">
+                                                    <span>W</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="thursday">
+                                                    <span>T</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="friday">
+                                                    <span>F</span>
+                                                </label>
+                                                <label>
+                                                    <input type="checkbox" name="saturday">
+                                                    <span>S</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-12">
+                                            <div class="ends">
+                                                <div>
+                                                    <label class="theme-text-light">Ends</label>
+                                                </div>
+                                                <div class="mb-1">
+                                                    <label class="radio active">
+                                                        <input type="radio" name="end" checked>
+                                                        <span></span>
+                                                        Never
+                                                    </label>
+                                                </div>
+
+                                                <div class="mb-1 d-flex gap-2">
+                                                    <label class="radio">
+                                                        <input type="radio" name="end">
+                                                        <span></span>
+                                                        On
+                                                    </label>
+                                                    <div class="ms-auto">
+                                                        <input type="text" id="END_ON_APPOINTMENT_DATE" name="END_ON_APPOINTMENT_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-1 d-flex gap-2">
+                                                    <label class="radio">
+                                                        <input type="radio" name="end">
+                                                        <span></span>
+                                                        After
+                                                    </label>
+                                                    <div class="ms-auto">
+                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- <a href="javascript:;" class="save-custom-date-selection btn-secondary f12 rounded-2 px-3" onclick="saveCustomDateSelection(this)">Save</a> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="mb-3">
+
                     <div class="row mb-3">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
@@ -1070,9 +1188,9 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function repeatSchedule(param) {
         if ($(param).val() == 'Custom') {
-            $('.custom-date-time-format').removeClass("d-none");
+            $(param).closest('.tab-pane').find('.custom-date-time-format').removeClass("d-none");
         } else {
-            $('.custom-date-time-format').addClass('d-none');
+            $(param).closest('.tab-pane').find('.custom-date-time-format').addClass('d-none');
         }
     }
 
@@ -1130,33 +1248,33 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function saveCustomDateSelection(param) {
 
-        $('.datetime-area').removeClass('d-none');
-        $('.add-another-day').removeClass('d-none');
-        $('.custom-date-time-at').addClass('d-none');
-        $('.custom-date-time-repeat').addClass('d-none');
-        $('.custom-date-time-format').addClass('d-none');
+        $(param).closest('.tab-pane').find('.datetime-area').removeClass('d-none');
+        $(param).closest('.tab-pane').find('.add-another-day').removeClass('d-none');
+        $(param).closest('.tab-pane').find('.custom-date-time-at').addClass('d-none');
+        $(param).closest('.tab-pane').find('.custom-date-time-repeat').addClass('d-none');
+        $(param).closest('.tab-pane').find('.custom-date-time-format').addClass('d-none');
 
 
-        const startDate = $('#STARTING_ON').val(); // MM/DD/YYYY
-        const startTime = $('#GROUP_CLASS_START_TIME').val(); // HH:mm
-        const repeatEvery = $('.repeat-box input[type="number"]').first().val();
-        const repeatType = $('.repeat-box select').val(); // week / month / year
+        const startDate = $(param).closest('.tab-pane').find('#STARTING_ON').val(); // MM/DD/YYYY
+        const startTime = $(param).closest('.tab-pane').find('#GROUP_CLASS_START_TIME').val(); // HH:mm
+        const repeatEvery = $(param).closest('.tab-pane').find('.repeat-box input[type="number"]').first().val();
+        const repeatType = $(param).closest('.tab-pane').find('.repeat-box select').val(); // week / month / year
 
-        const LENGTH = $('#LENGTH').val();
-        const FREQUENCY = $('#FREQUENCY').val();
+        const LENGTH = $(param).closest('.tab-pane').find('#LENGTH').val();
+        const FREQUENCY = $(param).closest('.tab-pane').find('#FREQUENCY').val();
 
 
         const days = getSelectedDays();
 
         // End condition
         let endText = 'Never Ends';
-        const endType = $('input[name="end"]:checked').closest('.radio').text().trim();
+        const endType = $(param).closest('.tab-pane').find('input[name="end"]:checked').closest('.radio').text().trim();
 
         if (endType === 'On') {
-            let END_ON_DATE = $('#END_ON_DATE').val();
+            let END_ON_DATE = $(param).closest('.tab-pane').find('#END_ON_DATE').val();
             endText = `Ends on ${END_ON_DATE}`;
         } else if (endType === 'After') {
-            let occurrences = $('#OCCURRENCE_AFTER').val();
+            let occurrences = $(param).closest('.tab-pane').find('#OCCURRENCE_AFTER').val();
             endText = `Ends after ${occurrences} occurrences`;
         }
 
@@ -1193,7 +1311,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>`;
 
         // Append or replace wherever you want
-        $('.datetime-area').append(html);
+        $(param).closest('.tab-pane').find('.datetime-area').append(html);
     }
 
 
