@@ -446,7 +446,7 @@ if (!empty($_GET['id'])) {
 
                                                                 <div class="row">
                                                                     <div class="col-6">
-                                                                        <label class="form-label">Location
+                                                                        <label class="form-label">Location<span class="text-danger">*</span>
                                                                             <span class="tooltip-bubble" tabindex="0">
                                                                                 <i class="ti-help-alt" aria-hidden="true"></i>
                                                                                 <span class="tooltip-text">
@@ -455,7 +455,7 @@ if (!empty($_GET['id'])) {
                                                                             </span>
                                                                         </label>
                                                                         <div class="col-md-12 multiselect-box">
-                                                                            <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                                                                            <select class="multi_sumo_select_location" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple required>
                                                                                 <?php
                                                                                 $selected_location = [];
                                                                                 if (!empty($_GET['id'])) {
