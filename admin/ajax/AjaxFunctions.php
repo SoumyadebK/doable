@@ -764,7 +764,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
         $LEDGER_DATA['IS_DOWN_PAYMENT'] = 0;
         $BALANCE = $RESPONSE_DATA['DOWN_PAYMENT'];
         for ($i = 0; $i < $RESPONSE_DATA['NUMBER_OF_PAYMENT']; $i++) {
-            if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
+            if ($RESPONSE_DATA['PAYMENT_TERM'] == 'Weekly') {
+                $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " week", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
+            } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Monthly') {
                 $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));
             } elseif ($RESPONSE_DATA['PAYMENT_TERM'] == 'Quarterly') {
                 $LEDGER_DATA['DUE_DATE'] = date("Y-m-d", strtotime("+" . $i * 3 . " month", strtotime($RESPONSE_DATA['FIRST_DUE_DATE'])));

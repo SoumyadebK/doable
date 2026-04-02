@@ -1168,6 +1168,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
                     }
 
+                    if (event_data.paid_status) {
+                        if (event_data.paid_status === ' (Unpaid)') {
+                            $(element).find(".fc-title").append('<br><span style="color: #ff0000; font-weight: bold;">' + event_data.paid_status + '</span>');
+                        } else {
+                            $(element).find(".fc-title").append('<br><span style="font-weight: bold;">' + event_data.paid_status + '</span>');
+                        }
+                    }
+
 
 
                     const el = info.el;
