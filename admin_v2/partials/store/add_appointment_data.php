@@ -92,11 +92,54 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
     $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
+
+
+
+
+    $APPOINTMENT_DATE_ARRAY = [];
+    $REPEAT = $_POST['REPEAT'];
+    if ($REPEAT == 'Custom') {
+
+        $STARTING_ON = $_POST['APPOINTMENT_DATE'];
+        $LENGTH = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : 12;
+        $FREQUENCY = 'month';
+        $END_DATE = isset($_POST['END_ON_APPOINTMENT_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_APPOINTMENT_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+
+
+        $OCCURRENCE = 'WEEKLY';
+        if (!empty($OCCURRENCE)) {
+            $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+            if ($OCCURRENCE == 'WEEKLY') {
+                if (isset($_POST['DAYS'])) {
+                    $DAYS = $_POST['DAYS'];
+                } else {
+                    $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+                }
+                while ($APPOINTMENT_DATE < $END_DATE) {
+                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                    if (in_array(strtolower($appointment_day), $DAYS)) {
+                        $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    }
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+                }
+            } else {
+                $OCCURRENCE_DAYS = (isset($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
+
+                while ($APPOINTMENT_DATE < $END_DATE) {
+                    $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
+                    //echo $APPOINTMENT_DATE . "<br>";
+                }
+            }
+        }
+    } else {
+        $APPOINTMENT_DATE_ARRAY[] = (isset($_POST['APPOINTMENT_DATE']) && !empty($_POST['APPOINTMENT_DATE'])) ? date('Y-m-d', strtotime($_POST['APPOINTMENT_DATE'])) : date('Y-m-d');
+    }
+
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
     $APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
     $APPOINTMENT_DATA['PK_LOCATION'] = $PK_LOCATION;
-    $APPOINTMENT_DATA['DATE'] = (isset($_POST['APPOINTMENT_DATE']) && !empty($_POST['APPOINTMENT_DATE'])) ? date('Y-m-d', strtotime($_POST['APPOINTMENT_DATE'])) : date('Y-m-d');
     $APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = 1;
     $APPOINTMENT_DATA['COMMENT'] = (isset($_POST['COMMENT']) && !empty($_POST['COMMENT'])) ? $_POST['COMMENT'] : '';
     $APPOINTMENT_DATA['INTERNAL_COMMENT'] = (isset($_POST['INTERNAL_COMMENT']) && !empty($_POST['INTERNAL_COMMENT'])) ? $_POST['INTERNAL_COMMENT'] : '';
@@ -104,34 +147,39 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
     $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-    for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
-        if ($i < $SESSION_LEFT) {
-            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
-            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
-        } else {
-            $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
-            $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
-            $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
-        }
 
-        $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
-        $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
-        $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+    for ($n = 0; $n < count($APPOINTMENT_DATE_ARRAY); $n++) {
+        $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$n];
+        for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
+            if ($i < $SESSION_LEFT) {
+                $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = $PK_ENROLLMENT_SERVICE;
+                $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'NORMAL';
+            } else {
+                $APPOINTMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                $APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+                $APPOINTMENT_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+            }
 
-        if ($APPOINTMENT_DATA['START_TIME'] != $APPOINTMENT_DATA['END_TIME']) {
-            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
-            $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+            $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
+            $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
+            $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
 
-            $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
-            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+            if ($APPOINTMENT_DATA['START_TIME'] != $APPOINTMENT_DATA['END_TIME']) {
+                db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
+                $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-            $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-            db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+                $APPOINTMENT_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $APPOINTMENT_SP_DATA, 'insert');
+
+                $APPOINTMENT_CUSTOMER_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $APPOINTMENT_CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                db_perform_account('DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
+            }
         }
     }
+
     markAppointmentPaid($APPOINTMENT_DATA['PK_ENROLLMENT_SERVICE']);
 
     if ($PK_USER_MASTER > 0) {
@@ -147,4 +195,4 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
 
 //rearrangeSerialNumber($_POST['PK_ENROLLMENT_MASTER'], $price_per_session);
 
-header("location:../../calendar.php?date=" . $APPOINTMENT_DATA['DATE']);
+header("location:../../calendar.php?date=" . $APPOINTMENT_DATE_ARRAY[0]);

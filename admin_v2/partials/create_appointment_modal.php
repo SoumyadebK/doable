@@ -279,31 +279,31 @@ if ($location_operational_hour->RecordCount() > 0) {
                                             <label class="theme-text-light">Repeat on:</label>
                                             <div class="weekday-radio mt-1">
                                                 <label>
-                                                    <input type="checkbox" name="sunday">
+                                                    <input type="checkbox" name="DAYS[]" value="sunday">
                                                     <span>S</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="monday">
+                                                    <input type="checkbox" name="DAYS[]" value="monday">
                                                     <span>M</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="tuesday">
+                                                    <input type="checkbox" name="DAYS[]" value="tuesday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="wednesday">
+                                                    <input type="checkbox" name="DAYS[]" value="wednesday">
                                                     <span>W</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="thursday">
+                                                    <input type="checkbox" name="DAYS[]" value="thursday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="friday">
+                                                    <input type="checkbox" name="DAYS[]" value="friday">
                                                     <span>F</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="saturday">
+                                                    <input type="checkbox" name="DAYS[]" value="saturday">
                                                     <span>S</span>
                                                 </label>
                                             </div>
