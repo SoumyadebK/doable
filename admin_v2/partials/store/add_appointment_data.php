@@ -92,12 +92,10 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
     $SESSION_CREATED = getAllSessionCreatedCount($PK_ENROLLMENT_SERVICE, 'NORMAL');
     $SESSION_LEFT = $NUMBER_OF_SESSION - $SESSION_CREATED;
 
-
-
-
-
     $APPOINTMENT_DATE_ARRAY = [];
     $REPEAT = $_POST['REPEAT'];
+    $standing_id = 0;
+
     if ($REPEAT == 'Custom') {
 
         $STARTING_ON = $_POST['APPOINTMENT_DATE'];
@@ -132,6 +130,13 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
                 }
             }
         }
+
+        $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+        if ($standing_data->RecordCount() > 0) {
+            $standing_id = $standing_data->fields['STANDING_ID'] + 1;
+        } else {
+            $standing_id = 1;
+        }
     } else {
         $APPOINTMENT_DATE_ARRAY[] = (isset($_POST['APPOINTMENT_DATE']) && !empty($_POST['APPOINTMENT_DATE'])) ? date('Y-m-d', strtotime($_POST['APPOINTMENT_DATE'])) : date('Y-m-d');
     }
@@ -164,6 +169,7 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
             $APPOINTMENT_DATA['SERIAL_NUMBER'] = getAppointmentSerialNumber($PK_USER_MASTER);
             $APPOINTMENT_DATA['START_TIME'] = $START_TIME_ARRAY[$i];
             $APPOINTMENT_DATA['END_TIME'] = $END_TIME_ARRAY[$i];
+            $APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
 
             if ($APPOINTMENT_DATA['START_TIME'] != $APPOINTMENT_DATA['END_TIME']) {
                 db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_DATA, 'insert');
