@@ -147,8 +147,8 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
     $APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
     $APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-
-    for ($n = 0; $n < count($APPOINTMENT_DATE_ARRAY); $n++) {
+    $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($APPOINTMENT_DATE_ARRAY);
+    for ($n = 0; $n < $TOTAL_APPOINTMENT_TO_CREATE; $n++) {
         $APPOINTMENT_DATA['DATE'] = $APPOINTMENT_DATE_ARRAY[$n];
         for ($i = 0; $i < count($START_TIME_ARRAY); $i++) {
             if ($i < $SESSION_LEFT) {
