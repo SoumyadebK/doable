@@ -140,16 +140,12 @@ if (!empty($_POST)) {
             //$TOTAL_LESSONS = $getData[4] + $getData[5] + $getData[6];
             $TOTAL_LESSONS = $getData[9] + $getData[10] + $getData[11] + $getData[12];
             if ($TOTAL_LESSONS > 0) {
-                if ($getData[21] <= 0) {
-                    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-                    if ($enrollment_data->RecordCount() > 0) {
-                        $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
-                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . '-' . (intval($last_enrollment_id) + 1);
-                    } else {
-                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . '-' . $account_data->fields['ENROLLMENT_ID_NUM'];
-                    }
+                $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                if ($enrollment_data->RecordCount() > 0) {
+                    $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
+                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
                 } else {
-                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . '-' . $getData[21];
+                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
                 }
 
                 $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
@@ -159,13 +155,13 @@ if (!empty($_POST)) {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                if ($getData[21] == 0) {
+                if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 0) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                } else if ($getData[21] == 1) {
+                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 1) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                } else if ($getData[21] == 2) {
+                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 2) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                } else if ($getData[21] == 3) {
+                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 3) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
                 } else {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
@@ -181,7 +177,7 @@ if (!empty($_POST)) {
                 $ENROLLMENT_DATA['ACTIVE'] = 1;
                 $ENROLLMENT_DATA['STATUS'] = "CO";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = date("Y-m-d");
-                //$ENROLLMENT_DATA['EXPIRY_DATE'] = $getData[22];
+                $ENROLLMENT_DATA['EXPIRY_DATE'] = date("Y-m-d", strtotime("+1 month"));
                 $ENROLLMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 //pre_R($ENROLLMENT_DATA);
@@ -310,12 +306,16 @@ if (!empty($_POST)) {
             $TOTAL_LESSONS = $getData[14] + $getData[15] + $getData[16] + $getData[17];
             if ($TOTAL_LESSONS > 0) {
                 //ACTIVE ENROLLMENT SECTION
-                $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-                if ($enrollment_data->RecordCount() > 0) {
-                    $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
-                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . '-' . (intval($last_enrollment_id) + 1);
+                if ($getData[21] <= 0) {
+                    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+                    if ($enrollment_data->RecordCount() > 0) {
+                        $last_enrollment_id = str_replace($enrollment_char, '', $enrollment_data->fields['ENROLLMENT_ID']);
+                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . (intval($last_enrollment_id) + 1);
+                    } else {
+                        $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $account_data->fields['ENROLLMENT_ID_NUM'];
+                    }
                 } else {
-                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . '-' . $account_data->fields['ENROLLMENT_ID_NUM'];
+                    $ENROLLMENT_DATA['ENROLLMENT_ID'] = $enrollment_char . $getData[21];
                 }
 
                 $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $PK_USER_MASTER . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
@@ -325,13 +325,13 @@ if (!empty($_POST)) {
                     $ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
                 }
 
-                if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 0) {
+                if ($getData[21] == 0) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 1) {
+                } else if ($getData[21] == 1) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 5;
-                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 2) {
+                } else if ($getData[21] == 2) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 2;
-                } else if ($ENROLLMENT_DATA['CUSTOMER_ENROLLMENT_NUMBER'] == 3) {
+                } else if ($getData[21] == 3) {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 13;
                 } else {
                     $ENROLLMENT_DATA['PK_ENROLLMENT_TYPE'] = 9;
@@ -349,7 +349,7 @@ if (!empty($_POST)) {
                 $ENROLLMENT_DATA['ACTIVE'] = 1;
                 $ENROLLMENT_DATA['STATUS'] = "A";
                 $ENROLLMENT_DATA['ENROLLMENT_DATE'] = date("Y-m-d");
-                //$ENROLLMENT_DATA['EXPIRY_DATE'] = $getData[22];
+                $ENROLLMENT_DATA['EXPIRY_DATE'] = date("Y-m-d", strtotime("+1 month"));
                 $ENROLLMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
                 $ENROLLMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
                 db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_DATA, 'insert');
