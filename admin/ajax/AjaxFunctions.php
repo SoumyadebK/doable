@@ -1516,129 +1516,187 @@ function saveLocationData($RESPONSE_DATA)
     global $db_account;
     global $upload_path;
 
-    $EMAIL_DATA['HOST'] = $RESPONSE_DATA['SMTP_HOST'];
-    $EMAIL_DATA['PORT'] = $RESPONSE_DATA['SMTP_PORT'];
-    $EMAIL_DATA['EMAIL_ID'] = $RESPONSE_DATA['SMTP_USERNAME'];
-    $EMAIL_DATA['PASSWORD'] = $RESPONSE_DATA['SMTP_PASSWORD'];
-    unset($RESPONSE_DATA['FUNCTION_NAME']);
-    unset($RESPONSE_DATA['SMTP_HOST']);
-    unset($RESPONSE_DATA['SMTP_PORT']);
-    unset($RESPONSE_DATA['SMTP_USERNAME']);
-    unset($RESPONSE_DATA['SMTP_PASSWORD']);
-    $LOCATION_DATA = $RESPONSE_DATA;
-    $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    try {
+        // Remove FUNCTION_NAME from data
+        unset($RESPONSE_DATA['FUNCTION_NAME']);
 
-    if ($_FILES['IMAGE_PATH']['name'] != '') {
-        if (!file_exists('../' . $upload_path . '/location_image/')) {
-            mkdir('../' . $upload_path . '/location_image/', 0777, true);
-            chmod('../' . $upload_path . '/location_image/', 0777);
-        }
+        $LOCATION_DATA = $RESPONSE_DATA;
+        $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
-        $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
-        $iindex = count($extn) - 1;
-        $rand_string = time() . "-" . rand(100000, 999999);
-        $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-        $extension = strtolower($extn[$iindex]);
+        // Handle file upload
+        if (isset($_FILES['IMAGE_PATH']) && $_FILES['IMAGE_PATH']['name'] != '') {
+            if (!file_exists('../' . $upload_path . '/location_image/')) {
+                mkdir('../' . $upload_path . '/location_image/', 0777, true);
+                chmod('../' . $upload_path . '/location_image/', 0777);
+            }
 
-        if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-            $image_path = '../' . $upload_path . '/location_image/' . $file11;
-            move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
-            $LOCATION_DATA['IMAGE_PATH'] = $image_path;
-        }
-    }
+            $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
+            $iindex = count($extn) - 1;
+            $rand_string = time() . "-" . rand(100000, 999999);
+            $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
+            $extension = strtolower($extn[$iindex]);
 
-    $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
-    if (!file_exists('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
-        mkdir('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
-        chmod('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
-    }
-
-    if (!empty($RESPONSE_DATA['FOCUSBIZ_API_KEY'])) {
-        if ($RESPONSE_DATA['FOCUSBIZ_API_KEY'] != $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD']) {
-            $location = array();
-            $location['FIRST_NAME'] = $RESPONSE_DATA['LOCATION_NAME'];
-            $location['LAST_NAME'] = '(' . $RESPONSE_DATA['LOCATION_CODE'] . ')';
-            $location['EMAIL_ID'] = $RESPONSE_DATA['EMAIL'];
-            $location['ACTIVE'] = 1;
-            $location['USER_ID'] = $RESPONSE_DATA['LOCATION_CODE'];
-
-            $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
-
-            $URL = "https://focusbiz.com/API/V1/user";
-
-            $json = json_encode($location);
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_SSL_VERIFYHOST => '0',
-                CURLOPT_SSL_VERIFYPEER => '0',
-                CURLOPT_URL => $URL,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_POST => 1,
-                CURLOPT_POSTFIELDS => $json,
-                CURLOPT_HTTPHEADER => array(
-                    "APIKEY: " . $RESPONSE_DATA['FOCUSBIZ_API_KEY']
-                ),
-            ));
-
-            $return_data = curl_exec($curl);
-            $err = curl_error($curl);
-
-            curl_close($curl);
-
-            if ($err) {
-                echo "cURL Error #:" . $err;
-                exit;
-            } else {
-                $response = json_decode($return_data);
-                $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+            if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
+                $image_path = '../' . $upload_path . '/location_image/' . $file11;
+                move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
+                $LOCATION_DATA['IMAGE_PATH'] = $image_path;
             }
         }
-    } else {
-        $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
+
+        // Create enrollment directory
+        $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
+        if (!file_exists('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+            mkdir('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+            chmod('../../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
+        }
+
+        // Handle Focusbiz API
+        if (!empty($RESPONSE_DATA['FOCUSBIZ_API_KEY'])) {
+            if ($RESPONSE_DATA['FOCUSBIZ_API_KEY'] != $RESPONSE_DATA['FOCUSBIZ_API_KEY_OLD']) {
+                $location = array();
+                $location['FIRST_NAME'] = $RESPONSE_DATA['LOCATION_NAME'];
+                $location['LAST_NAME'] = '(' . $RESPONSE_DATA['LOCATION_CODE'] . ')';
+                $location['EMAIL_ID'] = $RESPONSE_DATA['EMAIL'];
+                $location['ACTIVE'] = 1;
+                $location['USER_ID'] = $RESPONSE_DATA['LOCATION_CODE'];
+                $location['PASSWORD'] = 'Password@123';
+
+                $URL = "https://focusbiz.com/API/V1/user";
+                $json = json_encode($location);
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_SSL_VERIFYHOST => '0',
+                    CURLOPT_SSL_VERIFYPEER => '0',
+                    CURLOPT_URL => $URL,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => "",
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 30,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_POST => 1,
+                    CURLOPT_POSTFIELDS => $json,
+                    CURLOPT_HTTPHEADER => array(
+                        "APIKEY: " . $RESPONSE_DATA['FOCUSBIZ_API_KEY']
+                    ),
+                ));
+
+                $return_data = curl_exec($curl);
+                $err = curl_error($curl);
+                curl_close($curl);
+
+                if (!$err) {
+                    $response = json_decode($return_data);
+                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+                }
+            }
+        } else {
+            $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
+        }
+        unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
+
+        // Check if this is an update or insert
+        if (empty($_GET['id']) && (empty($RESPONSE_DATA['PK_LOCATION']) || $RESPONSE_DATA['PK_LOCATION'] == 0)) {
+            // Insert new location
+            $LOCATION_DATA['ACTIVE'] = 1;
+            $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+            $PK_LOCATION = $db->insert_ID();
+        } else {
+            // Update existing location
+            $PK_LOCATION = !empty($_GET['id']) ? $_GET['id'] : $RESPONSE_DATA['PK_LOCATION'];
+            $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
+
+            db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
+        }
+
+        $response['success'] = true;
+        $response['PK_LOCATION'] = $PK_LOCATION;
+        $response['message'] = 'Location saved successfully';
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $response['success'] = false;
+        $response['message'] = 'Error: ' . $e->getMessage();
+        echo json_encode($response);
     }
+}
 
-    if (empty($_GET['id'])) {
-        $LOCATION_DATA['ACTIVE'] = 1;
-        $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
-        $PK_LOCATION = $db->insert_ID();
+function saveOperationalHours($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
 
-        /* $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-            $LOCATION_ARRAY[] = $PK_LOCATION;
-            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY); */
-    } else {
-        $LOCATION_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
-        $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
-        $PK_LOCATION = $_GET['id'];
+    try {
+        $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
+
+        // Validate PK_LOCATION
+        if (empty($PK_LOCATION)) {
+            $response['success'] = false;
+            $response['message'] = 'Location ID is missing';
+            echo json_encode($response);
+            return;
+        }
+
+        $ALL_DAYS = isset($RESPONSE_DATA['ALL_DAYS']) ? 1 : 0;
+
+        // First, delete all existing operational hours for this location to avoid duplicates
+        $delete_query = "DELETE FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '" . $PK_LOCATION . "'";
+        $db_account->Execute($delete_query);
+
+        // Insert new operational hours
+        if (isset($RESPONSE_DATA['OPEN_TIME']) && count($RESPONSE_DATA['OPEN_TIME']) > 0) {
+            for ($i = 0; $i < count($RESPONSE_DATA['OPEN_TIME']); $i++) {
+                $OPERATIONAL_HOUR_DATA = array();
+                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
+                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
+
+                // Handle Open Time
+                $open_time = ($ALL_DAYS == 0) ? $RESPONSE_DATA['OPEN_TIME'][$i] : $RESPONSE_DATA['OPEN_TIME'][0];
+                if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
+                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
+                } else {
+                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
+                }
+
+                // Handle Close Time
+                $close_time = ($ALL_DAYS == 0) ? $RESPONSE_DATA['CLOSE_TIME'][$i] : $RESPONSE_DATA['CLOSE_TIME'][0];
+                if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
+                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
+                } else {
+                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
+                }
+
+                // Handle Closed status
+                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($RESPONSE_DATA['CLOSED_' . $i]) ? 1 : 0;
+
+                // Insert using direct SQL if db_perform_account is not working
+                $insert_query = "INSERT INTO DOA_OPERATIONAL_HOUR (PK_LOCATION, DAY_NUMBER, OPEN_TIME, CLOSE_TIME, CLOSED) 
+                                 VALUES ('" . $PK_LOCATION . "', '" . ($i + 1) . "', 
+                                         '" . $OPERATIONAL_HOUR_DATA['OPEN_TIME'] . "', 
+                                         '" . $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] . "', 
+                                         '" . $OPERATIONAL_HOUR_DATA['CLOSED'] . "')";
+
+                $result = $db_account->Execute($insert_query);
+
+                if (!$result) {
+                    $response['success'] = false;
+                    $response['message'] = 'Database error: ' . $db_account->ErrorMsg();
+                    echo json_encode($response);
+                    return;
+                }
+            }
+        }
+
+        $response['success'] = true;
+        $response['message'] = 'Operational hours saved successfully';
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $response['success'] = false;
+        $response['message'] = 'Exception: ' . $e->getMessage();
+        echo json_encode($response);
     }
-    $EMAIL_DATA['PK_LOCATION'] = $PK_LOCATION;
-    $EMAIL_DATA['ACTIVE'] = 1;
-    $EMAIL_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-    $EMAIL_DATA['CREATED_ON'] = date("Y-m-d H:i");
-
-    $email = $db_account->Execute("SELECT * FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION = " . $PK_LOCATION);
-    if ($email->RecordCount() == 0) {
-        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'insert');
-    } else {
-        $EMAIL_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_ACCOUNT', $EMAIL_DATA, 'update', " PK_LOCATION = '$PK_LOCATION'");
-    }
-
-    $db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
-
-    $_SESSION['DEFAULT_LOCATION_ID'] = $PK_LOCATION;
-
-    $response['success'] = true;
-    $response['PK_LOCATION'] = $PK_LOCATION;
-    echo json_encode($response);
 }
 
 function saveLocationHourData($RESPONSE_DATA)

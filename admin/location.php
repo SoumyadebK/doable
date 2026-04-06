@@ -214,161 +214,161 @@ if (($AM_AMOUNT == '' || $AM_AMOUNT == 0.00) && ($NOT_AM_AMOUNT == '' || $NOT_AM
 $AMOUNT = ($FRANCHISE == 1) ? $AM_AMOUNT : $NOT_AM_AMOUNT;
 
 if (!empty($_POST)) {
-    if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
-        unset($_POST['FUNCTION_NAME']);
-        $LOCATION_DATA = $_POST;
-        $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    // if ($_POST['FUNCTION_NAME'] == 'saveLocationData') {
+    //     unset($_POST['FUNCTION_NAME']);
+    //     $LOCATION_DATA = $_POST;
+    //     $LOCATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
 
-        if ($_FILES['IMAGE_PATH']['name'] != '') {
-            if (!file_exists('../' . $upload_path . '/location_image/')) {
-                mkdir('../' . $upload_path . '/location_image/', 0777, true);
-                chmod('../' . $upload_path . '/location_image/', 0777);
-            }
+    //     if ($_FILES['IMAGE_PATH']['name'] != '') {
+    //         if (!file_exists('../' . $upload_path . '/location_image/')) {
+    //             mkdir('../' . $upload_path . '/location_image/', 0777, true);
+    //             chmod('../' . $upload_path . '/location_image/', 0777);
+    //         }
 
-            $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
-            $iindex = count($extn) - 1;
-            $rand_string = time() . "-" . rand(100000, 999999);
-            $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
-            $extension = strtolower($extn[$iindex]);
+    //         $extn = explode(".", $_FILES['IMAGE_PATH']['name']);
+    //         $iindex = count($extn) - 1;
+    //         $rand_string = time() . "-" . rand(100000, 999999);
+    //         $file11 = 'location_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
+    //         $extension = strtolower($extn[$iindex]);
 
-            if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
-                $image_path = '../' . $upload_path . '/location_image/' . $file11;
-                move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
-                $LOCATION_DATA['IMAGE_PATH'] = $image_path;
-            }
-        }
+    //         if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
+    //             $image_path = '../' . $upload_path . '/location_image/' . $file11;
+    //             move_uploaded_file($_FILES['IMAGE_PATH']['tmp_name'], $image_path);
+    //             $LOCATION_DATA['IMAGE_PATH'] = $image_path;
+    //         }
+    //     }
 
-        $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
-        if (!file_exists('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
-            mkdir('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
-            chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
-        }
+    //     $LOCATION_CODE = trim($LOCATION_DATA['LOCATION_CODE']);
+    //     if (!file_exists('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/')) {
+    //         mkdir('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777, true);
+    //         chmod('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/', 0777);
+    //     }
 
-        if (!empty($LOCATION_DATA['FOCUSBIZ_API_KEY'])) {
-            if ($LOCATION_DATA['FOCUSBIZ_API_KEY'] != $LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']) {
-                $location = array();
-                $location['FIRST_NAME'] = $LOCATION_DATA['LOCATION_NAME'];
-                $location['LAST_NAME'] = '(' . $LOCATION_DATA['LOCATION_CODE'] . ')';
-                $location['EMAIL_ID'] = $LOCATION_DATA['EMAIL'];
-                $location['ACTIVE'] = 1;
-                $location['USER_ID'] = $LOCATION_DATA['LOCATION_CODE'];
+    //     if (!empty($LOCATION_DATA['FOCUSBIZ_API_KEY'])) {
+    //         if ($LOCATION_DATA['FOCUSBIZ_API_KEY'] != $LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']) {
+    //             $location = array();
+    //             $location['FIRST_NAME'] = $LOCATION_DATA['LOCATION_NAME'];
+    //             $location['LAST_NAME'] = '(' . $LOCATION_DATA['LOCATION_CODE'] . ')';
+    //             $location['EMAIL_ID'] = $LOCATION_DATA['EMAIL'];
+    //             $location['ACTIVE'] = 1;
+    //             $location['USER_ID'] = $LOCATION_DATA['LOCATION_CODE'];
 
-                $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
+    //             $location['PASSWORD'] = 'Password@123'; // Default password, can be changed later
 
-                $URL = "https://focusbiz.com/API/V1/user";
+    //             $URL = "https://focusbiz.com/API/V1/user";
 
-                $json = json_encode($location);
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_SSL_VERIFYHOST => '0',
-                    CURLOPT_SSL_VERIFYPEER => '0',
-                    CURLOPT_URL => $URL,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => "",
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 30,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_POST => 1,
-                    CURLOPT_POSTFIELDS => $json,
-                    CURLOPT_HTTPHEADER => array(
-                        "APIKEY: " . $LOCATION_DATA['FOCUSBIZ_API_KEY']
-                    ),
-                ));
+    //             $json = json_encode($location);
+    //             $curl = curl_init();
+    //             curl_setopt_array($curl, array(
+    //                 CURLOPT_SSL_VERIFYHOST => '0',
+    //                 CURLOPT_SSL_VERIFYPEER => '0',
+    //                 CURLOPT_URL => $URL,
+    //                 CURLOPT_RETURNTRANSFER => true,
+    //                 CURLOPT_ENCODING => "",
+    //                 CURLOPT_MAXREDIRS => 10,
+    //                 CURLOPT_TIMEOUT => 30,
+    //                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //                 CURLOPT_POST => 1,
+    //                 CURLOPT_POSTFIELDS => $json,
+    //                 CURLOPT_HTTPHEADER => array(
+    //                     "APIKEY: " . $LOCATION_DATA['FOCUSBIZ_API_KEY']
+    //                 ),
+    //             ));
 
-                $return_data = curl_exec($curl);
-                $err = curl_error($curl);
+    //             $return_data = curl_exec($curl);
+    //             $err = curl_error($curl);
 
-                curl_close($curl);
+    //             curl_close($curl);
 
-                if ($err) {
-                    echo "cURL Error #:" . $err;
-                    exit;
-                } else {
-                    $response = json_decode($return_data);
-                    $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
-                }
-            }
-        } else {
-            $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
-        }
-        unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
+    //             if ($err) {
+    //                 echo "cURL Error #:" . $err;
+    //                 exit;
+    //             } else {
+    //                 $response = json_decode($return_data);
+    //                 $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = $_SESSION['FOCUSBIZ_ACCESS_TOKEN'] = $response->ACCESS_TOKEN;
+    //             }
+    //         }
+    //     } else {
+    //         $LOCATION_DATA['FOCUSBIZ_ACCESS_TOKEN'] = NULL;
+    //     }
+    //     unset($LOCATION_DATA['FOCUSBIZ_API_KEY_OLD']);
 
-        if (empty($_GET['id'])) {
-            $LOCATION_DATA['ACTIVE'] = 1;
-            $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-            $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
-            $PK_LOCATION = $db->insert_ID();
-            $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
-            $LOCATION_ARRAY[] = $PK_LOCATION;
-            $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
-        } else {
-            $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
-            $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-            $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
-            db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
-            $PK_LOCATION = $_GET['id'];
-        }
-    }
+    //     if (empty($_GET['id'])) {
+    //         $LOCATION_DATA['ACTIVE'] = 1;
+    //         $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+    //         $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
+    //         db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
+    //         $PK_LOCATION = $db->insert_ID();
+    //         $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+    //         $LOCATION_ARRAY[] = $PK_LOCATION;
+    //         $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+    //     } else {
+    //         $LOCATION_DATA['ACTIVE'] = $_POST['ACTIVE'];
+    //         $LOCATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+    //         $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
+    //         db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION =  '$_GET[id]'");
+    //         $PK_LOCATION = $_GET['id'];
+    //     }
+    // }
 
-    if ($_POST['FUNCTION_NAME'] == 'saveOperationalHours') {
-        $ALL_DAYS = isset($_POST['ALL_DAYS']) ? 1 : 0;
-        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
+    // if ($_POST['FUNCTION_NAME'] == 'saveOperationalHours') {
+    //     $ALL_DAYS = isset($_POST['ALL_DAYS']) ? 1 : 0;
+    //     $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '" . (int)$_GET['id'] . "'");
 
-        if ($operational_hours->RecordCount() > 0) {
-            for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
-                $PK_LOCATION = (int)$_GET['id'];
-                $DAY_NUMBER = (int)($i + 1);
-                $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
-                $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
+    //     if ($operational_hours->RecordCount() > 0) {
+    //         for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
+    //             $PK_LOCATION = (int)$_GET['id'];
+    //             $DAY_NUMBER = (int)($i + 1);
+    //             $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = $PK_LOCATION;
+    //             $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $DAY_NUMBER;
 
-                // Special handling for 12:00 AM
-                $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
-                if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
-                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
-                } else {
-                    $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
-                }
+    //             // Special handling for 12:00 AM
+    //             $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
+    //             if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
+    //                 $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
+    //             } else {
+    //                 $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
+    //             }
 
-                $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
-                if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
-                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
-                } else {
-                    $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
-                }
+    //             $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
+    //             if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
+    //                 $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
+    //             } else {
+    //                 $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
+    //             }
 
-                $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
+    //             $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
 
-                db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
-            }
-        } else {
-            if (count($_POST['OPEN_TIME']) > 0) {
-                for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
-                    $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = (int)$_GET['id'];
-                    $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
+    //             db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'update', " PK_LOCATION = $PK_LOCATION AND DAY_NUMBER = $DAY_NUMBER");
+    //         }
+    //     } else {
+    //         if (count($_POST['OPEN_TIME']) > 0) {
+    //             for ($i = 0; $i < count($_POST['OPEN_TIME']); $i++) {
+    //                 $OPERATIONAL_HOUR_DATA['PK_LOCATION'] = (int)$_GET['id'];
+    //                 $OPERATIONAL_HOUR_DATA['DAY_NUMBER'] = $i + 1;
 
-                    // Special handling for 12:00 AM
-                    $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
-                    if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
-                        $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
-                    } else {
-                        $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
-                    }
+    //                 // Special handling for 12:00 AM
+    //                 $open_time = ($ALL_DAYS == 0) ? $_POST['OPEN_TIME'][$i] : $_POST['OPEN_TIME'][0];
+    //                 if (strtoupper($open_time) == '12:00 AM' || strtoupper($open_time) == '12:00:00 AM') {
+    //                     $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = '24:00:00';
+    //                 } else {
+    //                     $OPERATIONAL_HOUR_DATA['OPEN_TIME'] = !empty($open_time) ? date('H:i:s', strtotime($open_time)) : '00:00:00';
+    //                 }
 
-                    $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
-                    if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
-                        $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
-                    } else {
-                        $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
-                    }
+    //                 $close_time = ($ALL_DAYS == 0) ? $_POST['CLOSE_TIME'][$i] : $_POST['CLOSE_TIME'][0];
+    //                 if (strtoupper($close_time) == '12:00 AM' || strtoupper($close_time) == '12:00:00 AM') {
+    //                     $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = '24:00:00';
+    //                 } else {
+    //                     $OPERATIONAL_HOUR_DATA['CLOSE_TIME'] = !empty($close_time) ? date('H:i:s', strtotime($close_time)) : '00:00:00';
+    //                 }
 
-                    $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
+    //                 $OPERATIONAL_HOUR_DATA['CLOSED'] = isset($_POST['CLOSED_' . $i]) ? 1 : 0;
 
-                    db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
-                }
-            }
-        }
-    }
+    //                 db_perform_account('DOA_OPERATIONAL_HOUR', $OPERATIONAL_HOUR_DATA, 'insert');
+    //             }
+    //         }
+    //     }
+    // }
 
     if ($_POST['FUNCTION_NAME'] == 'saveHolidayData') {
         unset($_POST['FUNCTION_NAME']);
@@ -554,8 +554,9 @@ if (!empty($_POST)) {
                                 <!-- Nav tabs -->
                                 <ul class="nav nav-tabs" role="tablist">
                                     <li> <a class="nav-link active" data-bs-toggle="tab" id="location_link" href="#location_div" role="tab"><span class="hidden-sm-up"><i class="ti-location-pin"></i></span> <span class="hidden-xs-down">Location</span></a> </li>
+                                    <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
                                     <?php if (!empty($_GET['id'])) { ?>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" id="operational_hours_link" href="#operational_hours" role="tab"><span class="hidden-sm-up"><i class="ti-time"></i></span> <span class="hidden-xs-down">Operational Hours</span></a> </li>
+
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="holiday_list_link" href="#holiday_list" role="tab"><span class="hidden-sm-up"><i class="ti-calendar"></i></span> <span class="hidden-xs-down">Holiday List</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
 
@@ -571,6 +572,7 @@ if (!empty($_POST)) {
                                     <div class="tab-pane active" id="location_div" role="tabpanel">
                                         <form class="form-material form-horizontal" id="location_form" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                            <input type="hidden" name="PK_LOCATION" value="<?php echo $PK_LOCATION; ?>">
                                             <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-6">
@@ -782,11 +784,7 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <?php if (isset($_SESSION['error'])) { ?>
-                                                        <div class="alert alert-danger">
-                                                            <strong><?= $_SESSION['error']; ?></strong>
-                                                        </div>
-                                                    <?php } ?>
+
                                                 </div>
 
                                                 <div class="row">
@@ -1121,7 +1119,7 @@ if (!empty($_POST)) {
                                                     </div>
                                                 <?php } ?>
 
-                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
+                                                <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Next</button>
                                                 <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
 
                                                 <!-- Hidden submit button for the form -->
@@ -1131,8 +1129,9 @@ if (!empty($_POST)) {
                                     </div>
 
                                     <div class="tab-pane" id="operational_hours" role="tabpanel">
-                                        <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                        <form class="form-material form-horizontal" id="operational_hours_form" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                            <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
                                             <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-3">
@@ -2044,6 +2043,90 @@ if (!empty($_POST)) {
             }
         });
     }
+</script>
+
+<script>
+    $(document).on('submit', '#location_form', function(event) {
+        event.preventDefault();
+
+        // Show loading state
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+        submitBtn.prop('disabled', true).text('Saving...');
+
+        let form_data = new FormData($('#location_form')[0]);
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                console.log('Location save response:', response);
+
+                if (response.success) {
+                    // Update PK_LOCATION in all forms
+                    $('input[name="PK_LOCATION"]').val(response.PK_LOCATION);
+                    $('#operational_hours_form input[name="PK_LOCATION"]').val(response.PK_LOCATION);
+                    $('#holiday_list input[name="PK_LOCATION"]').val(response.PK_LOCATION);
+                    $('#customer_tab_permissions input[name="PK_LOCATION"]').val(response.PK_LOCATION);
+
+                    // Show success message
+                    // alert('Location saved successfully!');
+
+                    // If this was not a new location, redirect to edit page with ID
+                    if (window.location.href.indexOf('id=') === -1 && response.PK_LOCATION) {
+                        // Switch to operational hours tab
+                        $('#operational_hours_link').tab('show');
+                    } else {
+                        window.location.href = 'location.php?id=' + response.PK_LOCATION;
+                    }
+                } else {
+                    alert('Error: ' + (response.message || 'Failed to save location'));
+                    submitBtn.prop('disabled', false).text(originalText);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                console.log('Response:', xhr.responseText);
+                alert('An error occurred while saving the location. Please check the console for details.');
+                submitBtn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
+
+    $(document).on('submit', '#operational_hours_form', function(event) {
+        event.preventDefault();
+
+        // Use the correct form ID and serialize method
+        let form_data = $(this).serialize();
+
+        console.log('Form Data being sent:', form_data); // Debugging
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json', // Expect JSON response
+            success: function(response) {
+                console.log('Response:', response); // Debugging
+                if (response && response.success) {
+                    // Show success message
+                    // alert('Operational hours saved successfully!');
+                    window.location.href = 'all_locations.php';
+                } else {
+                    alert('Error: ' + (response.message || 'Failed to save operational hours'));
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                console.log('Response Text:', xhr.responseText);
+                alert('An error occurred while saving operational hours. Please check the console for details.');
+            }
+        });
+    });
 </script>
 
 </html>
