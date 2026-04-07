@@ -51,9 +51,10 @@ if ($payment_gateway_setting->RecordCount() > 0) {
 }
 
 if (empty($_GET['id'])) {
+    $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '22'");
     $PK_LOCATION = 0;
-    $PK_CORPORATION = '';
-    $PK_ACCOUNT_TYPE = '';
+    $PK_CORPORATION = $res->fields['PK_CORPORATION'];
+    $PK_ACCOUNT_TYPE = $res->fields['PK_ACCOUNT_TYPE'];
     $FRANCHISE = '';
     $LOCATION_NAME = '';
     $LOCATION_CODE = '';
@@ -67,17 +68,17 @@ if (empty($_GET['id'])) {
     $EMAIL = ''; //$res->fields['EMAIL'];
     $IMAGE_PATH = '';
     $PK_TIMEZONE = '';
-    $TIME_SLOT_INTERVAL     = '';
-    $SERVICE_PROVIDER_TITLE = '';
-    $OPERATION_TAB_TITLE    = '';
-    $ENROLLMENT_ID_CHAR     = '';
-    $ENROLLMENT_ID_NUM      = '';
-    $MISCELLANEOUS_ID_CHAR  = '';
-    $MISCELLANEOUS_ID_NUM   = '';
-    $APPOINTMENT_REMINDER   = '';
-    $HOUR                   = '';
-    $ROYALTY_PERCENTAGE = '';
-    $ACTIVE = '';
+    $TIME_SLOT_INTERVAL     = $res->fields['TIME_SLOT_INTERVAL'];
+    $SERVICE_PROVIDER_TITLE = $res->fields['SERVICE_PROVIDER_TITLE'];
+    $OPERATION_TAB_TITLE    = $res->fields['OPERATION_TAB_TITLE'];
+    $ENROLLMENT_ID_CHAR     = $res->fields['ENROLLMENT_ID_CHAR'];
+    $ENROLLMENT_ID_NUM      = $res->fields['ENROLLMENT_ID_NUM'];
+    $MISCELLANEOUS_ID_CHAR  = $res->fields['MISCELLANEOUS_ID_CHAR'];
+    $MISCELLANEOUS_ID_NUM   = $res->fields['MISCELLANEOUS_ID_NUM'];
+    $APPOINTMENT_REMINDER   = $res->fields['APPOINTMENT_REMINDER'];
+    $HOUR                   = $res->fields['HOUR'];
+    $ROYALTY_PERCENTAGE = $res->fields['ROYALTY_PERCENTAGE'];
+    $ACTIVE = $res->fields['ACTIVE'];
 
     $PAYMENT_GATEWAY_TYPE = '';
     $GATEWAY_MODE = '';
@@ -97,8 +98,8 @@ if (empty($_GET['id'])) {
     $AM_USER_NAME = '';
     $AM_PASSWORD = '';
     $AM_REFRESH_TOKEN = '';
-    $SALES_TAX = '';
-    $RECEIPT_CHARACTER = '';
+    $SALES_TAX              = $res->fields['SALES_TAX'];
+    $RECEIPT_CHARACTER      = $res->fields['RECEIPT_CHARACTER'];
     $TEXTING_FEATURE_ENABLED = '';
     $ENABLE_AI_VOICE_AGENT = '';
     $TWILIO_ACCOUNT_TYPE = '';
