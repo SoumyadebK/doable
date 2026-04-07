@@ -414,6 +414,7 @@ if (!empty($_POST)) {
 <!DOCTYPE html>
 <html lang="en">
 <?php require_once('../includes/header.php'); ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     #advice-required-entry-ACCEPT_HANDLING {
         width: 150px;
@@ -1246,7 +1247,9 @@ if (!empty($_POST)) {
                                                 } ?>
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                            <?php if (!empty($_GET['id'])) { ?>
+                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                            <?php } ?>
                                         </form>
                                     </div>
 
@@ -2101,30 +2104,84 @@ if (!empty($_POST)) {
     $(document).on('submit', '#operational_hours_form', function(event) {
         event.preventDefault();
 
-        // Use the correct form ID and serialize method
-        let form_data = $(this).serialize();
+        console.log('Form submission triggered');
 
-        console.log('Form Data being sent:', form_data); // Debugging
+        // Validate that all open and close times are filled (unless marked as closed)
+        let isValid = true;
+        let errorMessage = '';
+
+        $('.row').each(function(index) {
+            // Skip if this is the header row (has "All Days" checkbox)
+            if ($(this).find('.OPEN_TIME').length === 0) return;
+
+            let isClosed = $(this).find('input[type="checkbox"]').is(':checked');
+            let openTime = $(this).find('.OPEN_TIME').val();
+            let closeTime = $(this).find('.CLOSE_TIME').val();
+
+            if (!isClosed) {
+                if (!openTime || openTime === '') {
+                    isValid = false;
+                    errorMessage = 'Please select open time for all days (or mark as closed)';
+                    $(this).find('.OPEN_TIME').addClass('is-invalid');
+                } else {
+                    $(this).find('.OPEN_TIME').removeClass('is-invalid');
+                }
+
+                if (!closeTime || closeTime === '') {
+                    isValid = false;
+                    errorMessage = 'Please select close time for all days (or mark as closed)';
+                    $(this).find('.CLOSE_TIME').addClass('is-invalid');
+                } else {
+                    $(this).find('.CLOSE_TIME').removeClass('is-invalid');
+                }
+            } else {
+                $(this).find('.OPEN_TIME').removeClass('is-invalid');
+                $(this).find('.CLOSE_TIME').removeClass('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Validation Error',
+                text: errorMessage,
+                confirmButtonColor: '#3085d6'
+            });
+            return; // Stop here if validation fails
+        }
+
+        // If validation passes, proceed with AJAX
+        console.log('Validation passed, sending AJAX request');
+
+        // Get form data
+        let form_data = $(this).serialize();
+        console.log('Form Data being sent:', form_data);
+
+        // Show loading state
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+        submitBtn.prop('disabled', true).text('Saving...');
 
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
-            dataType: 'json', // Expect JSON response
+            dataType: 'json',
             success: function(response) {
-                console.log('Response:', response); // Debugging
+                console.log('Response received:', response);
                 if (response && response.success) {
-                    // Show success message
-                    // alert('Operational hours saved successfully!');
+                    //alert('Operational hours saved successfully!');
                     window.location.href = 'all_locations.php';
                 } else {
                     alert('Error: ' + (response.message || 'Failed to save operational hours'));
+                    submitBtn.prop('disabled', false).text(originalText);
                 }
             },
             error: function(xhr, status, error) {
                 console.error('AJAX Error:', error);
                 console.log('Response Text:', xhr.responseText);
                 alert('An error occurred while saving operational hours. Please check the console for details.');
+                submitBtn.prop('disabled', false).text(originalText);
             }
         });
     });
