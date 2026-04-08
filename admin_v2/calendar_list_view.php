@@ -1507,7 +1507,7 @@ if (isset($_GET['standing'])) {
                     PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
                 },
                 success: function(data) {
-                    window.location = "calendar_list_view.php";
+                    window.location = "calendar_list_view.php?<?= isset($_GET['standing']) ? 'standing=1' : '' ?>";
                 }
             });
         }
