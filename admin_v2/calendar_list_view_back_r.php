@@ -59,21 +59,6 @@ if ($location_operational_hour->RecordCount() > 0) {
     $minTime = '00:00:00';
     $maxTime = '24:00:00';
 }
-
-$standing = 0;
-$standing_select = ' ';
-$standing_cond = ' ';
-$standing_group = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
-if (isset($_GET['standing'])) {
-    if ($_GET['standing'] == 1) {
-        $standing = 1;
-        $standing_select = ' MIN(DOA_APPOINTMENT_MASTER.DATE) AS BEGINNING_DATE, MAX(DOA_APPOINTMENT_MASTER.DATE) AS END_DATE, ';
-        $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID > 0 ';
-        $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
-    } else {
-        $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -691,7 +676,6 @@ if (isset($_GET['standing'])) {
             <button class="chip chip-icon m-r-20" id="nextDay"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
 
             <form id="search_form">
-                <input type="hidden" name="standing" value="<?= isset($_GET['standing']) ? $_GET['standing'] : 0 ?>">
                 <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="chip date-chip m-r-15 datepicker-normal-calendar" placeholder="Choose Date" value="<?= !empty($_GET['date']) ? date('l, M d, Y', strtotime($_GET['date'])) : date('l, M d, Y') ?>" style="min-width: 240px;">
 
                 <div class="chip m-r-15" style="height: 37px;">
@@ -736,14 +720,6 @@ if (isset($_GET['standing'])) {
                 </select>
             </form>
 
-            <div class="col-md-1 align-self-center">
-                <?php if ($standing == 0) { ?>
-                    <button type="button" class="btn-new" onclick="window.location.href='calendar_list_view.php?standing=1'">Show Standing</button>
-                <?php } else { ?>
-                    <button type="button" class="btn-new" onclick="window.location.href='calendar_list_view.php'">Show Normal</button>
-                <?php } ?>
-            </div>
-
             <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
                 <button class="view-btn-icon" onclick="window.location.href='calendar.php'">
                     <i class="fa fa-calendar" aria-hidden="true"></i>
@@ -755,11 +731,8 @@ if (isset($_GET['standing'])) {
 
             <button class="btn-new" id="openDrawer">＋ New Appointment</button>
         </div>
-        <div class="calendar-header mb-2">
-            <?php if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
-                <div><button type="button" class="btn-new" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
-            <?php } ?>
-        </div>
+
+
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid body_content" style="margin-top: 10px; padding: 0px 15px !important;">
                 <div class="table-responsive schedule-wrapper">
@@ -767,7 +740,6 @@ if (isset($_GET['standing'])) {
                         <thead>
                             <tr>
                                 <th class="sticky-col date-col border-bottom"></th>
-                                <th style="width: 3%"><input type="checkbox" onClick="toggle(this)" /></th>
                                 <th>
                                     <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
                                         <span class="fw-semibold">Customer Name</span>
@@ -1442,70 +1414,6 @@ if (isset($_GET['standing'])) {
             }
 
             form.submit();
-        }
-    </script>
-
-    <script>
-        function ConfirmDelete(PK_APPOINTMENT_MASTER) {
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, delete it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: "ajax/AjaxFunctions.php",
-                        type: 'POST',
-                        data: {
-                            FUNCTION_NAME: 'deleteAppointment',
-                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
-                            type: 'normal'
-                        },
-                        success: function(data) {
-                            alert("Appointment deleted successfully.");
-                            window.location.href = 'calendar_list_view.php';
-                        }
-                    });
-                }
-            });
-        }
-
-
-        function toggle(source) {
-            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i] != source)
-                    checkboxes[i].checked = source.checked;
-            }
-        }
-
-        function confirmComplete(anchor) {
-            let conf = confirm("Do you want to mark this appointment as completed?");
-            if (conf)
-                window.location = anchor.attr("href");
-        }
-
-        function markAllComplete() {
-            let PK_APPOINTMENT_MASTER = [];
-            $(".PK_APPOINTMENT_MASTER:checked").each(function() {
-                PK_APPOINTMENT_MASTER.push($(this).val());
-            });
-
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'markAllAppointmentCompleted',
-                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                },
-                success: function(data) {
-                    window.location = "calendar_list_view.php";
-                }
-            });
         }
     </script>
 

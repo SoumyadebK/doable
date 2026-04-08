@@ -10,11 +10,11 @@
                     <input type="hidden" name="sourceId" id="sourceId">
                     <input type="hidden" name="FUNCTION_NAME" value="confirmEnrollmentPayment">
                     <input type="hidden" name="IS_ONE_TIME_PAY" id="IS_ONE_TIME_PAY" value="0">
-                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?=(empty($_GET['id']))?'':$_GET['id']?>">
-                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?=($PK_ENROLLMENT_BILLING) ?? 0?>">
+                    <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
+                    <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= ($PK_ENROLLMENT_BILLING) ?? 0 ?>">
                     <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
-                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?=$PAYMENT_GATEWAY?>">
-                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?=$PK_USER_MASTER?>">
+                    <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
+                    <input type="hidden" name="PK_USER_MASTER" class="CUSTOMER_ID" id="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID">
                     <input type="hidden" name="BILLING_REF" id="PAYMENT_BILLING_REF">
                     <input type="hidden" name="BILLING_DATE" id="PAYMENT_BILLING_DATE">
@@ -25,7 +25,7 @@
                                 <div class="form-group">
                                     <label class="form-label">Amount</label>
                                     <div class="col-md-12">
-                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?=($AMOUNT) ?? 0?>" class="form-control" readonly>
+                                        <input type="text" name="AMOUNT" id="AMOUNT_TO_PAY" value="<?= ($AMOUNT) ?? 0 ?>" class="form-control" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -38,8 +38,9 @@
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
                                             while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                            <?php $row->MoveNext(); } ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
                                         </select>
                                     </div>
                                     <div id="wallet_balance_div">
@@ -67,8 +68,9 @@
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PAYMENT_TYPE != 'Wallet' AND ACTIVE = 1");
                                             while (!$row->EOF) { ?>
-                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE'];?>"><?=$row->fields['PAYMENT_TYPE']?></option>
-                                                <?php $row->MoveNext(); } ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
                                         </select>
                                     </div>
                                 </div>
@@ -103,7 +105,7 @@
                         </div>
 
 
-                        <?php if ($PAYMENT_GATEWAY == 'Stripe'){ ?>
+                        <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
                             <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
@@ -124,7 +126,7 @@
                                 </div>
                                 <div id="payment-status-container"></div>
                             </div>
-                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net'){?>
+                        <?php } elseif ($PAYMENT_GATEWAY == 'Authorized.net') { ?>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" style="margin: auto;" id="card_list">
                                 </div>
@@ -133,7 +135,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?=$NAME?>">
+                                                <input type="text" name="NAME" id="NAME" class="form-control" value="<?= $NAME ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -153,7 +155,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?=$CARD_NUMBER?>">
+                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" class="form-control" value="<?= $CARD_NUMBER ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -163,7 +165,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control" >
+                                                <input type="text" name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -171,7 +173,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control" >
+                                                <input type="text" name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -179,7 +181,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?=$SECURITY_CODE?>">
+                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control" value="<?= $SECURITY_CODE ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -232,7 +234,7 @@
         $('#PAYMENT_METHOD_ID').val($(param).attr('id'));
     }
 
-    function selectPaymentType(param){
+    function selectPaymentType(param) {
         let paymentType = parseInt($(param).val());
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $(param).closest('#payment_modal').find('.payment_type_div').slideUp();
@@ -257,8 +259,10 @@
                 $.ajax({
                     url: "ajax/wallet_balance.php",
                     type: 'POST',
-                    data: {PK_USER_MASTER: PK_USER_MASTER},
-                    success: function (data) {
+                    data: {
+                        PK_USER_MASTER: PK_USER_MASTER
+                    },
+                    success: function(data) {
                         $('#wallet_balance_div').html(data);
                         $('#wallet_balance_div').slideDown();
 
@@ -293,14 +297,17 @@
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
-            data: {PK_USER_MASTER: PK_USER_MASTER, PAYMENT_GATEWAY: PAYMENT_GATEWAY},
-            success: function (data) {
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER,
+                PAYMENT_GATEWAY: PAYMENT_GATEWAY
+            },
+            success: function(data) {
                 $('#card_list').html(data);
             }
         });
     }
 
-    function selectRemainingPaymentType(param){
+    function selectRemainingPaymentType(param) {
         let paymentType = $("#PK_PAYMENT_TYPE_REMAINING option:selected").text();
         let PAYMENT_GATEWAY = $('#PAYMENT_GATEWAY').val();
         $('.remaining_payment_type_div').slideUp();
