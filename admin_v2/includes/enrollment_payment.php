@@ -345,7 +345,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label class="form-label">Notes</label>
+                                    <label class="form-label">Memo</label>
                                     <div class="col-md-12">
                                         <textarea class="form-control" name="NOTE" rows="3"></textarea>
                                     </div>

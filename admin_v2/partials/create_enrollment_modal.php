@@ -295,7 +295,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                     <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100" <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
                         <span>Total Amount</span>
-                        <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT" value="<?= number_format((float)$total, 2, '.', ''); ?>" readonly></span>
+                        <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT" readonly></span>
                     </div>
 
                 </div>
@@ -474,7 +474,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
             <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= $PK_ENROLLMENT_BILLING ?>">
-            <input type="hidden" name="TOTAL_AMOUNT" class="TOTAL_AMOUNT" value="<?= number_format((float)$total, 2, '.', '') ?>">
+            <input type="hidden" name="TOTAL_AMOUNT" class="TOTAL_AMOUNT">
             <div class="row mb-2 align-items-center">
                 <div class="col-4 col-md-4">
                     <div class="d-flex gap-2 align-items-center">

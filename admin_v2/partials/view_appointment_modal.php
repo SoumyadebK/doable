@@ -17,6 +17,15 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 $PK_APPOINTMENT_MASTER = $_POST['PK_APPOINTMENT_MASTER'];
 $TYPE = $_POST['TYPE'];
 
+$location_operational_hour = $db_account->Execute("SELECT MIN(DOA_OPERATIONAL_HOUR.OPEN_TIME) AS OPEN_TIME, MAX(DOA_OPERATIONAL_HOUR.CLOSE_TIME) AS CLOSE_TIME, DAY_NUMBER FROM DOA_OPERATIONAL_HOUR WHERE CLOSED = 0 AND PK_LOCATION = " . $DEFAULT_LOCATION_ID);
+if ($location_operational_hour->RecordCount() > 0) {
+    $minTime = $location_operational_hour->fields['OPEN_TIME'];
+    $maxTime = $location_operational_hour->fields['CLOSE_TIME'];
+} else {
+    $minTime = '00:00:00';
+    $maxTime = '24:00:00';
+}
+
 if ($TYPE == 'appointment') {
     $ALL_APPOINTMENT_QUERY = "SELECT
                             DOA_APPOINTMENT_MASTER.*,
@@ -647,6 +656,14 @@ if ($TYPE == 'appointment') {
             });
         }
 
+        function changeAppointmentStatus(param) {
+            if ($(param).val() == 2) {
+                $('#IS_CHARGED').val(1);
+            } else {
+                $('#IS_CHARGED').val(0);
+            }
+        }
+
         function selectThisEnrollment(param) {
             let PK_ENROLLMENT_MASTER = $(param).val();
             let no_of_session = $(param).data('no_of_session');
@@ -908,19 +925,14 @@ if ($TYPE == 'appointment') {
                 </div>
             </div>
             <div class="col-8 col-md-8">
-                <div class="form-group d-flex gap-3" id="datetime">
-                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
-                    <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
-                </div>
-                <!-- <button type="button" class="btn-available fw-semibold f12 bg-transparent p-0 border-0 d-flex align-items-center gap-2 ms-auto mt-2">
-                    <span>Show Availability</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" width="13px" height="13px" fill="#000">
-                        <path d="m256 374.3c-3 0-6-1.1-8.2-3.4l-213.4-213.3c-4.6-4.6-4.6-11.9 0-16.5s11.9-4.6 16.5 0l205.1 205.1 205.1-205.1c4.6-4.6 11.9-4.6 16.5 0s4.6 11.9 0 16.5l-213.4 213.3c-2.2 2.3-5.2 3.4-8.2 3.4z" />
-                    </svg>
-                </button>
-                <div class="slot_div mt-2">
 
-                </div> -->
+                <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 80px;" required>
+                    <span class="f14">at</span>
+                    <input type="text" id="GROUP_CLASS_START_TIME" name="START_TIME" class="form-control" value="<?= $START_TIME ?>" required>
+                    <span class="f14">to</span>
+                    <input type="text" id="GROUP_CLASS_END_TIME" name="END_TIME" class="form-control" value="<?= $END_TIME ?>" required>
+                </div>
             </div>
         </div>
 
@@ -938,7 +950,7 @@ if ($TYPE == 'appointment') {
             <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?= $PK_APPOINTMENT_STATUS ?>">
             <div class="col-8 col-md-8">
                 <div class="form-group" id="scheduling_code_select">
-                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" onchange="changeAppointmentStatus(this)" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
+                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
                         <option value="1">Select Status</option>
                         <?php
                         $selected_status = '';
@@ -1028,6 +1040,39 @@ if ($TYPE == 'appointment') {
             }
         });
 
+        $('#GROUP_CLASS_START_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 15,
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>',
+            change: function(time) {
+                let startTime = $('#GROUP_CLASS_START_TIME').val();
+                $('#GROUP_CLASS_END_TIME').timepicker('option', 'minTime', startTime);
+                calculateEndTimeGroupClass();
+            }
+        });
+
+        $('#GROUP_CLASS_END_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 15,
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>'
+        });
+
+
+        function calculateEndTimeGroupClass() {
+            let start_time = $('#GROUP_CLASS_START_TIME').val();
+            let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+            duration = (duration) ? duration : 0;
+
+            if (start_time && duration) {
+                start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+                let end_time = addMinutes(start_time, duration);
+                end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+                $('#GROUP_CLASS_END_TIME').val(end_time);
+            }
+        }
+
         function addCustomerToGroupClass() {
             $('#sideDrawer7, .overlay7').addClass('active');
             $.ajax({
@@ -1090,6 +1135,7 @@ if ($TYPE == 'appointment') {
     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 
     $PK_SPECIAL_APPOINTMENT = $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'];
+    $PK_LOCATION = $special_appointment_data->fields['PK_LOCATION'];
     $TITLE = preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']);
     $DATE = date("m/d/Y", strtotime($special_appointment_data->fields['DATE']));
     $START_TIME = date("h:i A", strtotime($special_appointment_data->fields['START_TIME']));
@@ -1156,7 +1202,7 @@ if ($TYPE == 'appointment') {
                         <option value="">Select <?= $service_provider_title ?></option>
                         <?php
                         $selected_service_provider = '';
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES IN(5) AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
                         while (!$row->EOF) {
                             if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
                                 $selected_service_provider = $row->fields['NAME'];
@@ -1234,9 +1280,12 @@ if ($TYPE == 'appointment') {
                 </div>
             </div>
             <div class="col-8 col-md-8">
-                <div class="form-group d-flex gap-3" id="datetime">
-                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" style="min-width: 110px;" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 110px;">
-                    <input type="text" class="form-control" value="<?= $START_TIME . ' - ' . $END_TIME ?>" readonly>
+                <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                    <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 80px;" required>
+                    <span class="f14">at</span>
+                    <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" value="<?= $START_TIME ?>" required>
+                    <span class="f14">to</span>
+                    <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" value="<?= $END_TIME ?>" required>
                 </div>
             </div>
         </div>
@@ -1273,6 +1322,41 @@ if ($TYPE == 'appointment') {
 ?>
 
 <script>
+    $('#TO_DO_START_TIME').timepicker({
+        timeFormat: 'hh:mm p',
+        interval: 15,
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>',
+        change: function(time) {
+            let startTime = $('#TO_DO_START_TIME').val();
+            $('#TO_DO_END_TIME').timepicker('option', 'minTime', startTime);
+            calculateEndTimeToDo();
+        }
+    });
+
+    $('#TO_DO_END_TIME').timepicker({
+        timeFormat: 'hh:mm p',
+        interval: 15,
+        maxTime: '<?= $maxTime ?>',
+        minTime: '<?= $minTime ?>'
+    });
+
+
+    function calculateEndTimeToDo() {
+        let start_time = $('#TO_DO_START_TIME').val();
+        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
+        let scheduling_name = $('#PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
+        $('#TITLE').val(scheduling_name);
+        duration = (duration) ? duration : 0;
+
+        if (start_time && duration) {
+            start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+            let end_time = addMinutes(start_time, duration);
+            end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+            $('#TO_DO_END_TIME').val(end_time);
+        }
+    }
+
     function getSlots(param) {
         let PK_SERVICE_PROVIDER = $(param).closest('#edit_appointment_form').find('#SERVICE_PROVIDER_ID').val();
         let PK_LOCATION = <?= $PK_LOCATION ?>;
