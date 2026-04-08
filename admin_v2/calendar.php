@@ -2255,7 +2255,28 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             min-height: calc(100vh - 200px) !important;
         }
 
-        #calendar-container,
+        .card-body.row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        #calendar-container {
+            flex: 1 1 auto;
+            width: auto !important;
+            min-width: 0;
+        }
+
+        #external-events {
+            flex: 0 0 260px;
+            max-width: 260px;
+            min-width: 260px;
+            min-height: calc(100vh - 182px);
+            overflow-y: auto;
+            display: block;
+        }
+
         #calendar,
         .fc-view-container {
             width: 100%;
