@@ -212,9 +212,13 @@ while (!$appointments->EOF) {
         <?php endif; ?>
 
         <td>
-            <?php if ($CUSTOMER_NAME) { ?>
-                <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_id ?>"></label>
-                <?php } else {
+            <?php
+            if ($CUSTOMER_NAME) {
+                if ($status != 'Completed') { ?>
+                    <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_id ?>"></label>
+                <?php
+                }
+            } else {
                 if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
                     <a href="javascript:" onclick="ConfirmDelete(<?= $appointment_id ?>, '<?= $standing_type ?>');"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <?php }
