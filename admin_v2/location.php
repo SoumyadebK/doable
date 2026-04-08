@@ -1271,9 +1271,7 @@ if (!empty($_POST)) {
                                                 } ?>
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <?php if (!empty($_GET['id'])) { ?>
-                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
-                                            <?php } ?>
+                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
                                         </form>
                                     </div>
 
