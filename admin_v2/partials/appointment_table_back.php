@@ -49,41 +49,11 @@ if (!empty($selected_appointment_type)) {
 $where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)";
 $where_conditions[] = "(CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)";
 
-
-
-// Check for standing parameter in both GET and POST
-$standing = 0;
-$standing_select = ' ';
-$standing_cond = ' ';
-$standing_group = ' GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER ';
-
-// Check if standing parameter exists in either GET or POST
-$standing_param = isset($_GET['standing']) ? $_GET['standing'] : (isset($_POST['standing']) ? $_POST['standing'] : 0);
-
-if ($standing_param == 1) {
-    $standing = 1;
-    $standing_select = ' MIN(DOA_APPOINTMENT_MASTER.DATE) AS BEGINNING_DATE, MAX(DOA_APPOINTMENT_MASTER.DATE) AS END_DATE, ';
-    $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID > 0 ';
-    $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
-    //$standing_type = 'standing';
-} else {
-    $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
-    //$standing_type = 'normal';
-}
-
 // Combine all WHERE conditions
 $where_clause = "WHERE " . implode(" AND ", $where_conditions);
 
-if ($standing == 1) {
-    $title = "All Standing Appointment";
-    $appointment_time = ' ';
-} else {
-    $title = "Today's Appointment";
-}
-
 $query = "SELECT
             DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER,
-            $standing_select
             DOA_APPOINTMENT_MASTER.STANDING_ID,
             DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_SERVICE,
             DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE,
@@ -127,14 +97,11 @@ $query = "SELECT
         LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_APPOINTMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
         $where_clause
-        $standing_cond
-        $standing_group
+        GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
         ORDER BY DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
 
 $appointments = $db_account->Execute($query);
-
-//pre_r($query);
 
 $current_date = '';
 // First, count appointments per date
@@ -156,8 +123,6 @@ while (!$appointments->EOF) {
     $day_name = $appointments->fields['DAY_NAME'];
     $day_number = $appointments->fields['DAY_NUMBER'];
     $appointment_id = $appointments->fields['PK_APPOINTMENT_MASTER'];
-    $standing_id = $appointments->fields['STANDING_ID'];
-    $standing_type = ($standing_id > 0) ? $standing_id : 'normal';
     $title = $appointments->fields['ENROLLMENT_NAME'] ? $appointments->fields['ENROLLMENT_NAME'] : $appointments->fields['SERVICE_NAME'];
     $start_time = date('h:i A', strtotime($appointments->fields['START_TIME']));
     $end_time = date('h:i A', strtotime($appointments->fields['END_TIME']));
@@ -211,20 +176,6 @@ while (!$appointments->EOF) {
             </td>
         <?php endif; ?>
 
-        <td>
-            <?php
-            if ($CUSTOMER_NAME) {
-                if ($status != 'Completed') { ?>
-                    <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_id ?>"></label>
-                <?php
-                }
-            } else {
-                if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
-                    <a href="javascript:" onclick="ConfirmDelete(<?= $appointment_id ?>, '<?= $standing_type ?>');"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <?php }
-            } ?>
-        </td>
-
         <td style="vertical-align: middle;">
             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
             <?= $CUSTOMER_NAME ?>
@@ -262,7 +213,7 @@ while (!$appointments->EOF) {
 
 if ($appointments->RecordCount() == 0): ?>
     <tr>
-        <td colspan="8" class="text-center py-4">
+        <td colspan="7" class="text-center py-4">
             <div class="text-muted">No appointments found for the selected date/filters.</div>
         </td>
     </tr>

@@ -2272,7 +2272,8 @@ function deleteAppointment($RESPONSE_DATA): void
         $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
         $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
     } else {
-        $STANDING_ID = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $PK_APPOINTMENT_MASTER = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+        $STANDING_ID = $RESPONSE_DATA['type'];
         if ($STANDING_ID > 0) {
             $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `STANDING_ID` = " . $STANDING_ID . " LIMIT 1");
             $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
