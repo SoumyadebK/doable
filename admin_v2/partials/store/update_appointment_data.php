@@ -19,8 +19,8 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     } else {
         $convertedTime = date('H:i:s', strtotime('+30 minutes', strtotime($startTime)));
     }
-    /* $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($convertedTime)); */
+    $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
     $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = isset($_POST['PK_APPOINTMENT_STATUS_NEW']) ? $_POST['PK_APPOINTMENT_STATUS_NEW'] : $_POST['PK_APPOINTMENT_STATUS_OLD'];
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $GROUP_CLASS_DATA['COMMENT'] = $_POST['COMMENT'];
@@ -66,6 +66,8 @@ if ($APPOINTMENT_TYPE == 'group_class') {
     $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
     $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
     $SPECIAL_APPOINTMENT_DATA['DATE'] = date('Y-m-d', strtotime($_POST['APPOINTMENT_DATE']));
+    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
     $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
     $SPECIAL_APPOINTMENT_DATA['PK_APPOINTMENT_STATUS'] = $_POST['PK_APPOINTMENT_STATUS_NEW'];
     $SPECIAL_APPOINTMENT_DATA['EDITED_BY']    = $_SESSION['PK_USER'];

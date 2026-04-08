@@ -1054,7 +1054,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                             <th>Paid Amount</th>
                                                             <th>Balance</th>
                                                             <th>Payment Type</th>
-                                                            <th>Description</th>
+                                                            <th>Memo</th>
                                                             <th>Paid</th>
                                                             <th>Actions</th>
                                                         </tr>
