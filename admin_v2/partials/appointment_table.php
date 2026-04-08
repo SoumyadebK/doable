@@ -65,8 +65,10 @@ if ($standing_param == 1) {
     $standing_select = ' MIN(DOA_APPOINTMENT_MASTER.DATE) AS BEGINNING_DATE, MAX(DOA_APPOINTMENT_MASTER.DATE) AS END_DATE, ';
     $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID > 0 ';
     $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
+    //$standing_type = 'standing';
 } else {
     $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
+    //$standing_type = 'normal';
 }
 
 // Combine all WHERE conditions
@@ -154,6 +156,8 @@ while (!$appointments->EOF) {
     $day_name = $appointments->fields['DAY_NAME'];
     $day_number = $appointments->fields['DAY_NUMBER'];
     $appointment_id = $appointments->fields['PK_APPOINTMENT_MASTER'];
+    $standing_id = $appointments->fields['STANDING_ID'];
+    $standing_type = ($standing_id > 0) ? $standing_id : 'normal';
     $title = $appointments->fields['ENROLLMENT_NAME'] ? $appointments->fields['ENROLLMENT_NAME'] : $appointments->fields['SERVICE_NAME'];
     $start_time = date('h:i A', strtotime($appointments->fields['START_TIME']));
     $end_time = date('h:i A', strtotime($appointments->fields['END_TIME']));
@@ -212,7 +216,7 @@ while (!$appointments->EOF) {
                 <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_id ?>"></label>
                 <?php } else {
                 if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
-                    <a href="javascript:" onclick='ConfirmDelete(<?= $appointment_id ?>);'><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="javascript:" onclick="ConfirmDelete(<?= $appointment_id ?>, '<?= $standing_type ?>');"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <?php }
             } ?>
         </td>
@@ -254,7 +258,7 @@ while (!$appointments->EOF) {
 
 if ($appointments->RecordCount() == 0): ?>
     <tr>
-        <td colspan="7" class="text-center py-4">
+        <td colspan="8" class="text-center py-4">
             <div class="text-muted">No appointments found for the selected date/filters.</div>
         </td>
     </tr>

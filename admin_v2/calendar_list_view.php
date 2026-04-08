@@ -757,7 +757,7 @@ if (isset($_GET['standing'])) {
         </div>
         <div class="calendar-header mb-2">
             <?php if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
-                <div><button type="button" class="btn-new" onclick="markAllComplete()"><i class="ti-check-box"></i> Completed</button></div>
+                <div><button type="button" class="btn-new" onclick="markAllComplete()" title="Mark as Completed"><i class="fa fa-check-circle" aria-hidden="true"></i> Completed</button></div>
             <?php } ?>
         </div>
         <div class="page-wrapper" style="padding-top: 0px !important;">
@@ -767,7 +767,7 @@ if (isset($_GET['standing'])) {
                         <thead>
                             <tr>
                                 <th class="sticky-col date-col border-bottom"></th>
-                                <th style="width: 3%"><input type="checkbox" onClick="toggle(this)" /></th>
+                                <th style="width: 3%"><input type="checkbox" onClick="toggle(this)" title="Select All" /></th>
                                 <th>
                                     <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
                                         <span class="fw-semibold">Customer Name</span>
@@ -1446,7 +1446,7 @@ if (isset($_GET['standing'])) {
     </script>
 
     <script>
-        function ConfirmDelete(PK_APPOINTMENT_MASTER) {
+        function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -1463,11 +1463,15 @@ if (isset($_GET['standing'])) {
                         data: {
                             FUNCTION_NAME: 'deleteAppointment',
                             PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
-                            type: 'normal'
+                            type: type
                         },
                         success: function(data) {
-                            alert("Appointment deleted successfully.");
-                            window.location.href = 'calendar_list_view.php';
+                            //alert("Appointment deleted successfully.");
+                            if (type == 'normal') {
+                                window.location.href = 'calendar_list_view.php';
+                            } else {
+                                window.location.href = 'calendar_list_view.php?standing=1';
+                            }
                         }
                     });
                 }
