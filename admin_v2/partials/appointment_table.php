@@ -49,8 +49,6 @@ if (!empty($selected_appointment_type)) {
 $where_conditions[] = "DOA_APPOINTMENT_MASTER.PK_LOCATION IN ($DEFAULT_LOCATION_ID)";
 $where_conditions[] = "(CUSTOMER.IS_DELETED = 0 OR CUSTOMER.IS_DELETED IS null)";
 
-
-
 // Check for standing parameter in both GET and POST
 $standing = 0;
 $standing_select = ' ';
@@ -196,20 +194,26 @@ while (!$appointments->EOF) {
     $profile = getProfileBadge($service_provider);
     $profile_initial = $profile['initials'];
     $profile_color = $profile['color'];
-?>
-    <tr style="height: 55px;">
-        <?php if ($current_date != $appointment_date): ?>
-            <?php
-            $current_date = $appointment_date;
-            $rowspan_count = isset($date_counts[$appointment_date]) ? $date_counts[$appointment_date] : 1;
-            ?>
-            <td class="sticky-col date-col" rowspan="<?= $rowspan_count; ?>" style="vertical-align: top;">
-                <div class="date-box">
-                    <small><?= substr($day_name, 0, 3); ?></small>
-                    <strong><?= $day_number; ?></strong>
-                </div>
-            </td>
-        <?php endif; ?>
+
+    if ($standing == 0) { ?>
+        <tr style="height: 55px;">
+            <?php if ($current_date != $appointment_date): ?>
+                <?php
+                $current_date = $appointment_date;
+                $rowspan_count = isset($date_counts[$appointment_date]) ? $date_counts[$appointment_date] : 1;
+                ?>
+                <td class="sticky-col date-col" rowspan="<?= $rowspan_count; ?>" style="vertical-align: top;">
+                    <div class="date-box">
+                        <small><?= substr($day_name, 0, 3); ?></small>
+                        <strong><?= $day_number; ?></strong>
+                    </div>
+                </td>
+            <?php endif; ?>
+        <?php } else { ?>
+        <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $standing_id ?>, <?= $appointment_id ?>)" style="cursor: pointer;">
+            <td></td>
+        <?php } ?>
+
 
         <td>
             <?php
@@ -255,15 +259,15 @@ while (!$appointments->EOF) {
                 </svg>
             </button>
         </td>
-    </tr>
-<?php
+        </tr>
+    <?php
     $appointments->MoveNext();
 }
 
 if ($appointments->RecordCount() == 0): ?>
-    <tr>
-        <td colspan="8" class="text-center py-4">
-            <div class="text-muted">No appointments found for the selected date/filters.</div>
-        </td>
-    </tr>
-<?php endif; ?>
+        <tr>
+            <td colspan="8" class="text-center py-4">
+                <div class="text-muted">No appointments found for the selected date/filters.</div>
+            </td>
+        </tr>
+    <?php endif; ?>

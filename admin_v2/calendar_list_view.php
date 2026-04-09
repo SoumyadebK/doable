@@ -678,6 +678,41 @@ if (isset($_GET['standing'])) {
     .f-12 {
         font-size: 12px;
     }
+
+    /* Standing appointment rows styling */
+    .standing-appointment-row {
+        background-color: #f8f9fa !important;
+    }
+
+    .standing-appointment-row:nth-child(even) {
+        background-color: #ffffff !important;
+    }
+
+    .standing-appointment-row:nth-child(odd) {
+        background-color: #f8f9fa !important;
+    }
+
+    /* For the date column in standing appointments */
+    .standing-appointment-row td:first-child {
+        background-color: inherit !important;
+    }
+
+    /* Hover effect */
+    /* .standing-appointment-row:hover {
+        background-color: #e9ecef !important;
+    } */
+
+    table tr {
+        background-color: white;
+    }
+
+    tbody tr {
+        background-color: #fff;
+    }
+
+    .added_standing {
+        background-color: #dee2e6;
+    }
 </style>
 
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
@@ -1446,6 +1481,29 @@ if (isset($_GET['standing'])) {
     </script>
 
     <script>
+        function showStandingAppointmentDetails(param, STANDING_ID, PK_APPOINTMENT_MASTER) {
+            let $nextRows = $(param).nextUntil('tr.header');
+
+            if ($nextRows.length) {
+                // If details are already shown, remove them
+                $nextRows.remove();
+            } else {
+                // Otherwise, fetch and show details
+                $.ajax({
+                    url: "pagination/get_standing_appointment.php",
+                    type: 'GET',
+                    data: {
+                        STANDING_ID: STANDING_ID,
+                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                    },
+                    success: function(result) {
+                        $(result).insertAfter($(param).closest('tr'));
+                    }
+                });
+            }
+        }
+
+
         function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
                 title: "Are you sure?",
@@ -1487,10 +1545,26 @@ if (isset($_GET['standing'])) {
             }
         }
 
-        function confirmComplete(anchor) {
+        function confirmComplete(param) {
             let conf = confirm("Do you want to mark this appointment as completed?");
-            if (conf)
-                window.location = anchor.attr("href");
+            if (conf) {
+                let PK_APPOINTMENT_MASTER = $(param).data('id');
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'markAppointmentCompleted',
+                        PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                    },
+                    success: function(data) {
+                        if (data == 1) {
+                            $(param).closest('td').html('<span class="status-box" style="background-color: #ff0019">Completed</span>');
+                        } else {
+                            alert("Something wrong");
+                        }
+                    }
+                });
+            }
         }
 
         function markAllComplete() {
