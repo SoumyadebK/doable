@@ -229,7 +229,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                     </div>
 
                     <hr class="mb-3">
-                    <div class="row mb-3 align-items-center custom-date-time">
+                    <div class="row mb-3">
                         <div class="col-4 col-md-4">
                             <div class="d-flex gap-2 align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="25px" height="22px" fill="#ccc">
@@ -241,7 +241,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
 
                         <div class="col-8 col-md-8">
-                            <div class="form-group mt-2">
+                            <div class="form-group">
                                 <select class="form-control" id="REPEAT" name="REPEAT" onchange="repeatSchedule(this)">
                                     <option value="">-- Select --</option>
                                     <option value="Daily">Daily</option>
@@ -249,10 +249,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <option value="Monday on the first Thursday">Monday on the first Thursday</option>
                                     <option value="Custom">Custom...</option>
                                 </select>
-                            </div>
-
-                            <div class="datetime-area mt-2 d-none">
-
                             </div>
 
                             <div class="custom-date-time-format d-none mt-2">
@@ -761,15 +757,110 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <span>05:00 PM - 06:00 PM</span>
                                 <span>06:00 PM - 07:00 PM</span>
                             </div> -->
-                            <div class="form-group mt-2">
-                                <select class="form-control form-select">
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <option value="Daily">Daily</option>
-                                    <option value="Weekly on Thursday">Weekly on Thursday</option>
-                                    <option value="Monday on the first Thursday">Monday on the first Thursday</option>
-                                    <option value="Does not repeat">Does not repeat</option>
-                                    <option value="Custom">Custom</option>
-                                </select>
+
+                            <div class="col-12 col-md-12">
+                                <div class="form-group">
+                                    <select class="form-control" id="REPEAT" name="REPEAT" onchange="repeatSchedule(this)">
+                                        <option value="">-- Select --</option>
+                                        <option value="Daily">Daily</option>
+                                        <option value="Weekly on Thursday">Weekly on Thursday</option>
+                                        <option value="Monday on the first Thursday">Monday on the first Thursday</option>
+                                        <option value="Custom">Custom...</option>
+                                    </select>
+                                </div>
+
+                                <div class="custom-date-time-format d-none mt-2">
+                                    <div class="repeat-box">
+                                        <div class="row gx-1">
+                                            <div class="col-12 col-lg-6 mb-2">
+                                                <label class="theme-text-light">Repeat every:</label>
+                                                <div class="d-flex gap-2">
+                                                    <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
+                                                    <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
+                                                        <option value="week">Week(S)</option>
+                                                        <option value="month">Month(S)</option>
+                                                        <option value="year">Year(S)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-lg-6 mb-2">
+                                                <label class="theme-text-light">Repeat on:</label>
+                                                <div class="weekday-radio mt-1">
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="sunday">
+                                                        <span>S</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="monday">
+                                                        <span>M</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="tuesday">
+                                                        <span>T</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="wednesday">
+                                                        <span>W</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="thursday">
+                                                        <span>T</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="friday">
+                                                        <span>F</span>
+                                                    </label>
+                                                    <label>
+                                                        <input type="checkbox" name="DAYS[]" value="saturday">
+                                                        <span>S</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-lg-12">
+                                                <div class="ends">
+                                                    <div>
+                                                        <label class="theme-text-light">Ends</label>
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <label class="radio active">
+                                                            <input type="radio" name="end" checked>
+                                                            <span></span>
+                                                            Never
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="mb-1 d-flex gap-2">
+                                                        <label class="radio">
+                                                            <input type="radio" name="end">
+                                                            <span></span>
+                                                            On
+                                                        </label>
+                                                        <div class="ms-auto">
+                                                            <input type="text" id="END_ON_APPOINTMENT_DATE" name="END_ON_APPOINTMENT_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 d-flex gap-2">
+                                                        <label class="radio">
+                                                            <input type="radio" name="end">
+                                                            <span></span>
+                                                            After
+                                                        </label>
+                                                        <div class="ms-auto">
+                                                            <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- <a href="javascript:;" class="save-custom-date-selection btn-secondary f12 rounded-2 px-3" onclick="saveCustomDateSelection(this)">Save</a> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+
                             </div>
                         </div>
                     </div>

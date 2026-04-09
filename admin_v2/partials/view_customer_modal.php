@@ -188,7 +188,7 @@ while (!$row->EOF) {
     </div>
 </div>
 <!-- Tabs Nav -->
-<ul class="nav nav-tabs align-items-center nav-fill" id="myTab" role="tablist">
+<ul class="nav nav-tabs align-items-center nav-fill" id="myTab" role="tablist" style="position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #dee2e6;">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Details" type="button">Details</button>
     </li>
@@ -210,7 +210,7 @@ while (!$row->EOF) {
     </li>
 </ul>
 <!-- Tabs Content -->
-<div class="tab-content" id="myTabContent2">
+<div class="tab-content" id="myTabContent2" style="max-height: calc(100vh - 280px); overflow-y: auto;">
     <div class="tab-pane fade show active" id="Details" role="tabpanel">
         <div class="booking-lesson p-3 border-bottom">
             <?php
@@ -449,6 +449,8 @@ while (!$row->EOF) {
 
         </div>
     </div>
+
+
     <?php
     $customer_details = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER' AND `IS_PRIMARY` = 1");
     if ($customer_details->RecordCount() > 0) {
@@ -514,7 +516,7 @@ while (!$row->EOF) {
     <div class="tab-pane fade" id="Payment" role="tabpanel">
         <div class="paymentarea p-3">
             <div class="searchbar-area position-relative mb-3">
-                <input type="text" class="form-control" placeholder="Search..." style="padding-left: 35px;" />
+                <input id="paymentSearch" type="text" class="form-control" placeholder="Search payments..." style="padding-left: 35px;" />
                 <span class="position-absolute" style="top: 7px; left: 10px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M6.75 0C10.476 0 13.5 3.024 13.5 6.75C13.5 10.476 10.476 13.5 6.75 13.5C3.024 13.5 0 10.476 0 6.75C0 3.024 3.024 0 6.75 0ZM6.75 12C9.65025 12 12 9.65025 12 6.75C12 3.849 9.65025 1.5 6.75 1.5C3.849 1.5 1.5 3.849 1.5 6.75C1.5 9.65025 3.849 12 6.75 12ZM13.1137 12.0532L15.2355 14.1742L14.1742 15.2355L12.0532 13.1137L13.1137 12.0532Z" fill="#99A0AE"></path>
@@ -522,7 +524,7 @@ while (!$row->EOF) {
                 </span>
             </div>
             <div class="table-responsive">
-                <table class="table">
+                <table id="paymentTable" class="table">
                     <thead>
                         <tr>
                             <th style="text-align: left;">Enrollment</th>
@@ -547,12 +549,15 @@ while (!$row->EOF) {
                                     $BILLED_AMOUNT = $payment_due->fields['AMOUNT_REMAIN'];
                                 } else {
                                     $BILLED_AMOUNT = $payment_due->fields['BILLED_AMOUNT'];
-                                } ?>
+                                }
+                                $due_date = strtotime($payment_due->fields['DUE_DATE']);
+                                $is_past_due = $due_date && $due_date < strtotime(date('Y-m-d'));
+                        ?>
                                 <tr>
-                                    <td><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
-                                    <td><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
-                                    <td>$<?= number_format($BILLED_AMOUNT, 2) ?></td>
-                                    <td>
+                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: left;"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
+                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;"><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
+                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;">$<?= number_format($BILLED_AMOUNT, 2) ?></td>
+                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center; font-size: 10px;">
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $BILLED_AMOUNT ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="editDueDate(<?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?>', 'billing')">Edit Date</button>
                                     </td>
@@ -575,6 +580,16 @@ while (!$row->EOF) {
         $('#edit_type').val(TYPE);
         $('#billing_due_date_model').modal('show');
     }
+
+    $(document).ready(function() {
+        $('#paymentSearch').on('input', function() {
+            var filter = $(this).val().toLowerCase();
+            $('#paymentTable tbody tr').each(function() {
+                var rowText = $(this).text().toLowerCase();
+                $(this).toggle(rowText.indexOf(filter) !== -1);
+            });
+        });
+    });
 </script>
 <script>
     function openDrawer4(customerId) {

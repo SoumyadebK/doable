@@ -198,324 +198,339 @@ if ($default_selected_cus)
     $replay_user_array[] = $default_selected_cus;
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<?php require_once('../includes/header.php'); ?>
 
-<body class="skin-default-dark fixed-layout">
-    <?php require_once('../includes/loader.php'); ?>
-    <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="main">
-                    <div class="main-inner">
-                        <div class="container">
-                            <div class="row">
-                                <div class="span2 col-md-2">
-                                    <div class="widget widget-nopad">
-                                        <!-- <div class="widget-header"> <i class="icon-list-alt"></i>
+<?php if ($_SESSION['PK_ROLES'] == 1) { ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <?php require_once('../includes/header.php'); ?>
+
+    <body class="skin-default-dark fixed-layout">
+        <?php require_once('../includes/loader.php'); ?>
+        <div id="main-wrapper">
+            <?php require_once('../includes/top_menu.php'); ?>
+            <div class="page-wrapper">
+                <?php require_once('../includes/top_menu_bar.php') ?>
+                <div class="container-fluid body_content">
+                <?php } else { ?>
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <?php include 'layout/header_script.php'; ?>
+                    <?php include 'layout/header.php'; ?>
+
+                    <body class="skin-default-dark fixed-layout">
+                        <?php require_once('../includes/loader.php'); ?>
+                        <div id="main-wrapper">
+                            <div class="page-wrapper" style="padding-top: 0px !important;">
+                                <div class="container-fluid mt-4">
+                                <?php } ?>
+
+                                <div class="main">
+                                    <div class="main-inner">
+                                        <div class="container">
+                                            <div class="row mt-4">
+                                                <div class="span2 col-md-2">
+                                                    <div class="widget widget-nopad">
+                                                        <!-- <div class="widget-header"> <i class="icon-list-alt"></i>
                                       <h3> Internal Mail</h3>
                                     </div> -->
 
-                                        <div class="widget-content">
-                                            <div class="widget big-stats-container">
-                                                <?php require_once("menu_left_menu.php"); ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="span10 col-md-10">
-                                    <div class="card" style="border-radius: 12px;">
-                                        <div class="card-body">
-                                            <div class="widget">
-                                                <div class="widget-content">
-                                                    <form method="post" action="compose.php" enctype="multipart/form-data" id="form1">
-                                                        <?php if (!empty($mail_type) != '') { ?>
-                                                            <input type="hidden" name="EMAIL_FOR" value="<?= 7 ?>" />
-                                                            <input type="hidden" name="ID" value="<?= 1 ?>" />
-                                                        <?php } ?>
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class="span12">
-                                                                    <h3>
-                                                                        <?php if ($id == '') echo "Compose Email";
-                                                                        else if ($type == 'reply') echo "Reply ";
-                                                                        else if ($type == 'forward') echo "Forward ";
-                                                                        else echo "Draft Email"; ?>
-                                                                    </h3>
-                                                                </div>
+                                                        <div class="widget-content">
+                                                            <div class="widget big-stats-container">
+                                                                <?php require_once("menu_left_menu.php"); ?>
                                                             </div>
                                                         </div>
-                                                        <div class="container">
-                                                            <?php if ($type == 'reply') { ?>
-                                                                <div class="row">
-                                                                    <div class="span2">
-                                                                        <label>Subject</label>
-                                                                    </div>
-                                                                    <div class="span9">
-                                                                        <label><?= $SUBJECT_REP_FAR ?></label>
-                                                                    </div>
-                                                                </div>
-
-                                                            <?php } ?>
-
-                                                            <div <?php if ($type == 'reply') { ?> style="display: none;" <?php } ?>>
-                                                                <div class="row pt-2">
-                                                                    <div class="span2 col-md-2">
-                                                                        <label>Subject</label>
-                                                                    </div>
-                                                                    <div class="span9 col-md-10">
-                                                                        <input type="text" id="SUBJECT" name="SUBJECT" value="<?= $SUBJECT_REP_FAR ?>" placeholder="" class="required-entry form-control" style="width:95%; border: 1px solid #aaaaaa;" required />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row pt-2" style="margin-bottom:10px;">
-                                                                <div class="span2 col-md-2">
-                                                                    <label>Recipients/To</label>
-                                                                </div>
-                                                                <div class="span9 col-md-10">
-                                                                    <?php if ($_SESSION['PK_ROLES'] == 4) { ?>
-                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
-                                                                            <?php
-                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.IS_RECIPIENT = 1 AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
-
-                                                                            while (!$res_type->EOF) {
-                                                                                $PK_USER = $res_type->fields['PK_USER'];
-                                                                                $selected = '';
-                                                                                if ($id != '') {
-                                                                                    if (in_array($PK_USER, $replay_user_array))
-                                                                                        $selected = 'selected';
-                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
-                                                                                    $selected = 'selected';
-                                                                            ?>
-                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
-                                                                            <?php $res_type->MoveNext();
-                                                                            } ?>
-                                                                        </select>
-                                                                    <?php } else { ?>
-                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
-                                                                            <option value="1" <?= (in_array(1, $replay_user_array) ? 'selected' : '') ?>>Super Admin</option>
-                                                                            <?php
-                                                                            $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (" . implode(',', $replay_user_array) . ")");
-
-                                                                            while (!$res_type->EOF) {
-                                                                                $PK_USER = $res_type->fields['PK_USER'];
-                                                                                $selected = '';
-                                                                                if ($id != '') {
-                                                                                    if (in_array($PK_USER, $replay_user_array))
-                                                                                        $selected = 'selected';
-                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
-                                                                                    $selected = 'selected';
-                                                                            ?>
-                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
-                                                                            <?php $res_type->MoveNext();
-                                                                            } ?>
-                                                                        </select>
-                                                                    <?php } ?>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="row pt-2">
-                                                                <div class="span2 col-md-2">
-                                                                    <label>Attachments</label>
-                                                                </div>
-                                                                <div class="span9 col-md-10">
-                                                                    <input id="FILE" type="file" name="FILE[]" onchange="ajax_upload1()" />
-                                                                </div>
-                                                            </div>
-                                                            <div class="row pt-2">
-                                                                <div class="span2">&nbsp;</div>
-                                                                <div class="col-md-2"></div>
-                                                                <div class="span9 col-md-10" id="attachment_files">
-                                                                    <?php $i = 0;
-                                                                    if ($id != '' && $type != 'reply') {
-                                                                        $res_type = $db->Execute("select * from DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$_GET[id]' ");
-                                                                        while (!$res_type->EOF) { ?>
-                                                                            <div id="attach_<?= $i ?>">
-                                                                                <input type="hidden" name="PK_EMAIL_ATTACHMENT[]" value="<?= $res_type->fields['PK_EMAIL_ATTACHMENT'] ?>">
-                                                                                <input type="hidden" name="FILE_NAME[]" value="<?= $res_type->fields['FILE_NAME'] ?>">
-                                                                                <input type="hidden" name="FILE_LOCATION[]" value="<?= $res_type->fields['LOCATION'] ?>">
-                                                                                <a href="<?= $res_type->fields['LOCATION'] ?>" target="blank"><?= $res_type->fields['FILE_NAME'] ?></a>
+                                                    </div>
+                                                </div>
+                                                <div class="span10 col-md-10">
+                                                    <div class="card" style="border-radius: 12px;">
+                                                        <div class="card-body">
+                                                            <div class="widget">
+                                                                <div class="widget-content">
+                                                                    <form method="post" action="compose.php" enctype="multipart/form-data" id="form1">
+                                                                        <?php if (!empty($mail_type) != '') { ?>
+                                                                            <input type="hidden" name="EMAIL_FOR" value="<?= 7 ?>" />
+                                                                            <input type="hidden" name="ID" value="<?= 1 ?>" />
+                                                                        <?php } ?>
+                                                                        <div class="container">
+                                                                            <div class="row">
+                                                                                <div class="span12">
+                                                                                    <h3>
+                                                                                        <?php if ($id == '') echo "Compose Email";
+                                                                                        else if ($type == 'reply') echo "Reply ";
+                                                                                        else if ($type == 'forward') echo "Forward ";
+                                                                                        else echo "Draft Email"; ?>
+                                                                                    </h3>
+                                                                                </div>
                                                                             </div>
-                                                                    <?php $i++;
-                                                                            $res_type->MoveNext();
-                                                                        }
-                                                                    }
-                                                                    $uploded_count = $i; ?>
-                                                                </div>
-                                                            </div>
+                                                                        </div>
+                                                                        <div class="container">
+                                                                            <?php if ($type == 'reply') { ?>
+                                                                                <div class="row">
+                                                                                    <div class="span2">
+                                                                                        <label>Subject</label>
+                                                                                    </div>
+                                                                                    <div class="span9">
+                                                                                        <label><?= $SUBJECT_REP_FAR ?></label>
+                                                                                    </div>
+                                                                                </div>
 
-                                                            <div class="row pt-3">
-                                                                <div class="span2 col-md-2">
-                                                                    <label>Content</label>
-                                                                </div>
-                                                                <div class="span9 col-md-10">
-                                                                    <Textarea id="CONTENT" name="CONTENT" class="editor"><?= $CONTENT ?></Textarea>
-                                                                </div>
-                                                            </div>
+                                                                            <?php } ?>
 
-                                                            <div class="row text-center pb-5" style="padding-left: 70%;">
-                                                                <div class="span4">&nbsp;</div>
-                                                                <div class="span4">
-                                                                    <button type="submit" class="btn btn-info"><i class="fa fa-paper-plane"></i> Send</button>
-                                                                    <button type="submit" onclick="save_frm(1)" class="btn btn-info"><i class="fa fa-save"></i> Save as Draft</button>
-                                                                    <?php if ($mail_type != '')
-                                                                        $URL = 'javascript:window.close()';
-                                                                    else
-                                                                        $URL = 'email.php?type=' . $type; ?>
-                                                                    <button type="button" class="btn btn-info" onclick="<?= $URL ?>"><i class="fa fa-stop-circle"></i> Cancel</button>
+                                                                            <div <?php if ($type == 'reply') { ?> style="display: none;" <?php } ?>>
+                                                                                <div class="row pt-2">
+                                                                                    <div class="span2 col-md-2">
+                                                                                        <label>Subject</label>
+                                                                                    </div>
+                                                                                    <div class="span9 col-md-10">
+                                                                                        <input type="text" id="SUBJECT" name="SUBJECT" value="<?= $SUBJECT_REP_FAR ?>" placeholder="" class="required-entry form-control" style="width:95%; border: 1px solid #aaaaaa;" required />
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class="row pt-2" style="margin-bottom:10px;">
+                                                                                <div class="span2 col-md-2">
+                                                                                    <label>Recipients/To</label>
+                                                                                </div>
+                                                                                <div class="span9 col-md-10">
+                                                                                    <?php if ($_SESSION['PK_ROLES'] == 4) { ?>
+                                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
+                                                                                            <?php
+                                                                                            $res_type = $res_type = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER=DOA_USER_LOCATION.PK_USER WHERE DOA_USERS.IS_RECIPIENT = 1 AND DOA_USERS.ACTIVE = '1' AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
+
+                                                                                            while (!$res_type->EOF) {
+                                                                                                $PK_USER = $res_type->fields['PK_USER'];
+                                                                                                $selected = '';
+                                                                                                if ($id != '') {
+                                                                                                    if (in_array($PK_USER, $replay_user_array))
+                                                                                                        $selected = 'selected';
+                                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
+                                                                                                    $selected = 'selected';
+                                                                                            ?>
+                                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
+                                                                                            <?php $res_type->MoveNext();
+                                                                                            } ?>
+                                                                                        </select>
+                                                                                    <?php } else { ?>
+                                                                                        <select name="RECEPTION[]" id="RECEPTION" class="form-control required-entry select2" style="width:95%" multiple required>
+                                                                                            <option value="1" <?= (in_array(1, $replay_user_array) ? 'selected' : '') ?>>Super Admin</option>
+                                                                                            <?php
+                                                                                            $res_type = $res_type = $db->Execute("select PK_USER,USER_NAME,FIRST_NAME,LAST_NAME from DOA_USERS WHERE ACTIVE = '1' AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER AND PK_USER != $_SESSION[PK_USER] OR PK_USER IN (" . implode(',', $replay_user_array) . ")");
+
+                                                                                            while (!$res_type->EOF) {
+                                                                                                $PK_USER = $res_type->fields['PK_USER'];
+                                                                                                $selected = '';
+                                                                                                if ($id != '') {
+                                                                                                    if (in_array($PK_USER, $replay_user_array))
+                                                                                                        $selected = 'selected';
+                                                                                                } elseif ($default_selected_cus && $default_selected_cus == $PK_USER)
+                                                                                                    $selected = 'selected';
+                                                                                            ?>
+                                                                                                <option value="<?= $PK_USER ?>" <?= $selected ?>><?= $res_type->fields['FIRST_NAME'] ?> <?= $res_type->fields['LAST_NAME'] ?> (<?= $res_type->fields['USER_NAME'] ?>)</option>
+                                                                                            <?php $res_type->MoveNext();
+                                                                                            } ?>
+                                                                                        </select>
+                                                                                    <?php } ?>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class="row pt-2">
+                                                                                <div class="span2 col-md-2">
+                                                                                    <label>Attachments</label>
+                                                                                </div>
+                                                                                <div class="span9 col-md-10">
+                                                                                    <input id="FILE" type="file" name="FILE[]" onchange="ajax_upload1()" />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="row pt-2">
+                                                                                <div class="span2">&nbsp;</div>
+                                                                                <div class="col-md-2"></div>
+                                                                                <div class="span9 col-md-10" id="attachment_files">
+                                                                                    <?php $i = 0;
+                                                                                    if ($id != '' && $type != 'reply') {
+                                                                                        $res_type = $db->Execute("select * from DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$_GET[id]' ");
+                                                                                        while (!$res_type->EOF) { ?>
+                                                                                            <div id="attach_<?= $i ?>">
+                                                                                                <input type="hidden" name="PK_EMAIL_ATTACHMENT[]" value="<?= $res_type->fields['PK_EMAIL_ATTACHMENT'] ?>">
+                                                                                                <input type="hidden" name="FILE_NAME[]" value="<?= $res_type->fields['FILE_NAME'] ?>">
+                                                                                                <input type="hidden" name="FILE_LOCATION[]" value="<?= $res_type->fields['LOCATION'] ?>">
+                                                                                                <a href="<?= $res_type->fields['LOCATION'] ?>" target="blank"><?= $res_type->fields['FILE_NAME'] ?></a>
+                                                                                            </div>
+                                                                                    <?php $i++;
+                                                                                            $res_type->MoveNext();
+                                                                                        }
+                                                                                    }
+                                                                                    $uploded_count = $i; ?>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class="row pt-3">
+                                                                                <div class="span2 col-md-2">
+                                                                                    <label>Content</label>
+                                                                                </div>
+                                                                                <div class="span9 col-md-10">
+                                                                                    <Textarea id="CONTENT" name="CONTENT" class="editor"><?= $CONTENT ?></Textarea>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class="row text-center pb-5" style="padding-left: 65%;">
+                                                                                <div class="span4">&nbsp;</div>
+                                                                                <div class="span4">
+                                                                                    <button type="submit" class="btn btn-info"><i class="fa fa-paper-plane"></i> Send</button>
+                                                                                    <button type="submit" onclick="save_frm(1)" class="btn btn-info"><i class="fa fa-save"></i> Save as Draft</button>
+                                                                                    <?php if ($mail_type != '')
+                                                                                        $URL = 'javascript:window.close()';
+                                                                                    else
+                                                                                        $URL = 'email.php?type=' . $type; ?>
+                                                                                    <button type="button" class="btn btn-info" onclick="<?= $URL ?>"><i class="fa fa-stop-circle"></i> Cancel</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <input type="hidden" name="DRAFT" id="DRAFT" value="0">
+                                                                    </form>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <input type="hidden" name="DRAFT" id="DRAFT" value="0">
-                                                    </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <style>
-        .progress-bar {
-            border-radius: 5px;
-            height: 18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php'); ?>
+                        <style>
+                            .progress-bar {
+                                border-radius: 5px;
+                                height: 18px !important;
+                            }
+                        </style>
+                        <?php require_once('../includes/footer.php'); ?>
 
-    <link href="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
-    <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('.select2').select2();
-        });
-    </script>
+                        <link href="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet" />
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.5.6/tinymce.min.js"></script>
+                        <script src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+                        <script type="text/javascript">
+                            jQuery(document).ready(function($) {
+                                $('.select2').select2();
+                            });
+                        </script>
 
-    <script>
-        jQuery(document).ready(function($) {
-            $(".date").datepicker();
-        });
+                        <script>
+                            jQuery(document).ready(function($) {
+                                $(".date").datepicker();
+                            });
 
 
-        var uploded_count = '<?= $uploded_count ?>';
+                            var uploded_count = '<?= $uploded_count ?>';
 
-        function ajax_upload1() {
-            jQuery(document).ready(function($) {
-                message = 'Please Wait. Your File is file is being Uploaded';
-                jQuery('body').append('<div class="delete-alert"></div>');
-                $alert = jQuery('.delete-alert');
-                $alert.slideDown(400);
-                $alert.html(message).append('<br /><br /><br />');
+                            function ajax_upload1() {
+                                jQuery(document).ready(function($) {
+                                    message = 'Please Wait. Your File is file is being Uploaded';
+                                    jQuery('body').append('<div class="delete-alert"></div>');
+                                    $alert = jQuery('.delete-alert');
+                                    $alert.slideDown(400);
+                                    $alert.html(message).append('<br /><br /><br />');
 
-                var file_data = $('#FILE').prop('files')[0];
-                var form_data = new FormData();
-                form_data.append('file', file_data);
-                //alert(form_data);
-                $.ajax({
-                    url: 'ajax_upload.php', // point to server-side PHP script
-                    dataType: 'text', // what to expect back from the PHP script, if anything
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    data: form_data,
-                    type: 'post',
-                    success: function(data) {
-                        //alert(data); // display response from the PHP script, if any
-                        data = data.split('||');
-                        if (data[0] == 0)
-                            alert(data[1]);
-                        else {
-                            var str = '';
-                            str = '<div id="attach_' + uploded_count + '" >';
-                            str += '<input type="hidden" name="PK_EMAIL_ATTACHMENT[]" value="" >';
-                            str += '<input type="hidden" name="FILE_NAME[]" value="' + data[1] + '" >';
-                            str += '<input type="hidden" name="FILE_LOCATION[]" value="' + data[2] + '" >';
-                            str += '<a href="' + data[2] + '" target="blank" >' + data[1] + '</a>';
-                            //str += 		'<a href="javascript:void(0)" onclick="delete_attachment('+uploded_count+')"><img src="../assets/images/delete.png" title="Delete Attachment"></a>';
-                            str += '</div>';
+                                    var file_data = $('#FILE').prop('files')[0];
+                                    var form_data = new FormData();
+                                    form_data.append('file', file_data);
+                                    //alert(form_data);
+                                    $.ajax({
+                                        url: 'ajax_upload.php', // point to server-side PHP script
+                                        dataType: 'text', // what to expect back from the PHP script, if anything
+                                        cache: false,
+                                        contentType: false,
+                                        processData: false,
+                                        data: form_data,
+                                        type: 'post',
+                                        success: function(data) {
+                                            //alert(data); // display response from the PHP script, if any
+                                            data = data.split('||');
+                                            if (data[0] == 0)
+                                                alert(data[1]);
+                                            else {
+                                                var str = '';
+                                                str = '<div id="attach_' + uploded_count + '" >';
+                                                str += '<input type="hidden" name="PK_EMAIL_ATTACHMENT[]" value="" >';
+                                                str += '<input type="hidden" name="FILE_NAME[]" value="' + data[1] + '" >';
+                                                str += '<input type="hidden" name="FILE_LOCATION[]" value="' + data[2] + '" >';
+                                                str += '<a href="' + data[2] + '" target="blank" >' + data[1] + '</a>';
+                                                //str += 		'<a href="javascript:void(0)" onclick="delete_attachment('+uploded_count+')"><img src="../assets/images/delete.png" title="Delete Attachment"></a>';
+                                                str += '</div>';
 
-                            $('#attachment_files').append(str);
-                            uploded_count++;
-                        }
+                                                $('#attachment_files').append(str);
+                                                uploded_count++;
+                                            }
 
-                        $(".alert").remove();
-                        $alert.slideUp(400);
+                                            $(".alert").remove();
+                                            $alert.slideUp(400);
 
-                        document.getElementById('FILE').value = '';
-                    }
-                });
-            });
-        }
+                                            document.getElementById('FILE').value = '';
+                                        }
+                                    });
+                                });
+                            }
 
-        jQuery(document).ready(function($) {
-            tinymce.init({
-                extended_valid_elements: "iframe[title,class,type,width,height,src,frameborder,allowFullScreen]",
-                selector: "textarea.editor",
-                browser_spellcheck: true,
-                content_css: "https://fonts.googleapis.com/css?family=Open+Sans|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Ubuntu|PT+Sans|Old+Standard+TT|Droid+Sans",
-                // ===========================================
-                // INCLUDE THE PLUGIN
-                // ===========================================
-                plugins: [
-                    "advlist autolink lists charmap media anchor",
-                    "searchreplace visualblocks code fullscreen",
-                    "insertdatetime media table contextmenu paste textcolor emoticons"
-                ],
-                media_strict: false,
-                // ===========================================
-                // PUT PLUGIN'S BUTTON on the toolbar
-                // ===========================================
-                toolbar: "insertfile | bold italic underline | styleselect | fontselect | fontsizeselect | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor ",
-                // ===========================================
-                // SET RELATIVE_URLS to FALSE (This is required for images to display properly)
-                // ===========================================
-                relative_urls: false,
-                height: 300,
-                setup: function(ed) {
-                    ed.on("click", function() {
-                        //tinymce.activeEditor.execCommand('mceInsertContent', false, "some text")
-                        tinymce.execCommand('mceFocus', false, 'myeditor')
-                    });
-                }
-            });
-        });
+                            jQuery(document).ready(function($) {
+                                tinymce.init({
+                                    extended_valid_elements: "iframe[title,class,type,width,height,src,frameborder,allowFullScreen]",
+                                    selector: "textarea.editor",
+                                    browser_spellcheck: true,
+                                    content_css: "https://fonts.googleapis.com/css?family=Open+Sans|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Ubuntu|PT+Sans|Old+Standard+TT|Droid+Sans",
+                                    // ===========================================
+                                    // INCLUDE THE PLUGIN
+                                    // ===========================================
+                                    plugins: [
+                                        "advlist autolink lists charmap media anchor",
+                                        "searchreplace visualblocks code fullscreen",
+                                        "insertdatetime media table contextmenu paste textcolor emoticons"
+                                    ],
+                                    media_strict: false,
+                                    // ===========================================
+                                    // PUT PLUGIN'S BUTTON on the toolbar
+                                    // ===========================================
+                                    toolbar: "insertfile | bold italic underline | styleselect | fontselect | fontsizeselect | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor ",
+                                    // ===========================================
+                                    // SET RELATIVE_URLS to FALSE (This is required for images to display properly)
+                                    // ===========================================
+                                    relative_urls: false,
+                                    height: 300,
+                                    setup: function(ed) {
+                                        ed.on("click", function() {
+                                            //tinymce.activeEditor.execCommand('mceInsertContent', false, "some text")
+                                            tinymce.execCommand('mceFocus', false, 'myeditor')
+                                        });
+                                    }
+                                });
+                            });
 
-        function save_frm(val) {
-            document.getElementById('DRAFT').value = val;
-            //var res_form = new VarienForm1('form1');
-            //var res = res_form.submit();
-            //if(res == true)
-            $('#form1').submit();
-        }
+                            function save_frm(val) {
+                                document.getElementById('DRAFT').value = val;
+                                //var res_form = new VarienForm1('form1');
+                                //var res = res_form.submit();
+                                //if(res == true)
+                                $('#form1').submit();
+                            }
 
-        $('.datepicker-past').datepicker({
-            changeMonth: true,
-            changeYear: true,
-            format: 'mm/dd/yyyy',
-            maxDate: 0
-        });
-    </script>
-    <script>
-        function confirmDelete(anchor) {
-            let conf = confirm("Are you sure you want to delete?");
-            if (conf)
-                window.location = $(anchor).data("href");
-        }
-    </script>
+                            $('.datepicker-past').datepicker({
+                                changeMonth: true,
+                                changeYear: true,
+                                format: 'mm/dd/yyyy',
+                                maxDate: 0
+                            });
+                        </script>
+                        <script>
+                            function confirmDelete(anchor) {
+                                let conf = confirm("Are you sure you want to delete?");
+                                if (conf)
+                                    window.location = $(anchor).data("href");
+                            }
+                        </script>
 
 
 
 
-</body>
+                    </body>
 
-</html>
+                    </html>

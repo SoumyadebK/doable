@@ -178,122 +178,135 @@ if($mail_type != ''){
 $email_show_type = $type;
 $user_id =  $_SESSION['PK_USER'];
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<?php require_once('../includes/header.php'); ?>
 
-<body class="skin-default-dark fixed-layout">
-    <?php //require_once('../includes/loader.php');
-    ?>
-    <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="main">
-                    <div class="main-inner">
-                        <div class="container">
-                            <div class="row">
-                                <div class="span2 col-md-2">
-                                    <div class="widget widget-nopad">
-                                        <!-- <div class="widget-header"> <i class="icon-list-alt"></i>
+<?php if ($_SESSION['PK_ROLES'] == 1) { ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <?php require_once('../includes/header.php'); ?>
+
+    <body class="skin-default-dark fixed-layout">
+        <?php require_once('../includes/loader.php'); ?>
+        <div id="main-wrapper">
+            <?php require_once('../includes/top_menu.php'); ?>
+            <div class="page-wrapper">
+                <?php require_once('../includes/top_menu_bar.php') ?>
+                <div class="container-fluid body_content">
+                <?php } else { ?>
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <?php include 'layout/header_script.php'; ?>
+                    <?php include 'layout/header.php'; ?>
+
+                    <body class="skin-default-dark fixed-layout">
+                        <?php require_once('../includes/loader.php'); ?>
+                        <div id="main-wrapper">
+                            <div class="page-wrapper" style="padding-top: 0px !important;">
+                                <div class="container-fluid mt-4">
+                                <?php } ?>
+                                <div class="main">
+                                    <div class="main-inner">
+                                        <div class="container">
+                                            <div class="row mt-4">
+                                                <div class="span2 col-md-2">
+                                                    <div class="widget widget-nopad">
+                                                        <!-- <div class="widget-header"> <i class="icon-list-alt"></i>
                                       <h3> Internal Mail</h3>
                                     </div> -->
 
-                                        <div class="widget-content">
-                                            <div class="widget big-stats-container">
-                                                <?php require_once("menu_left_menu.php"); ?>
+                                                        <div class="widget-content">
+                                                            <div class="widget big-stats-container">
+                                                                <?php require_once("menu_left_menu.php"); ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="span10 col-md-10">
+                                                    <div class="card" style="border-radius: 12px;">
+                                                        <div class="card-body">
+                                                            <form method="post" action="email.php">
+                                                                <div class="widget">
+                                                                    <div class="widget-header">
+                                                                        <div class="span2">&nbsp;</div>
+                                                                        <div class="span1">
+                                                                            <?php if ($type != 'sent' && $type != 'trash' && $type != 'draft') { ?>
+                                                                                <!-- <button class="btn btn-danger" type="button" onclick="delete_row(2)" >Delete</button> -->
+                                                                            <?php } ?>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="widget-content" style="padding-top: 10px">
+
+                                                                        <?php
+                                                                        if ($email_show_type == 'inbox') {
+                                                                            $res_type = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED FROM DOA_EMAIL_RECEPTION INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL WHERE PK_USER = $user_id AND DRAFT = 0 AND DOA_EMAIL.ACTIVE = 1 AND DOA_EMAIL_RECEPTION.DELETED=0 ORDER BY CREATED_ON DESC");
+                                                                        } elseif ($email_show_type == 'sent') {
+                                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 0 AND ACTIVE = 1 ORDER BY CREATED_ON DESC");
+                                                                        } elseif ($email_show_type == 'draft') {
+                                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 1 ORDER BY CREATED_ON DESC");
+                                                                        } elseif ($email_show_type == 'starred') {
+                                                                            $res_type = $db->Execute(" SELECT DOA_EMAIL.* FROM DOA_EMAIL_STARRED INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_STARRED.INTERNAL_ID WHERE PK_USER = $user_id AND DOA_EMAIL_STARRED.STARRED = 1 AND DOA_EMAIL.ACTIVE = 1 ORDER BY CREATED_ON DESC");
+                                                                        } elseif ($email_show_type == 'trash') {
+                                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 0 ORDER BY CREATED_ON DESC");
+                                                                        }
+                                                                        ?>
+
+                                                                        <table id="myTable" class="table table-striped border">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th>SL</th>
+                                                                                    <th>Subject</th>
+                                                                                    <th>Message</th>
+                                                                                    <th>Date Time</th>
+                                                                                    <th class="text-center">Action</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                <?php $sl = 1; ?>
+                                                                                <?php while (!$res_type->EOF) : ?>
+                                                                                    <tr <?= (isset($res_type->fields['VIWED']) && $res_type->fields['VIWED'] == 0) ? 'style="font-weight: bold;"' : ""; ?> style="cursor: pointer;">
+                                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $sl++; ?></td>
+                                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $res_type->fields['SUBJECT']; ?></td>
+                                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $res_type->fields['CONTENT']; ?></td>
+                                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo date("m/d/Y h:i A", strtotime($res_type->fields['CREATED_ON'])); ?></td>
+                                                                                        <td class="text-center">
+                                                                                            <a href="view_email.php?id=<?= $res_type->fields['PK_EMAIL'] ?>&type=<?= $type ?>" style="color: #03a9f3; font-size: 18px;"><i class="ti-eye"></i></a>&nbsp;&nbsp;
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                <?php $res_type->MoveNext();
+                                                                                endwhile; ?>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="span10 col-md-10">
-                                    <div class="card" style="border-radius: 12px;">
-                                        <div class="card-body">
-                                            <form method="post" action="email.php">
-                                                <div class="widget">
-                                                    <div class="widget-header">
-                                                        <div class="span2">&nbsp;</div>
-                                                        <div class="span1">
-                                                            <?php if ($type != 'sent' && $type != 'trash' && $type != 'draft') { ?>
-                                                                <!-- <button class="btn btn-danger" type="button" onclick="delete_row(2)" >Delete</button> -->
-                                                            <?php } ?>
-                                                        </div>
-                                                    </div>
-                                                    <div class="widget-content" style="padding-top: 10px">
-
-                                                        <?php
-                                                        if ($email_show_type == 'inbox') {
-                                                            $res_type = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED FROM DOA_EMAIL_RECEPTION INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL WHERE PK_USER = $user_id AND DRAFT = 0 AND DOA_EMAIL.ACTIVE = 1 AND DOA_EMAIL_RECEPTION.DELETED=0 ORDER BY CREATED_ON DESC");
-                                                        } elseif ($email_show_type == 'sent') {
-                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 0 AND ACTIVE = 1 ORDER BY CREATED_ON DESC");
-                                                        } elseif ($email_show_type == 'draft') {
-                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 1 ORDER BY CREATED_ON DESC");
-                                                        } elseif ($email_show_type == 'starred') {
-                                                            $res_type = $db->Execute(" SELECT DOA_EMAIL.* FROM DOA_EMAIL_STARRED INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_STARRED.INTERNAL_ID WHERE PK_USER = $user_id AND DOA_EMAIL_STARRED.STARRED = 1 AND DOA_EMAIL.ACTIVE = 1 ORDER BY CREATED_ON DESC");
-                                                        } elseif ($email_show_type == 'trash') {
-                                                            $res_type = $db->Execute("SELECT * FROM DOA_EMAIL WHERE CREATED_BY = $user_id AND DRAFT = 1 AND ACTIVE = 0 ORDER BY CREATED_ON DESC");
-                                                        }
-                                                        ?>
-
-                                                        <table id="myTable" class="table table-striped border">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>SL</th>
-                                                                    <th>Subject</th>
-                                                                    <th>Message</th>
-                                                                    <th>Date Time</th>
-                                                                    <th class="text-center">Action</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <?php $sl = 1; ?>
-                                                                <?php while (!$res_type->EOF) : ?>
-                                                                    <tr <?= (isset($res_type->fields['VIWED']) && $res_type->fields['VIWED'] == 0) ? 'style="font-weight: bold;"' : ""; ?> style="cursor: pointer;">
-                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $sl++; ?></td>
-                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $res_type->fields['SUBJECT']; ?></td>
-                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo $res_type->fields['CONTENT']; ?></td>
-                                                                        <td onclick="viewpage(<?= $res_type->fields['PK_EMAIL']; ?>, '<?= $type ?>');"><?php echo date("m/d/Y h:i A", strtotime($res_type->fields['CREATED_ON'])); ?></td>
-                                                                        <td class="text-center">
-                                                                            <a href="view_email.php?id=<?= $res_type->fields['PK_EMAIL'] ?>&type=<?= $type ?>" style="color: #03a9f3; font-size: 18px;"><i class="ti-eye"></i></a>&nbsp;&nbsp;
-                                                                        </td>
-                                                                    </tr>
-                                                                <?php $res_type->MoveNext();
-                                                                endwhile; ?>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <style>
-        .progress-bar {
-            border-radius: 5px;
-            height: 18px !important;
-        }
-    </style>
-    <?php require_once('../includes/footer.php'); ?>
+                        <style>
+                            .progress-bar {
+                                border-radius: 5px;
+                                height: 18px !important;
+                            }
+                        </style>
+                        <?php require_once('../includes/footer.php'); ?>
 
-    <script>
-        $(function() {
-            $('#myTable').DataTable();
-        });
+                        <script>
+                            $(function() {
+                                $('#myTable').DataTable();
+                            });
 
-        function viewpage(id, type = null) {
-            window.location.href = "view_email.php?id=" + id + "&type=" + type;
-        }
-    </script>
+                            function viewpage(id, type = null) {
+                                window.location.href = "view_email.php?id=" + id + "&type=" + type;
+                            }
+                        </script>
 
-</body>
-</body>
+                    </body>
+    </body>
 
-</html>
+    </html>

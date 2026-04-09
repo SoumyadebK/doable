@@ -60,7 +60,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Payment</b></h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#enrollment_payment_modal').modal('hide');"></button>
+                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#enrollment_payment_modal').modal('hide');"></button> -->
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="sourceId" id="enrollment_sourceId">

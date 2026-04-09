@@ -1471,7 +1471,18 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
         function loadCreateAppointmentModal(PK_USER_MASTER) {
             $('#sideDrawer, .overlay').addClass('active');
-            $.ajax({
+
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').SumoSelect();
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID').SumoSelect();
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+            $('#create_record_only_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+
+
+
+            /* $.ajax({
                 url: "partials/create_appointment_modal.php",
                 type: "POST",
                 data: {
@@ -1488,7 +1499,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     console.error("Error loading create_appointment_modal.php:", error);
                     $('#sideDrawer .drawer-body').html('<p>Error loading appointment creation form.</p>');
                 }
-            });
+            }); */
         }
 
         function initializeModalScripts() {
