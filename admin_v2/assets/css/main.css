@@ -889,13 +889,13 @@ textarea.form-control {
 
 .weekday-radio {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .weekday-radio label {
   cursor: pointer;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 /* hide radio */
@@ -905,8 +905,8 @@ textarea.form-control {
 
 /* circle */
 .weekday-radio span {
-  width: 19px;
-  height: 19px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   border: 1px solid #ddd;
   display: flex;

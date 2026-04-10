@@ -254,58 +254,67 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="custom-date-time-format d-none mt-2">
                                 <div class="repeat-box">
                                     <div class="row gx-1">
-                                        <div class="col-12 col-lg-6 mb-2">
-                                            <label class="theme-text-light">Repeat every:</label>
-                                            <div class="d-flex gap-2">
-                                                <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
-                                                <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
-                                                    <option value="week">Week(S)</option>
-                                                    <option value="month">Month(S)</option>
-                                                    <option value="year">Year(S)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-lg-6 mb-2">
-                                            <label class="theme-text-light">Repeat on:</label>
+
+                                        <div class="col-12 col-lg-12 mb-2">
+                                            <label class="theme-text-light">Repeat On:</label>
                                             <div class="weekday-radio mt-1">
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="sunday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="sunday">
                                                     <span>S</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="monday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="monday">
                                                     <span>M</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="tuesday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="tuesday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="wednesday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="wednesday">
                                                     <span>W</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="thursday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="thursday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="friday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="friday">
                                                     <span>F</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="DAYS[]" value="saturday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="saturday">
                                                     <span>S</span>
                                                 </label>
                                             </div>
                                         </div>
+
+                                        <div class="col-12 col-lg-12 mb-2 occurrence_div">
+                                            <label class="theme-text-light">Select Occurrence:</label>
+                                            <div class="mb-1">
+                                                <label class="radio active">
+                                                    <input type="radio" name="OCCURRENCE" value="WEEKLY" checked>
+                                                    <span></span>
+                                                    Weekly
+                                                </label>
+                                            </div>
+                                            <div class="mb-1 d-flex gap-2">
+                                                <label class="radio">
+                                                    <input type="radio" name="OCCURRENCE" value="DAYS">
+                                                    <span></span>
+                                                    Every <input type="text" id="OCCURRENCE_DAYS" name="OCCURRENCE_DAYS" style="width: 50px; display: inline-block;"> Days
+                                                </label>
+                                            </div>
+                                        </div>
+
                                         <div class="col-12 col-lg-12">
                                             <div class="ends">
                                                 <div>
-                                                    <label class="theme-text-light">Ends</label>
+                                                    <label class="theme-text-light">Ends:</label>
                                                 </div>
                                                 <div class="mb-1">
                                                     <label class="radio active">
-                                                        <input type="radio" name="end" checked>
+                                                        <input type="radio" name="end" value="NEVER" checked>
                                                         <span></span>
                                                         Never
                                                     </label>
@@ -313,7 +322,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
-                                                        <input type="radio" name="end">
+                                                        <input type="radio" name="end" value="AFTER_DATE">
                                                         <span></span>
                                                         On
                                                     </label>
@@ -324,12 +333,12 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
-                                                        <input type="radio" name="end">
+                                                        <input type="radio" name="end" value="AFTER_OCCURRENCE">
                                                         <span></span>
                                                         After
                                                     </label>
                                                     <div class="ms-auto">
-                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
+                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control OCCURRENCE_AFTER" placeholder="0 Occurrences" disabled>
                                                     </div>
                                                 </div>
                                             </div>
@@ -505,58 +514,67 @@ if ($location_operational_hour->RecordCount() > 0) {
                             <div class="custom-date-time-format d-none mt-2">
                                 <div class="repeat-box">
                                     <div class="row gx-1">
-                                        <div class="col-12 col-lg-6 mb-2">
-                                            <label class="theme-text-light">Repeat every:</label>
-                                            <div class="d-flex gap-2">
-                                                <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
-                                                <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
-                                                    <option value="week">Week(S)</option>
-                                                    <option value="month">Month(S)</option>
-                                                    <option value="year">Year(S)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-lg-6 mb-2">
-                                            <label class="theme-text-light">Repeat on:</label>
+
+                                        <div class="col-12 col-lg-12 mb-2">
+                                            <label class="theme-text-light">Repeat On:</label>
                                             <div class="weekday-radio mt-1">
                                                 <label>
-                                                    <input type="checkbox" name="sunday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="sunday">
                                                     <span>S</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="monday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="monday">
                                                     <span>M</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="tuesday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="tuesday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="wednesday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="wednesday">
                                                     <span>W</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="thursday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="thursday">
                                                     <span>T</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="friday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="friday">
                                                     <span>F</span>
                                                 </label>
                                                 <label>
-                                                    <input type="checkbox" name="saturday">
+                                                    <input type="checkbox" name="DAYS[]" class="DAYS" value="saturday">
                                                     <span>S</span>
                                                 </label>
                                             </div>
                                         </div>
+
+                                        <div class="col-12 col-lg-12 mb-2 occurrence_div">
+                                            <label class="theme-text-light">Select Occurrence:</label>
+                                            <div class="mb-1">
+                                                <label class="radio active">
+                                                    <input type="radio" name="OCCURRENCE" value="WEEKLY" checked>
+                                                    <span></span>
+                                                    Weekly
+                                                </label>
+                                            </div>
+                                            <div class="mb-1 d-flex gap-2">
+                                                <label class="radio">
+                                                    <input type="radio" name="OCCURRENCE" value="DAYS">
+                                                    <span></span>
+                                                    Every <input type="text" id="OCCURRENCE_DAYS" name="OCCURRENCE_DAYS" style="width: 50px; display: inline-block;"> Days
+                                                </label>
+                                            </div>
+                                        </div>
+
                                         <div class="col-12 col-lg-12">
                                             <div class="ends">
                                                 <div>
-                                                    <label class="theme-text-light">Ends</label>
+                                                    <label class="theme-text-light">Ends:</label>
                                                 </div>
                                                 <div class="mb-1">
                                                     <label class="radio active">
-                                                        <input type="radio" name="end" checked>
+                                                        <input type="radio" name="end" value="NEVER" checked>
                                                         <span></span>
                                                         Never
                                                     </label>
@@ -564,27 +582,27 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
-                                                        <input type="radio" name="end">
+                                                        <input type="radio" name="end" value="AFTER_DATE">
                                                         <span></span>
                                                         On
                                                     </label>
                                                     <div class="ms-auto">
-                                                        <input type="text" id="END_ON_DATE" name="END_ON_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
+                                                        <input type="text" id="END_ON_GROUP_CLASS_DATE" name="END_ON_GROUP_CLASS_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
                                                     </div>
                                                 </div>
 
                                                 <div class="mb-1 d-flex gap-2">
                                                     <label class="radio">
-                                                        <input type="radio" name="end">
+                                                        <input type="radio" name="end" value="AFTER_OCCURRENCE">
                                                         <span></span>
                                                         After
                                                     </label>
                                                     <div class="ms-auto">
-                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
+                                                        <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control OCCURRENCE_AFTER" placeholder="0 Occurrences" disabled>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="javascript:;" class="save-custom-date-selection btn-secondary f12 rounded-2 px-3" onclick="saveCustomDateSelection(this)">Save</a>
+                                            <!-- <a href="javascript:;" class="save-custom-date-selection btn-secondary f12 rounded-2 px-3" onclick="saveCustomDateSelection(this)">Save</a> -->
                                         </div>
                                     </div>
                                 </div>
@@ -769,61 +787,72 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     </select>
                                 </div>
 
+
+
                                 <div class="custom-date-time-format d-none mt-2">
                                     <div class="repeat-box">
                                         <div class="row gx-1">
-                                            <div class="col-12 col-lg-6 mb-2">
-                                                <label class="theme-text-light">Repeat every:</label>
-                                                <div class="d-flex gap-2">
-                                                    <input type="number" id="LENGTH" class="form-control p-1" style="max-width: 45px; height: 25px;" value="1" min="1">
-                                                    <select class="form-control form-select p-1" id="FREQUENCY" style="max-width: 85px; height: 25px;">
-                                                        <option value="week">Week(S)</option>
-                                                        <option value="month">Month(S)</option>
-                                                        <option value="year">Year(S)</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-lg-6 mb-2">
-                                                <label class="theme-text-light">Repeat on:</label>
+
+                                            <div class="col-12 col-lg-12 mb-2">
+                                                <label class="theme-text-light">Repeat On:</label>
                                                 <div class="weekday-radio mt-1">
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="sunday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="sunday">
                                                         <span>S</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="monday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="monday">
                                                         <span>M</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="tuesday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="tuesday">
                                                         <span>T</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="wednesday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="wednesday">
                                                         <span>W</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="thursday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="thursday">
                                                         <span>T</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="friday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="friday">
                                                         <span>F</span>
                                                     </label>
                                                     <label>
-                                                        <input type="checkbox" name="DAYS[]" value="saturday">
+                                                        <input type="checkbox" name="DAYS[]" class="DAYS" value="saturday">
                                                         <span>S</span>
                                                     </label>
                                                 </div>
                                             </div>
+
+                                            <div class="col-12 col-lg-12 mb-2 occurrence_div">
+                                                <label class="theme-text-light">Select Occurrence:</label>
+                                                <div class="mb-1">
+                                                    <label class="radio active">
+                                                        <input type="radio" name="OCCURRENCE" value="WEEKLY" checked>
+                                                        <span></span>
+                                                        Weekly
+                                                    </label>
+                                                </div>
+                                                <div class="mb-1 d-flex gap-2">
+                                                    <label class="radio">
+                                                        <input type="radio" name="OCCURRENCE" value="DAYS">
+                                                        <span></span>
+                                                        Every <input type="text" id="OCCURRENCE_DAYS" name="OCCURRENCE_DAYS" style="width: 50px; display: inline-block;"> Days
+                                                    </label>
+                                                </div>
+                                            </div>
+
                                             <div class="col-12 col-lg-12">
                                                 <div class="ends">
                                                     <div>
-                                                        <label class="theme-text-light">Ends</label>
+                                                        <label class="theme-text-light">Ends:</label>
                                                     </div>
                                                     <div class="mb-1">
                                                         <label class="radio active">
-                                                            <input type="radio" name="end" checked>
+                                                            <input type="radio" name="end" class="end" value="NEVER" checked>
                                                             <span></span>
                                                             Never
                                                         </label>
@@ -831,23 +860,23 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                                                     <div class="mb-1 d-flex gap-2">
                                                         <label class="radio">
-                                                            <input type="radio" name="end">
+                                                            <input type="radio" name="end" class="end" value="AFTER_DATE">
                                                             <span></span>
                                                             On
                                                         </label>
                                                         <div class="ms-auto">
-                                                            <input type="text" id="END_ON_APPOINTMENT_DATE" name="END_ON_APPOINTMENT_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
+                                                            <input type="text" id="END_ON_TO_DO_DATE" name="END_ON_TO_DO_DATE" class="form-control datepicker-normal" placeholder="Select Date" disabled>
                                                         </div>
                                                     </div>
 
                                                     <div class="mb-1 d-flex gap-2">
                                                         <label class="radio">
-                                                            <input type="radio" name="end">
+                                                            <input type="radio" name="end" class="end" value="AFTER_OCCURRENCE">
                                                             <span></span>
                                                             After
                                                         </label>
                                                         <div class="ms-auto">
-                                                            <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control" placeholder="0 Occurrences" disabled>
+                                                            <input type="number" id="OCCURRENCE_AFTER" name="OCCURRENCE_AFTER" class="form-control OCCURRENCE_AFTER" placeholder="0 Occurrences" disabled>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -856,9 +885,6 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         </div>
                                     </div>
                                 </div>
-
-
-
 
 
                             </div>

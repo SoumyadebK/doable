@@ -2218,20 +2218,35 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             });
         });
 
+        $('.DAYS').on('change', function() {
+            var $row = $(this).closest('.custom-date-time-format');
+            if ($row.find('.DAYS').is(':checked')) {
+                $row.find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', true);
+                $row.find("input[name='OCCURRENCE'][value='DAYS']").prop('checked', false);
+                $row.find('.occurrence_div').addClass('disabled_div');
+            } else {
+                $row.find("input[name='OCCURRENCE'][value='WEEKLY']").prop('checked', false);
+                $row.find("input[name='OCCURRENCE'][value='DAYS']").prop('checked', true);
+                $row.find('.occurrence_div').removeClass('disabled_div');
+            }
+        });
+
         $(document).ready(function() {
             $('.ends input[type="radio"]').on('change', function() {
-
-                // Disable all inputs first
-                $('.ends .form-control').prop('disabled', true);
+                let value = $(this).val();
 
                 // Enable input next to selected radio (if any)
-                var $row = $(this).closest('.d-flex');
-                if ($row.length) {
-                    $row.find('.form-control')
-                        .prop('disabled', false)
-                        .focus();
-                }
+                var $row = $(this).closest('.custom-date-time-format');
 
+                // Disable all inputs first
+                $row.find('.ends .form-control').prop('disabled', true);
+                $row.find('.ends .form-control').val('').prop('disabled', true);
+
+                if (value === 'AFTER_DATE') {
+                    $row.find('.datepicker-normal').prop('disabled', false).focus();
+                } else if (value === 'AFTER_OCCURRENCE') {
+                    $row.find('.OCCURRENCE_AFTER').prop('disabled', false).focus();
+                }
             });
         });
     </script>

@@ -527,10 +527,10 @@ while (!$row->EOF) {
                 <table id="paymentTable" class="table">
                     <thead>
                         <tr>
-                            <th style="text-align: left;">Enrollment</th>
-                            <th style="text-align: center;">Due</th>
-                            <th style="text-align: center;">Amount</th>
-                            <th style="text-align: center;">Action</th>
+                            <th style="text-align: left;" width="25%">Enrollment</th>
+                            <th style="text-align: center;" width="20%">Due</th>
+                            <th style="text-align: center;" width="15%">Amount</th>
+                            <th style="text-align: center;" width="45%">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -557,7 +557,7 @@ while (!$row->EOF) {
                                     <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: left;"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
                                     <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;"><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
                                     <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;">$<?= number_format($BILLED_AMOUNT, 2) ?></td>
-                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center; font-size: 10px;">
+                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;">
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $BILLED_AMOUNT ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="editDueDate(<?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?>', 'billing')">Edit Date</button>
                                     </td>
