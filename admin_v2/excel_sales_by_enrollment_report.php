@@ -501,14 +501,51 @@ if (empty($all_providers_data) && ($include_no_provider == 0 || $no_provider_dat
     $rowNumber++;
 }
 
-// Add Summary Section
-$sheet->setCellValue('A' . $rowNumber, 'TOTAL SOLD COUNTS & UNITS');
+// Add Summary Section - FILTERED BY SELECTED PROVIDERS
+$sheet->setCellValue('A' . $rowNumber, 'TOTAL SOLD COUNTS & UNITS (Selected Providers Only)');
 $sheet->mergeCells('A' . $rowNumber . ':F' . $rowNumber);
 $sheet->getStyle('A' . $rowNumber)->getFont()->setBold(true);
 $sheet->getStyle('A' . $rowNumber)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 $sheet->getStyle('A' . $rowNumber . ':F' . $rowNumber)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('D4EDDA');
 $sheet->getStyle('A' . $rowNumber . ':F' . $rowNumber)->applyFromArray($styleArray);
 $rowNumber++;
+
+// Calculate filtered totals based on selected providers
+$filtered_pre_original_sold = 0;
+$filtered_original_sold = 0;
+$filtered_extension_sold = 0;
+$filtered_renewal_sold = 0;
+$filtered_pre_original_units = 0;
+$filtered_original_units = 0;
+$filtered_extension_units = 0;
+$filtered_renewal_units = 0;
+
+// Sum up from provider data
+foreach ($all_providers_data as $provider) {
+    $filtered_pre_original_sold += $provider['pre_original']['sold'];
+    $filtered_original_sold += $provider['original']['sold'];
+    $filtered_extension_sold += $provider['extension']['sold'];
+    $filtered_renewal_sold += $provider['renewal']['sold'];
+    $filtered_pre_original_units += $provider['pre_original']['units'];
+    $filtered_original_units += $provider['original']['units'];
+    $filtered_extension_units += $provider['extension']['units'];
+    $filtered_renewal_units += $provider['renewal']['units'];
+}
+
+// Add "No Provider" data if included
+if ($include_no_provider == 1 && isset($no_provider_data)) {
+    $filtered_pre_original_sold += $no_provider_data['pre_original']['sold'];
+    $filtered_original_sold += $no_provider_data['original']['sold'];
+    $filtered_extension_sold += $no_provider_data['extension']['sold'];
+    $filtered_renewal_sold += $no_provider_data['renewal']['sold'];
+    $filtered_pre_original_units += $no_provider_data['pre_original']['units'];
+    $filtered_original_units += $no_provider_data['original']['units'];
+    $filtered_extension_units += $no_provider_data['extension']['units'];
+    $filtered_renewal_units += $no_provider_data['renewal']['units'];
+}
+
+$filtered_total_sold = $filtered_pre_original_sold + $filtered_original_sold + $filtered_extension_sold + $filtered_renewal_sold;
+$filtered_total_units = $filtered_pre_original_units + $filtered_original_units + $filtered_extension_units + $filtered_renewal_units;
 
 // Summary Headers
 $summary_headers = ['Enrollment Type', 'Pre Original', 'Original', 'Extension', 'Renewal', 'Total'];
@@ -527,24 +564,24 @@ for ($col = 0; $col < 6; $col++) {
 $sheet->getStyle('A' . $rowNumber . ':F' . $rowNumber)->applyFromArray($styleArray);
 $rowNumber++;
 
-// Sold Row
+// Sold Row (using filtered data)
 $sheet->setCellValue('A' . $rowNumber, 'Total Sold');
-$sheet->setCellValue('B' . $rowNumber, $total_pre_original_sold);
-$sheet->setCellValue('C' . $rowNumber, $total_original_sold);
-$sheet->setCellValue('D' . $rowNumber, $total_extension_sold);
-$sheet->setCellValue('E' . $rowNumber, $total_renewal_sold);
-$sheet->setCellValue('F' . $rowNumber, $total_all_sold);
+$sheet->setCellValue('B' . $rowNumber, number_format($filtered_pre_original_sold, 2));
+$sheet->setCellValue('C' . $rowNumber, number_format($filtered_original_sold, 2));
+$sheet->setCellValue('D' . $rowNumber, number_format($filtered_extension_sold, 2));
+$sheet->setCellValue('E' . $rowNumber, number_format($filtered_renewal_sold, 2));
+$sheet->setCellValue('F' . $rowNumber, number_format($filtered_total_sold, 2));
 $sheet->getStyle('A' . $rowNumber)->getFont()->setBold(true);
 $sheet->getStyle('A' . $rowNumber . ':F' . $rowNumber)->applyFromArray($styleArray);
 $rowNumber++;
 
-// Units Row
+// Units Row (using filtered data)
 $sheet->setCellValue('A' . $rowNumber, 'Total Units');
-$sheet->setCellValue('B' . $rowNumber, number_format($total_pre_original_units, 2));
-$sheet->setCellValue('C' . $rowNumber, number_format($total_original_units, 2));
-$sheet->setCellValue('D' . $rowNumber, number_format($total_extension_units, 2));
-$sheet->setCellValue('E' . $rowNumber, number_format($total_renewal_units, 2));
-$sheet->setCellValue('F' . $rowNumber, number_format($total_all_units_studio, 2));
+$sheet->setCellValue('B' . $rowNumber, number_format($filtered_pre_original_units, 2));
+$sheet->setCellValue('C' . $rowNumber, number_format($filtered_original_units, 2));
+$sheet->setCellValue('D' . $rowNumber, number_format($filtered_extension_units, 2));
+$sheet->setCellValue('E' . $rowNumber, number_format($filtered_renewal_units, 2));
+$sheet->setCellValue('F' . $rowNumber, number_format($filtered_total_units, 2));
 $sheet->getStyle('A' . $rowNumber)->getFont()->setBold(true);
 $sheet->getStyle('A' . $rowNumber . ':F' . $rowNumber)->applyFromArray($styleArray);
 $rowNumber += 2;

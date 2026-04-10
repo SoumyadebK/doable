@@ -53,7 +53,7 @@ if (!empty($_GET['START_DATE'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
-    $report_name = 'lessons_taught_report';
+    $report_name = 'lessons_taught_by_service_provider_report';
     $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
     $START_DATE = date('Y-m-d', strtotime($_GET['START_DATE']));
     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
@@ -259,6 +259,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     am.DATE,
                                                     es.NUMBER_OF_SESSION,
                                                     ac.PK_USER_MASTER,
+                                                    CONCAT(cd.PARTNER_FIRST_NAME, ' ', cd.PARTNER_LAST_NAME) AS PARTNER_NAME,
                                                     CONCAT(us.FIRST_NAME, ' ', us.LAST_NAME) AS CUSTOMER_NAME,
                                                     sm.SERVICE_NAME
                                                 FROM DOA_APPOINTMENT_MASTER am
@@ -270,6 +271,7 @@ if (!empty($_GET['START_DATE'])) {
                                                 LEFT JOIN DOA_MASTER.DOA_USERS us ON us.PK_USER = dc.PK_USER
                                                 LEFT JOIN DOA_SERVICE_MASTER sm ON sm.PK_SERVICE_MASTER = am.PK_SERVICE_MASTER
                                                 LEFT JOIN DOA_SERVICE_CODE sc ON am.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+                                                LEFT JOIN DOA_CUSTOMER_DETAILS cd ON ac.PK_USER_MASTER = cd.PK_USER_MASTER
                                                 WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
                                                 AND am.PK_APPOINTMENT_STATUS = 2
                                                 AND asp.PK_USER = $provider_id
@@ -285,9 +287,12 @@ if (!empty($_GET['START_DATE'])) {
 
                                             while (!$lessons_query->EOF) {
                                                 $appointment_id = $lessons_query->fields['PK_APPOINTMENT_MASTER'];
-                                                $num_sessions = $lessons_query->fields['NUMBER_OF_SESSION'] ? 1 : $lessons_query->fields['NUMBER_OF_SESSION'];
+                                                $num_sessions = ($appointment_id) ? 1 : 0; // Assuming each record represents one session, adjust if needed
                                                 $customer_id = $lessons_query->fields['PK_USER_MASTER'];
                                                 $customer_name = $lessons_query->fields['CUSTOMER_NAME'] ? $lessons_query->fields['CUSTOMER_NAME'] : 'Unknown';
+                                                $partner_name = (!empty($lessons_query->fields['PARTNER_NAME']) && trim($lessons_query->fields['PARTNER_NAME']) !== '')
+                                                    ? " (Partner: " . $lessons_query->fields['PARTNER_NAME'] . ")"
+                                                    : '';
                                                 $service_date = $lessons_query->fields['DATE'];
 
                                                 // Count lessons (use NUMBER_OF_SESSION which can be > 1)
@@ -300,7 +305,7 @@ if (!empty($_GET['START_DATE'])) {
 
                                                 // Store session details (only once per appointment)
                                                 if (!in_array($appointment_id, $processed_appointments)) {
-                                                    $session_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
+                                                    $session_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $customer_name . $partner_name . " (" . $num_sessions . " lesson" . ($num_sessions > 1 ? 's' : '') . ")";
                                                     $processed_appointments[] = $appointment_id;
                                                 }
 

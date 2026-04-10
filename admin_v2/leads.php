@@ -11,6 +11,12 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
     exit;
 }
 
+// Capture filter parameters to preserve them when going back
+$filter_date = isset($_GET['filter_date']) ? $_GET['filter_date'] : (isset($_POST['filter_date']) ? $_POST['filter_date'] : '');
+$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : (isset($_POST['filter_status']) ? $_POST['filter_status'] : '');
+$filter_search = isset($_GET['filter_search']) ? $_GET['filter_search'] : (isset($_POST['filter_search']) ? $_POST['filter_search'] : '');
+$filter_page = isset($_GET['filter_page']) ? $_GET['filter_page'] : (isset($_POST['filter_page']) ? $_POST['filter_page'] : '');
+
 if (!empty($_POST)) {
     $IP_ADDRESS = getUserIP();
     if ($IP_ADDRESS == '35.161.112.234') {
@@ -65,7 +71,44 @@ if (!empty($_POST)) {
         db_perform('DOA_LEAD_DATE', $LEAD_DATE, 'insert');
     }
 
-    header("location:all_leads.php");
+    // Preserve the date filter and other parameters when redirecting back
+    $redirect_url = "all_leads.php";
+    $preserve_params = array();
+
+    // Check for date filter from POST or GET (don't double encode)
+    if (!empty($_POST['filter_date'])) {
+        $preserve_params['CHOOSE_DATE'] = $_POST['filter_date'];
+    } elseif (!empty($_GET['filter_date'])) {
+        $preserve_params['CHOOSE_DATE'] = $_GET['filter_date'];
+    }
+
+    // Preserve status filter
+    if (!empty($_POST['filter_status'])) {
+        $preserve_params['status'] = $_POST['filter_status'];
+    } elseif (!empty($_GET['filter_status'])) {
+        $preserve_params['status'] = $_GET['filter_status'];
+    }
+
+    // Preserve search text
+    if (!empty($_POST['filter_search'])) {
+        $preserve_params['search_text'] = $_POST['filter_search'];
+    } elseif (!empty($_GET['filter_search'])) {
+        $preserve_params['search_text'] = $_GET['filter_search'];
+    }
+
+    // Preserve page number
+    if (!empty($_POST['filter_page'])) {
+        $preserve_params['page'] = $_POST['filter_page'];
+    } elseif (!empty($_GET['filter_page'])) {
+        $preserve_params['page'] = $_GET['filter_page'];
+    }
+
+    if (!empty($preserve_params)) {
+        $redirect_url .= "?" . http_build_query($preserve_params);
+    }
+
+    header("location:" . $redirect_url);
+    exit;
 }
 
 function getUserIP()
@@ -203,6 +246,19 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                             <div class="card-body">
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= $_GET['id'] ?? '' ?>" />
+                                    <!-- Hidden fields to preserve filters when saving -->
+                                    <?php if (!empty($filter_date)): ?>
+                                        <input type="hidden" name="filter_date" value="<?= htmlspecialchars($filter_date) ?>">
+                                    <?php endif; ?>
+                                    <?php if (!empty($filter_status)): ?>
+                                        <input type="hidden" name="filter_status" value="<?= htmlspecialchars($filter_status) ?>">
+                                    <?php endif; ?>
+                                    <?php if (!empty($filter_search)): ?>
+                                        <input type="hidden" name="filter_search" value="<?= htmlspecialchars($filter_search) ?>">
+                                    <?php endif; ?>
+                                    <?php if (!empty($filter_page)): ?>
+                                        <input type="hidden" name="filter_page" value="<?= htmlspecialchars($filter_page) ?>">
+                                    <?php endif; ?>
 
                                     <!-- First Row: Location -->
                                     <div class="row">

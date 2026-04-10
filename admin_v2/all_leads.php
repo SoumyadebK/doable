@@ -179,7 +179,7 @@ foreach ($lead_status as $key => $value) {
                             <div class="row">
                                 <div class="col-md-4 align-self-center text-end">
                                     <input type="hidden" id="IS_SELECTED" value="0">
-                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Follow up Date" value="<?= ($_GET['CHOOSE_DATE']) ?? '' ?>">
+                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Follow up Date" value="<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>">
                                 </div>
 
                                 <div class="col-md-4 align-self-center text-end">
@@ -196,7 +196,7 @@ foreach ($lead_status as $key => $value) {
 
                                 <div class=" col-md-4 align-self-center text-end">
                                     <div class="input-group">
-                                        <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= $search_text ?>">
+                                        <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= htmlspecialchars($search_text) ?>">
                                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
                                     </div>
                                 </div>
@@ -293,7 +293,7 @@ foreach ($lead_status as $key => $value) {
                                                                     <?php } ?>
                                                                     <a href="javascript:;" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
                                                                 </div>
-                                                                <div class="title" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATELY_DATE'] ?? '' ?>');" style="cursor: pointer;">
+                                                                <div class="title" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>', '<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>', '<?= htmlspecialchars($_GET['status'] ?? '') ?>', '<?= htmlspecialchars($_GET['search_text'] ?? '') ?>', '<?= htmlspecialchars($_GET['page'] ?? '') ?>');" style="cursor: pointer;">
                                                                     <?= $lead['NAME'] ?>
                                                                 </div>
                                                                 <div><strong>Source:</strong> <?= $lead['OPPORTUNITY_SOURCE'] ?></div>
@@ -478,8 +478,24 @@ foreach ($lead_status as $key => $value) {
             $('#myTable').DataTable();
         });
 
-        function editpage(id, date) {
-            window.location.href = "leads.php?id=" + id + "&date=" + date;
+        function editpage(id, date, filter_date, filter_status, filter_search, filter_page) {
+            let url = "leads.php?id=" + id + "&date=" + encodeURIComponent(date);
+
+            // Add filter parameters to preserve them when going to leads.php
+            if (filter_date && filter_date !== '') {
+                url += "&filter_date=" + encodeURIComponent(filter_date);
+            }
+            if (filter_status && filter_status !== '') {
+                url += "&filter_status=" + encodeURIComponent(filter_status);
+            }
+            if (filter_search && filter_search !== '') {
+                url += "&filter_search=" + encodeURIComponent(filter_search);
+            }
+            if (filter_page && filter_page !== '') {
+                url += "&filter_page=" + encodeURIComponent(filter_page);
+            }
+
+            window.location.href = url;
         }
 
         function ConfirmDelete(PK_LEADS) {
@@ -501,7 +517,31 @@ foreach ($lead_status as $key => $value) {
                             PK_LEADS: PK_LEADS
                         },
                         success: function(data) {
-                            window.location.href = 'all_leads.php';
+                            // Preserve current filters after delete
+                            let url = 'all_leads.php';
+                            let params = [];
+
+                            <?php if (!empty($_GET['CHOOSE_DATE'])): ?>
+                                params.push('CHOOSE_DATE=<?= urlencode($_GET['CHOOSE_DATE']) ?>');
+                            <?php endif; ?>
+
+                            <?php if (!empty($_GET['status'])): ?>
+                                params.push('status=<?= urlencode($_GET['status']) ?>');
+                            <?php endif; ?>
+
+                            <?php if (!empty($_GET['search_text'])): ?>
+                                params.push('search_text=<?= urlencode($_GET['search_text']) ?>');
+                            <?php endif; ?>
+
+                            <?php if (!empty($_GET['page'])): ?>
+                                params.push('page=<?= urlencode($_GET['page']) ?>');
+                            <?php endif; ?>
+
+                            if (params.length > 0) {
+                                url += '?' + params.join('&');
+                            }
+
+                            window.location.href = url;
                         }
                     });
                 }

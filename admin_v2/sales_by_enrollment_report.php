@@ -773,6 +773,7 @@ if (!empty($_GET['START_DATE'])) {
                                     <?php endif; ?>
 
                                     <!-- Update Summary Statistics to use consistent unit calculations -->
+                                    <!-- Update Summary Statistics to use consistent unit calculations - FILTERED BY SELECTED PROVIDERS -->
                                     <div class="table-responsive mt-4">
                                         <table class="table table-bordered table-sm" style="background-color: #d4edda;">
                                             <thead>
@@ -789,29 +790,62 @@ if (!empty($_GET['START_DATE'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
+                                                <?php
+                                                // Calculate totals based on selected providers only
+                                                $filtered_pre_original_sold = 0;
+                                                $filtered_original_sold = 0;
+                                                $filtered_extension_sold = 0;
+                                                $filtered_renewal_sold = 0;
+                                                $filtered_pre_original_units = 0;
+                                                $filtered_original_units = 0;
+                                                $filtered_extension_units = 0;
+                                                $filtered_renewal_units = 0;
+
+                                                // Sum up from provider data
+                                                foreach ($all_providers_data as $provider) {
+                                                    $filtered_pre_original_sold += $provider['pre_original']['sold'];
+                                                    $filtered_original_sold += $provider['original']['sold'];
+                                                    $filtered_extension_sold += $provider['extension']['sold'];
+                                                    $filtered_renewal_sold += $provider['renewal']['sold'];
+                                                    $filtered_pre_original_units += $provider['pre_original']['units'];
+                                                    $filtered_original_units += $provider['original']['units'];
+                                                    $filtered_extension_units += $provider['extension']['units'];
+                                                    $filtered_renewal_units += $provider['renewal']['units'];
+                                                }
+
+                                                // Add "No Provider" data if included
+                                                if ($include_no_provider == 1) {
+                                                    $filtered_pre_original_sold += $no_provider_data['pre_original']['sold'];
+                                                    $filtered_original_sold += $no_provider_data['original']['sold'];
+                                                    $filtered_extension_sold += $no_provider_data['extension']['sold'];
+                                                    $filtered_renewal_sold += $no_provider_data['renewal']['sold'];
+                                                    $filtered_pre_original_units += $no_provider_data['pre_original']['units'];
+                                                    $filtered_original_units += $no_provider_data['original']['units'];
+                                                    $filtered_extension_units += $no_provider_data['extension']['units'];
+                                                    $filtered_renewal_units += $no_provider_data['renewal']['units'];
+                                                }
+
+                                                $filtered_total_sold = $filtered_pre_original_sold + $filtered_original_sold + $filtered_extension_sold + $filtered_renewal_sold;
+                                                $filtered_total_units = $filtered_pre_original_units + $filtered_original_units + $filtered_extension_units + $filtered_renewal_units;
+                                                ?>
                                                 <!-- Sold Row -->
                                                 <tr>
                                                     <td style="text-align: center; font-weight: bold">Total Sold</td>
-                                                    <td style="text-align: center"><?= $total_pre_original_sold ?></td>
-                                                    <td style="text-align: center"><?= $total_original_sold ?></td>
-                                                    <td style="text-align: center"><?= $total_extension_sold ?></td>
-                                                    <td style="text-align: center"><?= $total_renewal_sold ?></td>
-                                                    <td style="text-align: center; font-weight: bold"><?= $total_all_sold ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_pre_original_sold, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_original_sold, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_extension_sold, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_renewal_sold, 2) ?></td>
+                                                    <td style="text-align: center; font-weight: bold"><?= number_format($filtered_total_sold, 2) ?></td>
                                                 </tr>
                                                 <!-- Units Row -->
                                                 <tr>
                                                     <td style="text-align: center; font-weight: bold">Total Units</td>
-                                                    <td style="text-align: center"><?= number_format($total_pre_original_units, 2) ?></td>
-                                                    <td style="text-align: center"><?= number_format($total_original_units, 2) ?></td>
-                                                    <td style="text-align: center"><?= number_format($total_extension_units, 2) ?></td>
-                                                    <td style="text-align: center"><?= number_format($total_renewal_units, 2) ?></td>
-                                                    <td style="text-align: center; font-weight: bold"><?= number_format($total_all_units_studio, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_pre_original_units, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_original_units, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_extension_units, 2) ?></td>
+                                                    <td style="text-align: center"><?= number_format($filtered_renewal_units, 2) ?></td>
+                                                    <td style="text-align: center; font-weight: bold"><?= number_format($filtered_total_units, 2) ?></td>
                                                 </tr>
-                                                <!-- <tr>
-                                                        <td style="text-align: center; font-weight: bold">Total All Enrollments</td>
-                                                        <td style="text-align: center" colspan="4"></td>
-                                                        <td style="text-align: center; font-weight: bold"><?= $total_all_enrollments ?></td>
-                                                    </tr> -->
                                             </tbody>
                                         </table>
                                     </div>

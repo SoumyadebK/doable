@@ -33,6 +33,9 @@ if (!empty($_GET['NAME'])) {
             header('location:enrollment_details_report.php?start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&view=1');
         } elseif ($_GET['NAME'] == 'lessons_taught_by_service_provider_report') {
             header('location:lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER));
+        } elseif ($_GET['NAME'] == 'services_of_lessons_taught_by_service_provider_report') {
+            $PK_SERVICE_MASTER = empty($_GET['PK_SERVICE_MASTER']) ? 0 : $_GET['PK_SERVICE_MASTER'];
+            header('location:services_of_lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&PK_SERVICE_MASTER=' . implode(',', $PK_SERVICE_MASTER));
         }
     }
 }
@@ -75,6 +78,15 @@ if (!empty($_GET['NAME'])) {
     .service-provider-column.hidden {
         display: none !important;
     }
+
+    /* Services dropdown column */
+    .services-column {
+        transition: all 0.3s ease;
+    }
+
+    .services-column.hidden {
+        display: none !important;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -97,13 +109,26 @@ if (!empty($_GET['NAME'])) {
                                     <div class="row">
                                         <div class="col-2">
                                             <div class="form-group">
-                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this); toggleServiceProviderVisibility(this);">
+                                                <select class="form-control" required name="NAME" id="NAME" onchange="showReportLog(this); toggleExportButtons(this); toggleNoProviderOption(this); toggleServiceProviderVisibility(this); toggleServicesVisibility(this);">
                                                     <option value="">Select Report</option>
                                                     <option value="summary_of_staff_member_report">SUMMARY OF STAFF MEMBER REPORT</option>
                                                     <option value="lessons_taught_by_department_report">LESSONS TAUGHT BY DEPARTMENT</option>
                                                     <option value="sales_by_enrollment_report">SALES BY ENROLLMENT REPORT</option>
                                                     <option value="enrollment_details_report">ENROLLMENT TYPE DETAILED REPORT</option>
                                                     <option value="lessons_taught_by_service_provider_report">LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
+                                                    <option value="services_of_lessons_taught_by_service_provider_report">SERVICES OF LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-2 services-column" id="services_column">
+                                            <div id="services" style="width: 100%;">
+                                                <select class="multi_select_services" multiple id="pk_service_master_select" name="PK_SERVICE_MASTER[]">
+                                                    <?php
+                                                    $row = $db_account->Execute("SELECT DISTINCT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
                                                 </select>
                                             </div>
                                         </div>
@@ -133,7 +158,7 @@ if (!empty($_GET['NAME'])) {
                                                 <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-2">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
                                                 <span class="export-buttons" id="exportButtons">
@@ -167,6 +192,12 @@ if (!empty($_GET['NAME'])) {
 <script>
     $('.multi_select_service_provider').SumoSelect({
         placeholder: 'Select Service Provider',
+        selectAll: true,
+        triggerChangeCombined: true
+    });
+
+    $('.multi_select_services').SumoSelect({
+        placeholder: 'Select Services',
         selectAll: true,
         triggerChangeCombined: true
     });
@@ -217,6 +248,20 @@ if (!empty($_GET['NAME'])) {
         }
     }
 
+    // Function to toggle Services dropdown visibility
+    function toggleServicesVisibility(selectElement) {
+        var selectedValue = selectElement.value;
+        var servicesColumn = document.getElementById('services_column');
+
+        if (selectedValue === 'services_of_lessons_taught_by_service_provider_report') {
+            // Show services dropdown only for this specific report
+            servicesColumn.classList.remove('hidden');
+        } else {
+            // Hide services dropdown for all other reports
+            servicesColumn.classList.add('hidden');
+        }
+    }
+
     // Function to adjust column layout when hiding/showing service provider column
     function adjustColumnLayout(hideProviderColumn) {
         var dateColumns = document.querySelectorAll('.col-2');
@@ -245,6 +290,7 @@ if (!empty($_GET['NAME'])) {
         toggleExportButtons(reportSelect);
         toggleNoProviderOption(reportSelect);
         toggleServiceProviderVisibility(reportSelect);
+        toggleServicesVisibility(reportSelect);
     });
 
     $(".week-picker").datepicker({
@@ -311,12 +357,25 @@ if (!empty($_GET['NAME'])) {
         $('#reportForm').on('submit', function() {
             var selectedReport = $('#NAME').val();
             var selectedProviders = $('#service_provider_select').val();
+            var selectedServices = $('#pk_service_master_select').val();
             var includeNoProvider = $('#include_no_provider').is(':checked');
 
             // For enrollment details report, don't require service provider selection
             if (selectedReport === 'enrollment_details_report') {
                 // Always allow submission - service provider not required
                 return true;
+            }
+
+            // For services of lessons taught report, require service selection
+            if (selectedReport === 'services_of_lessons_taught_by_service_provider_report') {
+                if (!selectedServices || selectedServices.length === 0) {
+                    alert('Please select at least one service.');
+                    return false;
+                }
+                if (!selectedProviders || selectedProviders.length === 0) {
+                    alert('Please select at least one service provider.');
+                    return false;
+                }
             }
 
             // For sales by enrollment report, allow submission even if no providers are selected
@@ -326,7 +385,7 @@ if (!empty($_GET['NAME'])) {
                     alert('Please select at least one service provider or check "Include Enrollments With No Service Provider".');
                     return false;
                 }
-            } else {
+            } else if (selectedReport !== 'enrollment_details_report' && selectedReport !== 'services_of_lessons_taught_by_service_provider_report') {
                 // For other reports, require at least one service provider
                 if (!selectedProviders || selectedProviders.length === 0) {
                     alert('Please select at least one service provider.');
