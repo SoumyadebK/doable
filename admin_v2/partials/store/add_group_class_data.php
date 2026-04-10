@@ -15,6 +15,9 @@ $SCHEDULING_CODE = explode(',', $_POST['SCHEDULING_CODE']);
 $PK_SCHEDULING_CODE = $SCHEDULING_CODE[0];
 $DURATION = $SCHEDULING_CODE[1];
 
+$START_TIME = $_POST['GROUP_CLASS_START_TIME'];
+$END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
+
 $REPEAT = $_POST['REPEAT'];
 if ($REPEAT == 'NOT_REPEAT') {
     $GROUP_CLASS_DATA['SERIAL_NUMBER'] = getGroupClassSerialNumber();
@@ -25,8 +28,6 @@ if ($REPEAT == 'NOT_REPEAT') {
     $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
 
     $GROUP_CLASS_DATA['DATE'] = date('Y-m-d', strtotime($_POST['GROUP_CLASS_START_DATE']));
-    $START_TIME = $_POST['GROUP_CLASS_START_TIME'];
-    $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
     $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
     $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
     $GROUP_CLASS_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
@@ -44,7 +45,126 @@ if ($REPEAT == 'NOT_REPEAT') {
     $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
     db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
 } else {
-    for ($i = 0; $i < count($_POST['STARTING_ON']); $i++) {
+
+    $GROUP_CLASS_DATE_ARRAY = [];
+
+    $STARTING_ON = $_POST['GROUP_CLASS_START_DATE'];
+    $LENGTH = 12;
+    $FREQUENCY = 'month';
+    $END_DATE = isset($_POST['END_ON_GROUP_CLASS_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_GROUP_CLASS_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+
+    if (!empty($_POST['OCCURRENCE'])) {
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        if ($_POST['OCCURRENCE'] == 'WEEKLY') {
+            if (isset($_POST['DAYS'])) {
+                $DAYS = $_POST['DAYS'];
+            } else {
+                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+            }
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                if (in_array(strtolower($appointment_day), $DAYS)) {
+                    $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                }
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+            }
+        } else {
+            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
+
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
+                //echo $APPOINTMENT_DATE . "<br>";
+            }
+        }
+    }
+
+    $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($GROUP_CLASS_DATE_ARRAY);
+
+
+    /* $STARTING_ON = $_POST['STARTING_ON'][$i];
+    $LENGTH = $_POST['LENGTH'][$i];
+    $FREQUENCY = $_POST['FREQUENCY'][$i];
+    $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+
+    $START_TIME = $_POST['START_TIME'][$i];
+    $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
+
+    $OCCURRENCE = 'WEEKLY';
+
+    $GROUP_CLASS_DATE_ARRAY = [];
+
+
+    if (!empty($OCCURRENCE)) {
+        $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        if ($OCCURRENCE == 'WEEKLY') {
+            if (isset($_POST['DAYS'][$i])) {
+                $DAYS = explode(', ', $_POST['DAYS'][$i]);
+            } else {
+                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
+            }
+            $DAYS = array_map('strtolower', $DAYS);
+            while ($SERVICE_DATE < $END_DATE) {
+                $appointment_day = date('l', strtotime($SERVICE_DATE));
+                if (in_array(strtolower($appointment_day), $DAYS)) {
+                    $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                }
+                $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
+            }
+        } else {
+            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'][$i])) ? 7 : $_POST['OCCURRENCE_DAYS'][$i];
+
+            while ($SERVICE_DATE < $END_DATE) {
+                $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
+                $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
+                //echo $SERVICE_DATE . "<br>";
+            }
+        }
+    } */
+
+    if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
+        $standing_id = 0;
+
+        if ($TOTAL_APPOINTMENT_TO_CREATE > 1) {
+            $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
+            if ($standing_data->RecordCount() > 0) {
+                $standing_id = $standing_data->fields['STANDING_ID'] + 1;
+            } else {
+                $standing_id = 1;
+            }
+        }
+
+        for ($j = 0; $j < $TOTAL_APPOINTMENT_TO_CREATE; $j++) {
+            $GROUP_CLASS_DATA['SERIAL_NUMBER'] = getGroupClassSerialNumber();
+            $GROUP_CLASS_DATA['STANDING_ID'] = $standing_id;
+            $GROUP_CLASS_DATA['GROUP_NAME'] = $GROUP_NAME;
+            $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
+            $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
+            $GROUP_CLASS_DATA['PK_SCHEDULING_CODE'] = $PK_SCHEDULING_CODE;
+
+            $GROUP_CLASS_DATA['DATE'] = $GROUP_CLASS_DATE_ARRAY[$j];
+            $GROUP_CLASS_DATA['START_TIME'] = date('H:i:s', strtotime($START_TIME));
+            $GROUP_CLASS_DATA['END_TIME'] = date('H:i:s', strtotime($END_TIME));
+            $GROUP_CLASS_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
+            $GROUP_CLASS_DATA['PK_APPOINTMENT_STATUS'] = 1;
+            $GROUP_CLASS_DATA['ACTIVE'] = 1;
+            $GROUP_CLASS_DATA['APPOINTMENT_TYPE'] = 'GROUP';
+            $GROUP_CLASS_DATA['COMMENT'] = (isset($_POST['COMMENT']) && !empty($_POST['COMMENT'])) ? $_POST['COMMENT'] : '';
+            $GROUP_CLASS_DATA['INTERNAL_COMMENT'] = (isset($_POST['INTERNAL_COMMENT']) && !empty($_POST['INTERNAL_COMMENT'])) ? $_POST['INTERNAL_COMMENT'] : '';
+            $GROUP_CLASS_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $GROUP_CLASS_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'insert');
+            $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
+
+            $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+            $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
+            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+        }
+    }
+
+
+
+    /* for ($i = 0; $i < count($_POST['STARTING_ON']); $i++) {
         $STARTING_ON = $_POST['STARTING_ON'][$i];
         $LENGTH = $_POST['LENGTH'][$i];
         $FREQUENCY = $_POST['FREQUENCY'][$i];
@@ -56,6 +176,8 @@ if ($REPEAT == 'NOT_REPEAT') {
         $OCCURRENCE = 'WEEKLY';
 
         $GROUP_CLASS_DATE_ARRAY = [];
+
+
         if (!empty($OCCURRENCE)) {
             $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
             if ($OCCURRENCE == 'WEEKLY') {
@@ -122,7 +244,7 @@ if ($REPEAT == 'NOT_REPEAT') {
                 db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
             }
         }
-    }
+    } */
 }
 
 header("location:../../calendar.php?date=" . $GROUP_CLASS_DATA['DATE']);

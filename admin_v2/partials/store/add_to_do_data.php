@@ -5,40 +5,38 @@ global $db_account;
 
 $LOCATION_ARRAY = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
 
-$standing_id = 0;
 $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
+$REPEAT = $_POST['REPEAT'];
+$standing_id = 0;
 
-if (isset($_POST['IS_STANDING']) && $_POST['IS_STANDING'] == 1) {
-    $STARTING_ON = date('Y-m-d', strtotime($_POST['DATE']));
-    $LENGTH = $_POST['LENGTH'];
-    $FREQUENCY = $_POST['FREQUENCY'];
-    $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
-
-    $START_TIME = date('H:i', strtotime($_POST['START_TIME']));
-    $END_TIME = date('H:i', strtotime($_POST['END_TIME']));
+if ($REPEAT == 'Custom') {
+    $STARTING_ON = $_POST['TO_DO_DATE'];
+    $LENGTH = 12;
+    $FREQUENCY = 'month';
+    $END_DATE = isset($_POST['END_ON_TO_DO_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_TO_DO_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
     if (!empty($_POST['OCCURRENCE'])) {
-        $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
         if ($_POST['OCCURRENCE'] == 'WEEKLY') {
             if (isset($_POST['DAYS'])) {
                 $DAYS = $_POST['DAYS'];
             } else {
                 $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
             }
-            while ($SERVICE_DATE < $END_DATE) {
-                $appointment_day = date('l', strtotime($SERVICE_DATE));
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
                 if (in_array(strtolower($appointment_day), $DAYS)) {
-                    $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $SERVICE_DATE;
+                    $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
                 }
-                $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
             }
         } else {
             $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
 
-            while ($SERVICE_DATE < $END_DATE) {
-                $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $SERVICE_DATE;
-                $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
-                //echo $SERVICE_DATE . "<br>";
+            while ($APPOINTMENT_DATE < $END_DATE) {
+                $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
+                //echo $APPOINTMENT_DATE . "<br>";
             }
         }
     }
@@ -53,10 +51,12 @@ if (isset($_POST['IS_STANDING']) && $_POST['IS_STANDING'] == 1) {
     $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
 }
 
-if (count($SPECIAL_APPOINTMENT_DATE_ARRAY) > 0) {
+$TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($SPECIAL_APPOINTMENT_DATE_ARRAY);
+
+if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
     if (isset($_POST['PK_USER'])) {
         for ($j = 0; $j < count($_POST['PK_USER']); $j++) {
-            for ($i = 0; $i < count($SPECIAL_APPOINTMENT_DATE_ARRAY); $i++) {
+            for ($i = 0; $i < $TOTAL_APPOINTMENT_TO_CREATE; $i++) {
                 //$SPECIAL_APPOINTMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
                 $SPECIAL_APPOINTMENT_DATA['STANDING_ID'] = $standing_id;
                 $SPECIAL_APPOINTMENT_DATA['PK_LOCATION'] = $LOCATION_ARRAY[0];
