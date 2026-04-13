@@ -750,7 +750,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                                <input type="text" name="DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
+                                <input type="text" name="TO_DO_DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
                                 <span class="f14">at</span>
                                 <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" required>
                                 <span class="f14">to</span>

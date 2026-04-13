@@ -48,7 +48,7 @@ if ($REPEAT == 'Custom') {
         $standing_id = 1;
     }
 } else {
-    $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['DATE']));
+    $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['TO_DO_DATE']));
 }
 
 $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($SPECIAL_APPOINTMENT_DATE_ARRAY);
@@ -81,4 +81,4 @@ if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
     }
 }
 
-header("location:../../calendar.php?date=" . $SPECIAL_APPOINTMENT_DATA['DATE']);
+header("location:../../calendar.php?date=" . $SPECIAL_APPOINTMENT_DATE_ARRAY[0]);

@@ -108,12 +108,27 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-event {
+        position: relative;
         border: none !important;
         border-radius: 10px !important;
         margin: 1px 0px 1px 2px !important;
         text-align: left !important;
         padding: 8px !important;
         min-height: 50px !important;
+    }
+
+    .fc-event .fc-co-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #39b54a !important;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0px 3px;
+        border-radius: 10px;
+        z-index: 2;
+        pointer-events: none;
     }
 
     .fc-content {
@@ -1175,6 +1190,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             $(element).find(".fc-title").append('<br><span style="font-weight: bold;">' + event_data.paid_status + '</span>');
                         }
                     }
+
+                    if (event_data.status == 'CO') {
+                        if (!$(element).find('.fc-co-badge').length) {
+                            $(element).append('<span class="fc-co-badge"><i class="fa fa-circle" aria-hidden="true" style="color: #39b54a;"></i></span>');
+                        }
+                    }
+
+
 
 
 
