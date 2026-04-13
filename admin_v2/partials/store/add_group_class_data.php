@@ -44,6 +44,8 @@ if ($REPEAT == 'NOT_REPEAT') {
     $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
     $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
     db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+
+    $GROUP_CLASS_DATE_ARRAY[0] = $GROUP_CLASS_DATA['DATE'];
 } else {
 
     $GROUP_CLASS_DATE_ARRAY = [];
@@ -247,4 +249,4 @@ if ($REPEAT == 'NOT_REPEAT') {
     } */
 }
 
-header("location:../../calendar.php?date=" . $GROUP_CLASS_DATA['DATE']);
+header("location:../../calendar.php?date=" . $GROUP_CLASS_DATE_ARRAY[0]);
