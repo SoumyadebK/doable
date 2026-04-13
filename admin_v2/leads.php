@@ -427,6 +427,9 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
 </body>
 
 <script>
+    // Store the original lead status when the page loads
+    var originalLeadStatus = '<?= !empty($_GET['id']) ? $PK_LEAD_STATUS : '' ?>';
+
     function createCustomer() {
         let PK_LEADS = $('#PK_LEADS').val();
         let PK_LOCATION = $('#PK_LOCATION').val();
@@ -445,28 +448,37 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
 
     function loadStatusData() {
         let leadId = $('#PK_LEADS').val();
-        let statusId = $('#PK_LEAD_STATUS').val();
-        let statusText = $('#PK_LEAD_STATUS option:selected').text();
+        let currentStatusId = $('#PK_LEAD_STATUS').val();
+        let currentStatusText = $('#PK_LEAD_STATUS option:selected').text();
 
-        // Update the labels to show which status we're viewing
-        $('#selected_status_label').text(statusText);
-        $('#selected_status_comment_label').text(statusText);
+        // Get the next status ID from the dropdown
+        let nextStatusId = getNextStatusId(currentStatusId);
+        let nextStatusText = getNextStatusText(currentStatusId);
 
-        if (!leadId || !statusId) {
-            // If no lead ID (new lead) or no status selected, clear the fields
+        // Update the labels to show the NEXT status name
+        if (nextStatusText) {
+            $('#selected_status_label').text(nextStatusText);
+            $('#selected_status_comment_label').text(nextStatusText);
+        } else {
+            $('#selected_status_label').text('Next Status (None)');
+            $('#selected_status_comment_label').text('Next Status (None)');
+        }
+
+        if (!leadId || !nextStatusId) {
+            // If no lead ID (new lead) or no next status, clear the fields
             $('#DATE').val('');
             $('#FOLLOW_UP_COMMENT').val('');
             return;
         }
 
-        // Make AJAX call to get the latest follow-up data for this status
+        // Load the follow-up data for the NEXT status
         $.ajax({
             url: 'leads.php',
             type: 'GET',
             data: {
                 ajax: 'get_status_data',
                 lead_id: leadId,
-                status_id: statusId
+                status_id: nextStatusId
             },
             dataType: 'json',
             success: function(data) {
@@ -474,9 +486,56 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                 $('#FOLLOW_UP_COMMENT').val(data.comment);
             },
             error: function() {
-                console.log('Error loading status data');
+                console.log('Error loading next status data');
+                $('#DATE').val('');
+                $('#FOLLOW_UP_COMMENT').val('');
             }
         });
+    }
+
+    function getNextStatusId(currentId) {
+        // Get all status options
+        let statusOptions = $('#PK_LEAD_STATUS option');
+        let found = false;
+        let nextId = null;
+
+        for (let i = 0; i < statusOptions.length; i++) {
+            let optionValue = $(statusOptions[i]).val();
+
+            if (found) {
+                nextId = optionValue;
+                break;
+            }
+
+            if (optionValue == currentId) {
+                found = true;
+            }
+        }
+
+        return nextId;
+    }
+
+    function getNextStatusText(currentId) {
+        // Get all status options
+        let statusOptions = $('#PK_LEAD_STATUS option');
+        let found = false;
+        let nextText = null;
+
+        for (let i = 0; i < statusOptions.length; i++) {
+            let optionValue = $(statusOptions[i]).val();
+            let optionText = $(statusOptions[i]).text();
+
+            if (found) {
+                nextText = optionText;
+                break;
+            }
+
+            if (optionValue == currentId) {
+                found = true;
+            }
+        }
+
+        return nextText;
     }
 
     $(document).ready(function() {
@@ -486,11 +545,18 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
             todayHighlight: true
         });
 
-        // Initialize the labels with the current status
+        // Initialize on page load - show next status data
         <?php if (!empty($_GET['id'])): ?>
-            let currentStatusText = $('#PK_LEAD_STATUS option:selected').text();
-            $('#selected_status_label').text(currentStatusText);
-            $('#selected_status_comment_label').text(currentStatusText);
+            // Get next status text and data
+            let currentId = $('#PK_LEAD_STATUS').val();
+            let nextText = getNextStatusText(currentId);
+            if (nextText) {
+                $('#selected_status_label').text(nextText);
+                $('#selected_status_comment_label').text(nextText);
+            }
+
+            // Load the next status data
+            loadStatusData();
         <?php endif; ?>
     });
 </script>
