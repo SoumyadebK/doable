@@ -1181,7 +1181,7 @@ if (isset($_GET['standing'])) {
             let formData = $(this).serialize();
 
             $.ajax({
-                url: "partials/appointment_table.php",
+                url: "partials/ajaxList/appointment_table.php",
                 type: "POST",
                 data: formData,
                 success: function(result) {

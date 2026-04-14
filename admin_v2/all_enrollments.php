@@ -665,29 +665,27 @@ if (isset($_POST['SUBMIT'])) {
                                                 </span>
                                             <?php } ?>
                                         </td>
-                                        <td>$<?= str_replace(",", "", number_format($enrollment_data->fields['TOTAL_AMOUNT'], 2)) ?></td>
-                                        <td class="text-center" style="vertical-align: middle;">
-                                            <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                                                <a href="javascript:;" onclick="ConfirmDelete(<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>);" title="Delete" style="font-size:15px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <td style="vertical-align: middle; text-align: right; padding-right: 40px;">$<?= str_replace(",", "", number_format($enrollment_data->fields['TOTAL_AMOUNT'], 2)) ?></td>
+                                        <td style="vertical-align: middle; text-align: right; padding-right: 40px;">
+                                            <?php
+                                            $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                                            if ($payment_data->RecordCount() == 0) {
+                                            ?>
+                                                <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
+                                                    <a href="javascript:;" onclick="ConfirmDelete(<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>);" title="Delete" style="font-size:18px; color: #ff0000;"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php } ?>
                                             <?php } ?>
 
                                             <?php if ($_SESSION['PK_ROLES'] != 5) {
                                                 if ($enrollment_data->fields['STATUS'] == 'A') { ?>
-                                                    <a href="javascript:;" onclick="cancelEnrollment(<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)" style="font-size:15px"><i class="fa fa-ban"></i></a>
+                                                    <a href="javascript:;" onclick="cancelEnrollment(<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)" style="font-size:18px; color: gray;" title="Cancel"><i class="fa fa-ban"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <?php } elseif ($enrollment_data->fields['STATUS'] == 'C') { ?>
-                                                    <p style="color: red;">Cancelled</p>
-                                                    <!--<a href="all_enrollments.php?id=<?php /*=$row->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
+                                                    <i class="fa fa-ban" style="font-size:18px; color: #ff0000;" title="Cancelled"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             <?php }
                                             } ?>
 
-                                            <a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>">
-                                                <button type="button" class="bg-transparent p-0 border-0">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
-                                                        <circle cx="256" cy="256" r="48" />
-                                                        <circle cx="256" cy="416" r="48" />
-                                                        <circle cx="256" cy="96" r="48" />
-                                                    </svg>
-                                                </button>
+                                            <a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>" title="Edit" style="font-size:18px; color: #198754;">
+                                                <i class="fa fa-pencil"></i>
                                             </a>
                                         </td>
                                     </tr>
