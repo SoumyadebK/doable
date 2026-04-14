@@ -1372,3 +1372,18 @@ function getNextBookedCount($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLM
         return "No ";
     }
 }
+
+function getServiceCodeColor($service_code)
+{
+    $service_code_color = '#6b82e2';
+    if (strpos($service_code, 'PRI') !== false) {
+        $service_code_color = '#335CFF';
+    } else if (strpos($service_code, 'GRP') !== false) {
+        $service_code_color = '#FB4BA3';
+    } else if (strpos($service_code, 'PRT') !== false) {
+        $service_code_color = '#22D3BB';
+    } else if (strpos($service_code, 'NONE') !== false) {
+        $service_code_color = '#e8731f';
+    }
+    return $service_code_color;
+}

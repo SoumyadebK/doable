@@ -20,14 +20,7 @@ while (!$package_service_data->EOF) {
             <div class="align-self-center">
                 <?php
                 $service_master_data = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PK_SERVICE_CODE, DOA_SERVICE_CODE.SERVICE_CODE FROM `DOA_SERVICE_MASTER` LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_SERVICE_MASTER = " . $package_service_data->fields['PK_SERVICE_MASTER'] . " AND DOA_SERVICE_MASTER.ACTIVE = 1 AND DOA_SERVICE_MASTER.IS_DELETED = 0");
-                $service_code_color = '#6b82e2';
-                if (strpos($service_master_data->fields['SERVICE_CODE'], 'PRI') !== false) {
-                    $service_code_color = '#335CFF';
-                } else if (strpos($service_master_data->fields['SERVICE_CODE'], 'GRP') !== false) {
-                    $service_code_color = '#FB4BA3';
-                } else if (strpos($service_master_data->fields['SERVICE_CODE'], 'PRT') !== false) {
-                    $service_code_color = '#22D3BB';
-                }
+                $service_code_color = getServiceCodeColor($service_master_data->fields['SERVICE_CODE']);
                 ?>
                 <p class="text-dark mb-0"><?= $service_master_data->fields['SERVICE_NAME'] ?>
                     <span class="badge ms-auto" style="background-color: <?= $service_code_color ?>20; color: <?= $service_code_color ?>;"><?= $service_master_data->fields['SERVICE_CODE'] ?></span>
