@@ -257,13 +257,19 @@ while (!$enrollment_data->EOF) {
                             <?php } ?>
                         <?php } ?>
 
-                        <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                            <br><a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="ti-trash"></i></a>
+                        <?php
+                        $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $enrollment_data->fields['PK_ENROLLMENT_MASTER']);
+                        if ($payment_data->RecordCount() == 0) {
+                        ?>
+                            <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
+                                <br><a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="ti-trash"></i></a>
+                            <?php } ?>
                         <?php } ?>
+
                         <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
 
                             <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
-                                <br><a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;"></a>
+                                <br><a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;" title="Cancel"></a>
                             <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
                                 <p style="color: red; margin-top: auto;">Cancelled</p>
                                 <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
