@@ -80,7 +80,7 @@ if ($page == 1) {
 } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -244,10 +244,10 @@ while (!$enrollment_data->EOF) {
                             <button class="btn btn-info waves-effect waves-light text-white" href="javascript:" onclick="moveToWallet(this, 0, <?= $PK_ENROLLMENT_MASTER ?>, 0, <?= $PK_USER_MASTER ?>, <?= $amount_to_return ?>, 'completed', 'Move', 0)">Move to Wallet</button><br><br>
                             <p style="color:green;">$<?= number_format($amount_to_return, 2) ?></p>
                         <?php } ?>
-                        <?php
-                        if ($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>
+                        <!-- <?php
+                                if ($enrollment_data->fields['STATUS'] === 'C' || $enrollment_data->fields['STATUS'] === 'CA') { ?>
                             <p style="color: red; margin-top: 25%;">Cancelled</p>
-                        <?php } ?>
+                        <?php } ?> -->
                         <?php
                         if ($enrollment_data->fields['STATUS'] === 'CA') {
                             if ($total_paid_amount - $total_used_amount > 0) { ?>
@@ -258,7 +258,17 @@ while (!$enrollment_data->EOF) {
                         <?php } ?>
 
                         <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                            <!-- <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 20px; margin-left: 20px;"><i class="ti-trash"></i></a> -->
+                            <br><a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="ti-trash"></i></a>
+                        <?php } ?>
+                        <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
+
+                            <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
+                                <br><a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;"></a>
+                            <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
+                                <p style="color: red; margin-top: auto;">Cancelled</p>
+                                <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
+                            <?php } ?>
+
                         <?php } ?>
             </div>
         </div>
@@ -568,3 +578,63 @@ if ($page == 1) { ?>
         }
     </script>
 <?php } ?>
+
+<script>
+    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_USER_MASTER').val(PK_USER_MASTER);
+        $('#CANCEL_FUTURE_APPOINTMENT_3').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
+        $('#step_3').hide();
+        $('#step_2').hide();
+        $('#step_1').show();
+        $('#enrollment_cancel_modal').modal('show');
+    }
+
+    function selectRefundType(param) {
+        let paymentType = parseInt($(param).val());
+        if (paymentType === 2) {
+            $(param).closest('.modal-body').find('#check_payment').slideDown();
+        } else {
+            $(param).closest('.modal-body').find('#check_payment').slideUp();
+        }
+    }
+
+    function showEnrollmentServiceDetails() {
+        let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+        let USE_AVAILABLE_CREDIT = $('input[name="USE_AVAILABLE_CREDIT"]:checked').val();
+        let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
+        $.ajax({
+            url: "includes/enrollment_service_details.php",
+            type: 'GET',
+            data: {
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                USE_AVAILABLE_CREDIT: USE_AVAILABLE_CREDIT,
+                CANCEL_FUTURE_APPOINTMENT: CANCEL_FUTURE_APPOINTMENT
+            },
+            success: function(data) {
+                $('#enrollment_service_details').html(data);
+                $('.negative_balance_div').slideUp();
+                $('.credit_balance_div').slideUp();
+
+                let TOTAL_POSITIVE_BALANCE = parseFloat($('#TOTAL_POSITIVE_BALANCE').val());
+                let TOTAL_NEGATIVE_BALANCE = parseFloat($('#TOTAL_NEGATIVE_BALANCE').val());
+
+                if (USE_AVAILABLE_CREDIT == 1) {
+                    TOTAL_POSITIVE_BALANCE += TOTAL_NEGATIVE_BALANCE;
+                    TOTAL_NEGATIVE_BALANCE = TOTAL_POSITIVE_BALANCE;
+                }
+
+                if (TOTAL_POSITIVE_BALANCE > 0) {
+                    $('.credit_balance_div').slideDown();
+                    $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
+                }
+                if (TOTAL_NEGATIVE_BALANCE < 0) {
+                    $('.negative_balance_div').slideDown();
+                    $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
+                }
+            }
+        });
+    }
+</script>
