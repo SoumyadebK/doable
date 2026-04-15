@@ -1158,6 +1158,39 @@ function saveProfileData($RESPONSE_DATA)
             db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
             $PK_USER_MASTER = $db->insert_ID();
         }
+
+        // insert comments from leads
+        if (!empty($RESPONSE_DATA['PK_LEADS']) && !empty($PK_USER)) {
+
+            // 1. Get all status logs for this lead
+            $status_logs = $db->Execute("
+                                            SELECT ld.*, ls.LEAD_STATUS 
+                                            FROM DOA_LEAD_DATE ld 
+                                            LEFT JOIN DOA_LEAD_STATUS ls ON ld.PK_LEAD_STATUS = ls.PK_LEAD_STATUS 
+                                            WHERE ld.PK_LEADS = '" . $RESPONSE_DATA['PK_LEADS'] . "' 
+                                            ORDER BY ld.CREATED_ON ASC
+                                        ");
+
+            // 2. Insert each status log as a comment for the customer
+            while (!$status_logs->EOF) {
+                $log = $status_logs->fields;
+
+                $comment_data = [
+                    'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
+                    'COMMENT' => "Lead Status: " . $log['LEAD_STATUS'] . " | " . date('Y-m-d H:i', strtotime($log['CREATED_ON'])),
+                    'COMMENT_DATE' => $log['DATE'],
+                    'FOR_PK_USER' => $PK_USER,
+                    'BY_PK_USER' => $log['CREATED_BY'],
+                    'ACTIVE' => 1,
+                    'CREATED_BY' => $log['CREATED_BY'],
+                    'CREATED_ON' => $log['CREATED_ON'],
+                ];
+
+                db_perform_account('DOA_COMMENT', $comment_data, 'insert');
+
+                $status_logs->MoveNext();
+            }
+        }
     } else {
         $PK_USER = $RESPONSE_DATA['PK_USER'];
         $USER_DATA['ACTIVE']    = $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];

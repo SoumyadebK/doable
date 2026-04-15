@@ -338,8 +338,8 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="form-label">Description</label>
-                                                <textarea class="form-control" name="DESCRIPTION" rows="2" placeholder="Enter lead description"><?= $DESCRIPTION ?></textarea>
+                                                <label class="form-label">Remarks</label>
+                                                <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="2" placeholder="Enter lead description"><?= $DESCRIPTION ?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -437,13 +437,14 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
         let LAST_NAME = $('#LAST_NAME').val();
         let PHONE = $('#PHONE').val();
         let EMAIL_ID = $('#EMAIL_ID').val();
+        let NOTES = $('#DESCRIPTION').val();
 
         if (!PK_LOCATION || !FIRST_NAME) {
             alert('Please select location and enter first name before creating customer');
             return;
         }
 
-        window.location.href = `../admin/customer.php?PK_LOCATION=${encodeURIComponent(PK_LOCATION)}&FIRST_NAME=${encodeURIComponent(FIRST_NAME)}&LAST_NAME=${encodeURIComponent(LAST_NAME)}&PHONE=${encodeURIComponent(PHONE)}&EMAIL_ID=${encodeURIComponent(EMAIL_ID)}&PK_LEADS=${PK_LEADS}`;
+        window.location.href = `../admin/customer.php?PK_LOCATION=${encodeURIComponent(PK_LOCATION)}&FIRST_NAME=${encodeURIComponent(FIRST_NAME)}&LAST_NAME=${encodeURIComponent(LAST_NAME)}&PHONE=${encodeURIComponent(PHONE)}&EMAIL_ID=${encodeURIComponent(EMAIL_ID)}&PK_LEADS=${PK_LEADS}&NOTES=${encodeURIComponent(NOTES)}`;
     }
 
     function loadStatusData() {
