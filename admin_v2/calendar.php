@@ -803,6 +803,50 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         </div>
     </div>
 
+
+    <!--Edit Billing Due Date Model-->
+    <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="edit_due_date_form" method="post">
+                <input type="hidden" name="PK_USER_MASTER" id="PK_USER_MASTER">
+                <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
+                <input type="hidden" name="old_due_date" id="old_due_date">
+                <input type="hidden" name="edit_type" id="edit_type">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4><b>Edit Due Date</b></h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">Enter your profile password</label>
+                                    <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
+                                    <p id="due_date_verify_password_error" style="color: red;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <?php require_once('../includes/footer.php'); ?>
 
     <?php include 'partials/create_appointment_modal.php'; ?>
@@ -1866,13 +1910,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         let sp_name = service_providers[i].SERVICE_PROVIDER_NAME.trim();
                         let sp_initials = service_providers[i].INITIALS;
                         let sp_color = service_providers[i].COLOR;
+                        let appointment_count = (service_providers[i].APPOINTMENT_COUNT > 0) ? service_providers[i].APPOINTMENT_COUNT : '0';
 
                         let avatarHTML = `<div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
                                                 <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:${sp_color};color:#fff;font-weight:600;font-size:14px;letter-spacing:1px;">
                                                     ${sp_initials}
                                                 </div>
                                                 <div style="max-width:100%;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    ${sp_name}
+                                                    ${sp_name} - ${appointment_count}
                                                 </div>
                                             </div>`;
 
@@ -2296,6 +2341,64 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             const formattedMinutes = minutes.toString().padStart(2, '0');
 
             return `${formattedHours}:${formattedMinutes} ${ampm}`;
+        }
+    </script>
+
+    <script>
+        $('#edit_due_date_form').on('submit', function(event) {
+            event.preventDefault();
+
+            let PK_USER_MASTER = $('#edit_due_date_form #PK_USER_MASTER').val();
+            let PK_ENROLLMENT_LEDGER = $('#edit_due_date_form #PK_ENROLLMENT_LEDGER').val();
+            let old_due_date = $('#edit_due_date_form #old_due_date').val();
+            let due_date = $('#edit_due_date_form #due_date').val();
+            let edit_type = $('#edit_due_date_form #edit_type').val();
+            let due_date_verify_password = $('#edit_due_date_form #due_date_verify_password').val();
+
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'updateBillingDueDate',
+                    PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                    old_due_date: old_due_date,
+                    due_date: due_date,
+                    edit_type: edit_type,
+                    due_date_verify_password: due_date_verify_password
+                },
+                success: function(data) {
+                    $('#due_date_verify_password_error').slideUp();
+                    if (data == 1) {
+                        Swal.fire({
+                            title: "Updated!",
+                            text: "Due Date is Updated.",
+                            icon: "success",
+                            timer: 3000,
+                        }).then((result) => {
+                            $('#billing_due_date_model').modal('hide');
+                            //enrollmentLoadMore('normal');
+                            getPaymentDueList();
+                            getPaymentDueCount(PK_USER_MASTER);
+                        });
+                    } else {
+                        $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
+                    }
+                }
+            });
+        });
+
+        function getPaymentDueCount(PK_USER_MASTER) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'getPaymentDueCount',
+                    PK_USER_MASTER: PK_USER_MASTER
+                },
+                success: function(data) {
+                    $('#payment_due_count').text(data);
+                }
+            });
         }
     </script>
 

@@ -3218,3 +3218,16 @@ function removeCustomerFromGroupClass($RESPONSE_DATA)
     $return_data['message'] = 'Customer removed successfully';
     echo json_encode($return_data);
 }
+
+function getPaymentDueCount($RESPONSE_DATA)
+{
+    global $db_account;
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+
+    $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_LEDGER.DUE_DATE < '" . date("Y-m-d") . "' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE");
+    if ($payment_due->RecordCount() > 0) {
+        echo $payment_due->RecordCount();
+    } else {
+        echo 0;
+    }
+}

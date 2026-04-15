@@ -1140,23 +1140,19 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function selectThisEnrollment(param) {
         if ($(param).val() == 'AD-HOC') {
-            $('.service_area').removeClass('d-none');
+            $('#create_appointment_form .service_area').removeClass('d-none');
             $('#create_appointment_form #PK_SERVICE_MASTER').val('');
             $('#create_appointment_form #PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
             selectThisServiceForSchedulingCode($('#create_appointment_form #PK_SERVICE_MASTER'));
         } else {
-            $('.service_area').addClass('d-none');
+            $('#create_appointment_form .service_area').addClass('d-none');
             let PK_ENROLLMENT_MASTER = $(param).val();
-            let no_of_session = $(param).data('no_of_session');
-            let used_session = $(param).data('used_session');
 
             $.ajax({
                 url: "ajax/get_scheduling_codes.php",
                 type: "POST",
                 data: {
-                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                    no_of_session: no_of_session,
-                    used_session: used_session
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
                 },
                 async: false,
                 cache: false,

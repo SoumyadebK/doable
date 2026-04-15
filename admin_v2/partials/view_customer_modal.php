@@ -199,12 +199,12 @@ while (!$row->EOF) {
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Family" type="button">Family</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Payment" type="button">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Payment" type="button" onclick="getPaymentDueList()">
             <span>Payment</span>
 
             <?php $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_LEDGER.DUE_DATE < '" . date("Y-m-d") . "' AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE");
             if ($payment_due->RecordCount() > 0) { ?>
-                <span class="badge bg-danger rounded-pill"><?= $payment_due->RecordCount() ?></span>
+                <span class="badge bg-danger rounded-pill" id="payment_due_count"><?= $payment_due->RecordCount() ?></span>
             <?php } ?>
         </button>
     </li>
@@ -523,68 +523,55 @@ while (!$row->EOF) {
                     </svg>
                 </span>
             </div>
-            <div class="table-responsive">
-                <table id="paymentTable" class="table">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left;" width="25%">Enrollment</th>
-                            <th style="text-align: center;" width="20%">Due</th>
-                            <th style="text-align: center;" width="15%">Amount</th>
-                            <th style="text-align: center;" width="45%">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $payment_due = $db_account->Execute("SELECT DOA_ENROLLMENT_LEDGER.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE");
-                        if ($payment_due->RecordCount() > 0) {
-                            while (!$payment_due->EOF) {
-                                $name = $payment_due->fields['ENROLLMENT_NAME'];
-                                $ENROLLMENT_ID = $payment_due->fields['ENROLLMENT_ID'];
-                                if (empty($name)) {
-                                    $enrollment_name = '';
-                                } else {
-                                    $enrollment_name = "$name" . " - ";
-                                }
-                                if ($payment_due->fields['AMOUNT_REMAIN'] > 0) {
-                                    $BILLED_AMOUNT = $payment_due->fields['AMOUNT_REMAIN'];
-                                } else {
-                                    $BILLED_AMOUNT = $payment_due->fields['BILLED_AMOUNT'];
-                                }
-                                $due_date = strtotime($payment_due->fields['DUE_DATE']);
-                                $is_past_due = $due_date && $due_date < strtotime(date('Y-m-d'));
-                        ?>
-                                <tr>
-                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: left;"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $payment_due->fields['MISC_ID'] : $enrollment_name . $ENROLLMENT_ID ?></td>
-                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;"><?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?></td>
-                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;">$<?= number_format($BILLED_AMOUNT, 2) ?></td>
-                                    <td style="color: <?= $is_past_due ? 'red' : 'black' ?>; text-align: center;">
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="payNow(<?= $payment_due->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $BILLED_AMOUNT ?>, '<?= $ENROLLMENT_ID ?>');">Pay Now</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="editDueDate(<?= $payment_due->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($payment_due->fields['DUE_DATE'])) ?>', 'billing')">Edit Date</button>
-                                    </td>
-                                </tr>
-                        <?php $payment_due->MoveNext();
-                            }
-                        } ?>
-                    </tbody>
-                </table>
+            <div class="table-responsive" id="payment_due_list">
+
             </div>
         </div>
     </div>
 </div>
 
+
 <script>
-    function editDueDate(PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
-        $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
-        $('#old_due_date').val(DUE_DATE);
-        $('#due_date').val(DUE_DATE);
-        $('#edit_type').val(TYPE);
+    function getPaymentDueList() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "partials/ajaxList/customer_payment_due.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#payment_due_list').html(result);
+
+                /* var table = $('#paymentDueTable').DataTable({
+                    order: [
+                        [1, 'desc']
+                    ],
+                    columnDefs: [{
+                        type: 'date',
+                        targets: 1
+                    }],
+                }); */
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function editDueDate(PK_USER_MASTER, PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
+        $('#edit_due_date_form #PK_USER_MASTER').val(PK_USER_MASTER);
+        $('#edit_due_date_form #PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#edit_due_date_form #old_due_date').val(DUE_DATE);
+        $('#edit_due_date_form #due_date').val(DUE_DATE);
+        $('#edit_due_date_form #edit_type').val(TYPE);
         $('#billing_due_date_model').modal('show');
     }
 
     $(document).ready(function() {
         $('#paymentSearch').on('input', function() {
             var filter = $(this).val().toLowerCase();
-            $('#paymentTable tbody tr').each(function() {
+            $('#paymentDueTable tbody tr').each(function() {
                 var rowText = $(this).text().toLowerCase();
                 $(this).toggle(rowText.indexOf(filter) !== -1);
             });
