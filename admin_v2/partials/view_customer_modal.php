@@ -193,7 +193,7 @@ while (!$row->EOF) {
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Details" type="button">Details</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Appointment1" type="button">Appointment</button>
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Appointment1" type="button">Appointments</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Family" type="button">Family</button>
@@ -277,7 +277,7 @@ while (!$row->EOF) {
             <button
                 type="button"
                 class="btn-secondary w-100 m-1"
-                onclick="openDrawer4(<?= $PK_USER_MASTER ?>)">
+                onclick="createCustomerEnrollment(<?= $PK_USER_MASTER ?>)">
                 Add Enrollment
             </button>
         </div>
@@ -579,28 +579,11 @@ while (!$row->EOF) {
     });
 </script>
 <script>
-    function openDrawer4(customerId) {
-        // Since the drawer content is already pre-loaded in calendar.php,
-        // we just need to show the drawer and set the customer ID
-
-        // Open the drawer
+    function createCustomerEnrollment(customerId) {
         $('#sideDrawer4, .overlay4').addClass('active');
-
-        // If you need to pass the customer ID to the enrollment form
-        // You can set it in a hidden field or trigger a function
-        if (typeof setEnrollmentCustomerId === 'function') {
-            setEnrollmentCustomerId(customerId);
-        }
-
-        // Alternatively, directly set the value if the form is already loaded
-        setTimeout(function() {
-            $('#sideDrawer4 #PK_USER_MASTER').val(customerId);
-            $('#sideDrawer4 input[name="PK_USER_MASTER"]').val(customerId);
-
-            $('#enrollment_form #PK_USER_MASTER').trigger('change');
-        }, 100);
-
-
+        $('#enrollment_form #PK_USER_MASTER').SumoSelect();
+        $('#enrollment_form #PK_USER_MASTER').val(customerId);
+        $('#enrollment_form #PK_USER_MASTER')[0].sumo.reload();
     }
 </script>
 

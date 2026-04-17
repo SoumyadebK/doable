@@ -17,6 +17,8 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
+<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
+
 <style>
     .overlay2 {
         display: none;
