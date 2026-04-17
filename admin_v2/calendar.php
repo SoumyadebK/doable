@@ -621,9 +621,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 </style>
 
-
-<link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
-
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
@@ -858,6 +855,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <script>
+        $('.customer_select').SumoSelect({
+            placeholder: 'Select Customer',
+            search: true,
+            searchText: 'Search...'
+        });
+
+
         function parseYMDDate(dateString) {
             if (!dateString) return null;
             let parts = dateString.split('-'); // "YYYY-MM-DD"

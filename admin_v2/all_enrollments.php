@@ -795,6 +795,13 @@ if (isset($_POST['SUBMIT'])) {
     <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script>
+        $('.customer_select').SumoSelect({
+            placeholder: 'Select Customer',
+            search: true,
+            searchText: 'Search...'
+        });
+
+
         function ConfirmDelete(PK_ENROLLMENT_MASTER) {
             Swal.fire({
                 title: "Are you sure?",

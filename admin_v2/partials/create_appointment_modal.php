@@ -662,7 +662,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" required />
+                                <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" />
                             </div>
                         </div>
                     </div>
@@ -1052,12 +1052,6 @@ if ($location_operational_hour->RecordCount() > 0) {
 
 <!-- End Individual Appointment -->
 <script>
-    $('.customer_select').SumoSelect({
-        placeholder: 'Select Customer',
-        search: true,
-        searchText: 'Search...'
-    });
-
     $('#APPOINTMENT_DATE_CREATION').datepicker({
         onSelect: function() {
             getSlotsForAppointmentCreation(this);
