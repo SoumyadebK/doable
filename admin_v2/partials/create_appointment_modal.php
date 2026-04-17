@@ -81,10 +81,10 @@ if ($location_operational_hour->RecordCount() > 0) {
         <li class="nav-item" role="presentation">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Appointment" type="button" onclick="$('#FORM_NAME').val('create_appointment_form');">Appointment</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item group_class_tab" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Group" type="button" onclick="$('#FORM_NAME').val('create_group_class_form')">Group Class</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item to_do_tab" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#To-Do" type="button" onclick="$('#FORM_NAME').val('create_to_do_form')">To Do</button>
         </li>
         <li class="nav-item" role="presentation">

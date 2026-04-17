@@ -356,7 +356,7 @@ if ($page == 1) { ?>
         });
 
         function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
-            let PK_PAYMENT_TYPE = $('#PK_PAYMENT_TYPE_REFUND').val();
+            let PK_PAYMENT_TYPE = $('#refund_modal #PK_PAYMENT_TYPE_REFUND').val();
             let confirm_move = $('#confirm_move').val();
             if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
                 $('.trigger_this').removeClass('trigger_this');

@@ -774,7 +774,11 @@ if (isset($_POST['SUBMIT'])) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
+<<<<<<< HEAD
                                                                                 <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
+=======
+                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
+>>>>>>> 84542bde5497d1d8222366ca797c6cf814eb2648
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -813,7 +817,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                                         <div class="form-group">
                                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                                             <div class="col-md-12">
-                                                                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number" value="<?= $customer_phone->fields['PHONE'] ?>" required>
+                                                                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?= $customer_phone->fields['PHONE'] ?>" required>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -3027,7 +3031,7 @@ if (isset($_POST['SUBMIT'])) {
                                                 <div class="form-group">
                                                     <label class="form-label">Phone</label>
                                                     <div class="col-md-12">
-                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control" placeholder="Enter Phone Number">
+                                                        <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Enter Phone Number">
                                                     </div>
                                                 </div>
                                             </div>
@@ -3036,6 +3040,28 @@ if (isset($_POST['SUBMIT'])) {
                                             </div>
                                         </div>`);
     }
+
+    function formatPhoneNumber(input) {
+        let digits = input.value.replace(/\D/g, '');
+        if (digits.length > 10) {
+            digits = digits.slice(0, 10);
+        }
+        let formatted = digits;
+
+        if (digits.length <= 3) {
+            formatted = digits;
+        } else if (digits.length <= 6) {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        } else {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        input.value = formatted;
+    }
+
+    $(document).on('input', '.format_phone_number', function() {
+        formatPhoneNumber(this);
+    });
 
     function addMoreEmail() {
         $('#add_more_email').append(`<div class="row">

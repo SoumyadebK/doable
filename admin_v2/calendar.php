@@ -1405,6 +1405,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             let serviceProviderId = selectedServiceProvider && selectedServiceProvider.length > 0 ? selectedServiceProvider[0] : '';
 
                                             $('#sideDrawer, .overlay').addClass('active');
+                                            $('.group_class_tab').show();
+                                            $('.to_do_tab').show();
                                             setDateOnAppointment();
 
                                             let formatted_time = formatTime12(date);
@@ -1542,6 +1544,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $('#create_appointment_form #SELECTED_CUSTOMER_ID').SumoSelect();
             $('#create_appointment_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
             $('#create_appointment_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+            $('#create_appointment_form #SELECTED_CUSTOMER_ID').trigger('change');
+            $('.group_class_tab').hide();
+            $('.to_do_tab').hide();
 
             $('#create_record_only_form #SELECTED_CUSTOMER_ID').SumoSelect();
             $('#create_record_only_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
@@ -2227,6 +2232,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             $('#openDrawer').click(function() {
                 $('#sideDrawer, .overlay').addClass('active');
+                $('.group_class_tab').show();
+                $('.to_do_tab').show();
                 $('#slot_time').val('');
                 setDateOnAppointment();
             });
