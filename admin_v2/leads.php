@@ -12,7 +12,8 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 }
 
 // Capture filter parameters to preserve them when going back
-$filter_date = isset($_GET['filter_date']) ? $_GET['filter_date'] : (isset($_POST['filter_date']) ? $_POST['filter_date'] : '');
+$filter_start_date = isset($_GET['filter_start_date']) ? $_GET['filter_start_date'] : (isset($_POST['filter_start_date']) ? $_POST['filter_start_date'] : '');
+$filter_end_date = isset($_GET['filter_end_date']) ? $_GET['filter_end_date'] : (isset($_POST['filter_end_date']) ? $_POST['filter_end_date'] : '');
 $filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : (isset($_POST['filter_status']) ? $_POST['filter_status'] : '');
 $filter_search = isset($_GET['filter_search']) ? $_GET['filter_search'] : (isset($_POST['filter_search']) ? $_POST['filter_search'] : '');
 $filter_page = isset($_GET['filter_page']) ? $_GET['filter_page'] : (isset($_POST['filter_page']) ? $_POST['filter_page'] : '');
@@ -75,11 +76,17 @@ if (!empty($_POST)) {
     $redirect_url = "all_leads.php";
     $preserve_params = array();
 
-    // Check for date filter from POST or GET (don't double encode)
-    if (!empty($_POST['filter_date'])) {
-        $preserve_params['CHOOSE_DATE'] = $_POST['filter_date'];
-    } elseif (!empty($_GET['filter_date'])) {
-        $preserve_params['CHOOSE_DATE'] = $_GET['filter_date'];
+    // Check for date range filters from POST or GET
+    if (!empty($_POST['filter_start_date'])) {
+        $preserve_params['start_date'] = $_POST['filter_start_date'];
+    } elseif (!empty($_GET['filter_start_date'])) {
+        $preserve_params['start_date'] = $_GET['filter_start_date'];
+    }
+
+    if (!empty($_POST['filter_end_date'])) {
+        $preserve_params['end_date'] = $_POST['filter_end_date'];
+    } elseif (!empty($_GET['filter_end_date'])) {
+        $preserve_params['end_date'] = $_GET['filter_end_date'];
     }
 
     // Preserve status filter
@@ -247,8 +254,11 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                 <form class="form-material form-horizontal m-t-30" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= $_GET['id'] ?? '' ?>" />
                                     <!-- Hidden fields to preserve filters when saving -->
-                                    <?php if (!empty($filter_date)): ?>
-                                        <input type="hidden" name="filter_date" value="<?= htmlspecialchars($filter_date) ?>">
+                                    <?php if (!empty($filter_start_date)): ?>
+                                        <input type="hidden" name="filter_start_date" value="<?= htmlspecialchars($filter_start_date) ?>">
+                                    <?php endif; ?>
+                                    <?php if (!empty($filter_end_date)): ?>
+                                        <input type="hidden" name="filter_end_date" value="<?= htmlspecialchars($filter_end_date) ?>">
                                     <?php endif; ?>
                                     <?php if (!empty($filter_status)): ?>
                                         <input type="hidden" name="filter_status" value="<?= htmlspecialchars($filter_status) ?>">
