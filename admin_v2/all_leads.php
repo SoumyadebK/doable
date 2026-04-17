@@ -4,10 +4,17 @@ $title = "All Leads";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
-if (isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '') {
-    $CHOOSE_DATE = " AND DATE = '" . date('Y-m-d', strtotime($_GET['CHOOSE_DATE'])) . "'";
-} else {
-    $CHOOSE_DATE = "";
+// Date range filter logic
+$start_date = isset($_GET['start_date']) && $_GET['start_date'] != '' ? date('Y-m-d', strtotime($_GET['start_date'])) : '';
+$end_date = isset($_GET['end_date']) && $_GET['end_date'] != '' ? date('Y-m-d', strtotime($_GET['end_date'])) : '';
+
+$date_range_condition = '';
+if ($start_date && $end_date) {
+    $date_range_condition = " AND DATE BETWEEN '" . $start_date . "' AND '" . $end_date . "'";
+} elseif ($start_date) {
+    $date_range_condition = " AND DATE = '" . $start_date . "'";
+} elseif ($end_date) {
+    $date_range_condition = " AND DATE = '" . $end_date . "'";
 }
 
 $status_check = empty($_GET['status']) ? '' : $_GET['status'];
@@ -162,6 +169,20 @@ foreach ($lead_status as $key => $value) {
         opacity: 1;
         transform: scaleX(1);
     }
+
+    .filter-row {
+        margin-bottom: 15px;
+    }
+
+    .date-range-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .clear-filter-btn {
+        margin-left: 10px;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -175,14 +196,19 @@ foreach ($lead_status as $key => $value) {
                         <h4 class="text-themecolor"><?= $title ?></h4>
                     </div>
                     <div class="col-md-6">
-                        <form id="search_form" class=" form-material form-horizontal" action="" method="get">
-                            <div class="row">
-                                <div class="col-md-4 align-self-center text-end">
-                                    <input type="hidden" id="IS_SELECTED" value="0">
-                                    <input type="text" id="CHOOSE_DATE" name="CHOOSE_DATE" class="form-control datepicker-normal" onchange="this.form.submit();" placeholder="Choose Follow up Date" value="<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>">
+                        <form id="search_form" class="form-material form-horizontal" action="" method="get">
+                            <div class="row filter-row">
+                                <div class="col-md-5 align-self-center text-end">
+                                    <div class="date-range-group">
+                                        <input type="text" id="start_date" name="start_date" class="form-control datepicker-normal" placeholder="Start Date" value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
+                                        <span>to</span>
+                                        <input type="text" id="end_date" name="end_date" class="form-control datepicker-normal" placeholder="End Date" value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>">
+                                        <?php if (!empty($_GET['start_date']) || !empty($_GET['end_date'])): ?>
+                                            <button type="button" class="btn btn-warning btn-sm clear-filter-btn" onclick="clearDateRange()">Clear</button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-
-                                <div class="col-md-4 align-self-center text-end">
+                                <div class="col-md-3 align-self-center text-end">
                                     <select class="form-control" name="status" id="status" onchange="this.form.submit();">
                                         <option value="">Select Status</option>
                                         <?php
@@ -193,8 +219,7 @@ foreach ($lead_status as $key => $value) {
                                         } ?>
                                     </select>
                                 </div>
-
-                                <div class=" col-md-4 align-self-center text-end">
+                                <div class="col-md-4 align-self-center text-end">
                                     <div class="input-group">
                                         <input class="form-control" type="text" name="search_text" placeholder="Search.." value="<?= htmlspecialchars($search_text) ?>">
                                         <button class="btn btn-info waves-effect waves-light m-r-10 text-white input-group-btn m-b-1" type="submit"><i class="fa fa-search"></i></button>
@@ -222,45 +247,90 @@ foreach ($lead_status as $key => $value) {
 
                                     <div class="kanban-board">
                                         <?php
+                                        // If a specific status is selected from dropdown, only show that status column
+                                        $status_filter_condition = '';
+                                        if (!empty($status_check)) {
+                                            $status_filter_condition = " AND DOA_LEADS.PK_LEAD_STATUS = " . $status_check;
+                                        }
+
                                         $leads_status = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 AND (`PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . ") ORDER BY DISPLAY_ORDER ASC");
 
-                                        while (!$leads_status->EOF) {
+                                        // If status filter is applied, only show that specific column
+                                        if (!empty($status_check)) {
+                                            // Filter the statuses to only show the selected one
+                                            $filtered_statuses = array();
+                                            while (!$leads_status->EOF) {
+                                                if ($leads_status->fields['PK_LEAD_STATUS'] == $status_check) {
+                                                    $filtered_statuses[] = $leads_status->fields;
+                                                }
+                                                $leads_status->MoveNext();
+                                            }
+                                            $leads_status = $filtered_statuses;
+                                        } else {
+                                            // Convert to array for consistent handling
+                                            $all_statuses = array();
+                                            while (!$leads_status->EOF) {
+                                                $all_statuses[] = $leads_status->fields;
+                                                $leads_status->MoveNext();
+                                            }
+                                            $leads_status = $all_statuses;
+                                        }
+
+                                        foreach ($leads_status as $status_data) {
                                             // Get leads with their latest follow-up date only
                                             $leds_user = $db->Execute(
                                                 "
-                                                SELECT DISTINCT 
-                                                    DOA_LEADS.PK_LEADS, 
-                                                    CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
-                                                    DOA_LEADS.PHONE, 
-                                                    DOA_LEADS.EMAIL_ID, 
-                                                    LS.LEAD_STATUS, 
-                                                    DOA_LEADS.DESCRIPTION, 
-                                                    DOA_LEADS.OPPORTUNITY_SOURCE, 
-                                                    DOA_LEADS.ACTIVE, 
-                                                    DOA_LEADS.CREATED_ON, 
-                                                    DOA_LEADS.IS_CALLED, 
-                                                    DOA_LEADS.IS_APPOINTMENT_CREATED, 
-                                                    DOA_LOCATION.LOCATION_NAME,
-                                                    (SELECT DATE FROM DOA_LEAD_DATE 
-                                                     WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                                                     ORDER BY CREATED_ON DESC 
-                                                     LIMIT 1) AS LATEST_DATE
-                                                FROM `DOA_LEADS` 
-                                                INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
-                                                    ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
-                                                LEFT JOIN DOA_LEAD_STATUS AS LS 
-                                                    ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
-                                                WHERE DOA_LEADS.PK_LEAD_STATUS = " . $leads_status->fields['PK_LEAD_STATUS'] . " 
-                                                    AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
-                                                    AND DOA_LEADS.ACTIVE = 1" . $search
+            SELECT DISTINCT 
+                DOA_LEADS.PK_LEADS, 
+                CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                DOA_LEADS.PHONE, 
+                DOA_LEADS.EMAIL_ID, 
+                LS.LEAD_STATUS, 
+                DOA_LEADS.DESCRIPTION, 
+                DOA_LEADS.OPPORTUNITY_SOURCE, 
+                DOA_LEADS.ACTIVE, 
+                DOA_LEADS.CREATED_ON, 
+                DOA_LEADS.IS_CALLED, 
+                DOA_LEADS.IS_APPOINTMENT_CREATED, 
+                DOA_LOCATION.LOCATION_NAME,
+                (SELECT DATE FROM DOA_LEAD_DATE 
+                 WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                 ORDER BY CREATED_ON DESC 
+                 LIMIT 1) AS LATEST_DATE
+            FROM `DOA_LEADS` 
+            INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+            LEFT JOIN DOA_LEAD_STATUS AS LS 
+                ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+            WHERE DOA_LEADS.PK_LEAD_STATUS = " . $status_data['PK_LEAD_STATUS'] . " 
+                AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
+                AND DOA_LEADS.ACTIVE = 1" . $search
                                             );
 
-                                            // If date filter is applied, we need to filter the results
+                                            // If date range filter is applied, we need to filter the results
                                             $filtered_leads = array();
-                                            if (!empty($_GET['CHOOSE_DATE'])) {
-                                                $selected_date = date('Y-m-d', strtotime($_GET['CHOOSE_DATE']));
+                                            if ($start_date || $end_date) {
                                                 while (!$leds_user->EOF) {
-                                                    if ($leds_user->fields['LATEST_DATE'] == $selected_date) {
+                                                    $lead_date = $leds_user->fields['LATEST_DATE'];
+                                                    $include_lead = false;
+
+                                                    if ($lead_date && $lead_date != '0000-00-00') {
+                                                        if ($start_date && $end_date) {
+                                                            if ($lead_date >= $start_date && $lead_date <= $end_date) {
+                                                                $include_lead = true;
+                                                            }
+                                                        } elseif ($start_date) {
+                                                            if ($lead_date >= $start_date) {
+                                                                $include_lead = true;
+                                                            }
+                                                        } elseif ($end_date) {
+                                                            if ($lead_date <= $end_date) {
+                                                                $include_lead = true;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if ($include_lead) {
                                                         $filtered_leads[] = $leds_user->fields;
                                                     }
                                                     $leds_user->MoveNext();
@@ -272,13 +342,13 @@ foreach ($lead_status as $key => $value) {
                                         ?>
 
                                             <div class="kanban-column">
-                                                <div class="kanban-header" style="background: <?= ($leads_status->fields['STATUS_COLOR'] == '') ? '#a9a9a947' : $leads_status->fields['STATUS_COLOR'] ?>;">
-                                                    <?= $leads_status->fields['LEAD_STATUS'] ?><br>
+                                                <div class="kanban-header" style="background: <?= ($status_data['STATUS_COLOR'] == '') ? '#a9a9a947' : $status_data['STATUS_COLOR'] ?>;">
+                                                    <?= $status_data['LEAD_STATUS'] ?><br>
                                                     <small><?= $lead_count ?> Opportunities</small>
                                                 </div>
                                                 <div class="kanban-body">
                                                     <?php
-                                                    if (!empty($_GET['CHOOSE_DATE'])) {
+                                                    if ($start_date || $end_date) {
                                                         // Display filtered leads
                                                         foreach ($filtered_leads as $lead) {
                                                     ?>
@@ -293,7 +363,7 @@ foreach ($lead_status as $key => $value) {
                                                                     <?php } ?>
                                                                     <a href="javascript:;" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
                                                                 </div>
-                                                                <div class="title" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>', '<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>', '<?= htmlspecialchars($_GET['status'] ?? '') ?>', '<?= htmlspecialchars($_GET['search_text'] ?? '') ?>', '<?= htmlspecialchars($_GET['page'] ?? '') ?>');" style="cursor: pointer;">
+                                                                <div class="title" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>', '<?= htmlspecialchars($start_date) ?>', '<?= htmlspecialchars($end_date) ?>', '<?= htmlspecialchars($_GET['status'] ?? '') ?>', '<?= htmlspecialchars($_GET['search_text'] ?? '') ?>', '<?= htmlspecialchars($_GET['page'] ?? '') ?>');" style="cursor: pointer;">
                                                                     <?= $lead['NAME'] ?>
                                                                 </div>
                                                                 <div><strong>Source:</strong> <?= $lead['OPPORTUNITY_SOURCE'] ?></div>
@@ -344,7 +414,7 @@ foreach ($lead_status as $key => $value) {
                                                                     <?php } ?>
                                                                     <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
                                                                 </div>
-                                                                <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>, '<?= $leds_user->fields['LATEST_DATE'] ?? '' ?>');" style="cursor: pointer;">
+                                                                <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>, '<?= $leds_user->fields['LATEST_DATE'] ?? '' ?>', '<?= htmlspecialchars($start_date) ?>', '<?= htmlspecialchars($end_date) ?>', '<?= htmlspecialchars($_GET['status'] ?? '') ?>', '<?= htmlspecialchars($_GET['search_text'] ?? '') ?>', '<?= htmlspecialchars($_GET['page'] ?? '') ?>');" style="cursor: pointer;">
                                                                     <?= $leds_user->fields['NAME'] ?>
                                                                 </div>
                                                                 <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
@@ -386,70 +456,9 @@ foreach ($lead_status as $key => $value) {
                                                     ?>
                                                 </div>
                                             </div>
-                                        <?php $leads_status->MoveNext();
+                                        <?php
                                         }
-
-                                        // Inactive leads query
-                                        $leds_user = $db->Execute(
-                                            "
-                                            SELECT DISTINCT 
-                                                DOA_LEADS.PK_LEADS, 
-                                                CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
-                                                DOA_LEADS.PHONE, 
-                                                DOA_LEADS.EMAIL_ID, 
-                                                LS.LEAD_STATUS, 
-                                                DOA_LEADS.DESCRIPTION, 
-                                                DOA_LEADS.OPPORTUNITY_SOURCE, 
-                                                DOA_LEADS.ACTIVE, 
-                                                DOA_LEADS.CREATED_ON, 
-                                                DOA_LOCATION.LOCATION_NAME 
-                                            FROM `DOA_LEADS` 
-                                            INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
-                                                ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
-                                            LEFT JOIN DOA_LEAD_STATUS AS LS 
-                                                ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
-                                            WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
-                                                AND DOA_LEADS.ACTIVE = 0" . $search
-                                        ); ?>
-
-                                        <div class="kanban-column">
-                                            <div class="kanban-header" style="background: #e80c0cbd; color: white;">
-                                                Inactive<br>
-                                                <small><?= $leds_user->RecordCount(); ?></small>
-                                            </div>
-                                            <div class="kanban-body">
-                                                <?php while (!$leds_user->EOF) { ?>
-                                                    <div class="kanban-card">
-                                                        <div style="float: right;">
-                                                            <a href="javascript:;" onclick="ConfirmDelete(<?= $leds_user->fields['PK_LEADS'] ?>);" title="Delete" style="color: red;"><i class="fa fa-trash"></i></a>
-                                                        </div>
-                                                        <div class="title" onclick="editpage(<?= $leds_user->fields['PK_LEADS'] ?>);" style="cursor: pointer;">
-                                                            <?= $leds_user->fields['NAME'] ?>
-                                                        </div>
-                                                        <div><strong>Source:</strong> <?= $leds_user->fields['OPPORTUNITY_SOURCE'] ?></div>
-                                                        <div class="kanban-icons">
-                                                            <div class="icon-with-pill">
-                                                                <i class="fas fa-phone toggle-pill" data-target="pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                <span class="pill pill-phone-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['PHONE'] ?></span>
-                                                            </div>
-                                                            <div class="icon-with-pill">
-                                                                <i class="fas fa-envelope toggle-pill" data-target="pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                <span class="pill pill-email-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['EMAIL_ID'] ?></span>
-                                                            </div>
-                                                            <div class="icon-with-pill">
-                                                                <i class="fas fa-comment-dots toggle-pill" data-target="pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                <span class="pill pill-chat-<?= $leds_user->fields['PK_LEADS'] ?>"><?= $leds_user->fields['DESCRIPTION'] ?></span>
-                                                            </div>
-                                                            <div class="icon-with-pill">
-                                                                <i class="fas fa-calendar-alt toggle-pill" data-target="pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"></i>
-                                                                <span class="pill pill-calendar-<?= $leds_user->fields['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($leds_user->fields['CREATED_ON'])) ?></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php $leds_user->MoveNext();
-                                                } ?>
-                                            </div>
-                                        </div>
+                                        ?>
 
                                     </div>
                                 </div>
@@ -464,6 +473,7 @@ foreach ($lead_status as $key => $value) {
     <script>
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
+            autoclose: true
         });
 
         $(document).ready(function() {
@@ -472,18 +482,32 @@ foreach ($lead_status as $key => $value) {
                 $(this).closest('.kanban-card').find('.pill').not('.' + target).removeClass('show');
                 $('.' + target).toggleClass('show');
             });
+
+            // Auto-submit form when date range changes
+            $('#start_date, #end_date').on('change', function() {
+                $('#search_form').submit();
+            });
         });
 
         $(function() {
             $('#myTable').DataTable();
         });
 
-        function editpage(id, date, filter_date, filter_status, filter_search, filter_page) {
+        function clearDateRange() {
+            window.location.href = window.location.pathname + '?' +
+                (new URLSearchParams(window.location.search).has('status') ? 'status=' + new URLSearchParams(window.location.search).get('status') + '&' : '') +
+                (new URLSearchParams(window.location.search).has('search_text') ? 'search_text=' + new URLSearchParams(window.location.search).get('search_text') : '');
+        }
+
+        function editpage(id, date, start_date, end_date, filter_status, filter_search, filter_page) {
             let url = "leads.php?id=" + id + "&date=" + encodeURIComponent(date);
 
             // Add filter parameters to preserve them when going to leads.php
-            if (filter_date && filter_date !== '') {
-                url += "&filter_date=" + encodeURIComponent(filter_date);
+            if (start_date && start_date !== '') {
+                url += "&filter_start_date=" + encodeURIComponent(start_date);
+            }
+            if (end_date && end_date !== '') {
+                url += "&filter_end_date=" + encodeURIComponent(end_date);
             }
             if (filter_status && filter_status !== '') {
                 url += "&filter_status=" + encodeURIComponent(filter_status);
@@ -521,8 +545,12 @@ foreach ($lead_status as $key => $value) {
                             let url = 'all_leads.php';
                             let params = [];
 
-                            <?php if (!empty($_GET['CHOOSE_DATE'])): ?>
-                                params.push('CHOOSE_DATE=<?= urlencode($_GET['CHOOSE_DATE']) ?>');
+                            <?php if (!empty($start_date)): ?>
+                                params.push('start_date=<?= urlencode($start_date) ?>');
+                            <?php endif; ?>
+
+                            <?php if (!empty($end_date)): ?>
+                                params.push('end_date=<?= urlencode($end_date) ?>');
                             <?php endif; ?>
 
                             <?php if (!empty($_GET['status'])): ?>
