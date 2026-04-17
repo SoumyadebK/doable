@@ -165,6 +165,7 @@ if (!empty($_GET['id'])) {
     $CITY = $res->fields['CITY'];
     $ZIP = $res->fields['ZIP'];
     $PHONE = $res->fields['PHONE'];
+
     function formatPhone($PHONE)
     {
         $PHONE = preg_replace('/\D/', '', $PHONE);
@@ -182,6 +183,7 @@ if (!empty($_GET['id'])) {
 
         return $PHONE;
     }
+
     $NOTES = $res->fields['NOTES'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PASSWORD = $res->fields['PASSWORD'];
@@ -774,11 +776,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-<<<<<<< HEAD
-                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
-=======
-                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
->>>>>>> 84542bde5497d1d8222366ca797c6cf814eb2648
+                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
                                                                             </div>
                                                                         </div>
                                                                     </div>
