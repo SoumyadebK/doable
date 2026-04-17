@@ -113,8 +113,20 @@ $GENDER = '';
 $DOB = '';
 $ADDRESS = '';
 $ADDRESS_1 = '';
-$PK_COUNTRY = '';
-$PK_STATES = '';
+
+$location_array = explode(',', $DEFAULT_LOCATION_ID);
+if (count($location_array) == 1) {
+    $location_data = $db->Execute("SELECT PK_COUNTRY, PK_STATES FROM DOA_LOCATION WHERE PK_LOCATION = '$location_array[0]'");
+    if ($location_data->RecordCount() > 0) {
+        $PK_COUNTRY = $location_data->fields['PK_COUNTRY'];
+        $PK_STATES = $location_data->fields['PK_STATES'];
+    }
+} else {
+    $PK_COUNTRY = '';
+    $PK_STATES = '';
+}
+// $PK_COUNTRY = '';
+// $PK_STATES = '';
 $CITY = '';
 $ZIP = '';
 $PHONE = $_GET['PHONE'] ?? '';
@@ -774,11 +786,12 @@ if (isset($_POST['SUBMIT'])) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-<<<<<<< HEAD
-                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
-=======
-                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
->>>>>>> 84542bde5497d1d8222366ca797c6cf814eb2648
+                                                                                <?php if (empty($_GET['id'])) { ?>
+                                                                                    <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
+
+                                                                                <?php } else { ?>
+                                                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
+                                                                                <?php } ?>
                                                                             </div>
                                                                         </div>
                                                                     </div>
