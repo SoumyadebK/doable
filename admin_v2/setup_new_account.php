@@ -1425,10 +1425,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="field-group"><label>Code <span class="req">*</span></label><input type="text" name="service[${i}][code]" placeholder="e.g. SVC-001"></div>
                 <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="service[${i}][price]" placeholder="$0.00"></div>
                 <div class="field-group"><label>Service Class <span class="req">*</span></label>
-                    <select name="service[${i}][class]"><option value="">Select class</option><option value="1">Membership</option><option value="2">Sessions</option><option value="5">MISC</option></select>
+                    <select name="service[${i}][class]"><option value="">Select class</option><option value="1">Membership</option><option value="2">Sessions (Charged per session)</option><option value="5">Miscellaneous</option></select>
                 </div>
                 <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="service[${i}][description]" placeholder="Brief description of this service"></textarea></div>
-                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1"></div>
+                <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1"></div>
                 <div class="field-group" style="padding-top:4px">
                     <div style="display:flex;flex-direction:column;gap:8px">
                         <div class="checkrow"><input type="checkbox" name="service[${i}][chargeable]" id="chargeable-${i}" value="1"><label for="chargeable-${i}">Chargeable to client account</label></div>
@@ -1447,7 +1447,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="field-group"><label>Location <span class="req">*</span></label>
                     <select name="package[${packageId}][location]">${getLocationOptions()}</select>
                 </div>
-                <div class="field-group"><label>Sort Number <span class="req">*</span></label><input type="number" name="package[${packageId}][sort]" placeholder="1"></div>
+                <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="package[${packageId}][sort]" placeholder="1"></div>
                 <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${packageId}][expiry]" placeholder="Leave blank if none"></div>
             </div>
             

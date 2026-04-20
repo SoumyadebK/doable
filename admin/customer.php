@@ -1002,7 +1002,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                             <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
                                                                                 <option value="">Select Primary Location</option>
                                                                                 <?php
-                                                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                                $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                                                 while (!$row->EOF) { ?>
                                                                                     <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($primary_location == $row->fields['PK_LOCATION']) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
                                                                                 <?php $row->MoveNext();
