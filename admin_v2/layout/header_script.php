@@ -419,4 +419,11 @@
         color: #39b54a;
         font-weight: 600;
     }
+
+    .active-secondary {
+        border-color: #39b54a;
+        background-color: #39b54a;
+        color: #fff !important;
+        transform: translateY(-2px);
+    }
 </style>
