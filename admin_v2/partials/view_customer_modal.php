@@ -193,7 +193,7 @@ while (!$row->EOF) {
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Details" type="button">Details</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Appointment1" type="button" onclick="getAppointmentList('normal')">Appointments</button>
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Appointment1" type="button" onclick="$('#today_btn').click()">Appointments</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Family" type="button">Family</button>
@@ -291,9 +291,9 @@ while (!$row->EOF) {
     <div class="tab-pane fade" id="Appointment1" role="tabpanel">
 
         <div class="d-flex justify-content-center gap-5 mt-3" id="appointment-buttons">
-            <button type="button" class="btn btn-secondary active-secondary" onclick="setActive(this)" style="padding: 4px 20px;">Today's & Future</button>
-            <button type="button" class="btn btn-secondary" onclick="setActive(this)" style="padding: 4px 20px;">Cancelled</button>
-            <button type="button" class="btn btn-secondary" onclick="setActive(this)" style="padding: 4px 20px;">Past</button>
+            <button type="button" class="btn btn-secondary" onclick="getAppointmentList(this, 'normal')" style="padding: 4px 20px;" id="today_btn">Today's & Future</button>
+            <button type="button" class="btn btn-secondary" onclick="getAppointmentList(this, 'cancelled')" style="padding: 4px 20px;">Cancelled</button>
+            <button type="button" class="btn btn-secondary" onclick="getAppointmentList(this, 'past')" style="padding: 4px 20px;">Past</button>
         </div>
 
         <div class="appointment_area p-3">
@@ -384,7 +384,12 @@ while (!$row->EOF) {
 
 
 <script>
-    function getAppointmentList(type) {
+    function getAppointmentList(button, type) {
+        document.querySelectorAll('#appointment-buttons .btn').forEach(btn => {
+            btn.classList.remove('active-secondary');
+        });
+        button.classList.add('active-secondary');
+
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
         $.ajax({
             url: "partials/ajaxList/customer_appointment.php",
@@ -455,13 +460,6 @@ while (!$row->EOF) {
         $('#enrollment_form #PK_USER_MASTER').SumoSelect();
         $('#enrollment_form #PK_USER_MASTER').val(customerId);
         $('#enrollment_form #PK_USER_MASTER')[0].sumo.reload();
-    }
-
-    function setActive(button) {
-        document.querySelectorAll('#appointment-buttons .btn').forEach(btn => {
-            btn.classList.remove('active-secondary');
-        });
-        button.classList.add('active-secondary');
     }
 </script>
 

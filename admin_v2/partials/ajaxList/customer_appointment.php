@@ -4,7 +4,16 @@ global $db;
 global $db_account;
 
 $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
+$type = !empty($_GET['type']) ? $_GET['type'] : '';
 
+$where_condition = ' ';
+if ($type === 'normal') {
+    $where_condition = " AND DOA_APPOINTMENT_MASTER.DATE >= CURDATE() ";
+} elseif ($type === 'past') {
+    $where_condition = " AND DOA_APPOINTMENT_MASTER.DATE < CURDATE() ";
+} elseif ($type === 'cancelled') {
+    $where_condition = " AND DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS IN (4, 6)";
+}
 
 // Fetch appointments for this user
 $appointments = $db_account->Execute("SELECT
@@ -64,11 +73,12 @@ $appointments = $db_account->Execute("SELECT
                         LEFT JOIN DOA_SERVICE_CODE ON DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE
                         LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
                         WHERE DOA_APPOINTMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
+                        $where_condition
                         AND DOA_APPOINTMENT_MASTER.STATUS = 'A'
                         AND DOA_USER_MASTER.PK_USER_MASTER = $PK_USER_MASTER
                         AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE IN ('NORMAL', 'AD-HOC', 'GROUP')
                         GROUP BY DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER
-                        ORDER BY DOA_APPOINTMENT_MASTER.DATE DESC, DOA_APPOINTMENT_MASTER.START_TIME DESC");
+                        ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC");
 
 $has_appointments = $appointments->RecordCount() > 0;
 ?>
@@ -153,7 +163,7 @@ $has_appointments = $appointments->RecordCount() > 0;
     endwhile; ?>
 <?php else: ?>
     <div class="text-center py-4">
-        <p class="theme-text-light">No upcoming appointments found.</p>
+        <p class="theme-text-light">No appointments found.</p>
     </div>
 <?php endif; ?>
 
