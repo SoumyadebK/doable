@@ -40,6 +40,7 @@ $appointments = $db_account->Execute("SELECT
                             DOA_APPOINTMENT_MASTER.IS_PAID,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME,
                             DOA_ENROLLMENT_MASTER.ENROLLMENT_ID,
+                            DOA_ENROLLMENT_MASTER.MISC_ID,
                             APT_ENR.ENROLLMENT_NAME AS APT_ENR_NAME,
                             APT_ENR.ENROLLMENT_ID AS APT_ENR_ID,
                             DOA_SERVICE_MASTER.SERVICE_NAME,
@@ -226,10 +227,17 @@ if ($source !== 'customer_modal') {
                                 $status = $app['APPOINTMENT_STATUS'];
                                 $appointment_color = $app['APPOINTMENT_COLOR'] ?: '#000000';
                                 $comment = $app['COMMENT'];
-                                $enrollment_id = $app['ENROLLMENT_ID'] ?: $app['APT_ENR_ID'];
+
+                                $enrollment_id = $app['ENROLLMENT_ID'];
+                                $misc_id = $app['MISC_ID'];
+                                $enrollment_name = $app['ENROLLMENT_NAME'] ?: '';
+
                                 $group_name = $app['GROUP_NAME'];
                                 $time_range = date('h:i A', strtotime($start_time)) . ' – ' . date('h:i A', strtotime($end_time));
-                                $enrollment_display = $enrollment_id ? '-' . $enrollment_id . ' ' . $service_code . ': ' . $scheduling_code . ', GRP:' . $group_name : '';
+
+                                $enrollment_display = ($enrollment_id == null) ? $enrollment_name . $misc_id : $enrollment_name . $enrollment_id;
+
+
                                 $service_display = strlen($service_name) > 15 ? substr($service_name, 0, 15) . '...' : $service_name;
                                 $comment_display = strlen($comment) > 15 ? substr($comment, 0, 15) . '...' : $comment;
                                 $avatar = strtoupper(substr($app['FIRST_NAME'], 0, 1));
@@ -253,7 +261,7 @@ if ($source !== 'customer_modal') {
                                 echo '<td' . $cell_border . '>' . $service_display ?>
                                 <span class="badge-service ms-auto" style="padding: 2px 6px; background-color: <?= $scheduling_code_color; ?>20 !important; color: <?= $scheduling_code_color; ?>"><?= $service_code ?></span>
                                 <?php '</td>';
-                                echo '<td class="text-muted' . $cell_border . '">' . htmlspecialchars($enrollment_display) . '</td>';
+                                echo '<td class="text-muted' . $cell_border . '">' . $enrollment_display . '</td>';
                                 echo '<td' . $cell_border . '>' . $time_range . '</td>';
                                 echo '<td' . $cell_border . '>';
                                 echo '<div class="d-flex align-items-center">';

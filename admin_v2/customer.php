@@ -363,7 +363,6 @@ $customer_color = $customer['color'];
         border: 1px solid #e0e0e0;
         border-radius: 12px;
         padding: 30px;
-        max-width: 1100px;
         margin: auto;
     }
 
@@ -451,7 +450,6 @@ $customer_color = $customer['color'];
         border: 1px solid #e0e0e0;
         border-radius: 12px;
         padding: 24px;
-        max-width: 1200px;
         margin: auto;
     }
 
@@ -933,7 +931,7 @@ $customer_color = $customer['color'];
 
 
                             <div class="tab-content tab-content-3 row enrollments-section">
-                                <div class="col-md-12 px-3 pt-4 pb-4" id="enrollment_list">
+                                <div class="col-md-12 px-4 pt-4 pb-4" id="enrollment_list">
 
 
                                 </div>
@@ -941,7 +939,7 @@ $customer_color = $customer['color'];
 
 
                             <div class="tab-content tab-content-4 row appointment-section">
-                                <div class="col-md-12 px-3 pt-4 pb-4" id="appointment_area">
+                                <div class="col-md-12 px-4 pt-4 pb-4" id="appointment_area">
 
                                 </div>
                             </div>
