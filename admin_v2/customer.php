@@ -123,6 +123,29 @@ if (!empty($_GET['master_id']) && $primary_location <= 0) {
 }
 
 
+$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+
+$payment_gateway_data = getPaymentGatewayData();
+
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+
 $TAB_PERMISSION_ARRAY = [];
 $permission_data = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PERMISSION = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
 
@@ -378,16 +401,6 @@ $customer_color = $customer['color'];
         font-size: 0.9rem;
         padding: 15px;
         border-color: #f1f1f1;
-    }
-
-    /* Badges */
-    .badge-service {
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.75rem;
-        display: inline-block;
-        text-transform: uppercase;
     }
 
     .bg-pri {
@@ -685,7 +698,7 @@ $customer_color = $customer['color'];
                                 <a class="sidebar-link profile-active active" data-toggle-target=".tab-content-1" href="#"><i class="bi bi-grid me-2"></i> Profile</a>
                                 <a class="sidebar-link family-active" href="#" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
                                 <a class="sidebar-link enrollments-active" href="javascript:void(0);" onclick="loadEnrollment('normal')" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
-                                <a class="sidebar-link appointments-active" href="#" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
+                                <a class="sidebar-link appointments-active" href="javascript:void(0);" onclick="getAppointmentList('normal')" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
                                 <a class="sidebar-link payments-active" href="#" data-toggle-target=".tab-content-5"><i class="bi bi-credit-card me-2"></i> Payments</a>
                             </nav>
                         </div>
@@ -872,6 +885,7 @@ $customer_color = $customer['color'];
                                 </div>
                             </div>
 
+
                             <div class="tab-content tab-content-2 row family-section">
                                 <div class="col-md-10 p-4">
                                     <div class="main-card mr-auto">
@@ -917,130 +931,22 @@ $customer_color = $customer['color'];
                                 </div>
                             </div>
 
+
                             <div class="tab-content tab-content-3 row enrollments-section">
                                 <div class="col-md-12 px-3 pt-4 pb-4" id="enrollment_list">
 
 
                                 </div>
                             </div>
-                            <div class="tab-content tab-content-4 row appointment-section">
-                                <div class="col-md-12 px-3 pt-4 pb-4">
-                                    <div class="appointment-card">
-                                        <div class="d-flex justify-content-between align-items-start mb-4">
-                                            <div>
-                                                <h5 class="fw-bold mb-1">Appointments</h5>
-                                                <p class="text-muted small">Optional settings section description</p>
-                                            </div>
-                                            <button class="btn btn-light btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
-                                                <i class="bi bi-plus"></i> New Appointment
-                                            </button>
-                                        </div>
 
-                                        <div class="table-responsive">
-                                            <table class="table mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="border-end"></th>
-                                                        <th>Appointment</th>
-                                                        <th>Enrollment ID</th>
-                                                        <th>Time <i class="bi bi-chevron-expand"></i></th>
-                                                        <th>Service Provider <i class="bi bi-chevron-expand"></i></th>
-                                                        <th>Status <i class="bi bi-chevron-expand"></i></th>
-                                                        <th>Comments <i class="bi bi-chevron-expand"></i></th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td rowspan="2" class="date-col">
-                                                            <span class="date-day">Mon</span>
-                                                            <span class="date-num">7</span>
-                                                        </td>
-                                                        <td>Salsa Intermed...</td>
-                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
-                                                        <td>9AM–10AM</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="avatar-sm">S</span> Sophia Williams
-                                                            </div>
-                                                        </td>
-                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted">Comments go he...</td>
-                                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Salsa Intermed...</td>
-                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
-                                                        <td>9AM–10AM</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
-                                                        </td>
-                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted">Comments go he...</td>
-                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td rowspan="2" class="date-col border-top">
-                                                            <span class="date-day">Tues</span>
-                                                            <span class="date-num">8</span>
-                                                        </td>
-                                                        <td class="border-top">Salsa Intermed...</td>
-                                                        <td class="text-muted border-top">-3 PRI: 50, GRP:...</td>
-                                                        <td class="border-top">9AM–10AM</td>
-                                                        <td class="border-top">
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="avatar-sm">S</span> Sophia Williams
-                                                            </div>
-                                                        </td>
-                                                        <td class="border-top"><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted border-top">Comments go he...</td>
-                                                        <td class="border-top"><i class="bi bi-three-dots-vertical text-muted"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Salsa Intermed...</td>
-                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
-                                                        <td>9AM–10AM</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
-                                                        </td>
-                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted">Comments go he...</td>
-                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td rowspan="4" class="date-col border-top">
-                                                            <span class="date-day">Wed</span>
-                                                            <span class="date-num">9</span>
-                                                        </td>
-                                                        <td class="border-top">Salsa Intermed...</td>
-                                                        <td class="text-muted border-top">-3 PRI: 50, GRP:...</td>
-                                                        <td class="border-top">9AM–10AM</td>
-                                                        <td class="border-top">
-                                                            <div class="d-flex align-items-center">
-                                                                <span class="avatar-sm">S</span> Sophia Williams
-                                                            </div>
-                                                        </td>
-                                                        <td class="border-top"><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted border-top">Comments go he...</td>
-                                                        <td class="border-top"><i class="bi bi-three-dots-vertical text-muted"></i></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Salsa Intermed...</td>
-                                                        <td class="text-muted">-3 PRI: 50, GRP:...</td>
-                                                        <td>9AM–10AM</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center"><span class="avatar-sm">S</span> Sophia Williams</div>
-                                                        </td>
-                                                        <td><span class="status-scheduled"><i class="bi bi-check-circle-fill"></i> Scheduled</span></td>
-                                                        <td class="text-muted">Comments go he...</td>
-                                                        <td><i class="bi bi-three-dots-vertical text-muted"></i></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+
+                            <div class="tab-content tab-content-4 row appointment-section">
+                                <div class="col-md-12 px-3 pt-4 pb-4" id="appointment_area">
+
                                 </div>
                             </div>
+
+
                             <div class="tab-content tab-content-5 row payments-section">
                                 <div class="col-md-12 px-3 pt-4 pb-4">
                                     <div class="payments-card">
@@ -1134,6 +1040,49 @@ $customer_color = $customer['color'];
 </body>
 
 
+
+<!--Auto-pay Credit Card Modal-->
+<div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b>Select Credit Card for Auto-Pay</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#credit_card_modal').modal('hide');"></button>
+            </div>
+            <div class="modal-body">
+                <div class="tab-pane" id="credit_card" role="tabpanel">
+                    <div class="p-20">
+                        <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                            <div class="alert alert-danger">
+                                Payment Gateway is Not set Yet
+                            </div>
+                        <?php } else { ?>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="add_credit_card_div_auto_pay" style="display: none; width: 150%;">
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" id="saved_credit_card_list_auto_pay" style="display: none; padding-left: 6%;">
+
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+                <input type="hidden" name="AUTO_PAY_ENROLLMENT_ID" id="AUTO_PAY_ENROLLMENT_ID">
+                <input type="hidden" name="AUTO_PAY_PAYMENT_METHOD_ID" id="AUTO_PAY_PAYMENT_METHOD_ID">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
+                <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="addEnrollmentAutoPayCreditCard()">Process</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <?php require_once('../includes/footer.php'); ?>
 
 
@@ -1152,6 +1101,8 @@ $customer_color = $customer['color'];
     });
 </script>
 
+
+<!-- All function related to enrollment list loading and auto-pay handling is placed here for better organization and to ensure it runs after the DOM is ready and the necessary elements are loaded. -->
 <script>
     function loadEnrollment(type) {
         enr_tab_type = type;
@@ -1231,6 +1182,129 @@ $customer_color = $customer['color'];
                 $("#load-marker").text("Error loading data");
             }
         });
+    }
+
+    function changeEnrollmentAutoPay(PK_ENROLLMENT_MASTER) {
+        var checkbox = event.target;
+        var isRecipient = checkbox.checked ? 1 : 0;
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'changeEnrollmentAutoPay',
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                ACTIVE_AUTO_PAY: isRecipient
+            },
+            success: function(data) {
+
+            }
+        });
+    }
+
+    function addEnrollmentAutoPay(PK_ENROLLMENT_MASTER) {
+        $('#AUTO_PAY_ENROLLMENT_ID').val(PK_ENROLLMENT_MASTER);
+        getSavedCreditCardListAutoPay();
+    }
+
+    function getSavedCreditCardListAutoPay() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $('#credit_card_modal').modal('show');
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'enrollment_auto_pay'
+            },
+            success: function(data) {
+                $('#saved_credit_card_list_auto_pay').slideDown().html(data);
+                addCreditCardAutoPay();
+            }
+        });
+    }
+
+    function selectAutoPayCreditCard(param) {
+        let payment_id = $(param).attr('id');
+
+        $('.credit-card-div').css("opacity", "1");
+        $(param).css("opacity", "0.6");
+
+        $('#AUTO_PAY_PAYMENT_METHOD_ID').val(payment_id);
+    }
+
+    function addCreditCardAutoPay() {
+        let PK_USER = <?= $PK_USER ?>;
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "includes/save_credit_card.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'enrollment_auto_pay'
+            },
+            success: function(data) {
+                $('#add_credit_card_div_auto_pay').slideDown().html(data);
+                addCreditCard();
+            }
+        });
+    }
+
+    function addEnrollmentAutoPayCreditCard() {
+        let PK_ENROLLMENT_MASTER = $('#AUTO_PAY_ENROLLMENT_ID').val();
+        let PAYMENT_METHOD_ID = $('#AUTO_PAY_PAYMENT_METHOD_ID').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'addEnrollmentAutoPay',
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                PAYMENT_METHOD_ID: PAYMENT_METHOD_ID
+            },
+            success: function(data) {
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Auto Pay Added for this Enrollment.",
+                        icon: "success",
+                        timer: 2000,
+                    }).then((result) => {
+                        //window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Something went wrong, please try again.",
+                        icon: "error",
+                        timer: 3000,
+                    });
+                }
+            }
+        });
+    }
+</script>
+
+<!-- All function related to appointment list -->
+
+<script>
+    function getAppointmentList(type) {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "partials/ajaxList/customer_appointment.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER,
+                type: type,
+                source: 'customer_page'
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#appointment_area').html(result);
+            }
+        });
+        window.scrollTo(0, 0);
     }
 </script>
 
