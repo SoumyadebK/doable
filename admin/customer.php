@@ -1012,7 +1012,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                     </div>
 
                                                                     <div class="col-6">
-                                                                        <label class="col-md-12">Preferred Location</label>
+                                                                        <label class="col-md-12">Secondary Location</label>
                                                                         <div class="col-md-12 multiselect-box" style="width: 100%;">
                                                                             <?php
                                                                             $selected_location = [];
