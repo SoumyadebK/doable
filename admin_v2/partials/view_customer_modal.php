@@ -396,7 +396,8 @@ while (!$row->EOF) {
             type: "GET",
             data: {
                 master_id: PK_USER_MASTER,
-                type: type
+                type: type,
+                source: 'customer_modal'
             },
             async: false,
             cache: false,
@@ -460,6 +461,7 @@ while (!$row->EOF) {
         $('#enrollment_form #PK_USER_MASTER').SumoSelect();
         $('#enrollment_form #PK_USER_MASTER').val(customerId);
         $('#enrollment_form #PK_USER_MASTER')[0].sumo.reload();
+        $('#enrollment_form #PK_USER_MASTER').trigger('change');
     }
 </script>
 

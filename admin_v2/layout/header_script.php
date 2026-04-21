@@ -426,4 +426,14 @@
         color: #fff !important;
         transform: translateY(-2px);
     }
+
+    /* Badges */
+    .badge-service {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+        text-transform: uppercase;
+    }
 </style>
