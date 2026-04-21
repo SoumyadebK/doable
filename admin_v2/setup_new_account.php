@@ -295,6 +295,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doable Setup Wizard</title>
@@ -1319,144 +1324,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function getServiceItemFields(packageId, counter, isFirst = false) {
             return `
-        <div class="service-item-header">
-            <span class="service-item-title">Service #${counter}</span>
-            ${!isFirst ? `<button type="button" class="remove-service-btn" onclick="removeServiceItem(${counter}, '${packageId}')">Remove</button>` : ''}
-        </div>
-        <div class="field-grid">
-            <div class="field-group"><label>Service Name <span class="req">*</span></label>
-                <select name="package[${packageId}][service_item][${counter}][service_name]" 
-                        onchange="handleServiceSelection('${packageId}', ${counter})"
-                        class="service-select">
-                    ${getServiceOptions()}
-                </select>
-            </div>
-            <div class="field-group"><label>Service Code <span class="req">*</span></label>
-                <input type="text" name="package[${packageId}][service_item][${counter}][code]" 
-                       class="service-code" readonly style="background-color: #f5f5f5;">
-            </div>
-            <div class="field-group"><label>Service Details</label>
-                <textarea name="package[${packageId}][service_item][${counter}][details]" 
-                          class="service-details" rows="2" style="resize: vertical;"></textarea>
-            </div>
-            <div class="field-group"><label>Number of Sessions</label>
-                <input type="number" name="package[${packageId}][service_item][${counter}][sessions]" 
-                       class="sessions-input" placeholder="Leave blank for unlimited" 
-                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
-                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
-            </div>
-            <div class="field-group"><label>Price per Session</label>
-                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][price_per_session]" 
-                       class="price-per-session" placeholder="$0.00" 
-                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
-                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
-            </div>
-            <div class="field-group"><label>Total Price</label>
-                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][total_price]" 
-                       class="total-price" placeholder="$0.00" readonly style="background-color: #f5f5f5;">
-            </div>
-            <div class="field-group"><label>Discount Type</label>
-                <select name="package[${packageId}][service_item][${counter}][discount_type]" 
-                        class="discount-type" onchange="calculateServiceTotals('${packageId}', ${counter})">
-                    <option value="">Select</option>
-                    <option value="1">Fixed</option>
-                    <option value="2">Percent</option>
-                </select>
-            </div>
-            <div class="field-group"><label>Discount</label>
-                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][discount]" 
-                       class="discount-input" placeholder="0.00" 
-                       onchange="calculateServiceTotals('${packageId}', ${counter})" 
-                       onkeyup="calculateServiceTotals('${packageId}', ${counter})">
-            </div>
-            <div class="field-group"><label>Final Amount</label>
-                <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][final_amount]" 
-                       class="final-amount" placeholder="0.00" readonly style="background-color: #f5f5f5;">
-            </div>
-        </div>
-    `;
+                    <div class="service-item-header">
+                        <span class="service-item-title">Service #${counter}</span>
+                        ${!isFirst ? `<button type="button" class="remove-service-btn" onclick="removeServiceItem(${counter}, '${packageId}')">Remove</button>` : ''}
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group"><label>Service Name <span class="req">*</span></label>
+                            <select name="package[${packageId}][service_item][${counter}][service_name]" 
+                                    onchange="handleServiceSelection('${packageId}', ${counter})"
+                                    class="service-select">
+                                ${getServiceOptions()}
+                            </select>
+                        </div>
+                        <div class="field-group"><label>Service Code <span class="req">*</span></label>
+                            <input type="text" name="package[${packageId}][service_item][${counter}][code]" 
+                                class="service-code" readonly style="background-color: #f5f5f5;">
+                        </div>
+                        <div class="field-group"><label>Service Details</label>
+                            <textarea name="package[${packageId}][service_item][${counter}][details]" 
+                                    class="service-details" rows="2" style="resize: vertical;"></textarea>
+                        </div>
+                        <div class="field-group"><label>Number of Sessions</label>
+                            <input type="number" name="package[${packageId}][service_item][${counter}][sessions]" 
+                                class="sessions-input" placeholder="Leave blank for unlimited" 
+                                onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                                onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+                        </div>
+                        <div class="field-group"><label>Price per Session</label>
+                            <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][price_per_session]" 
+                                class="price-per-session" placeholder="$0.00" 
+                                onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                                onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+                        </div>
+                        <div class="field-group"><label>Total Price</label>
+                            <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][total_price]" 
+                                class="total-price" placeholder="$0.00" readonly style="background-color: #f5f5f5;">
+                        </div>
+                        <div class="field-group"><label>Discount Type</label>
+                            <select name="package[${packageId}][service_item][${counter}][discount_type]" 
+                                    class="discount-type" onchange="calculateServiceTotals('${packageId}', ${counter})">
+                                <option value="">Select</option>
+                                <option value="1">Fixed</option>
+                                <option value="2">Percent</option>
+                            </select>
+                        </div>
+                        <div class="field-group"><label>Discount</label>
+                            <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][discount]" 
+                                class="discount-input" placeholder="0.00" 
+                                onchange="calculateServiceTotals('${packageId}', ${counter})" 
+                                onkeyup="calculateServiceTotals('${packageId}', ${counter})">
+                        </div>
+                        <div class="field-group"><label>Final Amount</label>
+                            <input type="number" step="0.01" name="package[${packageId}][service_item][${counter}][final_amount]" 
+                                class="final-amount" placeholder="0.00" readonly style="background-color: #f5f5f5;">
+                        </div>
+                    </div>
+                `;
         }
 
 
         function getLocationFields(i) {
             return `<div class="field-grid">
-                <div class="field-group"><label>Location Name <span class="req">*</span></label><input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch"></div>
-                <div class="field-group"><label>Location Code <span class="req">*</span></label><input type="text" name="location[${i}][code]" placeholder="e.g. MSB-001"></div>
-                <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City"></div>
-                <div class="field-group"><label>State <span class="req">*</span></label><input type="text" name="location[${i}][state]" placeholder="State"></div>
-                <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP"></div>
-                <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="location[${i}][email]" placeholder="location@email.com"></div>
-                <div class="field-group"><label>Time Zone <span class="req">*</span></label>
-                    <select name="location[${i}][timezone]">${getTimezoneOptions()}</select>
-                </div>
-            </div>`;
-        }
-
-        function getUserFields(i) {
-            return `<div class="field-grid">
-        <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name" onchange="validateUserFields(${i})"></div>
-        <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com" onchange="validateUserFields(${i})"></div>
-        <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID" onchange="validateUserFields(${i})"></div>
-        <div class="field-group password-field">
-            <label>Password <span class="req">*</span></label>
-            <div class="password-wrapper">
-                <input type="password" name="user[${i}][password]" id="password-${i}" placeholder="Enter password" onkeyup="checkPasswordStrength(${i})">
-                <button type="button" class="toggle-password" onclick="togglePasswordVisibility(${i})"><i class="fas fa-eye"></i></button>
-            </div>
-            <div class="strength-meter">
-                <div class="strength-bar" id="strength-bar-${i}"></div>
-            </div>
-            <div class="strength-text" id="strength-text-${i}"></div>
-            
+        <div class="field-group"><label>Location Name <span class="req">*</span></label>
+            <input type="text" name="location[${i}][name]" placeholder="e.g. Main Street Branch">
         </div>
-        <div class="field-group"><label>Role <span class="req">*</span></label>
-            <select name="user[${i}][role]"><option value="">Select role</option><option value="2">Account Admin</option><option value="3">Manager</option><option value="4">Administrative Assistant</option><option value="5">Counsellor</option><option value="6">Supervisor</option><option value="7">Service Provider</option><option value="8">Account User</option><option value="9">Account Accountant</option><option value="10">Customer</option></select>
+        <div class="field-group">
+            <label>Location Code <span class="req">*</span></label>
+            <input type="text" 
+                   name="location[${i}][code]" 
+                   class="location-code-input"
+                   data-location-index="${i}"
+                   placeholder="e.g. MSB1" 
+                   maxlength="4" 
+                   onkeypress="return onlyAlphanumeric(event)"
+                   onpaste="return false"
+                   ondrop="return false"
+                   onkeyup="checkDuplicateLocationCode(this, ${i})"
+                   onblur="checkDuplicateLocationCode(this, ${i})">
+            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Only letters and numbers (4 characters max)</small>
+            <div id="duplicate-result-${i}" class="duplicate-check-result" style="font-size: 11px; margin-top: 4px;"></div>
         </div>
-        <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm"></div>
-        <div class="field-group" style="justify-content:flex-end;padding-top:20px">
-            <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1"><label for="cal-${i}">Appear in Calendar</label></div>
+        <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City"></div>
+        <div class="field-group"><label>State <span class="req">*</span></label><input type="text" name="location[${i}][state]" placeholder="State"></div>
+        <div class="field-group"><label>ZIP Code <span class="req">*</span></label><input type="text" name="location[${i}][zip]" placeholder="ZIP"></div>
+        <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="location[${i}][email]" placeholder="location@email.com"></div>
+        <div class="field-group"><label>Time Zone <span class="req">*</span></label>
+            <select name="location[${i}][timezone]">${getTimezoneOptions()}</select>
         </div>
     </div>`;
         }
 
+        function getUserFields(i) {
+            return `<div class="field-grid">
+                        <div class="field-group"><label>Name <span class="req">*</span></label><input type="text" name="user[${i}][name]" placeholder="Full name" onchange="validateUserFields(${i})"></div>
+                        <div class="field-group"><label>Email <span class="req">*</span></label><input type="email" name="user[${i}][email]" placeholder="user@email.com" onchange="validateUserFields(${i})"></div>
+                        <div class="field-group"><label>Login <span class="req">*</span></label><input type="text" name="user[${i}][login]" placeholder="Username or login ID" onchange="validateUserFields(${i})"></div>
+                        <div class="field-group password-field">
+                            <label>Password <span class="req">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" name="user[${i}][password]" id="password-${i}" placeholder="Enter password" onkeyup="checkPasswordStrength(${i})">
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility(${i})"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="strength-meter">
+                                <div class="strength-bar" id="strength-bar-${i}"></div>
+                            </div>
+                            <div class="strength-text" id="strength-text-${i}"></div>
+                            
+                        </div>
+                        <div class="field-group"><label>Role <span class="req">*</span></label>
+                            <select name="user[${i}][role]"><option value="">Select role</option><option value="2">Account Admin</option><option value="3">Manager</option><option value="4">Administrative Assistant</option><option value="5">Counsellor</option><option value="6">Supervisor</option><option value="7">Service Provider</option><option value="8">Account User</option><option value="9">Account Accountant</option><option value="10">Customer</option></select>
+                        </div>
+                        <div class="field-group"><label>Service Hours <span class="req">*</span></label><input type="text" name="user[${i}][hours]" placeholder="e.g. Mon–Fri 9am–5pm"></div>
+                        <div class="field-group" style="justify-content:flex-end;padding-top:20px">
+                            <div class="checkrow"><input type="checkbox" name="user[${i}][calendar]" id="cal-${i}" value="1"><label for="cal-${i}">Appear in Calendar</label></div>
+                        </div>
+                    </div>`;
+        }
+
         function getServiceFields(i) {
             return `<div class="field-grid">
-                <div class="field-group"><label>Service Name <span class="req">*</span></label><input type="text" name="service[${i}][name]" placeholder="e.g. Initial Consultation"></div>
-                <div class="field-group"><label>Code <span class="req">*</span></label><input type="text" name="service[${i}][code]" placeholder="e.g. SVC-001"></div>
-                <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="service[${i}][price]" placeholder="$0.00"></div>
-                <div class="field-group"><label>Service Class <span class="req">*</span></label>
-                    <select name="service[${i}][class]"><option value="">Select class</option><option value="1">Membership</option><option value="2">Sessions (Charged per session)</option><option value="5">Miscellaneous</option></select>
-                </div>
-                <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="service[${i}][description]" placeholder="Brief description of this service"></textarea></div>
-                <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1"></div>
-                <div class="field-group" style="padding-top:4px">
-                    <div style="display:flex;flex-direction:column;gap:8px">
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][chargeable]" id="chargeable-${i}" value="1"><label for="chargeable-${i}">Chargeable to client account</label></div>
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][group]" id="group-${i}" value="1"><label for="group-${i}">Is this a group service?</label></div>
-                        <div class="checkrow"><input type="checkbox" name="service[${i}][calendar]" id="calcount-${i}" value="1"><label for="calcount-${i}">Show in calendar count</label></div>
-                    </div>
-                </div>
-            </div>`;
+                        <div class="field-group"><label>Service Name <span class="req">*</span></label><input type="text" name="service[${i}][name]" placeholder="e.g. Initial Consultation"></div>
+                        <div class="field-group"><label>Code <span class="req">*</span></label><input type="text" name="service[${i}][code]" placeholder="e.g. SVC-001"></div>
+                        <div class="field-group"><label>Price <span class="req">*</span></label><input type="text" name="service[${i}][price]" placeholder="$0.00"></div>
+                        <div class="field-group"><label>Service Class <span class="req">*</span></label>
+                            <select name="service[${i}][class]"><option value="">Select class</option><option value="1">Membership</option><option value="2">Sessions (Charged per session)</option><option value="5">Miscellaneous</option></select>
+                        </div>
+                        <div class="field-group full"><label>Description <span class="req">*</span></label><textarea name="service[${i}][description]" placeholder="Brief description of this service"></textarea></div>
+                        <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="service[${i}][sort]" placeholder="1"></div>
+                        <div class="field-group" style="padding-top:4px">
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                                <div class="checkrow"><input type="checkbox" name="service[${i}][chargeable]" id="chargeable-${i}" value="1"><label for="chargeable-${i}">Chargeable to client account</label></div>
+                                <div class="checkrow"><input type="checkbox" name="service[${i}][group]" id="group-${i}" value="1"><label for="group-${i}">Is this a group service?</label></div>
+                                <div class="checkrow"><input type="checkbox" name="service[${i}][calendar]" id="calcount-${i}" value="1"><label for="calcount-${i}">Show in calendar count</label></div>
+                            </div>
+                        </div>
+                    </div>`;
         }
 
         function getPackageFields(packageId) {
             return `
-            <div class="field-grid">
-                <div class="pkg-divider">Package Details</div>
-                <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${packageId}][name]" placeholder="e.g. Starter Pack"></div>
-                <div class="field-group"><label>Location <span class="req">*</span></label>
-                    <select name="package[${packageId}][location]">${getLocationOptions()}</select>
-                </div>
-                <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="package[${packageId}][sort]" placeholder="1"></div>
-                <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${packageId}][expiry]" placeholder="Leave blank if none"></div>
-            </div>
-            
-            <div class="pkg-divider" style="margin-top: 20px;">Services Included</div>
-            <div id="services-container-${packageId}">
-                ${getServiceItemFields(packageId, 1, true)}
-            </div>
-            <button type="button" class="add-btn" onclick="addServiceItem('${packageId}')" style="margin-top: 10px; width: 100%;">+ Add another service</button>
-        `;
+                    <div class="field-grid">
+                        <div class="pkg-divider">Package Details</div>
+                        <div class="field-group"><label>Package Name <span class="req">*</span></label><input type="text" name="package[${packageId}][name]" placeholder="e.g. Starter Pack"></div>
+                        <div class="field-group"><label>Location <span class="req">*</span></label>
+                            <select name="package[${packageId}][location]">${getLocationOptions()}</select>
+                        </div>
+                        <div class="field-group"><label>Sort Order <span class="req">*</span></label><input type="number" name="package[${packageId}][sort]" placeholder="1"></div>
+                        <div class="field-group"><label>Expiry (days)</label><input type="number" name="package[${packageId}][expiry]" placeholder="Leave blank if none"></div>
+                    </div>
+                    
+                    <div class="pkg-divider" style="margin-top: 20px;">Services Included</div>
+                    <div id="services-container-${packageId}">
+                        ${getServiceItemFields(packageId, 1, true)}
+                    </div>
+                    <button type="button" class="add-btn" onclick="addServiceItem('${packageId}')" style="margin-top: 10px; width: 100%;">+ Add another service</button>
+                `;
         }
 
         function addServiceItem(packageId) {
@@ -1740,18 +1762,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             showStep(step);
         }
 
-        // Update the navigate function to validate users before submission
         function navigate(direction) {
             if (direction === 1 && currentStep === steps.length - 1) {
-                // Validate all users before submission
-                // if (!validateAllUsers()) {
-                //     alert('Please fix the validation errors before submitting. Make sure all users have valid passwords (at least 8 characters with uppercase, lowercase, numbers, and special characters).');
-                //     return;
-                // }
-
-                if (confirm('Are you sure you want to submit all data?')) {
-                    document.getElementById('wizardForm').submit();
+                // Validate all location codes before submission
+                if (!validateAllLocationCodes()) {
+                    return;
                 }
+
+                Swal.fire({
+                    title: 'Confirm Submission',
+                    text: 'Are you sure you want to submit all data?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#39B54A',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, submit it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('wizardForm').submit();
+                    }
+                });
                 return;
             }
 
@@ -1981,6 +2012,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         window.calculateServiceTotals = calculateServiceTotals;
         window.saveServicesData = saveServicesData;
         window.refreshAllServiceOptions = refreshAllServiceOptions;
+
+        // Only allow alphanumeric characters (A-Z, a-z, 0-9)
+        function onlyAlphanumeric(event) {
+            const charCode = event.which ? event.which : event.keyCode;
+            const char = String.fromCharCode(charCode);
+
+            // Allow: backspace, delete, tab, escape, enter, etc.
+            if (charCode === 0 || charCode === 8 || charCode === 9 || charCode === 13 || charCode === 27 || charCode === 46) {
+                return true;
+            }
+
+            // Allow only alphanumeric characters
+            const alphanumericRegex = /^[A-Za-z0-9]$/;
+            return alphanumericRegex.test(char);
+        }
+
+        // Global variable to store checking status
+        window.locationCodeValid = {};
+
+        // Function to check for duplicate location codes in real-time
+        function checkDuplicateLocationCode(element, index) {
+            const locationCode = $(element).val().trim().toUpperCase();
+            const resultDiv = $(`#duplicate-result-${index}`);
+
+            // Clear if code is empty or less than 4 characters
+            if (locationCode.length === 0) {
+                resultDiv.html('');
+                resultDiv.removeClass('text-danger text-success');
+                $(element).css('border-color', '#b0b8c4');
+                window.locationCodeValid[index] = false;
+                return;
+            }
+
+            // if (locationCode.length < 4) {
+            //     resultDiv.html('<span style="color: #f39c12;">⚠️ Must be exactly 4 characters</span>');
+            //     $(element).css('border-color', '#f39c12');
+            //     window.locationCodeValid[index] = false;
+            //     return;
+            // }
+
+            // Check for duplicate within the same form (other location blocks)
+            let isDuplicateInForm = false;
+            let duplicateBlockIndex = null;
+
+            $('.location-code-input').each(function() {
+                const otherValue = $(this).val().trim().toUpperCase();
+                const otherIndex = $(this).data('location-index');
+                if (otherValue === locationCode && parseInt(otherIndex) !== parseInt(index) && otherValue !== '') {
+                    isDuplicateInForm = true;
+                    duplicateBlockIndex = otherIndex;
+                    return false; // break the loop
+                }
+            });
+
+            if (isDuplicateInForm) {
+                resultDiv.html(`<span style="color: #e24b4a;">⚠️ This code is already used in Location #${duplicateBlockIndex}</span>`);
+                $(element).css('border-color', '#e24b4a');
+                window.locationCodeValid[index] = false;
+                return;
+            }
+
+            // Show checking status
+            resultDiv.html('<span style="color: #666;">Checking availability...</span>');
+
+            // Check in database via AJAX
+            $.ajax({
+                url: 'ajax/location_code_checker.php',
+                type: 'POST',
+                data: {
+                    LOCATION_CODE: locationCode
+                },
+                dataType: 'text',
+                success: function(response) {
+                    if (response && response.trim() !== '') {
+                        // Duplicate found in database
+                        resultDiv.html(response);
+                        $(element).css('border-color', '#e24b4a');
+                        window.locationCodeValid[index] = false;
+                    } else {
+                        // Code is available
+                        resultDiv.html('<span style="color: #39B54A;">✓ Available</span>');
+                        $(element).css('border-color', '#39B54A');
+                        window.locationCodeValid[index] = true;
+                    }
+                },
+                error: function() {
+                    resultDiv.html('<span style="color: #f39c12;">⚠️ Error checking availability</span>');
+                    $(element).css('border-color', '#f39c12');
+                    window.locationCodeValid[index] = false;
+                }
+            });
+        }
+
+        // Validate all location codes before submission
+        function validateAllLocationCodes() {
+            let allValid = true;
+            let errorMessages = [];
+
+            $('.location-code-input').each(function(index) {
+                const locationCode = $(this).val().trim().toUpperCase();
+                const locationIndex = $(this).data('location-index');
+
+                if (!locationCode) {
+                    allValid = false;
+                    errorMessages.push(`Location #${locationIndex}: Code is required`);
+                    $(this).css('border-color', '#e24b4a');
+                } else if (locationCode.length !== 4) {
+                    allValid = false;
+                    errorMessages.push(`Location #${locationIndex}: Code must be exactly 4 characters (current: ${locationCode.length})`);
+                    $(this).css('border-color', '#e24b4a');
+                } else if (window.locationCodeValid[locationIndex] !== true) {
+                    allValid = false;
+                    errorMessages.push(`Location #${locationIndex}: Location Code "${locationCode}" is already exist.`);
+                    $(this).css('border-color', '#e24b4a');
+                }
+            });
+
+            if (!allValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: '<div style="text-align: left;">Please fix the following location code issues:<br><br>' +
+                        errorMessages.join('<br>') + '</div>',
+                    confirmButtonColor: '#e24b4a',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+
+            return true;
+        }
     </script>
 </body>
 

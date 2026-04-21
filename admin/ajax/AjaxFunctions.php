@@ -1177,7 +1177,7 @@ function saveProfileData($RESPONSE_DATA)
 
                 $comment_data = [
                     'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
-                    'COMMENT' => "Lead Status: " . $log['LEAD_STATUS'] . " | " . $log['COMMENT'] . " (" . date('m/d/Y H:i', strtotime($log['DATE'])) . ")",
+                    'COMMENT' => "Lead Status: " . $log['LEAD_STATUS'] . " | " . $log['COMMENT'] . " (Follow up on " . date('m/d/Y', strtotime($log['DATE'])) . ")",
                     'COMMENT_DATE' => $log['CREATED_ON'],
                     'FOR_PK_USER' => $PK_USER,
                     'BY_PK_USER' => $log['CREATED_BY'],
