@@ -185,6 +185,25 @@ if (empty($_GET['id'])) {
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
+
+    function formatPhone($PHONE)
+    {
+        $PHONE = preg_replace('/\D/', '', $PHONE);
+
+        // Remove country code if 11 digits starting with 1
+        if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
+            $PHONE = substr($PHONE, 1);
+        }
+
+        if (strlen($PHONE) == 10) {
+            return '(' . substr($PHONE, 0, 3) . ') '
+                . substr($PHONE, 3, 3) . '-'
+                . substr($PHONE, 6);
+        }
+
+        return $PHONE;
+    }
+
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
     $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
@@ -310,7 +329,7 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="form-label">Phone</label>
-                                                <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>">
+                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -437,6 +456,29 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
 </body>
 
 <script>
+    // Function to format phone number as user types
+    function formatPhoneNumber(input) {
+        let digits = input.value.replace(/\D/g, '');
+        if (digits.length > 10) {
+            digits = digits.slice(0, 10);
+        }
+        let formatted = digits;
+
+        if (digits.length <= 3) {
+            formatted = digits;
+        } else if (digits.length <= 6) {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        } else {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        input.value = formatted;
+    }
+
+    $(document).on('input', '.format_phone_number', function() {
+        formatPhoneNumber(this);
+    });
+
     // Store the original lead status when the page loads
     var originalLeadStatus = '<?= !empty($_GET['id']) ? $PK_LEAD_STATUS : '' ?>';
 

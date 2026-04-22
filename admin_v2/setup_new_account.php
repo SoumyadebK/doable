@@ -1399,9 +1399,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    onkeypress="return onlyAlphanumeric(event)"
                    onpaste="return false"
                    ondrop="return false"
-                   onkeyup="checkDuplicateLocationCode(this, ${i})"
-                   onblur="checkDuplicateLocationCode(this, ${i})">
-            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Only letters and numbers (4 characters max)</small>
+                   onkeyup="convertToUpperCase(this); checkDuplicateLocationCode(this, ${i})"
+                   onblur="convertToUpperCase(this); checkDuplicateLocationCode(this, ${i})"
+                   style="text-transform: uppercase;">
+            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">Only letters and numbers (4 characters max) - Automatically converts to uppercase</small>
             <div id="duplicate-result-${i}" class="duplicate-check-result" style="font-size: 11px; margin-top: 4px;"></div>
         </div>
         <div class="field-group"><label>City <span class="req">*</span></label><input type="text" name="location[${i}][city]" placeholder="City"></div>
@@ -2142,6 +2143,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             return true;
+        }
+
+        // Convert input value to uppercase
+        function convertToUpperCase(element) {
+            if (element.value) {
+                element.value = element.value.toUpperCase();
+            }
         }
     </script>
 </body>
