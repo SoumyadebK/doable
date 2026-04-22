@@ -8,7 +8,7 @@
                 <th style="text-align: center;">Scheduled</th>
                 <th style="text-align: center;">Remain</th>
                 <th style="text-align: center;">Balance</th>
-                <th style="text-align: center;">Paid <i class="bi bi-caret-up-fill small"></i></th>
+                <th style="text-align: center;">Paid</th>
             </tr>
         </thead>
 

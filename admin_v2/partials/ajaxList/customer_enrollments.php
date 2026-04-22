@@ -108,14 +108,28 @@ while (!$enrollment_data->EOF) {
         $serviceMasterData->MoveNext();
     } ?>
 
-    <div class="enrollment-container mb-4" style="position: relative;">
+    <div class="enrollment-container enrollment_div mb-4" style="position: relative;">
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
             <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                 <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><br>
             <?php } ?>
-            <a href="#" class="view-schedule text-primary">View Payment Schedule</a>
+            <a href="javascript:void(0)" class="view-schedule text-primary" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
+
+            <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
+                <div class="d-flex justify-content-end align-items-center">
+                    <div class="form-check form-switch d-flex align-items-center">
+                        <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
+                            <label class="form-check-label autopay-label" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
+                            <?php } else { ?>
+                                <label class="form-check-label autopay-label" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
+                                <?php } ?>
+                                <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
+                                </label>
+                    </div>
+                </div>
+            <?php } ?>
         </div>
 
         <?php
@@ -218,31 +232,21 @@ while (!$enrollment_data->EOF) {
 
                 <tfoot class="border-top-0">
                     <tr class="fw-bold">
-                        <td style="text-align: center;">Amount</td>
-                        <td style="text-align: center;"><?= number_format($total_amount, 2) ?></td>
-                        <td style="text-align: center;"><?= number_format($total_amount - $total_used_amount < 0.00 ? $total_amount : $total_used_amount, 2) ?></td>
-                        <td style="text-align: center;"><?= number_format($total_scheduled_amount, 2) ?></td>
-                        <td style="text-align: center; color:<?= ($total_amount - $total_paid_amount < -0.05) ? 'red' : 'black' ?>;"><?= number_format((abs($total_amount - $total_paid_amount <= 0.05) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
-                        <td style="text-align: center;">$<?= number_format($total_paid_amount, 2) ?></td>
-                        <td style="text-align: center; color:<?= ($total_paid_amount - $total_used_amount < -0.99) ? 'red' : 'black' ?>;"><?= number_format((abs($total_paid_amount - $total_used_amount) <= 0.99) ? 0 : ($total_paid_amount - $total_used_amount), 2) ?></td>
+                        <td style="text-align: center; font-size: 14px;">Amount</td>
+                        <td style="text-align: center; font-size: 14px;">$<?= number_format($total_amount, 2) ?></td>
+                        <td style="text-align: center; font-size: 14px;">$<?= number_format($total_amount - $total_used_amount < 0.00 ? $total_amount : $total_used_amount, 2) ?></td>
+                        <td style="text-align: center; font-size: 14px;">$<?= number_format($total_scheduled_amount, 2) ?></td>
+                        <td style="text-align: center; font-size: 14px; color:<?= ($total_amount - $total_paid_amount < -0.05) ? 'red' : 'black' ?>;">$<?= number_format((abs($total_amount - $total_paid_amount <= 0.05) ? 0 : $total_amount - $total_paid_amount), 2) ?></td>
+                        <td style="text-align: center; font-size: 14px;">$<?= number_format($total_paid_amount, 2) ?></td>
+                        <td style="text-align: center; font-size: 14px; color:<?= ($total_paid_amount - $total_used_amount < -0.99) ? 'red' : 'black' ?>;">$<?= number_format((abs($total_paid_amount - $total_used_amount) <= 0.99) ? 0 : ($total_paid_amount - $total_used_amount), 2) ?></td>
                     </tr>
                 </tfoot>
             </table>
-        </div>
 
-        <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
-            <div class="d-flex justify-content-end align-items-center mt-3">
-                <div class="form-check form-switch d-flex align-items-center">
-                    <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
-                        <label class="form-check-label autopay-label" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
-                        <?php } else { ?>
-                            <label class="form-check-label autopay-label" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
-                            <?php } ?>
-                            <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
-                            </label>
-                </div>
+            <div class="enrollment_details" style="display: none;">
+
             </div>
-        <?php } ?>
+        </div>
     </div>
 <?php
     $enrollment_data->MoveNext();
