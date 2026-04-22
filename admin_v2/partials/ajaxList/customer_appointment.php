@@ -188,7 +188,7 @@ if ($source !== 'customer_modal') {
                     </button>
                 </div>
 
-                <button class="btn btn-light btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
+                <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
                     <i class="bi bi-plus"></i> New Appointment
                 </button>
             </div>
@@ -200,10 +200,10 @@ if ($source !== 'customer_modal') {
                             <th class="border-end"></th>
                             <th>Appointment</th>
                             <th>Enrollment ID</th>
-                            <th>Time <i class="bi bi-chevron-expand"></i></th>
-                            <th>Service Provider <i class="bi bi-chevron-expand"></i></th>
-                            <th>Status <i class="bi bi-chevron-expand"></i></th>
-                            <th>Comments <i class="bi bi-chevron-expand"></i></th>
+                            <th>Time</th>
+                            <th>Service Provider</th>
+                            <th>Status</th>
+                            <th>Comments</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -256,7 +256,7 @@ if ($source !== 'customer_modal') {
                                     echo '</td>';
                                     $first_row = false;
                                 } else {
-                                    $cell_border = ' border-top';
+                                    $cell_border = ' ';
                                 }
                                 echo '<td' . $cell_border . '>' . $service_display ?>
                                 <span class="badge-service ms-auto" style="padding: 2px 6px; background-color: <?= $scheduling_code_color; ?>20 !important; color: <?= $scheduling_code_color; ?>"><?= $service_code ?></span>

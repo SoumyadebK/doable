@@ -545,7 +545,6 @@ $customer_color = $customer['color'];
         border: 1px solid #e0e0e0;
         border-radius: 12px;
         padding: 30px;
-        max-width: 1100px;
         margin: auto;
     }
 
@@ -669,6 +668,94 @@ $customer_color = $customer['color'];
             transform: rotate(360deg);
         }
     }
+
+    .dataTables_filter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .date-filter input {
+        height: 30px;
+    }
+
+    .dataTables_filter input {
+        width: 250px;
+        /* change width as needed */
+        height: 38px;
+        /* change height */
+        font-size: 13px;
+        padding: 4px 10px;
+    }
+
+    #paymentRegisterTable_paginate {
+        float: right;
+    }
+
+    .form-control-sm {
+        font-size: 13px;
+    }
+
+    .dataTables_length label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .dataTables_length select {
+        width: auto !important;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #39b54a;
+        border-color: #39b54a;
+    }
+
+    .page-link {
+        color: #39b54a;
+        font-size: 13px;
+    }
+
+    .page-link:hover {
+        color: #1a1d23;
+    }
+
+    .btn-outline-edit:hover {
+        background-color: #39b54a !important;
+        color: #fff !important;
+    }
+
+    .view-btn-icon:hover {
+        background-color: #39b54a !important;
+        color: #fff !important;
+    }
+
+    .view-btn-icon.active {
+        background-color: #39b54a !important;
+        color: #fff !important;
+    }
+
+    table.dataTable thead th.sorting::after {
+        content: "⇅";
+        margin-left: 5px;
+        font-size: 15px;
+    }
+
+    table.dataTable thead th.sorting_asc::after {
+        content: "↑";
+        margin-left: 5px;
+    }
+
+    table.dataTable thead th.sorting_desc::after {
+        content: "↓";
+        margin-left: 5px;
+    }
+
+    .btn.btn-secondary {
+        padding: 5px 15px;
+        font-size: 12px;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -697,7 +784,7 @@ $customer_color = $customer['color'];
                                 <a class="sidebar-link family-active" href="#" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
                                 <a class="sidebar-link enrollments-active" href="javascript:void(0);" onclick="loadEnrollment('normal')" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
                                 <a class="sidebar-link appointments-active" href="javascript:void(0);" onclick="getAppointmentList('normal')" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
-                                <a class="sidebar-link payments-active" href="#" data-toggle-target=".tab-content-5"><i class="bi bi-credit-card me-2"></i> Payments</a>
+                                <a class="sidebar-link payments-active" href="javascript:void(0);" onclick="getPaymentRegisterData()" data-toggle-target=".tab-content-5"><i class="bi bi-credit-card me-2"></i> Payments</a>
                             </nav>
                         </div>
                         <div class="col-md-10 right-panel">
@@ -946,87 +1033,8 @@ $customer_color = $customer['color'];
 
 
                             <div class="tab-content tab-content-5 row payments-section">
-                                <div class="col-md-12 px-3 pt-4 pb-4">
-                                    <div class="payments-card">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h5 class="fw-bold mb-1">Payments</h5>
-                                                <p class="text-muted small mb-0">Optional settings section description</p>
-                                            </div>
-                                            <button class="btn btn-light btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
-                                                <i class="bi bi-plus"></i> New Payment
-                                            </button>
-                                        </div>
+                                <div class="col-md-12 px-3 pt-4 pb-4" id="payment_list">
 
-                                        <div class="summary-row d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <div class="stat-label">Total Payments</div>
-                                                <div class="stat-value">$2,000.00</div>
-                                            </div>
-                                            <div class="stat-divider"></div>
-                                            <div class="flex-grow-1">
-                                                <div class="stat-label">Pending Payments</div>
-                                                <div class="stat-value">$0.00</div>
-                                            </div>
-                                            <div class="stat-divider"></div>
-                                            <div class="flex-grow-1">
-                                                <div class="stat-label">Wallet Balance</div>
-                                                <div class="stat-value">$100.00</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between align-items-center mb-4">
-                                            <div class="search-wrapper">
-                                                <i class="bi bi-search"></i>
-                                                <input type="text" class="search-input" placeholder="Search...">
-                                            </div>
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-toolbar"><i class="bi bi-filter-left me-1"></i> Filter</button>
-                                                <button class="btn btn-toolbar"><i class="bi bi-download me-1"></i> Export to Excel</button>
-                                            </div>
-                                        </div>
-
-                                        <div class="table-responsive  border-0">
-                                            <table class="table mb-0 border-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Receipt</th>
-                                                        <th>Date</th>
-                                                        <th>Enrollment</th>
-                                                        <th>Method</th>
-                                                        <th>Memo</th>
-                                                        <th>Paid <i class="bi bi-chevron-expand small"></i></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>D2-19</td>
-                                                        <td>11/14/2025</td>
-                                                        <td># -3</td>
-                                                        <td>Cash</td>
-                                                        <td>-</td>
-                                                        <td>$1,600.00</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>D2-19</td>
-                                                        <td>11/14/2025</td>
-                                                        <td># -3</td>
-                                                        <td>Cash</td>
-                                                        <td>-</td>
-                                                        <td>$1,600.00</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>D2-19</td>
-                                                        <td>11/14/2025</td>
-                                                        <td># -3</td>
-                                                        <td>Cash</td>
-                                                        <td>-</td>
-                                                        <td>$1,600.00</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1083,6 +1091,14 @@ $customer_color = $customer['color'];
 
 <?php require_once('../includes/footer.php'); ?>
 
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+
+<!-- JSZip (REQUIRED for Excel) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- Excel button -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <script>
     $('.sidebar-link').on('click', function(evt) {
@@ -1178,6 +1194,25 @@ $customer_color = $customer['color'];
             error: function() {
                 loading = false;
                 $("#load-marker").text("Error loading data");
+            }
+        });
+    }
+
+    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
+        $.ajax({
+            url: "partials/ajaxList/customer_enrollment_details.php",
+            type: "GET",
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER,
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                ENROLLMENT_ID: ENROLLMENT_ID,
+                type: type
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $(param).closest('.enrollment_div').find('.enrollment_details').html(result).slideToggle();
             }
         });
     }
@@ -1284,7 +1319,6 @@ $customer_color = $customer['color'];
 </script>
 
 <!-- All function related to appointment list -->
-
 <script>
     function getAppointmentList(type) {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
@@ -1302,6 +1336,142 @@ $customer_color = $customer['color'];
                 $('#appointment_area').html(result);
             }
         });
+        window.scrollTo(0, 0);
+    }
+</script>
+
+<!-- All function related to Payment list -->
+<script>
+    function getPaymentRegisterData() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+
+        $.ajax({
+            url: "partials/ajaxList/customer_payment.php",
+            type: "GET",
+            data: {
+                master_id: PK_USER_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+
+                // Insert HTML
+                $('#payment_list').html(result);
+
+                // Destroy existing DataTable if exists
+                if ($.fn.DataTable.isDataTable('#paymentRegisterTable')) {
+                    $('#paymentRegisterTable').DataTable().clear().destroy();
+                    $('#paymentRegisterTable').off();
+                }
+
+                // Remove old filters
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                    return fn.name !== "dateRangeFilter";
+                });
+
+                // Initialize DataTable
+                let table = $('#paymentRegisterTable').DataTable({
+                    order: [
+                        [1, 'desc']
+                    ],
+                    columnDefs: [{
+                        type: 'date',
+                        targets: 1
+                    }],
+                    dom: "<'row mb-2'<'col-md-6 d-flex align-items-center gap-2 mb-3'f<'date-filter'>>" +
+                        "<'col-md-6 d-flex justify-content-end align-items-center table-actions mb-3'>>" +
+                        "rt" +
+                        "<'row mt-2'<'col-md-6'l><'col-md-6 text-end'p>>",
+
+                    language: {
+                        search: "", // ✅ removes "Search:" text
+                        searchPlaceholder: "Search..." // ✅ placeholder text
+                    },
+
+                    buttons: [{
+                        extend: 'excelHtml5',
+                        text: 'Export to Excel',
+                        title: 'Payment Register',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }],
+
+                    ordering: true
+                });
+
+                // Add Date Filter beside search
+                $("div.date-filter").html(`
+                                            <div class="d-flex align-items-center gap-3 ms-4">
+                                                <input type="text" id="START_DATE" class="form-control form-control-sm" placeholder="From Date" style="width:200px; height:38px;">
+                                                <span>to</span>
+                                                <input type="text" id="END_DATE" class="form-control form-control-sm" placeholder="To Date" style="width:200px; height:38px;">
+                                            </div>
+                                        `);
+
+                $("div.table-actions").html(`
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-toolbar btn-outline-edit" id="btnExport">
+                                                    <i class="bi bi-download me-1"></i> Export to Excel
+                                                </button>
+                                            </div>
+                                        `);
+
+                // Initialize Datepickers
+                $("#START_DATE").datepicker({
+                    numberOfMonths: 1,
+                    dateFormat: "yy-mm-dd",
+                    onSelect: function(selected) {
+                        $("#END_DATE").datepicker("option", "minDate", selected);
+                        table.draw();
+                    }
+                });
+
+                $("#END_DATE").datepicker({
+                    numberOfMonths: 1,
+                    dateFormat: "yy-mm-dd",
+                    onSelect: function(selected) {
+                        $("#START_DATE").datepicker("option", "maxDate", selected);
+                        table.draw();
+                    }
+                });
+
+                // Custom Date Range Filter
+                function dateRangeFilter(settings, data, dataIndex) {
+                    let min = $('#START_DATE').val();
+                    let max = $('#END_DATE').val();
+                    let date = data[1]; // ✅ correct column index
+
+                    if (!date) return true;
+
+                    let tableDate = new Date(date);
+
+                    if (
+                        (min === "" && max === "") ||
+                        (min === "" && tableDate <= new Date(max)) ||
+                        (new Date(min) <= tableDate && max === "") ||
+                        (new Date(min) <= tableDate && tableDate <= new Date(max))
+                    ) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                dateRangeFilter.name = "dateRangeFilter";
+                $.fn.dataTable.ext.search.push(dateRangeFilter);
+
+                // Trigger filtering on input change
+                $('#START_DATE, #END_DATE').on('change keyup', function() {
+                    table.draw();
+                });
+
+                // Export to Excel on button click
+                $('#btnExport').on('click', function() {
+                    table.button('.buttons-excel').trigger();
+                });
+            }
+        });
+
         window.scrollTo(0, 0);
     }
 </script>
