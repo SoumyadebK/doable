@@ -428,7 +428,7 @@ if ($appointment_type == 'NORMAL' || $appointment_type == 'AD-HOC' || $appointme
             $type = "group_class";
         }
 
-        if ($PK_ENROLLMENT_SERVICE != 0) {
+        if ($PK_ENROLLMENT_SERVICE != 0 && $appointment_data->fields['APPOINTMENT_TYPE'] === 'NORMAL') {
             $appointment_position = 0;
             $enr_service_data = $db_account->Execute("SELECT NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
             if ($enr_service_data->RecordCount() > 0) {

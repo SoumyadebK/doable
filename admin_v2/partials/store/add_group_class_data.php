@@ -19,9 +19,15 @@ $START_TIME = $_POST['GROUP_CLASS_START_TIME'];
 $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
 
 $REPEAT = $_POST['REPEAT'];
+$standing_id = 0;
+$PK_SERVICE_PROVIDER = $_POST['PK_SERVICE_PROVIDER'];
+
 if ($REPEAT == 'NOT_REPEAT') {
+    if (count($PK_SERVICE_PROVIDER) > 1) {
+        $standing_id = getStandingId();
+    }
     $GROUP_CLASS_DATA['SERIAL_NUMBER'] = getGroupClassSerialNumber();
-    $GROUP_CLASS_DATA['STANDING_ID'] = 0;
+    $GROUP_CLASS_DATA['STANDING_ID'] = $standing_id;
     $GROUP_CLASS_DATA['GROUP_NAME'] = $GROUP_NAME;
     $GROUP_CLASS_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $GROUP_CLASS_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;
@@ -41,13 +47,15 @@ if ($REPEAT == 'NOT_REPEAT') {
     db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'insert');
     $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-    $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-    $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
-    db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+    $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+    for ($k = 0; $k < count($PK_SERVICE_PROVIDER); $k++) {
+        $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+        $GROUP_CLASS_SP_DATA['PK_USER'] = $PK_SERVICE_PROVIDER[$k];
+        db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+    }
 
     $GROUP_CLASS_DATE_ARRAY[0] = $GROUP_CLASS_DATA['DATE'];
 } else {
-
     $GROUP_CLASS_DATE_ARRAY = [];
 
     $STARTING_ON = $_POST['GROUP_CLASS_START_DATE'];
@@ -82,7 +90,6 @@ if ($REPEAT == 'NOT_REPEAT') {
     }
 
     $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($GROUP_CLASS_DATE_ARRAY);
-
 
     /* $STARTING_ON = $_POST['STARTING_ON'][$i];
     $LENGTH = $_POST['LENGTH'][$i];
@@ -125,15 +132,8 @@ if ($REPEAT == 'NOT_REPEAT') {
     } */
 
     if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
-        $standing_id = 0;
-
-        if ($TOTAL_APPOINTMENT_TO_CREATE > 1) {
-            $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
-            if ($standing_data->RecordCount() > 0) {
-                $standing_id = $standing_data->fields['STANDING_ID'] + 1;
-            } else {
-                $standing_id = 1;
-            }
+        if ($TOTAL_APPOINTMENT_TO_CREATE > 1 || count($PK_SERVICE_PROVIDER) > 1) {
+            $standing_id = getStandingId();
         }
 
         for ($j = 0; $j < $TOTAL_APPOINTMENT_TO_CREATE; $j++) {
@@ -158,9 +158,13 @@ if ($REPEAT == 'NOT_REPEAT') {
             db_perform_account('DOA_APPOINTMENT_MASTER', $GROUP_CLASS_DATA, 'insert');
             $PK_APPOINTMENT_MASTER = $db_account->insert_ID();
 
-            $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
-            $GROUP_CLASS_SP_DATA['PK_USER'] = $_POST['PK_SERVICE_PROVIDER'];
-            db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_SERVICE_PROVIDER` WHERE `PK_APPOINTMENT_MASTER` = '$PK_APPOINTMENT_MASTER'");
+            for ($k = 0; $k < count($PK_SERVICE_PROVIDER); $k++) {
+                $GROUP_CLASS_SP_DATA['PK_APPOINTMENT_MASTER'] = $PK_APPOINTMENT_MASTER;
+                $GROUP_CLASS_SP_DATA['PK_USER'] = $PK_SERVICE_PROVIDER[$k];
+                db_perform_account('DOA_APPOINTMENT_SERVICE_PROVIDER', $GROUP_CLASS_SP_DATA, 'insert');
+            }
         }
     }
 

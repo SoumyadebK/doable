@@ -844,7 +844,29 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group serviceprovider">
-                    <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" required>
+
+                    <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="GROUP_CLASS_SERVICE_PROVIDER" multiple required>
+                        <?php
+                        $selected_service_provider = [];
+                        $selected_service_provider_row = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER FROM DOA_APPOINTMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = $master_database.DOA_USER_MASTER.PK_USER WHERE DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
+                        while (!$selected_service_provider_row->EOF) {
+                            $selected_service_provider[] = $selected_service_provider_row->fields['PK_USER'];
+                            $selected_service_provider_row->MoveNext();
+                        }
+                        if (count($selected_service_provider) > 0) {
+                            $orderBy = " ORDER BY FIELD(DOA_USERS.PK_USER, " . implode(',', $selected_service_provider) . ") DESC";
+                        } else {
+                            $orderBy = "";
+                        }
+                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . $orderBy);
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_USER']; ?>" <?= in_array($row->fields['PK_USER'], $selected_service_provider) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+
+
+                    <!-- <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" required>
                         <option value="">Select <?= $service_provider_title ?></option>
                         <?php
                         $selected_service_provider = '';
@@ -856,7 +878,8 @@ if ($TYPE == 'appointment') {
                             <option value="<?= $row->fields['PK_USER']; ?>" <?= ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
                         <?php $row->MoveNext();
                         } ?>
-                    </select>
+                    </select> -->
+
                 </div>
             </div>
         </div>

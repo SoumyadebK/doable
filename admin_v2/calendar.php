@@ -1421,10 +1421,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                             $('.PK_SERVICE_PROVIDER').val(resource_id);
                                             $('.PK_SERVICE_PROVIDER').trigger('change');
 
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER').SumoSelect();
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER').val(resource_id);
+                                            $('#GROUP_CLASS_SERVICE_PROVIDER')[0].sumo.reload();
+
                                             $('#TO_DO_SERVICE_PROVIDER').SumoSelect();
                                             $('#TO_DO_SERVICE_PROVIDER').val(resource_id);
                                             $('#TO_DO_SERVICE_PROVIDER')[0].sumo.reload();
-
 
                                             calculateEndTime();
 
@@ -1590,6 +1593,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             // Initialize SumoSelect if exists
             if ($.fn.SumoSelect) {
                 $('.sumoselect').SumoSelect();
+
+                $('.multi_sumo_select').SumoSelect({
+                    selectAll: true,
+                    okCancelInMulti: true,
+                    triggerChangeCombined: true,
+                    csvDispCount: 1 // show item names only when <= 3 selected; otherwise show "X selected"
+                });
             }
 
             // Re-attach event handlers
