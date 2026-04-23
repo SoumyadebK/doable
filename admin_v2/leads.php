@@ -329,7 +329,11 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="form-label">Phone</label>
-                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>">
+                                                <?php if (empty($_GET['id'])) { ?>
+                                                    <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number">
+                                                <?php } else { ?>
+                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>">
+                                                <?php } ?>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
