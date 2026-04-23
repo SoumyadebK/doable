@@ -97,6 +97,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 
         <!-- Tabs Content -->
         <div class="tab-content" id="myTabContent">
+            <!-- Appointment Tab Content -->
             <div class="tab-pane fade show active" id="Appointment" role="tabpanel">
                 <h6 class="mb-4">Individual Appointment</h6>
                 <form class="mb-0" id="create_appointment_form" action="partials/store/add_appointment_data.php" method="POST">
@@ -384,6 +385,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 </form>
             </div>
 
+            <!-- Group Class Tab Content -->
             <div class="tab-pane fade" id="Group" role="tabpanel">
                 <h6 class="mb-4">Group Class</h6>
                 <form class="mb-0" id="create_group_class_form" action="partials/store/add_group_class_data.php" method="POST">
@@ -419,7 +421,15 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
+                                <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER[]" id="GROUP_CLASS_SERVICE_PROVIDER" multiple required>
+                                    <?php
+                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                                <!-- <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
                                     $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
@@ -427,7 +437,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
-                                </select>
+                                </select> -->
                             </div>
                         </div>
                     </div>
@@ -645,6 +655,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 </form>
             </div>
 
+            <!-- To-Do Tab Content -->
             <div class="tab-pane fade" id="To-Do" role="tabpanel">
                 <h6 class="mb-4">To Do</h6>
                 <form class="mb-0" id="create_to_do_form" action="partials/store/add_to_do_data.php" method="POST">
@@ -909,6 +920,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 </form>
             </div>
 
+            <!-- Record Only Tab Content -->
             <div class="tab-pane fade" id="Record" role="tabpanel">
                 <h6 class="mb-4">Record Only</h6>
                 <form class="mb-0" id="create_record_only_form" action="partials/store/add_record_only_data.php" method="POST">

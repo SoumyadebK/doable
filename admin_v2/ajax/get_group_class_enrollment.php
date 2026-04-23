@@ -93,8 +93,13 @@ $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLM
                     $enrollment_data->MoveNext();
                 }
             } else { ?>
-                <div class="alert alert-info" style="font-size: 13px;">No enrollment found for this customer.</div>
+                <div class="form-check border rounded-2 p-2 mb-2">
+                    <label class="form-check-label">
+                        <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC" onclick="selectThisEnrollment(this)">Ad-Hoc
+                    </label>
+                </div>
             <?php } ?>
+
         </div>
     </div>
 </div>
