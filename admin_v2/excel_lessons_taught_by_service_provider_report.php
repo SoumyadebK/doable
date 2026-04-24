@@ -94,6 +94,11 @@ $groupStyle = array(
     'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'startcolor' => array('rgb' => 'FFF3CD'))
 );
 
+$todoStyle = array(
+    'font' => array('bold' => true),
+    'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'startcolor' => array('rgb' => 'EDFFFE'))
+);
+
 $totalStyle = array(
     'font' => array('bold' => true),
     'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'startcolor' => array('rgb' => 'F8F9FA'))
@@ -106,7 +111,7 @@ $borderStyle = array(
 );
 
 // Title Row
-$objPHPExcel->getActiveSheet()->mergeCells('A1:G1');
+$objPHPExcel->getActiveSheet()->mergeCells('A1:H1');
 $objPHPExcel->getActiveSheet()->setCellValue('A1', $title);
 $objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18)->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -117,7 +122,7 @@ $objPHPExcel->getActiveSheet()->setCellValue('A2', $concatenatedResults);
 $objPHPExcel->getActiveSheet()->getStyle('A2')->getFont()->setBold(true);
 
 // Date Range Row
-$objPHPExcel->getActiveSheet()->mergeCells('D2:G2');
+$objPHPExcel->getActiveSheet()->mergeCells('D2:H2');
 $objPHPExcel->getActiveSheet()->setCellValue('D2', '(' . date('m/d/Y', strtotime($from_date)) . ' - ' . date('m/d/Y', strtotime($to_date)) . ')');
 $objPHPExcel->getActiveSheet()->getStyle('C2')->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle('C2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
@@ -291,18 +296,67 @@ while (!$providers_query->EOF) {
     $grand_totals['group']['lessons'] += $group_lesson_count;
     $grand_totals['group']['customers'] += $group_customer_count;
 
+    // Get to-do lessons for this provider
+    $to_do_query = $db_account->Execute("
+                                            SELECT
+                                                am.PK_SPECIAL_APPOINTMENT,
+                                                am.TITLE,
+                                                COUNT(DISTINCT ac.PK_USER_MASTER) AS ATTENDEE_COUNT,
+                                                sc.SCHEDULING_NAME,
+                                                sc.SCHEDULING_CODE,
+                                                am.DATE
+                                            FROM DOA_SPECIAL_APPOINTMENT am
+                                            INNER JOIN DOA_SPECIAL_APPOINTMENT_USER asp ON am.PK_SPECIAL_APPOINTMENT = asp.PK_SPECIAL_APPOINTMENT
+                                            LEFT JOIN DOA_SPECIAL_APPOINTMENT_CUSTOMER ac ON am.PK_SPECIAL_APPOINTMENT = ac.PK_SPECIAL_APPOINTMENT
+                                            LEFT JOIN DOA_SCHEDULING_CODE sc ON am.PK_SCHEDULING_CODE = sc.PK_SCHEDULING_CODE
+                                            WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
+                                            AND am.PK_APPOINTMENT_STATUS = 2
+                                            AND asp.PK_USER = $provider_id
+                                            GROUP BY am.PK_SPECIAL_APPOINTMENT, am.DATE
+                                            ORDER BY am.DATE
+                                        ");
+
+    $to_do_lesson_count = 0;
+    $to_do_customer_count = 0;
+    $to_do_details = [];
+
+    while (!$to_do_query->EOF) {
+        $num_sessions = 1; // Assuming each record represents one session, adjust if needed
+        $attendee_count = $to_do_query->fields['ATTENDEE_COUNT'] ? $to_do_query->fields['ATTENDEE_COUNT'] : 0;
+        $service_date = $to_do_query->fields['DATE'];
+        $service_name = $to_do_query->fields['SCHEDULING_NAME'] ? $to_do_query->fields['SCHEDULING_NAME'] : 'To Do Lesson';
+        $scheduling_code = $to_do_query->fields['SCHEDULING_CODE'] ? $to_do_query->fields['SCHEDULING_CODE'] : '';
+
+        $to_do_lesson_count += $num_sessions;
+        $to_do_customer_count += $attendee_count;
+
+        $to_do_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . " (" . $scheduling_code . "): " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
+
+        $to_do_query->MoveNext();
+    }
+
+    $provider_data['to_do']['lessons'] = $to_do_lesson_count;
+    $provider_data['to_do']['customers'] = $to_do_customer_count;
+    $provider_data['to_do']['sessions'] = $to_do_details;
+
+    // Add to grand totals for to-do
+    $grand_totals['to_do']['lessons'] += $to_do_lesson_count;
+    $grand_totals['to_do']['customers'] += $to_do_customer_count;
+
     // Calculate provider totals
     $provider_total_lessons = $provider_data['pre_original']['lessons'] +
         $provider_data['original']['lessons'] +
         $provider_data['extension']['lessons'] +
         $provider_data['renewal']['lessons'] +
-        $group_lesson_count;
+        $group_lesson_count +
+        $to_do_lesson_count;
 
     $provider_total_customers = count($provider_data['pre_original']['customers']) +
         count($provider_data['original']['customers']) +
         count($provider_data['extension']['customers']) +
         count($provider_data['renewal']['customers']) +
-        $group_customer_count;
+        $group_customer_count +
+        $to_do_customer_count;
 
     $provider_data['total_lessons'] = $provider_total_lessons;
     $provider_data['total_customers'] = $provider_total_customers;
@@ -311,6 +365,7 @@ while (!$providers_query->EOF) {
     $provider_data['original']['customer_count'] = count($provider_data['original']['customers']);
     $provider_data['extension']['customer_count'] = count($provider_data['extension']['customers']);
     $provider_data['renewal']['customer_count'] = count($provider_data['renewal']['customers']);
+    $provider_data['to_do']['customer_count'] = count($provider_data['to_do']['customers']);
 
     $all_providers_data[] = $provider_data;
 
@@ -322,18 +377,20 @@ $grand_totals['total_lessons'] = $grand_totals['pre_original']['lessons'] +
     $grand_totals['original']['lessons'] +
     $grand_totals['extension']['lessons'] +
     $grand_totals['renewal']['lessons'] +
-    $grand_totals['group']['lessons'];
+    $grand_totals['group']['lessons'] +
+    $grand_totals['to_do']['lessons'];
 
 $grand_totals['total_customers'] = $grand_totals['pre_original']['customers'] +
     $grand_totals['original']['customers'] +
     $grand_totals['extension']['customers'] +
     $grand_totals['renewal']['customers'] +
-    $grand_totals['group']['customers'];
+    $grand_totals['group']['customers'] +
+    $grand_totals['to_do']['customers'];
 
 // ========== SUMMARY TOTALS TABLE ==========
 $summary_start_row = $current_row;
 
-$objPHPExcel->getActiveSheet()->mergeCells("A$current_row:G$current_row");
+$objPHPExcel->getActiveSheet()->mergeCells("A$current_row:H$current_row");
 $objPHPExcel->getActiveSheet()->setCellValue("A$current_row", "SUMMARY TOTALS");
 $objPHPExcel->getActiveSheet()->getStyle("A$current_row")->applyFromArray($headerStyle);
 $current_row++;
@@ -345,9 +402,10 @@ $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", "Original");
 $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", "Extension");
 $objPHPExcel->getActiveSheet()->setCellValue("E$current_row", "Renewal");
 $objPHPExcel->getActiveSheet()->setCellValue("F$current_row", "Group");
-$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", "TOTAL");
-$objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", "To Do");
+$objPHPExcel->getActiveSheet()->setCellValue("H$current_row", "TOTAL");
+$objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 $current_row++;
 
 // Total Lessons row
@@ -357,10 +415,11 @@ $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", $grand_totals['ori
 $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $grand_totals['extension']['lessons']);
 $objPHPExcel->getActiveSheet()->setCellValue("E$current_row", $grand_totals['renewal']['lessons']);
 $objPHPExcel->getActiveSheet()->setCellValue("F$current_row", $grand_totals['group']['lessons']);
-$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", $grand_totals['total_lessons']);
+$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", $grand_totals['to_do']['lessons']);
+$objPHPExcel->getActiveSheet()->setCellValue("H$current_row", $grand_totals['total_lessons']);
 $objPHPExcel->getActiveSheet()->getStyle("A$current_row")->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle("G$current_row")->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$objPHPExcel->getActiveSheet()->getStyle("H$current_row")->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 $current_row++;
 
 // Total Customers row
@@ -370,21 +429,22 @@ $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", $grand_totals['ori
 $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $grand_totals['extension']['customers']);
 $objPHPExcel->getActiveSheet()->setCellValue("E$current_row", $grand_totals['renewal']['customers']);
 $objPHPExcel->getActiveSheet()->setCellValue("F$current_row", $grand_totals['group']['customers']);
-$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", $grand_totals['total_customers']);
+$objPHPExcel->getActiveSheet()->setCellValue("G$current_row", $grand_totals['to_do']['customers']);
+$objPHPExcel->getActiveSheet()->setCellValue("H$current_row", $grand_totals['total_customers']);
 $objPHPExcel->getActiveSheet()->getStyle("A$current_row")->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle("G$current_row")->getFont()->setBold(true);
-$objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+$objPHPExcel->getActiveSheet()->getStyle("H$current_row")->getFont()->setBold(true);
+$objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 $current_row += 2;
 
 // Apply borders to summary table
-$objPHPExcel->getActiveSheet()->getStyle("A" . $summary_start_row . ":G" . ($current_row - 1))->applyFromArray($borderStyle);
+$objPHPExcel->getActiveSheet()->getStyle("A" . $summary_start_row . ":H" . ($current_row - 1))->applyFromArray($borderStyle);
 
 // ========== PROVIDER TABLES ==========
 foreach ($all_providers_data as $provider_data) {
     $provider_start_row = $current_row;
 
     // Provider header
-    $objPHPExcel->getActiveSheet()->mergeCells("A$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("A$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("A$current_row", $provider_data['name']);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row")->applyFromArray($providerHeaderStyle);
     $current_row++;
@@ -393,10 +453,10 @@ foreach ($all_providers_data as $provider_data) {
     $objPHPExcel->getActiveSheet()->setCellValue("A$current_row", "Enrollment Type");
     $objPHPExcel->getActiveSheet()->setCellValue("B$current_row", "Lessons Taught");
     $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", "Customers Served");
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", "Session Details");
-    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getFont()->setBold(true);
-    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getFont()->setBold(true);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
     $current_row++;
 
     // Pre Original
@@ -407,7 +467,7 @@ foreach ($all_providers_data as $provider_data) {
     if (count($provider_data['pre_original']['sessions']) > 100) {
         $session_text .= "\n... and " . (count($provider_data['pre_original']['sessions']) - 100) . " more";
     }
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
     $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -421,7 +481,7 @@ foreach ($all_providers_data as $provider_data) {
     if (count($provider_data['original']['sessions']) > 100) {
         $session_text .= "\n... and " . (count($provider_data['original']['sessions']) - 100) . " more";
     }
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
     $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -435,7 +495,7 @@ foreach ($all_providers_data as $provider_data) {
     if (count($provider_data['extension']['sessions']) > 100) {
         $session_text .= "\n... and " . (count($provider_data['extension']['sessions']) - 100) . " more";
     }
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
     $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -449,7 +509,7 @@ foreach ($all_providers_data as $provider_data) {
     if (count($provider_data['renewal']['sessions']) > 100) {
         $session_text .= "\n... and " . (count($provider_data['renewal']['sessions']) - 100) . " more";
     }
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
     $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -463,9 +523,24 @@ foreach ($all_providers_data as $provider_data) {
     if (count($provider_data['group']['sessions']) > 100) {
         $session_text .= "\n... and " . (count($provider_data['group']['sessions']) - 100) . " more";
     }
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
-    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->applyFromArray($groupStyle);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->applyFromArray($groupStyle);
+    $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+    $current_row++;
+
+    // To Do Lessons
+    $objPHPExcel->getActiveSheet()->setCellValue("A$current_row", "To Do");
+    $objPHPExcel->getActiveSheet()->setCellValue("B$current_row", $provider_data['to_do']['lessons']);
+    $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", $provider_data['to_do']['customers']);
+    $session_text = !empty($provider_data['to_do']['sessions']) ? implode("\n", array_slice($provider_data['to_do']['sessions'], 0, 100)) : 'None';
+    if (count($provider_data['to_do']['sessions']) > 100) {
+        $session_text .= "\n... and " . (count($provider_data['to_do']['sessions']) - 100) . " more";
+    }
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
+    $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", $session_text);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->applyFromArray($todoStyle);
     $objPHPExcel->getActiveSheet()->getStyle("D$current_row")->getAlignment()->setWrapText(true);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
     $current_row++;
@@ -474,14 +549,14 @@ foreach ($all_providers_data as $provider_data) {
     $objPHPExcel->getActiveSheet()->setCellValue("A$current_row", "PROVIDER TOTAL");
     $objPHPExcel->getActiveSheet()->setCellValue("B$current_row", $provider_data['total_lessons']);
     $objPHPExcel->getActiveSheet()->setCellValue("C$current_row", $provider_data['total_customers']);
-    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:G$current_row");
+    $objPHPExcel->getActiveSheet()->mergeCells("D$current_row:H$current_row");
     $objPHPExcel->getActiveSheet()->setCellValue("D$current_row", "Total Lessons: " . $provider_data['total_lessons'] . " | Total Customers: " . $provider_data['total_customers']);
-    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:G$current_row")->applyFromArray($totalStyle);
+    $objPHPExcel->getActiveSheet()->getStyle("A$current_row:H$current_row")->applyFromArray($totalStyle);
     $objPHPExcel->getActiveSheet()->getStyle("A$current_row:C$current_row")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
     $current_row += 2;
 
     // Apply borders to provider table
-    $objPHPExcel->getActiveSheet()->getStyle("A$provider_start_row:G" . ($current_row - 1))->applyFromArray($borderStyle);
+    $objPHPExcel->getActiveSheet()->getStyle("A$provider_start_row:H" . ($current_row - 1))->applyFromArray($borderStyle);
 }
 
 // ========== NO PROVIDER SECTION ==========
