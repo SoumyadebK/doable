@@ -916,7 +916,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                                 <input type="hidden" id="selected_tag" value="<?= implode(',', $selected_tag); ?>">
                                                                                 <select class="multi_sumo_select_tag" name="PK_USER_TAG[]" id="PK_TAG_MULTIPLE" multiple>
                                                                                     <?php
-                                                                                    $row = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                                    $row = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
                                                                                     while (!$row->EOF) { ?>
                                                                                         <option value="<?php echo $row->fields['PK_TAG']; ?>" <?= in_array($row->fields['PK_TAG'], $selected_tag) ? "selected" : "" ?>><?= $row->fields['TAG_NAME'] ?></option>
                                                                                     <?php $row->MoveNext();
