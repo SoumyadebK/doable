@@ -1231,7 +1231,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                 <?php if (!empty($_GET['id'])) { ?>
                                                                     <div class="row <?= ($INACTIVE_BY_ADMIN == 1) ? 'div_inactive' : '' ?>" style="margin-bottom: 15px; margin-top: 15px;">
                                                                         <div class="col-md-1">
-                                                                            <label class="form-label">Active : </label>
+                                                                            <label class="form-label">Archived : </label>
                                                                         </div>
                                                                         <div class="col-md-4">
                                                                             <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

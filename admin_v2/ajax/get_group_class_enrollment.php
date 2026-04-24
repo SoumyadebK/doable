@@ -76,7 +76,7 @@ $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLM
                     if ((($NUMBER_OF_SESSION - $USED_SESSION_COUNT) > 0) || ($enrollment_data->fields['CHARGE_TYPE'] == 'Membership')) { ?>
                         <div class="form-check border rounded-2 p-2 mb-2">
                             <label class="form-check-label">
-                                <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $enrollment_data->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $enrollment_data->fields['PK_ENROLLMENT_MASTER'] . ',' . $enrollment_data->fields['PK_ENROLLMENT_SERVICE'] . ',' . $enrollment_data->fields['PK_SERVICE_MASTER'] . ',' . $enrollment_data->fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)" <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] . $PACKAGE ?>
+                                <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $enrollment_data->fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $enrollment_data->fields['PK_ENROLLMENT_MASTER'] . ',' . $enrollment_data->fields['PK_ENROLLMENT_SERVICE'] . ',' . $enrollment_data->fields['PK_SERVICE_MASTER'] . ',' . $enrollment_data->fields['PK_SERVICE_CODE']; ?>" <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] . $PACKAGE ?>
                             </label>
                             <?php if ($TOTAL_AMOUNT_PAID >= $enrollment_data->fields['FINAL_AMOUNT']) { ?>
                                 <span class="checkicon float-end">
@@ -95,7 +95,7 @@ $enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLM
             } else { ?>
                 <div class="form-check border rounded-2 p-2 mb-2">
                     <label class="form-check-label">
-                        <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC" onclick="selectThisEnrollment(this)">Ad-Hoc
+                        <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" value="AD-HOC">Ad-Hoc
                     </label>
                 </div>
             <?php } ?>

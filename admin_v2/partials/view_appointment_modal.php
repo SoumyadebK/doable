@@ -111,7 +111,7 @@ if ($TYPE == 'appointment') {
     }
 ?>
     <!-- Appointment Details -->
-    <form class="mb-0" id="edit_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+    <form class="mb-0 edit_appointment_form" id="edit_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
         <div class="appointment-profile d-flex pb-0 mb-3">
             <div class="d-flex align-items-center gap-3 f12 theme-text-light">
                 <?php
@@ -350,7 +350,7 @@ if ($TYPE == 'appointment') {
                         <option value="">Select <?= $service_provider_title ?></option>
                         <?php
                         $selected_service_provider = '';
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                        $row = getServiceProvider();
                         while (!$row->EOF) {
                             if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
                                 $selected_service_provider = $row->fields['NAME'];
@@ -663,27 +663,6 @@ if ($TYPE == 'appointment') {
                 $('#IS_CHARGED').val(0);
             }
         }
-
-        function selectThisEnrollment(param) {
-            let PK_ENROLLMENT_MASTER = $(param).val();
-            let no_of_session = $(param).data('no_of_session');
-            let used_session = $(param).data('used_session');
-
-            $.ajax({
-                url: "ajax/get_scheduling_codes.php",
-                type: "POST",
-                data: {
-                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                    no_of_session: no_of_session,
-                    used_session: used_session
-                },
-                async: false,
-                cache: false,
-                success: function(result) {
-                    $('#edit_appointment_form #PK_SCHEDULING_CODE').html(result);
-                }
-            });
-        }
     </script>
 <?php } elseif ($TYPE == 'group_class') {
     /* --------------------------------------------------------------- Group Class Details --------------------------------------------------------------- */
@@ -822,7 +801,7 @@ if ($TYPE == 'appointment') {
     </div>
 
     <!-- Group Class Details -->
-    <form class="mb-0" id="edit_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+    <form class="mb-0 edit_appointment_form" id="edit_group_class_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
 
         <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $CUSTOMER_ID ?>">
         <input type="hidden" name="REDIRECT_URL" value="../../calendar.php">
@@ -844,8 +823,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group serviceprovider">
-
-                    <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="GROUP_CLASS_SERVICE_PROVIDER" multiple required>
+                    <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" multiple required>
                         <?php
                         $selected_service_provider = [];
                         $selected_service_provider_row = $db_account->Execute("SELECT DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER FROM DOA_APPOINTMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USER_MASTER ON DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = $master_database.DOA_USER_MASTER.PK_USER WHERE DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER = '$PK_APPOINTMENT_MASTER'");
@@ -858,28 +836,12 @@ if ($TYPE == 'appointment') {
                         } else {
                             $orderBy = "";
                         }
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . $orderBy);
+                        $row = getServiceProvider();
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_USER']; ?>" <?= in_array($row->fields['PK_USER'], $selected_service_provider) ? "selected" : "" ?>><?= $row->fields['NAME'] ?></option>
                         <?php $row->MoveNext();
                         } ?>
                     </select>
-
-
-                    <!-- <select class="form-control" required name="SERVICE_PROVIDER_ID" id="SERVICE_PROVIDER_ID" required>
-                        <option value="">Select <?= $service_provider_title ?></option>
-                        <?php
-                        $selected_service_provider = '';
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
-                        while (!$row->EOF) {
-                            if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
-                                $selected_service_provider = $row->fields['NAME'];
-                            } ?>
-                            <option value="<?= $row->fields['PK_USER']; ?>" <?= ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
-                        <?php $row->MoveNext();
-                        } ?>
-                    </select> -->
-
                 </div>
             </div>
         </div>
@@ -1182,7 +1144,7 @@ if ($TYPE == 'appointment') {
 ?>
 
     <!-- Special Appointment Details -->
-    <form class="mb-0" id="edit_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
+    <form class="mb-0 edit_appointment_form" id="edit_special_appointment_form" action="partials/store/update_appointment_data.php" method="post" enctype="multipart/form-data">
         <input type="hidden" name="PK_SPECIAL_APPOINTMENT" class="PK_SPECIAL_APPOINTMENT" value="<?= $PK_SPECIAL_APPOINTMENT ?>">
         <input type="hidden" name="APPOINTMENT_TYPE" class="APPOINTMENT_TYPE" value="<?= $TYPE ?>">
         <input type="hidden" name="START_TIME" id="START_TIME" value="<?= $START_TIME ?>">
@@ -1225,7 +1187,7 @@ if ($TYPE == 'appointment') {
                         <option value="">Select <?= $service_provider_title ?></option>
                         <?php
                         $selected_service_provider = '';
-                        $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                        $row = getServiceProvider();
                         while (!$row->EOF) {
                             if ($SERVICE_PROVIDER_ID == $row->fields['PK_USER']) {
                                 $selected_service_provider = $row->fields['NAME'];
@@ -1251,7 +1213,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group" id="scheduling_code_select">
-                    <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" required>
+                    <select class=" form-control" required name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTimeToDo()" required>
                         <option value="">Select Scheduling Code</option>
                         <?php
                         $row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
@@ -1340,46 +1302,46 @@ if ($TYPE == 'appointment') {
                 getSlots(this);
             }
         });
+
+        $('#edit_special_appointment_form #TO_DO_START_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 15,
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>',
+            change: function(time) {
+                let startTime = $('#edit_special_appointment_form #TO_DO_START_TIME').val();
+                $('#edit_special_appointment_form #TO_DO_END_TIME').timepicker('option', 'minTime', startTime);
+                calculateEndTimeToDo();
+            }
+        });
+
+        $('#edit_special_appointment_form #TO_DO_END_TIME').timepicker({
+            timeFormat: 'hh:mm p',
+            interval: 15,
+            maxTime: '<?= $maxTime ?>',
+            minTime: '<?= $minTime ?>'
+        });
+
+
+        function calculateEndTimeToDo() {
+            let start_time = $('#TO_DO_START_TIME').val();
+            let duration = $('#edit_special_appointment_form #PK_SCHEDULING_CODE').find(':selected').data('duration');
+            let scheduling_name = $('#edit_special_appointment_form #PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
+            $('#TITLE').val(scheduling_name);
+            duration = (duration) ? duration : 0;
+
+            if (start_time && duration) {
+                start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
+                let end_time = addMinutes(start_time, duration);
+                end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
+                $('#TO_DO_END_TIME').val(end_time);
+            }
+        }
     </script>
 <?php }
 ?>
 
 <script>
-    $('#TO_DO_START_TIME').timepicker({
-        timeFormat: 'hh:mm p',
-        interval: 15,
-        maxTime: '<?= $maxTime ?>',
-        minTime: '<?= $minTime ?>',
-        change: function(time) {
-            let startTime = $('#TO_DO_START_TIME').val();
-            $('#TO_DO_END_TIME').timepicker('option', 'minTime', startTime);
-            calculateEndTimeToDo();
-        }
-    });
-
-    $('#TO_DO_END_TIME').timepicker({
-        timeFormat: 'hh:mm p',
-        interval: 15,
-        maxTime: '<?= $maxTime ?>',
-        minTime: '<?= $minTime ?>'
-    });
-
-
-    function calculateEndTimeToDo() {
-        let start_time = $('#TO_DO_START_TIME').val();
-        let duration = $('#PK_SCHEDULING_CODE').find(':selected').data('duration');
-        let scheduling_name = $('#PK_SCHEDULING_CODE').find(':selected').data('scheduling_name');
-        $('#TITLE').val(scheduling_name);
-        duration = (duration) ? duration : 0;
-
-        if (start_time && duration) {
-            start_time = moment(start_time, ["h:mm A"]).format("HH:mm");
-            let end_time = addMinutes(start_time, duration);
-            end_time = moment(end_time, ["HH:mm"]).format("h:mm A");
-            $('#TO_DO_END_TIME').val(end_time);
-        }
-    }
-
     function getSlots(param) {
         let PK_SERVICE_PROVIDER = $(param).closest('#edit_appointment_form').find('#SERVICE_PROVIDER_ID').val();
         let PK_LOCATION = <?= $PK_LOCATION ?>;

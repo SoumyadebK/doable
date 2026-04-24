@@ -83,7 +83,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-time-grid .fc-slats td {
-        height: 50px !important;
+        height: 30px !important;
     }
 
     .fc-time-grid-event .fc-content {
@@ -131,10 +131,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         pointer-events: none;
     }
 
-    .fc-content {
-        margin: 5px !important;
-    }
-
     .fc-time-grid-event {
         min-height: 50px !important;
     }
@@ -180,6 +176,30 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         margin-top: 3px;
         line-height: 19px;
         font-size: 12px;
+    }
+
+    /* Current Time Indicator Line */
+    .fc-current-time-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ff0000, #ff6b6b);
+        z-index: 10;
+        pointer-events: none;
+        box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+    }
+
+    .fc-current-time-indicator::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: -6px;
+        width: 12px;
+        height: 14px;
+        background: #ff0000;
+        border-radius: 50%;
+        box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.6);
     }
 </style>
 <style>
@@ -1011,6 +1031,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 maxTime: '24:00:00'
             };
 
+            // Clean up previous intervals
+            if (window.currentTimeIndicatorInterval) {
+                clearInterval(window.currentTimeIndicatorInterval);
+            }
+            if (window.indicatorPositionInterval) {
+                clearInterval(window.indicatorPositionInterval);
+            }
+
             if (calendar) {
                 calendar.destroy();
             }
@@ -1493,8 +1521,118 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
             calendar.render();
 
+            // Add current time indicator for day view
+            setTimeout(() => {
+                updateCurrentTimeIndicator();
+                // Update indicator every minute
+                if (window.currentTimeIndicatorInterval) {
+                    clearInterval(window.currentTimeIndicatorInterval);
+                }
+                window.currentTimeIndicatorInterval = setInterval(updateCurrentTimeIndicator, 60000);
+            }, 500);
+
             // Update CHOOSE_DATE input with current date
             updateChooseDateInput(date);
+        }
+
+        // Function to update and position the current time indicator line
+        function updateCurrentTimeIndicator() {
+            // Show indicator for day view on any date
+            if (calendar.view.type !== 'agendaDay') {
+                // Remove indicator if not in day view
+                const existingIndicator = document.querySelector('.fc-current-time-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                return;
+            }
+
+            // Get time grid element
+            const timeGrid = document.querySelector('.fc-time-grid');
+            if (!timeGrid) return;
+
+            // Remove existing indicator
+            let indicator = document.querySelector('.fc-current-time-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+
+            // Create new indicator
+            indicator = document.createElement('div');
+            indicator.className = 'fc-current-time-indicator';
+            timeGrid.appendChild(indicator);
+
+            // Calculate and set position
+            updateIndicatorPosition(indicator);
+
+            // Update position every minute
+            if (window.indicatorPositionInterval) {
+                clearInterval(window.indicatorPositionInterval);
+            }
+            window.indicatorPositionInterval = setInterval(() => {
+                updateIndicatorPosition(indicator);
+            }, 60000);
+        }
+
+        // Function to calculate and set the indicator position
+        function updateIndicatorPosition(indicator) {
+            if (!indicator || !document.body.contains(indicator)) return;
+
+            // Get current time
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const currentTotalMinutes = hours * 60 + minutes;
+
+            // Get the time grid container height
+            const timeGrid = document.querySelector('.fc-time-grid');
+            if (!timeGrid) return;
+
+            // Get calendar date and day of week
+            const calendarDate = calendar.getDate();
+            const dayOfWeek = calendarDate.getDay();
+
+            // Get minTime and maxTime for the current day from dayConfigs
+            const config = dayConfigs[dayOfWeek] || {
+                minTime: '00:00:00',
+                maxTime: '24:00:00'
+            };
+
+            // Parse minTime and maxTime
+            const parseTime = (timeStr) => {
+                const parts = timeStr.split(':');
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            };
+
+            const minTimeMinutes = parseTime(config.minTime);
+            const maxTimeMinutes = parseTime(config.maxTime);
+            const rangeMinutes = maxTimeMinutes - minTimeMinutes;
+
+            // Calculate slot height (based on CSS)
+            const slots = document.querySelectorAll('.fc-time-grid .fc-slats tr');
+            if (slots.length === 0) return;
+
+            const firstSlot = slots[0];
+            const slotHeight = firstSlot.offsetHeight;
+
+            // Total height available
+            const totalHeight = slotHeight * slots.length;
+
+            // Calculate position based on current time relative to minTime
+            let position = 0;
+            if (currentTotalMinutes >= minTimeMinutes && currentTotalMinutes <= maxTimeMinutes) {
+                // Current time is within operating hours
+                const minutesFromStart = currentTotalMinutes - minTimeMinutes;
+                position = (minutesFromStart / rangeMinutes) * totalHeight;
+            } else if (currentTotalMinutes > maxTimeMinutes) {
+                // Current time is after closing
+                position = totalHeight;
+            }
+            // If before minTime, position stays 0
+
+            // Set the position
+            indicator.style.top = position + 'px';
+            indicator.style.display = 'block';
         }
 
         function loadViewAppointmentModal(appointmentId, TYPE) {
@@ -1626,6 +1764,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $('.slot_div').html('');
 
             $('#create_group_class_form')[0].reset();
+            $('#GROUP_CLASS_SERVICE_PROVIDER').val('');
+            $('#GROUP_CLASS_SERVICE_PROVIDER')[0].sumo.reload();
+
             $('.custom-date-time-format').addClass('d-none');
 
             $('#create_to_do_form')[0].reset();
@@ -1716,6 +1857,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             if (view === 'agendaDay') {
                 calendar.changeView('agendaDay');
                 updateChooseDateInput(todayDate);
+                // Update current time indicator for day view
+                setTimeout(() => {
+                    updateCurrentTimeIndicator();
+                }, 300);
             } else if (view === 'agendaWeek') {
                 calendar.changeView('agendaWeek');
                 setTimeout(function() {
@@ -2343,7 +2488,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     <script>
         function submitEditAppointmentForm() {
-            let form = $('#edit_appointment_form');
+            let form = $('.edit_appointment_form');
 
             if (!form[0].checkValidity()) {
                 form[0].reportValidity();
