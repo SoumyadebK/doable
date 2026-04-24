@@ -1537,7 +1537,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('.SERVICE_PROVIDER_ID').empty().append(result);
+                    if ($('.SERVICE_PROVIDER_ID').val() == null) {
+                        $('.SERVICE_PROVIDER_ID').empty().append(result);
+                    }
                 }
             });
         }

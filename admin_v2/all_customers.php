@@ -44,6 +44,9 @@ if (!isset($_GET['page'])) {
 
 $page_first_result = ($page - 1) * $results_per_page;
 
+$location_data = $db->Execute("SELECT MAX(USER_INACTIVE_DAYS) AS USER_INACTIVE_DAYS FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
+$USER_INACTIVE_DAYS = ($location_data->RecordCount() > 0) ? $location_data->fields['USER_INACTIVE_DAYS'] : 30;
+
 ?>
 
 <!DOCTYPE html>
@@ -202,13 +205,14 @@ $page_first_result = ($page - 1) * $results_per_page;
                                 $i = $page_first_result + 1;
                                 $customer_data = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_LOCATION.LOCATION_NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_CUSTOMER_DETAILS AS DOA_CUSTOMER_DETAILS ON DOA_USER_MASTER.PK_USER_MASTER = DOA_CUSTOMER_DETAILS.PK_USER_MASTER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE (DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.ACTIVE = '$status' AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . $search . " ORDER BY DOA_USERS.CREATED_ON DESC LIMIT " . $page_first_result . ',' . $results_per_page);
                                 while (!$customer_data->EOF) {
+                                    $PK_USER_MASTER = $customer_data->fields['PK_USER_MASTER'];
                                     $total_paid = 0;
                                     $total_used = 0;
 
-                                    $total_paid_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $customer_data->fields['PK_USER_MASTER']);
+                                    $total_paid_data = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_PAID FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
                                     $total_paid = $total_paid_data->fields['TOTAL_PAID'];
 
-                                    $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $customer_data->fields['PK_USER_MASTER']);
+                                    $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
                                     while (!$enr_service_data->EOF) {
                                         $SESSION_COMPLETED = getSessionCompletedCount($enr_service_data->fields['PK_ENROLLMENT_SERVICE']);
                                         $total_used += ($SESSION_COMPLETED * $enr_service_data->fields['PRICE_PER_SESSION']);
@@ -216,18 +220,21 @@ $page_first_result = ($page - 1) * $results_per_page;
                                     }
 
                                     $balance = 0;
-                                    $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $customer_data->fields['PK_USER_MASTER']);
+                                    $enr_service_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_SERVICE, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_ENROLLMENT_SERVICE.TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE (DOA_ENROLLMENT_MASTER.STATUS = 'CA' || DOA_ENROLLMENT_MASTER.STATUS = 'A') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
                                     while (!$enr_service_data->EOF) {
                                         $balance += ($enr_service_data->fields['FINAL_AMOUNT'] - $enr_service_data->fields['TOTAL_AMOUNT_PAID']);
                                         $enr_service_data->MoveNext();
                                     }
 
-                                    $selected_preferred_location = $db->Execute("SELECT DOA_LOCATION.LOCATION_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $customer_data->fields['PK_USER_MASTER']);
+                                    $selected_preferred_location = $db->Execute("SELECT DOA_LOCATION.LOCATION_NAME FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_LOCATION.PK_LOCATION WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
                                     $preferred_location = [];
                                     while (!$selected_preferred_location->EOF) {
                                         $preferred_location[] = $selected_preferred_location->fields['LOCATION_NAME'];
                                         $selected_preferred_location->MoveNext();
                                     }
+
+                                    $last_completed_appointment_query = $db_account->Execute("SELECT DAC.PK_USER_MASTER, MAX(DAM.DATE) AS LAST_APPOINTMENT_DATE, DATEDIFF(CURDATE(), MAX(DAM.DATE)) AS DAYS_SINCE_LAST_APPOINTMENT FROM DOA_APPOINTMENT_CUSTOMER DAC INNER JOIN DOA_APPOINTMENT_MASTER DAM ON DAC.PK_APPOINTMENT_MASTER = DAM.PK_APPOINTMENT_MASTER WHERE DAC.PK_USER_MASTER = $PK_USER_MASTER AND DAM.PK_APPOINTMENT_STATUS = 2 GROUP BY DAC.PK_USER_MASTER");
+                                    $DAYS_SINCE_LAST_APPOINTMENT = ($last_completed_appointment_query->RecordCount() > 0) ? $last_completed_appointment_query->fields['DAYS_SINCE_LAST_APPOINTMENT'] : 99;
 
                                     $CUSTOMER_NAME = $customer_data->fields['NAME'];
                                     $customer = getProfileBadge($CUSTOMER_NAME);
@@ -239,7 +246,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <td class="d-flex align-items-center" style="height: 60px;">
                                             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                             <div>
-                                                <div><a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $customer_data->fields['PK_USER_MASTER'] ?>"><?= $CUSTOMER_NAME ?></a></div>
+                                                <div><a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $CUSTOMER_NAME ?></a></div>
                                                 <small class="text-muted"><?= $customer_data->fields['EMAIL_ID'] ?></small>
                                             </div>
                                         </td>
@@ -250,10 +257,16 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         <td>$<?= str_replace(",", "", number_format(($total_paid) - $total_used, 2)) ?></td>
                                         <td>$<?= str_replace(",", "", number_format($balance, 2)) ?></td>
                                         <td>
-                                            <?php if ($customer_data->fields['ACTIVE'] == 1) { ?>
-                                                <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
-                                                    <i class="fa fa-check-circle" style="font-size:15px; color:#35e235;"></i> Active
-                                                </span>
+                                            <?php if ($customer_data->fields['ACTIVE'] == 1) {
+                                                if ($DAYS_SINCE_LAST_APPOINTMENT >= $USER_INACTIVE_DAYS) { ?>
+                                                    <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
+                                                        <i class="fa fa-times" aria-hidden="true" style="font-size:15px; color:#ff0000;"></i> Inactive
+                                                    </span>
+                                                <?php } else { ?>
+                                                    <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
+                                                        <i class="fa fa-check-circle" style="font-size:15px; color:#35e235;"></i> Active
+                                                    </span>
+                                                <?php } ?>
                                             <?php } else { ?>
                                                 <span class="status not-started" style="border: 1px solid #e1e1e1; background-color: #fff;">
                                                     <i class="fa fa-ban" style="font-size:15px; color:#ff0000;"></i> Archived
@@ -262,7 +275,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                         </td>
 
                                         <td class="text-center" style="vertical-align: middle;">
-                                            <a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $customer_data->fields['PK_USER_MASTER'] ?>">
+                                            <a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>">
                                                 <button type="button" class="bg-transparent p-0 border-0">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
                                                         <circle cx="256" cy="256" r="48" />

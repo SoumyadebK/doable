@@ -121,7 +121,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    $row = getServiceProvider();
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>">
                                             <?= $row->fields['NAME'] ?>
@@ -421,23 +421,14 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="multi_sumo_select PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER[]" id="GROUP_CLASS_SERVICE_PROVIDER" multiple required>
+                                <select class="multi_sumo_select MULTI_SELECT_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER[]" id="GROUP_CLASS_SERVICE_PROVIDER" multiple required>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                    $row = getServiceProvider();
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
                                     } ?>
                                 </select>
-                                <!-- <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" required>
-                                    <option value="">Select <?= $service_provider_title ?></option>
-                                    <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
-                                    <?php $row->MoveNext();
-                                    } ?>
-                                </select> -->
                             </div>
                         </div>
                     </div>
@@ -691,9 +682,9 @@ if ($location_operational_hour->RecordCount() > 0) {
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="multi_sumo_select PK_SERVICE_PROVIDER" id="TO_DO_SERVICE_PROVIDER" name="PK_USER[]" multiple required>
+                                <select class="multi_sumo_select MULTI_SELECT_SERVICE_PROVIDER" id="TO_DO_SERVICE_PROVIDER" name="PK_USER[]" multiple required>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
+                                    $row = getServiceProvider();
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -944,7 +935,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <select class="form-control PK_SERVICE_PROVIDER" name="PK_SERVICE_PROVIDER" id="PK_SERVICE_PROVIDER" onchange="getSlotsForAppointmentCreation(this)" required>
                                     <option value="">Select <?= $service_provider_title ?></option>
                                     <?php
-                                    $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY NAME");
+                                    $row = getServiceProvider();
                                     while (!$row->EOF) { ?>
                                         <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
                                     <?php $row->MoveNext();
@@ -1146,12 +1137,12 @@ if ($location_operational_hour->RecordCount() > 0) {
 
     function selectThisEnrollment(param) {
         if ($(param).val() == 'AD-HOC') {
-            $('#create_appointment_form .service_area').removeClass('d-none');
-            $('#create_appointment_form #PK_SERVICE_MASTER').val('');
-            $('#create_appointment_form #PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
-            selectThisServiceForSchedulingCode($('#create_appointment_form #PK_SERVICE_MASTER'));
+            $(param).closest('form').find('.service_area').removeClass('d-none');
+            $(param).closest('form').find('#PK_SERVICE_MASTER').val('');
+            $(param).closest('form').find('#PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
+            selectThisServiceForSchedulingCode($(param).closest('form').find('#PK_SERVICE_MASTER'));
         } else {
-            $('#create_appointment_form .service_area').addClass('d-none');
+            $(param).closest('form').find('.service_area').addClass('d-none');
             let PK_ENROLLMENT_MASTER = $(param).val();
 
             $.ajax({
@@ -1163,7 +1154,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                 async: false,
                 cache: false,
                 success: function(result) {
-                    $('#create_appointment_form #PK_SCHEDULING_CODE').html(result);
+                    $(param).closest('form').find('#PK_SCHEDULING_CODE').html(result);
                 }
             });
         }
@@ -1180,7 +1171,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             async: false,
             cache: false,
             success: function(result) {
-                $(param).closest('.tab-pane').find('#PK_SCHEDULING_CODE').html(result);
+                $(param).closest('form').find('#PK_SCHEDULING_CODE').html(result);
             }
         });
     }

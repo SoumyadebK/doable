@@ -107,6 +107,7 @@ if (empty($_GET['id'])) {
     $TOKEN = '';
     $TWILIO_PHONE_NO = '';
     $FOCUSBIZ_API_KEY = '';
+    $USER_INACTIVE_DAYS = '';
     $USERNAME_PREFIX = '';
 
     $SMTP_HOST = '';
@@ -181,6 +182,7 @@ if (empty($_GET['id'])) {
     $TWILIO_PHONE_NO        = $res->fields['TWILIO_PHONE_NO'];
 
     $FOCUSBIZ_API_KEY = $res->fields['FOCUSBIZ_API_KEY'];
+    $USER_INACTIVE_DAYS = $res->fields['USER_INACTIVE_DAYS'];
     $USERNAME_PREFIX = $res->fields['USERNAME_PREFIX'];
 
     $SMTP_HOST = $res->fields['SMTP_HOST'];
@@ -909,14 +911,17 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!-- <div class="col-6">
+                                                    <div class="col-6">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Username Prefix</label>
-                                                            <div class="col-md-12">
-                                                                <input type="text" id="USERNAME_PREFIX" name="USERNAME_PREFIX" class="form-control" placeholder="Enter Username Prefix" value="<?php echo $USERNAME_PREFIX ?>">
-                                                            </div>
+                                                            <label class="col-md-12">User Inactive Days</label>
+                                                            <select name="USER_INACTIVE_DAYS" class="form-control">
+                                                                <option value="">Select</option>
+                                                                <option value="30" <?= ($USER_INACTIVE_DAYS == '30') ? 'selected' : '' ?>>30 Days</option>
+                                                                <option value="60" <?= ($USER_INACTIVE_DAYS == '60') ? 'selected' : '' ?>>60 Days</option>
+                                                                <option value="90" <?= ($USER_INACTIVE_DAYS == '90') ? 'selected' : '' ?>>90 Days</option>
+                                                            </select>
                                                         </div>
-                                                    </div> -->
+                                                    </div>
                                                 </div>
 
                                                 <div class="row twilio_account_type" id="twilio_account_type" style="margin-top: 30px;">
