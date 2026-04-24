@@ -52,6 +52,7 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                                 <a class="dropdown-item" href="../admin_v2/all_event_types.php">Event Types</a>
                                 <a class="dropdown-item" href="../admin_v2/all_inquiry_methods.php">Inquiry Method</a>
                                 <a class="dropdown-item" href="../admin_v2/all_lead_status.php">Lead Status</a>
+                                <a class="dropdown-item" href="../admin_v2/all_tags.php">Tag</a>
                                 <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1) { ?>
                                     <a class="dropdown-item" href="../admin_v2/default_call_setting.php">Default Call Setting</a>
                                 <?php } ?>

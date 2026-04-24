@@ -883,7 +883,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="col-9">
+                                                                    <div class="col-7">
                                                                         <div class="form-group">
                                                                             <label class="form-label">Reminder Options</label>
                                                                             <div class="row m-t-10">
@@ -896,6 +896,32 @@ if (isset($_POST['SUBMIT'])) {
                                                                                 <div class="col-md-4">
                                                                                     <label><input type="checkbox" class="form-check-inline" name="REMINDER_OPTION[]" <?= in_array('Phone Call', explode(',', $REMINDER_OPTION)) ? 'checked' : '' ?> value="Phone Call"> Phone Call</label>
                                                                                 </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-2">
+                                                                        <div>
+                                                                            <label class="col-md-12">Tag</label>
+                                                                            <div class="col-md-12 multiselect-box" style="width: 100%;">
+                                                                                <?php
+                                                                                $selected_tag = [];
+                                                                                if (!empty($_GET['id'])) {
+                                                                                    $selected_tag_row = $db_account->Execute("SELECT `PK_TAG` FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = '$_GET[master_id]'");
+                                                                                    while (!$selected_tag_row->EOF) {
+                                                                                        $selected_tag[] = $selected_tag_row->fields['PK_TAG'];
+                                                                                        $selected_tag_row->MoveNext();
+                                                                                    }
+                                                                                }
+                                                                                ?>
+                                                                                <input type="hidden" id="selected_tag" value="<?= implode(',', $selected_tag); ?>">
+                                                                                <select class="multi_sumo_select_tag" name="PK_USER_TAG[]" id="PK_TAG_MULTIPLE" multiple>
+                                                                                    <?php
+                                                                                    $row = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                                                                    while (!$row->EOF) { ?>
+                                                                                        <option value="<?php echo $row->fields['PK_TAG']; ?>" <?= in_array($row->fields['PK_TAG'], $selected_tag) ? "selected" : "" ?>><?= $row->fields['TAG_NAME'] ?></option>
+                                                                                    <?php $row->MoveNext();
+                                                                                    } ?>
+                                                                                </select>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -2806,6 +2832,11 @@ if (isset($_POST['SUBMIT'])) {
 
     $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select Location',
+        selectAll: true
+    });
+
+    $('.multi_sumo_select_tag').SumoSelect({
+        placeholder: 'Select Tag',
         selectAll: true
     });
 
