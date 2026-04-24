@@ -1283,6 +1283,16 @@ function saveProfileData($RESPONSE_DATA)
         }
     }
 
+    $db_account->Execute("DELETE FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+    if (isset($RESPONSE_DATA['PK_USER_TAG'])) {
+        $PK_USER_TAG = $RESPONSE_DATA['PK_USER_TAG'];
+        for ($i = 0; $i < count($PK_USER_TAG); $i++) {
+            $USER_TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $USER_TAG_DATA['PK_TAG'] = $PK_USER_TAG[$i];
+            db_perform_account('DOA_USER_TAG', $USER_TAG_DATA, 'insert');
+        }
+    }
+
     if (isset($RESPONSE_DATA['PK_LEADS']) && $RESPONSE_DATA['PK_LEADS'] > 0) {
         $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
     }

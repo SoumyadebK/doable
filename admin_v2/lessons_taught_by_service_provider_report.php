@@ -224,6 +224,7 @@ if (!empty($_GET['START_DATE'])) {
                                         'extension' => ['lessons' => 0, 'customers' => 0],
                                         'renewal' => ['lessons' => 0, 'customers' => 0],
                                         'group' => ['lessons' => 0, 'customers' => 0],
+                                        'to_do' => ['lessons' => 0, 'customers' => 0],
                                         'total_lessons' => 0,
                                         'total_customers' => 0
                                     ];
@@ -245,7 +246,8 @@ if (!empty($_GET['START_DATE'])) {
                                             'original' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
                                             'extension' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
                                             'renewal' => ['lessons' => 0, 'customers' => [], 'sessions' => []],
-                                            'group' => ['lessons' => 0, 'customers' => 0, 'sessions' => []]
+                                            'group' => ['lessons' => 0, 'customers' => 0, 'sessions' => []],
+                                            'to_do' => ['lessons' => 0, 'customers' => 0, 'sessions' => []]
                                         ];
 
                                         // Get private lessons for this provider by enrollment type
@@ -370,18 +372,65 @@ if (!empty($_GET['START_DATE'])) {
                                         $grand_totals['group']['lessons'] += $group_lesson_count;
                                         $grand_totals['group']['customers'] += $group_customer_count;
 
+                                        // Get to-do lessons for this provider
+                                        $to_do_query = $db_account->Execute("
+                                            SELECT
+                                                am.PK_SPECIAL_APPOINTMENT,
+                                                am.TITLE,
+                                                COUNT(DISTINCT ac.PK_USER_MASTER) AS ATTENDEE_COUNT,
+                                                sc.SCHEDULING_NAME,
+                                                sc.SCHEDULING_CODE,
+                                                am.DATE
+                                            FROM DOA_SPECIAL_APPOINTMENT am
+                                            INNER JOIN DOA_SPECIAL_APPOINTMENT_USER asp ON am.PK_SPECIAL_APPOINTMENT = asp.PK_SPECIAL_APPOINTMENT
+                                            LEFT JOIN DOA_SPECIAL_APPOINTMENT_CUSTOMER ac ON am.PK_SPECIAL_APPOINTMENT = ac.PK_SPECIAL_APPOINTMENT
+                                            LEFT JOIN DOA_SCHEDULING_CODE sc ON am.PK_SCHEDULING_CODE = sc.PK_SCHEDULING_CODE
+                                            WHERE DATE(am.DATE) BETWEEN '$from_date' AND '$to_date'
+                                            AND am.PK_APPOINTMENT_STATUS = 2
+                                            AND asp.PK_USER = $provider_id
+                                            GROUP BY am.PK_SPECIAL_APPOINTMENT, am.DATE
+                                            ORDER BY am.DATE
+                                        ");
+
+                                        $to_do_lesson_count = 0;
+                                        $to_do_customer_count = 0;
+                                        $to_do_details = [];
+
+                                        while (!$to_do_query->EOF) {
+                                            $num_sessions = 1; // Assuming each record represents one session, adjust if needed
+                                            $attendee_count = $to_do_query->fields['ATTENDEE_COUNT'] ? $to_do_query->fields['ATTENDEE_COUNT'] : 0;
+                                            $service_date = $to_do_query->fields['DATE'];
+                                            $service_name = $to_do_query->fields['SCHEDULING_NAME'] ? $to_do_query->fields['SCHEDULING_NAME'] : 'To Do Lesson';
+                                            $scheduling_code = $to_do_query->fields['SCHEDULING_CODE'] ? $to_do_query->fields['SCHEDULING_CODE'] : '';
+
+                                            $to_do_lesson_count += $num_sessions;
+                                            $to_do_customer_count += $attendee_count;
+
+                                            $to_do_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . " (". $scheduling_code . "): " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
+
+                                            $to_do_query->MoveNext();
+                                        }
+
+                                        $provider_data['to_do']['lessons'] = $to_do_lesson_count;
+                                        $provider_data['to_do']['customers'] = $to_do_customer_count;
+                                        $provider_data['to_do']['sessions'] = $to_do_details;
+
+                                        // Add to grand totals for to-do
+                                        $grand_totals['to_do']['lessons'] += $to_do_lesson_count;
+                                        $grand_totals['to_do']['customers'] += $to_do_customer_count;
+
                                         // Calculate provider totals (convert customer arrays to counts)
                                         $provider_total_lessons = $provider_data['pre_original']['lessons'] +
                                             $provider_data['original']['lessons'] +
                                             $provider_data['extension']['lessons'] +
                                             $provider_data['renewal']['lessons'] +
-                                            $group_lesson_count;
+                                            $group_lesson_count + $to_do_lesson_count;
 
                                         $provider_total_customers = count($provider_data['pre_original']['customers']) +
                                             count($provider_data['original']['customers']) +
                                             count($provider_data['extension']['customers']) +
                                             count($provider_data['renewal']['customers']) +
-                                            $group_customer_count;
+                                            $group_customer_count + $to_do_customer_count;
 
                                         $provider_data['total_lessons'] = $provider_total_lessons;
                                         $provider_data['total_customers'] = $provider_total_customers;
@@ -402,13 +451,15 @@ if (!empty($_GET['START_DATE'])) {
                                         $grand_totals['original']['lessons'] +
                                         $grand_totals['extension']['lessons'] +
                                         $grand_totals['renewal']['lessons'] +
-                                        $grand_totals['group']['lessons'];
+                                        $grand_totals['group']['lessons'] +
+                                        $grand_totals['to_do']['lessons'];
 
                                     $grand_totals['total_customers'] = $grand_totals['pre_original']['customers'] +
                                         $grand_totals['original']['customers'] +
                                         $grand_totals['extension']['customers'] +
                                         $grand_totals['renewal']['customers'] +
-                                        $grand_totals['group']['customers'];
+                                        $grand_totals['group']['customers'] +
+                                        $grand_totals['to_do']['customers'];
                                     ?>
 
                                     <!-- Summary Totals Table -->
@@ -425,6 +476,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <th style="text-align: center">Extension</th>
                                                     <th style="text-align: center">Renewal</th>
                                                     <th style="text-align: center">Group</th>
+                                                    <th style="text-align: center">To Do</th>
                                                     <th style="text-align: center">TOTAL</th>
                                                 </tr>
                                             </thead>
@@ -436,6 +488,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <td style="text-align: center"><?= $grand_totals['extension']['lessons'] ?></td>
                                                     <td style="text-align: center"><?= $grand_totals['renewal']['lessons'] ?></td>
                                                     <td style="text-align: center"><?= $grand_totals['group']['lessons'] ?></td>
+                                                    <td style="text-align: center"><?= $grand_totals['to_do']['lessons'] ?></td>
                                                     <td style="text-align: center; font-weight: bold"><?= $grand_totals['total_lessons'] ?></td>
                                                 </tr>
                                                 <tr>
@@ -445,6 +498,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <td style="text-align: center"><?= $grand_totals['extension']['customers'] ?></td>
                                                     <td style="text-align: center"><?= $grand_totals['renewal']['customers'] ?></td>
                                                     <td style="text-align: center"><?= $grand_totals['group']['customers'] ?></td>
+                                                    <td style="text-align: center"><?= $grand_totals['to_do']['customers'] ?></td>
                                                     <td style="text-align: center; font-weight: bold"><?= $grand_totals['total_customers'] ?></td>
                                                 </tr>
                                             </tbody>
@@ -587,6 +641,33 @@ if (!empty($_GET['START_DATE'])) {
                                                         <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
                                                             <?php
                                                             $group_sessions = $provider_data['group']['sessions'];
+                                                            if (!empty($group_sessions)) {
+                                                                echo '<ul style="margin: 0; padding-left: 15px;">';
+                                                                $display_count = 0;
+                                                                foreach ($group_sessions as $session) {
+                                                                    if ($display_count < 100) {
+                                                                        echo '<li>' . htmlspecialchars($session) . '</li>';
+                                                                    } elseif ($display_count == 100) {
+                                                                        echo '<li>... and ' . (count($group_sessions) - 100) . ' more</li>';
+                                                                        break;
+                                                                    }
+                                                                    $display_count++;
+                                                                }
+                                                                echo '</ul>';
+                                                            } else {
+                                                                echo 'None';
+                                                            }
+                                                            ?>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr style="background-color: #EDFFFE;">
+                                                        <td style="text-align: center; font-weight: bold">To Do</td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $provider_data['to_do']['lessons'] ?></td>
+                                                        <td style="text-align: center; font-weight: bold"><?= $provider_data['to_do']['customers'] ?></td>
+                                                        <td style="text-align: left; font-size: 10px; padding: 2px 5px;">
+                                                            <?php
+                                                            $group_sessions = $provider_data['to_do']['sessions'];
                                                             if (!empty($group_sessions)) {
                                                                 echo '<ul style="margin: 0; padding-left: 15px;">';
                                                                 $display_count = 0;
