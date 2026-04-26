@@ -406,7 +406,7 @@ if (!empty($_GET['START_DATE'])) {
                                             $to_do_lesson_count += $num_sessions;
                                             $to_do_customer_count += $attendee_count;
 
-                                            $to_do_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . " (". $scheduling_code . "): " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
+                                            $to_do_details[] = date('m/d/Y', strtotime($service_date)) . " - " . $service_name . " (" . $scheduling_code . "): " . $num_sessions . " session" . ($num_sessions > 1 ? 's' : '') . " (" . $attendee_count . " attendees)";
 
                                             $to_do_query->MoveNext();
                                         }
