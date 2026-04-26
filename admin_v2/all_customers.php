@@ -45,7 +45,7 @@ if (!isset($_GET['page'])) {
 $page_first_result = ($page - 1) * $results_per_page;
 
 $location_data = $db->Execute("SELECT MAX(USER_INACTIVE_DAYS) AS USER_INACTIVE_DAYS FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
-$USER_INACTIVE_DAYS = ($location_data->RecordCount() > 0) ? $location_data->fields['USER_INACTIVE_DAYS'] : 30;
+$USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $location_data->fields['USER_INACTIVE_DAYS'] : 30;
 
 ?>
 

@@ -1291,6 +1291,29 @@ CREATE TABLE `DOA_SPECIAL_APPOINTMENT_USER` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `DOA_TAG`
+--
+
+CREATE TABLE `DOA_TAG` (
+  `PK_TAG` int(11) NOT NULL,
+  `TAG_NAME` varchar(250) NOT NULL,
+  `ACTIVE` int(11) NOT NULL,
+  `CREATED_ON` datetime NOT NULL,
+  `CREATED_BY` int(11) NOT NULL,
+  `EDITED_ON` datetime NOT NULL,
+  `EDITED_BY` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `DOA_TAG`
+--
+
+INSERT INTO `DOA_TAG` (`PK_TAG`, `TAG_NAME`, `ACTIVE`, `CREATED_ON`, `CREATED_BY`, `EDITED_ON`, `EDITED_BY`) VALUES
+(1, 'Wedding', 1, '0000-00-00 00:00:00', 0, '0000-00-00 00:00:00', 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `DOA_UPDATE_HISTORY`
 --
 
@@ -1356,6 +1379,18 @@ CREATE TABLE `DOA_USER_RATE` (
   `EDITED_ON` datetime NOT NULL,
   `EDITED_BY` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `DOA_USER_TAG`
+--
+
+CREATE TABLE `DOA_USER_TAG` (
+  `PK_USER_TAG` int(11) NOT NULL,
+  `PK_USER_MASTER` int(11) NOT NULL,
+  `PK_TAG` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1940,6 +1975,12 @@ ALTER TABLE `DOA_SPECIAL_APPOINTMENT_USER`
   ADD KEY `PK_USER` (`PK_USER`);
 
 --
+-- Indexes for table `DOA_TAG`
+--
+ALTER TABLE `DOA_TAG`
+  ADD PRIMARY KEY (`PK_TAG`);
+
+--
 -- Indexes for table `DOA_UPDATE_HISTORY`
 --
 ALTER TABLE `DOA_UPDATE_HISTORY`
@@ -1963,6 +2004,12 @@ ALTER TABLE `DOA_USER_DOCUMENT`
 --
 ALTER TABLE `DOA_USER_RATE`
   ADD PRIMARY KEY (`PK_USER_RATE`);
+
+--
+-- Indexes for table `DOA_USER_TAG`
+--
+ALTER TABLE `DOA_USER_TAG`
+  ADD PRIMARY KEY (`PK_USER_TAG`);
 
 --
 -- Indexes for table `DOA_Z_HELP`
@@ -2393,6 +2440,18 @@ ALTER TABLE `DOA_SPECIAL_APPOINTMENT_CUSTOMER`
 --
 ALTER TABLE `DOA_SPECIAL_APPOINTMENT_USER`
   MODIFY `PK_SPECIAL_APPOINTMENT_USER` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `DOA_TAG`
+--
+ALTER TABLE `DOA_TAG`
+  MODIFY `PK_TAG` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `DOA_USER_TAG`
+--
+ALTER TABLE `DOA_USER_TAG`
+  MODIFY `PK_USER_TAG` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;";
 
 $create_store_procedure = 'DELIMITER $$
