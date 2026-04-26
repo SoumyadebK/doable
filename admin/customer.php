@@ -1234,8 +1234,8 @@ if (isset($_POST['SUBMIT'])) {
                                                                             <label class="form-label">Archived : </label>
                                                                         </div>
                                                                         <div class="col-md-4">
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                            <label><input type="radio" name="ACTIVE" id="ACTIVE_CUSTOMER" value="1" <?php if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                                         </div>
                                                                     </div>
                                                                 <?php } ?>

@@ -173,8 +173,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-content .fc-title {
-        margin-top: 3px;
-        line-height: 19px;
+        margin-top: 1px;
+        line-height: 17px;
         font-size: 12px;
     }
 
@@ -195,10 +195,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         position: absolute;
         left: 0;
         top: -6px;
-        width: 12px;
-        height: 14px;
         background: #ff0000;
-        border-radius: 50%;
         box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.6);
     }
 </style>
@@ -1256,7 +1253,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
 
                     if (event_data.comment || event_data.internal_comment) {
-                        $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
+                        if ($(element).find(".fc-title").length) {
+                            $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
+                        } else {
+                            $(element).find(".fc-time").append('<br><i class="fa fa-comment" style="font-size: 13px"></i> ');
+                        }
                     }
 
                     if (event_data.paid_status) {
@@ -1633,6 +1634,28 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             // Set the position
             indicator.style.top = position + 'px';
             indicator.style.display = 'block';
+
+            // Scroll to the indicator
+            scrollToCurrentTimeIndicator(position);
+        }
+
+        // Function to scroll the calendar to show the current time indicator
+        function scrollToCurrentTimeIndicator(indicatorPosition) {
+            const scroller = document.querySelector('#calendar .fc-scroller');
+            if (!scroller) return;
+
+            // Get the scroller's viewport height
+            const scrollerHeight = scroller.clientHeight;
+
+            // Calculate the offset to center the indicator in the viewport
+            // We want to scroll so the indicator is roughly 1/3 from the top
+            const targetScrollTop = indicatorPosition - (scrollerHeight / 3);
+
+            // Smooth scroll to the position
+            scroller.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
         }
 
         function loadViewAppointmentModal(appointmentId, TYPE) {
@@ -1860,6 +1883,44 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 // Update current time indicator for day view
                 setTimeout(() => {
                     updateCurrentTimeIndicator();
+                    // Scroll to the current time indicator on view change
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const currentTotalMinutes = hours * 60 + minutes;
+
+                    const timeGrid = document.querySelector('.fc-time-grid');
+                    const slots = document.querySelectorAll('.fc-time-grid .fc-slats tr');
+                    if (slots.length > 0) {
+                        const slotHeight = slots[0].offsetHeight;
+                        const totalHeight = slotHeight * slots.length;
+
+                        const calendarDate = calendar.getDate();
+                        const dayOfWeek = calendarDate.getDay();
+                        const config = dayConfigs[dayOfWeek] || {
+                            minTime: '00:00:00',
+                            maxTime: '24:00:00'
+                        };
+
+                        const parseTime = (timeStr) => {
+                            const parts = timeStr.split(':');
+                            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                        };
+
+                        const minTimeMinutes = parseTime(config.minTime);
+                        const maxTimeMinutes = parseTime(config.maxTime);
+                        const rangeMinutes = maxTimeMinutes - minTimeMinutes;
+
+                        let position = 0;
+                        if (currentTotalMinutes >= minTimeMinutes && currentTotalMinutes <= maxTimeMinutes) {
+                            const minutesFromStart = currentTotalMinutes - minTimeMinutes;
+                            position = (minutesFromStart / rangeMinutes) * totalHeight;
+                        } else if (currentTotalMinutes > maxTimeMinutes) {
+                            position = totalHeight;
+                        }
+
+                        scrollToCurrentTimeIndicator(position);
+                    }
                 }, 300);
             } else if (view === 'agendaWeek') {
                 calendar.changeView('agendaWeek');

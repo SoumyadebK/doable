@@ -1164,7 +1164,7 @@ if ($TYPE == 'appointment') {
             </div>
             <div class="col-8 col-md-8">
                 <div class="form-group">
-                    <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" value="<?= $TITLE ?>" required />
+                    <input type="text" name="TITLE" class="form-control" placeholder="Enter Title" value="<?= $TITLE ?>" />
                 </div>
             </div>
         </div>
