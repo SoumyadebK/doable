@@ -398,8 +398,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-bs-dismiss="modal" onclick="$('#enrollment_payment_modal').modal('hide');">Close</button>
-                    <button type="submit" class="btn-primary" id="enr-payment-btn" style="float: right;">Process</button>
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal" onclick="$('#enrollment_payment_modal').modal('hide');">Close</button>
+                    <button type="submit" class="btn btn-secondary" id="enr-payment-btn" style="float: right;">Process</button>
                 </div>
             </div>
         </form>

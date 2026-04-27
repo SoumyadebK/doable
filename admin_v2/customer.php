@@ -774,7 +774,7 @@ $customer_color = $customer['color'];
                             <div class="bg-warning-subtle text-warning-emphasis d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 50px; height: 50px; font-weight: bold; color: #fff !important; background-color: <?= $customer_color ?> !important;"><?= $customer_initial ?></div>
                             <h3 class="mb-0"><?= $CUSTOMER_NAME ?></h3>
                         </div>
-                        <button class="btn btn-outline-danger rounded-pill px-4">Delete</button>
+                        <button class="btn btn-outline-danger rounded-pill px-4" onclick="deleteThisCustomer(<?= $PK_USER ?>)">Delete</button>
                     </div>
 
                     <div class="row">
@@ -956,15 +956,22 @@ $customer_color = $customer['color'];
                                             $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
                                             $i = 1;
                                             while (!$comment_data->EOF) { ?>
-
                                                 <div class="internal-note">
-                                                    <div class="d-flex justify-content-between"><strong><?= $comment_data->fields['FULL_NAME'] ?></strong> <small class="text-muted"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></small></div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong><?= $comment_data->fields['FULL_NAME'] ?></strong>
+                                                        <div class="d-flex gap-2" style="margin-right: 45%;">
+                                                            <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="fa fa-pencil" style="font-size: 16px;"></i></a>
+                                                            <a href="javascript:;" onclick="deleteComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="fa fa-trash" style="font-size: 16px;"></i></a>
+                                                        </div>
+                                                        <small class="text-muted"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></small>
+                                                    </div>
+
                                                     <p class="mb-0"><?= $comment_data->fields['COMMENT'] ?></p>
                                                 </div>
                                             <?php $comment_data->MoveNext();
                                                 $i++;
                                             } ?>
-                                            <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                            <a href="javascript:;" onclick="createUserComment();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                         </div>
                                     </div>
                                 </div>
@@ -1045,7 +1052,72 @@ $customer_color = $customer['color'];
     </div>
 </body>
 
+<!--Verify Password Model-->
+<div class="modal fade" id="verify_password_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="verify_password_form" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Verify Password</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
 
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Enter your profile password</label>
+                                <input type="password" id="verify_password" name="verify_password" class="form-control" placeholder="Password" required>
+                                <p id="verify_password_error" style="color: red;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--Comment Model-->
+<div class="modal fade" id="comment_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="comment_header">Add Comment</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#comment_modal').modal('hide');"></button>
+            </div>
+            <form id="comment_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveCommentData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" name="PK_COMMENT" id="PK_COMMENT" value="0">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Comments</label>
+                            <textarea class="form-control" rows="10" name="COMMENT" id="COMMENT" required></textarea>
+                        </div>
+                        <!-- <div class="form-group" id="comment_active" style="display: none;">
+                            <label class="form-label">Active</label>
+                            <div>
+                                <label><input type="radio" id="COMMENT_ACTIVE_1" name="ACTIVE" value="1">&nbsp;&nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <label><input type="radio" id="COMMENT_ACTIVE_0" name="ACTIVE" value="0">&nbsp;&nbsp;&nbsp;No</label>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!--Auto-pay Credit Card Modal-->
 <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
@@ -1089,7 +1161,147 @@ $customer_color = $customer['color'];
 </div>
 
 
+
+<!--Edit Billing Due Date Model-->
+<div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="edit_due_date_form" method="post">
+            <input type="hidden" name="PK_ENROLLMENT_LEDGER" id="PK_ENROLLMENT_LEDGER">
+            <input type="hidden" name="old_due_date" id="old_due_date">
+            <input type="hidden" name="edit_type" id="edit_type">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Edit Due Date</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Due Date</label>
+                                <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" autocomplete="off" required onkeydown="return false;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Enter your profile password</label>
+                                <input type="password" id="due_date_verify_password" name="due_date_verify_password" class="form-control" placeholder="Password" required>
+                                <p id="due_date_verify_password_error" style="color: red;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!--Refund Model-->
+<div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 450px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">How you want your money back?</label>
+                            <div class="col-md-12">
+                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
+                                    <option value="">Select</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row" id="check_payment" style="display: none;">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Check Date</label>
+                                    <div class="col-md-12">
+                                        <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
+                            <div class="col-md-12">
+                                <input class="form-control" name="REFUND_AMOUNT" id="REFUND_AMOUNT" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;" onclick="$('.trigger_this').trigger('click');">Process</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--Confirm Model-->
+<div class="modal fade" id="move_to_wallet_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 450px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <h5>Are you sure you want to move $<span id="move_amount">0.00</span> to wallet?</h5>
+                            <input type="hidden" id="confirm_move" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="$('#confirm_move').val(1);$('.trigger_this').trigger('click');">Yes</button>
+                <button type="button" class="btn btn-secondary cancel" onclick="$('#confirm_move').val(0);$('#move_to_wallet_model').modal('hide');">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <?php require_once('../includes/footer.php'); ?>
+
+<!--Payment Model-->
+<?php include('includes/enrollment_payment_v2.php'); ?>
+
+<!--Edit Appointment Model-->
+<div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
+
+</div>
 
 <!-- DataTables Buttons -->
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
@@ -1113,10 +1325,153 @@ $customer_color = $customer['color'];
         $('.tab-content').removeClass('active');
         $(sel).addClass('active');
     });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
+    $('.datepicker-past').datepicker({
+        format: 'mm/dd/yyyy',
+        maxDate: 0,
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1900:' + new Date().getFullYear(),
+    });
 </script>
 
+<script>
+    function deleteThisCustomer(PK_USER) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this profile will erase all data related to this person. Even previous numbers, reports, appointments and enrollments.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#verify_password_model').modal('show');
+            } else {
+                Swal.fire({
+                    title: "Cancelled",
+                    text: "Your imaginary file is safe :)",
+                    icon: "error"
+                });
+            }
+        });
+    }
 
-<!-- All function related to enrollment list loading and auto-pay handling is placed here for better organization and to ensure it runs after the DOM is ready and the necessary elements are loaded. -->
+    $('#verify_password_form').on('submit', function(event) {
+        event.preventDefault();
+        let pk_user = <?= $PK_USER ?>;
+        let password = $('#verify_password').val();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'deleteCustomerAfterVerify',
+                pk_user: pk_user,
+                PASSWORD: password
+            },
+            success: function(data) {
+                $('#verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "Your file has been deleted.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        window.location.href = 'all_customers.php';
+                    });
+                } else {
+                    $('#verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
+</script>
+
+<!-- All function related to comment -->
+<script>
+    function createUserComment() {
+        $('#comment_header').text("Add Comment");
+        $('#PK_COMMENT').val(0);
+        $('#COMMENT').val('');
+        $('#COMMENT_DATE').val('');
+        $('#comment_active').hide();
+        openCommentModel();
+    }
+
+    function editComment(PK_COMMENT) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                FUNCTION_NAME: 'getEditCommentData',
+                PK_COMMENT: PK_COMMENT
+            },
+            success: function(data) {
+                $('#comment_header').text("Edit Comment");
+                $('#PK_COMMENT').val(data.fields.PK_COMMENT);
+                $('#COMMENT').val(data.fields.COMMENT);
+                $('#COMMENT_DATE').val(data.fields.COMMENT_DATE);
+                $('#COMMENT_ACTIVE_' + data.fields.ACTIVE).prop('checked', true);
+                $('#comment_active').show();
+                openCommentModel();
+            }
+        });
+    }
+
+    function openCommentModel() {
+        $('#comment_modal').modal('show');
+    }
+
+    $(document).on('submit', '#comment_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#comment_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
+
+    function deleteComment(PK_COMMENT) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this comment cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteCommentData',
+                        PK_COMMENT: PK_COMMENT
+                    },
+                    success: function(data) {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<!-- All function related to enrollment -->
 <script>
     function loadEnrollment(type) {
         enr_tab_type = type;
@@ -1215,6 +1570,13 @@ $customer_color = $customer['color'];
                 $(param).closest('.enrollment_div').find('.enrollment_details').html(result).slideToggle();
             }
         });
+    }
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + '&receipt=' + RECEIPT_NUMBER_ARRAY[i], '_blank');
+        }
     }
 
     function changeEnrollmentAutoPay(PK_ENROLLMENT_MASTER) {
@@ -1316,10 +1678,292 @@ $customer_color = $customer['color'];
             }
         });
     }
+
+
+
+
+
+
+
+
+
+    function toggleEnrollmentCheckboxes(PK_ENROLLMENT_MASTER) {
+        let toggleCheckbox = document.getElementById('toggleEnrollment_' + PK_ENROLLMENT_MASTER);
+        let childCheckboxes = document.getElementsByClassName('PAYMENT_CHECKBOX_' + PK_ENROLLMENT_MASTER);
+        let payNow = document.getElementById('payNow');
+
+        // If the toggle checkbox is checked, uncheck all child checkboxes
+        if (toggleCheckbox.checked) {
+            for (let i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = true;
+                payNow.disabled = true;
+            }
+        } else {
+            for (let i = 0; i < childCheckboxes.length; i++) {
+                childCheckboxes[i].checked = false;
+                payNow.disabled = false;
+            }
+        }
+    }
+
+    $(document).on('change', '.pay_now_check', function() {
+        if ($('.pay_now_check').is(':checked')) {
+            $('.pay_selected_btn').prop('disabled', false);
+            $('.pay_now_button').prop('disabled', true);
+        } else {
+            $('.pay_selected_btn').prop('disabled', true);
+            $('.pay_now_button').prop('disabled', false);
+        }
+    });
+
+
+
+
+
+
+    function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
+        $('.partial_payment').show();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
+
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
+        $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+    function paySelected(PK_ENROLLMENT_MASTER, ENROLLMENT_ID) {
+        $('.partial_payment').hide();
+        $('#PARTIAL_PAYMENT').prop('checked', false);
+        $('.partial_payment_div').slideUp();
+
+        $('.PAYMENT_TYPE').val('');
+        $('#remaining_amount_div').slideUp();
+
+        let BILLED_AMOUNT = [];
+        let PK_ENROLLMENT_LEDGER = [];
+
+        $(".PAYMENT_CHECKBOX_" + PK_ENROLLMENT_MASTER + ":checked").each(function() {
+            BILLED_AMOUNT.push(parseFloat($(this).data('billed_amount')));
+            PK_ENROLLMENT_LEDGER.push($(this).val());
+        });
+
+        console.log(BILLED_AMOUNT);
+
+        let TOTAL = BILLED_AMOUNT.reduce(getSum, 0);
+
+        function getSum(total, num) {
+            return total + num;
+        }
+
+        $('#enrollment_number').text(ENROLLMENT_ID);
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#ACTUAL_AMOUNT').val(parseFloat(TOTAL).toFixed(2));
+        $('#AMOUNT_TO_PAY').val(parseFloat(TOTAL).toFixed(2));
+        //$('#payment_confirmation_form_div_customer').slideDown();
+        //openPaymentModel();
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+
+
+
+
+
+
+    function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
+        let PK_PAYMENT_TYPE = $('#refund_modal #PK_PAYMENT_TYPE_REFUND').val();
+        let confirm_move = $('#confirm_move').val();
+        if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
+            $('.trigger_this').removeClass('trigger_this');
+            $(param).addClass('trigger_this');
+            $('#REFUND_AMOUNT').val(BALANCE);
+            $('#refund_modal').modal('show');
+        } else {
+            if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
+                $('.trigger_this').removeClass('trigger_this');
+                $(param).addClass('trigger_this');
+                $('#move_amount').text(parseFloat(BALANCE).toFixed(2));
+                $('#move_to_wallet_model').modal('show');
+            } else {
+                let REFUND_AMOUNT = $('#REFUND_AMOUNT').val();
+                if (REFUND_AMOUNT > BALANCE) {
+                    alert("Refund amount can't be grater then balance");
+                    $('#REFUND_AMOUNT').val(BALANCE);
+                } else {
+                    let REFUND_CHECK_NUMBER = $('#REFUND_CHECK_NUMBER').val();
+                    let REFUND_CHECK_DATE = $('#REFUND_CHECK_DATE').val();
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'moveToWallet',
+                            PK_ENROLLMENT_PAYMENT: PK_ENROLLMENT_PAYMENT,
+                            PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                            PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                            PK_USER_MASTER: PK_USER_MASTER,
+                            BALANCE: BALANCE,
+                            REFUND_AMOUNT: REFUND_AMOUNT,
+                            ENROLLMENT_TYPE: ENROLLMENT_TYPE,
+                            TRANSACTION_TYPE: TRANSACTION_TYPE,
+                            PK_PAYMENT_TYPE: PK_PAYMENT_TYPE,
+                            REFUND_CHECK_NUMBER: REFUND_CHECK_NUMBER,
+                            REFUND_CHECK_DATE: REFUND_CHECK_DATE
+                        },
+                        success: function(data) {
+                            if (data == 1) {
+                                window.location.reload();
+                            } else {
+                                alert(data);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+    function editBillingDueDate(param, PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
+        $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#old_due_date').val(DUE_DATE);
+        $('#due_date').val(DUE_DATE);
+        $('#edit_type').val(TYPE);
+        $('.trigger_this_enr_details').removeClass('trigger_this_enr_details');
+        $(param).closest('.enrollment-container').find('.show_enrollment_details_button').addClass('trigger_this_enr_details');
+        $('#billing_due_date_model').modal('show');
+    }
+
+    $('#edit_due_date_form').on('submit', function(event) {
+        event.preventDefault();
+
+        let PK_ENROLLMENT_LEDGER = $('#PK_ENROLLMENT_LEDGER').val();
+        let old_due_date = $('#old_due_date').val();
+        let due_date = $('#due_date').val();
+        let edit_type = $('#edit_type').val();
+        let due_date_verify_password = $('#due_date_verify_password').val();
+
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'updateBillingDueDate',
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                old_due_date: old_due_date,
+                due_date: due_date,
+                edit_type: edit_type,
+                due_date_verify_password: due_date_verify_password
+            },
+            success: function(data) {
+                $('#due_date_verify_password_error').slideUp();
+                if (data == 1) {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Due Date is Updated.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        $('#billing_due_date_model').modal('hide');
+                        $('.trigger_this_enr_details').closest('.enrollment_div').find('.enrollment_details').slideToggle();
+                        $('.trigger_this_enr_details').click();
+                    });
+                } else {
+                    $('#due_date_verify_password_error').text("Incorrect Password").slideDown();
+                }
+            }
+        });
+    });
+
+    function getEditHistory(param, PK_ENROLLMENT_LEDGER, type) {
+        $.ajax({
+            url: "includes/get_update_history.php",
+            type: 'GET',
+            data: {
+                PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                CLASS: type,
+                FIELD_NAME: 'DUE_DATE'
+            },
+            success: function(data) {
+                $(param).popover({
+                    title: 'Due Date Update Details',
+                    placement: 'top',
+                    trigger: 'hover',
+                    content: data,
+                    container: 'body',
+                    html: true,
+                }).popover('show');
+            }
+        });
+    }
+
+    function deletePayment(PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BALANCE) {
+        Swal.fire({
+            title: "Are you sure you want to delete this payment?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deletePayment',
+                        PK_ENROLLMENT_PAYMENT: PK_ENROLLMENT_PAYMENT,
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        PK_ENROLLMENT_LEDGER: PK_ENROLLMENT_LEDGER,
+                        BALANCE: BALANCE
+                    },
+                    success: function(data) {
+                        if (data == 1) {
+                            window.location.reload();
+                        } else {
+                            alert(data);
+                        }
+                    }
+                });
+            }
+        });
+    }
 </script>
 
-<!-- All function related to appointment list -->
+<!-- All function related to appointment -->
 <script>
+    function editThisAppointment(PK_APPOINTMENT_MASTER, PK_USER, PK_USER_MASTER) {
+        $.ajax({
+            url: "includes/edit_appointment_details.php",
+            type: 'GET',
+            data: {
+                PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER,
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#edit_appointment_modal').html(data).modal('show');
+            }
+        });
+    }
+
+
     function getAppointmentList(type) {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
         $.ajax({
@@ -1340,7 +1984,7 @@ $customer_color = $customer['color'];
     }
 </script>
 
-<!-- All function related to Payment list -->
+<!-- All function related to Payment -->
 <script>
     function getPaymentRegisterData() {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;

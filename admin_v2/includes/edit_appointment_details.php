@@ -175,8 +175,8 @@ while (!$status_data->EOF) {
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
             </div>
         </div>
     </form>

@@ -436,4 +436,27 @@
         display: inline-block;
         text-transform: uppercase;
     }
+
+    .btn.btn-secondary.cancel {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+    }
+
+    .modal-dialog {
+        margin-top: 5%;
+    }
+
+
+    .fa-pencil {
+        color: #39b54a;
+    }
+
+    .fa-trash {
+        color: #dc3545;
+    }
+
+    .fa-info-circle {
+        color: #17a2b8;
+    }
 </style>
