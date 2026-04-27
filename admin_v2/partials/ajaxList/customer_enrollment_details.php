@@ -81,8 +81,8 @@ while (!$serviceCodeData->EOF) {
             <th style="text-align: center;">Balance</th>
             <th style="text-align: right;">
                 <?php if ($paid_count > 0) { ?>
-                    <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?= $PK_ENROLLMENT_MASTER ?>" onclick="toggleEnrollmentCheckboxes(<?= $PK_ENROLLMENT_MASTER ?>)" style="margin-right: 10px;" />
-                    <button type="button" class="btn btn-secondary m-l-10 text-white pay_selected_btn" onclick="paySelected(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $ENROLLMENT_ID ?>')" disabled style="margin-right: 10px;"> Pay Selected</button>
+                    <input type="checkbox" class="pay_now_check" id="toggleEnrollment_<?= $PK_ENROLLMENT_MASTER ?>" onclick="toggleEnrollmentCheckboxes(<?= $PK_ENROLLMENT_MASTER ?>); event.stopPropagation();" style="margin-right: 10px;" />
+                    <button type="button" class="btn btn-secondary pay_selected_btn" onclick="event.stopPropagation(); paySelected(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $ENROLLMENT_ID ?>')" disabled style="margin-right: 10px;"> Pay Selected</button>
                 <?php } ?>
             </th>
         </tr>
@@ -103,9 +103,9 @@ while (!$serviceCodeData->EOF) {
         ?>
             <tr style="border-style: hidden; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
                 <td style="text-align: left;">
-                    <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, 'enrollment_ledger')"><i class="fa fa-info-alt"></i></a>&nbsp;&nbsp;
-                    <?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>&nbsp;&nbsp;
-                    <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>', 'billing')"><i class="fa fa-pencil-alt"></i></a>
+                    <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, 'enrollment_ledger')"><i class="fa fa-info-circle" style="font-size: 17px; margin-right: 5px;"></i></a>
+                    <?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>
+                    <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(this, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>', 'billing')"><i class="fa fa-pencil" style="font-size: 16px; margin-left: 5px;"></i></a>
                 </td>
                 <td style="text-align: center;"><?= $billing_details->fields['TRANSACTION_TYPE'] ?></td>
                 <td style="text-align: right; padding-right: 45px;"><?= $billing_details->fields['BILLED_AMOUNT'] ?></td>
@@ -173,11 +173,11 @@ while (!$serviceCodeData->EOF) {
                     } ?>
                     <tr style="border-style: hidden; color: <?= ($payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
                         <td style="text-align: left;">
-                            <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, 'enrollment_payment')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
-                            <?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>&nbsp;&nbsp;
-                            <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, '<?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>', 'payment')"><i class="ti-pencil-alt"></i></a>
+                            <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, 'enrollment_payment')"><i class="fa fa-info-circle" style="font-size: 17px; margin-right: 5px;"></i></a>
+                            <?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>
+                            <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, '<?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>', 'payment')"><i class="fa fa-pencil" style="font-size: 16px; margin-left: 5px;"></i></a>
                             <?php if ($payment_details->fields['PK_PAYMENT_TYPE'] == 12) { ?>
-                                <a href="javascript:" title="Delete" onclick="deletePayment(<?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $payment_details->fields['AMOUNT'] ?>)" style="color: red;"><i class="ti-trash"></i></a>
+                                <a href="javascript:" title="Delete" onclick="deletePayment(<?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $payment_details->fields['AMOUNT'] ?>)" style="color: red;"><i class="fa fa-trash" style="font-size: 16px; margin-left: 5px;"></i></a>
                             <?php } ?>
                         </td>
                         <td style="text-align: center;"><?= $payment_details->fields['TYPE'] ?></td>
@@ -406,7 +406,7 @@ while (!$serviceCodeData->EOF) {
                             <span><?= $appointment_value['SERVICE_NAME'] ?></span>
                             <a href="javascript:" title="Edit Appointment"
                                 onclick="editThisAppointment(<?= $appointment_value['PK_APPOINTMENT_MASTER'] ?>, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>);">
-                                <i class="ti-pencil-alt"></i>
+                                <i class="fa fa-pencil" style="font-size: 16px; margin-left: 5px;"></i>
                             </a>
                         </div>
                     </td>
@@ -431,12 +431,15 @@ while (!$serviceCodeData->EOF) {
                     </td>
                     <td style="text-align: center; padding-left: 40px;">
                         <?php
-                        $profile = getProfileBadge($appointment_value['SERVICE_PROVIDER']);
-                        $profile_initial = $profile['initials'];
-                        $profile_color = $profile['color']; ?>
-                        <div class="d-flex align-items-center">
-                            <span class="avatarname" style="color: #fff; background-color: <?= $profile_color ?>"> <?= $profile_initial ?> </span> <?= $appointment_value['SERVICE_PROVIDER'] ?>
-                        </div>
+                        $service_provider_name = $appointment_value['SERVICE_PROVIDER'] ?? '';
+                        if ($service_provider_name != '') {
+                            $profile = getProfileBadge($service_provider_name);
+                            $profile_initial = $profile['initials'];
+                            $profile_color = $profile['color']; ?>
+                            <div class="d-flex align-items-center">
+                                <span class="avatarname" style="color: #fff; background-color: <?= $profile_color ?>"> <?= $profile_initial ?> </span> <?= $service_provider_name ?>
+                            </div>
+                        <?php } ?>
                     </td>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
                     if ($appointment_value['IS_CHARGED'] == 1) { ?>

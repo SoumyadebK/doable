@@ -110,12 +110,36 @@ while (!$enrollment_data->EOF) {
 
     <div class="enrollment-container enrollment_div mb-4" style="position: relative;">
 
+        <?php
+        $amount_to_pay = 0;
+        $amount_to_return = 0;
+        $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        $enr_refund_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Move' OR TYPE = 'Refund') AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+        if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] < $enr_total_amount->fields['TOTAL_AMOUNT'])) {
+            $amount_to_pay = $enr_total_amount->fields['TOTAL_AMOUNT'] - $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
+            $ledger_data = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+            $unpaid_count = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['PAID'] : 0;
+        } elseif (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && (($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT']) > $enr_total_amount->fields['TOTAL_AMOUNT'])) {
+            $amount_to_return = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT'] - $enr_total_amount->fields['TOTAL_AMOUNT'];
+        }
+        ?>
+
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
             <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                 <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><br>
             <?php } ?>
-            <a href="javascript:void(0)" class="view-schedule text-primary" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
+            <a href="javascript:void(0)" class="view-schedule text-primary show_enrollment_details_button" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
+
+            <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                <span class="checkicon f15 theme-text" style="background-color: #cffce4; color: #39b54a; padding: 4px 8px; border-radius: 50px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; padding-bottom: 2px;" xml:space="preserve" width="15px" height="15px" fill="#39b54a">
+                        <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z"></path>
+                    </svg>
+                    <span style="background-color: #cffce4; color: #39b54a;">PAID</span>
+                </span>
+            <?php } ?>
 
             <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
                 <div class="d-flex justify-content-end align-items-center">
@@ -131,21 +155,6 @@ while (!$enrollment_data->EOF) {
                 </div>
             <?php } ?>
         </div>
-
-        <?php
-        $amount_to_pay = 0;
-        $amount_to_return = 0;
-        $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-        $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-        $enr_refund_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_REFUND_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Move' OR TYPE = 'Refund') AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-        if (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] < $enr_total_amount->fields['TOTAL_AMOUNT'])) {
-            $amount_to_pay = $enr_total_amount->fields['TOTAL_AMOUNT'] - $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'];
-            $ledger_data = $db_account->Execute("SELECT count(DOA_ENROLLMENT_LEDGER.IS_PAID) AS PAID FROM `DOA_ENROLLMENT_LEDGER` WHERE DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-            $unpaid_count = $ledger_data->RecordCount() > 0 ? $ledger_data->fields['PAID'] : 0;
-        } elseif (($enr_total_amount->fields['TOTAL_AMOUNT'] > 0) && (($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT']) > $enr_total_amount->fields['TOTAL_AMOUNT'])) {
-            $amount_to_return = $enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] - $enr_refund_amount->fields['TOTAL_REFUND_AMOUNT'] - $enr_total_amount->fields['TOTAL_AMOUNT'];
-        }
-        ?>
 
         <div class="table-responsive" style="border: none;">
             <table class="table">
