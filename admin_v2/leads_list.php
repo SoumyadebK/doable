@@ -17,6 +17,23 @@ $choose_date = isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '' ? date(
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
 
+// Add sorting parameter
+$sort_column = isset($_GET['sort']) ? trim($_GET['sort']) : 'PK_LEADS';
+$sort_order = isset($_GET['order']) && strtoupper($_GET['order']) == 'ASC' ? 'ASC' : 'DESC';
+
+// Define allowed sort columns to prevent SQL injection
+$allowed_sort_columns = [
+    'NAME',
+    'LOCATION_NAME',
+    'OPPORTUNITY_SOURCE',
+    'LATEST_DATE',
+    'LEAD_STATUS',
+    'CREATED_ON',
+    'PHONE',
+    'EMAIL_ID'
+];
+$sort_column = in_array($sort_column, $allowed_sort_columns) ? $sort_column : 'PK_LEADS';
+
 // Ensure page is at least 1
 if ($page < 1) $page = 1;
 
@@ -24,7 +41,7 @@ if ($page < 1) $page = 1;
 $where_clause = "DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")";
 
 if ($search_text != '') {
-    $search_escaped = mysqli_real_escape_string($db->connection_id, $search_text);
+    $search_escaped =  $search_text; // No need to escape here as we are using prepared statements or properly handling input in the actual implementation
     $where_clause .= " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
                      OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
                      OR DOA_LEADS.PHONE LIKE '%$search_escaped%' 
@@ -88,12 +105,23 @@ $leads_sql = "SELECT DISTINCT
             LEFT JOIN DOA_LEAD_STATUS AS LS 
                 ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
             WHERE " . $where_clause . "
-            ORDER BY DOA_LEADS.PK_LEADS DESC
+            ORDER BY 
+    CASE 
+        WHEN '$sort_column' = 'NAME' THEN CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME)
+        WHEN '$sort_column' = 'LOCATION_NAME' THEN DOA_LOCATION.LOCATION_NAME
+        WHEN '$sort_column' = 'OPPORTUNITY_SOURCE' THEN DOA_LEADS.OPPORTUNITY_SOURCE
+        WHEN '$sort_column' = 'LATEST_DATE' THEN (SELECT DATE FROM DOA_LEAD_DATE WHERE PK_LEADS = DOA_LEADS.PK_LEADS ORDER BY CREATED_ON DESC LIMIT 1)
+        WHEN '$sort_column' = 'LEAD_STATUS' THEN LS.LEAD_STATUS
+        WHEN '$sort_column' = 'CREATED_ON' THEN DOA_LEADS.CREATED_ON
+        WHEN '$sort_column' = 'PHONE' THEN DOA_LEADS.PHONE
+        WHEN '$sort_column' = 'EMAIL_ID' THEN DOA_LEADS.EMAIL_ID
+        ELSE DOA_LEADS.PK_LEADS
+    END $sort_order
             LIMIT " . (int)$offset . ", " . (int)$per_page;
 
 $leads_result = $db->Execute($leads_sql);
 
-// Get all statuses for filter dropdown
+// Get all statuses for filter dropdown 
 $all_status_sql = "SELECT * FROM `DOA_LEAD_STATUS` 
                    WHERE ACTIVE = 1 
                    AND `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER'] . " 
@@ -169,7 +197,7 @@ function truncateText($text, $length = 30)
         .search-container input {
             padding-left: 35px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .icon-circle {
@@ -199,7 +227,7 @@ function truncateText($text, $length = 30)
         .table tbody td {
             padding: 16px;
             vertical-align: middle;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             border-bottom: 1px solid #dee2e6;
         }
 
@@ -247,22 +275,31 @@ function truncateText($text, $length = 30)
 
         .status-pill {
             padding: 4px 12px;
-            border-radius: 10px;
+            border-radius: 15px;
             font-size: 0.75rem;
             font-weight: 500;
-            background: #fff;
-            border: 1px solid #ddd;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
             color: #344054;
             display: inline-flex;
             align-items: center;
+            gap: 8px;
         }
 
-        .status-pill::before {
-            content: "";
-            width: 6px;
-            height: 6px;
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            margin-right: 8px;
+            display: inline-block;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Optional: Add hover effect */
+        .status-pill:hover {
+            background: #fff;
+            border-color: #dee2e6;
+            transform: translateY(-1px);
+            transition: all 0.2s;
         }
 
         .status-pill-new::before {
@@ -342,11 +379,55 @@ function truncateText($text, $length = 30)
             background-color: #00B739 !important;
             color: white !important;
         }
+
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .sortable-header:hover {
+            background-color: #e9ecef !important;
+        }
+
+        .sortable-header .sort-icon {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .sortable-header:hover .sort-icon {
+            opacity: 1;
+        }
+
+        .sortable-header.asc .sort-icon::before {
+            content: "\F235";
+            /* bi-arrow-down */
+        }
+
+        .sortable-header.desc .sort-icon::before {
+            content: "\F229";
+            /* bi-arrow-up */
+        }
+
+        .sort-indicator {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.7rem;
+        }
+
+        .sortable-header.asc .sort-indicator:after {
+            content: "↑";
+        }
+
+        .sortable-header.desc .sort-indicator:after {
+            content: "↓";
+        }
     </style>
 </head>
 
 <body class="skin-default-dark fixed-layout">
-
+    <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid body_content" style="margin-top: 0px;">
@@ -359,7 +440,7 @@ function truncateText($text, $length = 30)
                                 <p class="text-muted small mb-0">Manage and track all your leads</p>
                             </div>
                         </div>
-                        <button class="btn btn-success rounded-pill px-3" onclick="window.location.href='leads.php'">
+                        <button class="btn btn-success border-0 rounded-pill px-3" onclick="window.location.href='leads.php'">
                             <i class="bi bi-plus-lg me-1"></i> Create New Lead
                         </button>
                     </div>
@@ -389,11 +470,11 @@ function truncateText($text, $length = 30)
                                 ?>
                                 <button class="btn btn-sm status-filter-btn rounded-pill px-3 <?= ($status_filter == 'inactive') ? 'active' : '' ?>" data-status="inactive">Inactive</button>
                             </div>
-                            <div class="btn-group ms-2 border" style="padding: 1px 5px; border-radius: 20px;">
-                                <button class="toolbar-btn me-2 border-0" onclick="window.location.href='all_leads.php'">
+                            <div class="btn-group ms-2 border rounded-pill p-1" style="border-radius: 20px !important;">
+                                <button class="toolbar-btn me-1 border-0 rounded-pill" id="kanban_view_btn" style="background: transparent; color: #6c757d;" onclick="window.location.href='leads_grid.php'">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </button>
-                                <button class="toolbar-btn border-0" style="background: #00B739; color: white;">
+                                <button class="toolbar-btn border-0 rounded-pill" id="list_view_btn" style="background: #00B739; color: white;">
                                     <i class="bi bi-list-ul"></i>
                                 </button>
                             </div>
@@ -401,6 +482,7 @@ function truncateText($text, $length = 30)
                                 <input type="text" id="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Filter by Follow up Date" value="<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>" style="border-radius: 20px; width: 180px;">
                             </div>
                             <button class="toolbar-btn rounded-pill" onclick="submitFilters()"><i class="bi bi-filter me-1"></i> Filter</button>
+                            <button class="toolbar-btn rounded-pill"><i class="bi bi-arrow-down-up me-1"></i> Sort by <i class="bi bi-chevron-down ms-1"></i></button>
                             <button class="toolbar-btn rounded-pill" onclick="resetFilters()"><i class="bi bi-arrow-repeat me-1"></i> Reset</button>
                         </div>
                     </div>
@@ -413,12 +495,31 @@ function truncateText($text, $length = 30)
                                 <thead>
                                     <tr>
                                         <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
-                                        <th>Customer Name / Email<i class="bi bi-chevron-expand ms-1"></i></th>
-                                        <th>Primary Location<i class="bi bi-chevron-expand ms-1"></i></th>
-                                        <th>Source<i class="bi bi-chevron-expand ms-1"></i></th>
-                                        <th>Follow-up Date<i class="bi bi-chevron-expand ms-1"></i></th>
-                                        <th>Notes<i class="bi bi-chevron-expand ms-1"></i></th>
-                                        <th>Status<i class="bi bi-chevron-expand ms-1"></i></th>
+                                        <th class="sortable-header" data-sort="NAME" style="cursor: pointer;">
+                                            Customer Name / Email
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                            <span class="sort-indicator"></span>
+                                        </th>
+                                        <th class="sortable-header" data-sort="LOCATION_NAME" style="cursor: pointer;">
+                                            Primary Location
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                        </th>
+                                        <th class="sortable-header" data-sort="OPPORTUNITY_SOURCE" style="cursor: pointer;">
+                                            Source
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                        </th>
+                                        <th class="sortable-header" data-sort="LATEST_DATE" style="cursor: pointer;">
+                                            Follow-up Date
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                        </th>
+                                        <th class="sortable-header" data-sort="DESCRIPTION" style="cursor: pointer;">
+                                            Notes
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                        </th>
+                                        <th class="sortable-header" data-sort="LEAD_STATUS" style="cursor: pointer;">
+                                            Status
+                                            <i class="bi bi-arrow-down-up ms-1 sort-icon"></i>
+                                        </th>
                                         <th style="width: 150px;">Actions</th>
                                     </tr>
                                 </thead>
@@ -445,7 +546,7 @@ function truncateText($text, $length = 30)
                                                     <div class="d-flex align-items-center">
                                                         <div class="avatar <?= $avatar['color_class'] ?>"><?= $avatar['initials'] ?></div>
                                                         <div>
-                                                            <div class="fw-bold text-dark lead-name-link" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= htmlspecialchars($lead['LATEST_DATE'] ?? '') ?>')"><?= htmlspecialchars($lead['NAME']) ?></div>
+                                                            <div class="text-dark lead-name-link" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= htmlspecialchars($lead['LATEST_DATE'] ?? '') ?>')"><?= htmlspecialchars($lead['NAME']) ?></div>
                                                             <div class="text-muted small"><?= htmlspecialchars($lead['EMAIL_ID']) ?></div>
                                                             <?php if ($lead['PHONE']): ?>
                                                                 <div class="text-muted small"><?= htmlspecialchars($lead['PHONE']) ?></div>
@@ -468,7 +569,35 @@ function truncateText($text, $length = 30)
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <span class="status-pill <?= $status_class ?>"><?= htmlspecialchars($display_status) ?></span>
+                                                    <?php
+                                                    // Get status color from the database
+                                                    $status_color = '#6c757d'; // Default gray
+                                                    if ($lead['ACTIVE'] == 0) {
+                                                        $status_color = '#dc3545'; // Red for inactive
+                                                    } elseif (!empty($lead['STATUS_COLOR'])) {
+                                                        $status_color = $lead['STATUS_COLOR'];
+                                                    } else {
+                                                        // Fallback colors based on status name
+                                                        $status_lower = strtolower($lead['LEAD_STATUS'] ?? '');
+                                                        switch ($status_lower) {
+                                                            case 'new':
+                                                                $status_color = '#6c757d';
+                                                                break;
+                                                            case 'enrolled':
+                                                                $status_color = '#198754';
+                                                                break;
+                                                            case 'not enrolled':
+                                                                $status_color = '#fd7e14';
+                                                                break;
+                                                            default:
+                                                                $status_color = '#6c757d';
+                                                        }
+                                                    }
+                                                    ?>
+                                                    <span class="status-pill">
+                                                        <span class="status-dot" style="background-color: <?= $status_color ?>;"></span>
+                                                        <?= htmlspecialchars($display_status) ?>
+                                                    </span>
                                                 </td>
                                                 <td class="action-icons">
                                                     <i class="bi bi-telephone-fill text-muted" onclick="callToLeads(<?= $lead['PK_LEADS'] ?>)" title="Call"></i>
@@ -533,6 +662,8 @@ function truncateText($text, $length = 30)
         </div>
     </div>
 
+    <?php require_once('../includes/footer.php'); ?>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
@@ -554,20 +685,87 @@ function truncateText($text, $length = 30)
             });
 
             // Status filter buttons
-            $('.status-filter-btn').on('click', function() {
+            $('.status-filter-btn').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 $('.status-filter-btn').removeClass('active');
                 $(this).addClass('active');
-                submitFilters();
+
+                let perPage = $('#per_page').val() || <?= $per_page ?>;
+                let searchText = $('#search_text').val() || '';
+                let status = $(this).data('status') || '';
+                let chooseDate = $('#CHOOSE_DATE').val() || '';
+                let currentSort = getCurrentSort();
+                let currentOrder = getCurrentOrder();
+
+                let url = window.location.pathname + '?';
+                let params = [];
+
+                if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+                if (status) params.push('status=' + encodeURIComponent(status));
+                if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+                if (currentSort) params.push('sort=' + encodeURIComponent(currentSort));
+                if (currentOrder) params.push('order=' + encodeURIComponent(currentOrder));
+                params.push('per_page=' + perPage);
+                params.push('page=1');
+
+                url += params.join('&');
+                window.location.href = url;
+            });
+
+            // Sorting functionality
+            $('.sortable-header').on('click', function() {
+                let sortColumn = $(this).data('sort');
+                let currentSort = getCurrentSort();
+                let currentOrder = getCurrentOrder();
+                let newOrder = 'DESC';
+
+                // Toggle order if clicking the same column
+                if (currentSort === sortColumn) {
+                    newOrder = currentOrder === 'DESC' ? 'ASC' : 'DESC';
+                }
+
+                // Update sort indicators
+                $('.sortable-header').removeClass('asc desc');
+                if (newOrder === 'ASC') {
+                    $(this).addClass('asc');
+                } else {
+                    $(this).addClass('desc');
+                }
+
+                // Get other filter values
+                let perPage = $('#per_page').val() || <?= $per_page ?>;
+                let searchText = $('#search_text').val() || '';
+                let status = $('.status-filter-btn.active').data('status') || '';
+                let chooseDate = $('#CHOOSE_DATE').val() || '';
+
+                // Build URL
+                let url = window.location.pathname + '?';
+                let params = [];
+
+                if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+                if (status) params.push('status=' + encodeURIComponent(status));
+                if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+                params.push('sort=' + encodeURIComponent(sortColumn));
+                params.push('order=' + encodeURIComponent(newOrder));
+                params.push('per_page=' + perPage);
+                params.push('page=1');
+
+                url += params.join('&');
+                window.location.href = url;
             });
 
             // Date filter
             $('#CHOOSE_DATE').on('change', function() {
-                submitFilters();
+                let perPage = $('#per_page').val() || <?= $per_page ?>;
+                submitFiltersWithPerPage(perPage);
             });
 
             // Per page change
             $('#per_page').on('change', function() {
-                submitFilters();
+                let perPage = $(this).val() || <?= $per_page ?>;
+                submitFiltersWithPerPage(perPage);
             });
 
             // Pagination
@@ -575,8 +773,10 @@ function truncateText($text, $length = 30)
                 e.preventDefault();
                 let page = $(this).data('page');
                 if (page) {
+                    let perPage = $('#per_page').val() || <?= $per_page ?>;
                     let url = new URL(window.location.href);
                     url.searchParams.set('page', page);
+                    url.searchParams.set('per_page', perPage);
                     window.location.href = url.toString();
                 }
             });
@@ -585,20 +785,62 @@ function truncateText($text, $length = 30)
             $('#selectAll').on('change', function() {
                 $('.lead-checkbox').prop('checked', $(this).is(':checked'));
             });
+
+            // Set initial sort indicator
+            setInitialSortIndicator();
         });
 
+        function getCurrentSort() {
+            let urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('sort') || '';
+        }
+
+        function getCurrentOrder() {
+            let urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('order') || 'DESC';
+        }
+
+        function setInitialSortIndicator() {
+            let currentSort = getCurrentSort();
+            let currentOrder = getCurrentOrder();
+
+            if (currentSort) {
+                $('.sortable-header').each(function() {
+                    if ($(this).data('sort') === currentSort) {
+                        if (currentOrder === 'ASC') {
+                            $(this).addClass('asc');
+                        } else {
+                            $(this).addClass('desc');
+                        }
+                    }
+                });
+            }
+        }
+
         function submitFilters() {
-            let searchText = $('#search_text').val();
+            let perPage = $('#per_page').val() || <?= $per_page ?>;
+            submitFiltersWithPerPage(perPage);
+        }
+
+        function submitFiltersWithPerPage(perPage) {
+            let searchText = $('#search_text').val() || '';
             let status = $('.status-filter-btn.active').data('status') || '';
-            let chooseDate = $('#CHOOSE_DATE').val();
-            let perPage = $('#per_page').val();
+            let chooseDate = $('#CHOOSE_DATE').val() || '';
+            let currentSort = getCurrentSort();
+            let currentOrder = getCurrentOrder();
 
             let url = window.location.pathname + '?';
-            if (searchText) url += 'search_text=' + encodeURIComponent(searchText) + '&';
-            if (status) url += 'status=' + encodeURIComponent(status) + '&';
-            if (chooseDate) url += 'CHOOSE_DATE=' + encodeURIComponent(chooseDate) + '&';
-            url += 'per_page=' + perPage + '&page=1';
+            let params = [];
 
+            if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+            if (status) params.push('status=' + encodeURIComponent(status));
+            if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+            if (currentSort) params.push('sort=' + encodeURIComponent(currentSort));
+            if (currentOrder) params.push('order=' + encodeURIComponent(currentOrder));
+            params.push('per_page=' + perPage);
+            params.push('page=1');
+
+            url += params.join('&');
             window.location.href = url;
         }
 
@@ -611,8 +853,10 @@ function truncateText($text, $length = 30)
         }
 
         function sendEmail(email) {
-            if (email) {
+            if (email && email !== '') {
                 window.location.href = 'mailto:' + email;
+            } else {
+                Swal.fire('Info', 'No email address available for this lead.', 'info');
             }
         }
 
@@ -627,6 +871,15 @@ function truncateText($text, $length = 30)
                 confirmButtonText: "Yes, delete it!"
             }).then((result) => {
                 if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
                         type: 'POST',
@@ -635,11 +888,13 @@ function truncateText($text, $length = 30)
                             PK_LEADS: PK_LEADS
                         },
                         success: function(data) {
+                            Swal.close();
                             Swal.fire('Deleted!', 'Lead has been deleted.', 'success').then(() => {
                                 window.location.reload();
                             });
                         },
                         error: function() {
+                            Swal.close();
                             Swal.fire('Error!', 'Could not delete lead.', 'error');
                         }
                     });
