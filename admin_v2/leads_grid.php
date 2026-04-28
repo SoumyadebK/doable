@@ -88,11 +88,20 @@ function truncateText($text, $length = 100)
     if (strlen($text) <= $length) return htmlspecialchars($text);
     return htmlspecialchars(substr($text, 0, $length)) . '...';
 }
+
+// Determine if we should show only one status column
+$show_single_column = false;
+$selected_status_id = null;
+
+if ($status_filter != '' && $status_filter != 'inactive') {
+    $show_single_column = true;
+    $selected_status_id = (int)$status_filter;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
+
 <?php include 'layout/header.php'; ?>
 
 <head>
@@ -144,7 +153,7 @@ function truncateText($text, $length = 100)
         }
 
         .status-filter-btn.active {
-            background-color: #00B739 !important;
+            background-color: #39b54a !important;
             color: white !important;
         }
 
@@ -222,7 +231,7 @@ function truncateText($text, $length = 100)
         }
 
         .lead-name:hover {
-            color: #00B739;
+            color: #39b54a;
         }
 
         .lead-email {
@@ -244,7 +253,7 @@ function truncateText($text, $length = 100)
         }
 
         .btn-success {
-            background-color: #00B739;
+            background-color: #39b54a;
         }
 
         .kanban-col.list-group {
@@ -275,14 +284,14 @@ function truncateText($text, $length = 100)
         }
 
         .icon-with-pill i {
-            color: #00B739;
+            color: #39b54a;
             font-size: 14px;
             cursor: pointer;
         }
 
         .pill {
             background-color: #eefdf0ff;
-            color: #00B739;
+            color: #39b54a;
             font-size: 0.7rem;
             font-weight: 500;
             padding: 3px 8px;
@@ -412,7 +421,7 @@ function truncateText($text, $length = 100)
                                 <button class="btn btn-sm status-filter-btn rounded-pill px-3 <?= ($status_filter == 'inactive') ? 'active' : '' ?>" data-status="inactive">Inactive</button>
                             </div>
                             <div class="btn-group ms-2 border rounded-pill p-1" style="border-radius: 20px !important;">
-                                <button class="toolbar-btn me-1 border-0 rounded-pill" id="kanban_view_btn" style="background: #00B739; color: white;">
+                                <button class="toolbar-btn me-1 border-0 rounded-pill" id="kanban_view_btn" style="background: #39b54a; color: white;">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </button>
                                 <button class="toolbar-btn border-0 rounded-pill" id="list_view_btn" style="background: transparent; color: #6c757d;" onclick="window.location.href='leads_list.php'">
@@ -431,95 +440,197 @@ function truncateText($text, $length = 100)
                     <div class="kanban-board-wrapper">
                         <div class="kanban-board-container" id="kanban_container">
                             <?php
-                            // Loop through statuses array for columns
-                            foreach ($statuses_array as $status_data) {
-                                $status_id = $status_data['PK_LEAD_STATUS'];
-                                $status_name = $status_data['LEAD_STATUS'];
-                                $status_color = $status_data['STATUS_COLOR'] ?: '#6c757d';
+                            // If filtering by a specific status (not 'All' and not 'inactive'), show only that column
+                            if ($show_single_column && $selected_status_id) {
+                                // Find the selected status from the array
+                                $selected_status_data = null;
+                                foreach ($statuses_array as $status_data) {
+                                    if ($status_data['PK_LEAD_STATUS'] == $selected_status_id) {
+                                        $selected_status_data = $status_data;
+                                        break;
+                                    }
+                                }
 
-                                // Build query with ALL filter conditions
-                                $leads_query = "
-                                    SELECT DISTINCT 
-                                        DOA_LEADS.PK_LEADS, 
-                                        DOA_LEADS.FIRST_NAME,
-                                        DOA_LEADS.LAST_NAME,
-                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
-                                        DOA_LEADS.PHONE, 
-                                        DOA_LEADS.EMAIL_ID, 
-                                        LS.LEAD_STATUS, 
-                                        DOA_LEADS.DESCRIPTION, 
-                                        DOA_LEADS.OPPORTUNITY_SOURCE, 
-                                        DOA_LEADS.ACTIVE, 
-                                        DOA_LEADS.CREATED_ON, 
-                                        DOA_LEADS.IS_CALLED, 
-                                        DOA_LEADS.IS_APPOINTMENT_CREATED, 
-                                        DOA_LOCATION.LOCATION_NAME,
-                                        (SELECT DATE FROM DOA_LEAD_DATE 
-                                         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                                         ORDER BY CREATED_ON DESC 
-                                         LIMIT 1) AS LATEST_DATE
-                                    FROM `DOA_LEADS` 
-                                    INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
-                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
-                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
-                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
-                                    WHERE DOA_LEADS.PK_LEAD_STATUS = " . $status_id . " 
-                                        AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
-                                        " . $status_condition . " 
-                                        " . $search_condition . " 
-                                        " . $date_condition . "
-                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                if ($selected_status_data) {
+                                    $status_id = $selected_status_data['PK_LEAD_STATUS'];
+                                    $status_name = $selected_status_data['LEAD_STATUS'];
+                                    $status_color = $selected_status_data['STATUS_COLOR'] ?: '#6c757d';
 
-                                $leads_result = $db->Execute($leads_query);
-                                $lead_count = $leads_result->RecordCount();
+                                    // Build query with ALL filter conditions
+                                    $leads_query = "
+                                                    SELECT DISTINCT 
+                                                        DOA_LEADS.PK_LEADS, 
+                                                        DOA_LEADS.FIRST_NAME,
+                                                        DOA_LEADS.LAST_NAME,
+                                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                        DOA_LEADS.PHONE, 
+                                                        DOA_LEADS.EMAIL_ID, 
+                                                        LS.LEAD_STATUS, 
+                                                        DOA_LEADS.DESCRIPTION, 
+                                                        DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                        DOA_LEADS.ACTIVE, 
+                                                        DOA_LEADS.CREATED_ON, 
+                                                        DOA_LEADS.IS_CALLED, 
+                                                        DOA_LEADS.IS_APPOINTMENT_CREATED, 
+                                                        DOA_LOCATION.LOCATION_NAME,
+                                                        (SELECT DATE FROM DOA_LEAD_DATE 
+                                                        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                                                        ORDER BY CREATED_ON DESC 
+                                                        LIMIT 1) AS LATEST_DATE
+                                                    FROM `DOA_LEADS` 
+                                                    INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                                    WHERE DOA_LEADS.PK_LEAD_STATUS = " . $status_id . " 
+                                                        AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                                                        " . $status_condition . " 
+                                                        " . $search_condition . " 
+                                                        " . $date_condition . "
+                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+
+                                    $leads_result = $db->Execute($leads_query);
+                                    $lead_count = $leads_result->RecordCount();
                             ?>
-                                <div class="kanban-col-wrapper">
+                                    <div class="kanban-col-wrapper" style="flex: 0 0 18%; min-width: auto;">
+                                        <div class="kanban-col">
+                                            <div class="col-header">
+                                                <div class="col-title">
+                                                    <span class="status-dot" style="background: <?= $status_color ?>;"></span>
+                                                    <?= htmlspecialchars($status_name) ?>
+                                                </div>
+                                                <span class="count-badge"><?= $lead_count ?> leads</span>
+                                            </div>
+                                            <div id="col-<?= preg_replace('/[^a-z0-9]/i', '-', strtolower($status_name)) ?>" class="list-group" data-status-id="<?= $status_id ?>" style="overflow-y: auto; flex: 1;">
+                                                <?php if ($leads_result && $leads_result->RecordCount() > 0): ?>
+                                                    <?php while (!$leads_result->EOF):
+                                                        $lead = $leads_result->fields;
+                                                        $CUSTOMER_NAME = $lead['NAME'];
+                                                        $customer = getProfileBadge($CUSTOMER_NAME);
+                                                        $customer_initial = $customer['initials'];
+                                                        $customer_color = $customer['color'];
+                                                        $follow_up_date = (!empty($lead['LATEST_DATE']) && $lead['LATEST_DATE'] != '0000-00-00')
+                                                            ? date('m/d/Y', strtotime($lead['LATEST_DATE']))
+                                                            : 'N/A';
+                                                    ?>
+                                                        <div class="lead-card" data-id="<?= $lead['PK_LEADS'] ?>">
+                                                            <div style="float: right;" class="card-actions">
+                                                                <?php if ($lead['IS_APPOINTMENT_CREATED']) { ?>
+                                                                    <i class="bi bi-star-fill" style="color: gold;"></i>
+                                                                <?php } ?>
+                                                                <?php if ($lead['IS_CALLED']) { ?>
+                                                                    <i class="bi bi-check-square-fill" style="color: #39b54a;"></i>
+                                                                <?php } ?>
+                                                                <i class="bi bi-trash3" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" style="color: red; cursor: pointer;"></i>
+                                                            </div>
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
+                                                                <div>
+                                                                    <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>');"><?= htmlspecialchars($lead['NAME']) ?></p>
+                                                                    <p class="lead-email mb-0"><?= htmlspecialchars($lead['EMAIL_ID']) ?></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="lead-footer d-flex justify-content-between">
+                                                                <span><?= htmlspecialchars($lead['LOCATION_NAME']) ?></span>
+                                                                <span style="text-align: right;"><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
+                                                            </div>
+                                                            <div class="lead-icons">
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-telephone-fill toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-phone-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['PHONE']) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-envelope-fill toggle-pill" data-target="pill-email-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-email-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['EMAIL_ID']) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-chat-dots-fill toggle-pill" data-target="pill-chat-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-chat-<?= $lead['PK_LEADS'] ?>"><?= truncateText($lead['DESCRIPTION'], 30) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-calendar-fill toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill" style="font-size: 18px;">
+                                                                    <i class="bi bi-telephone-plus-fill" onclick="callToLeads(<?= $lead['PK_LEADS'] ?>)" style="cursor: pointer;" title="AI Call"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php
+                                                        $leads_result->MoveNext();
+                                                    endwhile; ?>
+                                                <?php else: ?>
+                                                    <div class="text-center text-muted py-3">No leads found</div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                            }
+                            // If filtering by inactive, show only inactive column
+                            elseif ($status_filter == 'inactive') {
+                                // Inactive column query
+                                $inactive_query = "
+                                                    SELECT DISTINCT 
+                                                        DOA_LEADS.PK_LEADS, 
+                                                        DOA_LEADS.FIRST_NAME,
+                                                        DOA_LEADS.LAST_NAME,
+                                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                        DOA_LEADS.PHONE, 
+                                                        DOA_LEADS.EMAIL_ID, 
+                                                        LS.LEAD_STATUS, 
+                                                        DOA_LEADS.DESCRIPTION, 
+                                                        DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                        DOA_LEADS.ACTIVE, 
+                                                        DOA_LEADS.CREATED_ON, 
+                                                        DOA_LOCATION.LOCATION_NAME 
+                                                    FROM `DOA_LEADS` 
+                                                    INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                                    WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
+                                                        AND DOA_LEADS.ACTIVE = 0 
+                                                        " . $search_condition . " 
+                                                        " . $date_condition . "
+                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+
+                                $inactive_result = $db->Execute($inactive_query);
+                                ?>
+                                <div class="kanban-col-wrapper" style="flex: 0 0 18%; min-width: auto;">
                                     <div class="kanban-col">
                                         <div class="col-header">
                                             <div class="col-title">
-                                                <span class="status-dot" style="background: <?= $status_color ?>;"></span>
-                                                <?= htmlspecialchars($status_name) ?>
+                                                <span class="status-dot" style="background: #dc3545;"></span>
+                                                Inactive
                                             </div>
-                                            <span class="count-badge"><?= $lead_count ?> leads</span>
+                                            <span class="count-badge"><?= $inactive_result->RecordCount() ?> leads</span>
                                         </div>
-                                        <div id="col-<?= preg_replace('/[^a-z0-9]/i', '-', strtolower($status_name)) ?>" class="list-group" data-status-id="<?= $status_id ?>" style="overflow-y: auto; flex: 1;">
-                                            <?php if ($leads_result && $leads_result->RecordCount() > 0): ?>
-                                                <?php while (!$leads_result->EOF):
-                                                    $lead = $leads_result->fields;
-                                                    $initials = strtoupper(substr($lead['FIRST_NAME'], 0, 1) . substr($lead['LAST_NAME'], 0, 1));
-                                                    $follow_up_date = (!empty($lead['LATEST_DATE']) && $lead['LATEST_DATE'] != '0000-00-00')
-                                                        ? date('m/d/Y', strtotime($lead['LATEST_DATE']))
-                                                        : 'N/A';
+                                        <div id="col-inactive" class="list-group" data-status-id="inactive" style="overflow-y: auto; flex: 1;">
+                                            <?php if ($inactive_result && $inactive_result->RecordCount() > 0): ?>
+                                                <?php while (!$inactive_result->EOF):
+                                                    $lead = $inactive_result->fields;
+                                                    $CUSTOMER_NAME = $lead['NAME'];
+                                                    $customer = getProfileBadge($CUSTOMER_NAME);
+                                                    $customer_initial = $customer['initials'];
+                                                    $customer_color = $customer['color'];
                                                 ?>
                                                     <div class="lead-card" data-id="<?= $lead['PK_LEADS'] ?>">
                                                         <div style="float: right;" class="card-actions">
-                                                            <?php if ($lead['IS_APPOINTMENT_CREATED']) { ?>
-                                                                <i class="bi bi-star-fill" style="color: gold;"></i>
-                                                            <?php } ?>
-                                                            <?php if ($lead['IS_CALLED']) { ?>
-                                                                <i class="bi bi-check-square-fill" style="color: #00B739;"></i>
-                                                            <?php } ?>
                                                             <i class="bi bi-trash3" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" style="color: red; cursor: pointer;"></i>
                                                         </div>
                                                         <div class="d-flex align-items-center mb-2">
-                                                            <div class="avatar-lp"><?= $initials ?: 'LD' ?></div>
+                                                            <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
                                                             <div>
-                                                                <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>');"><?= htmlspecialchars($lead['NAME']) ?></p>
+                                                                <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>);"><?= htmlspecialchars($lead['NAME']) ?></p>
                                                                 <p class="lead-email mb-0"><?= htmlspecialchars($lead['EMAIL_ID']) ?></p>
                                                             </div>
                                                         </div>
                                                         <div class="lead-footer d-flex justify-content-between">
                                                             <span><?= htmlspecialchars($lead['LOCATION_NAME']) ?></span>
-                                                            <span style="text-align: right;"><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
+                                                            <span><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
                                                         </div>
-                                                        <!-- <div class="lead-footer">
-                                                            <strong>Follow up:</strong> <?= $follow_up_date ?>
-                                                        </div>
-                                                        <?php if (!empty($lead['DESCRIPTION'])): ?>
-                                                            <div class="lead-footer">
-                                                                <strong>Notes:</strong> <?= truncateText($lead['DESCRIPTION'], 50) ?>
-                                                            </div>
-                                                        <?php endif; ?> -->
                                                         <div class="lead-icons">
                                                             <div class="icon-with-pill">
                                                                 <i class="bi bi-telephone-fill toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
@@ -537,116 +648,230 @@ function truncateText($text, $length = 100)
                                                                 <i class="bi bi-calendar-fill toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
                                                                 <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
                                                             </div>
-                                                            <div class="icon-with-pill" style="font-size: 18px;">
-                                                                <i class="bi bi-telephone-plus-fill" onclick="callToLeads(<?= $lead['PK_LEADS'] ?>)" style="cursor: pointer;" title="AI Call"></i>
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 <?php
-                                                    $leads_result->MoveNext();
+                                                    $inactive_result->MoveNext();
                                                 endwhile; ?>
                                             <?php else: ?>
-                                                <div class="text-center text-muted py-3">No leads</div>
+                                                <div class="text-center text-muted py-3">No inactive leads</div>
                                             <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php
-                            }
-                            ?>
+                                <?php
+                            } else {
+                                // Show all status columns (original code)
+                                // Loop through statuses array for columns
+                                foreach ($statuses_array as $status_data) {
+                                    $status_id = $status_data['PK_LEAD_STATUS'];
+                                    $status_name = $status_data['LEAD_STATUS'];
+                                    $status_color = $status_data['STATUS_COLOR'] ?: '#6c757d';
 
-                            <?php
-                            // Inactive column with ALL filters applied
-                            $inactive_query = "
-                                SELECT DISTINCT 
-                                    DOA_LEADS.PK_LEADS, 
-                                    DOA_LEADS.FIRST_NAME,
-                                    DOA_LEADS.LAST_NAME,
-                                    CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
-                                    DOA_LEADS.PHONE, 
-                                    DOA_LEADS.EMAIL_ID, 
-                                    LS.LEAD_STATUS, 
-                                    DOA_LEADS.DESCRIPTION, 
-                                    DOA_LEADS.OPPORTUNITY_SOURCE, 
-                                    DOA_LEADS.ACTIVE, 
-                                    DOA_LEADS.CREATED_ON, 
-                                    DOA_LOCATION.LOCATION_NAME 
-                                FROM `DOA_LEADS` 
-                                INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
-                                    ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
-                                LEFT JOIN DOA_LEAD_STATUS AS LS 
-                                    ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
-                                WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
-                                    AND DOA_LEADS.ACTIVE = 0 
-                                    " . $search_condition . " 
-                                    " . $date_condition . "
-                                ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                    // Build query with ALL filter conditions
+                                    $leads_query = "
+                                                    SELECT DISTINCT 
+                                                        DOA_LEADS.PK_LEADS, 
+                                                        DOA_LEADS.FIRST_NAME,
+                                                        DOA_LEADS.LAST_NAME,
+                                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                        DOA_LEADS.PHONE, 
+                                                        DOA_LEADS.EMAIL_ID, 
+                                                        LS.LEAD_STATUS, 
+                                                        DOA_LEADS.DESCRIPTION, 
+                                                        DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                        DOA_LEADS.ACTIVE, 
+                                                        DOA_LEADS.CREATED_ON, 
+                                                        DOA_LEADS.IS_CALLED, 
+                                                        DOA_LEADS.IS_APPOINTMENT_CREATED, 
+                                                        DOA_LOCATION.LOCATION_NAME,
+                                                        (SELECT DATE FROM DOA_LEAD_DATE 
+                                                        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                                                        ORDER BY CREATED_ON DESC 
+                                                        LIMIT 1) AS LATEST_DATE
+                                                    FROM `DOA_LEADS` 
+                                                    INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                                    WHERE DOA_LEADS.PK_LEAD_STATUS = " . $status_id . " 
+                                                        AND DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                                                        " . $status_condition . " 
+                                                        " . $search_condition . " 
+                                                        " . $date_condition . "
+                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
 
-                            $inactive_result = $db->Execute($inactive_query);
-                            ?>
-                            <div class="kanban-col-wrapper">
-                                <div class="kanban-col">
-                                    <div class="col-header">
-                                        <div class="col-title">
-                                            <span class="status-dot" style="background: #dc3545;"></span>
-                                            Inactive
-                                        </div>
-                                        <span class="count-badge"><?= $inactive_result->RecordCount() ?> leads</span>
-                                    </div>
-                                    <div id="col-inactive" class="list-group" data-status-id="inactive" style="overflow-y: auto; flex: 1;">
-                                        <?php if ($inactive_result && $inactive_result->RecordCount() > 0): ?>
-                                            <?php while (!$inactive_result->EOF):
-                                                $lead = $inactive_result->fields;
-                                                $initials = strtoupper(substr($lead['FIRST_NAME'], 0, 1) . substr($lead['LAST_NAME'], 0, 1));
-                                            ?>
-                                                <div class="lead-card" data-id="<?= $lead['PK_LEADS'] ?>">
-                                                    <div style="float: right;" class="card-actions">
-                                                        <i class="bi bi-trash3" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" style="color: red; cursor: pointer;"></i>
-                                                    </div>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <div class="avatar-lp"><?= $initials ?: 'LD' ?></div>
-                                                        <div>
-                                                            <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>);"><?= htmlspecialchars($lead['NAME']) ?></p>
-                                                            <p class="lead-email mb-0"><?= htmlspecialchars($lead['EMAIL_ID']) ?></p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="lead-footer d-flex justify-content-between">
-                                                        <span><?= htmlspecialchars($lead['LOCATION_NAME']) ?></span>
-                                                        <span><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
-                                                    </div>
-                                                    <?php if (!empty($lead['DESCRIPTION'])): ?>
-                                                        <div class="lead-footer">
-                                                            <strong>Notes:</strong> <?= truncateText($lead['DESCRIPTION'], 50) ?>
-                                                        </div>
-                                                    <?php endif; ?>
-                                                    <div class="lead-icons">
-                                                        <div class="icon-with-pill">
-                                                            <i class="bi bi-telephone-fill toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
-                                                            <span class="pill pill-phone-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['PHONE']) ?></span>
-                                                        </div>
-                                                        <div class="icon-with-pill">
-                                                            <i class="bi bi-envelope-fill toggle-pill" data-target="pill-email-<?= $lead['PK_LEADS'] ?>"></i>
-                                                            <span class="pill pill-email-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['EMAIL_ID']) ?></span>
-                                                        </div>
-                                                        <div class="icon-with-pill">
-                                                            <i class="bi bi-chat-dots-fill toggle-pill" data-target="pill-chat-<?= $lead['PK_LEADS'] ?>"></i>
-                                                            <span class="pill pill-chat-<?= $lead['PK_LEADS'] ?>"><?= truncateText($lead['DESCRIPTION'], 30) ?></span>
-                                                        </div>
-                                                        <div class="icon-with-pill">
-                                                            <i class="bi bi-calendar-fill toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
-                                                            <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
-                                                        </div>
-                                                    </div>
+                                    $leads_result = $db->Execute($leads_query);
+                                    $lead_count = $leads_result->RecordCount();
+                                ?>
+                                    <div class="kanban-col-wrapper">
+                                        <div class="kanban-col">
+                                            <div class="col-header">
+                                                <div class="col-title">
+                                                    <span class="status-dot" style="background: <?= $status_color ?>;"></span>
+                                                    <?= htmlspecialchars($status_name) ?>
                                                 </div>
-                                            <?php
-                                                $inactive_result->MoveNext();
-                                            endwhile; ?>
-                                        <?php else: ?>
-                                            <div class="text-center text-muted py-3">No inactive leads</div>
-                                        <?php endif; ?>
+                                                <span class="count-badge"><?= $lead_count ?> leads</span>
+                                            </div>
+                                            <div id="col-<?= preg_replace('/[^a-z0-9]/i', '-', strtolower($status_name)) ?>" class="list-group" data-status-id="<?= $status_id ?>" style="overflow-y: auto; flex: 1;">
+                                                <?php if ($leads_result && $leads_result->RecordCount() > 0): ?>
+                                                    <?php while (!$leads_result->EOF):
+                                                        $lead = $leads_result->fields;
+                                                        $CUSTOMER_NAME = $lead['NAME'];
+                                                        $customer = getProfileBadge($CUSTOMER_NAME);
+                                                        $customer_initial = $customer['initials'];
+                                                        $customer_color = $customer['color'];
+                                                        $follow_up_date = (!empty($lead['LATEST_DATE']) && $lead['LATEST_DATE'] != '0000-00-00')
+                                                            ? date('m/d/Y', strtotime($lead['LATEST_DATE']))
+                                                            : 'N/A';
+                                                    ?>
+                                                        <div class="lead-card" data-id="<?= $lead['PK_LEADS'] ?>">
+                                                            <div style="float: right;" class="card-actions">
+                                                                <?php if ($lead['IS_APPOINTMENT_CREATED']) { ?>
+                                                                    <i class="bi bi-star-fill" style="color: gold;"></i>
+                                                                <?php } ?>
+                                                                <?php if ($lead['IS_CALLED']) { ?>
+                                                                    <i class="bi bi-check-square-fill" style="color: #39b54a;"></i>
+                                                                <?php } ?>
+                                                                <i class="bi bi-trash3" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" style="color: red; cursor: pointer;"></i>
+                                                            </div>
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
+                                                                <div>
+                                                                    <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= $lead['LATEST_DATE'] ?? '' ?>');"><?= htmlspecialchars($lead['NAME']) ?></p>
+                                                                    <p class="lead-email mb-0"><?= htmlspecialchars($lead['EMAIL_ID']) ?></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="lead-footer d-flex justify-content-between">
+                                                                <span><?= htmlspecialchars($lead['LOCATION_NAME']) ?></span>
+                                                                <span style="text-align: right;"><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
+                                                            </div>
+                                                            <div class="lead-icons">
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-telephone-fill toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-phone-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['PHONE']) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-envelope-fill toggle-pill" data-target="pill-email-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-email-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['EMAIL_ID']) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-chat-dots-fill toggle-pill" data-target="pill-chat-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-chat-<?= $lead['PK_LEADS'] ?>"><?= truncateText($lead['DESCRIPTION'], 30) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill">
+                                                                    <i class="bi bi-calendar-fill toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                    <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
+                                                                </div>
+                                                                <div class="icon-with-pill" style="font-size: 18px;">
+                                                                    <i class="bi bi-telephone-plus-fill" onclick="callToLeads(<?= $lead['PK_LEADS'] ?>)" style="cursor: pointer;" title="AI Call"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php
+                                                        $leads_result->MoveNext();
+                                                    endwhile; ?>
+                                                <?php else: ?>
+                                                    <div class="text-center text-muted py-3">No leads</div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php
+                                }
+                                ?>
+
+                                <?php
+                                // Inactive column with ALL filters applied (only show when not filtering by a specific status)
+                                $inactive_query = "
+                                                    SELECT DISTINCT 
+                                                        DOA_LEADS.PK_LEADS, 
+                                                        DOA_LEADS.FIRST_NAME,
+                                                        DOA_LEADS.LAST_NAME,
+                                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS NAME, 
+                                                        DOA_LEADS.PHONE, 
+                                                        DOA_LEADS.EMAIL_ID, 
+                                                        LS.LEAD_STATUS, 
+                                                        DOA_LEADS.DESCRIPTION, 
+                                                        DOA_LEADS.OPPORTUNITY_SOURCE, 
+                                                        DOA_LEADS.ACTIVE, 
+                                                        DOA_LEADS.CREATED_ON, 
+                                                        DOA_LOCATION.LOCATION_NAME 
+                                                    FROM `DOA_LEADS` 
+                                                    INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
+                                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                                    WHERE DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") 
+                                                        AND DOA_LEADS.ACTIVE = 0 
+                                                        " . $search_condition . " 
+                                                        " . $date_condition . "
+                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+
+                                $inactive_result = $db->Execute($inactive_query);
+                                ?>
+                                <div class="kanban-col-wrapper">
+                                    <div class="kanban-col">
+                                        <div class="col-header">
+                                            <div class="col-title">
+                                                <span class="status-dot" style="background: #dc3545;"></span>
+                                                Inactive
+                                            </div>
+                                            <span class="count-badge"><?= $inactive_result->RecordCount() ?> leads</span>
+                                        </div>
+                                        <div id="col-inactive" class="list-group" data-status-id="inactive" style="overflow-y: auto; flex: 1;">
+                                            <?php if ($inactive_result && $inactive_result->RecordCount() > 0): ?>
+                                                <?php while (!$inactive_result->EOF):
+                                                    $lead = $inactive_result->fields;
+                                                    $CUSTOMER_NAME = $lead['NAME'];
+                                                    $customer = getProfileBadge($CUSTOMER_NAME);
+                                                    $customer_initial = $customer['initials'];
+                                                    $customer_color = $customer['color'];
+                                                ?>
+                                                    <div class="lead-card" data-id="<?= $lead['PK_LEADS'] ?>">
+                                                        <div style="float: right;" class="card-actions">
+                                                            <i class="bi bi-trash3" onclick="ConfirmDelete(<?= $lead['PK_LEADS'] ?>);" style="color: red; cursor: pointer;"></i>
+                                                        </div>
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
+                                                            <div>
+                                                                <p class="lead-name" onclick="editpage(<?= $lead['PK_LEADS'] ?>);"><?= htmlspecialchars($lead['NAME']) ?></p>
+                                                                <p class="lead-email mb-0"><?= htmlspecialchars($lead['EMAIL_ID']) ?></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="lead-footer d-flex justify-content-between">
+                                                            <span><?= htmlspecialchars($lead['LOCATION_NAME']) ?></span>
+                                                            <span><?= htmlspecialchars($lead['OPPORTUNITY_SOURCE'] ?: '—') ?></span>
+                                                        </div>
+                                                        <div class="lead-icons">
+                                                            <div class="icon-with-pill">
+                                                                <i class="bi bi-telephone-fill toggle-pill" data-target="pill-phone-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-phone-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['PHONE']) ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="bi bi-envelope-fill toggle-pill" data-target="pill-email-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-email-<?= $lead['PK_LEADS'] ?>"><?= htmlspecialchars($lead['EMAIL_ID']) ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="bi bi-chat-dots-fill toggle-pill" data-target="pill-chat-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-chat-<?= $lead['PK_LEADS'] ?>"><?= truncateText($lead['DESCRIPTION'], 30) ?></span>
+                                                            </div>
+                                                            <div class="icon-with-pill">
+                                                                <i class="bi bi-calendar-fill toggle-pill" data-target="pill-calendar-<?= $lead['PK_LEADS'] ?>"></i>
+                                                                <span class="pill pill-calendar-<?= $lead['PK_LEADS'] ?>"><?= date('m/d/Y - h:iA', strtotime($lead['CREATED_ON'])) ?></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                    $inactive_result->MoveNext();
+                                                endwhile; ?>
+                                            <?php else: ?>
+                                                <div class="text-center text-muted py-3">No inactive leads</div>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
