@@ -609,7 +609,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         </div>
                                                     </div>
                                                     <div class="col-5">
-                                                        <div class="row">
+                                                        <div class="row" style="margin-bottom: -25px;">
                                                             <div class="col-4">
                                                                 <div class="form-group">
                                                                     <label class="form-label"><?= $service_provider_title ?></label>
@@ -625,38 +625,68 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <?php
                                                         if (!empty($_GET['id'])) {
                                                             $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                                                            while (!$enrollment_service_provider_data->EOF) { ?>
-                                                                <div class="row individual_service_provider_div" style="margin-top: -25px">
-                                                                    <div class="row">
-                                                                        <div class="col-5">
-                                                                            <div class="form-group">
-                                                                                <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
-                                                                                    <option value="">Select</option>
-                                                                                    <?php
-                                                                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                                                                    while (!$row->EOF) { ?>
-                                                                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
-                                                                                    <?php $row->MoveNext();
-                                                                                    } ?>
-                                                                                </select>
+                                                            if ($enrollment_service_provider_data->RecordCount() > 0) {
+                                                                while (!$enrollment_service_provider_data->EOF) { ?>
+                                                                    <div class="row individual_service_provider_div">
+                                                                        <div class="row">
+                                                                            <div class="col-5">
+                                                                                <div class="form-group">
+                                                                                    <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                                        <option value="">Select</option>
+                                                                                        <?php
+                                                                                        $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                                        while (!$row->EOF) { ?>
+                                                                                            <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER_ID']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
+                                                                                        <?php $row->MoveNext();
+                                                                                        } ?>
+                                                                                    </select>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-5">
-                                                                            <div class="input-group">
-                                                                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?= number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '') ?>">
-                                                                                <span class="form-control input-group-text">%</span>
+                                                                            <div class="col-5">
+                                                                                <div class="input-group">
+                                                                                    <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?= number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '') ?>">
+                                                                                    <span class="form-control input-group-text">%</span>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-2">
-                                                                            <div class="form-group">
-                                                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                            <div class="col-2">
+                                                                                <div class="form-group">
+                                                                                    <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
+                                                                <?php $enrollment_service_provider_data->MoveNext();
+                                                                }
+                                                            } else { ?>
+                                                                <div class="row individual_service_provider_div" style="margin-top: -25px">
+                                                                    <div class="col-5">
+                                                                        <div class="form-group">
+                                                                            <select class="form-control SERVICE_PROVIDER_ID" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER_ID">
+                                                                                <option value="">Select</option>
+                                                                                <?php
+                                                                                $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
+                                                                                while (!$row->EOF) { ?>
+                                                                                    <option value="<?php echo $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                                                                <?php $row->MoveNext();
+                                                                                } ?>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-5">
+                                                                        <div class="input-group">
+                                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                                            <span class="form-control input-group-text">%</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-2">
+                                                                        <div class="form-group">
+                                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
+                                                                        </div>
+                                                                    </div>
+
                                                                 </div>
-                                                            <?php $enrollment_service_provider_data->MoveNext();
-                                                            } ?>
-                                                        <?php } else { ?>
+                                                            <?php }
+                                                        } else { ?>
                                                             <div class="row individual_service_provider_div" style="margin-top: -25px">
                                                                 <div class="col-5">
                                                                     <div class="form-group">
