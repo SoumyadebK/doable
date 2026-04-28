@@ -2661,7 +2661,7 @@ if (isset($_POST['SUBMIT'])) {
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Due Date</label>
-                                            <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required onkeydown="return false;">
+                                            <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" required>
                                         </div>
                                     </div>
                                 </div>
