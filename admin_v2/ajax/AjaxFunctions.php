@@ -2355,6 +2355,19 @@ function updateAppointmentDataUnpost($RESPONSE_DATA)
     echo 1;
 }
 
+function updateLeadStatus($RESPONSE_DATA)
+{
+    global $db;
+    $PK_LEADS = $RESPONSE_DATA['PK_LEADS'];
+    $STATUS_ID = $RESPONSE_DATA['STATUS_ID'];
+    $update = $db->Execute("UPDATE DOA_LEADS SET PK_LEAD_STATUS = '$STATUS_ID' WHERE PK_LEADS = '$PK_LEADS'");
+    if ($update) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Database update failed']);
+    }
+}
+
 /**
  * @throws Exception
  */
