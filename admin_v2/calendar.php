@@ -83,7 +83,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-time-grid .fc-slats td {
-        height: 30px !important;
+        height: 20px !important;
     }
 
     .fc-time-grid-event .fc-content {
@@ -169,13 +169,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     }
 
     .fc-time-grid-event .fc-time {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .fc-content .fc-title {
         margin-top: 1px;
-        line-height: 17px;
-        font-size: 12px;
+        line-height: 13px;
+        font-size: 10px;
     }
 
     /* Current Time Indicator Line */
@@ -1249,14 +1249,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     let element = info.el;
 
                     if (event_data.customerName) {
-                        $(element).find(".fc-title").append('<br><strong style="font-size: 12px; font-weight: bold;">' + event_data.customerName + '</strong> ');
+                        $(element).find(".fc-title").append('<br><strong style="font-size: 10px; font-weight: bold;">' + event_data.customerName + '</strong> ');
                     }
 
                     if (event_data.comment || event_data.internal_comment) {
                         if ($(element).find(".fc-title").length) {
-                            $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 13px"></i> ');
+                            $(element).find(".fc-title").prepend(' <i class="fa fa-comment" style="font-size: 11px"></i> ');
                         } else {
-                            $(element).find(".fc-time").append('<br><i class="fa fa-comment" style="font-size: 13px"></i> ');
+                            $(element).find(".fc-time").append('<br><i class="fa fa-comment" style="font-size: 11px"></i> ');
                         }
                     }
 
