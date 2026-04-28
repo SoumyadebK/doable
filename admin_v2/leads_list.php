@@ -128,21 +128,6 @@ $all_status_sql = "SELECT * FROM `DOA_LEAD_STATUS`
                    ORDER BY DISPLAY_ORDER ASC";
 $all_status = $db->Execute($all_status_sql);
 
-// Helper function to get avatar initials and color class
-function getAvatarDetails($firstName, $lastName)
-{
-    $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
-    if (empty(trim($initials))) {
-        $initials = 'LD';
-    }
-
-    $color_classes = ['avatar-jb', 'avatar-sw', 'avatar-at', 'avatar-bg1', 'avatar-bg2', 'avatar-bg3'];
-    $hash = abs(crc32($initials));
-    $color_class = $color_classes[$hash % count($color_classes)];
-
-    return ['initials' => $initials, 'color_class' => $color_class];
-}
-
 // Helper function to truncate text
 function truncateText($text, $length = 30)
 {
@@ -208,11 +193,11 @@ function truncateText($text, $length = 30)
         }
 
         .text-green {
-            color: #00B739;
+            color: #39b54a;
         }
 
         .btn-success {
-            background-color: #00B739;
+            background-color: #39b54a;
         }
 
         .table thead th {
@@ -340,13 +325,13 @@ function truncateText($text, $length = 30)
 
         .page-link-custom:hover {
             background-color: #f8f9fa;
-            color: #00B739;
+            color: #39b54a;
         }
 
         .page-link-custom.active {
-            background: #00B739;
+            background: #39b54a;
             color: white;
-            border-color: #00B739;
+            border-color: #39b54a;
         }
 
         .action-icons i {
@@ -367,7 +352,7 @@ function truncateText($text, $length = 30)
         }
 
         .lead-name-link:hover {
-            color: #00B739;
+            color: #39b54a;
         }
 
         .status-filter-btn {
@@ -376,7 +361,7 @@ function truncateText($text, $length = 30)
         }
 
         .status-filter-btn.active {
-            background-color: #00B739 !important;
+            background-color: #39b54a !important;
             color: white !important;
         }
 
@@ -474,7 +459,7 @@ function truncateText($text, $length = 30)
                                 <button class="toolbar-btn me-1 border-0 rounded-pill" id="kanban_view_btn" style="background: transparent; color: #6c757d;" onclick="window.location.href='leads_grid.php'">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </button>
-                                <button class="toolbar-btn border-0 rounded-pill" id="list_view_btn" style="background: #00B739; color: white;">
+                                <button class="toolbar-btn border-0 rounded-pill" id="list_view_btn" style="background: #39b54a; color: white;">
                                     <i class="bi bi-list-ul"></i>
                                 </button>
                             </div>
@@ -527,7 +512,12 @@ function truncateText($text, $length = 30)
                                     <?php if ($leads_result && $leads_result->RecordCount() > 0): ?>
                                         <?php while (!$leads_result->EOF):
                                             $lead = $leads_result->fields;
-                                            $avatar = getAvatarDetails($lead['FIRST_NAME'], $lead['LAST_NAME']);
+
+                                            $CUSTOMER_NAME = $lead['NAME'];
+                                            $customer = getProfileBadge($CUSTOMER_NAME);
+                                            $customer_initial = $customer['initials'];
+                                            $customer_color = $customer['color'];
+
                                             $status_lower = strtolower($lead['LEAD_STATUS'] ?? '');
                                             $status_class = '';
                                             if ($status_lower == 'new') $status_class = 'status-pill-new';
@@ -544,7 +534,7 @@ function truncateText($text, $length = 30)
                                                 <td><input type="checkbox" class="form-check-input lead-checkbox" data-id="<?= $lead['PK_LEADS'] ?>"></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <div class="avatar <?= $avatar['color_class'] ?>"><?= $avatar['initials'] ?></div>
+                                                        <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
                                                         <div>
                                                             <div class="text-dark lead-name-link" onclick="editpage(<?= $lead['PK_LEADS'] ?>, '<?= htmlspecialchars($lead['LATEST_DATE'] ?? '') ?>')"><?= htmlspecialchars($lead['NAME']) ?></div>
                                                             <div class="text-muted small"><?= htmlspecialchars($lead['EMAIL_ID']) ?></div>
@@ -565,7 +555,7 @@ function truncateText($text, $length = 30)
                                                 <td class="text-muted small">
                                                     <?= truncateText($lead['DESCRIPTION'] ?? '', 40) ?>
                                                     <?php if ($lead['IS_CALLED']): ?>
-                                                        <i class="bi bi-check-circle-fill ms-1" style="color: #00B739; font-size: 12px;" title="Called"></i>
+                                                        <i class="bi bi-check-circle-fill ms-1" style="color: #39b54a; font-size: 12px;" title="Called"></i>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
