@@ -73,7 +73,7 @@ if (!empty($_POST)) {
     }
 
     // Preserve the date filter and other parameters when redirecting back
-    $redirect_url = "all_leads.php";
+    $redirect_url = "leads_grid.php";
     $preserve_params = array();
 
     // Check for date range filters from POST or GET
@@ -259,7 +259,7 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                         <div class="d-flex justify-content-end align-items-center">
                             <ol class="breadcrumb justify-content-end">
                                 <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                                <li class="breadcrumb-item"><a href="all_leads.php">All Leads</a></li>
+                                <li class="breadcrumb-item"><a href="leads_grid.php">All Leads</a></li>
                                 <li class="breadcrumb-item active"><?= $title ?></li>
                             </ol>
                         </div>
