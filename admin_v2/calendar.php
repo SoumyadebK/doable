@@ -113,8 +113,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         border-radius: 10px !important;
         margin: 1px 0px 1px 2px !important;
         text-align: left !important;
-        padding: 8px !important;
-        min-height: 50px !important;
+        padding: 3px 5px !important;
     }
 
     .fc-event .fc-co-badge {
@@ -129,10 +128,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         border-radius: 10px;
         z-index: 2;
         pointer-events: none;
-    }
-
-    .fc-time-grid-event {
-        min-height: 50px !important;
     }
 
     .fc-resource-cell {
