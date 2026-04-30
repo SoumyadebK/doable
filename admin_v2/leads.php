@@ -182,22 +182,22 @@ if (empty($_GET['id'])) {
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
 
-    function formatPhone($PHONE)
-    {
-        $PHONE = preg_replace('/\D/', '', $PHONE);
+    // function formatPhone($PHONE)
+    // {
+    //     $PHONE = preg_replace('/\D/', '', $PHONE);
 
-        if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
-            $PHONE = substr($PHONE, 1);
-        }
+    //     if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
+    //         $PHONE = substr($PHONE, 1);
+    //     }
 
-        if (strlen($PHONE) == 10) {
-            return '(' . substr($PHONE, 0, 3) . ') '
-                . substr($PHONE, 3, 3) . '-'
-                . substr($PHONE, 6);
-        }
+    //     if (strlen($PHONE) == 10) {
+    //         return '(' . substr($PHONE, 0, 3) . ') '
+    //             . substr($PHONE, 3, 3) . '-'
+    //             . substr($PHONE, 6);
+    //     }
 
-        return $PHONE;
-    }
+    //     return $PHONE;
+    // }
 
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
