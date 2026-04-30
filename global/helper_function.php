@@ -1433,3 +1433,21 @@ function getServiceProvider()
     global $db;
     return $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
 }
+
+function formatPhone($PHONE)
+{
+    $PHONE = preg_replace('/\D/', '', $PHONE);
+
+    // Remove country code if 11 digits starting with 1
+    if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
+        $PHONE = substr($PHONE, 1);
+    }
+
+    if (strlen($PHONE) == 10) {
+        return '(' . substr($PHONE, 0, 3) . ') '
+            . substr($PHONE, 3, 3) . '-'
+            . substr($PHONE, 6);
+    }
+
+    return $PHONE;
+}

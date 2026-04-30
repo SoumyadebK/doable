@@ -221,8 +221,8 @@ $customer_color = $customer['color'];
     }
 
     .avatar-placeholder {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         background: #e9ecef;
         border-radius: 50%;
         display: flex;
@@ -791,88 +791,99 @@ $customer_color = $customer['color'];
                             <div class="tab-content tab-content-1 active row profile-section">
 
                                 <div class="col-md-8 pt-4">
-                                    <div class="profile-card">
-                                        <div class="d-flex justify-content-between border-bottom">
-                                            <div>
-                                                <div class="section-title">Personal Information</div>
-                                                <div class="section-desc">Optional settings section description</div>
+                                    <div id="user_edit_information">
+                                        <div class="profile-card">
+                                            <div class="d-flex justify-content-between border-bottom">
+                                                <div>
+                                                    <div class="section-title">Personal Information</div>
+                                                    <div class="section-desc">Optional settings section description</div>
+                                                </div>
+                                                <a class="btn btn-outline-edit" style="height: min-content;" onclick="editPersonalInfo(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
                                             </div>
-                                            <a class="btn btn-outline-edit" style="height: min-content;" onclick="editPersonalInfo(<?= $PK_USER ?>)">Edit</a>
+
+                                            <div class="avatar-placeholder mt-3">
+                                                <?php if ($USER_IMAGE != '') { ?>
+                                                    <a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery">
+                                                        <img src="<?php echo $USER_IMAGE; ?>" style="width:100px; height:100px; border: 2px solid #ccc; border-radius: 50%; " />
+                                                    </a><?php } else { ?>
+                                                    <i class="bi bi-person-fill text-white fs-1"></i>
+                                                <?php } ?>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="label">First Name</div>
+                                                    <div class="value"><?= $FIRST_NAME ?></div>
+
+                                                    <div class="label">Customer ID</div>
+                                                    <div class="value"><?= $CUSTOMER_ID == '' ? 'N/A' : $CUSTOMER_ID ?></div>
+
+                                                    <div class="label">Primary Location</div>
+                                                    <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+
+                                                    <div class="label">Phone</div>
+                                                    <div class="value"><?= formatPhone($PHONE) ?></div>
+
+                                                    <div class="label">Reminder Options</div>
+                                                    <div class="value"><?= $REMINDER_OPTION == '' ? 'N/A' : $REMINDER_OPTION ?></div>
+
+                                                    <div class="label">Status</div>
+                                                    <div class="value"><?= $ACTIVE == 1 ? 'Active' : 'Inactive' ?></div>
+                                                </div>
+
+                                                <div class="col-6">
+                                                    <div class="label">Last Name</div>
+                                                    <div class="value"><?= $LAST_NAME == '' ? 'N/A' : $LAST_NAME ?></div>
+
+                                                    <div class="label">Created On</div>
+                                                    <div class="value"><?= date('m/d/Y - h:i A', strtotime($CREATED_ON)) ?></div>
+
+                                                    <div class="label">Preferred Location</div>
+                                                    <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+
+                                                    <div class="label">Email</div>
+                                                    <div class="value"><?= $EMAIL_ID ?></div>
+
+                                                    <div class="label">Gender</div>
+                                                    <div class="value"><?= $GENDER == '' ? 'N/A' : $GENDER ?></div>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="avatar-placeholder mt-3"><i class="bi bi-person-fill text-white fs-1"></i></div>
-
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <div class="label">First Name</div>
-                                                <div class="value"><?= $FIRST_NAME ?></div>
-
-                                                <div class="label">Customer ID</div>
-                                                <div class="value"><?= $CUSTOMER_ID == '' ? 'N/A' : $CUSTOMER_ID ?></div>
-
-                                                <div class="label">Primary Location</div>
-                                                <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
-
-                                                <div class="label">Phone</div>
-                                                <div class="value"><?= $PHONE ?></div>
-
-                                                <div class="label">Reminder Options</div>
-                                                <div class="value"><?= $REMINDER_OPTION == '' ? 'N/A' : $REMINDER_OPTION ?></div>
-
-                                                <div class="label">Status</div>
-                                                <div class="value"><?= $ACTIVE == 1 ? 'Active' : 'Inactive' ?></div>
+                                        <div class="profile-card">
+                                            <div class="d-flex justify-content-between border-bottom">
+                                                <div>
+                                                    <div class="section-title">Address Information</div>
+                                                    <div class="section-desc">Optional settings section description</div>
+                                                </div>
+                                                <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
                                             </div>
+                                            <div class="row mt-3">
+                                                <div class="col-6">
+                                                    <div class="label">Address</div>
+                                                    <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
 
-                                            <div class="col-6">
-                                                <div class="label">Last Name</div>
-                                                <div class="value"><?= $LAST_NAME == '' ? 'N/A' : $LAST_NAME ?></div>
+                                                    <div class="label">City</div>
+                                                    <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
 
-                                                <div class="label">Created On</div>
-                                                <div class="value"><?= date('m/d/Y - h:i A', strtotime($CREATED_ON)) ?></div>
+                                                    <div class="label">Country</div>
+                                                    <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="label">Apt/Ste</div>
+                                                    <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
 
-                                                <div class="label">Preferred Location</div>
-                                                <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+                                                    <div class="label">State</div>
+                                                    <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
 
-                                                <div class="label">Email</div>
-                                                <div class="value"><?= $EMAIL_ID ?></div>
-
-                                                <div class="label">Gender</div>
-                                                <div class="value"><?= $GENDER == '' ? 'N/A' : $GENDER ?></div>
+                                                    <div class="label">Postal / Zip Code</div>
+                                                    <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="profile-card">
-                                        <div class="d-flex justify-content-between border-bottom">
-                                            <div>
-                                                <div class="section-title">Address Information</div>
-                                                <div class="section-desc">Optional settings section description</div>
-                                            </div>
-                                            <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-6">
-                                                <div class="label">Address</div>
-                                                <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
 
-                                                <div class="label">City</div>
-                                                <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
-
-                                                <div class="label">Country</div>
-                                                <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="label">Apt/Ste</div>
-                                                <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
-
-                                                <div class="label">State</div>
-                                                <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
-
-                                                <div class="label">Postal / Zip Code</div>
-                                                <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
-                                            </div>
-                                        </div>
-                                    </div>
                                     <div class="profile-card">
                                         <div class="d-flex justify-content-between border-bottom">
                                             <div>
@@ -1337,6 +1348,24 @@ $customer_color = $customer['color'];
         changeYear: true,
         yearRange: '1900:' + new Date().getFullYear(),
     });
+</script>
+
+
+<!-- All function related to customer details edit -->
+<script>
+    function editPersonalInfo(PK_USER, PK_USER_MASTER) {
+        $.ajax({
+            url: "partials/edit_customer_details.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#user_edit_information').html(data);
+            }
+        });
+    }
 </script>
 
 <script>
