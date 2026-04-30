@@ -177,25 +177,6 @@ if (!empty($_GET['id'])) {
     $CITY = $res->fields['CITY'];
     $ZIP = $res->fields['ZIP'];
     $PHONE = $res->fields['PHONE'];
-
-    function formatPhone($PHONE)
-    {
-        $PHONE = preg_replace('/\D/', '', $PHONE);
-
-        // Remove country code if 11 digits starting with 1
-        if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
-            $PHONE = substr($PHONE, 1);
-        }
-
-        if (strlen($PHONE) == 10) {
-            return '(' . substr($PHONE, 0, 3) . ') '
-                . substr($PHONE, 3, 3) . '-'
-                . substr($PHONE, 6);
-        }
-
-        return $PHONE;
-    }
-
     $NOTES = $res->fields['NOTES'];
     $ACTIVE = $res->fields['ACTIVE'];
     $PASSWORD = $res->fields['PASSWORD'];
@@ -788,12 +769,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                         <div class="form-group">
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
-                                                                                <?php if (empty($_GET['id'])) { ?>
-                                                                                    <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?php echo $PHONE ?>" required>
-
-                                                                                <?php } else { ?>
-                                                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone Number" value="<?php echo formatPhone($PHONE) ?>" required>
-                                                                                <?php } ?>
+                                                                                <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?= formatPhone($PHONE) ?>" required>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -832,7 +808,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                                         <div class="form-group">
                                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                                             <div class="col-md-12">
-                                                                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?= $customer_phone->fields['PHONE'] ?>" required>
+                                                                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?= formatPhone($customer_phone->fields['PHONE']) ?>" required>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>

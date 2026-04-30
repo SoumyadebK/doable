@@ -459,4 +459,28 @@
     .fa-info-circle {
         color: #17a2b8;
     }
+
+    .SumoSelect .CaptionCont {
+        border: 1px solid #dcdcdc;
+        height: 40px;
+        border-radius: 5px;
+    }
+
+    .SumoSelect .CaptionCont span.placeholder {
+        color: #fff;
+    }
+
+    .SumoSelect .CaptionCont span {
+        margin-top: 3px;
+    }
+
+    .SumoSelect {
+        width: 100%;
+    }
+
+    .sumo_SERVICE_PROVIDER_ID .CaptionCont {
+        border: 1px solid #dcdcdc;
+        height: 35px;
+        border-radius: 5px;
+    }
 </style>
