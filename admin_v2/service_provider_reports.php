@@ -36,6 +36,8 @@ if (!empty($_GET['NAME'])) {
         } elseif ($_GET['NAME'] == 'services_of_lessons_taught_by_service_provider_report') {
             $PK_SERVICE_MASTER = empty($_GET['PK_SERVICE_MASTER']) ? 0 : $_GET['PK_SERVICE_MASTER'];
             header('location:services_of_lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&PK_SERVICE_MASTER=' . implode(',', $PK_SERVICE_MASTER));
+        } elseif ($_GET['NAME'] == 'cash_report') {
+            header('location:cash_report_details.php?service_provider_id=' . implode(',', $PK_USER) . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
     }
 }
@@ -117,6 +119,7 @@ if (!empty($_GET['NAME'])) {
                                                     <option value="enrollment_details_report">ENROLLMENT TYPE DETAILED REPORT</option>
                                                     <option value="lessons_taught_by_service_provider_report">LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
                                                     <option value="services_of_lessons_taught_by_service_provider_report">SERVICES OF LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
+                                                    <option value="cash_report">PROVIDER CASH REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -164,8 +167,9 @@ if (!empty($_GET['NAME'])) {
                                                 <span class="export-buttons" id="exportButtons">
                                                     <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
                                                     <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                    <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
                                                 </span>
-                                                <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <!-- <input type="submit" name="generate_excel" value="Generate Excel" class="btn btn-info" style="background-color: #39B54A !important;"> -->
                                             <?php } ?>
                                         </div>
                                         <div class="col-4">
@@ -206,9 +210,24 @@ if (!empty($_GET['NAME'])) {
     function toggleExportButtons(selectElement) {
         var selectedValue = selectElement.value;
         var exportButtons = document.getElementById('exportButtons');
+        var allButtons = exportButtons ? exportButtons.querySelectorAll('input') : [];
 
         if (selectedValue === 'summary_of_staff_member_report') {
             exportButtons.style.display = 'inline';
+            // Make all buttons visible
+            if (allButtons.length) {
+                allButtons[0].style.display = 'inline'; // Export button
+                if (allButtons[1]) allButtons[1].style.display = 'inline'; // PDF button
+                if (allButtons[2]) allButtons[2].style.display = 'inline'; // Excel button
+            }
+        } else if (selectedValue === 'cash_report') {
+            exportButtons.style.display = 'inline';
+            // Hide only the Export button, keep PDF and Excel
+            if (allButtons.length) {
+                allButtons[0].style.display = 'none'; // Hide Export button only
+                if (allButtons[1]) allButtons[1].style.display = 'inline'; // Show PDF
+                if (allButtons[2]) allButtons[2].style.display = 'inline'; // Show Excel
+            }
         } else {
             exportButtons.style.display = 'none';
         }

@@ -24,16 +24,16 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                         }
                         if ($address == "reports.php" || $address == "business_reports.php" || $address == "service_provider_reports.php" || $address == "electronic_miscellaneous_reports.php" || $address == "enrollment_reports.php" || $address == "customer_summary_report.php" || $address == "student_mailing_list.php" || $address == "total_open_liability.php" || $address == "active_account_balance_report.php" || $address == "cash_report.php" || $address == "sales_report.php") { ?>
                             <ul class="nav nav-pills justify-content-left">
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'reports.php') ? 'active' : '' ?>" href="../admin_v2/reports.php">Weekly Reports</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'reports.php') ? 'active' : '' ?>" href="../admin_v2/reports.php">Electronic Weekly Reports</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'business_reports.php') ? 'active' : '' ?>" href="../admin_v2/business_reports.php">Business Reports</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'service_provider_reports.php') ? 'active' : '' ?>" href="../admin_v2/service_provider_reports.php">Service Provider Reports</a></li>
                                 <!-- <li class="nav-item"><a class="nav-link <?= ($address == 'electronic_miscellaneous_reports.php') ? 'active' : '' ?>" href="../admin_v2/electronic_miscellaneous_reports.php">Electronic Miscellaneous Reports</a></li> -->
                                 <!-- <li class="nav-item"><a class="nav-link <?= ($address == 'enrollment_reports.php') ? 'active' : '' ?>" href="../admin_v2/enrollment_reports.php">Enrollment Reports</a></li> -->
-                                <!-- <li class="nav-item"><a class="nav-link <?= ($address == 'customer_summary_report.php') ? 'active' : '' ?>" href="../admin_v2/customer_summary_report.php">Customer Summary Report</a></li> -->
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'customer_summary_report.php') ? 'active' : '' ?>" href="../admin_v2/customer_summary_report.php">Customer Summary Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'student_mailing_list.php') ? 'active' : '' ?>" href="../admin_v2/student_mailing_list.php">Student Mailing List</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'total_open_liability.php') ? 'active' : '' ?>" href="../admin_v2/total_open_liability.php">Total Open Liability Since Last Activity</a></li>
-                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin_v2/active_account_balance_report.php">Customer Reports</a></li>
-                                <!-- <li class="nav-item"><a class="nav-link <?= ($address == 'cash_report.php') ? 'active' : '' ?>" href="../admin_v2/cash_report.php">Provider Cash Report</a></li> -->
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'active_account_balance_report.php') ? 'active' : '' ?>" href="../admin_v2/active_account_balance_report.php">Active Accounts Report</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'cash_report.php') ? 'active' : '' ?>" href="../admin_v2/cash_report.php">Provider Cash Report</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'sales_report.php') ? 'active' : '' ?>" href="../admin_v2/sales_report.php">Sales Report</a></li>
                             </ul>
                         <?php } ?>
