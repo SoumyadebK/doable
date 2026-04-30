@@ -40,6 +40,35 @@ if ($choose_date != '') {
                        AND DATE = '$choose_date')";
 }
 
+// Add sorting parameter for grid view
+$sort_by = isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'newest';
+$sort_order = isset($_GET['sort_order']) && strtoupper($_GET['sort_order']) == 'ASC' ? 'ASC' : 'DESC';
+
+// Define sort options
+$sort_options = [
+    'name_asc' => ['field' => 'CONCAT(DOA_LEADS.FIRST_NAME, " ", DOA_LEADS.LAST_NAME)', 'order' => 'ASC', 'label' => 'Name (A-Z)'],
+    'name_desc' => ['field' => 'CONCAT(DOA_LEADS.FIRST_NAME, " ", DOA_LEADS.LAST_NAME)', 'order' => 'DESC', 'label' => 'Name (Z-A)'],
+    'newest' => ['field' => 'DOA_LEADS.CREATED_ON', 'order' => 'DESC', 'label' => 'Newest First'],
+    'oldest' => ['field' => 'DOA_LEADS.CREATED_ON', 'order' => 'ASC', 'label' => 'Oldest First'],
+    'follow_up_asc' => ['field' => 'LATEST_DATE', 'order' => 'ASC', 'label' => 'Follow-up Date (Earliest)'],
+    'follow_up_desc' => ['field' => 'LATEST_DATE', 'order' => 'DESC', 'label' => 'Follow-up Date (Latest)'],
+    'status_asc' => ['field' => 'LS.LEAD_STATUS', 'order' => 'ASC', 'label' => 'Status (A-Z)'],
+    'status_desc' => ['field' => 'LS.LEAD_STATUS', 'order' => 'DESC', 'label' => 'Status (Z-A)']
+];
+
+// Get sort field and order from selected option
+$sort_field = 'DOA_LEADS.PK_LEADS'; // default
+$sort_direction = 'DESC'; // default
+
+if (isset($sort_options[$sort_by])) {
+    $sort_field = $sort_options[$sort_by]['field'];
+    $sort_direction = $sort_options[$sort_by]['order'];
+} else {
+    // Default to newest first
+    $sort_field = 'DOA_LEADS.CREATED_ON';
+    $sort_direction = 'DESC';
+}
+
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
     header("location:../login.php");
     exit;
@@ -379,6 +408,18 @@ if ($status_filter != '' && $status_filter != 'inactive') {
             background: #adb5bd;
             border-radius: 10px;
         }
+
+        .dropdown-item.active {
+            background-color: #39b54a !important;
+        }
+
+        .dropdown-item:active {
+            background-color: #39b54a !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+        }
     </style>
 </head>
 
@@ -431,8 +472,31 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                             <div class="position-relative">
                                 <input type="text" id="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Filter by Follow up Date" value="<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>" style="border-radius: 20px; width: 180px;">
                             </div>
-                            <button class="toolbar-btn rounded-pill" onclick="submitFilters()"><i class="bi bi-filter me-1"></i> Filter</button>
-                            <button class="toolbar-btn rounded-pill"><i class="bi bi-arrow-down-up me-1"></i> Sort by <i class="bi bi-chevron-down ms-1"></i></button>
+                            <!-- <button class="toolbar-btn rounded-pill" onclick="submitFilters()"><i class="bi bi-filter me-1"></i> Filter</button> -->
+                            <div class="dropdown d-inline-block">
+                                <button class="toolbar-btn rounded-pill dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-arrow-down-up me-1"></i> Sort by
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                    <li><a class="dropdown-item <?= ($sort_by == 'newest') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="newest">📅 Newest First</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'oldest') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="oldest">📅 Oldest First</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'name_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="name_asc">👤 Name (A-Z)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'name_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="name_desc">👤 Name (Z-A)</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'follow_up_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="follow_up_asc">📆 Follow-up (Earliest)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'follow_up_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="follow_up_desc">📆 Follow-up (Latest)</a></li>
+                                    <!-- <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'status_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="status_asc">🏷️ Status (A-Z)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'status_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="status_desc">🏷️ Status (Z-A)</a></li> -->
+                                </ul>
+                            </div>
                             <button class="toolbar-btn rounded-pill" onclick="resetFilters()"><i class="bi bi-arrow-repeat me-1"></i> Reset</button>
                         </div>
                     </div>
@@ -487,7 +551,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                                                         " . $status_condition . " 
                                                         " . $search_condition . " 
                                                         " . $date_condition . "
-                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                                    ORDER BY $sort_field $sort_direction";
 
                                     $leads_result = $db->Execute($leads_query);
                                     $lead_count = $leads_result->RecordCount();
@@ -594,7 +658,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                                                         AND DOA_LEADS.ACTIVE = 0 
                                                         " . $search_condition . " 
                                                         " . $date_condition . "
-                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                                    ORDER BY $sort_field $sort_direction";
 
                                 $inactive_result = $db->Execute($inactive_query);
                                 ?>
@@ -699,7 +763,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                                                         " . $status_condition . " 
                                                         " . $search_condition . " 
                                                         " . $date_condition . "
-                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                                    ORDER BY $sort_field $sort_direction";
 
                                     $leads_result = $db->Execute($leads_query);
                                     $lead_count = $leads_result->RecordCount();
@@ -806,7 +870,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                                                         AND DOA_LEADS.ACTIVE = 0 
                                                         " . $search_condition . " 
                                                         " . $date_condition . "
-                                                    ORDER BY DOA_LEADS.PK_LEADS DESC";
+                                                    ORDER BY $sort_field $sort_direction";
 
                                 $inactive_result = $db->Execute($inactive_query);
                                 ?>
@@ -1078,6 +1142,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
             let searchText = $('#search_text').val() || '';
             let status = $('.status-filter-btn.active').data('status') || '';
             let chooseDate = $('#CHOOSE_DATE').val() || '';
+            let sortBy = '<?= $sort_by ?>';
 
             let url = window.location.pathname + '?';
             let params = [];
@@ -1085,14 +1150,19 @@ if ($status_filter != '' && $status_filter != 'inactive') {
             if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
             if (status) params.push('status=' + encodeURIComponent(status));
             if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+            if (sortBy) params.push('sort_by=' + encodeURIComponent(sortBy));
 
             url += params.join('&');
             window.location.href = url;
         }
 
         function resetFilters() {
-            window.location.href = window.location.pathname;
+            window.location.href = window.location.pathname + '?sort_by=newest';
         }
+
+        // function resetFilters() {
+        //     window.location.href = window.location.pathname;
+        // }
 
         function editpage(id, date) {
             window.location.href = "leads.php?id=" + id + (date ? "&date=" + date : "");
@@ -1170,6 +1240,26 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                 }
             });
         }
+
+        // Sort by dropdown functionality
+        $(document).on('click', '.dropdown-item[data-sort]', function(e) {
+            e.preventDefault();
+            let sortValue = $(this).data('sort');
+            let searchText = $('#search_text').val() || '';
+            let status = $('.status-filter-btn.active').data('status') || '';
+            let chooseDate = $('#CHOOSE_DATE').val() || '';
+
+            let url = window.location.pathname + '?';
+            let params = [];
+
+            if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+            if (status) params.push('status=' + encodeURIComponent(status));
+            if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+            if (sortValue) params.push('sort_by=' + encodeURIComponent(sortValue));
+
+            url += params.join('&');
+            window.location.href = url;
+        });
     </script>
 </body>
 

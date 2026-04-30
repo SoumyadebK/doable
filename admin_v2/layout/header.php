@@ -281,7 +281,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="nav-link <?= (('payment_due_report.php' === $current_address) ? 'active' : '') ?>" href="payment_due_report.php">Billing</a>
                             </li>
                             <li class="">
-                                <a class="nav-link <?= (('all_leads.php' === $current_address) ? 'active' : '') ?>" href="all_leads.php">Leads</a>
+                                <a class="nav-link <?= (('leads_grid.php' === $current_address || 'leads_list.php' === $current_address) ? 'active' : '') ?>" href="leads_grid.php">Leads</a>
                             </li>
                             <li class="">
                                 <a class="nav-link <?= (('all_events.php' === $current_address) ? 'active' : '') ?>" href="all_events.php">Events</a>
