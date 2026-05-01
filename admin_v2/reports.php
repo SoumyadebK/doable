@@ -99,7 +99,7 @@ if (!empty($_GET['NAME'])) {
                         <div class="card mb-4">
                             <div class="row" style="padding: 15px 35px 35px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
-                                    <h4 class="card-title">Electronic Weekly Reports</h4>
+                                    <h4 class="card-title">Weekly Reports</h4>
                                 </div>
                                 <form class="form-material form-horizontal" action="" method="get" id="weeklyForm">
                                     <input type="hidden" name="START_DATE" id="weekly_start_date">
