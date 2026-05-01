@@ -37,6 +37,15 @@ if (!empty($_GET['NAME'])) {
         } else {
             header('location:nfa_active_no_enrollments_report.php?type=' . $type);
         }
+    } else if ($_GET['NAME'] == 'customer_summary_report') {
+        $type = isset($_GET['view']) ? 'view' : 'generate_excel';
+        $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
+        if ($generate_excel === 1) {
+            $report_name = 'customer_summary_report';
+            header('location:excel_' . $report_name . '.php?report_type=' . $report_name);
+        } else {
+            header('location:customer_summary_report.php?type=' . $type);
+        }
     }
 }
 ?>
@@ -79,6 +88,7 @@ if (!empty($_GET['NAME'])) {
                                                     <option value="active_account_balance_report">ACTIVE ACCOUNT BALANCE REPORT</option>
                                                     <option value="nfa_active_customers_report">NFA ACTIVE CUSTOMERS REPORT</option>
                                                     <option value="nfa_active_no_enrollments_report">NFA ACTIVE NO ENROLLMENTS REPORT</option>
+                                                    <option value="customer_summary_report">CUSTOMER SUMMARY REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
