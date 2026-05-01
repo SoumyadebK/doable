@@ -38,6 +38,8 @@ if (!empty($_GET['NAME'])) {
             header('location:services_of_lessons_taught_by_service_provider_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type . '&service_provider_id=' . implode(',', $PK_USER) . '&PK_SERVICE_MASTER=' . implode(',', $PK_SERVICE_MASTER));
         } elseif ($_GET['NAME'] == 'cash_report') {
             header('location:cash_report_details.php?service_provider_id=' . implode(',', $PK_USER) . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'tips_report') {
+            header('location:tips_report.php?start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
     }
 }
@@ -120,6 +122,7 @@ if (!empty($_GET['NAME'])) {
                                                     <option value="lessons_taught_by_service_provider_report">LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
                                                     <option value="services_of_lessons_taught_by_service_provider_report">SERVICES OF LESSONS TAUGHT BY SERVICE PROVIDER REPORT</option>
                                                     <option value="cash_report">PROVIDER CASH REPORT</option>
+                                                    <option value="tips_report">TIPS REPORT</option>
                                                 </select>
                                             </div>
                                         </div>
