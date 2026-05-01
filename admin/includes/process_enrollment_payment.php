@@ -767,6 +767,23 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
             $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = $IS_ORIGINAL_RECEIPT;
             db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+            $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
+
+            $PK_SERVICE_PROVIDER_ARRAY = $_POST['PK_SERVICE_PROVIDER'];
+            for ($j = 0; $j < count($PK_SERVICE_PROVIDER_ARRAY); $j++) {
+                $TIPS_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
+                $TIPS_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
+                if ($_POST['TIP_PERCENTAGE'] == 'custom') {
+                    $TIPS_DATA['TIP_PERCENTAGE'] = $_POST['CUSTOM_TIP_PERCENTAGE'];
+                } else {
+                    $TIPS_DATA['TIP_PERCENTAGE'] = $_POST['TIP_PERCENTAGE'];
+                }
+                $TIPS_DATA['TIP_AMOUNT'] = $_POST['TIP_AMOUNT'];
+                $TIPS_DATA['PK_USER'] = $PK_SERVICE_PROVIDER_ARRAY[$j];
+                $TIPS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+                $TIPS_DATA['CREATED_ON']  = date("Y-m-d H:i");
+                db_perform_account('DOA_ENROLLMENT_TIP', $TIPS_DATA, 'insert');
+            }
         }
 
         if (isset($_POST['PARTIAL_PAYMENT']) && $PARTIAL_AMOUNT > 0) {
