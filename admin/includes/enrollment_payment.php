@@ -89,53 +89,6 @@
                             </div>
                         </div>
 
-
-
-
-                        <div class="row">
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label class="form-label">Tip Percentage</label>
-                                    <div class="col-md-12">
-                                        <select class="form-control" name="TIP_PERCENTAGE" id="TIP_PERCENTAGE" onchange="calculateTipAmount()">
-                                            <option value="">Select</option>
-                                            <option value="18">18%</option>
-                                            <option value="20">20%</option>
-                                            <option value="22">22%</option>
-                                            <option value="custom">Custom</option>
-                                        </select>
-                                        <input type="number" class="form-control mt-2" name="CUSTOM_TIP_PERCENTAGE" id="CUSTOM_TIP_PERCENTAGE" placeholder="Enter custom tip percentage" style="display: none;" onkeyup="calculateTipAmount()">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <div class="form-group">
-                                    <label class="form-label">Tip Amount</label>
-                                    <div class="col-md-12">
-                                        <input type="text" class="form-control" name="TIP_AMOUNT" id="TIP_AMOUNT" placeholder="Tip amount" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div>
-                                    <label class="form-label">Tip <?= $service_provider_title ?></label>
-                                    <div class="col-md-12">
-                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER" multiple>
-                                            <?php
-                                            $row = getServiceProvider();
-                                            while (!$row->EOF) { ?>
-                                                <option value="<?= $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
-                                            <?php $row->MoveNext();
-                                            } ?>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-
                         <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
                             <div class="row" id="card_list">
                             </div>
@@ -317,6 +270,49 @@
                                 </div>
                             </div>
                         </div>-->
+                        
+
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label class="form-label">Tip Percentage</label>
+                                    <div class="col-md-12">
+                                        <select class="form-control" name="TIP_PERCENTAGE" id="TIP_PERCENTAGE" onchange="calculateTipAmount()">
+                                            <option value="">Select</option>
+                                            <option value="18">18%</option>
+                                            <option value="20">20%</option>
+                                            <option value="22">22%</option>
+                                            <option value="custom">Custom</option>
+                                        </select>
+                                        <input type="text" class="form-control mt-2" name="CUSTOM_TIP_PERCENTAGE" id="CUSTOM_TIP_PERCENTAGE" placeholder="Enter custom tip percentage" style="display: none;" onkeyup="calculateTipAmount()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label class="form-label">Tip Amount</label>
+                                    <div class="col-md-12">
+                                        <input type="text" class="form-control" name="TIP_AMOUNT" id="TIP_AMOUNT" placeholder="Tip amount" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div>
+                                    <label class="form-label">Tip <?= $service_provider_title ?></label>
+                                    <div class="col-md-12">
+                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER" multiple>
+                                            <?php
+                                            $row = getServiceProvider();
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?= $row->fields['PK_USER']; ?>"><?= $row->fields['NAME'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 
                         <div class="row">
                             <div class="col-12 partial_payment">
@@ -911,14 +907,17 @@
         let tipPercentage = $('#TIP_PERCENTAGE').val();
         if (tipPercentage === 'custom') {
             $('#CUSTOM_TIP_PERCENTAGE').show();
-            let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-            let tipAmount = (ACTUAL_AMOUNT * parseFloat($('#CUSTOM_TIP_PERCENTAGE').val())) / 100;
+            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+            let tipAmount = (AMOUNT_TO_PAY * parseFloat($('#CUSTOM_TIP_PERCENTAGE').val())) / 100;
+            if (isNaN(tipAmount)) {
+                tipAmount = 0;
+            }
             $('#TIP_AMOUNT').val(tipAmount.toFixed(2));
         } else {
             $('#CUSTOM_TIP_PERCENTAGE').hide();
             if (tipPercentage) {
-                let ACTUAL_AMOUNT = parseFloat($('#ACTUAL_AMOUNT').val());
-                let tipAmount = (ACTUAL_AMOUNT * parseFloat(tipPercentage)) / 100;
+                let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
+                let tipAmount = (AMOUNT_TO_PAY * parseFloat(tipPercentage)) / 100;
                 $('#TIP_AMOUNT').val(tipAmount.toFixed(2));
             } else {
                 $('#TIP_AMOUNT').val(0);
