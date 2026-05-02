@@ -566,7 +566,7 @@ if (!empty($_POST)) {
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
 
                                         <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="$('.PAYMENT_FROM').trigger('click');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="changePaymentFrom($('.PAYMENT_FROM:checked')[0]);"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList('save_card');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
@@ -601,35 +601,16 @@ if (!empty($_POST)) {
                                                     </div>
                                                     <div class="col-3">
                                                         <div class="form-group">
-                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span></label>
+                                                            <label class="col-md-12">Account Type<span class="text-danger">*</span>
+                                                            </label>
                                                             <div class="col-md-12">
                                                                 <?php
                                                                 $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                                while (!$row->EOF) {
-
-                                                                    $checked = '';
-                                                                    if ($PK_ACCOUNT_TYPE != '') {
-                                                                        if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) {
-                                                                            $checked = 'checked';
-                                                                        }
-                                                                    } else {
-                                                                        if ($row->fields['PK_ACCOUNT_TYPE'] == 1) {
-                                                                            $checked = 'checked';
-                                                                        }
-                                                                    }
-                                                                ?>
-                                                                    <input type="radio" name="PK_ACCOUNT_TYPE"
-                                                                        id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
-                                                                        value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"
-                                                                        <?= $checked; ?> required>
-
-                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>">
-                                                                        <?= $row->fields['ACCOUNT_TYPE'] ?>
-                                                                    </label>
-                                                                <?php
-                                                                    $row->MoveNext();
-                                                                }
-                                                                ?>
+                                                                while (!$row->EOF) { ?>
+                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" id="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
+                                                                    <label for="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>"><?= $row->fields['ACCOUNT_TYPE'] ?></label>
+                                                                <?php $row->MoveNext();
+                                                                } ?>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -808,11 +789,7 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <?php if (isset($_SESSION['error'])) { ?>
-                                                        <div class="alert alert-danger">
-                                                            <strong><?= $_SESSION['error']; ?></strong>
-                                                        </div>
-                                                    <?php } ?>
+
                                                 </div>
 
                                                 <div class="row">
@@ -911,6 +888,7 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                     <div class="col-6">
                                                         <div class="form-group">
                                                             <label class="col-md-12">User Inactive Days</label>
@@ -1162,7 +1140,7 @@ if (!empty($_POST)) {
                                     <div class="tab-pane" id="operational_hours" role="tabpanel">
                                         <form class="form-material form-horizontal" id="operational_hours_form" action="" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
-                                            <input type="hidden" name="PK_LOCATION" value="<?php echo $PK_LOCATION; ?>">
+                                            <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
                                             <div class="p-20">
                                                 <div class="row">
                                                     <div class="col-3">
@@ -1276,7 +1254,9 @@ if (!empty($_POST)) {
                                                 } ?>
                                             </div>
                                             <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Save</button>
-                                            <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                            <?php if (!empty($_GET['id'])) { ?>
+                                                <button type="button" class="btn btn-inverse waves-effect waves-light" onclick="window.location.href='all_locations.php'">Cancel</button>
+                                            <?php } ?>
                                         </form>
                                     </div>
 
@@ -1509,8 +1489,20 @@ if (!empty($_POST)) {
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                                <label style="margin-right: 30px;">
+                                                                    <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location"
+                                                                        <?= (trim($PAYMENT_FROM) == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    &nbsp;Location&nbsp;&nbsp;
+                                                                </label>
+
+                                                                <label style="margin-right: 30px;">
+                                                                    <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation"
+                                                                        <?= (trim($PAYMENT_FROM) == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    &nbsp;Corporation
+                                                                </label>
+
+                                                                <!-- <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label> -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1657,6 +1649,10 @@ if (!empty($_POST)) {
 
     $(document).ready(function() {
         fetch_state(<?php echo $PK_COUNTRY; ?>);
+        const checkedPaymentFrom = $('.PAYMENT_FROM:checked');
+        if (checkedPaymentFrom.length) {
+            changePaymentFrom(checkedPaymentFrom[0]);
+        }
     });
 
     function fetch_state(PK_COUNTRY) {

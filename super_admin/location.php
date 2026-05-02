@@ -293,8 +293,8 @@ if ($location_data->RecordCount() > 0) {
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Location</label>&nbsp;&nbsp;
-                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)" />&nbsp;Corporation</label>
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" onclick="changePaymentFrom(this)" <?= ($PAYMENT_FROM == 'location') ? 'checked' : '' ?> />&nbsp;Location</label>&nbsp;&nbsp;
+                                                                <label style="margin-right: 30px;"><input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" onclick="changePaymentFrom(this)" <?= ($PAYMENT_FROM == 'corporation') ? 'checked' : '' ?> />&nbsp;Corporation</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -311,7 +311,7 @@ if ($location_data->RecordCount() > 0) {
                                                     </div>
 
                                                     <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
-                                                    <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? '' : 'none' ?>;">
+                                                    <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? 'block' : 'none' ?>;">
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe') { ?>
@@ -340,7 +340,7 @@ if ($location_data->RecordCount() > 0) {
                                                         </div>
                                                     </div>
 
-                                                    <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? '' : 'none' ?>;">
+                                                    <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? 'block' : 'none' ?>;">
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <div id="corporation_card_list">
@@ -375,7 +375,12 @@ if ($location_data->RecordCount() > 0) {
 
 <script>
     $(document).ready(function() {
-        $('.PAYMENT_FROM').trigger('click');
+        const checkedPaymentFrom = $('.PAYMENT_FROM:checked');
+        if (checkedPaymentFrom.length) {
+            checkedPaymentFrom.trigger('click');
+        } else {
+            $('.PAYMENT_FROM[value="location"]').trigger('click');
+        }
     });
 
     $('.datepicker-normal').datepicker({
