@@ -849,6 +849,9 @@ $customer_color = $customer['color'];
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div id="user_edit_address">
 
                                         <div class="profile-card">
                                             <div class="d-flex justify-content-between border-bottom">
@@ -856,7 +859,7 @@ $customer_color = $customer['color'];
                                                     <div class="section-title">Address Information</div>
                                                     <div class="section-desc">Optional settings section description</div>
                                                 </div>
-                                                <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
+                                                <a class="btn btn-outline-edit" style="height: min-content;" onclick="editAddress(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
                                             </div>
                                             <div class="row mt-3">
                                                 <div class="col-6">
@@ -1363,6 +1366,20 @@ $customer_color = $customer['color'];
             },
             success: function(data) {
                 $('#user_edit_information').html(data);
+            }
+        });
+    }
+
+    function editAddress(PK_USER, PK_USER_MASTER) {
+        $.ajax({
+            url: "partials/edit_customer_address.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                $('#user_edit_address').html(data);
             }
         });
     }

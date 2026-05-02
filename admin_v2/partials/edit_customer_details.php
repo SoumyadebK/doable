@@ -270,39 +270,6 @@ if ($selected_primary_location->RecordCount() > 0) {
     </form>
 </div>
 
-
-<div class="profile-card">
-    <div class="d-flex justify-content-between border-bottom">
-        <div>
-            <div class="section-title">Address Information</div>
-            <div class="section-desc">Optional settings section description</div>
-        </div>
-        <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
-    </div>
-    <div class="row mt-3">
-        <div class="col-6">
-            <div class="label">Address</div>
-            <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
-
-            <div class="label">City</div>
-            <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
-
-            <div class="label">Country</div>
-            <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
-        </div>
-        <div class="col-6">
-            <div class="label">Apt/Ste</div>
-            <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
-
-            <div class="label">State</div>
-            <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
-
-            <div class="label">Postal / Zip Code</div>
-            <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
-        </div>
-    </div>
-</div>
-
 <script>
     $('.datepicker-normal').datepicker({
         format: 'mm/dd/yyyy',
