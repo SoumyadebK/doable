@@ -78,26 +78,55 @@ if ($selected_primary_location->RecordCount() > 0) {
                 <div class="value">
                     <input type="text" class="form-control" name="ADDRESS" value="<?= $ADDRESS ?>">
                 </div>
+            </div>
+            <div class="col-6">
+                <div class="label">Apt/Ste</div>
+                <div class="value">
+                    <input type="text" class="form-control" name="ADDRESS_1" value="<?= $ADDRESS_1 ?>">
+                </div>
+            </div>
 
+            <div class="col-6">
+                <div class="label">Country</div>
+                <div class="value">
+                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                        <option>Select Country</option>
+                        <?php
+                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="label">State</div>
+                <div class="value">
+                    <select class="form-control" name="PK_STATES" id="PK_STATES" required>
+                        <option>Select State</option>
+                        <?php
+                        $row = $db->Execute("SELECT PK_STATES,STATE_NAME FROM DOA_STATES WHERE PK_COUNTRY = " . $PK_COUNTRY . " AND ACTIVE = 1 ORDER BY PK_STATES");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_STATES']; ?>" <?= ($row->fields['PK_STATES'] == $PK_STATES) ? "selected" : "" ?>><?= $row->fields['STATE_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-6">
                 <div class="label">City</div>
                 <div class="value">
                     <input type="text" class="form-control" name="CITY" value="<?= $CITY ?>">
                 </div>
-
-                <div class="label">Country</div>
-                <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
             </div>
             <div class="col-6">
-                <div class="label">Apt/Ste</div>
-                <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
-
-                <div class="label">State</div>
-                <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
-
                 <div class="label">Postal / Zip Code</div>
-                <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
+                <div class="value">
+                    <input type="text" class="form-control" name="ZIP" value="<?= $ZIP ?>">
+                </div>
             </div>
         </div>
-
     </form>
 </div>
