@@ -39,7 +39,7 @@ if (!empty($_GET['NAME'])) {
         } elseif ($_GET['NAME'] == 'cash_report') {
             header('location:cash_report_details.php?service_provider_id=' . implode(',', $PK_USER) . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         } elseif ($_GET['NAME'] == 'tips_report') {
-            header('location:tips_report.php?start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+            header('location:tips_report.php?service_provider_id=' . implode(',', $PK_USER) . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
     }
 }

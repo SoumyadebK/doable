@@ -4,7 +4,7 @@ global $db;
 global $db_account;
 global $master_database;
 
-$title = "TIPS REPORT";
+$title = "TIPS REPORT BY SERVICE PROVIDER";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -105,7 +105,46 @@ if (!empty($_GET['START_DATE'])) {
                                     <input type="hidden" name="start_date" id="start_date">
                                     <input type="hidden" name="end_date" id="end_date">
                                     <div class="row">
+                                        <div class="col-2">
+                                            <div id="location" style="width: 100%;">
+                                                <select class="multi_select_service_provider" multiple id="service_provider_select" name="PK_USER[]">
+                                                    <?php
+                                                    // Convert service_provider_id string to array for selection check
+                                                    $selected_provider_ids = [];
+                                                    if (!empty($service_provider_id) && $service_provider_id != '0') {
+                                                        $selected_provider_ids = explode(',', $service_provider_id);
+                                                    }
 
+                                                    $query = "SELECT DISTINCT DU.PK_USER, CONCAT(DU.FIRST_NAME, ' ', DU.LAST_NAME) AS NAME 
+                      FROM DOA_USERS DU
+                      INNER JOIN DOA_USER_ROLES DUR ON DU.PK_USER = DUR.PK_USER 
+                      INNER JOIN DOA_USER_LOCATION DUL ON DU.PK_USER = DUL.PK_USER 
+                      WHERE DU.ACTIVE = 1 
+                      AND DUR.PK_ROLES = 5 
+                      AND DUL.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                      AND DU.PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'
+                      ORDER BY DU.FIRST_NAME, DU.LAST_NAME";
+
+                                                    $row = $db->Execute($query);
+
+                                                    if ($row && $row->RecordCount() > 0) {
+                                                        while (!$row->EOF) {
+                                                            $user_id = $row->fields['PK_USER'];
+                                                            $selected = in_array($user_id, $selected_provider_ids) ? 'selected' : '';
+                                                    ?>
+                                                            <option value="<?php echo $user_id; ?>" <?= $selected ?>>
+                                                                <?= htmlspecialchars($row->fields['NAME']) ?>
+                                                            </option>
+                                                    <?php
+                                                            $row->MoveNext();
+                                                        }
+                                                    } else {
+                                                        echo '<option value="">No Service Providers Found</option>';
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+                                        </div>
                                         <div class="col-2">
                                             <div class="form-group">
                                                 <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['start_date']) ? date('m/d/Y', strtotime($_GET['start_date'])) : date('m/d/Y') ?>" required>
@@ -160,9 +199,37 @@ if (!empty($_GET['START_DATE'])) {
                                         13 => 'Renewal'
                                     ];
 
-                                    // Build the query without GROUP BY issues
-                                    $tips_query = "
-                                        SELECT DISTINCT
+                                    // Get all service providers
+                                    $providers_query = $db->Execute("
+                                        SELECT DISTINCT DU.PK_USER, CONCAT(DU.FIRST_NAME, ' ', DU.LAST_NAME) AS PROVIDER_NAME
+                                        FROM DOA_USERS DU
+                                        INNER JOIN DOA_USER_ROLES DUR ON DU.PK_USER = DUR.PK_USER
+                                        WHERE DU.ACTIVE = 1 
+                                        AND DUR.PK_ROLES = 5
+                                        AND DU.PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'
+                                        ORDER BY DU.FIRST_NAME, DU.LAST_NAME
+                                    ");
+
+                                    $all_providers_data = [];
+                                    $grand_totals = [
+                                        'total_tips' => 0,
+                                        'total_count' => 0,
+                                        'total_average' => 0
+                                    ];
+
+                                    while (!$providers_query->EOF) {
+                                        $provider_id = $providers_query->fields['PK_USER'];
+                                        $provider_name = $providers_query->fields['PROVIDER_NAME'];
+
+                                        // Skip if specific providers are selected and this one isn't in the list
+                                        if (!empty($service_provider_id) && $service_provider_id != '0' && !in_array($provider_id, explode(',', $service_provider_id))) {
+                                            $providers_query->MoveNext();
+                                            continue;
+                                        }
+
+                                        // Get tips for this specific provider
+                                        $tips_query = "
+                                        SELECT 
                                             et.PK_ENROLLMENT_TIP,
                                             et.PK_ENROLLMENT_MASTER,
                                             et.PK_ENROLLMENT_PAYMENT,
@@ -183,200 +250,127 @@ if (!empty($_GET['START_DATE'])) {
                                             ep.PAYMENT_DATE
                                         FROM DOA_ENROLLMENT_TIP et
                                         INNER JOIN DOA_ENROLLMENT_MASTER em ON et.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+                                        INNER JOIN DOA_ENROLLMENT_SERVICE_PROVIDER asp ON em.PK_ENROLLMENT_MASTER = asp.PK_ENROLLMENT_MASTER
                                         INNER JOIN DOA_ENROLLMENT_PAYMENT ep ON et.PK_ENROLLMENT_PAYMENT = ep.PK_ENROLLMENT_PAYMENT
                                         LEFT JOIN DOA_USERS du ON et.PK_USER = du.PK_USER
                                         LEFT JOIN DOA_CUSTOMER_DETAILS cd ON em.PK_USER_MASTER = cd.PK_USER_MASTER
                                         LEFT JOIN DOA_MASTER.DOA_USER_MASTER dc ON em.PK_USER_MASTER = dc.PK_USER_MASTER
                                         LEFT JOIN DOA_MASTER.DOA_USERS us ON us.PK_USER = dc.PK_USER
                                         WHERE DATE(et.CREATED_ON) BETWEEN '$from_date' AND '$to_date'
+                                        AND asp.SERVICE_PROVIDER_ID = $provider_id
                                         GROUP BY et.PK_ENROLLMENT_MASTER
-                                        
-                                    ";
+                                        ORDER BY et.CREATED_ON DESC";
 
-                                    // Add service provider filter
-                                    if (!empty($service_provider_id) && $service_provider_id != '0') {
-                                        $tips_query .= " AND et.PK_USER IN ($service_provider_id)";
-                                    }
+                                        $tips_result = $db_account->Execute($tips_query);
 
-                                    $tips_query .= " ORDER BY et.CREATED_ON DESC";
-
-                                    // Debug - uncomment to see the query
-                                    // echo "<pre>$tips_query</pre>";
-
-                                    // Execute query
-                                    $tips_result = $db_account->Execute($tips_query);
-
-                                    if (!$tips_result) {
-                                        echo "<div class='alert alert-danger'>Query Error: " . $db_account->ErrorMsg() . "</div>";
-                                    }
-
-                                    // Initialize summary variables
-                                    $total_tips = 0;
-                                    $total_tips_count = 0;
-                                    $provider_summary = [];
-                                    $enrollment_type_summary = [];
-                                    $payment_method_summary = [];
-                                    $tips_data = [];
-
-                                    if ($tips_result && $tips_result->RecordCount() > 0) {
-                                        while (!$tips_result->EOF) {
-                                            $tip_amount = floatval($tips_result->fields['TIP_AMOUNT']);
-                                            $tip_percentage = floatval($tips_result->fields['TIP_PERCENTAGE']);
-                                            $enrollment_type_id = $tips_result->fields['PK_ENROLLMENT_TYPE'];
-                                            $enrollment_type = $enrollment_types[$enrollment_type_id] ?? 'Unknown';
-
-                                            // Get appointments for this enrollment separately to avoid GROUP_CONCAT issues
-                                            $appointments = [];
-                                            $enrollment_id = $tips_result->fields['PK_ENROLLMENT_MASTER'];
-                                            $appt_query = "
-                                                SELECT DATE(am.DATE) as APPT_DATE, am.START_TIME, am.END_TIME, sm.SERVICE_NAME, CONCAT(du.FIRST_NAME, ' ', du.LAST_NAME) AS PROVIDER_NAME
-                                                FROM DOA_APPOINTMENT_MASTER am
-                                                LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ap ON am.PK_APPOINTMENT_MASTER = ap.PK_APPOINTMENT_MASTER
-                                                LEFT JOIN $master_database.DOA_USERS du ON ap.PK_USER = du.PK_USER
-                                                LEFT JOIN DOA_SERVICE_MASTER sm ON am.PK_SERVICE_MASTER = sm.PK_SERVICE_MASTER
-                                                WHERE am.PK_ENROLLMENT_MASTER = '$enrollment_id'
-                                                
-                                                ORDER BY am.DATE
-                                            ";
-                                            $appt_result = $db_account->Execute($appt_query);
-                                            if ($appt_result && $appt_result->RecordCount() > 0) {
-                                                while (!$appt_result->EOF) {
-                                                    $service_name = !empty($appt_result->fields['SERVICE_NAME']) ? $appt_result->fields['SERVICE_NAME'] : 'Lesson';
-                                                    $provider_name = !empty($appt_result->fields['PROVIDER_NAME']) ? $appt_result->fields['PROVIDER_NAME'] : 'Unknown';
-                                                    $appointments[] = date('m/d/Y', strtotime($appt_result->fields['APPT_DATE'])) . " - " . date('g:i A', strtotime($appt_result->fields['START_TIME'])) . " to " . date('g:i A', strtotime($appt_result->fields['END_TIME'])) . " - " . $service_name . " (" . $provider_name . ")";
-                                                    $appt_result->MoveNext();
-                                                }
-                                            }
-
-                                            $tip_record = [
-                                                'pk_enrollment_tip' => $tips_result->fields['PK_ENROLLMENT_TIP'],
-                                                'customer_name' => !empty($tips_result->fields['CUSTOMER_NAME']) ? $tips_result->fields['CUSTOMER_NAME'] : (!empty($tips_result->fields['PARTNER_FIRST_NAME']) ? trim($tips_result->fields['PARTNER_FIRST_NAME'] . ' ' . $tips_result->fields['PARTNER_LAST_NAME']) : 'Unknown'),
-                                                'enrollment_name' => $tips_result->fields['ENROLLMENT_NAME'],
-                                                'enrollment_type' => $enrollment_type,
-                                                'tip_amount' => $tip_amount,
-                                                'tip_percentage' => $tip_percentage,
-                                                'appointments' => $appointments
+                                        if ($tips_result && $tips_result->RecordCount() > 0) {
+                                            $provider_data = [
+                                                'name' => $provider_name,
+                                                'tips' => [],
+                                                'total_tips' => 0,
+                                                'total_count' => 0,
+                                                'enrollment_type_summary' => []
                                             ];
 
-                                            $tips_data[] = $tip_record;
+                                            while (!$tips_result->EOF) {
+                                                $tip_amount = floatval($tips_result->fields['TIP_AMOUNT']);
+                                                $tip_percentage = floatval($tips_result->fields['TIP_PERCENTAGE']);
+                                                $enrollment_type_id = $tips_result->fields['PK_ENROLLMENT_TYPE'];
+                                                $enrollment_type = $enrollment_types[$enrollment_type_id] ?? 'Unknown';
 
-                                            // Calculate totals
-                                            $total_tips += $tip_amount;
-                                            $total_tips_count++;
+                                                // Get appointments for this enrollment separately
+                                                $appointments = [];
+                                                $enrollment_id = $tips_result->fields['PK_ENROLLMENT_MASTER'];
+                                                $appt_query = "
+                                                SELECT DATE(am.DATE) as APPT_DATE, am.START_TIME, am.END_TIME, sm.SERVICE_NAME, CONCAT(du2.FIRST_NAME, ' ', du2.LAST_NAME) AS PROVIDER_NAME
+                                                FROM DOA_APPOINTMENT_MASTER am
+                                                LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ap ON am.PK_APPOINTMENT_MASTER = ap.PK_APPOINTMENT_MASTER
+                                                LEFT JOIN $master_database.DOA_USERS du2 ON ap.PK_USER = du2.PK_USER
+                                                LEFT JOIN DOA_SERVICE_MASTER sm ON am.PK_SERVICE_MASTER = sm.PK_SERVICE_MASTER
+                                                WHERE am.PK_ENROLLMENT_MASTER = '$enrollment_id'
+                                                ORDER BY am.DATE";
 
-                                            // Provider summary
-                                            // if (!isset($provider_summary[$provider_name])) {
-                                            //     $provider_summary[$provider_name] = ['count' => 0, 'total' => 0];
-                                            // }
-                                            // $provider_summary[$provider_name]['count']++;
-                                            // $provider_summary[$provider_name]['total'] += $tip_amount;
+                                                $appt_result = $db_account->Execute($appt_query);
+                                                if ($appt_result && $appt_result->RecordCount() > 0) {
+                                                    while (!$appt_result->EOF) {
+                                                        $service_name = !empty($appt_result->fields['SERVICE_NAME']) ? $appt_result->fields['SERVICE_NAME'] : 'Lesson';
+                                                        $appt_provider_name = !empty($appt_result->fields['PROVIDER_NAME']) ? $appt_result->fields['PROVIDER_NAME'] : 'Unknown';
+                                                        $appointments[] = date('m/d/Y', strtotime($appt_result->fields['APPT_DATE'])) . " - " . date('g:i A', strtotime($appt_result->fields['START_TIME'])) . " to " . date('g:i A', strtotime($appt_result->fields['END_TIME'])) . " - " . $service_name;
+                                                        $appt_result->MoveNext();
+                                                    }
+                                                }
 
-                                            // Enrollment type summary
-                                            if (!isset($enrollment_type_summary[$enrollment_type])) {
-                                                $enrollment_type_summary[$enrollment_type] = ['count' => 0, 'total' => 0];
+                                                $tip_record = [
+                                                    'customer_name' => !empty($tips_result->fields['CUSTOMER_NAME']) ? $tips_result->fields['CUSTOMER_NAME'] : (!empty($tips_result->fields['PARTNER_FIRST_NAME']) ? trim($tips_result->fields['PARTNER_FIRST_NAME'] . ' ' . $tips_result->fields['PARTNER_LAST_NAME']) : 'Unknown'),
+                                                    'enrollment_name' => $tips_result->fields['ENROLLMENT_NAME'],
+                                                    'enrollment_type' => $enrollment_type,
+                                                    'tip_amount' => $tip_amount,
+                                                    'tip_percentage' => $tip_percentage,
+                                                    'payment_date' => $tips_result->fields['PAYMENT_DATE'],
+                                                    'appointments' => $appointments
+                                                ];
+
+                                                $provider_data['tips'][] = $tip_record;
+                                                $provider_data['total_tips'] += $tip_amount;
+                                                $provider_data['total_count']++;
+
+                                                // Enrollment type summary for this provider
+                                                if (!isset($provider_data['enrollment_type_summary'][$enrollment_type])) {
+                                                    $provider_data['enrollment_type_summary'][$enrollment_type] = ['count' => 0, 'total' => 0];
+                                                }
+                                                $provider_data['enrollment_type_summary'][$enrollment_type]['count']++;
+                                                $provider_data['enrollment_type_summary'][$enrollment_type]['total'] += $tip_amount;
+
+                                                $tips_result->MoveNext();
                                             }
-                                            $enrollment_type_summary[$enrollment_type]['count']++;
-                                            $enrollment_type_summary[$enrollment_type]['total'] += $tip_amount;
 
+                                            // Add to grand totals
+                                            $grand_totals['total_tips'] += $provider_data['total_tips'];
+                                            $grand_totals['total_count'] += $provider_data['total_count'];
 
-
-                                            $tips_result->MoveNext();
+                                            $all_providers_data[] = $provider_data;
                                         }
+
+                                        $providers_query->MoveNext();
+                                    }
+
+                                    // Calculate grand average
+                                    if ($grand_totals['total_count'] > 0) {
+                                        $grand_totals['total_average'] = $grand_totals['total_tips'] / $grand_totals['total_count'];
+                                    }
                                     ?>
 
-                                        <!-- Summary Cards -->
-                                        <!-- <div class="row mb-4">
-                                            <div class="col-md-3">
-                                                <div class="card text-white bg-info">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title">Total Tips</h5>
-                                                        <h3 class="card-text">$<?= number_format($total_tips, 2) ?></h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="card text-white bg-success">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title">Number of Tips</h5>
-                                                        <h3 class="card-text"><?= $total_tips_count ?></h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="card text-white bg-warning">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title">Average Tip Amount</h5>
-                                                        <h3 class="card-text">$<?= $total_tips_count > 0 ? number_format($total_tips / $total_tips_count, 2) : '0.00' ?></h3>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> -->
+                                    <!-- Summary Totals Table -->
+                                    <div class="table-responsive mt-4">
+                                        <table class="table table-bordered table-sm" style="background-color: #d4edda;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="3" style="text-align: center; font-weight: bold; font-size: 14px;">SUMMARY TOTALS</th>
+                                                </tr>
+                                                <tr>
+                                                    <th style="text-align: center">Total Tips Amount</th>
+                                                    <th style="text-align: center">Total Number of Tips</th>
+                                                    <th style="text-align: center">Average Tip Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style="text-align: center; font-weight: bold">$<?= number_format($grand_totals['total_tips'], 2) ?></td>
+                                                    <td style="text-align: center; font-weight: bold"><?= $grand_totals['total_count'] ?></td>
+                                                    <td style="text-align: center; font-weight: bold">$<?= number_format($grand_totals['total_average'], 2) ?></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-                                        <!-- Provider Summary Table -->
-                                        <!-- <?php if (count($provider_summary) > 0): ?>
-                                            <div class="table-responsive mt-4">
-                                                <h5>Summary by Service Provider</h5>
-                                                <table class="table table-bordered table-sm" style="background-color: #d4edda;">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="text-align: center">Service Provider</th>
-                                                            <th style="text-align: center">Number of Tips</th>
-                                                            <th style="text-align: center">Total Tip Amount</th>
-                                                            <th style="text-align: center">Average Tip</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($provider_summary as $provider => $data): ?>
-                                                            <tr>
-                                                                <td><?= htmlspecialchars($provider) ?></td>
-                                                                <td style="text-align: center"><?= $data['count'] ?></td>
-                                                                <td style="text-align: right">$<?= number_format($data['total'], 2) ?></td>
-                                                                <td style="text-align: right">$<?= number_format($data['total'] / $data['count'], 2) ?></td>
-                                                            </tr>
-                                                        <?php endforeach; ?>
-                                                        <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                                            <td>TOTAL</td>
-                                                            <td style="text-align: center"><?= $total_tips_count ?></td>
-                                                            <td style="text-align: right">$<?= number_format($total_tips, 2) ?></td>
-                                                            <td style="text-align: right">$<?= number_format($total_tips / $total_tips_count, 2) ?></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        <?php endif; ?> -->
-
-                                        <!-- Enrollment Type Summary Table -->
-                                        <!-- <?php if (count($enrollment_type_summary) > 0): ?>
-                                            <div class="table-responsive mt-4">
-                                                <h5>Summary by Enrollment Type</h5>
-                                                <table class="table table-bordered table-sm" style="background-color: #d4edda;">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="text-align: center">Enrollment Type</th>
-                                                            <th style="text-align: center">Number of Tips</th>
-                                                            <th style="text-align: center">Total Tip Amount</th>
-                                                            <th style="text-align: center">Average Tip</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($enrollment_type_summary as $type => $data): ?>
-                                                            <tr>
-                                                                <td><?= htmlspecialchars($type) ?></td>
-                                                                <td style="text-align: center"><?= $data['count'] ?></td>
-                                                                <td style="text-align: right">$<?= number_format($data['total'], 2) ?></td>
-                                                                <td style="text-align: right">$<?= number_format($data['total'] / $data['count'], 2) ?></td>
-                                                            </tr>
-                                                        <?php endforeach; ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        <?php endif; ?> -->
-
-                                        <!-- Detailed Tips Table -->
+                                    <!-- Display each provider's table -->
+                                    <?php foreach ($all_providers_data as $provider_data): ?>
                                         <div class="table-responsive mt-4">
-
                                             <table class="table table-bordered">
                                                 <thead>
+                                                    <tr>
+                                                        <th style="text-align: center; vertical-align:auto; font-weight: bold; background-color: #e9ecef;" colspan="6"><?= htmlspecialchars($provider_data['name']) ?></th>
+                                                    </tr>
                                                     <tr>
                                                         <th style="text-align: center">Client Name</th>
                                                         <th style="text-align: center">Enrollment Name</th>
@@ -387,7 +381,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php foreach ($tips_data as $tip): ?>
+                                                    <?php foreach ($provider_data['tips'] as $tip): ?>
                                                         <tr>
                                                             <td><?= htmlspecialchars($tip['customer_name']) ?></td>
                                                             <td style="text-align: center"><?= htmlspecialchars($tip['enrollment_name']) ?></td>
@@ -396,11 +390,11 @@ if (!empty($_GET['START_DATE'])) {
                                                                 <?php
                                                                 if (!empty($tip['appointments'])) {
                                                                     echo '<ul style="margin: 0; padding-left: 15px;">';
-                                                                    foreach (array_slice($tip['appointments'], 0, 3) as $appt) {
+                                                                    foreach (array_slice($tip['appointments'], 0, 5) as $appt) {
                                                                         echo '<li>' . htmlspecialchars($appt) . '</li>';
                                                                     }
-                                                                    if (count($tip['appointments']) > 3) {
-                                                                        echo '<li>... and ' . (count($tip['appointments']) - 3) . ' more</li>';
+                                                                    if (count($tip['appointments']) > 5) {
+                                                                        echo '<li>... and ' . (count($tip['appointments']) - 5) . ' more</li>';
                                                                     }
                                                                     echo '</ul>';
                                                                 } else {
@@ -413,31 +407,34 @@ if (!empty($_GET['START_DATE'])) {
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 </tbody>
-                                                <tfoot style="background-color: #f8f9fa; font-weight: bold;">
+                                                <?php if (!empty($provider_data['enrollment_type_summary'])): ?>
+                                                    <tbody style="background-color: #f8f9fa;">
+                                                        <?php foreach ($provider_data['enrollment_type_summary'] as $type => $summary): ?>
+                                                            <tr>
+                                                                <td colspan="3" style="text-align: right; font-weight: bold;"><?= htmlspecialchars($type) ?> Summary:</td>
+                                                                <td colspan="2" style="text-align: center;"><?= $summary['count'] ?> tip(s)</td>
+                                                                <td style="text-align: right; font-weight: bold;">$<?= number_format($summary['total'], 2) ?></td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                <?php endif; ?>
+                                                <tfoot style="background-color: #e9ecef; font-weight: bold;">
                                                     <tr>
-                                                        <td colspan="5" style="text-align: right">TOTAL:</td>
-                                                        <td style="text-align: right">$<?= number_format($total_tips, 2) ?></td>
+                                                        <td colspan="5" style="text-align: right">PROVIDER TOTAL (<?= $provider_data['total_count'] ?> tips):</td>
+                                                        <td style="text-align: right">$<?= number_format($provider_data['total_tips'], 2) ?></td>
                                                     </tr>
                                                 </tfoot>
                                             </table>
                                         </div>
+                                    <?php endforeach; ?>
 
-                                    <?php
-                                    } else {
-                                    ?>
+                                    <?php if (empty($all_providers_data)): ?>
                                         <div class="alert alert-info mt-4">
                                             <h5>No tips found for the selected criteria.</h5>
                                             <p>Please try adjusting your date range or service provider selection.</p>
-                                            <?php
-                                            // Debug info - remove in production
-                                            if (isset($tips_query)) {
-                                                echo "<small>Query executed: " . htmlspecialchars($tips_query) . "</small>";
-                                            }
-                                            ?>
                                         </div>
-                                    <?php
-                                    }
-                                    ?>
+                                    <?php endif; ?>
+
                                 </div>
                             </div>
                         </div>
@@ -467,21 +464,6 @@ if (!empty($_GET['START_DATE'])) {
             autoclose: true,
             todayHighlight: true
         });
-
-        // Initialize DataTable for better sorting and searching
-        if ($('#tipsTable').length && $('#tipsTable tbody tr').length > 0) {
-            $('#tipsTable').DataTable({
-                "pageLength": 25,
-                "order": [
-                    [0, "desc"]
-                ],
-                "language": {
-                    "search": "Search:",
-                    "lengthMenu": "Show _MENU_ entries per page",
-                    "info": "Showing _START_ to _END_ of _TOTAL_ entries"
-                }
-            });
-        }
 
         // Form validation
         $('#reportForm').on('submit', function(e) {
@@ -517,10 +499,6 @@ if (!empty($_GET['START_DATE'])) {
     .table-bordered th {
         border: 1px solid #dee2e6;
         vertical-align: middle;
-    }
-
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(0, 0, 0, .02);
     }
 
     .card-text {
