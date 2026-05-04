@@ -3251,3 +3251,162 @@ function getPaymentDueCount($RESPONSE_DATA)
         echo 0;
     }
 }
+
+function updateCustomerProfileDetails($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $upload_path;
+
+    $USER_DATA['PK_ACCOUNT_MASTER'] = $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+
+    $USER_DATA['FIRST_NAME'] = $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $USER_DATA['LAST_NAME'] = $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
+        $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+    }
+    $USER_DATA['EMAIL_ID'] = $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+    $USER_DATA['PHONE'] = $USER_DATA_ACCOUNT['PHONE'] = $RESPONSE_DATA['PHONE'];
+    //$USER_DATA['CREATE_LOGIN'] = isset($RESPONSE_DATA['CREATE_LOGIN']) ? 1 : 0;
+    //$USER_DATA['APPEAR_IN_CALENDAR'] = isset($RESPONSE_DATA['APPEAR_IN_CALENDAR']) ? 1 : 0;
+
+    /* if ($USER_DATA['CREATE_LOGIN'] == 1) {
+        if (!empty($RESPONSE_DATA['PASSWORD']) && !empty($RESPONSE_DATA['EMAIL_ID'])) {
+            if (in_array(4, $RESPONSE_DATA['PK_ROLES'])) {
+                $location_data = $db->Execute("SELECT USERNAME_PREFIX FROM DOA_LOCATION WHERE PK_LOCATION = " . $RESPONSE_DATA['PRIMARY_LOCATION_ID']);
+                $USERNAME_PREFIX = ($location_data->RecordCount() > 0) ? $location_data->fields['USERNAME_PREFIX'] : '';
+                if (strpos($RESPONSE_DATA['EMAIL_ID'], $USERNAME_PREFIX . '.') !== false) {
+                    $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+                } else {
+                    $USER_DATA['EMAIL_ID'] = $USERNAME_PREFIX . '.' . $RESPONSE_DATA['EMAIL_ID'];
+                }
+            } else {
+                $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+            }
+
+            $USER_DATA['PASSWORD'] = password_hash($RESPONSE_DATA['PASSWORD'], PASSWORD_DEFAULT);
+        }
+    } */
+
+    if ($_FILES['USER_IMAGE']['name'] != '') {
+        if (!file_exists('../../' . $upload_path . '/user_image/')) {
+            mkdir('../../' . $upload_path . '/user_image/', 0777, true);
+            chmod('../../' . $upload_path . '/user_image/', 0777);
+        }
+
+        $extn             = explode(".", $_FILES['USER_IMAGE']['name']);
+        $iindex            = count($extn) - 1;
+        $rand_string     = time() . "-" . rand(100000, 999999);
+        $file11            = 'user_image_' . $_SESSION['PK_USER'] . $rand_string . "." . $extn[$iindex];
+        $extension       = strtolower($extn[$iindex]);
+
+        if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
+            $upload_dir   = '../../' . $upload_path . '/user_image/' . $file11;
+            $image_path    = '../' . $upload_path . '/user_image/' . $file11;
+            move_uploaded_file($_FILES['USER_IMAGE']['tmp_name'], $upload_dir);
+            $USER_DATA['USER_IMAGE'] = $image_path;
+        }
+    }
+    //$USER_DATA['TYPE'] = $RESPONSE_DATA['TYPE'];
+    //$USER_DATA['DISPLAY_ORDER'] = isset($RESPONSE_DATA['DISPLAY_ORDER']) ? $RESPONSE_DATA['DISPLAY_ORDER'] : 0;
+    //$USER_DATA['ARTHUR_MURRAY_ID'] = $RESPONSE_DATA['ARTHUR_MURRAY_ID'];
+    $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
+    $USER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
+    /* $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = ($RESPONSE_DATA['PK_COUNTRY']) ?? 0;
+    $USER_DATA['PK_STATES'] = ($RESPONSE_DATA['PK_STATES']) ?? 0;
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
+    $USER_DATA['IS_DELETED'] = 0; */
+
+    if (empty($RESPONSE_DATA['UNIQUE_ID'])) {
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount() > 0 && $row->fields['UNIQUE_ID'] > 0) {
+            $USER_DATA['UNIQUE_ID']  =  intval($row->fields['UNIQUE_ID']) + 1;
+        } else {
+            $USER_DATA['UNIQUE_ID']  =  300580;
+        }
+    }
+
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $USER_DATA['ACTIVE']    = $USER_DATA_ACCOUNT['ACTIVE'] = $RESPONSE_DATA['ACTIVE'];
+    $USER_DATA['EDITED_BY']    = $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
+    $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
+    $USER_DATA['CREATED_ON']  =  empty($RESPONSE_DATA['CREATED_ON']) ? date("Y-m-d H:i") : date('Y-m-d', strtotime($RESPONSE_DATA['CREATED_ON']));
+    db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = " . $PK_USER);
+    db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'update', " PK_USER_MASTER_DB = " . $PK_USER);
+    $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PRIMARY_LOCATION_ID'];
+    db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'update', " PK_USER_MASTER = " . $PK_USER_MASTER);
+
+
+    $CUSTOMER_USER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+    $CUSTOMER_USER_DATA['IS_PRIMARY'] = 1;
+    $CUSTOMER_USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+    $CUSTOMER_USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'];
+    $CUSTOMER_USER_DATA['PHONE'] = $RESPONSE_DATA['PHONE'];
+    $CUSTOMER_USER_DATA['EMAIL'] = $RESPONSE_DATA['EMAIL_ID'];
+    $CUSTOMER_USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'];
+    $CUSTOMER_USER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
+    //$CUSTOMER_USER_DATA['CALL_PREFERENCE'] = $RESPONSE_DATA['CALL_PREFERENCE'];
+    $CUSTOMER_USER_DATA['REMINDER_OPTION'] = isset($RESPONSE_DATA['REMINDER_OPTION']) ? implode(',', $RESPONSE_DATA['REMINDER_OPTION']) : '';
+    /* $CUSTOMER_USER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'];
+    $CUSTOMER_USER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'];
+    $CUSTOMER_USER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'];
+    $CUSTOMER_USER_DATA['PARTNER_PHONE'] = $RESPONSE_DATA['PARTNER_PHONE'];
+    $CUSTOMER_USER_DATA['PARTNER_EMAIL'] = $RESPONSE_DATA['PARTNER_EMAIL'];
+    $CUSTOMER_USER_DATA['PARTNER_GENDER'] = $RESPONSE_DATA['PARTNER_GENDER'];
+    $CUSTOMER_USER_DATA['PARTNER_DOB'] = !empty($RESPONSE_DATA['PARTNER_DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB'])) : '0000-00-00'; */
+
+    $check_customer_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+    if ($check_customer_data->RecordCount() > 0) {
+        db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'update', " PK_USER_MASTER =  '$PK_USER_MASTER'");
+        $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
+    } else {
+        db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
+        $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
+    }
+
+    if (isset($RESPONSE_DATA['CUSTOMER_PHONE'])) {
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_PHONE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+        for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_PHONE']); $i++) {
+            $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+            $CUSTOMER_PHONE['PHONE'] = $RESPONSE_DATA['CUSTOMER_PHONE'][$i];
+            db_perform_account('DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
+        }
+    }
+
+    if (isset($RESPONSE_DATA['CUSTOMER_EMAIL'])) {
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_EMAIL` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+        for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_EMAIL']); $i++) {
+            $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+            $CUSTOMER_EMAIL['EMAIL'] = $RESPONSE_DATA['CUSTOMER_EMAIL'][$i];
+            db_perform_account('DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+        }
+    }
+
+    /* if (isset($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'])) {
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
+        for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE']); $i++) {
+            $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+            $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'][$i];
+            $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'][$i];
+            db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+        }
+    } */
+
+
+    $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
+    if (isset($RESPONSE_DATA['PK_USER_LOCATION'])) {
+        $PK_USER_LOCATION = $RESPONSE_DATA['PK_USER_LOCATION'];
+        for ($i = 0; $i < count($PK_USER_LOCATION); $i++) {
+            $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
+            $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_USER_LOCATION[$i];
+            db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'insert');
+        }
+    }
+
+    echo 1;
+}

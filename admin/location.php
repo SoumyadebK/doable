@@ -565,7 +565,7 @@ if (!empty($_POST)) {
                                         <li> <a class="nav-link" data-bs-toggle="tab" id="customer_tab_permissions_link" href="#customer_tab_permissions" role="tab"><span class="hidden-sm-up"><i class="ti-check-box"></i></span> <span class="hidden-xs-down">Customer Tab Permissions</span></a> </li>
 
                                         <li> <a class="nav-link" id="payment_register_tab_link" data-bs-toggle="tab" href="#payment_register" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Payment Register</span></a> </li>
-                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="$('.PAYMENT_FROM').trigger('click');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
+                                        <li> <a class="nav-link" data-bs-toggle="tab" href="#billing" role="tab" id="billing_tab" onclick="changePaymentFrom($('.PAYMENT_FROM:checked')[0]);"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Billing</span></a> </li>
                                         <li> <a class="nav-link" data-bs-toggle="tab" href="#credit_card" role="tab" id="credit_card_tab" onclick="getSavedCreditCardList('save_card');"><span class="hidden-sm-up"><i class="ti-credit-card"></i></span> <span class="hidden-xs-down">Credit Card</span></a> </li>
                                         <!-- <li> <a class="nav-link" data-bs-toggle="tab" id="receipts_link" href="#receipts" role="tab"><span class="hidden-sm-up"><i class="ti-receipt"></i></span> <span class="hidden-xs-down">Receipts</span></a> </li> -->
                                     <?php } ?>
@@ -1489,14 +1489,14 @@ if (!empty($_POST)) {
                                                             <div class="form-group">
                                                                 <label class="form-label" style="margin-bottom: 10px;">Payment From</label><br>
                                                                 <label style="margin-right: 30px;">
-                                                                    <input type="radio" name="PAYMENT_FROM" value="location"
-                                                                        <?= (trim($PAYMENT_FROM) === 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location"
+                                                                        <?= (trim($PAYMENT_FROM) == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
                                                                     &nbsp;Location&nbsp;&nbsp;
                                                                 </label>
 
                                                                 <label style="margin-right: 30px;">
-                                                                    <input type="radio" name="PAYMENT_FROM" value="corporation"
-                                                                        <?= (trim($PAYMENT_FROM) === 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
+                                                                    <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation"
+                                                                        <?= (trim($PAYMENT_FROM) == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)">
                                                                     &nbsp;Corporation
                                                                 </label>
 
@@ -1648,6 +1648,10 @@ if (!empty($_POST)) {
 
     $(document).ready(function() {
         fetch_state(<?php echo $PK_COUNTRY; ?>);
+        const checkedPaymentFrom = $('.PAYMENT_FROM:checked');
+        if (checkedPaymentFrom.length) {
+            changePaymentFrom(checkedPaymentFrom[0]);
+        }
     });
 
     function fetch_state(PK_COUNTRY) {

@@ -31,7 +31,7 @@ $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
 $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
 
-$LOCATION_DATA['PAYMENT_FROM'] = $_POST['PAYMENT_FROM'];
+$LOCATION_DATA['PAYMENT_FROM'] = $PAYMENT_FROM;
 db_perform('DOA_LOCATION', $LOCATION_DATA, 'update', " PK_LOCATION = '$_POST[PK_LOCATION]'");
 
 if ($PAYMENT_GATEWAY == 'Stripe') {

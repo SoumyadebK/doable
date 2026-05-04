@@ -39,7 +39,7 @@ $customer_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DETAILS` WHER
 if ($customer_data->RecordCount() > 0) {
     $PK_CUSTOMER_DETAILS = $customer_data->fields['PK_CUSTOMER_DETAILS'];
     $CALL_PREFERENCE = $customer_data->fields['CALL_PREFERENCE'];
-    $REMINDER_OPTION = $customer_data->fields['REMINDER_OPTION'];
+    $REMINDER_OPTION = explode(',', $customer_data->fields['REMINDER_OPTION']);
     $ATTENDING_WITH = $customer_data->fields['ATTENDING_WITH'];
     $PARTNER_FIRST_NAME = $customer_data->fields['PARTNER_FIRST_NAME'];
     $PARTNER_LAST_NAME = $customer_data->fields['PARTNER_LAST_NAME'];
@@ -76,217 +76,198 @@ if ($selected_primary_location->RecordCount() > 0) {
     }
 </style>
 <div class="profile-card">
-    <div class="d-flex justify-content-between border-bottom">
-        <div>
-            <div class="section-title">Personal Information</div>
-            <div class="section-desc">Optional settings section description</div>
-        </div>
-
-        <button class="btn btn-secondary cancel" style="height: min-content; margin-left: 40%;">Cancel</button>
-        <button class="btn btn-secondary" style="height: min-content;">Save</button>
-    </div>
-
-    <div class="avatar-placeholder mt-3">
-        <?php if ($USER_IMAGE != '') { ?>
-            <a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery">
-                <img src="<?php echo $USER_IMAGE; ?>" style="width:100px; height:100px; border: 2px solid #ccc; border-radius: 50%; " />
-            </a><?php } else { ?>
-            <i class="bi bi-person-fill text-white fs-1"></i>
-        <?php } ?>
-    </div>
-
-    <div class="row">
-        <div class="col-6">
-            <div class="label">First Name</div>
-            <div class="value">
-                <input type="text" class="form-control" value="<?= $FIRST_NAME ?>" />
+    <form id="edit_customer_form">
+        <input type="hidden" name="PK_USER" value="<?= $PK_USER ?>">
+        <input type="hidden" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+        <input type="hidden" name="FUNCTION_NAME" value="updateCustomerProfileDetails">
+        <div class="d-flex justify-content-between border-bottom">
+            <div>
+                <div class="section-title">Personal Information</div>
+                <div class="section-desc">Optional settings section description</div>
             </div>
-        </div>
-        <div class="col-6">
-            <div class="label">Last Name</div>
-            <div class="value">
-                <input type="text" class="form-control" value="<?= $LAST_NAME ?>" />
-            </div>
+
+            <a href="javascript:;" class="btn btn-secondary cancel" style="height: min-content; margin-left: 40%;">Cancel</a>
+            <button class="btn btn-secondary" type="submit" style="height: min-content;">Save</button>
         </div>
 
-        <div class="col-6">
-            <div class="label">Customer ID</div>
-            <div class="value">
-                <input type="text" class="form-control" value="<?= $CUSTOMER_ID ?>" />
+        <div class="row mt-3 align-items-center">
+            <div class="col-auto">
+                <div class="avatar-placeholder">
+                    <?php if ($USER_IMAGE != '') { ?>
+                        <a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery">
+                            <img src="<?php echo $USER_IMAGE; ?>" style="width:100px; height:100px; border: 2px solid #ccc; border-radius: 50%; " />
+                        </a><?php } else { ?>
+                        <i class="bi bi-person-fill text-white fs-1"></i>
+                    <?php } ?>
+                </div>
             </div>
-        </div>
-        <div class="col-6">
-            <div class="label">Created On</div>
-            <div class="value">
-                <input type="text" class="form-control datepicker-normal" value="<?= date('m/d/Y', strtotime($CREATED_ON)) ?>" />
+            <div class="col">
+                <label class="form-label">Upload New Profile Image</label>
+                <input type="file" name="USER_IMAGE" class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Choose a JPG, PNG, or GIF file. Max file size 2MB.</small>
             </div>
         </div>
 
-        <div class="col-6">
-            <div class="label">Primary Location</div>
-            <div class="value">
-                <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
-                    <option value="">Select Primary Location</option>
+        <div class="row">
+            <div class="col-6">
+                <div class="label">First Name</div>
+                <div class="value">
+                    <input type="text" name="FIRST_NAME" class="form-control" value="<?= $FIRST_NAME ?>" />
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="label">Last Name</div>
+                <div class="value">
+                    <input type="text" name="LAST_NAME" class="form-control" value="<?= $LAST_NAME ?>" />
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="label">Customer ID</div>
+                <div class="value">
+                    <input type="text" name="CUSTOMER_ID" class="form-control" value="<?= $CUSTOMER_ID ?>" />
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="label">Created On</div>
+                <div class="value">
+                    <input type="text" name="CREATED_ON" class="form-control datepicker-normal" value="<?= date('m/d/Y', strtotime($CREATED_ON)) ?>" />
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="label">Primary Location</div>
+                <div class="value">
+                    <select class="form-control" name="PRIMARY_LOCATION_ID" id="PK_LOCATION_SINGLE" onchange="selectThisPrimaryLocation(this)" required>
+                        <option value="">Select Primary Location</option>
+                        <?php
+                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($primary_location == $row->fields['PK_LOCATION']) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="label">Preferred Location</div>
+                <div class="value">
                     <?php
-                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                    while (!$row->EOF) { ?>
-                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($primary_location == $row->fields['PK_LOCATION']) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                    <?php $row->MoveNext();
-                    } ?>
-                </select>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="label">Preferred Location</div>
-            <div class="value">
-                <?php
-                $selected_location = [];
-                $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $PK_USER);
-                while (!$selected_location_row->EOF) {
-                    $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                    $selected_location_row->MoveNext();
-                }
+                    $selected_location = [];
+                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $PK_USER);
+                    while (!$selected_location_row->EOF) {
+                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                        $selected_location_row->MoveNext();
+                    }
 
-                ?>
-                <input type="hidden" id="selected_location" value="<?= implode(',', $selected_location); ?>">
-                <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                    ?>
+                    <input type="hidden" id="selected_location" value="<?= implode(',', $selected_location); ?>">
+                    <select class="multi_sumo_select" name="PK_USER_LOCATION[]" id="PK_LOCATION_MULTIPLE" multiple>
+                        <?php
+                        $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="col-6">
+                <div class="label">Phone</div>
+                <div class="value">
+                    <input type="text" name="PHONE" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= $PHONE ?>" />
+                </div>
+            </div>
+            <div class="col-6">
+                <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMorePhone();"><i class="bi bi-plus"></i> Add New</a>
+            </div>
+            <div id="add_more_phone">
+            </div>
+
+            <div class="col-6">
+                <div class="label">Email</div>
+                <div class="value">
+                    <input type="email" name="EMAIL_ID" class="form-control" placeholder="Email" value="<?= $EMAIL_ID ?>" />
+                </div>
+            </div>
+            <div class="col-6">
+                <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMoreEmail();"><i class="bi bi-plus"></i> Add New</a>
+            </div>
+            <div id="add_more_email">
+            </div>
+
+            <div class="col-6">
+                <div class="label">Reminder Options</div>
+                <div class="value">
+                    <div class="btn-group" role="group" aria-label="Reminder Options" style="gap: 10px; flex-wrap: wrap;">
+                        <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_email" value="Email" <?= (is_array($REMINDER_OPTION) && in_array('Email', $REMINDER_OPTION)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_email" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Email</label>
+
+                        <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_text" value="Text Message" <?= (is_array($REMINDER_OPTION) && in_array('Text Message', $REMINDER_OPTION)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_text" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Text Message</label>
+
+                        <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_call" value="Phone Call" <?= (is_array($REMINDER_OPTION) && in_array('Phone Call', $REMINDER_OPTION)) ? "checked" : "" ?> />
+                        <label class="btn btn-outline" for="reminder_call" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Phone Call</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="label">Tag</div>
+                <div class="value">
                     <?php
-                    $row = $db->Execute("SELECT PK_LOCATION, LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION != '$primary_location' AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                    while (!$row->EOF) { ?>
-                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= in_array($row->fields['PK_LOCATION'], $selected_location) ? "selected" : "" ?>><?= $row->fields['LOCATION_NAME'] ?></option>
-                    <?php $row->MoveNext();
-                    } ?>
-                </select>
+                    $selected_tag = [];
+                    $selected_tag_row = $db_account->Execute("SELECT `PK_TAG` FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
+                    while (!$selected_tag_row->EOF) {
+                        $selected_tag[] = $selected_tag_row->fields['PK_TAG'];
+                        $selected_tag_row->MoveNext();
+                    }
+                    ?>
+                    <input type="hidden" id="selected_tag" value="<?= implode(',', $selected_tag); ?>">
+                    <select class="multi_sumo_select" name="PK_USER_TAG[]" id="PK_TAG_MULTIPLE" multiple>
+                        <?php
+                        $row = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
+                        while (!$row->EOF) { ?>
+                            <option value="<?php echo $row->fields['PK_TAG']; ?>" <?= in_array($row->fields['PK_TAG'], $selected_tag) ? "selected" : "" ?>><?= $row->fields['TAG_NAME'] ?></option>
+                        <?php $row->MoveNext();
+                        } ?>
+                    </select>
+                </div>
             </div>
-        </div>
 
 
-        <div class="col-6">
-            <div class="label">Phone</div>
-            <div class="value">
-                <input type="text" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= $PHONE ?>" />
+
+
+            <div class="col-6">
+                <div class="label">Gender</div>
+                <div class="value">
+                    <select class="form-control" name="GENDER" id="GENDER">
+                        <option value="">Select Gender</option>
+                        <option value="Male" <?= ($GENDER == 'Male') ? "selected" : "" ?>>Male</option>
+                        <option value="Female" <?= ($GENDER == 'Female') ? "selected" : "" ?>>Female</option>
+                        <option value="Other" <?= ($GENDER == 'Other') ? "selected" : "" ?>>Other</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="col-6">
-            <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMorePhone();"><i class="bi bi-plus"></i> Add New</a>
-        </div>
-        <div id="add_more_phone">
-        </div>
-
-        <div class="col-6">
-            <div class="label">Email</div>
-            <div class="value">
-                <input type="email" class="form-control" placeholder="Email" value="<?= $EMAIL_ID ?>" />
+            <div class="col-6">
+                <div class="label">Date of Birth</div>
+                <div class="value">
+                    <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
+                </div>
             </div>
-        </div>
-        <div class="col-6">
-            <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMoreEmail();"><i class="bi bi-plus"></i> Add New</a>
-        </div>
-        <div id="add_more_email">
-        </div>
 
-        <div class="col-6">
-            <div class="label">Reminder Options</div>
-            <div class="value">
-                <div class="btn-group" role="group" aria-label="Reminder Options" style="gap: 10px; flex-wrap: wrap;">
-                    <input type="checkbox" class="btn-check" name="REMINDER_OPTION" id="reminder_email" value="Email" <?= ($REMINDER_OPTION == 'Email') ? "checked" : "" ?> />
-                    <label class="btn btn-outline" for="reminder_email" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Email</label>
-
-                    <input type="checkbox" class="btn-check" name="REMINDER_OPTION" id="reminder_text" value="Text Message" <?= ($REMINDER_OPTION == 'Text Message') ? "checked" : "" ?> />
-                    <label class="btn btn-outline" for="reminder_text" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Text Message</label>
-
-                    <input type="checkbox" class="btn-check" name="REMINDER_OPTION" id="reminder_call" value="Phone Call" <?= ($REMINDER_OPTION == 'Phone Call') ? "checked" : "" ?> />
-                    <label class="btn btn-outline" for="reminder_call" style="border-radius: 50px; border-color: #39b54a; color: #39b54a; font-size: 14px; margin-top: 7px;">Phone Call</label>
+            <div class="col-6">
+                <div class="label">Status</div>
+                <div class="value">
+                    <select class="form-control" name="ACTIVE" id="ACTIVE" onchange="changeCustomerStatus(this, <?= $PK_USER ?>)">
+                        <option value="1" <?= ($ACTIVE == 1) ? "selected" : "" ?>>Active</option>
+                        <option value="0" <?= ($ACTIVE == 0) ? "selected" : "" ?>>Inactive</option>
+                    </select>
                 </div>
             </div>
         </div>
-        <div class="col-6">
-            <div class="label">Tag</div>
-            <div class="value">
-                <?php
-                $selected_tag = [];
-                $selected_tag_row = $db_account->Execute("SELECT `PK_TAG` FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
-                while (!$selected_tag_row->EOF) {
-                    $selected_tag[] = $selected_tag_row->fields['PK_TAG'];
-                    $selected_tag_row->MoveNext();
-                }
-                ?>
-                <input type="hidden" id="selected_tag" value="<?= implode(',', $selected_tag); ?>">
-                <select class="multi_sumo_select" name="PK_USER_TAG[]" id="PK_TAG_MULTIPLE" multiple>
-                    <?php
-                    $row = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
-                    while (!$row->EOF) { ?>
-                        <option value="<?php echo $row->fields['PK_TAG']; ?>" <?= in_array($row->fields['PK_TAG'], $selected_tag) ? "selected" : "" ?>><?= $row->fields['TAG_NAME'] ?></option>
-                    <?php $row->MoveNext();
-                    } ?>
-                </select>
-            </div>
-        </div>
-
-
-
-
-        <div class="col-6">
-            <div class="label">Gender</div>
-            <div class="value">
-                <select class="form-control" name="GENDER" id="GENDER">
-                    <option value="">Select Gender</option>
-                    <option value="Male" <?= ($GENDER == 'Male') ? "selected" : "" ?>>Male</option>
-                    <option value="Female" <?= ($GENDER == 'Female') ? "selected" : "" ?>>Female</option>
-                    <option value="Other" <?= ($GENDER == 'Other') ? "selected" : "" ?>>Other</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="label">Date of Birth</div>
-            <div class="value">
-                <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($DOB)) ?>">
-            </div>
-        </div>
-
-        <div class="col-6">
-            <div class="label">Status</div>
-            <div class="value">
-                <select class="form-control" name="ACTIVE" id="ACTIVE" onchange="changeCustomerStatus(this, <?= $PK_USER ?>)">
-                    <option value="1" <?= ($ACTIVE == 1) ? "selected" : "" ?>>Active</option>
-                    <option value="0" <?= ($ACTIVE == 0) ? "selected" : "" ?>>Inactive</option>
-                </select>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-
-<div class="profile-card">
-    <div class="d-flex justify-content-between border-bottom">
-        <div>
-            <div class="section-title">Address Information</div>
-            <div class="section-desc">Optional settings section description</div>
-        </div>
-        <a class="btn btn-outline-edit" style="height: min-content;">Edit</a>
-    </div>
-    <div class="row mt-3">
-        <div class="col-6">
-            <div class="label">Address</div>
-            <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
-
-            <div class="label">City</div>
-            <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
-
-            <div class="label">Country</div>
-            <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
-        </div>
-        <div class="col-6">
-            <div class="label">Apt/Ste</div>
-            <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
-
-            <div class="label">State</div>
-            <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
-
-            <div class="label">Postal / Zip Code</div>
-            <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
-        </div>
-    </div>
+    </form>
 </div>
 
 <script>
@@ -333,7 +314,7 @@ if ($selected_primary_location->RecordCount() > 0) {
         $('#add_more_phone').append(`<div class="row">
                                         <div class="col-6">
                                             <div class="value">
-                                                <input type="text" class="form-control format_phone_number" placeholder="Phone Number" />
+                                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Phone Number" />
                                             </div>
                                         </div>
                                         <div class="col-6">
@@ -346,7 +327,7 @@ if ($selected_primary_location->RecordCount() > 0) {
         $('#add_more_email').append(`<div class="row">
                                         <div class="col-6">
                                             <div class="value">
-                                                <input type="email" class="form-control" placeholder="Email" />
+                                                <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Email" />
                                             </div>
                                         </div>
                                         <div class="col-6">
@@ -358,4 +339,23 @@ if ($selected_primary_location->RecordCount() > 0) {
     function deleteThisRow(param) {
         $(param).closest('.row').remove();
     }
+
+    $(document).on('submit', '#edit_customer_form', function() {
+        event.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            type: 'POST',
+            url: 'ajax/AjaxFunctions.php',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response == 1) {
+                    location.reload();
+                } else {
+                    alert('Error updating customer details. Please try again.');
+                }
+            }
+        });
+    });
 </script>
