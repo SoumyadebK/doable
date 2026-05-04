@@ -273,11 +273,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <?php
                     $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
                     if ($payment_gateway_type->RecordCount() > 0) { ?>
-                        <div class="d-flex gap-3 mt-1 mb-2 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>"">
-                            <label class=" radio" for="Session">
-                            <input type="checkbox" id="Session" name="CHARGE_TYPE" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?>>
-                            <span></span>
-                            Charge by sessions
+                        <div class="d-flex gap-3 mt-1 mb-2 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
+                            <label class="radio" for="Session">
+                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?>>
+                                <span></span>
+                                Charge by sessions
                             </label>
                             <label class="radio" for="Membership">
                                 <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?>>
@@ -1187,12 +1187,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
 
                                             <div class="align-self-center mb-2">
-                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisService(this)" required>
+                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this)" required>
                                                     <option>Select</option>
                                                     <?php
-                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE FROM `DOA_SERVICE_MASTER` WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
+                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
                                                     while (!$row->EOF) { ?>
-                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
+                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" data-price="<?= $row->fields['PRICE'] ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
                                                     <?php $row->MoveNext();
                                                     } ?>
                                                 </select>
@@ -1287,11 +1287,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
         let charge_type = $('.charge_type:checked').val();
         if (charge_type === 'Membership') {
-            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
-            $(param).closest('.row').find('.PRICE_PER_SESSION').val("XX");
+            $(param).closest('.service_code_area').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val("XX");
         } else {
-            $(param).closest('.row').find('.SERVICE_DETAILS').val(service_details);
-            $(param).closest('.row').find('.PRICE_PER_SESSION').val(price);
+            $(param).closest('.service_code_area').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val(price);
         }
 
         calculateServiceTotal(param);
