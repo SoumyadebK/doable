@@ -79,6 +79,7 @@ if ($selected_primary_location->RecordCount() > 0) {
     <form id="edit_customer_form">
         <input type="hidden" name="PK_USER" value="<?= $PK_USER ?>">
         <input type="hidden" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+        <input type="hidden" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
         <input type="hidden" name="FUNCTION_NAME" value="updateCustomerProfileDetails">
         <div class="d-flex justify-content-between border-bottom">
             <div>
@@ -101,7 +102,7 @@ if ($selected_primary_location->RecordCount() > 0) {
                     <?php } ?>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-5">
                 <label class="form-label">Upload New Profile Image</label>
                 <input type="file" name="USER_IMAGE" class="form-control" accept="image/*" />
                 <small class="form-text text-muted">Choose a JPG, PNG, or GIF file. Max file size 2MB.</small>
@@ -173,7 +174,6 @@ if ($selected_primary_location->RecordCount() > 0) {
                 </div>
             </div>
 
-
             <div class="col-6">
                 <div class="label">Phone</div>
                 <div class="value">
@@ -183,7 +183,23 @@ if ($selected_primary_location->RecordCount() > 0) {
             <div class="col-6">
                 <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMorePhone();"><i class="bi bi-plus"></i> Add New</a>
             </div>
+
             <div id="add_more_phone">
+                <?php
+                $customer_phone = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PHONE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                while (!$customer_phone->EOF) { ?>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="value">
+                                <input type="text" name="CUSTOMER_PHONE[]" class="form-control format_phone_number" placeholder="Phone Number" value="<?= formatPhone($customer_phone->fields['PHONE']) ?>" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <a href="javaScript:void(0)" style="margin-top: 25px;" onclick="deleteThisRow(this);"><i class="fa fa-trash" style="margin-top: 14px; font-size: 20px;"></i></a>
+                        </div>
+                    </div>
+                <?php $customer_phone->MoveNext();
+                } ?>
             </div>
 
             <div class="col-6">
@@ -195,7 +211,23 @@ if ($selected_primary_location->RecordCount() > 0) {
             <div class="col-6">
                 <a href="javaScript:void(0)" class="add-btn" style="margin-top: 25px;" onclick="addMoreEmail();"><i class="bi bi-plus"></i> Add New</a>
             </div>
+
             <div id="add_more_email">
+                <?php
+                $customer_email = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_EMAIL WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                while (!$customer_email->EOF) { ?>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="value">
+                                <input type="email" name="CUSTOMER_EMAIL[]" class="form-control" placeholder="Email" value="<?= $customer_email->fields['EMAIL'] ?>" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <a href="javaScript:void(0)" style="margin-top: 25px;" onclick="deleteThisRow(this);"><i class="fa fa-trash" style="margin-top: 14px; font-size: 20px;"></i></a>
+                        </div>
+                    </div>
+                <?php $customer_email->MoveNext();
+                } ?>
             </div>
 
             <div class="col-6">
@@ -235,9 +267,6 @@ if ($selected_primary_location->RecordCount() > 0) {
                     </select>
                 </div>
             </div>
-
-
-
 
             <div class="col-6">
                 <div class="label">Gender</div>

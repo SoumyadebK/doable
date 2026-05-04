@@ -99,7 +99,7 @@ while (!$serviceCodeData->EOF) {
             $balance = ($billing_details->fields['BILLED_AMOUNT'] + $balance);
         ?>
             <tr style="border-style: hidden; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
-                <td style="text-align: center;">
+                <td style="text-align: center; width:18%;">
                     <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, 'enrollment_ledger')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
                     <?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>&nbsp;&nbsp;
                     <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?= $billing_details->fields['PK_ENROLLMENT_LEDGER'] ?>, '<?= date('m/d/Y', strtotime($billing_details->fields['DUE_DATE'])) ?>', 'billing')"><i class="ti-pencil-alt"></i></a>
@@ -169,7 +169,7 @@ while (!$serviceCodeData->EOF) {
                         $payment_type = $payment_details->fields['PAYMENT_TYPE'];
                     } ?>
                     <tr style="border-style: hidden; color: <?= ($payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
-                        <td style="text-align: center;">
+                        <td style="text-align: center; width:18%;">
                             <a href="javascript:" title="Edit Info" onmouseover="getEditHistory(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, 'enrollment_payment')"><i class="ti-info-alt"></i></a>&nbsp;&nbsp;
                             <?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>&nbsp;&nbsp;
                             <a href="javascript:" title="Edit Due Date" onclick="editBillingDueDate(<?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, '<?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?>', 'payment')"><i class="ti-pencil-alt"></i></a>
@@ -206,7 +206,7 @@ while (!$serviceCodeData->EOF) {
         while (!$cancelled_enrollment_ledger->EOF) {
             ?>
             <tr style="color: <?= (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Refund Credit Available') ? 'green' : (($cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Cancelled' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Billing' || $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] == 'Balance Owed') ? 'red' : '')) ?>;">
-                <td style="text-align: center;"><?= date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE'])) ?></td>
+                <td style="text-align: center; width:18%;"><?= date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE'])) ?></td>
                 <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/ ?></td>
                 <td style="text-align: right;"><?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?></td>
                 <td style="text-align: right;"></td>
@@ -252,7 +252,7 @@ while (!$serviceCodeData->EOF) {
                         $payment_type = $cancelled_enrollment_payment_details->fields['PAYMENT_TYPE'];
                     } ?>
                     <tr style="border-style: hidden; color: <?= ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
-                        <td style="text-align: center;"><?= date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE'])) ?></td>
+                        <td style="text-align: center; width:18%;"><?= date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE'])) ?></td>
                         <td style="text-align: center;"><?= $cancelled_enrollment_payment_details->fields['TYPE'] ?></td>
                         <td></td>
                         <td style="text-align: right;"><?= $cancelled_enrollment_payment_details->fields['AMOUNT'] ?></td>
@@ -302,7 +302,7 @@ while (!$serviceCodeData->EOF) {
                     $payment_type = $adjusted_payment_details->fields['PAYMENT_TYPE'];
                 } ?>
                 <tr style="border-style: hidden;">
-                    <td style="text-align: center;"><?= date('m/d/Y', strtotime($adjusted_payment_details->fields['PAYMENT_DATE'])) ?></td>
+                    <td style="text-align: center; width:18%;"><?= date('m/d/Y', strtotime($adjusted_payment_details->fields['PAYMENT_DATE'])) ?></td>
                     <td style="text-align: center;"><?= $adjusted_payment_details->fields['TYPE'] ?></td>
                     <td></td>
                     <td style="text-align: right;"><?= $adjusted_payment_details->fields['AMOUNT'] ?></td>
@@ -404,7 +404,7 @@ while (!$serviceCodeData->EOF) {
 
             foreach (array_reverse($appointment_array) as $key => $appointment_value) { ?>
                 <tr>
-                    <td style="text-align: left;">
+                    <td style="text-align: left; width:18%;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span><?= $appointment_value['SERVICE_NAME'] ?></span>
                             <a href="javascript:" title="Edit Appointment"

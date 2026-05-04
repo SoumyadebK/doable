@@ -57,10 +57,10 @@ if ($selected_primary_location->RecordCount() > 0) {
 
 ?>
 <div class="profile-card">
-    <form id="edit_customer_form">
+    <form id="edit_customer_address_form">
         <input type="hidden" name="PK_USER" value="<?= $PK_USER ?>">
         <input type="hidden" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-        <input type="hidden" name="FUNCTION_NAME" value="updateCustomerProfileDetails">
+        <input type="hidden" name="FUNCTION_NAME" value="updateCustomerAddressDetails">
 
         <div class="d-flex justify-content-between border-bottom">
             <div>
@@ -106,7 +106,7 @@ if ($selected_primary_location->RecordCount() > 0) {
                     <select class="form-control" name="PK_STATES" id="PK_STATES" required>
                         <option>Select State</option>
                         <?php
-                        $row = $db->Execute("SELECT PK_STATES,STATE_NAME FROM DOA_STATES WHERE PK_COUNTRY = " . $PK_COUNTRY . " AND ACTIVE = 1 ORDER BY PK_STATES");
+                        $row = $db->Execute("SELECT PK_STATES, STATE_NAME FROM DOA_STATES WHERE PK_COUNTRY = " . $PK_COUNTRY . " AND ACTIVE = 1 ORDER BY PK_STATES");
                         while (!$row->EOF) { ?>
                             <option value="<?php echo $row->fields['PK_STATES']; ?>" <?= ($row->fields['PK_STATES'] == $PK_STATES) ? "selected" : "" ?>><?= $row->fields['STATE_NAME'] ?></option>
                         <?php $row->MoveNext();
@@ -130,3 +130,24 @@ if ($selected_primary_location->RecordCount() > 0) {
         </div>
     </form>
 </div>
+
+<script>
+    $(document).on('submit', '#edit_customer_address_form', function() {
+        event.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            type: 'POST',
+            url: 'ajax/AjaxFunctions.php',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response == 1) {
+                    location.reload();
+                } else {
+                    alert('Error updating customer details. Please try again.');
+                }
+            }
+        });
+    });
+</script>

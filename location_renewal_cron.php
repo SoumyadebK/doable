@@ -15,11 +15,12 @@ use Square\SquareClient;
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+$message_string = '';
 global $db;
 $location_date = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND NEXT_RENEWAL_DATE = '" . date('Y-m-d') . "'");
 while (!$location_date->EOF) {
-    echo "Processing Location Billing: " . $location_date->fields['LOCATION_NAME'] . "<br>";
-    echo "Date: " . date('Y-m-d H:i:s') . "<br>";
+    $message_string .= "Processing Location Billing: " . $location_date->fields['LOCATION_NAME'] . "<br>";
+    $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
     try {
         $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
@@ -44,7 +45,7 @@ while (!$location_date->EOF) {
         $payment_info = $db->Execute("SELECT * FROM `DOA_PAYMENT_INFO` WHERE PAYMENT_TYPE = 'Square' AND CLASS = '$PAYMENT_FROM' AND PK_VALUE = '$PK_VALUE'");
 
         if ($payment_info->RecordCount() == 0) {
-            echo "No Square payment profile found for customer $PAYMENT_FROM/$PK_VALUE.<br>";
+            $message_string .= "No Square payment profile found for customer $PAYMENT_FROM/$PK_VALUE.<br>";
             $location_date->MoveNext();
             continue;
         }
@@ -76,7 +77,7 @@ while (!$location_date->EOF) {
         }
 
         if (empty($PAYMENT_METHOD_ID)) {
-            echo "No saved card found for Square customer $LOCATION_PAYMENT_ID.<br>";
+            $message_string .= "No saved card found for Square customer $LOCATION_PAYMENT_ID.<br>";
             $location_date->MoveNext();
             continue;
         }
@@ -101,12 +102,16 @@ while (!$location_date->EOF) {
                 $PAYMENT_STATUS = 'Success';
                 $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+
+                $LOCATION_DATA_UPDATE['NEXT_RENEWAL_DATE'] = date('Y-m-d', strtotime('+1 month', strtotime($location_date->fields['NEXT_RENEWAL_DATE'])));
             } else {
                 $PAYMENT_STATUS = 'Failed';
                 $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
 
                 $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                 $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
+                //$LOCATION_DATA_UPDATE['ACTIVE'] = 0;
                 goto FINALIZE_PAYMENT;
             }
         } catch (\Square\Exceptions\ApiException $e) {
@@ -115,13 +120,16 @@ while (!$location_date->EOF) {
 
             $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
             $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+
+            //$LOCATION_DATA_UPDATE['ACTIVE'] = 0;
             goto FINALIZE_PAYMENT;
         }
     } catch (mysqli_sql_exception $e) {
-        echo "Connection failed: " . $e->getMessage();
+        $message_string .= "Connection failed: " . $e->getMessage();
     }
 
     FINALIZE_PAYMENT:
+    db_perform('DOA_LOCATION', $LOCATION_DATA_UPDATE, 'update', "PK_LOCATION = '" . $location_date->fields['PK_LOCATION'] . "'");
     $PAYMENT_DETAILS['PK_LOCATION'] = $location_date->fields['PK_LOCATION'];
     $PAYMENT_DETAILS['PK_CORPORATION'] = $location_date->fields['PK_CORPORATION'];
     $PAYMENT_DETAILS['PAYMENT_FROM'] = $PAYMENT_FROM;
@@ -133,9 +141,13 @@ while (!$location_date->EOF) {
 
     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
     $RETURN_DATA['PAYMENT_INFO'] = ($PAYMENT_STATUS == 'Success') ? $PAYMENT_INFO_JSON : $PAYMENT_INFO;
-    echo json_encode($RETURN_DATA);
+    $message_string .= json_encode($RETURN_DATA);
 
-    echo "<br>---------------------------------<br>";
+    $message_string .= "<br>---------------------------------<br>";
+
+    $info_log['info'] = $message_string;
+    $info_log['created_at'] = date('Y-m-d H:i:s');
+    db_perform('cron_running_log', $info_log, 'insert');
 
 
     $location_date->MoveNext();
