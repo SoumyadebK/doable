@@ -321,7 +321,6 @@
                                             <option value="22">22%</option>
                                             <option value="custom">Custom</option>
                                         </select>
-                                        <input type="text" class="form-control mt-2" name="CUSTOM_TIP_PERCENTAGE" id="CUSTOM_TIP_PERCENTAGE" placeholder="Enter custom tip percentage" style="display: none;" onkeyup="calculateTipAmount()">
                                     </div>
                                 </div>
                             </div>
@@ -337,7 +336,7 @@
                                 <div>
                                     <label class="form-label">Tip <?= $service_provider_title ?></label>
                                     <div class="col-md-12">
-                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER_TIP" multiple>
+                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER" multiple>
                                             <?php
                                             $row = getServiceProvider();
                                             while (!$row->EOF) { ?>
@@ -943,15 +942,9 @@
     function calculateTipAmount() {
         let tipPercentage = $('#TIP_PERCENTAGE').val();
         if (tipPercentage === 'custom') {
-            $('#CUSTOM_TIP_PERCENTAGE').show();
-            let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
-            let tipAmount = (AMOUNT_TO_PAY * parseFloat($('#CUSTOM_TIP_PERCENTAGE').val())) / 100;
-            if (isNaN(tipAmount)) {
-                tipAmount = 0;
-            }
-            $('#TIP_AMOUNT').val(tipAmount.toFixed(2));
+            $('#TIP_AMOUNT').prop('readonly', false).val('');
         } else {
-            $('#CUSTOM_TIP_PERCENTAGE').hide();
+            $('#TIP_AMOUNT').prop('readonly', true);
             if (tipPercentage) {
                 let AMOUNT_TO_PAY = parseFloat($('#AMOUNT_TO_PAY').val());
                 let tipAmount = (AMOUNT_TO_PAY * parseFloat(tipPercentage)) / 100;
