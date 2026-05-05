@@ -55,14 +55,16 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
         }
 
         if ($PK_ENROLLMENT_MASTER > 0) {
-            $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER'");
+            $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_TIP.TIP_PERCENTAGE, DOA_ENROLLMENT_TIP.TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER' GROUP BY PK_ENROLLMENT_MASTER");
         }
 
         if ($PK_ENROLLMENT_MASTER <= 0 || $enrollment_payment->RecordCount() == 0) {
-            $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = 0 && DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet') AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER'");
+            $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_TIP.TIP_PERCENTAGE, DOA_ENROLLMENT_TIP.TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE (DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = 0 && DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet') AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER' GROUP BY PK_ENROLLMENT_MASTER");
         }
 
         $DETAILS_AMOUNT = '';
+        $TIP_PERCENTAGE = '';
+        $TIP_AMOUNT = '';
         $PAYMENT_DETAILS = '';
         $TOTAL_AMOUNT = 0;
         $PAYMENT_METHOD = '';
@@ -88,6 +90,8 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
 
                 $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
                 $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
+                $TIP_PERCENTAGE = ($enrollment_payment->fields['TIP_PERCENTAGE']) ? number_format($enrollment_payment->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
+                $TIP_AMOUNT = ($enrollment_payment->fields['TIP_AMOUNT']) ? '$' . number_format($enrollment_payment->fields['TIP_AMOUNT'], 2) : '$0.00';
                 $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
                 $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
                 $enrollment_payment->MoveNext();
@@ -97,6 +101,8 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
             $PAYMENT_METHOD = $wallet_data->fields['PAYMENT_TYPE'];
             $TOTAL_AMOUNT = ($wallet_data->fields['CREDIT'] > 0) ? $wallet_data->fields['CREDIT'] : $wallet_data->fields['DEBIT'];
             $DETAILS_AMOUNT = '$' . number_format($TOTAL_AMOUNT, 2);
+            $TIP_PERCENTAGE = '0%';
+            $TIP_AMOUNT = '$0.00';
             $TYPE = 'Wallet';
             $PAYMENT_DATE = date('m-d-Y', strtotime($wallet_data->fields['CREATED_ON']));
         }
@@ -161,6 +167,14 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                 <tr>
                     <td>Details : </td>
                     <td style="text-align:right"><?= $DETAILS_AMOUNT ?></td>
+                </tr>
+                <tr>
+                    <td>Percentage of Tip : </td>
+                    <td style="text-align:right"><?= $TIP_PERCENTAGE ?></td>
+                </tr>
+                <tr>
+                    <td>Amount of Tip : </td>
+                    <td style="text-align:right"><?= $TIP_AMOUNT ?></td>
                 </tr>
                 <tr>
                     <td>Amount(s) : </td>
