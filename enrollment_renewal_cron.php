@@ -26,11 +26,12 @@ use net\authorize\api\controller as AnetController;
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+$message_string = '';
 global $db;
 $all_location = $db->Execute("SELECT DOA_LOCATION.*, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_LOCATION LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_LOCATION.PAYMENT_GATEWAY_TYPE IS NOT NULL AND DOA_LOCATION.PAYMENT_GATEWAY_TYPE != '') AND DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1");
 while (!$all_location->EOF) {
-    echo "Processing Location: " . $all_location->fields['LOCATION_NAME'] . "<br>";
-    echo "Date: " . date('Y-m-d H:i:s') . "<br>";
+    $message_string .= "Processing Location: " . $all_location->fields['LOCATION_NAME'] . "<br>";
+    $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
     try {
         $DB_NAME = $all_location->fields['DB_NAME'];
         $db1 = new queryFactory();
@@ -106,7 +107,7 @@ while (!$all_location->EOF) {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
+                    $message_string .= json_encode($RETURN_DATA);
                 }
 
                 if (isset($charge) && $charge->paid == 1) {
@@ -119,7 +120,7 @@ while (!$all_location->EOF) {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
+                    $message_string .= json_encode($RETURN_DATA);
                 }
             } elseif ($PAYMENT_GATEWAY == 'Square') {
                 $customer_payment_info = $db1->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
@@ -163,7 +164,7 @@ while (!$all_location->EOF) {
 
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
+                        $message_string .= json_encode($RETURN_DATA);
                     }
                 } catch (\Square\Exceptions\ApiException $e) {
                     $PAYMENT_STATUS = 'Failed';
@@ -171,7 +172,7 @@ while (!$all_location->EOF) {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
+                    $message_string .= json_encode($RETURN_DATA);
                 }
             } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
                 $customer_payment_info = $db1->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
@@ -213,7 +214,7 @@ while (!$all_location->EOF) {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
+                    $message_string .= json_encode($RETURN_DATA);
                 }
 
                 try {
@@ -237,7 +238,7 @@ while (!$all_location->EOF) {
 
                             $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                             $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                            echo json_encode($RETURN_DATA);
+                            $message_string .= json_encode($RETURN_DATA);
                         }
                     } else {
                         $PAYMENT_STATUS = 'Failed';
@@ -245,7 +246,7 @@ while (!$all_location->EOF) {
 
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                        echo json_encode($RETURN_DATA);
+                        $message_string .= json_encode($RETURN_DATA);
                     }
                 } catch (Exception $e) {
                     $PAYMENT_STATUS = 'Failed';
@@ -253,7 +254,7 @@ while (!$all_location->EOF) {
 
                     $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                     $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-                    echo json_encode($RETURN_DATA);
+                    $message_string .= json_encode($RETURN_DATA);
                 }
             }
 
@@ -309,16 +310,20 @@ while (!$all_location->EOF) {
                 markEnrollmentComplete($PK_ENROLLMENT_MASTER);
             }
 
-            echo $PAYMENT_INFO_JSON;
-            echo "<br>";
+            $message_string .= $PAYMENT_INFO_JSON;
+            $message_string .= "<br>";
 
             $enrollment_data->MoveNext();
         }
     } catch (mysqli_sql_exception $e) {
-        echo "Connection failed: " . $e->getMessage();
+        $message_string .= "Connection failed: " . $e->getMessage();
     }
 
-    echo "<br>---------------------------------<br>";
+    $message_string .= "<br>---------------------------------<br>";
+
+    $info_log['info'] = $message_string;
+    $info_log['created_at'] = date('Y-m-d H:i:s');
+    db_perform('cron_running_log', $info_log, 'insert');
 
 
     $all_location->MoveNext();

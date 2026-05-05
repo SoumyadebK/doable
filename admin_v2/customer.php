@@ -813,43 +813,126 @@ $customer_color = $customer['color'];
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="label">First Name</div>
-                                                    <div class="value"><?= $FIRST_NAME ?></div>
-
-                                                    <div class="label">Customer ID</div>
-                                                    <div class="value"><?= $CUSTOMER_ID == '' ? 'N/A' : $CUSTOMER_ID ?></div>
-
-                                                    <div class="label">Primary Location</div>
-                                                    <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
-
-                                                    <div class="label">Phone</div>
-                                                    <div class="value"><?= formatPhone($PHONE) ?></div>
-
-                                                    <div class="label">Reminder Options</div>
-                                                    <div class="value"><?= $REMINDER_OPTION == '' ? 'N/A' : $REMINDER_OPTION ?></div>
-
-                                                    <div class="label">Status</div>
-                                                    <div class="value"><?= $ACTIVE == 1 ? 'Active' : 'Inactive' ?></div>
+                                                    <div class="value">
+                                                        <?= $FIRST_NAME ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="label">Last Name</div>
+                                                    <div class="value">
+                                                        <?= $LAST_NAME ?>
+                                                    </div>
                                                 </div>
 
                                                 <div class="col-6">
-                                                    <div class="label">Last Name</div>
-                                                    <div class="value"><?= $LAST_NAME == '' ? 'N/A' : $LAST_NAME ?></div>
-
+                                                    <div class="label">Customer ID</div>
+                                                    <div class="value">
+                                                        <?= $CUSTOMER_ID ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">Created On</div>
-                                                    <div class="value"><?= date('m/d/Y - h:i A', strtotime($CREATED_ON)) ?></div>
+                                                    <div class="value">
+                                                        <?= date('m / d / Y', strtotime($CREATED_ON)) ?>
+                                                    </div>
+                                                </div>
 
+                                                <div class="col-6">
+                                                    <div class="label">Primary Location</div>
+                                                    <div class="value">
+                                                        <?= $PRIMARY_LOCATION_NAME ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">Preferred Location</div>
-                                                    <div class="value"><?= $PRIMARY_LOCATION_NAME ?></div>
+                                                    <div class="value">
+                                                        <?php
+                                                        $selected_location = [];
+                                                        $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $PK_USER);
+                                                        while (!$selected_location_row->EOF) {
+                                                            $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                                                            $selected_location_row->MoveNext();
+                                                        }
 
+                                                        $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . implode(",", $selected_location) . ")");
+                                                        $location_name_arr = [];
+                                                        while (!$location_data->EOF) {
+                                                            $location_name_arr[] = $location_data->fields['LOCATION_NAME'];
+                                                            $location_data->MoveNext();
+                                                        }
+                                                        echo implode(", ", $location_name_arr) ?>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="col-6">
+                                                    <div class="label">Phone</div>
+                                                    <div class="value">
+                                                        <?= formatPhone($PHONE) ?>
+                                                        <?php
+                                                        $customer_phone = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_PHONE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                        while (!$customer_phone->EOF) {
+                                                            echo '<br>' . formatPhone($customer_phone->fields['PHONE']);
+                                                            $customer_phone->MoveNext();
+                                                        } ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">Email</div>
-                                                    <div class="value"><?= $EMAIL_ID ?></div>
+                                                    <div class="value">
+                                                        <?= $EMAIL_ID ?>
+                                                        <?php
+                                                        $customer_email = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_EMAIL WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                                        while (!$customer_email->EOF) {
+                                                            echo '<br>' . $customer_email->fields['EMAIL'];
+                                                            $customer_email->MoveNext();
+                                                        } ?>
+                                                    </div>
+                                                </div>
 
+                                                <div class="col-6">
+                                                    <div class="label">Reminder Options</div>
+                                                    <div class="value">
+                                                        <?= $REMINDER_OPTION ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="label">Tag</div>
+                                                    <div class="value">
+                                                        <?php
+                                                        $selected_tag = [];
+                                                        $selected_tag_row = $db_account->Execute("SELECT `PK_TAG` FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
+                                                        while (!$selected_tag_row->EOF) {
+                                                            $selected_tag[] = $selected_tag_row->fields['PK_TAG'];
+                                                            $selected_tag_row->MoveNext();
+                                                        }
+
+                                                        $tag_data = $db_account->Execute("SELECT * FROM DOA_TAG WHERE PK_TAG IN (" . implode(",", $selected_tag) . ")");
+                                                        $tag_name_arr = [];
+                                                        while (!$tag_data->EOF) {
+                                                            $tag_name_arr[] = $tag_data->fields['TAG_NAME'];
+                                                            $tag_data->MoveNext();
+                                                        }
+                                                        echo implode(", ", $tag_name_arr) ?>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-6">
                                                     <div class="label">Gender</div>
-                                                    <div class="value"><?= $GENDER == '' ? 'N/A' : $GENDER ?></div>
+                                                    <div class="value">
+                                                        <?= $GENDER ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="label">Date of Birth</div>
+                                                    <div class="value">
+                                                        <?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m / d / Y', strtotime($DOB)) ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
 
                                     <div id="user_edit_address">
 
@@ -861,26 +944,51 @@ $customer_color = $customer['color'];
                                                 </div>
                                                 <a class="btn btn-outline-edit" style="height: min-content;" onclick="editAddress(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
                                             </div>
+
                                             <div class="row mt-3">
                                                 <div class="col-6">
                                                     <div class="label">Address</div>
-                                                    <div class="value"><?= $ADDRESS == '' ? 'N/A' : $ADDRESS ?></div>
-
-                                                    <div class="label">City</div>
-                                                    <div class="value"><?= $CITY == '' ? 'N/A' : $CITY ?></div>
-
-                                                    <div class="label">Country</div>
-                                                    <div class="value"><?= $PK_COUNTRY == '' ? 'N/A' : $PK_COUNTRY ?></div>
+                                                    <div class="value">
+                                                        <?= $ADDRESS ?>
+                                                    </div>
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="label">Apt/Ste</div>
-                                                    <div class="value"><?= $ADDRESS_1 == '' ? 'N/A' : $ADDRESS_1 ?></div>
+                                                    <div class="value">
+                                                        <?= $ADDRESS_1 ?>
+                                                    </div>
+                                                </div>
 
+                                                <div class="col-6">
+                                                    <div class="label">Country</div>
+                                                    <div class="value">
+                                                        <?php
+                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE PK_COUNTRY = " . $PK_COUNTRY);
+                                                        echo $row->fields['COUNTRY_NAME'];
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">State</div>
-                                                    <div class="value"><?= $PK_STATES == '' ? 'N/A' : $PK_STATES ?></div>
+                                                    <div class="value">
+                                                        <?php
+                                                        $row = $db->Execute("SELECT PK_STATES, STATE_NAME FROM DOA_STATES WHERE PK_COUNTRY = " . $PK_COUNTRY . " AND PK_STATES = " . $PK_STATES);
+                                                        echo $row->fields['STATE_NAME'];
+                                                        ?>
+                                                    </div>
+                                                </div>
 
+                                                <div class="col-6">
+                                                    <div class="label">City</div>
+                                                    <div class="value">
+                                                        <?= $CITY ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">Postal / Zip Code</div>
-                                                    <div class="value"><?= $ZIP == '' ? 'N/A' : $ZIP ?></div>
+                                                    <div class="value">
+                                                        <?= $ZIP ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -896,7 +1004,7 @@ $customer_color = $customer['color'];
                                         </div>
                                         <div class="mt-3">
                                             <?php
-                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'");
+                                            $customer_special_date = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_SPECIAL_DATE WHERE PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS' AND SPECIAL_DATE IS NOT NULL AND SPECIAL_DATE != '0000-00-00' AND SPECIAL_DATE != ''");
                                             if ($customer_special_date->RecordCount() > 0) {
                                                 while (!$customer_special_date->EOF) { ?>
                                                     <div class="row mt-3" style="width: 95%; margin-left: auto; margin-right: auto;">
@@ -907,15 +1015,15 @@ $customer_color = $customer['color'];
                                                             <div class="value"><?= date('m / d / Y', strtotime($customer_special_date->fields['SPECIAL_DATE'])) ?></div>
                                                         </div>
                                                         <div class="col-4 text-end">
-                                                            <i class="bi bi-pencil me-3 cursor-pointer"></i>
-                                                            <i class="bi bi-trash cursor-pointer"></i>
+                                                            <a href="javascript:;" onclick="editSpecialDate('<?= $customer_special_date->fields['PK_CUSTOMER_SPECIAL_DATE'] ?>', '<?= $customer_special_date->fields['DATE_NAME'] ?>', '<?= date('m/d/Y', strtotime($customer_special_date->fields['SPECIAL_DATE'])) ?>');"><i class="fa fa-pencil" style="font-size: 20px;"></i></a>
+                                                            <a href="javascript:;" onclick="deleteSpecialDate('<?= $customer_special_date->fields['PK_CUSTOMER_SPECIAL_DATE'] ?>');" style="margin-left: 15px;"><i class="fa fa-trash" style="font-size: 20px;"></i></a>
                                                         </div>
                                                     </div>
                                             <?php $customer_special_date->MoveNext();
                                                 }
                                             } ?>
                                             <div class="mt-3">
-                                                <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                                <a href="javascript:;" onclick="addSpecialDate();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                             </div>
                                         </div>
                                     </div>
@@ -927,10 +1035,9 @@ $customer_color = $customer['color'];
                                                 <div class="section-desc">Optional settings section description</div>
                                             </div>
                                         </div>
-                                        <div class="mt-3">
+                                        <div class="mt-3" style="max-height: 300px; overflow-y: auto;">
                                             <?php
                                             if (!empty($_GET['id'])) {
-                                                $user_doc_count = 0;
                                                 $row = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_DOCUMENT WHERE PK_USER_MASTER = '$PK_USER_MASTER'");
                                                 while (!$row->EOF) { ?>
                                                     <div class="d-flex justify-content-between align-items-center py-2 mt-3" style="width: 95%; margin-left: auto; margin-right: auto;">
@@ -947,17 +1054,53 @@ $customer_color = $customer['color'];
                                                         </div>
                                                         <div class="text-secondary">
                                                             <a href="javascript:;" onclick="removeUserDocument(this);">
-                                                                <i class="bi bi-trash cursor-pointer"></i>
+                                                                <i class="fa fa-trash" style="font-size: 20px;"></i>
                                                             </a>
                                                         </div>
                                                     </div>
                                                 <?php $row->MoveNext();
-                                                    $user_doc_count++;
                                                 } ?>
                                             <?php } ?>
-                                            <div class="mt-3">
-                                                <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
-                                            </div>
+
+                                            <?php
+                                            $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_USER_MASTER` = " . $PK_USER_MASTER);
+
+                                            // Convert the relative path to an absolute filesystem path
+                                            $filesystem_path = $_SERVER['DOCUMENT_ROOT'] . '/' . $upload_path . '/enrollment_pdf/';
+
+                                            while (!$res->EOF) {
+                                                $file_path = $filesystem_path . $res->fields['AGREEMENT_PDF_LINK'];
+                                                if ($res->fields['AGREEMENT_PDF_LINK'] != NULL && $res->fields['AGREEMENT_PDF_LINK'] != '') { ?>
+                                                    <div class="d-flex justify-content-between align-items-center py-2 mt-3" style="width: 95%; margin-left: auto; margin-right: auto;">
+                                                        <div class="d-flex align-items-center">
+                                                            <?php if (file_exists($file_path)) { ?>
+                                                                <div class="bg-danger-subtle p-2 rounded me-3">
+                                                                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $res->fields['AGREEMENT_PDF_LINK'] ?>" target="_blank">
+                                                                        <div class="fw-semibold mb-0" style="font-size: 0.9rem;"><?= $res->fields['ENROLLMENT_ID'] ?> (View Agreement)</div>
+                                                                    </a>
+                                                                </div>
+                                                            <?php } else { ?>
+                                                                <div class="bg-light p-2 rounded me-3">
+                                                                    <i class="bi bi-file-earmark-pdf-fill text-muted fs-5"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <a href="javascript:">
+                                                                        <div class="fw-semibold mb-0" style="font-size: 0.9rem;"><?= $res->fields['ENROLLMENT_ID'] ?> (Not Available)</div>
+                                                                    </a>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </div>
+                                                    </div>
+                                            <?php }
+                                                $res->MoveNext();
+                                            } ?>
+                                        </div>
+
+                                        <div class="mt-3">
+                                            <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                         </div>
                                     </div>
                                 </div>
@@ -1132,6 +1275,45 @@ $customer_color = $customer['color'];
         </div>
     </div>
 </div>
+
+
+
+<!--Special Date Model-->
+<div class="modal fade" id="special_date_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="special_date_header">Add Special Date</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#special_date_modal').modal('hide');"></button>
+            </div>
+            <form id="special_date_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveSpecialDateData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
+                    <input type="hidden" name="PK_CUSTOMER_SPECIAL_DATE" id="PK_CUSTOMER_SPECIAL_DATE" value="0">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Date Title</label>
+                            <input class="form-control" rows="10" name="CUSTOMER_SPECIAL_DATE_NAME" id="CUSTOMER_SPECIAL_DATE_NAME" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Special Date</label>
+                            <input class="form-control datepicker-normal" rows="10" name="CUSTOMER_SPECIAL_DATE" id="CUSTOMER_SPECIAL_DATE" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
 
 <!--Auto-pay Credit Card Modal-->
 <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
@@ -1439,8 +1621,76 @@ $customer_color = $customer['color'];
     });
 </script>
 
+<!-- All function related to special date -->
+<script>
+    function openSpecialDateModal() {
+        $('#special_date_modal').modal('show');
+    }
+
+    function addSpecialDate() {
+        $('#special_date_header').text("Add Comment");
+        $('#PK_CUSTOMER_SPECIAL_DATE').val(0);
+        $('#CUSTOMER_SPECIAL_DATE_NAME').val('');
+        $('#CUSTOMER_SPECIAL_DATE').val('');
+        openSpecialDateModal();
+    }
+
+    function editSpecialDate(PK_CUSTOMER_SPECIAL_DATE, CUSTOMER_SPECIAL_DATE_NAME, CUSTOMER_SPECIAL_DATE) {
+        $('#special_date_header').text("Edit Comment");
+        $('#PK_CUSTOMER_SPECIAL_DATE').val(PK_CUSTOMER_SPECIAL_DATE);
+        $('#CUSTOMER_SPECIAL_DATE_NAME').val(CUSTOMER_SPECIAL_DATE_NAME);
+        $('#CUSTOMER_SPECIAL_DATE').val(CUSTOMER_SPECIAL_DATE);
+        openSpecialDateModal();
+    }
+
+    $(document).on('submit', '#special_date_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#special_date_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
+
+    function deleteSpecialDate(PK_CUSTOMER_SPECIAL_DATE) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this date cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteSpecialDate',
+                        PK_CUSTOMER_SPECIAL_DATE: PK_CUSTOMER_SPECIAL_DATE
+                    },
+                    success: function(data) {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+
 <!-- All function related to comment -->
 <script>
+    function openCommentModel() {
+        $('#comment_modal').modal('show');
+    }
+
     function createUserComment() {
         $('#comment_header').text("Add Comment");
         $('#PK_COMMENT').val(0);
@@ -1469,10 +1719,6 @@ $customer_color = $customer['color'];
                 openCommentModel();
             }
         });
-    }
-
-    function openCommentModel() {
-        $('#comment_modal').modal('show');
     }
 
     $(document).on('submit', '#comment_add_edit_form', function(event) {

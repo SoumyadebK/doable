@@ -3387,16 +3387,15 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
         }
     }
 
-    /* if (isset($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'])) {
-        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
-        for ($i = 0; $i < count($RESPONSE_DATA['CUSTOMER_SPECIAL_DATE']); $i++) {
-            $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
-            $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'][$i];
-            $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'][$i];
-            db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+    $db_account->Execute("DELETE FROM `DOA_USER_TAG` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+    if (isset($RESPONSE_DATA['PK_USER_TAG'])) {
+        $PK_USER_TAG = $RESPONSE_DATA['PK_USER_TAG'];
+        for ($i = 0; $i < count($PK_USER_TAG); $i++) {
+            $USER_TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $USER_TAG_DATA['PK_TAG'] = $PK_USER_TAG[$i];
+            db_perform_account('DOA_USER_TAG', $USER_TAG_DATA, 'insert');
         }
-    } */
-
+    }
 
     $db->Execute("DELETE FROM `DOA_USER_LOCATION` WHERE `PK_USER` = '$PK_USER'");
     if (isset($RESPONSE_DATA['PK_USER_LOCATION'])) {
@@ -3409,4 +3408,58 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
     }
 
     echo 1;
+}
+
+
+function updateCustomerAddressDetails($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $upload_path;
+
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $PK_USER_MASTER = $RESPONSE_DATA['PK_USER_MASTER'];
+
+    $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'];
+    $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'];
+    $USER_DATA['PK_COUNTRY'] = ($RESPONSE_DATA['PK_COUNTRY']) ?? 0;
+    $USER_DATA['PK_STATES'] = ($RESPONSE_DATA['PK_STATES']) ?? 0;
+    $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['EDITED_BY']    = $USER_DATA_ACCOUNT['EDITED_BY'] = $_SESSION['PK_USER'];
+    $USER_DATA['EDITED_ON'] = $USER_DATA_ACCOUNT['EDITED_ON'] = date("Y-m-d H:i");
+
+    db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER = " . $PK_USER);
+
+    echo 1;
+}
+
+function saveSpecialDateData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
+    $PK_CUSTOMER_SPECIAL_DATE = $RESPONSE_DATA['PK_CUSTOMER_SPECIAL_DATE'];
+
+    if ($PK_CUSTOMER_SPECIAL_DATE > 0) {
+        $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'];
+        $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'];
+        db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'update', ' PK_CUSTOMER_SPECIAL_DATE = ' . $PK_CUSTOMER_SPECIAL_DATE);
+    } else {
+        $CUSTOMER_SPECIAL_DATE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+        $CUSTOMER_SPECIAL_DATE['SPECIAL_DATE'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE'];
+        $CUSTOMER_SPECIAL_DATE['DATE_NAME'] = $RESPONSE_DATA['CUSTOMER_SPECIAL_DATE_NAME'];
+        db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $CUSTOMER_SPECIAL_DATE, 'insert');
+    }
+
+    echo 1;
+}
+
+function deleteSpecialDate($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_CUSTOMER_SPECIAL_DATE = $RESPONSE_DATA['PK_CUSTOMER_SPECIAL_DATE'];
+    $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_SPECIAL_DATE` = '$PK_CUSTOMER_SPECIAL_DATE'");
 }
