@@ -257,7 +257,7 @@ if (!empty($_GET['START_DATE'])) {
                                         LEFT JOIN DOA_MASTER.DOA_USER_MASTER dc ON em.PK_USER_MASTER = dc.PK_USER_MASTER
                                         LEFT JOIN DOA_MASTER.DOA_USERS us ON us.PK_USER = dc.PK_USER
                                         WHERE DATE(et.CREATED_ON) BETWEEN '$from_date' AND '$to_date'
-                                        AND asp.SERVICE_PROVIDER_ID = $provider_id
+                                        AND et.PK_USER = $provider_id
                                         GROUP BY et.PK_ENROLLMENT_MASTER
                                         ORDER BY et.CREATED_ON DESC";
 
