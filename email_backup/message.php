@@ -414,7 +414,7 @@ if (!empty($conversation_id)) {
 
 <body class="bg-light">
 
-    <div class="container-fluid bg-white rounded border mx-auto">
+    <div class="container bg-white rounded border mx-auto">
         <div class="main-wrapper">
             <aside class="sidebar">
                 <div class="sidebar-header">
