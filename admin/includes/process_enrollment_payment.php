@@ -774,7 +774,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $TIPS_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
                 $TIPS_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;
                 if ($_POST['TIP_PERCENTAGE'] == 'custom') {
-                    $TIPS_DATA['TIP_PERCENTAGE'] = 0;
+                    $TIPS_DATA['TIP_PERCENTAGE'] = $AMOUNT_TO_PAY > 0 ? round(($_POST['TIP_AMOUNT'] / $AMOUNT_TO_PAY) * 100, 2) : 0;
                 } else {
                     $TIPS_DATA['TIP_PERCENTAGE'] = $_POST['TIP_PERCENTAGE'];
                 }

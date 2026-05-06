@@ -336,7 +336,7 @@
                                 <div>
                                     <label class="form-label">Tip <?= $service_provider_title ?></label>
                                     <div class="col-md-12">
-                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER" multiple>
+                                        <select name="PK_SERVICE_PROVIDER[]" id="PK_SERVICE_PROVIDER_TIP" multiple>
                                             <?php
                                             $row = getServiceProvider();
                                             while (!$row->EOF) { ?>
