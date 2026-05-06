@@ -213,6 +213,7 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/ ?></td>
                 <td style="text-align: right;"><?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?></td>
                 <td style="text-align: right;"></td>
+                <td style="text-align: right;"></td>
                 <td style="text-align: center;"><?= $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] ?></td>
                 <td style="text-align: right;"><?= number_format((float)$cancelled_enrollment_ledger->fields['BALANCE'], 2, '.', '') ?></td>
                 <td style="text-align: right;">
@@ -257,6 +258,7 @@ while (!$serviceCodeData->EOF) {
                     <tr style="border-style: hidden; color: <?= ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
                         <td style="text-align: center;"><?= date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE'])) ?></td>
                         <td style="text-align: center;"><?= $cancelled_enrollment_payment_details->fields['TYPE'] ?></td>
+                        <td></td>
                         <td></td>
                         <td style="text-align: right;"><?= $cancelled_enrollment_payment_details->fields['AMOUNT'] ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
@@ -307,6 +309,7 @@ while (!$serviceCodeData->EOF) {
                 <tr style="border-style: hidden;">
                     <td style="text-align: center;"><?= date('m/d/Y', strtotime($adjusted_payment_details->fields['PAYMENT_DATE'])) ?></td>
                     <td style="text-align: center;"><?= $adjusted_payment_details->fields['TYPE'] ?></td>
+                    <td></td>
                     <td></td>
                     <td style="text-align: right;"><?= $adjusted_payment_details->fields['AMOUNT'] ?></td>
                     <td style="text-align: center;"><?= $payment_type ?></td>

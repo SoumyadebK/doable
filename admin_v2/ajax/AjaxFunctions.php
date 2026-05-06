@@ -1232,7 +1232,9 @@ function saveDocumentData($RESPONSE_DATA)
             chmod('../../' . $upload_path . '/user_doc/', 0777);
         }
 
-        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        if (count($RESPONSE_DATA['DOCUMENT_NAME']) > 1) {
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        }
         for ($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++) {
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
@@ -1252,6 +1254,20 @@ function saveDocumentData($RESPONSE_DATA)
             }
             db_perform_account('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
         }
+    }
+}
+
+function deleteCustomerDocument($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $document_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_CUSTOMER_DOCUMENT` = '$RESPONSE_DATA[PK_CUSTOMER_DOCUMENT]'");
+    if ($document_data->RecordCount() > 0) {
+        if (file_exists('../../' . $document_data->fields['FILE_PATH'])) {
+            unlink('../../' . $document_data->fields['FILE_PATH']);
+        }
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_CUSTOMER_DOCUMENT` = '$RESPONSE_DATA[PK_CUSTOMER_DOCUMENT]'");
     }
 }
 

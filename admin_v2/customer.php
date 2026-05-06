@@ -793,12 +793,16 @@ $customer_color = $customer['color'];
                                 <div class="col-md-8 pt-4">
                                     <div id="user_edit_information">
                                         <div class="profile-card">
-                                            <div class="d-flex justify-content-between border-bottom">
+
+                                            <div class="d-flex justify-content-between border-bottom align-items-center">
                                                 <div>
                                                     <div class="section-title">Personal Information</div>
                                                     <div class="section-desc">Optional settings section description</div>
                                                 </div>
-                                                <a class="btn btn-outline-edit" style="height: min-content;" onclick="editPersonalInfo(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
+
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <a href="javascript:;" class="btn btn-outline-edit" style="height: min-content;" onclick="editPersonalInfo(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
+                                                </div>
                                             </div>
 
                                             <div class="avatar-placeholder mt-3">
@@ -935,14 +939,16 @@ $customer_color = $customer['color'];
 
 
                                     <div id="user_edit_address">
-
                                         <div class="profile-card">
-                                            <div class="d-flex justify-content-between border-bottom">
+                                            <div class="d-flex justify-content-between border-bottom align-items-center">
                                                 <div>
                                                     <div class="section-title">Address Information</div>
                                                     <div class="section-desc">Optional settings section description</div>
                                                 </div>
-                                                <a class="btn btn-outline-edit" style="height: min-content;" onclick="editAddress(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
+
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <a href="javascript:;" class="btn btn-outline-edit" style="height: min-content;" onclick="editAddress(<?= $PK_USER ?>, <?= $PK_USER_MASTER ?>)">Edit</a>
+                                                </div>
                                             </div>
 
                                             <div class="row mt-3">
@@ -1053,7 +1059,7 @@ $customer_color = $customer['color'];
                                                             </div>
                                                         </div>
                                                         <div class="text-secondary">
-                                                            <a href="javascript:;" onclick="removeUserDocument(this);">
+                                                            <a href="javascript:;" onclick="deleteCustomerDocument('<?= $row->fields['PK_CUSTOMER_DOCUMENT'] ?>');">
                                                                 <i class="fa fa-trash" style="font-size: 20px;"></i>
                                                             </a>
                                                         </div>
@@ -1100,7 +1106,7 @@ $customer_color = $customer['color'];
                                         </div>
 
                                         <div class="mt-3">
-                                            <a href="#" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
+                                            <a href="javascript:;" onclick="addCustomerDocument();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                         </div>
                                     </div>
                                 </div>
@@ -1115,9 +1121,9 @@ $customer_color = $customer['color'];
                                             while (!$comment_data->EOF) { ?>
                                                 <div class="internal-note">
                                                     <div class="d-flex justify-content-between">
-                                                        <strong><?= $comment_data->fields['FULL_NAME'] ?></strong>
-                                                        <div class="d-flex gap-2" style="margin-right: 45%;">
-                                                            <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="fa fa-pencil" style="font-size: 16px;"></i></a>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <strong><?= $comment_data->fields['FULL_NAME'] ?></strong>
+                                                            <a href="javascript:;" onclick="editComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="fa fa-pencil" style="font-size: 16px; margin-left: 10px;"></i></a>
                                                             <a href="javascript:;" onclick="deleteComment(<?= $comment_data->fields['PK_COMMENT'] ?>);"><i class="fa fa-trash" style="font-size: 16px;"></i></a>
                                                         </div>
                                                         <small class="text-muted"><?= date('m/d/Y', strtotime($comment_data->fields['COMMENT_DATE'])) ?></small>
@@ -1169,8 +1175,6 @@ $customer_color = $customer['color'];
                                                     <p class="text-muted mt-3">No family members added yet.</p>
                                                 </div>
                                             <?php } ?>
-
-
                                         </div>
 
                                         <a href="#" class="add-family-btn mt-2">
@@ -1315,6 +1319,43 @@ $customer_color = $customer['color'];
 
 
 
+<!--Document Model-->
+<div class="modal fade" id="document_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="document_header">Add Document</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#document_modal').modal('hide');"></button>
+            </div>
+            <form id="document_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+                    <input type="hidden" name="PK_CUSTOMER_DOCUMENT" id="PK_CUSTOMER_DOCUMENT" value="0">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Document Name</label>
+                            <input type="text" class="form-control" rows="10" name="DOCUMENT_NAME[]" id="DOCUMENT_NAME" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Document File</label>
+                            <input type="file" class="form-control" rows="10" name="FILE_PATH[]" id="FILE_PATH" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
 <!--Auto-pay Credit Card Modal-->
 <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -1376,7 +1417,7 @@ $customer_color = $customer['color'];
                         <div class="col-12">
                             <div class="form-group">
                                 <label class="form-label">Due Date</label>
-                                <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" autocomplete="off" required onkeydown="return false;">
+                                <input type="text" id="due_date" name="due_date" class="form-control datepicker-normal" placeholder="Due Date" autocomplete="off" required>
                             </div>
                         </div>
                     </div>
@@ -1684,6 +1725,68 @@ $customer_color = $customer['color'];
         });
     }
 </script>
+
+
+
+
+<!-- All function related to document -->
+<script>
+    function openDocumentAddModal() {
+        $('#document_modal').modal('show');
+    }
+
+    function addCustomerDocument() {
+        $('#document_header').text("Add Document");
+        $('#PK_CUSTOMER_DOCUMENT').val(0);
+        $('#DOCUMENT_NAME').val('');
+        $('#FILE_PATH').val('');
+        openDocumentAddModal();
+    }
+
+    $(document).on('submit', '#document_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#document_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
+
+    function deleteCustomerDocument(PK_CUSTOMER_DOCUMENT) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this document cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteCustomerDocument',
+                        PK_CUSTOMER_DOCUMENT: PK_CUSTOMER_DOCUMENT
+                    },
+                    success: function(data) {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+
+
 
 <!-- All function related to comment -->
 <script>
