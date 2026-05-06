@@ -123,7 +123,7 @@ while (!$serviceCodeData->EOF) {
                 </td>
             </tr>
             <?php
-            $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_TIP.TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE PK_ENROLLMENT_LEDGER = " . $billing_details->fields['PK_ENROLLMENT_LEDGER'] . " GROUP BY PK_ENROLLMENT_MASTER");
+            $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE PK_ENROLLMENT_LEDGER = " . $billing_details->fields['PK_ENROLLMENT_LEDGER'] . "");
             if ($payment_details->RecordCount() > 0) {
                 $p++;
                 $balance = $billed_amount;
@@ -131,6 +131,9 @@ while (!$serviceCodeData->EOF) {
                 while (!$payment_details->EOF) {
                     $PK_ENROLLMENT_MASTER = $payment_details->fields['PK_ENROLLMENT_MASTER'];
                     $PK_ENROLLMENT_LEDGER = $payment_details->fields['PK_ENROLLMENT_LEDGER'];
+                    $PK_ENROLLMENT_PAYMENT = $payment_details->fields['PK_ENROLLMENT_PAYMENT'];
+
+                    $tips_data = $db_account->Execute("SELECT TIP_AMOUNT FROM DOA_ENROLLMENT_TIP WHERE PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER AND PK_ENROLLMENT_PAYMENT = $PK_ENROLLMENT_PAYMENT LIMIT 1");
 
                     if ($payment_details->fields['TYPE'] == 'Payment' && $payment_details->fields['IS_REFUNDED'] == 0) {
                         $balance -= $payment_details->fields['AMOUNT'];
@@ -182,7 +185,7 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: center;"><?= $payment_details->fields['TYPE'] ?></td>
                         <td></td>
                         <td style="text-align: right;"><?= $payment_details->fields['AMOUNT'] ?></td>
-                        <td style="text-align: right;"><?= $payment_details->fields['TIP_AMOUNT'] ?></td>
+                        <td style="text-align: right;"><?= ($tips_data->RecordCount() > 0) ? $tips_data->fields['TIP_AMOUNT'] : '' ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right;"><?= ($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : number_format((float)$refund_balance, 2, '.', '') ?></td>
                         <td style="text-align: right;">
@@ -212,6 +215,7 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: center;"><?= date('m/d/Y', strtotime($cancelled_enrollment_ledger->fields['DUE_DATE'])) ?></td>
                 <td style="text-align: center;">Canceled<?php /*=$cancelled_enrollment_ledger->fields['TRANSACTION_TYPE']*/ ?></td>
                 <td style="text-align: right;"><?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?></td>
+                <td style="text-align: right;"></td>
                 <td style="text-align: right;"></td>
                 <td style="text-align: center;"><?= $cancelled_enrollment_ledger->fields['TRANSACTION_TYPE'] ?></td>
                 <td style="text-align: right;"><?= number_format((float)$cancelled_enrollment_ledger->fields['BALANCE'], 2, '.', '') ?></td>
@@ -257,6 +261,7 @@ while (!$serviceCodeData->EOF) {
                     <tr style="border-style: hidden; color: <?= ($cancelled_enrollment_payment_details->fields['TYPE'] == 'Refund') ? 'green' : '' ?>; background-color: <?= (fmod($b, 2) == 0) ? '#ebeced' : '' ?>;">
                         <td style="text-align: center;"><?= date('m/d/Y', strtotime($cancelled_enrollment_payment_details->fields['PAYMENT_DATE'])) ?></td>
                         <td style="text-align: center;"><?= $cancelled_enrollment_payment_details->fields['TYPE'] ?></td>
+                        <td></td>
                         <td></td>
                         <td style="text-align: right;"><?= $cancelled_enrollment_payment_details->fields['AMOUNT'] ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
@@ -307,6 +312,7 @@ while (!$serviceCodeData->EOF) {
                 <tr style="border-style: hidden;">
                     <td style="text-align: center;"><?= date('m/d/Y', strtotime($adjusted_payment_details->fields['PAYMENT_DATE'])) ?></td>
                     <td style="text-align: center;"><?= $adjusted_payment_details->fields['TYPE'] ?></td>
+                    <td></td>
                     <td></td>
                     <td style="text-align: right;"><?= $adjusted_payment_details->fields['AMOUNT'] ?></td>
                     <td style="text-align: center;"><?= $payment_type ?></td>

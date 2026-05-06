@@ -1232,7 +1232,9 @@ function saveDocumentData($RESPONSE_DATA)
             chmod('../../' . $upload_path . '/user_doc/', 0777);
         }
 
-        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        if (count($RESPONSE_DATA['DOCUMENT_NAME']) > 1) {
+            $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        }
         for ($i = 0; $i < count($RESPONSE_DATA['DOCUMENT_NAME']); $i++) {
             $USER_DOCUMENT_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
             $USER_DOCUMENT_DATA['DOCUMENT_NAME'] = $RESPONSE_DATA['DOCUMENT_NAME'][$i];
@@ -1252,6 +1254,20 @@ function saveDocumentData($RESPONSE_DATA)
             }
             db_perform_account('DOA_CUSTOMER_DOCUMENT', $USER_DOCUMENT_DATA, 'insert');
         }
+    }
+}
+
+function deleteCustomerDocument($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $document_data = $db_account->Execute("SELECT * FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_CUSTOMER_DOCUMENT` = '$RESPONSE_DATA[PK_CUSTOMER_DOCUMENT]'");
+    if ($document_data->RecordCount() > 0) {
+        if (file_exists('../../' . $document_data->fields['FILE_PATH'])) {
+            unlink('../../' . $document_data->fields['FILE_PATH']);
+        }
+        $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DOCUMENT` WHERE `PK_CUSTOMER_DOCUMENT` = '$RESPONSE_DATA[PK_CUSTOMER_DOCUMENT]'");
     }
 }
 
@@ -3462,4 +3478,32 @@ function deleteSpecialDate($RESPONSE_DATA)
 
     $PK_CUSTOMER_SPECIAL_DATE = $RESPONSE_DATA['PK_CUSTOMER_SPECIAL_DATE'];
     $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_SPECIAL_DATE` = '$PK_CUSTOMER_SPECIAL_DATE'");
+}
+
+
+function saveFamilyMemberData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $FAMILY_DATA['IS_PRIMARY'] = 0;
+    $FAMILY_DATA['PK_USER_MASTER'] = $RESPONSE_DATA['PK_USER_MASTER'];
+    $FAMILY_DATA['PK_CUSTOMER_PRIMARY'] = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
+    $FAMILY_DATA['FIRST_NAME'] = $RESPONSE_DATA['FAMILY_FIRST_NAME'];
+    $FAMILY_DATA['LAST_NAME'] = $RESPONSE_DATA['FAMILY_LAST_NAME'];
+    $FAMILY_DATA['PK_RELATIONSHIP'] = $RESPONSE_DATA['PK_RELATIONSHIP'];
+    $FAMILY_DATA['PHONE'] = $RESPONSE_DATA['FAMILY_PHONE'];
+    $FAMILY_DATA['EMAIL'] = $RESPONSE_DATA['FAMILY_EMAIL'];
+    //$FAMILY_DATA['GENDER'] = $RESPONSE_DATA['FAMILY_GENDER'];
+    //$FAMILY_DATA['DOB'] = date('Y-m-d', strtotime($RESPONSE_DATA['FAMILY_DOB']));
+    db_perform_account('DOA_CUSTOMER_DETAILS', $FAMILY_DATA, 'insert');
+    $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
+}
+
+function deleteFamilyMemberData($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
+    $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
 }

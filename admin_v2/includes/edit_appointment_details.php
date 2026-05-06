@@ -104,7 +104,7 @@ while (!$status_data->EOF) {
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Status</label>
-                                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS_NEW">
+                                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS_NEW" onchange="changeAppointmentStatus(this)">
                                         <option value="">Select Status</option>
                                         <?php
                                         $selected_status = '';
@@ -181,3 +181,13 @@ while (!$status_data->EOF) {
         </div>
     </form>
 </div>
+
+<script>
+    function changeAppointmentStatus(param) {
+        if ($(param).val() == 2) {
+            $('#IS_CHARGED').val(1);
+        } else {
+            $('#IS_CHARGED').val(0);
+        }
+    }
+</script>

@@ -81,14 +81,17 @@ if ($selected_primary_location->RecordCount() > 0) {
         <input type="hidden" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
         <input type="hidden" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
         <input type="hidden" name="FUNCTION_NAME" value="updateCustomerProfileDetails">
-        <div class="d-flex justify-content-between border-bottom">
+
+        <div class="d-flex justify-content-between border-bottom align-items-center">
             <div>
                 <div class="section-title">Personal Information</div>
                 <div class="section-desc">Optional settings section description</div>
             </div>
 
-            <a href="javascript:;" class="btn btn-secondary cancel" style="height: min-content; margin-left: 40%;">Cancel</a>
-            <button class="btn btn-secondary" type="submit" style="height: min-content;">Save</button>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="javascript:;" class="btn btn-secondary cancel">Cancel</a>
+                <button class="btn btn-secondary" type="submit">Save</button>
+            </div>
         </div>
 
         <div class="row mt-3 align-items-center">
@@ -177,7 +180,7 @@ if ($selected_primary_location->RecordCount() > 0) {
             <div class="col-6">
                 <div class="label">Phone</div>
                 <div class="value">
-                    <input type="text" name="PHONE" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= $PHONE ?>" />
+                    <input type="text" name="PHONE" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= formatPhone($PHONE) ?>" />
                 </div>
             </div>
             <div class="col-6">
@@ -315,28 +318,6 @@ if ($selected_primary_location->RecordCount() > 0) {
     $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select Location',
         selectAll: true
-    });
-
-    function formatPhoneNumber(input) {
-        let digits = input.value.replace(/\D/g, '');
-        if (digits.length > 10) {
-            digits = digits.slice(0, 10);
-        }
-        let formatted = digits;
-
-        if (digits.length <= 3) {
-            formatted = digits;
-        } else if (digits.length <= 6) {
-            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-        } else {
-            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-        }
-
-        input.value = formatted;
-    }
-
-    $(document).on('input', '.format_phone_number', function() {
-        formatPhoneNumber(this);
     });
 
     function addMorePhone() {

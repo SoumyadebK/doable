@@ -62,14 +62,15 @@ if ($selected_primary_location->RecordCount() > 0) {
         <input type="hidden" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
         <input type="hidden" name="FUNCTION_NAME" value="updateCustomerAddressDetails">
 
-        <div class="d-flex justify-content-between border-bottom">
+        <div class="d-flex justify-content-between border-bottom align-items-center">
             <div>
                 <div class="section-title">Address Information</div>
                 <div class="section-desc">Optional settings section description</div>
             </div>
-
-            <a href="javascript:;" class="btn btn-secondary cancel" style="height: min-content; margin-left: 40%;">Cancel</a>
-            <button class="btn btn-secondary" type="submit" style="height: min-content;">Save</button>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="javascript:;" class="btn btn-secondary cancel">Cancel</a>
+                <button class="btn btn-secondary" type="submit">Save</button>
+            </div>
         </div>
 
         <div class="row mt-3">
