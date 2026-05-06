@@ -121,29 +121,41 @@ while (!$res_users->EOF) {
 $conversations = [];
 
 if ($view_type == 'inbox') {
-    $res = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME 
+    $res = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED, 
+                         sender.FIRST_NAME as SENDER_FIRST_NAME, sender.LAST_NAME as SENDER_LAST_NAME,
+                         sender.USER_NAME as SENDER_USER_NAME
                          FROM DOA_EMAIL_RECEPTION 
                          INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL 
-                         LEFT JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY
+                         LEFT JOIN DOA_USERS sender ON sender.PK_USER = DOA_EMAIL.CREATED_BY
                          WHERE DOA_EMAIL_RECEPTION.PK_USER = $user_id 
                          AND DOA_EMAIL.DRAFT = 0 
                          AND DOA_EMAIL.ACTIVE = 1 
                          AND DOA_EMAIL_RECEPTION.DELETED = 0 
+                         GROUP BY DOA_EMAIL.PK_EMAIL
                          ORDER BY DOA_EMAIL.CREATED_ON DESC");
 } elseif ($view_type == 'sent') {
-    $res = $db->Execute("SELECT DOA_EMAIL.*, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME 
+    $res = $db->Execute("SELECT DOA_EMAIL.*, 
+                         GROUP_CONCAT(DISTINCT CONCAT(recipient.FIRST_NAME, ' ', recipient.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES,
+                         GROUP_CONCAT(DISTINCT recipient.USER_NAME SEPARATOR ', ') as RECIPIENT_USERNAMES
                          FROM DOA_EMAIL 
-                         LEFT JOIN DOA_USERS ON DOA_USERS.PK_USER = DOA_EMAIL.CREATED_BY
+                         LEFT JOIN DOA_EMAIL_RECEPTION ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL
+                         LEFT JOIN DOA_USERS recipient ON recipient.PK_USER = DOA_EMAIL_RECEPTION.PK_USER
                          WHERE DOA_EMAIL.CREATED_BY = $user_id 
                          AND DOA_EMAIL.DRAFT = 0 
                          AND DOA_EMAIL.ACTIVE = 1 
+                         GROUP BY DOA_EMAIL.PK_EMAIL
                          ORDER BY DOA_EMAIL.CREATED_ON DESC");
 } elseif ($view_type == 'draft') {
-    $res = $db->Execute("SELECT * FROM DOA_EMAIL 
-                         WHERE CREATED_BY = $user_id 
-                         AND DRAFT = 1 
-                         AND ACTIVE = 1 
-                         ORDER BY CREATED_ON DESC");
+    $res = $db->Execute("SELECT DOA_EMAIL.*, 
+                         GROUP_CONCAT(DISTINCT CONCAT(recipient.FIRST_NAME, ' ', recipient.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES
+                         FROM DOA_EMAIL 
+                         LEFT JOIN DOA_EMAIL_RECEPTION ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL
+                         LEFT JOIN DOA_USERS recipient ON recipient.PK_USER = DOA_EMAIL_RECEPTION.PK_USER
+                         WHERE DOA_EMAIL.CREATED_BY = $user_id 
+                         AND DOA_EMAIL.DRAFT = 1 
+                         AND DOA_EMAIL.ACTIVE = 1 
+                         GROUP BY DOA_EMAIL.PK_EMAIL
+                         ORDER BY DOA_EMAIL.CREATED_ON DESC");
 }
 
 if (isset($res) && $res->RecordCount() > 0) {
@@ -153,40 +165,96 @@ if (isset($res) && $res->RecordCount() > 0) {
     }
 }
 
-// Get selected conversation messages
+// Get selected conversation messages (without duplicates)
 $selected_messages = [];
 $selected_conversation_user = null;
 $conversation_subject = '';
+$conversation_recipients = '';
 
 if (!empty($conversation_id)) {
+    // Get the main email
     $res_email = $db->Execute("SELECT * FROM DOA_EMAIL WHERE PK_EMAIL = '$conversation_id' AND ACTIVE = 1");
     if ($res_email->RecordCount() > 0) {
         $conversation_subject = $res_email->fields['SUBJECT'];
-        $selected_messages[] = $res_email->fields;
 
+        // Get sender info
         $res_sender = $db->Execute("SELECT FIRST_NAME, LAST_NAME, USER_NAME FROM DOA_USERS WHERE PK_USER = '" . $res_email->fields['CREATED_BY'] . "'");
         if ($res_sender->RecordCount() > 0) {
             $selected_conversation_user = $res_sender->fields;
         }
 
-        // Mark as viewed
-        $db->Execute("UPDATE DOA_EMAIL_RECEPTION SET VIWED = 1 WHERE PK_EMAIL = '$conversation_id' AND PK_USER = '$user_id'");
+        // For sent items, get recipient info
+        if ($view_type == 'sent') {
+            $res_recipients = $db->Execute("SELECT GROUP_CONCAT(DISTINCT CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES
+                                           FROM DOA_EMAIL_RECEPTION er
+                                           LEFT JOIN DOA_USERS u ON u.PK_USER = er.PK_USER
+                                           WHERE er.PK_EMAIL = '$conversation_id'");
+            if ($res_recipients->RecordCount() > 0 && $res_recipients->fields['RECIPIENT_NAMES']) {
+                $conversation_recipients = $res_recipients->fields['RECIPIENT_NAMES'];
+            }
+        }
 
-        // Get replies
-        $res_replies = $db->Execute("SELECT * FROM DOA_EMAIL WHERE INTERNAL_ID = '$conversation_id' AND ACTIVE = 1 ORDER BY CREATED_ON ASC");
+        // Mark as viewed (only for inbox)
+        if ($view_type == 'inbox') {
+            $db->Execute("UPDATE DOA_EMAIL_RECEPTION SET VIWED = 1 WHERE PK_EMAIL = '$conversation_id' AND PK_USER = '$user_id'");
+        }
+
+        // Add main message
+        $selected_messages[$res_email->fields['PK_EMAIL']] = $res_email->fields;
+
+        // Get replies (messages where INTERNAL_ID equals this conversation ID)
+        $res_replies = $db->Execute("SELECT * FROM DOA_EMAIL WHERE INTERNAL_ID = '$conversation_id' AND ACTIVE = 1 AND PK_EMAIL != '$conversation_id' ORDER BY CREATED_ON ASC");
         while (!$res_replies->EOF) {
-            $selected_messages[] = $res_replies->fields;
+            // Use PK_EMAIL as key to prevent duplicates
+            $selected_messages[$res_replies->fields['PK_EMAIL']] = $res_replies->fields;
             $res_replies->MoveNext();
         }
+
+        // Sort messages by CREATED_ON
+        usort($selected_messages, function ($a, $b) {
+            return strtotime($a['CREATED_ON']) - strtotime($b['CREATED_ON']);
+        });
     }
+}
+
+// Function to get display name for conversation list
+function getDisplayName($row, $view_type)
+{
+    if ($view_type == 'inbox') {
+        if (!empty($row['SENDER_FIRST_NAME'])) {
+            return trim($row['SENDER_FIRST_NAME'] . ' ' . ($row['SENDER_LAST_NAME'] ?? ''));
+        }
+        return $row['SENDER_USER_NAME'] ?? 'System User';
+    } elseif ($view_type == 'sent') {
+        if (!empty($row['RECIPIENT_NAMES'])) {
+            return 'To: ' . $row['RECIPIENT_NAMES'];
+        }
+        return 'Recipient';
+    } elseif ($view_type == 'draft') {
+        if (!empty($row['RECIPIENT_NAMES'])) {
+            return 'To: ' . $row['RECIPIENT_NAMES'];
+        }
+        return 'Draft';
+    }
+    return 'User';
+}
+
+// Function to get initials
+function getInitials($name)
+{
+    if (empty($name) || $name == 'User') return 'U';
+    // Remove "To: " prefix for sent items
+    $cleanName = str_replace('To: ', '', $name);
+    $words = explode(' ', trim($cleanName));
+    if (count($words) >= 2) {
+        return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+    }
+    return strtoupper(substr($cleanName, 0, 2));
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-<?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
-<?php include 'layout/header.php'; ?>
 
 <head>
     <meta charset="UTF-8">
@@ -194,13 +262,10 @@ if (!empty($conversation_id)) {
     <title>Messaging Interface</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
-        /* custom resets to match the UI screenshot */
         body,
         html {
             height: 100%;
@@ -215,7 +280,6 @@ if (!empty($conversation_id)) {
             overflow: hidden;
         }
 
-        /* --- Sidebar Section --- */
         .sidebar {
             width: 360px;
             border-right: 1px solid #e0e0e0;
@@ -270,7 +334,6 @@ if (!empty($conversation_id)) {
             border-left: 3px solid #00B739;
         }
 
-        /* --- Chat Section --- */
         .chat-container {
             flex-grow: 1;
             display: flex;
@@ -292,7 +355,6 @@ if (!empty($conversation_id)) {
             overflow-y: auto;
         }
 
-        /* Bubble Styles */
         .avatar {
             width: 40px;
             height: 40px;
@@ -314,21 +376,6 @@ if (!empty($conversation_id)) {
         .message-content {
             margin-left: 15px;
             max-width: 500px;
-        }
-
-        .bubble {
-            padding: 12px 0px;
-            border-radius: 8px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .sent {
-            flex-direction: row;
-            justify-content: flex-start;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
         }
 
         .message-row.sent {
@@ -353,7 +400,6 @@ if (!empty($conversation_id)) {
             border-radius: 12px;
         }
 
-        /* --- Input Section --- */
         .input-area {
             padding: 20px;
             background-color: #fff;
@@ -383,14 +429,6 @@ if (!empty($conversation_id)) {
             color: #fff;
         }
 
-        .conversation-list.tab-pane.fade {
-            display: none;
-        }
-
-        .conversation-list.tab-pane.fade.active {
-            display: block;
-        }
-
         .modal-header.bg-green {
             background-color: #00B739;
             color: white;
@@ -409,12 +447,18 @@ if (!empty($conversation_id)) {
             padding: 50px;
             color: #999;
         }
+
+        .recipient-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
 <body class="bg-light">
 
-    <div class="container bg-white rounded border mx-auto">
+    <div class="container-fluid bg-white rounded border mx-auto">
         <div class="main-wrapper">
             <aside class="sidebar">
                 <div class="sidebar-header">
@@ -433,10 +477,13 @@ if (!empty($conversation_id)) {
 
                     <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link <?php echo $view_type == 'inbox' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=inbox'" type="button">External</button>
+                            <button class="nav-link <?php echo $view_type == 'inbox' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=inbox'" type="button">Inbox</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link <?php echo $view_type == 'sent' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=sent'" type="button">Internal</button>
+                            <button class="nav-link <?php echo $view_type == 'sent' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=sent'" type="button">Sent</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?php echo $view_type == 'draft' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=draft'" type="button">Drafts</button>
                         </li>
                     </ul>
                 </div>
@@ -448,38 +495,22 @@ if (!empty($conversation_id)) {
                             <p class="mt-3">No messages found</p>
                         </div>
                     <?php else: ?>
-                        <?php foreach ($conversations as $conv): ?>
+                        <?php foreach ($conversations as $conv):
+                            $displayName = getDisplayName($conv, $view_type);
+                            $initials = getInitials($displayName);
+                        ?>
                             <div class="conv-item <?php echo (isset($conv['VIWED']) && $conv['VIWED'] == 0 && $view_type == 'inbox') ? 'unread' : ''; ?> 
-                         <?php echo ($conversation_id == $conv['PK_EMAIL']) ? 'active' : ''; ?>"
+                             <?php echo ($conversation_id == $conv['PK_EMAIL']) ? 'active' : ''; ?>"
                                 onclick="window.location.href='message.php?id=<?php echo $conv['PK_EMAIL']; ?>&type=<?php echo $view_type; ?>'">
                                 <div class="d-flex">
-                                    <div class="avatar me-3">
-                                        <?php
-                                        $initial = '';
-                                        if (isset($conv['FIRST_NAME'])) {
-                                            $initial = strtoupper(substr($conv['FIRST_NAME'], 0, 1));
-                                        } else {
-                                            $initial = strtoupper(substr($conv['SUBJECT'] ?? 'M', 0, 1));
-                                        }
-                                        echo $initial;
-                                        ?>
-                                    </div>
+                                    <div class="avatar me-3"><?php echo $initials; ?></div>
                                     <div class="flex-grow-1 overflow-hidden">
                                         <div class="d-flex justify-content-between">
-                                            <span class="fw-bold small">
-                                                <?php
-                                                if (isset($conv['FIRST_NAME'])) {
-                                                    echo $conv['FIRST_NAME'] . ' ' . ($conv['LAST_NAME'] ?? '');
-                                                } else {
-                                                    echo 'System';
-                                                }
-                                                ?>
-                                            </span>
+                                            <span class="fw-bold small"><?php echo htmlspecialchars($displayName); ?></span>
                                             <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['CREATED_ON'])); ?></span>
                                         </div>
                                         <p class="text-muted small mb-0 text-truncate">
-                                            <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? '', 0, 30)); ?></strong><br>
-                                            <?php echo htmlspecialchars(substr(strip_tags($conv['CONTENT'] ?? ''), 0, 50)); ?>
+                                            <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? '', 0, 40)); ?></strong>
                                         </p>
                                     </div>
                                 </div>
@@ -495,25 +526,33 @@ if (!empty($conversation_id)) {
                         <div class="d-flex align-items-center">
                             <div class="avatar me-3">
                                 <?php
-                                $sender_name = $selected_conversation_user['FIRST_NAME'] ?? 'U';
-                                echo strtoupper(substr($sender_name, 0, 1));
+                                if ($view_type == 'sent') {
+                                    $header_display = 'To: ' . ($conversation_recipients ?: 'Recipient');
+                                } else {
+                                    $sender_display = trim(($selected_conversation_user['FIRST_NAME'] ?? '') . ' ' . ($selected_conversation_user['LAST_NAME'] ?? ''));
+                                    $header_display = $sender_display ?: 'System User';
+                                }
+                                echo getInitials($header_display);
                                 ?>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold">
                                     <?php
-                                    if ($selected_conversation_user) {
-                                        echo $selected_conversation_user['FIRST_NAME'] . ' ' . ($selected_conversation_user['LAST_NAME'] ?? '');
+                                    if ($view_type == 'sent') {
+                                        echo 'To: ' . htmlspecialchars($conversation_recipients ?: 'Recipient');
                                     } else {
-                                        echo 'System User';
+                                        echo htmlspecialchars($sender_display ?: 'System User');
                                     }
                                     ?>
                                 </h6>
                                 <small class="text-muted"><?php echo htmlspecialchars($conversation_subject); ?></small>
+                                <?php if ($view_type == 'sent' && !empty($conversation_recipients)): ?>
+                                    <div class="recipient-info">Sent to: <?php echo htmlspecialchars($conversation_recipients); ?></div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <button class="btn btn-sm bg-light fw-medium" style="border-radius: 20px;" onclick="replyToMessage(<?php echo $conversation_id; ?>)">
-                            <i class="bi bi-plus"></i> Schedule Appointment
+                            <i class="bi bi-reply"></i> Reply
                         </button>
                     </header>
 
@@ -527,27 +566,16 @@ if (!empty($conversation_id)) {
                                     $sender_info = $res_sender->fields;
                                 }
                             }
+                            $sender_display_name = $is_sent ? 'You' : trim(($sender_info['FIRST_NAME'] ?? 'User') . ' ' . ($sender_info['LAST_NAME'] ?? ''));
                         ?>
                             <div class="message-row <?php echo $is_sent ? 'sent' : 'received'; ?>">
                                 <?php if (!$is_sent): ?>
-                                    <div class="avatar">
-                                        <?php echo strtoupper(substr($sender_info['FIRST_NAME'] ?? 'U', 0, 1)); ?>
-                                    </div>
+                                    <div class="avatar"><?php echo getInitials($sender_display_name); ?></div>
                                 <?php endif; ?>
                                 <div class="message-content">
                                     <div class="mb-1">
-                                        <span class="fw-bold small">
-                                            <?php
-                                            if ($is_sent) {
-                                                echo 'You';
-                                            } else {
-                                                echo ($sender_info['FIRST_NAME'] ?? 'User') . ' ' . ($sender_info['LAST_NAME'] ?? '');
-                                            }
-                                            ?>
-                                        </span>
-                                        <span class="text-muted small ms-2">
-                                            <?php echo date("g:i A, M d", strtotime($msg['CREATED_ON'])); ?>
-                                        </span>
+                                        <span class="fw-bold small"><?php echo htmlspecialchars($sender_display_name); ?></span>
+                                        <span class="text-muted small ms-2"><?php echo date("g:i A, M d", strtotime($msg['CREATED_ON'])); ?></span>
                                     </div>
                                     <div class="bubble">
                                         <?php echo nl2br(htmlspecialchars($msg['CONTENT'] ?? '')); ?>
@@ -569,7 +597,7 @@ if (!empty($conversation_id)) {
                                 </div>
                                 <?php if ($is_sent): ?>
                                     <div class="avatar ms-3" style="background-color: #e8f5e9;">
-                                        <?php echo strtoupper(substr($_SESSION['FIRST_NAME'] ?? $_SESSION['USER_NAME'] ?? 'U', 0, 1)); ?>
+                                        <?php echo getInitials($_SESSION['FIRST_NAME'] ?? $_SESSION['USER_NAME'] ?? 'You'); ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -592,9 +620,7 @@ if (!empty($conversation_id)) {
                                         </label>
                                     </div>
                                     <div>
-                                        <button type="button" class="btn btn-light text-muted btn-sm px-4" style="background: #F5F7FA; border-radius: 20px;" onclick="saveReplyAsDraft()">
-                                            Save Draft
-                                        </button>
+                                        <button type="button" class="btn btn-light text-muted btn-sm px-4" style="background: #F5F7FA; border-radius: 20px;" onclick="saveReplyAsDraft()">Save Draft</button>
                                         <button type="submit" class="btn btn-light text-muted btn-sm px-4" style="background: #00B739; color: white; border-radius: 20px;">
                                             Send <i class="bi bi-send-fill ms-1"></i>
                                         </button>
@@ -617,7 +643,7 @@ if (!empty($conversation_id)) {
         </div>
     </div>
 
-    <!-- Compose Modal - Keep original design -->
+    <!-- Compose Modal -->
     <div class="modal fade" id="composeModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -633,7 +659,7 @@ if (!empty($conversation_id)) {
                             <select name="RECEPTION[]" id="recipients" class="form-control select2" multiple required style="width: 100%">
                                 <?php foreach ($users_list as $user): ?>
                                     <option value="<?php echo $user['PK_USER']; ?>">
-                                        <?php echo $user['FIRST_NAME'] . ' ' . ($user['LAST_NAME'] ?? '') . ' (' . $user['USER_NAME'] . ')'; ?>
+                                        <?php echo htmlspecialchars($user['FIRST_NAME'] . ' ' . ($user['LAST_NAME'] ?? '') . ' (' . $user['USER_NAME'] . ')'); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -663,8 +689,8 @@ if (!empty($conversation_id)) {
     </div>
 
     <script>
-        let uploadedFiles = [];
-        let replyUploadedFiles = [];
+        let composeAttachmentCount = 0;
+        let replyAttachmentCount = 0;
 
         $(document).ready(function() {
             $('.select2').select2({
@@ -688,12 +714,7 @@ if (!empty($conversation_id)) {
 
         function replyToMessage(id) {
             $('#composeModal').modal('show');
-            $('#composeSubject').val('Re: <?php echo addslashes($conversation_subject); ?>');
-            // You can also pre-fill recipients if needed
         }
-
-        let composeAttachmentCount = 0;
-        let replyAttachmentCount = 0;
 
         function uploadComposeAttachment(input) {
             let file = input.files[0];
@@ -720,7 +741,6 @@ if (!empty($conversation_id)) {
                         attachmentHtml += '<i class="bi bi-file-earmark"></i> ' + parts[1];
                         attachmentHtml += ' <a href="javascript:void(0)" onclick="removeComposeAttachment(' + composeAttachmentCount + ')" class="text-danger float-end"><i class="bi bi-x-circle"></i></a>';
                         attachmentHtml += '</div>';
-
                         $('#composeAttachments').append(attachmentHtml);
                         composeAttachmentCount++;
                         $('#composeFile').val('');
@@ -758,7 +778,6 @@ if (!empty($conversation_id)) {
                         attachmentHtml += '<small><i class="bi bi-paperclip"></i> ' + parts[1] + '</small>';
                         attachmentHtml += ' <a href="javascript:void(0)" onclick="removeReplyAttachment(' + replyAttachmentCount + ')" class="text-danger float-end"><i class="bi bi-x-sm"></i></a>';
                         attachmentHtml += '</div>';
-
                         $('#replyAttachments').append(attachmentHtml);
                         replyAttachmentCount++;
                         input.value = '';
@@ -793,7 +812,6 @@ if (!empty($conversation_id)) {
             $('#replyForm').submit();
         }
 
-        // Scroll to bottom of chat on load
         <?php if (!empty($conversation_id)): ?>
             var chatBody = document.getElementById('chatBody');
             if (chatBody) {
