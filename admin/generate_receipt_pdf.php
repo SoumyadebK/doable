@@ -92,7 +92,7 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
                 $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
                 $TIP_PERCENTAGE = ($enrollment_payment->fields['TIP_PERCENTAGE']) ? number_format($enrollment_payment->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
                 $TIP_AMOUNT = ($enrollment_payment->fields['TIP_AMOUNT']) ? '$' . number_format($enrollment_payment->fields['TIP_AMOUNT'], 2) : '$0.00';
-                $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
+                $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'] + floatval(str_replace('$', '', $TIP_AMOUNT));
                 $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
                 $enrollment_payment->MoveNext();
             }
