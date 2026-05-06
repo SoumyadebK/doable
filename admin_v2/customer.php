@@ -1159,12 +1159,12 @@ $customer_color = $customer['color'];
                                                             <div class="member-role"><?= $relation->fields['RELATIONSHIP'] ?></div>
                                                             <div class="contact-info">
                                                                 <span><?= $family_member_details->fields['EMAIL'] ?> <i class="bi bi-copy copy-icon"></i></span>
-                                                                <span><?= $family_member_details->fields['PHONE'] ?> <i class="bi bi-copy copy-icon"></i></span>
+                                                                <span><?= formatPhone($family_member_details->fields['PHONE']) ?> <i class="bi bi-copy copy-icon"></i></span>
                                                             </div>
                                                         </div>
-                                                        <div class="action-icons">
-                                                            <i class="bi bi-pencil me-2"></i>
-                                                            <i class="bi bi-trash"></i>
+                                                        <div class="gap-2 d-flex">
+                                                            <a href="javascript:;"><i class="fa fa-pencil" style="font-size: 20px;"></i></a>
+                                                            <a href="javascript:;" onclick="deleteFamilyMember('<?= $family_member_details->fields['PK_CUSTOMER_DETAILS'] ?>');"><i class="fa fa-trash" style="font-size: 20px;"></i></a>
                                                         </div>
                                                     </div>
                                                 <?php $family_member_details->MoveNext();
@@ -1177,7 +1177,7 @@ $customer_color = $customer['color'];
                                             <?php } ?>
                                         </div>
 
-                                        <a href="#" class="add-family-btn mt-2">
+                                        <a href="javascript:void(0)" onclick="addNewFamilyMember()" class="add-family-btn mt-2">
                                             <i class="bi bi-plus-lg me-2"></i> Add Family
                                         </a>
                                     </div>
@@ -1244,6 +1244,74 @@ $customer_color = $customer['color'];
     </div>
 </div>
 
+<!--Special Date Model-->
+<div class="modal fade" id="special_date_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="special_date_header">Add Special Date</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#special_date_modal').modal('hide');"></button>
+            </div>
+            <form id="special_date_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveSpecialDateData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
+                    <input type="hidden" name="PK_CUSTOMER_SPECIAL_DATE" id="PK_CUSTOMER_SPECIAL_DATE" value="0">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Date Title</label>
+                            <input class="form-control" rows="10" name="CUSTOMER_SPECIAL_DATE_NAME" id="CUSTOMER_SPECIAL_DATE_NAME" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Special Date</label>
+                            <input class="form-control datepicker-normal" rows="10" name="CUSTOMER_SPECIAL_DATE" id="CUSTOMER_SPECIAL_DATE" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--Document Model-->
+<div class="modal fade" id="document_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="document_header">Add Document</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#document_modal').modal('hide');"></button>
+            </div>
+            <form id="document_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+                    <input type="hidden" name="PK_CUSTOMER_DOCUMENT" id="PK_CUSTOMER_DOCUMENT" value="0">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Document Name</label>
+                            <input type="text" class="form-control" rows="10" name="DOCUMENT_NAME[]" id="DOCUMENT_NAME" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Document File</label>
+                            <input type="file" class="form-control" rows="10" name="FILE_PATH[]" id="FILE_PATH" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!--Comment Model-->
 <div class="modal fade" id="comment_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -1281,67 +1349,57 @@ $customer_color = $customer['color'];
 </div>
 
 
-
-<!--Special Date Model-->
-<div class="modal fade" id="special_date_modal" tabindex="-1" aria-hidden="true">
+<!--Family Member Model-->
+<div class="modal fade" id="family_member_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4><b id="special_date_header">Add Special Date</b></h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#special_date_modal').modal('hide');"></button>
+                <h4><b id="family_member_header">Add Family Member</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#family_member_modal').modal('hide');"></button>
             </div>
-            <form id="special_date_add_edit_form" role="form" action="" method="post">
+            <form id="family_member_add_edit_form" role="form" action="" method="post">
                 <div class="modal-body">
-                    <input type="hidden" name="FUNCTION_NAME" value="saveSpecialDateData">
-                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
-                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
-                    <input type="hidden" name="PK_CUSTOMER_SPECIAL_DATE" id="PK_CUSTOMER_SPECIAL_DATE" value="0">
-                    <div class="p-20">
-                        <div class="form-group">
-                            <label class="form-label">Date Title</label>
-                            <input class="form-control" rows="10" name="CUSTOMER_SPECIAL_DATE_NAME" id="CUSTOMER_SPECIAL_DATE_NAME" required>
-                        </div>
-                        <div class="form-group mt-3">
-                            <label class="form-label">Special Date</label>
-                            <input class="form-control datepicker-normal" rows="10" name="CUSTOMER_SPECIAL_DATE" id="CUSTOMER_SPECIAL_DATE" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-
-<!--Document Model-->
-<div class="modal fade" id="document_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4><b id="document_header">Add Document</b></h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#document_modal').modal('hide');"></button>
-            </div>
-            <form id="document_add_edit_form" role="form" action="" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="FUNCTION_NAME" value="saveDocumentData">
+                    <input type="hidden" name="FUNCTION_NAME" value="saveFamilyMemberData">
                     <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
                     <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
-                    <input type="hidden" name="PK_CUSTOMER_DOCUMENT" id="PK_CUSTOMER_DOCUMENT" value="0">
+                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
                     <div class="p-20">
                         <div class="form-group">
-                            <label class="form-label">Document Name</label>
-                            <input type="text" class="form-control" rows="10" name="DOCUMENT_NAME[]" id="DOCUMENT_NAME" required>
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="FAMILY_FIRST_NAME" id="FAMILY_FIRST_NAME" required>
                         </div>
                         <div class="form-group mt-3">
-                            <label class="form-label">Document File</label>
-                            <input type="file" class="form-control" rows="10" name="FILE_PATH[]" id="FILE_PATH" required>
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="FAMILY_LAST_NAME" id="FAMILY_LAST_NAME" required>
                         </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Relationship</label>
+                            <select class="form-control" name="PK_RELATIONSHIP" id="PK_RELATIONSHIP" required>
+                                <option>Select Relationship</option>
+                                <?php
+                                $row = $db->Execute("SELECT * FROM DOA_RELATIONSHIP WHERE ACTIVE = 1");
+                                while (!$row->EOF) { ?>
+                                    <option value="<?php echo $row->fields['PK_RELATIONSHIP']; ?>"><?= $row->fields['RELATIONSHIP'] ?></option>
+                                <?php $row->MoveNext();
+                                } ?>
+                            </select>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="FAMILY_EMAIL" id="FAMILY_EMAIL">
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control format_phone_number" name="FAMILY_PHONE" id="FAMILY_PHONE">
+                        </div>
+                        <!-- <div class="form-group mt-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-control" name="FAMILY_GENDER" id="FAMILY_GENDER">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div> -->
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1352,9 +1410,6 @@ $customer_color = $customer['color'];
         </div>
     </div>
 </div>
-
-
-
 
 <!--Auto-pay Credit Card Modal-->
 <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
@@ -1396,8 +1451,6 @@ $customer_color = $customer['color'];
         </div>
     </div>
 </div>
-
-
 
 <!--Edit Billing Due Date Model-->
 <div class="modal fade" id="billing_due_date_model" tabindex="-1" aria-hidden="true">
@@ -1441,7 +1494,6 @@ $customer_color = $customer['color'];
         </form>
     </div>
 </div>
-
 
 <!--Refund Model-->
 <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
@@ -1502,7 +1554,6 @@ $customer_color = $customer['color'];
         </div>
     </div>
 </div>
-
 
 <!--Confirm Model-->
 <div class="modal fade" id="move_to_wallet_model" tabindex="-1" aria-hidden="true">
@@ -1579,6 +1630,28 @@ $customer_color = $customer['color'];
 
 <!-- All function related to customer details edit -->
 <script>
+    function formatPhoneNumber(input) {
+        let digits = input.value.replace(/\D/g, '');
+        if (digits.length > 10) {
+            digits = digits.slice(0, 10);
+        }
+        let formatted = digits;
+
+        if (digits.length <= 3) {
+            formatted = digits;
+        } else if (digits.length <= 6) {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        } else {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        input.value = formatted;
+    }
+
+    $(document).on('input', '.format_phone_number', function() {
+        formatPhoneNumber(this);
+    });
+
     function editPersonalInfo(PK_USER, PK_USER_MASTER) {
         $.ajax({
             url: "partials/edit_customer_details.php",
@@ -1726,9 +1799,6 @@ $customer_color = $customer['color'];
     }
 </script>
 
-
-
-
 <!-- All function related to document -->
 <script>
     function openDocumentAddModal() {
@@ -1784,9 +1854,6 @@ $customer_color = $customer['color'];
         });
     }
 </script>
-
-
-
 
 <!-- All function related to comment -->
 <script>
@@ -1865,6 +1932,86 @@ $customer_color = $customer['color'];
         });
     }
 </script>
+
+
+
+<!-- All function related to Family Member -->
+<script>
+    function openFamilyMemberModel() {
+        $('#family_member_modal').modal('show');
+    }
+
+    function addNewFamilyMember() {
+        $('#family_member_header').text("Add Family Member");
+        $('#FAMILY_FIRST_NAME').val('');
+        $('#FAMILY_LAST_NAME').val('');
+        $('#FAMILY_EMAIL').val('');
+        $('#FAMILY_PHONE').val('');
+        $('#PK_RELATIONSHIP').val('');
+        openFamilyMemberModel();
+    }
+
+    function editFamilyMember(PK_FAMILY_MEMBER) {
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                FUNCTION_NAME: 'getEditFamilyMemberData',
+                PK_FAMILY_MEMBER: PK_FAMILY_MEMBER
+            },
+            success: function(data) {
+                $('#family_member_header').text("Edit Family Member");
+                $('#PK_FAMILY_MEMBER').val(data.fields.PK_FAMILY_MEMBER);
+                $('#FAMILY_MEMBER_NAME').val(data.fields.FAMILY_MEMBER_NAME);
+                $('#family_member_active').show();
+                openFamilyMemberModel();
+            }
+        });
+    }
+
+    $(document).on('submit', '#family_member_add_edit_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#family_member_add_edit_form')[0]); //$('#document_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
+
+    function deleteFamilyMember(PK_CUSTOMER_DETAILS) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this family member cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteFamilyMemberData',
+                        PK_CUSTOMER_DETAILS: PK_CUSTOMER_DETAILS
+                    },
+                    success: function(data) {
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+
 
 <!-- All function related to enrollment -->
 <script>

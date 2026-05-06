@@ -180,7 +180,7 @@ if ($selected_primary_location->RecordCount() > 0) {
             <div class="col-6">
                 <div class="label">Phone</div>
                 <div class="value">
-                    <input type="text" name="PHONE" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= $PHONE ?>" />
+                    <input type="text" name="PHONE" class="form-control format_phone_number" placeholder="Phone NUmber" value="<?= formatPhone($PHONE) ?>" />
                 </div>
             </div>
             <div class="col-6">
@@ -318,28 +318,6 @@ if ($selected_primary_location->RecordCount() > 0) {
     $('.multi_sumo_select').SumoSelect({
         placeholder: 'Select Location',
         selectAll: true
-    });
-
-    function formatPhoneNumber(input) {
-        let digits = input.value.replace(/\D/g, '');
-        if (digits.length > 10) {
-            digits = digits.slice(0, 10);
-        }
-        let formatted = digits;
-
-        if (digits.length <= 3) {
-            formatted = digits;
-        } else if (digits.length <= 6) {
-            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-        } else {
-            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-        }
-
-        input.value = formatted;
-    }
-
-    $(document).on('input', '.format_phone_number', function() {
-        formatPhoneNumber(this);
     });
 
     function addMorePhone() {

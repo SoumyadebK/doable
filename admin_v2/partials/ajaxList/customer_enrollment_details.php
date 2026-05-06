@@ -112,7 +112,8 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: right; padding-right: 45px;"><?= $billing_details->fields['BILLED_AMOUNT'] ?></td>
                 <td style="text-align: center;"></td>
                 <td style="text-align: center;"></td>
-                <td style="text-align: right; padding-right: 45px;"><?php /*=($billing_details->fields['AMOUNT_REMAIN'] > 0) ? $billing_details->fields['AMOUNT_REMAIN'] : ''*/ ?><?php /*=number_format((float)$balance, 2, '.', '')*/ ?></td>
+                <td style="text-align: center;"></td>
+                <td style="text-align: right; padding-right: 45px;"></td>
                 <td style="text-align: right; padding-right: 45px;">
                     <?php if ($billing_details->fields['IS_PAID'] == 0 && $billing_details->fields['STATUS'] == 'A') {
                         if ($billing_details->fields['AMOUNT_REMAIN'] > 0) { ?>
