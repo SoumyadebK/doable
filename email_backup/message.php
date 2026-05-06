@@ -19,11 +19,13 @@ if (!empty($_POST)) {
     $FILE_NAMES = $_POST['FILE_NAME'] ?? [];
     $FILE_LOCATIONS = $_POST['FILE_LOCATION'] ?? [];
     $PK_EMAIL_ATTACHMENT = $_POST['PK_EMAIL_ATTACHMENT'] ?? [];
+    $PARENT_EMAIL_ID = $_POST['PARENT_EMAIL_ID'] ?? null;
 
     unset($_POST['RECEPTION']);
     unset($_POST['FILE_NAME']);
     unset($_POST['FILE_LOCATION']);
     unset($_POST['PK_EMAIL_ATTACHMENT']);
+    unset($_POST['PARENT_EMAIL_ID']);
 
     if (isset($_POST['REMINDER_DATE']))
         $_POST['REMINDER_DATE'] = date("Y-m-d", strtotime($_POST['REMINDER_DATE']));
@@ -35,15 +37,29 @@ if (!empty($_POST)) {
     $EMAIL['PK_EMAIL_STATUS'] = 1;
     $EMAIL['CREATED_BY'] = $_SESSION['PK_USER'];
     $EMAIL['CREATED_ON'] = date("Y-m-d H:i");
-    $EMAIL['INTERNAL_ID'] = 0;
+
+    // If this is a reply, set INTERNAL_ID to the parent email ID to group them
+    if ($PARENT_EMAIL_ID) {
+        // Get the root conversation ID
+        $root_check = $db->Execute("SELECT INTERNAL_ID FROM DOA_EMAIL WHERE PK_EMAIL = '$PARENT_EMAIL_ID'");
+        if ($root_check->RecordCount() > 0 && $root_check->fields['INTERNAL_ID'] > 0) {
+            $EMAIL['INTERNAL_ID'] = $root_check->fields['INTERNAL_ID'];
+        } else {
+            $EMAIL['INTERNAL_ID'] = $PARENT_EMAIL_ID;
+        }
+    } else {
+        $EMAIL['INTERNAL_ID'] = 0;
+    }
+
     $EMAIL['DRAFT'] = isset($_POST['DRAFT']) ? $_POST['DRAFT'] : 0;
 
     db_perform('DOA_EMAIL', $EMAIL, 'insert');
     $PK_EMAIL = $db->insert_ID();
 
-    $EMAIL1['INTERNAL_ID'] = $PK_EMAIL;
-    $INTERNAL_ID = $PK_EMAIL;
-    db_perform('DOA_EMAIL', $EMAIL1, 'update', " PK_EMAIL = '$PK_EMAIL' ");
+    // If this is a new conversation (not a reply), set INTERNAL_ID to itself
+    if (!$PARENT_EMAIL_ID && $EMAIL['DRAFT'] == 0) {
+        $db->Execute("UPDATE DOA_EMAIL SET INTERNAL_ID = $PK_EMAIL WHERE PK_EMAIL = $PK_EMAIL");
+    }
 
     // Add recipients
     if (!empty($RECEPTIONS)) {
@@ -51,7 +67,7 @@ if (!empty($_POST)) {
             $res = $db->Execute("SELECT PK_EMAIL_RECEPTION FROM DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' AND PK_USER = '$RECEPTION' ");
 
             if ($res->RecordCount() == 0) {
-                $EMAIL_RECEPTION['INTERNAL_ID'] = $INTERNAL_ID;
+                $EMAIL_RECEPTION['INTERNAL_ID'] = ($PARENT_EMAIL_ID) ? ($EMAIL['INTERNAL_ID'] ?: $PK_EMAIL) : $PK_EMAIL;
                 $EMAIL_RECEPTION['PK_EMAIL'] = $PK_EMAIL;
                 $EMAIL_RECEPTION['PK_USER'] = $RECEPTION;
                 $EMAIL_RECEPTION['VIWED'] = 0;
@@ -117,45 +133,73 @@ while (!$res_users->EOF) {
     $res_users->MoveNext();
 }
 
-// Get conversation list based on view type
+// Get conversation list - Group by INTERNAL_ID to show threads
 $conversations = [];
 
 if ($view_type == 'inbox') {
-    $res = $db->Execute("SELECT DOA_EMAIL.*, DOA_EMAIL_RECEPTION.VIWED, 
-                         sender.FIRST_NAME as SENDER_FIRST_NAME, sender.LAST_NAME as SENDER_LAST_NAME,
-                         sender.USER_NAME as SENDER_USER_NAME
-                         FROM DOA_EMAIL_RECEPTION 
-                         INNER JOIN DOA_EMAIL ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL 
-                         LEFT JOIN DOA_USERS sender ON sender.PK_USER = DOA_EMAIL.CREATED_BY
-                         WHERE DOA_EMAIL_RECEPTION.PK_USER = $user_id 
-                         AND DOA_EMAIL.DRAFT = 0 
-                         AND DOA_EMAIL.ACTIVE = 1 
-                         AND DOA_EMAIL_RECEPTION.DELETED = 0 
-                         GROUP BY DOA_EMAIL.PK_EMAIL
-                         ORDER BY DOA_EMAIL.CREATED_ON DESC");
+    // Get all conversations where user is recipient
+    $res = $db->Execute("SELECT 
+                        COALESCE(e.INTERNAL_ID, e.PK_EMAIL) as THREAD_ID,
+                        MAX(e.PK_EMAIL) as LATEST_EMAIL_ID,
+                        MAX(e.CREATED_ON) as LAST_MESSAGE_DATE,
+                        MIN(e.CREATED_ON) as FIRST_MESSAGE_DATE,
+                        e.SUBJECT,
+                        MAX(CASE WHEN er.VIWED = 0 THEN 1 ELSE 0 END) as HAS_UNREAD,
+                        sender.FIRST_NAME as SENDER_FIRST_NAME, 
+                        sender.LAST_NAME as SENDER_LAST_NAME,
+                        sender.USER_NAME as SENDER_USER_NAME,
+                        (SELECT CONTENT FROM DOA_EMAIL e2 
+                         WHERE (e2.INTERNAL_ID = THREAD_ID OR e2.PK_EMAIL = THREAD_ID)
+                         AND e2.ACTIVE = 1 
+                         ORDER BY e2.CREATED_ON DESC LIMIT 1) as LAST_MESSAGE,
+                        (SELECT CREATED_BY FROM DOA_EMAIL e2 
+                         WHERE (e2.INTERNAL_ID = THREAD_ID OR e2.PK_EMAIL = THREAD_ID)
+                         AND e2.ACTIVE = 1 
+                         ORDER BY e2.CREATED_ON DESC LIMIT 1) as LAST_SENDER
+                        FROM DOA_EMAIL_RECEPTION er 
+                        INNER JOIN DOA_EMAIL e ON e.PK_EMAIL = er.PK_EMAIL 
+                        LEFT JOIN DOA_USERS sender ON sender.PK_USER = e.CREATED_BY
+                        WHERE er.PK_USER = $user_id 
+                        AND e.DRAFT = 0 
+                        AND e.ACTIVE = 1 
+                        AND er.DELETED = 0 
+                        GROUP BY THREAD_ID
+                        ORDER BY LAST_MESSAGE_DATE DESC");
 } elseif ($view_type == 'sent') {
-    $res = $db->Execute("SELECT DOA_EMAIL.*, 
-                         GROUP_CONCAT(DISTINCT CONCAT(recipient.FIRST_NAME, ' ', recipient.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES,
-                         GROUP_CONCAT(DISTINCT recipient.USER_NAME SEPARATOR ', ') as RECIPIENT_USERNAMES
-                         FROM DOA_EMAIL 
-                         LEFT JOIN DOA_EMAIL_RECEPTION ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL
-                         LEFT JOIN DOA_USERS recipient ON recipient.PK_USER = DOA_EMAIL_RECEPTION.PK_USER
-                         WHERE DOA_EMAIL.CREATED_BY = $user_id 
-                         AND DOA_EMAIL.DRAFT = 0 
-                         AND DOA_EMAIL.ACTIVE = 1 
-                         GROUP BY DOA_EMAIL.PK_EMAIL
-                         ORDER BY DOA_EMAIL.CREATED_ON DESC");
+    // Get all conversations where user is sender
+    $res = $db->Execute("SELECT 
+                        COALESCE(e.INTERNAL_ID, e.PK_EMAIL) as THREAD_ID,
+                        MAX(e.PK_EMAIL) as LATEST_EMAIL_ID,
+                        MAX(e.CREATED_ON) as LAST_MESSAGE_DATE,
+                        e.SUBJECT,
+                        GROUP_CONCAT(DISTINCT CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES,
+                        (SELECT CONTENT FROM DOA_EMAIL e2 
+                         WHERE (e2.INTERNAL_ID = THREAD_ID OR e2.PK_EMAIL = THREAD_ID)
+                         AND e2.ACTIVE = 1 
+                         ORDER BY e2.CREATED_ON DESC LIMIT 1) as LAST_MESSAGE
+                        FROM DOA_EMAIL e
+                        LEFT JOIN DOA_EMAIL_RECEPTION er ON e.PK_EMAIL = er.PK_EMAIL
+                        LEFT JOIN DOA_USERS u ON u.PK_USER = er.PK_USER
+                        WHERE e.CREATED_BY = $user_id 
+                        AND e.DRAFT = 0 
+                        AND e.ACTIVE = 1 
+                        GROUP BY THREAD_ID
+                        ORDER BY LAST_MESSAGE_DATE DESC");
 } elseif ($view_type == 'draft') {
-    $res = $db->Execute("SELECT DOA_EMAIL.*, 
-                         GROUP_CONCAT(DISTINCT CONCAT(recipient.FIRST_NAME, ' ', recipient.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES
-                         FROM DOA_EMAIL 
-                         LEFT JOIN DOA_EMAIL_RECEPTION ON DOA_EMAIL.PK_EMAIL = DOA_EMAIL_RECEPTION.PK_EMAIL
-                         LEFT JOIN DOA_USERS recipient ON recipient.PK_USER = DOA_EMAIL_RECEPTION.PK_USER
-                         WHERE DOA_EMAIL.CREATED_BY = $user_id 
-                         AND DOA_EMAIL.DRAFT = 1 
-                         AND DOA_EMAIL.ACTIVE = 1 
-                         GROUP BY DOA_EMAIL.PK_EMAIL
-                         ORDER BY DOA_EMAIL.CREATED_ON DESC");
+    $res = $db->Execute("SELECT 
+                        e.PK_EMAIL,
+                        e.SUBJECT,
+                        e.CONTENT,
+                        e.CREATED_ON,
+                        GROUP_CONCAT(DISTINCT CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES
+                        FROM DOA_EMAIL e
+                        LEFT JOIN DOA_EMAIL_RECEPTION er ON e.PK_EMAIL = er.PK_EMAIL
+                        LEFT JOIN DOA_USERS u ON u.PK_USER = er.PK_USER
+                        WHERE e.CREATED_BY = $user_id 
+                        AND e.DRAFT = 1 
+                        AND e.ACTIVE = 1 
+                        GROUP BY e.PK_EMAIL
+                        ORDER BY e.CREATED_ON DESC");
 }
 
 if (isset($res) && $res->RecordCount() > 0) {
@@ -165,76 +209,115 @@ if (isset($res) && $res->RecordCount() > 0) {
     }
 }
 
-// Get selected conversation messages (without duplicates)
+// Get selected conversation messages (all messages in this thread)
 $selected_messages = [];
 $selected_conversation_user = null;
 $conversation_subject = '';
 $conversation_recipients = '';
+$other_participant_id = null;
+$thread_id = $conversation_id;
 
 if (!empty($conversation_id)) {
-    // Get the main email
-    $res_email = $db->Execute("SELECT * FROM DOA_EMAIL WHERE PK_EMAIL = '$conversation_id' AND ACTIVE = 1");
-    if ($res_email->RecordCount() > 0) {
-        $conversation_subject = $res_email->fields['SUBJECT'];
+    // Determine the thread ID (could be either INTERNAL_ID or PK_EMAIL)
+    $check_thread = $db->Execute("SELECT COALESCE(INTERNAL_ID, PK_EMAIL) as THREAD_ID, SUBJECT, CREATED_BY 
+                                  FROM DOA_EMAIL 
+                                  WHERE PK_EMAIL = '$conversation_id' AND ACTIVE = 1");
 
-        // Get sender info
-        $res_sender = $db->Execute("SELECT FIRST_NAME, LAST_NAME, USER_NAME FROM DOA_USERS WHERE PK_USER = '" . $res_email->fields['CREATED_BY'] . "'");
-        if ($res_sender->RecordCount() > 0) {
-            $selected_conversation_user = $res_sender->fields;
-        }
+    if ($check_thread->RecordCount() > 0) {
+        $thread_id = $check_thread->fields['THREAD_ID'];
+        $conversation_subject = $check_thread->fields['SUBJECT'];
 
-        // For sent items, get recipient info
-        if ($view_type == 'sent') {
-            $res_recipients = $db->Execute("SELECT GROUP_CONCAT(DISTINCT CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) SEPARATOR ', ') as RECIPIENT_NAMES
-                                           FROM DOA_EMAIL_RECEPTION er
-                                           LEFT JOIN DOA_USERS u ON u.PK_USER = er.PK_USER
-                                           WHERE er.PK_EMAIL = '$conversation_id'");
-            if ($res_recipients->RecordCount() > 0 && $res_recipients->fields['RECIPIENT_NAMES']) {
-                $conversation_recipients = $res_recipients->fields['RECIPIENT_NAMES'];
+        // Get all messages in this thread (where INTERNAL_ID = thread_id OR PK_EMAIL = thread_id for root)
+        $res_messages = $db->Execute("SELECT e.*, 
+                                      (SELECT FIRST_NAME FROM DOA_USERS WHERE PK_USER = e.CREATED_BY) as SENDER_FNAME,
+                                      (SELECT LAST_NAME FROM DOA_USERS WHERE PK_USER = e.CREATED_BY) as SENDER_LNAME
+                                      FROM DOA_EMAIL e 
+                                      WHERE (e.INTERNAL_ID = '$thread_id' OR e.PK_EMAIL = '$thread_id')
+                                      AND e.ACTIVE = 1 
+                                      AND e.DRAFT = 0
+                                      ORDER BY e.CREATED_ON ASC");
+
+        if ($res_messages->RecordCount() > 0) {
+            // Get all unique participants in this conversation
+            $participants = [];
+            // $res_messages->MoveFirst();
+            while (!$res_messages->EOF) {
+                $participants[] = $res_messages->fields['CREATED_BY'];
+
+                // Also get recipients
+                $res_recep = $db->Execute("SELECT PK_USER FROM DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '" . $res_messages->fields['PK_EMAIL'] . "'");
+                while (!$res_recep->EOF) {
+                    $participants[] = $res_recep->fields['PK_USER'];
+                    $res_recep->MoveNext();
+                }
+
+                $res_messages->MoveNext();
+            }
+
+            // Find the other participant (not the current user)
+            $participants = array_unique($participants);
+            foreach ($participants as $participant) {
+                if ($participant != $user_id && $participant > 0) {
+                    $other_participant_id = $participant;
+                    $res_other = $db->Execute("SELECT FIRST_NAME, LAST_NAME, USER_NAME FROM DOA_USERS WHERE PK_USER = '$participant'");
+                    if ($res_other->RecordCount() > 0) {
+                        $selected_conversation_user = $res_other->fields;
+                    }
+                    break;
+                }
+            }
+
+            // Mark messages as viewed (for inbox)
+            if ($view_type == 'inbox') {
+                $db->Execute("UPDATE DOA_EMAIL_RECEPTION er 
+                             INNER JOIN DOA_EMAIL e ON e.PK_EMAIL = er.PK_EMAIL 
+                             SET er.VIWED = 1 
+                             WHERE (e.INTERNAL_ID = '$thread_id' OR e.PK_EMAIL = '$thread_id')
+                             AND er.PK_USER = '$user_id'");
+            }
+
+            // Get all messages again
+            $res_messages = $db->Execute("SELECT e.*, 
+                                          (SELECT FIRST_NAME FROM DOA_USERS WHERE PK_USER = e.CREATED_BY) as SENDER_FNAME,
+                                          (SELECT LAST_NAME FROM DOA_USERS WHERE PK_USER = e.CREATED_BY) as SENDER_LNAME
+                                          FROM DOA_EMAIL e 
+                                          WHERE (e.INTERNAL_ID = '$thread_id' OR e.PK_EMAIL = '$thread_id')
+                                          AND e.ACTIVE = 1 
+                                          AND e.DRAFT = 0
+                                          ORDER BY e.CREATED_ON ASC");
+
+            while (!$res_messages->EOF) {
+                $selected_messages[] = $res_messages->fields;
+                $res_messages->MoveNext();
             }
         }
-
-        // Mark as viewed (only for inbox)
-        if ($view_type == 'inbox') {
-            $db->Execute("UPDATE DOA_EMAIL_RECEPTION SET VIWED = 1 WHERE PK_EMAIL = '$conversation_id' AND PK_USER = '$user_id'");
-        }
-
-        // Add main message
-        $selected_messages[$res_email->fields['PK_EMAIL']] = $res_email->fields;
-
-        // Get replies (messages where INTERNAL_ID equals this conversation ID)
-        $res_replies = $db->Execute("SELECT * FROM DOA_EMAIL WHERE INTERNAL_ID = '$conversation_id' AND ACTIVE = 1 AND PK_EMAIL != '$conversation_id' ORDER BY CREATED_ON ASC");
-        while (!$res_replies->EOF) {
-            // Use PK_EMAIL as key to prevent duplicates
-            $selected_messages[$res_replies->fields['PK_EMAIL']] = $res_replies->fields;
-            $res_replies->MoveNext();
-        }
-
-        // Sort messages by CREATED_ON
-        usort($selected_messages, function ($a, $b) {
-            return strtotime($a['CREATED_ON']) - strtotime($b['CREATED_ON']);
-        });
     }
 }
 
 // Function to get display name for conversation list
-function getDisplayName($row, $view_type)
+function getDisplayName($conv, $view_type, $user_id)
 {
+    global $db;
+
     if ($view_type == 'inbox') {
-        if (!empty($row['SENDER_FIRST_NAME'])) {
-            return trim($row['SENDER_FIRST_NAME'] . ' ' . ($row['SENDER_LAST_NAME'] ?? ''));
+        // Get the last sender (most recent message)
+        $last_sender = $conv['LAST_SENDER'] ?? $conv['SENDER_FIRST_NAME'];
+
+        if ($last_sender && $last_sender != $user_id) {
+            $res = $db->Execute("SELECT FIRST_NAME, LAST_NAME FROM DOA_USERS WHERE PK_USER = '$last_sender'");
+            if ($res->RecordCount() > 0) {
+                return trim($res->fields['FIRST_NAME'] . ' ' . ($res->fields['LAST_NAME'] ?? ''));
+            }
         }
-        return $row['SENDER_USER_NAME'] ?? 'System User';
+
+        if (!empty($conv['SENDER_FIRST_NAME'])) {
+            return trim($conv['SENDER_FIRST_NAME'] . ' ' . ($conv['SENDER_LAST_NAME'] ?? ''));
+        }
+        return 'User';
     } elseif ($view_type == 'sent') {
-        if (!empty($row['RECIPIENT_NAMES'])) {
-            return 'To: ' . $row['RECIPIENT_NAMES'];
-        }
-        return 'Recipient';
+        return ($conv['RECIPIENT_NAMES'] ?? 'Recipient');
     } elseif ($view_type == 'draft') {
-        if (!empty($row['RECIPIENT_NAMES'])) {
-            return 'To: ' . $row['RECIPIENT_NAMES'];
-        }
-        return 'Draft';
+        return 'Draft: ' . ($conv['RECIPIENT_NAMES'] ?? 'No recipients');
     }
     return 'User';
 }
@@ -243,18 +326,31 @@ function getDisplayName($row, $view_type)
 function getInitials($name)
 {
     if (empty($name) || $name == 'User') return 'U';
-    // Remove "To: " prefix for sent items
     $cleanName = str_replace('To: ', '', $name);
+    $cleanName = str_replace('Draft: ', '', $cleanName);
     $words = explode(' ', trim($cleanName));
     if (count($words) >= 2) {
         return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
     }
     return strtoupper(substr($cleanName, 0, 2));
 }
+
+// Function to get profile badge
+// function getProfileBadge($CUSTOMER_NAME)
+// {
+//     $customer_initial = getInitials($CUSTOMER_NAME);
+//     $colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6'];
+//     $color_index = abs(crc32($CUSTOMER_NAME)) % count($colors);
+//     $color = $colors[$color_index];
+//     return ['initials' => $customer_initial, 'color' => $color];
+// }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
 
 <head>
     <meta charset="UTF-8">
@@ -265,6 +361,7 @@ function getInitials($name)
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body,
         html {
@@ -326,7 +423,6 @@ function getInitials($name)
 
         .conv-item.unread {
             background-color: #f0f7ff;
-            font-weight: bold;
         }
 
         .conv-item.active {
@@ -353,6 +449,8 @@ function getInitials($name)
             flex-grow: 1;
             padding: 30px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .avatar {
@@ -371,6 +469,19 @@ function getInitials($name)
         .message-row {
             display: flex;
             margin-bottom: 24px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message-content {
@@ -403,22 +514,20 @@ function getInitials($name)
         .input-area {
             padding: 20px;
             background-color: #fff;
+            border-top: 1px solid #eee;
         }
 
         .input-wrapper {
             border: 1px solid #e0e0e0;
             border-radius: 12px;
             padding: 15px;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
 
         .input-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: 10px;
         }
 
         .bg-light-green {
@@ -448,15 +557,41 @@ function getInitials($name)
             color: #999;
         }
 
-        .recipient-info {
+        .avatarname {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .last-message-preview {
             font-size: 12px;
             color: #666;
             margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-textarea {
+            border: none;
+            resize: none;
+            outline: none;
+            width: 100%;
+        }
+
+        .message-textarea:focus {
+            outline: none;
         }
     </style>
 </head>
 
-<body class="bg-light">
+<body>
 
     <div class="container-fluid bg-white rounded border mx-auto">
         <div class="main-wrapper">
@@ -467,23 +602,20 @@ function getInitials($name)
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" class="form-control border-start-0" id="searchMessages" placeholder="Search messages...">
                         </div>
-                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" style="border-radius: 20px;" onclick="window.location.href='message.php?type=<?php echo $view_type; ?>'">
-                            <i class="bi bi-filter"></i> Filter
-                        </button>
                         <button class="btn btn-sm bg-light-green rounded-circle" data-bs-toggle="modal" data-bs-target="#composeModal">
                             <i class="bi bi-pencil color-white"></i>
                         </button>
                     </div>
 
-                    <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link <?php echo $view_type == 'inbox' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=inbox'" type="button">Inbox</button>
+                    <ul class="nav nav-tabs nav-fill">
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $view_type == 'inbox' ? 'active' : ''; ?>" href="message.php?type=inbox">Inbox</a>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link <?php echo $view_type == 'sent' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=sent'" type="button">Sent</button>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $view_type == 'sent' ? 'active' : ''; ?>" href="message.php?type=sent">Sent</a>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link <?php echo $view_type == 'draft' ? 'active' : ''; ?>" onclick="window.location.href='message.php?type=draft'" type="button">Drafts</button>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $view_type == 'draft' ? 'active' : ''; ?>" href="message.php?type=draft">Drafts</a>
                         </li>
                     </ul>
                 </div>
@@ -496,22 +628,33 @@ function getInitials($name)
                         </div>
                     <?php else: ?>
                         <?php foreach ($conversations as $conv):
-                            $displayName = getDisplayName($conv, $view_type);
+                            $displayName = getDisplayName($conv, $view_type, $user_id);
                             $initials = getInitials($displayName);
+                            $customer = getProfileBadge($displayName);
+                            $customer_initial = $customer['initials'];
+                            $customer_color = $customer['color'];
+                            $has_unread = isset($conv['HAS_UNREAD']) && $conv['HAS_UNREAD'] == 1;
+                            $last_message = isset($conv['LAST_MESSAGE']) ? substr($conv['LAST_MESSAGE'], 0, 60) : '';
+                            $conv_id = isset($conv['THREAD_ID']) ? $conv['THREAD_ID'] : $conv['PK_EMAIL'];
                         ?>
-                            <div class="conv-item <?php echo (isset($conv['VIWED']) && $conv['VIWED'] == 0 && $view_type == 'inbox') ? 'unread' : ''; ?> 
-                             <?php echo ($conversation_id == $conv['PK_EMAIL']) ? 'active' : ''; ?>"
-                                onclick="window.location.href='message.php?id=<?php echo $conv['PK_EMAIL']; ?>&type=<?php echo $view_type; ?>'">
+                            <div class="conv-item <?php echo $has_unread ? 'unread' : ''; ?> 
+                             <?php echo ($conversation_id == $conv_id) ? 'active' : ''; ?>"
+                                onclick="window.location.href='message.php?id=<?php echo urlencode($conv_id); ?>&type=<?php echo $view_type; ?>'">
                                 <div class="d-flex">
-                                    <div class="avatar me-3"><?php echo $initials; ?></div>
+                                    <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
                                     <div class="flex-grow-1 overflow-hidden">
                                         <div class="d-flex justify-content-between">
                                             <span class="fw-bold small"><?php echo htmlspecialchars($displayName); ?></span>
-                                            <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['CREATED_ON'])); ?></span>
+                                            <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['LAST_MESSAGE_DATE'] ?? $conv['CREATED_ON'])); ?></span>
                                         </div>
                                         <p class="text-muted small mb-0 text-truncate">
                                             <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? '', 0, 40)); ?></strong>
                                         </p>
+                                        <?php if ($last_message): ?>
+                                            <div class="last-message-preview">
+                                                <?php echo htmlspecialchars($last_message); ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -530,7 +673,7 @@ function getInitials($name)
                                     $header_display = 'To: ' . ($conversation_recipients ?: 'Recipient');
                                 } else {
                                     $sender_display = trim(($selected_conversation_user['FIRST_NAME'] ?? '') . ' ' . ($selected_conversation_user['LAST_NAME'] ?? ''));
-                                    $header_display = $sender_display ?: 'System User';
+                                    $header_display = $sender_display ?: 'User';
                                 }
                                 echo getInitials($header_display);
                                 ?>
@@ -541,17 +684,14 @@ function getInitials($name)
                                     if ($view_type == 'sent') {
                                         echo 'To: ' . htmlspecialchars($conversation_recipients ?: 'Recipient');
                                     } else {
-                                        echo htmlspecialchars($sender_display ?: 'System User');
+                                        echo htmlspecialchars($sender_display ?: 'User');
                                     }
                                     ?>
                                 </h6>
                                 <small class="text-muted"><?php echo htmlspecialchars($conversation_subject); ?></small>
-                                <?php if ($view_type == 'sent' && !empty($conversation_recipients)): ?>
-                                    <div class="recipient-info">Sent to: <?php echo htmlspecialchars($conversation_recipients); ?></div>
-                                <?php endif; ?>
                             </div>
                         </div>
-                        <button class="btn btn-sm bg-light fw-medium" style="border-radius: 20px;" onclick="replyToMessage(<?php echo $conversation_id; ?>)">
+                        <button class="btn btn-sm bg-light fw-medium" style="border-radius: 20px;" onclick="replyToMessage('<?php echo htmlspecialchars($conversation_id); ?>', '<?php echo htmlspecialchars(addslashes($conversation_subject)); ?>', '<?php echo htmlspecialchars($other_participant_id); ?>')">
                             <i class="bi bi-reply"></i> Reply
                         </button>
                     </header>
@@ -559,14 +699,7 @@ function getInitials($name)
                     <div class="chat-body" id="chatBody">
                         <?php foreach ($selected_messages as $msg):
                             $is_sent = ($msg['CREATED_BY'] == $user_id);
-                            $sender_info = null;
-                            if (!$is_sent) {
-                                $res_sender = $db->Execute("SELECT FIRST_NAME, LAST_NAME FROM DOA_USERS WHERE PK_USER = '" . $msg['CREATED_BY'] . "'");
-                                if ($res_sender->RecordCount() > 0) {
-                                    $sender_info = $res_sender->fields;
-                                }
-                            }
-                            $sender_display_name = $is_sent ? 'You' : trim(($sender_info['FIRST_NAME'] ?? 'User') . ' ' . ($sender_info['LAST_NAME'] ?? ''));
+                            $sender_display_name = $is_sent ? 'You' : trim(($msg['SENDER_FNAME'] ?? 'User') . ' ' . ($msg['SENDER_LNAME'] ?? ''));
                         ?>
                             <div class="message-row <?php echo $is_sent ? 'sent' : 'received'; ?>">
                                 <?php if (!$is_sent): ?>
@@ -586,8 +719,8 @@ function getInitials($name)
                                     ?>
                                         <div class="mt-2">
                                             <?php while (!$res_attachments->EOF): ?>
-                                                <a href="<?php echo $res_attachments->fields['LOCATION']; ?>" target="_blank" class="text-muted small me-2">
-                                                    <i class="bi bi-paperclip"></i> <?php echo $res_attachments->fields['FILE_NAME']; ?>
+                                                <a href="<?php echo htmlspecialchars($res_attachments->fields['LOCATION']); ?>" target="_blank" class="text-muted small me-2">
+                                                    <i class="bi bi-paperclip"></i> <?php echo htmlspecialchars($res_attachments->fields['FILE_NAME']); ?>
                                                 </a>
                                             <?php
                                                 $res_attachments->MoveNext();
@@ -606,11 +739,12 @@ function getInitials($name)
 
                     <footer class="input-area">
                         <form method="post" action="message.php" enctype="multipart/form-data" id="replyForm">
-                            <input type="hidden" name="INTERNAL_ID" value="<?php echo $conversation_id; ?>">
+                            <input type="hidden" name="PARENT_EMAIL_ID" id="parentEmailId" value="<?php echo htmlspecialchars($conversation_id); ?>">
+                            <input type="hidden" name="RECEPTION[]" id="replyRecipient" value="<?php echo htmlspecialchars($other_participant_id); ?>">
                             <input type="hidden" name="DRAFT" id="replyDraft" value="0">
-                            <input type="hidden" name="SUBJECT" value="<?php echo htmlspecialchars('Re: ' . $conversation_subject); ?>">
+                            <input type="hidden" name="SUBJECT" id="replySubject" value="">
                             <div class="input-wrapper">
-                                <textarea name="CONTENT" id="replyContent" rows="3" placeholder="Write a message..." style="border: none; resize: none; outline: none; width: 100%;"></textarea>
+                                <textarea name="CONTENT" id="replyContent" class="message-textarea" rows="3" placeholder="Write a message..."></textarea>
                                 <div id="replyAttachments"></div>
                                 <div class="input-actions">
                                     <div class="d-flex gap-3 text-secondary">
@@ -710,10 +844,19 @@ function getInitials($name)
                     }
                 });
             });
+
+            // Auto-scroll to bottom of chat
+            var chatBody = document.getElementById('chatBody');
+            if (chatBody) {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
         });
 
-        function replyToMessage(id) {
-            $('#composeModal').modal('show');
+        function replyToMessage(conversationId, subject, recipientId) {
+            $('#parentEmailId').val(conversationId);
+            $('#replyRecipient').val(recipientId);
+            $('#replySubject').val('Re: ' + subject);
+            $('#replyContent').focus();
         }
 
         function uploadComposeAttachment(input) {
@@ -812,12 +955,12 @@ function getInitials($name)
             $('#replyForm').submit();
         }
 
-        <?php if (!empty($conversation_id)): ?>
-            var chatBody = document.getElementById('chatBody');
-            if (chatBody) {
-                chatBody.scrollTop = chatBody.scrollHeight;
+        // Refresh page periodically to check for new messages (optional)
+        setTimeout(function() {
+            if (window.location.href.indexOf('id=') > -1) {
+                location.reload();
             }
-        <?php endif; ?>
+        }, 30000);
     </script>
 
 </body>
