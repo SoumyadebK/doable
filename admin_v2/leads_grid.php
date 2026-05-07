@@ -11,15 +11,40 @@ $search_text = isset($_GET['search_text']) ? trim($_GET['search_text']) : '';
 $status_filter = isset($_GET['status']) ? trim($_GET['status']) : '';
 $choose_date = isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '' ? date('Y-m-d', strtotime($_GET['CHOOSE_DATE'])) : '';
 
-// Build search condition
+// Capture ALL filter parameters from URL (add this after the existing filter parameters)
+$filter_params = [
+    'search_text' => isset($_GET['search_text']) ? trim($_GET['search_text']) : '',
+    'status' => isset($_GET['status']) ? trim($_GET['status']) : '',
+    'CHOOSE_DATE' => isset($_GET['CHOOSE_DATE']) ? trim($_GET['CHOOSE_DATE']) : '',
+    'sort_by' => isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'newest'
+];
+
+// Also capture any other potential filter parameters
+foreach ($filter_params as $key => $value) {
+    $$key = $value; // Create variables like $search_text, $status, etc.
+}
+
+// Build search condition - FIXED PHONE SEARCH
 $search_condition = '';
 if ($search_text != '') {
-    $search_escaped = $search_text;
-    $search_condition = " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.PHONE LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
-                     OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    $search_escaped = addslashes($search_text); // Define this variable first!
+    $search_numeric = preg_replace('/\D/', '', $search_text);
+
+    // If search contains only numbers, search against numeric version of phone
+    if (strlen($search_numeric) >= 3) {
+        // Search in both original and numeric formats for phones
+        $search_condition = " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR REPLACE(REPLACE(REPLACE(REPLACE(DOA_LEADS.PHONE, '(', ''), ')', ''), '-', ''), ' ', '') LIKE '%$search_numeric%'
+                         OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
+                         OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    } else {
+        $search_condition = " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.PHONE LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
+                         OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    }
 }
 
 // Build status condition
@@ -32,12 +57,15 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     $status_condition = " AND DOA_LEADS.ACTIVE = 1";
 }
 
-// Build date condition
+// Fixed date condition - filters by LATEST follow-up date only
 $date_condition = '';
 if ($choose_date != '') {
-    $date_condition = " AND EXISTS (SELECT 1 FROM DOA_LEAD_DATE 
-                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       AND DATE = '$choose_date')";
+    $date_condition = " AND (
+        SELECT DATE FROM DOA_LEAD_DATE 
+        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+        ORDER BY CREATED_ON DESC 
+        LIMIT 1
+    ) = '$choose_date'";
 }
 
 // Add sorting parameter for grid view
@@ -189,7 +217,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
         .kanban-col {
             background-color: #f1f3f5;
             border-radius: 12px;
-            padding: 12px;
+            padding: 5px;
             min-height: 80vh;
         }
 
@@ -197,13 +225,13 @@ if ($status_filter != '' && $status_filter != 'inactive') {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             padding: 0 5px;
         }
 
         .col-title {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
         }
@@ -225,8 +253,8 @@ if ($status_filter != '' && $status_filter != 'inactive') {
         .lead-card {
             background: #fff;
             border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 5px;
+            margin-bottom: 5px;
             border: 1px solid transparent;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
             transition: transform 0.1s ease;
@@ -248,12 +276,12 @@ if ($status_filter != '' && $status_filter != 'inactive') {
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.75rem;
-            margin-right: 12px;
+            font-size: 0.5rem;
+            margin-right: 5px;
         }
 
         .lead-name {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 0;
             cursor: pointer;
@@ -264,19 +292,19 @@ if ($status_filter != '' && $status_filter != 'inactive') {
         }
 
         .lead-email {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #6c757d;
         }
 
         .lead-footer {
-            font-size: 0.75rem;
+            font-size: 0.6rem;
             color: #6c757d;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .icon-circle {
-            width: 45px;
-            height: 45px;
+            width: 35px;
+            height: 35px;
             text-align: center;
             border-radius: 25px;
         }
@@ -300,9 +328,9 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 
         .lead-icons {
             display: flex;
-            gap: 12px;
-            margin-top: 12px;
-            padding-top: 8px;
+            gap: 10px;
+            margin-top: 5px;
+            padding-top: 5px;
             border-top: 1px solid #f0f0f0;
         }
 
@@ -314,7 +342,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 
         .icon-with-pill i {
             color: #39b54a;
-            font-size: 14px;
+            font-size: 10px;
             cursor: pointer;
         }
 
@@ -1165,7 +1193,30 @@ if ($status_filter != '' && $status_filter != 'inactive') {
         // }
 
         function editpage(id, date) {
-            window.location.href = "leads.php?id=" + id + (date ? "&date=" + date : "");
+            // Get current filter parameters
+            let urlParams = new URLSearchParams(window.location.search);
+            let params = [];
+
+            // Preserve all filter parameters
+            let paramsToPreserve = ['search_text', 'status', 'CHOOSE_DATE', 'sort_by'];
+
+            for (let param of paramsToPreserve) {
+                if (urlParams.has(param)) {
+                    params.push(param + '=' + encodeURIComponent(urlParams.get(param)));
+                }
+            }
+
+            // Build the URL
+            let url = "leads.php?id=" + id;
+            if (date) {
+                params.push('date=' + encodeURIComponent(date));
+            }
+
+            if (params.length > 0) {
+                url += '&' + params.join('&');
+            }
+
+            window.location.href = url;
         }
 
         function ConfirmDelete(PK_LEADS) {

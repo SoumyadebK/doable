@@ -72,38 +72,29 @@ if (!empty($_POST)) {
         db_perform('DOA_LEAD_DATE', $LEAD_DATE, 'insert');
     }
 
-    // Preserve the date filter and other parameters when redirecting back
+    // Preserve ALL filters when redirecting back
     $redirect_url = "leads_grid.php";
     $preserve_params = array();
 
-    if (!empty($_POST['filter_start_date'])) {
-        $preserve_params['start_date'] = $_POST['filter_start_date'];
-    } elseif (!empty($_GET['filter_start_date'])) {
-        $preserve_params['start_date'] = $_GET['filter_start_date'];
-    }
+    // Preserve from POST or GET for all possible filter parameters
+    $filter_params = [
+        'filter_start_date',
+        'filter_end_date',
+        'filter_status',
+        'filter_search',
+        'filter_page',
+        'status',
+        'search_text',
+        'CHOOSE_DATE',
+        'sort_by'
+    ];
 
-    if (!empty($_POST['filter_end_date'])) {
-        $preserve_params['end_date'] = $_POST['filter_end_date'];
-    } elseif (!empty($_GET['filter_end_date'])) {
-        $preserve_params['end_date'] = $_GET['filter_end_date'];
-    }
-
-    if (!empty($_POST['filter_status'])) {
-        $preserve_params['status'] = $_POST['filter_status'];
-    } elseif (!empty($_GET['filter_status'])) {
-        $preserve_params['status'] = $_GET['filter_status'];
-    }
-
-    if (!empty($_POST['filter_search'])) {
-        $preserve_params['search_text'] = $_POST['filter_search'];
-    } elseif (!empty($_GET['filter_search'])) {
-        $preserve_params['search_text'] = $_GET['filter_search'];
-    }
-
-    if (!empty($_POST['filter_page'])) {
-        $preserve_params['page'] = $_POST['filter_page'];
-    } elseif (!empty($_GET['filter_page'])) {
-        $preserve_params['page'] = $_GET['filter_page'];
+    foreach ($filter_params as $param) {
+        if (!empty($_POST[$param])) {
+            $preserve_params[$param] = $_POST[$param];
+        } elseif (!empty($_GET[$param])) {
+            $preserve_params[$param] = $_GET[$param];
+        }
     }
 
     if (!empty($preserve_params)) {
@@ -362,7 +353,7 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                 <p class="text-muted small mb-0"><?= empty($_GET['id']) ? 'Add a new lead to the system' : 'Edit lead information and track status' ?></p>
                             </div>
                         </div>
-                        <button class="btn btn-success border-0 rounded-pill px-3" onclick="window.location.href='leads_grid.php'">
+                        <button class="btn btn-success border-0 rounded-pill px-3" onclick="goBackToLeads()">
                             <i class="bi bi-arrow-left me-1"></i> Back to Leads
                         </button>
                     </div>
@@ -560,6 +551,42 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function goBackToLeads() {
+            // Get all current filter parameters from URL
+            let urlParams = new URLSearchParams(window.location.search);
+            let filters = [];
+
+            // Preserve all filter parameters
+            let paramsToPreserve = ['filter_start_date', 'filter_end_date', 'filter_status', 'filter_search', 'filter_page'];
+
+            for (let param of paramsToPreserve) {
+                if (urlParams.has(param)) {
+                    filters.push(param + '=' + encodeURIComponent(urlParams.get(param)));
+                }
+            }
+
+            // Also preserve status, search_text, CHOOSE_DATE from other possible sources
+            if (urlParams.has('status')) {
+                filters.push('status=' + encodeURIComponent(urlParams.get('status')));
+            }
+            if (urlParams.has('search_text')) {
+                filters.push('search_text=' + encodeURIComponent(urlParams.get('search_text')));
+            }
+            if (urlParams.has('CHOOSE_DATE')) {
+                filters.push('CHOOSE_DATE=' + encodeURIComponent(urlParams.get('CHOOSE_DATE')));
+            }
+            if (urlParams.has('sort_by')) {
+                filters.push('sort_by=' + encodeURIComponent(urlParams.get('sort_by')));
+            }
+
+            let url = 'leads_grid.php';
+            if (filters.length > 0) {
+                url += '?' + filters.join('&');
+            }
+
+            window.location.href = url;
+        }
+
         // Function to format phone number as user types
         function formatPhoneNumber(input) {
             let digits = input.value.replace(/\D/g, '');

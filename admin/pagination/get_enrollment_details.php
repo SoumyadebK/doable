@@ -74,7 +74,7 @@ while (!$serviceCodeData->EOF) {
             <th style="text-align: center;">Due Date</th>
             <th style="text-align: center;">Transaction Type</th>
             <th style="text-align: center;">Billed Amount</th>
-            <th style="text-align: center;">Paid Amount</th>
+            <th style="text-align: center;">Paid Towards Billing</th>
             <th style="text-align: center;">Tip Amount</th>
             <th style="text-align: center;">Payment Type</th>
             <th style="text-align: center;">Balance</th>
