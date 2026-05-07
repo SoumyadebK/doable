@@ -95,6 +95,32 @@ if ($source !== 'customer_modal') {
 }
 ?>
 
+
+<?php if ($source !== 'customer_modal') { ?>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h5 class="fw-bold mb-1"><?= $appointment_title ?></h5>
+            <p class="text-muted small">Optional settings section description</p>
+        </div>
+
+        <div class="view-toggle m-r-15" style="top: 24px; right: 24px; height: 37px; display: flex; gap: 10px;">
+            <button class="view-btn-icon <?= ($type == 'normal') ? 'active' : '' ?>" onclick="getAppointmentList('normal')">
+                Today's & Future
+            </button>
+            <button class="view-btn-icon <?= ($type == 'cancelled') ? 'active' : '' ?>" onclick="getAppointmentList('cancelled')">
+                Cancelled
+            </button>
+            <button class="view-btn-icon <?= ($type == 'past') ? 'active' : '' ?>" onclick="getAppointmentList('past')">
+                Past
+            </button>
+        </div>
+
+        <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
+            <i class="bi bi-plus"></i> New Appointment
+        </button>
+    </div>
+<?php } ?>
+
 <?php if ($has_appointments): ?>
     <?php while (!$appointments->EOF):
         $appointment = $appointments->fields;
@@ -170,7 +196,7 @@ if ($source !== 'customer_modal') {
 
     <?php if ($source !== 'customer_modal') { ?>
         <div class="appointment-card">
-            <div class="d-flex justify-content-between align-items-start mb-4">
+            <!-- <div class="d-flex justify-content-between align-items-start mb-4">
                 <div>
                     <h5 class="fw-bold mb-1"><?= $appointment_title ?></h5>
                     <p class="text-muted small">Optional settings section description</p>
@@ -191,7 +217,7 @@ if ($source !== 'customer_modal') {
                 <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
                     <i class="bi bi-plus"></i> New Appointment
                 </button>
-            </div>
+            </div> -->
 
             <div class="table-responsive">
                 <table class="table mb-0">
