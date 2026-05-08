@@ -13,8 +13,40 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'] ?? 0;
 $user_id = $_SESSION['PK_USER'];
 
+// Check location selection - should be exactly ONE location
+$selected_location_id = $_SESSION['DEFAULT_LOCATION_ID'] ?? 0;
+$has_valid_location = false;
+
+// If DEFAULT_LOCATION_ID is an array or contains multiple values separated by commas
+if (!empty($selected_location_id)) {
+    // Check if multiple locations are selected (comma-separated or array)
+    if (is_array($selected_location_id)) {
+        $location_count = count($selected_location_id);
+    } else {
+        $location_count = substr_count($selected_location_id, ',') + 1;
+    }
+
+    // Valid only if exactly ONE location is selected
+    $has_valid_location = ($location_count == 1);
+}
+
 // Handle POST requests (Send message)
 if (!empty($_POST)) {
+    // Validate exactly ONE location is selected before sending (not draft)
+    $is_draft = isset($_POST['DRAFT']) ? $_POST['DRAFT'] : 0;
+
+    if ($is_draft == 0 && !$has_valid_location) {
+        // Store message data in session to restore after location selection
+        $_SESSION['pending_message'] = $_POST;
+?>
+        <script>
+            alert('Please select exactly ONE location from the top dropdown before sending messages.');
+            window.location.href = '../dashboard.php';
+        </script>
+<?php
+        exit;
+    }
+
     $RECEPTIONS = $_POST['RECEPTION'] ?? [];
     $FILE_NAMES = $_POST['FILE_NAME'] ?? [];
     $FILE_LOCATIONS = $_POST['FILE_LOCATION'] ?? [];
@@ -344,6 +376,23 @@ function getInitials($name)
 //     $color = $colors[$color_index];
 //     return ['initials' => $customer_initial, 'color' => $color];
 // }
+
+// Determine location status message
+$location_status_message = "";
+$location_status_class = "";
+if (!$selected_location_id) {
+    $location_status_message = "No location selected!";
+    $location_status_class = "danger";
+} else {
+    $location_count = is_array($selected_location_id) ? count($selected_location_id) : substr_count($selected_location_id, ',') + 1;
+    if ($location_count > 1) {
+        $location_status_message = "Multiple locations selected ($location_count locations)! Please select exactly ONE location.";
+        $location_status_class = "danger";
+    } else {
+        $location_status_message = "✓ Location selected: " . ($_SESSION['DEFAULT_LOCATION_NAME'] ?? 'Selected');
+        $location_status_class = "success";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -362,6 +411,8 @@ function getInitials($name)
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body,
         html {
@@ -588,12 +639,60 @@ function getInitials($name)
         .message-textarea:focus {
             outline: none;
         }
+
+        /* Location status banner */
+        .location-status {
+            padding: 12px 20px;
+            margin: 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 0;
+        }
+
+        .location-status-danger {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .location-status-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        .location-status-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="container-fluid bg-white rounded border mx-auto">
+        <!-- Location Status Banner -->
+        <?php if (!$has_valid_location): ?>
+            <div class="location-status location-status-<?php echo $location_status_class; ?>" id="locationStatusBanner">
+                <div>
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Location Issue!</strong> <?php echo $location_status_message; ?>
+                </div>
+                <button type="button" class="btn-close" onclick="$('#locationStatusBanner').fadeOut()"></button>
+            </div>
+        <?php elseif ($has_valid_location): ?>
+            <div class="location-status location-status-success" id="locationStatusBanner">
+                <div>
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <?php echo $location_status_message; ?>
+                </div>
+                <button type="button" class="btn-close" onclick="$('#locationStatusBanner').fadeOut()"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="main-wrapper">
             <aside class="sidebar">
                 <div class="sidebar-header">
@@ -602,7 +701,7 @@ function getInitials($name)
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" class="form-control border-start-0" id="searchMessages" placeholder="Search messages...">
                         </div>
-                        <button class="btn btn-sm bg-light-green rounded-circle" data-bs-toggle="modal" data-bs-target="#composeModal">
+                        <button class="btn btn-sm bg-light-green rounded-circle" id="composeBtn" data-bs-toggle="modal" data-bs-target="#composeModal">
                             <i class="bi bi-pencil color-white"></i>
                         </button>
                     </div>
@@ -691,7 +790,7 @@ function getInitials($name)
                                 <small class="text-muted"><?php echo htmlspecialchars($conversation_subject); ?></small>
                             </div>
                         </div>
-                        <button class="btn btn-sm bg-light fw-medium" style="border-radius: 20px;" onclick="replyToMessage('<?php echo htmlspecialchars($conversation_id); ?>', '<?php echo htmlspecialchars(addslashes($conversation_subject)); ?>', '<?php echo htmlspecialchars($other_participant_id); ?>')">
+                        <button class="btn btn-sm bg-light fw-medium reply-btn" style="border-radius: 20px;" onclick="replyToMessage('<?php echo htmlspecialchars($conversation_id); ?>', '<?php echo htmlspecialchars(addslashes($conversation_subject)); ?>', '<?php echo htmlspecialchars($other_participant_id); ?>')">
                             <i class="bi bi-reply"></i> Reply
                         </button>
                     </header>
@@ -738,7 +837,7 @@ function getInitials($name)
                     </div>
 
                     <footer class="input-area">
-                        <form method="post" action="message.php" enctype="multipart/form-data" id="replyForm">
+                        <form method="post" action="message.php" enctype="multipart/form-data" id="replyForm" onsubmit="return validateLocationBeforeSend(event, 'reply');">
                             <input type="hidden" name="PARENT_EMAIL_ID" id="parentEmailId" value="<?php echo htmlspecialchars($conversation_id); ?>">
                             <input type="hidden" name="RECEPTION[]" id="replyRecipient" value="<?php echo htmlspecialchars($other_participant_id); ?>">
                             <input type="hidden" name="DRAFT" id="replyDraft" value="0">
@@ -755,7 +854,7 @@ function getInitials($name)
                                     </div>
                                     <div>
                                         <button type="button" class="btn btn-light text-muted btn-sm px-4" style="background: #F5F7FA; border-radius: 20px;" onclick="saveReplyAsDraft()">Save Draft</button>
-                                        <button type="submit" class="btn btn-light text-muted btn-sm px-4" style="background: #00B739; color: white; border-radius: 20px;">
+                                        <button type="submit" class="btn btn-light text-muted btn-sm px-4 send-reply-btn" style="background: #00B739; color: white; border-radius: 20px;">
                                             Send <i class="bi bi-send-fill ms-1"></i>
                                         </button>
                                     </div>
@@ -768,7 +867,7 @@ function getInitials($name)
                         <i class="bi bi-chat-dots" style="font-size: 64px; color: #ddd;"></i>
                         <h5 class="mt-3">No conversation selected</h5>
                         <p class="text-muted">Select a message from the sidebar or compose a new one</p>
-                        <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#composeModal" style="background-color: #00B739;">
+                        <button class="btn btn-success mt-3 compose-new-btn" data-bs-toggle="modal" data-bs-target="#composeModal" style="background-color: #00B739;">
                             <i class="bi bi-envelope-plus"></i> Compose New Message
                         </button>
                     </div>
@@ -785,7 +884,7 @@ function getInitials($name)
                     <h5 class="modal-title"><i class="bi bi-envelope-plus"></i> Compose New Message</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post" action="message.php" enctype="multipart/form-data" id="composeForm">
+                <form method="post" action="message.php" enctype="multipart/form-data" id="composeForm" onsubmit="return validateLocationBeforeSend(event, 'compose');">
                     <div class="modal-body">
                         <input type="hidden" name="DRAFT" id="composeDraft" value="0">
                         <div class="mb-3">
@@ -793,7 +892,7 @@ function getInitials($name)
                             <select name="RECEPTION[]" id="recipients" class="form-control select2" multiple required style="width: 100%">
                                 <?php foreach ($users_list as $user): ?>
                                     <option value="<?php echo $user['PK_USER']; ?>">
-                                        <?php echo htmlspecialchars($user['FIRST_NAME'] . ' ' . ($user['LAST_NAME'] ?? '') . ' (' . $user['USER_NAME'] . ')'); ?>
+                                        <?php echo htmlspecialchars($user['FIRST_NAME'] . ' ' . ($user['LAST_NAME'] ?? '')); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -815,7 +914,7 @@ function getInitials($name)
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-light" onclick="saveComposeAsDraft()">Save Draft</button>
-                        <button type="submit" class="btn btn-success" style="background-color: #00B739;">Send Message</button>
+                        <button type="submit" class="btn btn-success send-message-btn" style="background-color: #00B739;">Send Message</button>
                     </div>
                 </form>
             </div>
@@ -825,6 +924,53 @@ function getInitials($name)
     <script>
         let composeAttachmentCount = 0;
         let replyAttachmentCount = 0;
+
+        // Location validation status from PHP - must have exactly ONE location
+        var hasValidLocation = <?php echo $has_valid_location ? 'true' : 'false'; ?>;
+
+        // Validate exactly ONE location is selected before sending message
+        function validateLocationBeforeSend(event, formType) {
+            // Check if this is a draft save (drafts should be allowed even without location)
+            var isDraft = false;
+            if (formType === 'compose') {
+                isDraft = document.getElementById('composeDraft').value === '1';
+            } else if (formType === 'reply') {
+                isDraft = document.getElementById('replyDraft').value === '1';
+            }
+
+            // Allow draft saving without location validation
+            if (isDraft) {
+                return true;
+            }
+
+            // Check if exactly ONE location is selected
+            if (!hasValidLocation) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Location Selection Required',
+                    html: '<strong>Please select exactly ONE location</strong><br><br>You currently have:<br>' +
+                        '<?php echo $selected_location_id ? (is_array($selected_location_id) ? count($selected_location_id) . " locations selected" : (substr_count($selected_location_id, ',') + 1) . " locations selected") : "No location selected"; ?>' +
+                        '<br><br>Please go back and select only one location from the top dropdown.',
+                    confirmButtonColor: '#00B739',
+                    confirmButtonText: 'OK',
+                    backdrop: true,
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Close modal if open
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('composeModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+                });
+                return false;
+            }
+            return true;
+        }
 
         $(document).ready(function() {
             $('.select2').select2({
@@ -850,9 +996,39 @@ function getInitials($name)
             if (chatBody) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             }
+
+            // Show location warning when trying to compose without exactly ONE location
+            $('#composeBtn, .compose-new-btn').on('click', function(e) {
+                if (!hasValidLocation) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Location Selection Required',
+                        html: '<strong>Please select exactly ONE location</strong><br><br>You currently have:<br>' +
+                            '<?php echo $selected_location_id ? (is_array($selected_location_id) ? count($selected_location_id) . " locations selected" : (substr_count($selected_location_id, ',') + 1) . " locations selected") : "No location selected"; ?>' +
+                            '<br><br>Please select only one location from the top dropdown to compose messages.',
+                        confirmButtonColor: '#00B739',
+                        confirmButtonText: 'OK'
+                    });
+                    return false;
+                }
+            });
         });
 
         function replyToMessage(conversationId, subject, recipientId) {
+            if (!hasValidLocation) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Location Selection Required',
+                    html: '<strong>Please select exactly ONE location</strong><br><br>You currently have:<br>' +
+                        '<?php echo $selected_location_id ? (is_array($selected_location_id) ? count($selected_location_id) . " locations selected" : (substr_count($selected_location_id, ',') + 1) . " locations selected") : "No location selected"; ?>' +
+                        '<br><br>Please select only one location from the top dropdown to reply to messages.',
+                    confirmButtonColor: '#00B739',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
             $('#parentEmailId').val(conversationId);
             $('#replyRecipient').val(recipientId);
             $('#replySubject').val('Re: ' + subject);
@@ -876,7 +1052,12 @@ function getInitials($name)
                 success: function(data) {
                     let parts = data.split('||');
                     if (parts[0] == 0) {
-                        alert(parts[1]);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Failed',
+                            text: parts[1],
+                            confirmButtonColor: '#00B739'
+                        });
                     } else {
                         let attachmentHtml = '<div id="compose_attach_' + composeAttachmentCount + '" class="attachment-item">';
                         attachmentHtml += '<input type="hidden" name="FILE_NAME[]" value="' + parts[1] + '">';
@@ -913,7 +1094,12 @@ function getInitials($name)
                 success: function(data) {
                     let parts = data.split('||');
                     if (parts[0] == 0) {
-                        alert(parts[1]);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Failed',
+                            text: parts[1],
+                            confirmButtonColor: '#00B739'
+                        });
                     } else {
                         let attachmentHtml = '<div id="reply_attach_' + replyAttachmentCount + '" class="attachment-item">';
                         attachmentHtml += '<input type="hidden" name="FILE_NAME[]" value="' + parts[1] + '">';
@@ -935,11 +1121,21 @@ function getInitials($name)
 
         function saveComposeAsDraft() {
             if (!$('#composeSubject').val()) {
-                alert('Please enter a subject');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Subject',
+                    text: 'Please enter a subject',
+                    confirmButtonColor: '#00B739'
+                });
                 return;
             }
             if (!$('#recipients').val()) {
-                alert('Please select at least one recipient');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Recipient',
+                    text: 'Please select at least one recipient',
+                    confirmButtonColor: '#00B739'
+                });
                 return;
             }
             $('#composeDraft').val('1');
@@ -948,7 +1144,12 @@ function getInitials($name)
 
         function saveReplyAsDraft() {
             if (!$('#replyContent').val()) {
-                alert('Please enter a message');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Message',
+                    text: 'Please enter a message',
+                    confirmButtonColor: '#00B739'
+                });
                 return;
             }
             $('#replyDraft').val('1');
