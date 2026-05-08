@@ -432,7 +432,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
             return;
         } else {
             $.ajax({
-                url: "ajax/AjaxFunctions.php",
+                url: "../admin_v2/ajax/AjaxFunctions.php",
                 type: "POST",
                 data: {
                     FUNCTION_NAME: 'selectDefaultLocation',
