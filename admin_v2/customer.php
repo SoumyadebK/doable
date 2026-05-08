@@ -1601,6 +1601,39 @@ $customer_color = $customer['color'];
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <script>
+    $(document).ready(function() {
+        var hash = window.location.hash;
+        if (hash) {
+            var target = '';
+            var callFunction = null;
+            if (hash === '#profile') target = '.tab-content-1';
+            else if (hash === '#family') target = '.tab-content-2';
+            else if (hash === '#enrollments') {
+                target = '.tab-content-3';
+                callFunction = function() {
+                    loadEnrollment('normal');
+                };
+            } else if (hash === '#appointments') {
+                target = '.tab-content-4';
+                callFunction = function() {
+                    getAppointmentList('normal');
+                };
+            } else if (hash === '#payments') {
+                target = '.tab-content-5';
+                callFunction = function() {
+                    getPaymentRegisterData();
+                };
+            }
+            if (target) {
+                $('.sidebar-link').removeClass('active');
+                $('.sidebar-link[data-toggle-target="' + target + '"]').addClass('active');
+                $('.tab-content').removeClass('active');
+                $(target).addClass('active');
+                if (callFunction) callFunction();
+            }
+        }
+    });
+
     $('.sidebar-link').on('click', function(evt) {
         evt.preventDefault();
 
@@ -1612,6 +1645,15 @@ $customer_color = $customer['color'];
         var sel = $(this).data('toggle-target'); // Using .data() is cleaner jQuery style
         $('.tab-content').removeClass('active');
         $(sel).addClass('active');
+
+        // 3. Set hash for URL
+        var hash = '';
+        if (sel === '.tab-content-1') hash = '#profile';
+        else if (sel === '.tab-content-2') hash = '#family';
+        else if (sel === '.tab-content-3') hash = '#enrollments';
+        else if (sel === '.tab-content-4') hash = '#appointments';
+        else if (sel === '.tab-content-5') hash = '#payments';
+        if (hash) window.location.hash = hash;
     });
 
     $('.datepicker-normal').datepicker({

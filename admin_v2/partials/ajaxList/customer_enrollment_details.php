@@ -188,7 +188,7 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: center;"><?= $payment_details->fields['TYPE'] ?></td>
                         <td></td>
                         <td style="text-align: right; padding-right: 45px;"><?= $payment_details->fields['AMOUNT'] ?></td>
-                        <td style="text-align: right; padding-right: 45px;"><?= ($payment_details->fields['TIP_AMOUNT'] > 0) ? $payment_details->fields['TIP_AMOUNT'] : '' ?></td>
+                        <td style="text-align: right; padding-right: 45px;"><?= (($tips_data->RecordCount() > 0) && $tips_data->fields['TIP_AMOUNT'] > 0) ? $tips_data->fields['TIP_AMOUNT'] : '' ?></td>
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right; padding-right: 45px;"><?= ($payment_details->fields['TYPE'] == 'Payment' || $payment_details->fields['TYPE'] == 'Adjustment') ? number_format((float)$balance, 2, '.', '') : number_format((float)$refund_balance, 2, '.', '') ?></td>
                         <td style="text-align: right; padding-right: 45px;">
