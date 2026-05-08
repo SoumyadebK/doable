@@ -1114,9 +1114,9 @@ $customer_color = $customer['color'];
                                 <div class="col-md-4 pt-4">
                                     <div class="profile-card">
                                         <div class="section-title border-bottom pb-2">Internal Notes</div>
-                                        <div class="mt-3">
+                                        <div class="mt-3" style="max-height: 600px; overflow-y: auto;" id="customer_comments_area">
                                             <?php
-                                            $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER);
+                                            $comment_data = $db->Execute("SELECT $account_database.DOA_COMMENT.PK_COMMENT, $account_database.DOA_COMMENT.COMMENT, $account_database.DOA_COMMENT.COMMENT_DATE, $account_database.DOA_COMMENT.ACTIVE, CONCAT($master_database.DOA_USERS.FIRST_NAME, ' ', $master_database.DOA_USERS.LAST_NAME) AS FULL_NAME FROM $account_database.`DOA_COMMENT` INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_COMMENT.BY_PK_USER = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_COMMENT.`FOR_PK_USER` = " . $PK_USER . " ORDER BY $account_database.DOA_COMMENT.COMMENT_DATE DESC");
                                             $i = 1;
                                             while (!$comment_data->EOF) { ?>
                                                 <div class="internal-note">
@@ -1134,8 +1134,8 @@ $customer_color = $customer['color'];
                                             <?php $comment_data->MoveNext();
                                                 $i++;
                                             } ?>
-                                            <a href="javascript:;" onclick="createUserComment();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                         </div>
+                                        <a href="javascript:;" onclick="createUserComment();" class="add-btn"><i class="bi bi-plus"></i> Add New</a>
                                     </div>
                                 </div>
                             </div>

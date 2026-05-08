@@ -240,6 +240,7 @@ if ($source !== 'customer_modal') {
                             $count = count($apps);
                             $day = date('D', strtotime($date));
                             $num = date('j', strtotime($date));
+                            $month = date('M', strtotime($date));
                             $first_row = true;
                             foreach ($apps as $app) {
                                 $service_name = $app['SERVICE_NAME'] ?: 'Private Lesson';
@@ -277,8 +278,9 @@ if ($source !== 'customer_modal') {
                                 if ($first_row) {
                                     $border_class = $is_first_group ? '' : ' border-top';
                                     echo '<td rowspan="' . $count . '" class="date-col' . $border_class . '">';
-                                    echo '<span class="date-day">' . $day . '</span>';
+                                    echo '<span class="date-day" style="font-size: 0.9rem; color: #000;">' . $month . '</span>';
                                     echo '<span class="date-num">' . $num . '</span>';
+                                    echo '<span class="date-day">' . $day . '</span>';
                                     echo '</td>';
                                     $first_row = false;
                                 } else {

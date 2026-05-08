@@ -470,12 +470,15 @@ function rearrangeSerialNumber($PK_USER_MASTER)
 function getPaidCount($PK_ENROLLMENT_SERVICE)
 {
     global $db_account;
-    $paid_count = $db_account->Execute("SELECT `TOTAL_AMOUNT_PAID`,`PRICE_PER_SESSION` FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
+    $paid_count = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $PK_ENROLLMENT_SERVICE);
     if ($paid_count->RecordCount() > 0) {
         $total_amount_paid = $paid_count->fields['TOTAL_AMOUNT_PAID'];
         $price_per_session = $paid_count->fields['PRICE_PER_SESSION'];
+        $number_of_session = $paid_count->fields['NUMBER_OF_SESSION'];
         if ($total_amount_paid > 0 && $price_per_session > 0) {
             return number_format($total_amount_paid / $price_per_session, 2);
+        } elseif ($price_per_session <= 0) {
+            return $number_of_session;
         } else {
             return 0;
         }
