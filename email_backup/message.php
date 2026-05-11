@@ -32,11 +32,12 @@ if (!empty($selected_location_id)) {
 
 // Handle POST requests (Send message)
 if (!empty($_POST)) {
-    // Validate exactly ONE location is selected before sending (not draft)
+    // Check if updating an existing draft
+    $update_draft_id = isset($_POST['UPDATE_DRAFT']) ? $_POST['UPDATE_DRAFT'] : null;
     $is_draft = isset($_POST['DRAFT']) ? $_POST['DRAFT'] : 0;
 
-    if ($is_draft == 0 && !$has_valid_location) {
-        // Store message data in session to restore after location selection
+    // Validate exactly ONE location is selected before sending (not draft)
+    if ($is_draft == 0 && !$has_valid_location && !$update_draft_id) {
         $_SESSION['pending_message'] = $_POST;
 ?>
         <script>
@@ -52,12 +53,15 @@ if (!empty($_POST)) {
     $FILE_LOCATIONS = $_POST['FILE_LOCATION'] ?? [];
     $PK_EMAIL_ATTACHMENT = $_POST['PK_EMAIL_ATTACHMENT'] ?? [];
     $PARENT_EMAIL_ID = $_POST['PARENT_EMAIL_ID'] ?? null;
+    $DRAFT_ID = $_POST['DRAFT_ID'] ?? null;
 
     unset($_POST['RECEPTION']);
     unset($_POST['FILE_NAME']);
     unset($_POST['FILE_LOCATION']);
     unset($_POST['PK_EMAIL_ATTACHMENT']);
     unset($_POST['PARENT_EMAIL_ID']);
+    unset($_POST['DRAFT_ID']);
+    unset($_POST['UPDATE_DRAFT']);
 
     if (isset($_POST['REMINDER_DATE']))
         $_POST['REMINDER_DATE'] = date("Y-m-d", strtotime($_POST['REMINDER_DATE']));
@@ -70,36 +74,59 @@ if (!empty($_POST)) {
     $EMAIL['CREATED_BY'] = $_SESSION['PK_USER'];
     $EMAIL['CREATED_ON'] = date("Y-m-d H:i");
 
-    // If this is a reply, set INTERNAL_ID to the parent email ID to group them
-    if ($PARENT_EMAIL_ID) {
-        // Get the root conversation ID
-        $root_check = $db->Execute("SELECT INTERNAL_ID FROM DOA_EMAIL WHERE PK_EMAIL = '$PARENT_EMAIL_ID'");
-        if ($root_check->RecordCount() > 0 && $root_check->fields['INTERNAL_ID'] > 0) {
-            $EMAIL['INTERNAL_ID'] = $root_check->fields['INTERNAL_ID'];
+    // Handle draft update
+    if ($update_draft_id && $is_draft == 1) {
+        // Update existing draft
+        $EMAIL['MODIFIED_ON'] = date("Y-m-d H:i");
+        $where = "PK_EMAIL = '$update_draft_id' AND CREATED_BY = '$user_id' AND DRAFT = 1";
+        db_perform('DOA_EMAIL', $EMAIL, 'update', $where);
+        $PK_EMAIL = $update_draft_id;
+
+        // Delete existing recipients and re-add
+        $db->Execute("DELETE FROM DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL'");
+
+        // Delete existing attachments that weren't kept
+        if (!empty($PK_EMAIL_ATTACHMENT)) {
+            $keep_attachments = implode(',', array_map('intval', $PK_EMAIL_ATTACHMENT));
+            $db->Execute("DELETE FROM DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$PK_EMAIL' AND PK_EMAIL_ATTACHMENT NOT IN ($keep_attachments)");
         } else {
-            $EMAIL['INTERNAL_ID'] = $PARENT_EMAIL_ID;
+            $db->Execute("DELETE FROM DOA_EMAIL_ATTACHMENT WHERE PK_EMAIL = '$PK_EMAIL'");
         }
     } else {
-        $EMAIL['INTERNAL_ID'] = 0;
-    }
+        // Insert new email
+        $EMAIL['DRAFT'] = $is_draft;
 
-    $EMAIL['DRAFT'] = isset($_POST['DRAFT']) ? $_POST['DRAFT'] : 0;
+        // If this is a reply, set INTERNAL_ID to the parent email ID to group them
+        if ($PARENT_EMAIL_ID) {
+            $root_check = $db->Execute("SELECT INTERNAL_ID FROM DOA_EMAIL WHERE PK_EMAIL = '$PARENT_EMAIL_ID'");
+            if ($root_check->RecordCount() > 0 && $root_check->fields['INTERNAL_ID'] > 0) {
+                $EMAIL['INTERNAL_ID'] = $root_check->fields['INTERNAL_ID'];
+            } else {
+                $EMAIL['INTERNAL_ID'] = $PARENT_EMAIL_ID;
+            }
+        } else {
+            $EMAIL['INTERNAL_ID'] = 0;
+        }
 
-    db_perform('DOA_EMAIL', $EMAIL, 'insert');
-    $PK_EMAIL = $db->insert_ID();
+        db_perform('DOA_EMAIL', $EMAIL, 'insert');
+        $PK_EMAIL = $db->insert_ID();
 
-    // If this is a new conversation (not a reply), set INTERNAL_ID to itself
-    if (!$PARENT_EMAIL_ID && $EMAIL['DRAFT'] == 0) {
-        $db->Execute("UPDATE DOA_EMAIL SET INTERNAL_ID = $PK_EMAIL WHERE PK_EMAIL = $PK_EMAIL");
+        // If this is a new conversation (not a reply), set INTERNAL_ID to itself
+        if (!$PARENT_EMAIL_ID && $is_draft == 0) {
+            $db->Execute("UPDATE DOA_EMAIL SET INTERNAL_ID = $PK_EMAIL WHERE PK_EMAIL = $PK_EMAIL");
+        } elseif ($is_draft == 1) {
+            // For drafts, set INTERNAL_ID to 0 initially
+            $db->Execute("UPDATE DOA_EMAIL SET INTERNAL_ID = 0 WHERE PK_EMAIL = $PK_EMAIL");
+        }
     }
 
     // Add recipients
     if (!empty($RECEPTIONS)) {
         foreach ($RECEPTIONS as $RECEPTION) {
-            $res = $db->Execute("SELECT PK_EMAIL_RECEPTION FROM DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' AND PK_USER = '$RECEPTION' ");
+            $res = $db->Execute("SELECT PK_EMAIL_RECEPTION FROM DOA_EMAIL_RECEPTION WHERE PK_EMAIL = '$PK_EMAIL' AND PK_USER = '$RECEPTION'");
 
             if ($res->RecordCount() == 0) {
-                $EMAIL_RECEPTION['INTERNAL_ID'] = ($PARENT_EMAIL_ID) ? ($EMAIL['INTERNAL_ID'] ?: $PK_EMAIL) : $PK_EMAIL;
+                $EMAIL_RECEPTION['INTERNAL_ID'] = ($PARENT_EMAIL_ID && $is_draft == 0) ? ($EMAIL['INTERNAL_ID'] ?: $PK_EMAIL) : ($is_draft == 0 ? $PK_EMAIL : 0);
                 $EMAIL_RECEPTION['PK_EMAIL'] = $PK_EMAIL;
                 $EMAIL_RECEPTION['PK_USER'] = $RECEPTION;
                 $EMAIL_RECEPTION['VIWED'] = 0;
@@ -111,7 +138,7 @@ if (!empty($_POST)) {
         }
     }
 
-    // Handle attachments
+    // Handle new attachments
     if (!empty($FILE_NAMES)) {
         $i = 0;
         foreach ($FILE_NAMES as $FILE_NAME) {
@@ -126,7 +153,11 @@ if (!empty($_POST)) {
         }
     }
 
-    if ($_POST['DRAFT'] == 0) {
+    if ($is_draft == 0) {
+        // If this was a draft being sent, delete the draft version
+        if ($update_draft_id) {
+            $db->Execute("UPDATE DOA_EMAIL SET ACTIVE = 0 WHERE PK_EMAIL = '$update_draft_id'");
+        }
         header("location:message.php?type=sent");
     } else {
         header("location:message.php?type=draft");
@@ -249,7 +280,7 @@ $conversation_recipients = '';
 $other_participant_id = null;
 $thread_id = $conversation_id;
 
-if (!empty($conversation_id)) {
+if (!empty($conversation_id) && $view_type != 'draft') {
     // Determine the thread ID (could be either INTERNAL_ID or PK_EMAIL)
     $check_thread = $db->Execute("SELECT COALESCE(INTERNAL_ID, PK_EMAIL) as THREAD_ID, SUBJECT, CREATED_BY 
                                   FROM DOA_EMAIL 
@@ -269,10 +300,29 @@ if (!empty($conversation_id)) {
                                       AND e.DRAFT = 0
                                       ORDER BY e.CREATED_ON ASC");
 
+        // After getting $res_messages, add this:
+        if ($view_type == 'sent') {
+            // Get all unique recipients for this conversation
+            $recipient_names = [];
+            $res_recipients = $db->Execute("SELECT DISTINCT u.PK_USER, u.FIRST_NAME, u.LAST_NAME 
+                                    FROM DOA_EMAIL_RECEPTION er
+                                    INNER JOIN DOA_USERS u ON u.PK_USER = er.PK_USER
+                                    INNER JOIN DOA_EMAIL e ON e.PK_EMAIL = er.PK_EMAIL
+                                    WHERE (e.INTERNAL_ID = '$thread_id' OR e.PK_EMAIL = '$thread_id')
+                                    AND e.ACTIVE = 1 
+                                    AND u.PK_USER != '$user_id'");
+
+            $recipient_list = [];
+            while (!$res_recipients->EOF) {
+                $recipient_list[] = trim($res_recipients->fields['FIRST_NAME'] . ' ' . ($res_recipients->fields['LAST_NAME'] ?? ''));
+                $res_recipients->MoveNext();
+            }
+            $conversation_recipients = implode(', ', $recipient_list);
+        }
+
         if ($res_messages->RecordCount() > 0) {
             // Get all unique participants in this conversation
             $participants = [];
-            // $res_messages->MoveFirst();
             while (!$res_messages->EOF) {
                 $participants[] = $res_messages->fields['CREATED_BY'];
 
@@ -668,6 +718,11 @@ if (!$selected_location_id) {
             border-left: 4px solid #28a745;
             color: #155724;
         }
+
+        .btn-edit-draft {
+            padding: 2px 6px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -701,7 +756,7 @@ if (!$selected_location_id) {
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" class="form-control border-start-0" id="searchMessages" placeholder="Search messages...">
                         </div>
-                        <button class="btn btn-sm bg-light-green rounded-circle" id="composeBtn" data-bs-toggle="modal" data-bs-target="#composeModal">
+                        <button class="btn btn-sm bg-light-green rounded-circle" id="composeBtn">
                             <i class="bi bi-pencil color-white"></i>
                         </button>
                     </div>
@@ -735,47 +790,76 @@ if (!$selected_location_id) {
                             $has_unread = isset($conv['HAS_UNREAD']) && $conv['HAS_UNREAD'] == 1;
                             $last_message = isset($conv['LAST_MESSAGE']) ? substr($conv['LAST_MESSAGE'], 0, 60) : '';
                             $conv_id = isset($conv['THREAD_ID']) ? $conv['THREAD_ID'] : $conv['PK_EMAIL'];
+
+                            if ($view_type == 'draft'):
                         ?>
-                            <div class="conv-item <?php echo $has_unread ? 'unread' : ''; ?> 
-                             <?php echo ($conversation_id == $conv_id) ? 'active' : ''; ?>"
-                                onclick="window.location.href='message.php?id=<?php echo urlencode($conv_id); ?>&type=<?php echo $view_type; ?>'">
-                                <div class="d-flex">
-                                    <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-bold small"><?php echo htmlspecialchars($displayName); ?></span>
-                                            <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['LAST_MESSAGE_DATE'] ?? $conv['CREATED_ON'])); ?></span>
-                                        </div>
-                                        <p class="text-muted small mb-0 text-truncate">
-                                            <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? '', 0, 40)); ?></strong>
-                                        </p>
-                                        <?php if ($last_message): ?>
-                                            <div class="last-message-preview">
-                                                <?php echo htmlspecialchars($last_message); ?>
+                                <div class="conv-item">
+                                    <div class="d-flex align-items-center">
+                                        <div><span class="avatarname" style="color: #fff; background-color: #ffc107;">D</span></div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="fw-bold small"><?php echo htmlspecialchars(substr($conv['RECIPIENT_NAMES'] ?? 'No recipients', 0, 30)); ?></span>
+                                                <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['CREATED_ON'])); ?></span>
                                             </div>
-                                        <?php endif; ?>
+                                            <p class="text-muted small mb-0 text-truncate">
+                                                <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? 'No subject', 0, 40)); ?></strong>
+                                            </p>
+                                            <?php if (!empty($conv['CONTENT'])): ?>
+                                                <div class="last-message-preview">
+                                                    <?php echo htmlspecialchars(substr($conv['CONTENT'], 0, 60)); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="ms-2">
+                                            <button class="btn btn-sm btn-outline-warning btn-edit-draft" onclick="event.stopPropagation(); editDraftDirect(<?php echo $conv['PK_EMAIL']; ?>, '<?php echo htmlspecialchars(addslashes($conv['SUBJECT'])); ?>', '<?php echo htmlspecialchars(addslashes($conv['CONTENT'])); ?>', '<?php echo htmlspecialchars(addslashes($conv['RECIPIENT_NAMES'])); ?>')" title="Edit Draft">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php else: ?>
+                                <div class="conv-item <?php echo $has_unread ? 'unread' : ''; ?> 
+                             <?php echo ($conversation_id == $conv_id) ? 'active' : ''; ?>"
+                                    onclick="window.location.href='message.php?id=<?php echo urlencode($conv_id); ?>&type=<?php echo $view_type; ?>'">
+                                    <div class="d-flex">
+                                        <div><span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span></div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="fw-bold small"><?php echo htmlspecialchars($displayName); ?></span>
+                                                <span class="text-muted small"><?php echo date("m/d/Y", strtotime($conv['LAST_MESSAGE_DATE'] ?? $conv['CREATED_ON'])); ?></span>
+                                            </div>
+                                            <p class="text-muted small mb-0 text-truncate">
+                                                <strong><?php echo htmlspecialchars(substr($conv['SUBJECT'] ?? '', 0, 40)); ?></strong>
+                                            </p>
+                                            <?php if ($last_message): ?>
+                                                <div class="last-message-preview">
+                                                    <?php echo htmlspecialchars($last_message); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </aside>
 
             <main class="chat-container">
-                <?php if (!empty($conversation_id) && !empty($selected_messages)): ?>
+                <?php if (!empty($conversation_id) && !empty($selected_messages) && $view_type != 'draft'): ?>
                     <header class="chat-header">
                         <div class="d-flex align-items-center">
-                            <div class="avatar me-3">
-                                <?php
-                                if ($view_type == 'sent') {
-                                    $header_display = 'To: ' . ($conversation_recipients ?: 'Recipient');
-                                } else {
-                                    $sender_display = trim(($selected_conversation_user['FIRST_NAME'] ?? '') . ' ' . ($selected_conversation_user['LAST_NAME'] ?? ''));
-                                    $header_display = $sender_display ?: 'User';
-                                }
-                                echo getInitials($header_display);
-                                ?>
+                            <div class="avatar me-3" style="background-color: <?php
+                                                                                if ($view_type == 'sent') {
+                                                                                    $header_display =  ($conversation_recipients ?: 'Recipient');
+                                                                                } else {
+                                                                                    $sender_display = trim(($selected_conversation_user['FIRST_NAME'] ?? '') . ' ' . ($selected_conversation_user['LAST_NAME'] ?? ''));
+                                                                                    $header_display = $sender_display ?: 'User';
+                                                                                }
+                                                                                $badge = getProfileBadge($header_display);
+                                                                                echo $badge['color'];
+                                                                                ?>; color: white;">
+                                <?php echo $badge['initials']; ?>
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold">
@@ -802,7 +886,10 @@ if (!$selected_location_id) {
                         ?>
                             <div class="message-row <?php echo $is_sent ? 'sent' : 'received'; ?>">
                                 <?php if (!$is_sent): ?>
-                                    <div class="avatar"><?php echo getInitials($sender_display_name); ?></div>
+                                    <?php $sender_badge = getProfileBadge($sender_display_name); ?>
+                                    <div class="avatar" style="background-color: <?php echo $sender_badge['color']; ?>; color: white;">
+                                        <?php echo $sender_badge['initials']; ?>
+                                    </div>
                                 <?php endif; ?>
                                 <div class="message-content">
                                     <div class="mb-1">
@@ -828,8 +915,12 @@ if (!$selected_location_id) {
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($is_sent): ?>
-                                    <div class="avatar ms-3" style="background-color: #e8f5e9;">
-                                        <?php echo getInitials($_SESSION['FIRST_NAME'] ?? $_SESSION['USER_NAME'] ?? 'You'); ?>
+                                    <?php
+                                    $current_user_name = ($_SESSION['FIRST_NAME'] ?? $_SESSION['USER_NAME'] ?? 'You');
+                                    $sender_badge = getProfileBadge($current_user_name);
+                                    ?>
+                                    <div class="avatar ms-3" style="background-color: <?php echo $sender_badge['color']; ?>; color: white;">
+                                        <?php echo $sender_badge['initials']; ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -865,9 +956,9 @@ if (!$selected_location_id) {
                 <?php else: ?>
                     <div class="empty-state" style="margin-top: 20%;">
                         <i class="bi bi-chat-dots" style="font-size: 64px; color: #ddd;"></i>
-                        <h5 class="mt-3">No conversation selected</h5>
-                        <p class="text-muted">Select a message from the sidebar or compose a new one</p>
-                        <button class="btn btn-success mt-3 compose-new-btn" data-bs-toggle="modal" data-bs-target="#composeModal" style="background-color: #00B739;">
+                        <h5 class="mt-3"><?php echo ($view_type == 'draft') ? 'Select a draft to edit' : 'No conversation selected'; ?></h5>
+                        <p class="text-muted"><?php echo ($view_type == 'draft') ? 'Click the edit button on any draft to continue editing' : 'Select a message from the sidebar or compose a new one'; ?></p>
+                        <button class="btn btn-success mt-3 compose-new-btn" style="background-color: #00B739;">
                             <i class="bi bi-envelope-plus"></i> Compose New Message
                         </button>
                     </div>
@@ -887,6 +978,7 @@ if (!$selected_location_id) {
                 <form method="post" action="message.php" enctype="multipart/form-data" id="composeForm" onsubmit="return validateLocationBeforeSend(event, 'compose');">
                     <div class="modal-body">
                         <input type="hidden" name="DRAFT" id="composeDraft" value="0">
+                        <input type="hidden" name="DRAFT_ID" id="composeDraftId" value="">
                         <div class="mb-3">
                             <label class="form-label">To:</label>
                             <select name="RECEPTION[]" id="recipients" class="form-control select2" multiple required style="width: 100%">
@@ -999,9 +1091,10 @@ if (!$selected_location_id) {
 
             // Show location warning when trying to compose without exactly ONE location
             $('#composeBtn, .compose-new-btn').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 if (!hasValidLocation) {
-                    e.preventDefault();
-                    e.stopPropagation();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Location Selection Required',
@@ -1013,6 +1106,19 @@ if (!$selected_location_id) {
                     });
                     return false;
                 }
+
+                // Clear any existing draft data
+                $('#composeDraftId').val('');
+                $('#composeSubject').val('');
+                $('#composeContent').val('');
+                $('#recipients').val(null).trigger('change');
+                $('#composeAttachments').empty();
+                composeAttachmentCount = 0;
+                $('#composeDraft').val('0');
+
+                // If location is valid, show the modal
+                var composeModal = new bootstrap.Modal(document.getElementById('composeModal'));
+                composeModal.show();
             });
         });
 
@@ -1138,7 +1244,18 @@ if (!$selected_location_id) {
                 });
                 return;
             }
+
+            // Set as draft (this will save/update the draft)
             $('#composeDraft').val('1');
+
+            // Check if we're updating an existing draft
+            var draftId = $('#composeDraftId').val();
+            if (draftId) {
+                // Remove existing UPDATE_DRAFT if present to avoid duplicates
+                $('input[name="UPDATE_DRAFT"]').remove();
+                $('#composeForm').append('<input type="hidden" name="UPDATE_DRAFT" value="' + draftId + '">');
+            }
+
             $('#composeForm').submit();
         }
 
@@ -1156,9 +1273,154 @@ if (!$selected_location_id) {
             $('#replyForm').submit();
         }
 
+        function loadDraftForEditing(draftId) {
+            if (!hasValidLocation) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Location Selection Required',
+                    html: '<strong>Please select exactly ONE location</strong><br><br>Please select only one location from the top dropdown to edit drafts.',
+                    confirmButtonColor: '#00B739',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+
+            // Show loading indicator
+            Swal.fire({
+                title: 'Loading draft...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Fetch draft data via AJAX
+            $.ajax({
+                url: 'ajax_get_draft.php',
+                type: 'POST',
+                data: {
+                    draft_id: draftId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    Swal.close();
+
+                    if (response.success) {
+                        // Clear previous data
+                        $('#composeAttachments').empty();
+                        composeAttachmentCount = 0;
+
+                        // Set the draft ID
+                        $('#composeDraftId').val(response.draft_id);
+
+                        // Set the subject and content
+                        $('#composeSubject').val(response.subject);
+                        $('#composeContent').val(response.content);
+
+                        // Set recipients in select2 - THIS WILL NOW WORK
+                        $('#recipients').val(response.recipients).trigger('change');
+
+                        // Add existing attachments
+                        if (response.attachments && response.attachments.length > 0) {
+                            for (var i = 0; i < response.attachments.length; i++) {
+                                let attachmentHtml = '<div id="compose_attach_' + composeAttachmentCount + '" class="attachment-item">';
+                                attachmentHtml += '<input type="hidden" name="FILE_NAME[]" value="' + response.attachments[i].FILE_NAME.replace(/'/g, "\\'") + '">';
+                                attachmentHtml += '<input type="hidden" name="FILE_LOCATION[]" value="' + response.attachments[i].LOCATION.replace(/'/g, "\\'") + '">';
+                                attachmentHtml += '<input type="hidden" name="PK_EMAIL_ATTACHMENT[]" value="' + response.attachments[i].PK_EMAIL_ATTACHMENT + '">';
+                                attachmentHtml += '<i class="bi bi-file-earmark"></i> ' + response.attachments[i].FILE_NAME;
+                                attachmentHtml += ' <a href="javascript:void(0)" onclick="removeComposeAttachment(' + composeAttachmentCount + ')" class="text-danger float-end"><i class="bi bi-x-circle"></i></a>';
+                                attachmentHtml += '</div>';
+                                $('#composeAttachments').append(attachmentHtml);
+                                composeAttachmentCount++;
+                            }
+                        }
+
+                        // Reset draft flag (0 means it will be sent, not saved as draft again)
+                        $('#composeDraft').val('0');
+
+                        // Show the modal
+                        var composeModal = new bootstrap.Modal(document.getElementById('composeModal'));
+                        composeModal.show();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Could not load draft',
+                            confirmButtonColor: '#00B739'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    console.log('AJAX Error:', error);
+                    console.log('Response Text:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Could not load draft data. Please check the console for details.',
+                        confirmButtonColor: '#00B739'
+                    });
+                }
+            });
+        }
+
+        function editDraftDirect(draftId, subject, content, recipientNames) {
+            if (!hasValidLocation) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Location Selection Required',
+                    html: '<strong>Please select exactly ONE location</strong><br><br>Please select only one location from the top dropdown to edit drafts.',
+                    confirmButtonColor: '#00B739',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+
+            // Clear previous data
+            $('#composeAttachments').empty();
+            composeAttachmentCount = 0;
+
+            // Set the draft ID
+            $('#composeDraftId').val(draftId);
+
+            // Set the subject and content
+            $('#composeSubject').val(subject);
+            $('#composeContent').val(content);
+
+            // Note: For direct method, you'll need to get recipient IDs
+            // You might want to make an AJAX call just for recipients
+            // Or store recipient IDs in a data attribute
+
+            // Reset draft flag
+            $('#composeDraft').val('0');
+
+            // Show the modal
+            var composeModal = new bootstrap.Modal(document.getElementById('composeModal'));
+            composeModal.show();
+
+            // You'll still need to load recipients via AJAX
+            loadDraftRecipients(draftId);
+        }
+
+        function loadDraftRecipients(draftId) {
+            $.ajax({
+                url: 'ajax_get_draft_recipients.php',
+                type: 'POST',
+                data: {
+                    draft_id: draftId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#recipients').val(response.recipients).trigger('change');
+                    }
+                }
+            });
+        }
+
         // Refresh page periodically to check for new messages (optional)
         setTimeout(function() {
-            if (window.location.href.indexOf('id=') > -1) {
+            if (window.location.href.indexOf('id=') > -1 && window.location.href.indexOf('type=draft') === -1) {
                 location.reload();
             }
         }, 30000);
