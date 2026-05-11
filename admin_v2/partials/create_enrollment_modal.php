@@ -1187,7 +1187,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                             </div>
 
                                             <div class="align-self-center mb-2">
-                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this)" required>
+                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this);" required>
                                                     <option>Select</option>
                                                     <?php
                                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
@@ -1252,6 +1252,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                         </div>`);
 
         service_counter++;
+        updateServiceAvailability();
     }
 
     function addMoreServiceProviders() {
@@ -1281,7 +1282,38 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $('#BALANCE_PAYABLE').val(parseFloat(total_bill - total_flexible_payment).toFixed(2));
     }
 
+    function updateServiceAvailability() {
+        // Get all selected service IDs
+        let selectedServices = [];
+        $('.PK_SERVICE_MASTER').each(function() {
+            let val = $(this).val();
+            if (val && val !== 'Select') {
+                selectedServices.push(val);
+            }
+        });
+
+        // Update each service select
+        $('.PK_SERVICE_MASTER').each(function() {
+            let currentSelect = $(this);
+            let currentValue = currentSelect.val();
+
+            // Enable all options first
+            currentSelect.find('option').prop('disabled', false);
+
+            // Disable options that are selected in other selects
+            selectedServices.forEach(function(serviceId) {
+                // Don't disable the option if it's the current select's value
+                if (serviceId !== currentValue) {
+                    currentSelect.find('option[value="' + serviceId + '"]').prop('disabled', true);
+                }
+            });
+        });
+    }
+
     function selectThisServiceCode(param) {
+        let pk_service_id = $(param).val();
+        let service_row = $(param).closest('.service-row');
+
         let service_details = $(param).find(':selected').data('details');
         let price = $(param).find(':selected').data('price');
 
@@ -1295,6 +1327,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         }
 
         calculateServiceTotal(param);
+        updateServiceAvailability();
     }
 
     function selectThisService(param) {

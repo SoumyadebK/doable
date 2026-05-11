@@ -10,7 +10,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 <div class="payments-card">
     <div class="d-flex justify-content-between align-items-start">
         <div>
-            <h5 class="fw-bold mb-1">Payments</h5>
+            <h5 class="fw-bold mb-1">Credit Card Payments</h5>
             <p class="text-muted small mb-0">Optional settings section description</p>
         </div>
         <button class="btn btn-light btn-sm btn-outline-edit border text-muted px-3 py-2" style="border-radius: 8px;">

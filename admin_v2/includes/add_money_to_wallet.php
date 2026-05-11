@@ -44,19 +44,19 @@
                         </div>
 
                         <?php if ($PAYMENT_GATEWAY == 'Stripe') { ?>
-                            <div class="row" style="margin: auto;" id="card_list_wallet">
+                            <div class="row mt-2" style="margin: auto;" id="card_list_wallet">
                             </div>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                            <div class="row mt-2 payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="col-12">
                                     <div class="form-group" id="card_div">
 
                                     </div>
 
-                                    <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
+                                    <label class="col-md-12 mt-2 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
                                 </div>
                             </div>
                         <?php } elseif ($PAYMENT_GATEWAY == 'Square') { ?>
-                            <div class="row payment_type_div" id="credit_card_payment" style="display: none;">
+                            <div class="row mt-2 payment_type_div" id="credit_card_payment" style="display: none;">
                                 <div class="row" style="margin: auto;" id="card_list_wallet">
                                 </div>
                                 <div class="col-12">
@@ -70,10 +70,10 @@
                             $customer_id = isset($PK_USER_MASTER) ? $PK_USER_MASTER : '';
                             $customer_data = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$customer_id'");
                         ?>
-                            <div class="row" style="margin: auto;" id="card_list_wallet">
+                            <div class="row mt-2" style="margin: auto;" id="card_list_wallet">
                             </div>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row">
+                                <div class="row mt-2">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
@@ -83,7 +83,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mt-2">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
@@ -93,7 +93,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mt-2">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
@@ -103,7 +103,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mt-2">
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
@@ -141,12 +141,12 @@
                                     </div>
                                 </div>
 
-                                <label class="col-md-12 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
+                                <label class="col-md-12 mt-2 m-l-5" id="save_card"><input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="form-check-inline"> Save this card details for future use</label>
                             </div>
                         <?php } ?>
 
 
-                        <div class="row payment_type_div" id="check_payment" style="display: none;">
+                        <div class="row mt-2 payment_type_div" id="check_payment" style="display: none;">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Check Number</label>
@@ -164,7 +164,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+
+                        <div class="row mt-2">
                             <div class="col-12">
                                 <div class="form-group">
                                     <label class="form-label">Notes</label>
@@ -174,7 +175,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+
+                        <div class="row mt-2">
                             <div class="col-12" id="wallet_payment_status">
 
                             </div>
@@ -182,8 +184,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="wallet-payment-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" id="wallet-payment-btn" style="float: right;">Process</button>
                 </div>
             </div>
         </form>
@@ -225,15 +227,7 @@
                     $('#wallet_payment_status').html(`<p class="alert alert-success">Payment Successful, Page will refresh automatically.</p>`);
 
                     setTimeout(function() {
-                        let header = '<?= $header ?>';
-                        if (header) {
-                            window.location.href = header;
-                        } else {
-                            let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
-                            let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
-                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=wallet';
-                        }
-                        //location.reload();
+                        window.location.reload();
                     }, 3000);
                 }
                 console.log(data);

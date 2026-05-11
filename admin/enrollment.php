@@ -1694,6 +1694,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                 </div>
                                             </div>
                                         </div>`);
+            updateServiceAvailability();
         }
 
         function addMoreServiceProviders() {
@@ -1741,6 +1742,36 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             $('#BALANCE_PAYABLE').val(parseFloat(total_bill - total_flexible_payment).toFixed(2));
         }
 
+
+
+        function updateServiceAvailability() {
+            // Get all selected service IDs
+            let selectedServices = [];
+            $('.PK_SERVICE_MASTER').each(function() {
+                let val = $(this).val();
+                if (val && val !== 'Select') {
+                    selectedServices.push(val);
+                }
+            });
+
+            // Update each service select
+            $('.PK_SERVICE_MASTER').each(function() {
+                let currentSelect = $(this);
+                let currentValue = currentSelect.val();
+
+                // Enable all options first
+                currentSelect.find('option').prop('disabled', false);
+
+                // Disable options that are selected in other selects
+                selectedServices.forEach(function(serviceId) {
+                    // Don't disable the option if it's the current select's value
+                    if (serviceId !== currentValue) {
+                        currentSelect.find('option[value="' + serviceId + '"]').prop('disabled', true);
+                    }
+                });
+            });
+        }
+
         function selectThisServiceCode(param) {
             let service_details = $(param).find(':selected').data('details');
             let price = $(param).find(':selected').data('price');
@@ -1772,6 +1803,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
                 }
             });
+
+            updateServiceAvailability();
         }
 
         function selectThisPackage(param) {
