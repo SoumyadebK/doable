@@ -188,6 +188,44 @@ $customer_color = $customer['color'];
         color: #39b54a;
     }
 
+    .sidebar-item {
+        position: relative;
+    }
+
+    .sidebar-submenu {
+        position: absolute;
+        left: 0;
+        top: 100%;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid #e7e7e7;
+        border-radius: 8px;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        display: none;
+        z-index: 99;
+        margin-top: 0px;
+    }
+
+    .sidebar-item:hover .sidebar-submenu,
+    .sidebar-submenu:hover {
+        display: block;
+    }
+
+    .sidebar-submenu-item {
+        display: block;
+        padding: 10px 16px;
+        color: #495057;
+        text-decoration: none;
+        font-size: 0.92rem;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-submenu-item:hover,
+    .sidebar-submenu-item.active {
+        background-color: #f8f9fa;
+        color: #39b54a;
+    }
+
     .profile-card {
         border: 1px solid #e0e0e0;
         border-radius: 12px;
@@ -781,10 +819,16 @@ $customer_color = $customer['color'];
                         <div class="col-md-2 border-right-light pt-4">
                             <nav class="flex-column left-tabs">
                                 <a class="sidebar-link profile-active active" data-toggle-target=".tab-content-1" href="#"><i class="bi bi-grid me-2"></i> Profile</a>
-                                <a class="sidebar-link family-active" href="#" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
+                                <a class="sidebar-link family-active" href="javascript:void(0);" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
                                 <a class="sidebar-link enrollments-active" href="javascript:void(0);" onclick="loadEnrollment('normal')" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
                                 <a class="sidebar-link appointments-active" href="javascript:void(0);" onclick="getAppointmentList('normal')" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
-                                <a class="sidebar-link payments-active" href="javascript:void(0);" onclick="getPaymentRegisterData()" data-toggle-target=".tab-content-5"><i class="bi bi-credit-card me-2"></i> Payments</a>
+                                <div class="sidebar-item">
+                                    <a class="sidebar-link payments-active" href="javascript:void(0);" data-toggle-target=".tab-content-5"><i class="bi bi-card-checklist me-2"></i> Payments</a>
+                                    <div class="sidebar-submenu">
+                                        <a href="javascript:void(0);" class="sidebar-submenu-item" data-view-type="credit_card" onclick="showPaymentsSubTab('credit_card', this)"><i class="bi bi-credit-card me-2"></i> Credit Card</a>
+                                        <a href="javascript:void(0);" class="sidebar-submenu-item" data-view-type="wallet" onclick="showPaymentsSubTab('wallet', this)"><i class="bi bi-wallet me-2"></i> Wallet</a>
+                                    </div>
+                                </div>
                             </nav>
                         </div>
                         <div class="col-md-10 right-panel">
@@ -1586,6 +1630,9 @@ $customer_color = $customer['color'];
 <!--Payment Model-->
 <?php include('includes/enrollment_payment_v2.php'); ?>
 
+<!--Wallet Payment-->
+<?php include('includes/add_money_to_wallet.php'); ?>
+
 <!--Edit Appointment Model-->
 <div class="modal fade" id="edit_appointment_modal" tabindex="-1" aria-hidden="true">
 
@@ -1618,10 +1665,15 @@ $customer_color = $customer['color'];
                 callFunction = function() {
                     getAppointmentList('normal');
                 };
-            } else if (hash === '#payments') {
+            } else if (hash === '#card_payments') {
                 target = '.tab-content-5';
                 callFunction = function() {
                     getPaymentRegisterData();
+                };
+            } else if (hash === '#wallet_payments') {
+                target = '.tab-content-5';
+                callFunction = function() {
+                    getWalletDetails();
                 };
             }
             if (target) {
@@ -1652,7 +1704,7 @@ $customer_color = $customer['color'];
         else if (sel === '.tab-content-2') hash = '#family';
         else if (sel === '.tab-content-3') hash = '#enrollments';
         else if (sel === '.tab-content-4') hash = '#appointments';
-        else if (sel === '.tab-content-5') hash = '#payments';
+        //else if (sel === '.tab-content-5') hash = '#payments';
         if (hash) window.location.hash = hash;
     });
 
@@ -2263,14 +2315,6 @@ $customer_color = $customer['color'];
         });
     }
 
-
-
-
-
-
-
-
-
     function toggleEnrollmentCheckboxes(PK_ENROLLMENT_MASTER) {
         let toggleCheckbox = document.getElementById('toggleEnrollment_' + PK_ENROLLMENT_MASTER);
         let childCheckboxes = document.getElementsByClassName('PAYMENT_CHECKBOX_' + PK_ENROLLMENT_MASTER);
@@ -2299,11 +2343,6 @@ $customer_color = $customer['color'];
             $('.pay_now_button').prop('disabled', false);
         }
     });
-
-
-
-
-
 
     function payNow(PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, BILLED_AMOUNT, ENROLLMENT_ID) {
         $('.partial_payment').show();
@@ -2357,12 +2396,6 @@ $customer_color = $customer['color'];
         $('#enrollment_payment_modal').modal('show');
     }
 
-
-
-
-
-
-
     function moveToWallet(param, PK_ENROLLMENT_PAYMENT, PK_ENROLLMENT_MASTER, PK_ENROLLMENT_LEDGER, PK_USER_MASTER, BALANCE, ENROLLMENT_TYPE, TRANSACTION_TYPE, PAYMENT_COUNTER) {
         let PK_PAYMENT_TYPE = $('#refund_modal #PK_PAYMENT_TYPE_REFUND').val();
         let confirm_move = $('#confirm_move').val();
@@ -2414,16 +2447,6 @@ $customer_color = $customer['color'];
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     function editBillingDueDate(param, PK_ENROLLMENT_LEDGER, DUE_DATE, TYPE) {
         $('#PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
@@ -2570,14 +2593,34 @@ $customer_color = $customer['color'];
 
 <!-- All function related to Payment -->
 <script>
-    function getPaymentRegisterData() {
+    function showPaymentsSubTab(viewType, element) {
+        $('.sidebar-link').removeClass('active');
+        $('.sidebar-link.payments-active').addClass('active');
+
+        $('.sidebar-submenu-item').removeClass('active');
+        $(element).addClass('active');
+
+        $('.tab-content').removeClass('active');
+        $('.tab-content-5').addClass('active');
+
+        if (viewType == 'credit_card') {
+            getPaymentRegisterData(viewType);
+            window.location.hash = '#card_payments';
+        } else {
+            getWalletDetails();
+            window.location.hash = '#wallet_payments';
+        }
+    }
+
+    function getPaymentRegisterData(viewType = '') {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
 
         $.ajax({
             url: "partials/ajaxList/customer_payment.php",
             type: "GET",
             data: {
-                master_id: PK_USER_MASTER
+                master_id: PK_USER_MASTER,
+                view_type: viewType
             },
             async: false,
             cache: false,
@@ -2585,6 +2628,12 @@ $customer_color = $customer['color'];
 
                 // Insert HTML
                 $('#payment_list').html(result);
+
+                // Highlight any selected payments submenu item when content loads
+                if (viewType) {
+                    $('.sidebar-submenu-item').removeClass('active');
+                    $('.sidebar-submenu-item[data-view-type="' + viewType + '"]').addClass('active');
+                }
 
                 // Destroy existing DataTable if exists
                 if ($.fn.DataTable.isDataTable('#paymentRegisterTable')) {
@@ -2701,6 +2750,67 @@ $customer_color = $customer['color'];
         });
 
         window.scrollTo(0, 0);
+    }
+
+    function getWalletDetails() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "partials/ajaxList/customer_wallet_details.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(result) {
+                $('#payment_list').html(result);
+            }
+        });
+    }
+
+    function deleteWalletPayment(PK_CUSTOMER_WALLET) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this wallet payment will erase all data related to this payment.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'deleteWalletPayment',
+                        PK_CUSTOMER_WALLET: PK_CUSTOMER_WALLET
+                    },
+                    success: function(data) {
+                        if (data == 1) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "Wallet Payment Deleted.",
+                                icon: "success",
+                                timer: 3000,
+                            }).then((result) => {
+                                getWalletDetails();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "You already used this wallet amount in enrollment, so you can't delete it.",
+                                icon: "warning",
+                                timer: 3000,
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+    function openWalletModel() {
+        $('#wallet_payment_model').modal('show');
     }
 </script>
 

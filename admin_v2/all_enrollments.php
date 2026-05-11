@@ -10,6 +10,9 @@ global $db_account;
 global $master_database;
 global $results_per_page;
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
 $title = "All Enrollments";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
@@ -356,7 +359,7 @@ if (isset($_POST['SUBMIT'])) {
                             </div>
                         </div>
 
-                        <button class="btn-new" onclick="$('#sideDrawer4, .overlay4').addClass('active');">
+                        <button class="btn-new" onclick="createEnrollment();">
                             + Create New Enrollment
                         </button>
                     </div>
@@ -775,7 +778,7 @@ if (isset($_POST['SUBMIT'])) {
                                     <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only</button>
                                     <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Submit')" style="float: right; margin-right: 5px;">Submit</button>
 
-                                    <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" style="*float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
+                                    <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                                 </div>
 
                             </div>
@@ -795,12 +798,19 @@ if (isset($_POST['SUBMIT'])) {
     <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script>
+        function createEnrollment() {
+            if (<?= count($LOCATION_ARRAY) ?> === 1) {
+                $('#sideDrawer4, .overlay4').addClass('active');
+            } else {
+                swal("Select One Location!", "Only one location can be selected on top of the page in order to create an enrollment.", "error");
+            }
+        }
+
         $('.customer_select').SumoSelect({
             placeholder: 'Select Customer',
             search: true,
             searchText: 'Search...'
         });
-
 
         function ConfirmDelete(PK_ENROLLMENT_MASTER) {
             Swal.fire({
