@@ -192,29 +192,43 @@ $customer_color = $customer['color'];
         position: relative;
     }
 
+    .submenu-toggle-arrow {
+        display: inline-block;
+        transition: transform 0.3s ease;
+        transform: rotate(0deg);
+    }
+
+    .sidebar-item:hover .submenu-toggle-arrow {
+        transform: rotate(90deg);
+    }
+
     .sidebar-submenu {
         position: absolute;
-        left: 0;
+        left: 30px;
         top: 100%;
-        width: 100%;
+        width: 90%;
         background-color: #fff;
-        border: 1px solid #e7e7e7;
         border-radius: 8px;
-        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-        display: none;
         z-index: 99;
         margin-top: 0px;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 1s ease, max-height 1s ease;
+        visibility: hidden;
     }
 
     .sidebar-item:hover .sidebar-submenu,
     .sidebar-submenu:hover {
-        display: block;
+        opacity: 1;
+        max-height: 500px;
+        visibility: visible;
     }
 
     .sidebar-submenu-item {
         display: block;
         padding: 10px 16px;
-        color: #495057;
+        color: #6c757d;
         text-decoration: none;
         font-size: 0.92rem;
         transition: background-color 0.2s ease, color 0.2s ease;
@@ -222,7 +236,6 @@ $customer_color = $customer['color'];
 
     .sidebar-submenu-item:hover,
     .sidebar-submenu-item.active {
-        background-color: #f8f9fa;
         color: #39b54a;
     }
 
@@ -823,7 +836,7 @@ $customer_color = $customer['color'];
                                 <a class="sidebar-link enrollments-active" href="javascript:void(0);" onclick="loadEnrollment('normal')" data-toggle-target=".tab-content-3"><i class="bi bi-journal-text me-2"></i> Enrollments</a>
                                 <a class="sidebar-link appointments-active" href="javascript:void(0);" onclick="getAppointmentList('normal')" data-toggle-target=".tab-content-4"><i class="bi bi-clock me-2"></i> Appointments</a>
                                 <div class="sidebar-item">
-                                    <a class="sidebar-link payments-active" href="javascript:void(0);" data-toggle-target=".tab-content-5"><i class="bi bi-card-checklist me-2"></i> Payments</a>
+                                    <a class="sidebar-link payments-active" href="javascript:void(0);" onclick="getPaymentRegisterData()" data-toggle-target=".tab-content-5"><i class="bi bi-card-checklist me-2"></i> Payments <i class="bi bi-chevron-right submenu-toggle-arrow ms-2" style="font-size: 0.8rem;"></i></a>
                                     <div class="sidebar-submenu">
                                         <a href="javascript:void(0);" class="sidebar-submenu-item" data-view-type="credit_card" onclick="showPaymentsSubTab('credit_card', this)"><i class="bi bi-credit-card me-2"></i> Credit Card</a>
                                         <a href="javascript:void(0);" class="sidebar-submenu-item" data-view-type="wallet" onclick="showPaymentsSubTab('wallet', this)"><i class="bi bi-wallet me-2"></i> Wallet</a>
@@ -1249,6 +1262,46 @@ $customer_color = $customer['color'];
 
                                 </div>
                             </div>
+
+                            <div class="tab-content tab-content-6 row payments-section" id="credit_card" role="tabpanel">
+                                <div class="col-md-12 px-3 pt-4 pb-4">
+                                    <div class="payments-card">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="fw-bold mb-1">Credit Card
+                                                    <div id="credit_card_loader" class="spinner-border text-success" role="status" style="width: 20px; height: 20px;">
+                                                        <span class=" sr-only">Loading...</span>
+                                                    </div>
+                                                </h5>
+                                                <p class="text-muted small mb-0">Optional settings section description</p>
+                                            </div>
+                                            <button class="btn btn-light btn-sm btn-outline-edit border text-muted px-3 py-2" style="border-radius: 8px;" onclick="addCreditCard()">
+                                                <i class="bi bi-plus"></i> Add Credit Card
+                                            </button>
+                                        </div>
+
+                                        <?php if ($PAYMENT_GATEWAY == null || $PAYMENT_GATEWAY == '') { ?>
+                                            <div class="alert alert-danger">
+                                                Payment Gateway is Not set Yet
+                                            </div>
+                                        <?php } else { ?>
+                                            <div class="row mt-4">
+                                                <div class="col-md-12">
+                                                    <div id="add_credit_card_div" style="display: none;">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-4" id="saved_credit_card_list" style="display: none;">
+
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+                            </div>
+
+
                         </div>
                     </div>
                 </div>
@@ -1665,7 +1718,7 @@ $customer_color = $customer['color'];
                 callFunction = function() {
                     getAppointmentList('normal');
                 };
-            } else if (hash === '#card_payments') {
+            } else if (hash === '#payment_register') {
                 target = '.tab-content-5';
                 callFunction = function() {
                     getPaymentRegisterData();
@@ -1675,7 +1728,13 @@ $customer_color = $customer['color'];
                 callFunction = function() {
                     getWalletDetails();
                 };
+            } else if (hash === '#credit_card') {
+                target = '.tab-content-6';
+                callFunction = function() {
+                    getSavedCreditCardList();
+                };
             }
+
             if (target) {
                 $('.sidebar-link').removeClass('active');
                 $('.sidebar-link[data-toggle-target="' + target + '"]').addClass('active');
@@ -2570,7 +2629,6 @@ $customer_color = $customer['color'];
         });
     }
 
-
     function getAppointmentList(type) {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
         $.ajax({
@@ -2591,27 +2649,9 @@ $customer_color = $customer['color'];
     }
 </script>
 
+
 <!-- All function related to Payment -->
 <script>
-    function showPaymentsSubTab(viewType, element) {
-        $('.sidebar-link').removeClass('active');
-        $('.sidebar-link.payments-active').addClass('active');
-
-        $('.sidebar-submenu-item').removeClass('active');
-        $(element).addClass('active');
-
-        $('.tab-content').removeClass('active');
-        $('.tab-content-5').addClass('active');
-
-        if (viewType == 'credit_card') {
-            getPaymentRegisterData(viewType);
-            window.location.hash = '#card_payments';
-        } else {
-            getWalletDetails();
-            window.location.hash = '#wallet_payments';
-        }
-    }
-
     function getPaymentRegisterData(viewType = '') {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
 
@@ -2749,9 +2789,106 @@ $customer_color = $customer['color'];
             }
         });
 
+        window.location.hash = '#payment_register';
         window.scrollTo(0, 0);
     }
 
+    function showPaymentsSubTab(viewType, element) {
+        $('.sidebar-link').removeClass('active');
+        $('.sidebar-link.payments-active').addClass('active');
+
+        $('.sidebar-submenu-item').removeClass('active');
+        $(element).addClass('active');
+
+        $('.tab-content').removeClass('active');
+
+        if (viewType == 'credit_card') {
+            $('.tab-content-6').addClass('active');
+            getSavedCreditCardList();
+        } else {
+            $('.tab-content-5').addClass('active');
+            getWalletDetails();
+        }
+    }
+</script>
+
+
+<!-- All function related to credit card -->
+<script>
+    function getSavedCreditCardList() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "partials/ajaxList/customer_credit_card_details.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'customer_credit_card'
+            },
+            success: function(result) {
+                $('#saved_credit_card_list').slideDown().html(result);
+                $('#credit_card_loader').hide();
+                saveCreditCard();
+            }
+        });
+        window.location.hash = '#credit_card';
+    }
+
+    function saveCreditCard() {
+        let PK_USER = <?= $PK_USER ?>;
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $.ajax({
+            url: "partials/ajaxList/customer_save_credit_card.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(result) {
+                $('#add_credit_card_div').slideDown().html(result);
+            }
+        });
+    }
+
+    function deleteThisCreditCard(card_id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Deleting this credit card will erase all data related to this card.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let PK_USER = <?= $PK_USER ?>;
+                let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+                $.ajax({
+                    url: "includes/process_delete_credit_card.php",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'card_id': card_id,
+                        'PK_USER': PK_USER
+                    },
+                    success: function(data) {
+                        if (data.STATUS) {
+                            $('#delete_message').html(`<p class="alert alert-success">Credit Card Deleted, Page will refresh automatically.</p>`);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 3000);
+                        } else {
+                            $('#delete_message').html(`<p class="alert alert-danger">` + data.MESSAGE + `</p>`);
+                        }
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+
+<!-- All function related to wallet payment -->
+<script>
     function getWalletDetails() {
         let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
         $.ajax({
@@ -2764,6 +2901,7 @@ $customer_color = $customer['color'];
                 $('#payment_list').html(result);
             }
         });
+        window.location.hash = '#wallet_payments';
     }
 
     function deleteWalletPayment(PK_CUSTOMER_WALLET) {
@@ -2807,7 +2945,6 @@ $customer_color = $customer['color'];
             }
         });
     }
-
 
     function openWalletModel() {
         $('#wallet_payment_model').modal('show');

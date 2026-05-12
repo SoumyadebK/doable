@@ -46,24 +46,6 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     </div>
 
     <div class="summary-row d-flex align-items-center">
-        <?php
-        $total_payments = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_PAYMENT.AMOUNT) AS TOTAL_AMOUNT_PAID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.PAYMENT_STATUS = 'Success' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
-        ?>
-        <div class="flex-grow-1">
-            <div class="stat-label">Total Payments</div>
-            <div class="stat-value">$<?= number_format($total_payments->fields['TOTAL_AMOUNT_PAID'], 2) ?></div>
-        </div>
-
-        <div class="stat-divider"></div>
-        <?php
-        $payment_due = $db_account->Execute("SELECT SUM(DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT) AS TOTAL_PAYMENT_DUE FROM DOA_ENROLLMENT_LEDGER INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('A') AND DOA_ENROLLMENT_LEDGER.TRANSACTION_TYPE = 'Billing' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER");
-        ?>
-        <div class="flex-grow-1">
-            <div class="stat-label">Pending Payments</div>
-            <div class="stat-value">$<?= number_format($payment_due->fields['TOTAL_PAYMENT_DUE'], 2) ?></div>
-        </div>
-
-        <div class="stat-divider"></div>
         <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
         <div class="flex-grow-1">
             <div class="stat-label">Wallet Balance</div>
