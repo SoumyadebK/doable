@@ -98,12 +98,14 @@ while (!$enrollment_data->EOF) {
     while (!$serviceMasterData->EOF) {
         $serviceMaster[] = $serviceMasterData->fields['SERVICE_NAME'];
         $serviceMasterData->MoveNext();
-    } ?>
+    }
+    $enrollment_title = ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'];
+?>
     <div class="border" style="margin: 10px;">
         <div class="row enrollment_div" style="font-size: 15px; padding: 8px;">
             <div class="col-2" style="text-align: center; margin-top: 1.5%;">
                 <p><?= $enrollment_data->fields['LOCATION_NAME'] ?></p>
-                <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?></a>
+                <a href="enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>"><?= $enrollment_title ?></a>
                 <p><?= implode(' || ', $serviceMaster) ?></p>
                 <p><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></p>
                 <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
@@ -250,7 +252,8 @@ while (!$enrollment_data->EOF) {
                         <?php } ?> -->
                         <?php
                         if ($enrollment_data->fields['STATUS'] === 'CA') {
-                            if ($total_paid_amount - $total_used_amount > 0) { ?>
+                            $refund_count = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE TRANSACTION_TYPE = 'Refund Credit Available' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_PAID = 2");
+                            if ($total_paid_amount - $total_used_amount > 0 || $refund_count->RecordCount() > 0) { ?>
                                 <p style="color: green; margin-top: 20%;">Refund Credit Available</p>
                             <?php } elseif ($total_paid_amount - $total_used_amount < 0) { ?>
                                 <p style="color: red; margin-top: 20%;">Balance Owed</p>
@@ -269,7 +272,7 @@ while (!$enrollment_data->EOF) {
                         <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
 
                             <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
-                                <br><a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>)"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;" title="Cancel"></a>
+                                <br><a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;" title="Cancel"></a>
                             <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
                                 <p style="color: red; margin-top: auto;">Cancelled</p>
                                 <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
@@ -583,64 +586,66 @@ if ($page == 1) { ?>
             });
         }
     </script>
-<?php } ?>
 
-<script>
-    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
-        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
-        $('.PK_USER_MASTER').val(PK_USER_MASTER);
-        $('#CANCEL_FUTURE_APPOINTMENT_3').prop('checked', false);
-        $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
-        $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
-        $('#step_3').hide();
-        $('#step_2').hide();
-        $('#step_1').show();
-        $('#enrollment_cancel_modal').modal('show');
-    }
-
-    function selectRefundType(param) {
-        let paymentType = parseInt($(param).val());
-        if (paymentType === 2) {
-            $(param).closest('.modal-body').find('#check_payment').slideDown();
-        } else {
-            $(param).closest('.modal-body').find('#check_payment').slideUp();
+    <script>
+        function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER, enrollment_title) {
+            $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+            $('.PK_USER_MASTER').val(PK_USER_MASTER);
+            $('.enrollment_title').text(enrollment_title);
+            $('#CANCEL_FUTURE_APPOINTMENT_3').prop('checked', false);
+            $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
+            $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
+            $('#step_3').hide();
+            $('#step_2').hide();
+            $('#step_1').show();
+            $('#enrollment_cancel_modal').modal('show');
         }
-    }
 
-    function showEnrollmentServiceDetails() {
-        let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
-        let USE_AVAILABLE_CREDIT = $('input[name="USE_AVAILABLE_CREDIT"]:checked').val();
-        let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
-        $.ajax({
-            url: "includes/enrollment_service_details.php",
-            type: 'GET',
-            data: {
-                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
-                USE_AVAILABLE_CREDIT: USE_AVAILABLE_CREDIT,
-                CANCEL_FUTURE_APPOINTMENT: CANCEL_FUTURE_APPOINTMENT
-            },
-            success: function(data) {
-                $('#enrollment_service_details').html(data);
-                $('.negative_balance_div').slideUp();
-                $('.credit_balance_div').slideUp();
-
-                let TOTAL_POSITIVE_BALANCE = parseFloat($('#TOTAL_POSITIVE_BALANCE').val());
-                let TOTAL_NEGATIVE_BALANCE = parseFloat($('#TOTAL_NEGATIVE_BALANCE').val());
-
-                if (USE_AVAILABLE_CREDIT == 1) {
-                    TOTAL_POSITIVE_BALANCE += TOTAL_NEGATIVE_BALANCE;
-                    TOTAL_NEGATIVE_BALANCE = TOTAL_POSITIVE_BALANCE;
-                }
-
-                if (TOTAL_POSITIVE_BALANCE > 0) {
-                    $('.credit_balance_div').slideDown();
-                    $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
-                }
-                if (TOTAL_NEGATIVE_BALANCE < 0) {
-                    $('.negative_balance_div').slideDown();
-                    $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
-                }
+        function selectRefundType(param) {
+            let paymentType = parseInt($(param).val());
+            if (paymentType === 2) {
+                $(param).closest('.modal-body').find('#check_payment').slideDown();
+            } else {
+                $(param).closest('.modal-body').find('#check_payment').slideUp();
             }
-        });
-    }
-</script>
+        }
+
+        function showEnrollmentServiceDetails() {
+            let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+            let USE_AVAILABLE_CREDIT = $('input[name="USE_AVAILABLE_CREDIT"]:checked').val();
+            let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
+            $.ajax({
+                url: "includes/enrollment_service_details.php",
+                type: 'GET',
+                data: {
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                    USE_AVAILABLE_CREDIT: USE_AVAILABLE_CREDIT,
+                    CANCEL_FUTURE_APPOINTMENT: CANCEL_FUTURE_APPOINTMENT
+                },
+                success: function(data) {
+                    $('#enrollment_service_details').html(data);
+                    $('.negative_balance_div').slideUp();
+                    $('.credit_balance_div').slideUp();
+
+                    let TOTAL_POSITIVE_BALANCE = parseFloat($('#TOTAL_POSITIVE_BALANCE').val());
+                    let TOTAL_NEGATIVE_BALANCE = parseFloat($('#TOTAL_NEGATIVE_BALANCE').val());
+
+                    if (USE_AVAILABLE_CREDIT == 1) {
+                        TOTAL_POSITIVE_BALANCE += TOTAL_NEGATIVE_BALANCE;
+                        TOTAL_NEGATIVE_BALANCE = TOTAL_POSITIVE_BALANCE;
+                    }
+
+                    if (TOTAL_POSITIVE_BALANCE > 0) {
+                        $('.credit_balance_div').slideDown();
+                        $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
+                    }
+                    if (TOTAL_NEGATIVE_BALANCE < 0) {
+                        $('.negative_balance_div').slideDown();
+                        $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
+                    }
+                }
+            });
+        }
+    </script>
+
+<?php } ?>

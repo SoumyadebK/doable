@@ -769,7 +769,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
             $PK_ENROLLMENT_PAYMENT = $db_account->insert_ID();
 
-            $PK_SERVICE_PROVIDER_ARRAY = $_POST['PK_SERVICE_PROVIDER'];
+            $PK_SERVICE_PROVIDER_ARRAY = isset($_POST['PK_SERVICE_PROVIDER']) ? $_POST['PK_SERVICE_PROVIDER'] : [];
             for ($j = 0; $j < count($PK_SERVICE_PROVIDER_ARRAY); $j++) {
                 $TIPS_DATA['PK_ENROLLMENT_MASTER'] = $_POST['PK_ENROLLMENT_MASTER'];
                 $TIPS_DATA['PK_ENROLLMENT_PAYMENT'] = $PK_ENROLLMENT_PAYMENT;

@@ -13,9 +13,9 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
             <h5 class="fw-bold mb-1">Credit Card Payments</h5>
             <p class="text-muted small mb-0">Optional settings section description</p>
         </div>
-        <button class="btn btn-light btn-sm btn-outline-edit border text-muted px-3 py-2" style="border-radius: 8px;">
+        <!-- <button class="btn btn-light btn-sm btn-outline-edit border text-muted px-3 py-2" style="border-radius: 8px;">
             <i class="bi bi-plus"></i> New Payment
-        </button>
+        </button> -->
     </div>
 
     <div class="summary-row d-flex align-items-center">

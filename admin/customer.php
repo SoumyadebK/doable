@@ -1,4 +1,7 @@
 <?php
+
+use Stripe\Stripe;
+
 require_once('../global/config.php');
 require_once("../global/stripe-php-master/init.php");
 global $db;
@@ -269,6 +272,7 @@ if (isset($_POST['SUBMIT'])) {
     } else {
         $UPDATE_DATA['STATUS'] = 'CA';
     }
+
 
     if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
         $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
@@ -2267,21 +2271,21 @@ if (isset($_POST['SUBMIT'])) {
                                             <div class="form-group">
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <label>Cancel All Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked /></label>
+                                                        <label>Cancel All Future Appointments for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked /></label>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <label>Cancel Only Unpaid Future Appointments? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2" /></label>
+                                                        <label>Cancel Only Unpaid Future Appointments for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2" /></label>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <label>Move Future Appointments As Ad-Hoc? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
+                                                        <label>Move Future Appointments As Ad-Hoc for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
                                                     </div>
                                                 </div>
                                             </div>

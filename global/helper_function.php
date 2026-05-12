@@ -783,10 +783,11 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
         $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE (TYPE = 'Payment' OR TYPE = 'Adjustment') AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
         $paid_count = (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 0 : 1;
+        $refund_count = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_LEDGER` WHERE TRANSACTION_TYPE = 'Refund Credit Available' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_PAID = 2");
 
         $enr_data = $db_account->Execute("SELECT STATUS, CHARGE_TYPE FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
         if (($enr_data->fields['STATUS'] == 'C' || $enr_data->fields['STATUS'] == 'CA') && $enr_data->fields['CHARGE_TYPE'] != 'Membership') {
-            if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0)) {
+            if (($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) && ($paid_count === 0) && ($refund_count->RecordCount() == 0)) {
                 $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
                 $ENR_UPDATE_DATA['STATUS'] = 'C';
                 $ENR_UPDATE_DATA['IS_SALE'] = NULL;
