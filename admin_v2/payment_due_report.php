@@ -10,7 +10,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 if (!empty($_GET['SELECTED_DATE'])) {
     $type = isset($_GET['view']) ? 'view' : 'export';
     $SELECTED_DATE = $_GET['SELECTED_DATE'];
-    header('location:payment_due_report_details.php?selected_date=' . $SELECTED_DATE . '&type=' . $type);
+    header('location:payment_due.php?selected_date=' . $SELECTED_DATE . '&type=' . $type);
 }
 ?>
 
