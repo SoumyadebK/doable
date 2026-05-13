@@ -27,16 +27,25 @@ if ($type == 'completed') {
 
 <?php
 if ($page == 1) { ?>
-    <div class="enrollment-container mb-4" style="position: relative;">
-        <h5 class="fw-bold mb-1"><?= $enr_title ?></h5>
-        <p class="text-muted mb-4 small">Optional settings section description</p>
+    <div class="enrollment-container mb-4">
 
-        <div class="view-toggle m-r-15" style="position: absolute; top: 24px; right: 24px; height: 37px; display: flex; gap: 10px;">
-            <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
-                Active
-            </button>
-            <button class="view-btn-icon <?= ($type == 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('completed')">
-                Complete
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h5 class="fw-bold mb-1"><?= $enr_title ?></h5>
+                <p class="text-muted mb-4 small">Optional settings section description</p>
+            </div>
+
+            <div class="view-toggle m-r-15" style="height: 37px;">
+                <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
+                    Active
+                </button>
+                <button class="view-btn-icon <?= ($type == 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('completed')">
+                    Complete
+                </button>
+            </div>
+
+            <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="createCustomerEnrollment()">
+                <i class="bi bi-plus"></i> New Enrollment
             </button>
         </div>
 
@@ -126,34 +135,44 @@ while (!$enrollment_data->EOF) {
         ?>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
-            <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><br>
-            <?php } ?>
-            <a href="javascript:void(0)" class="view-schedule text-primary show_enrollment_details_button" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
-
-            <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
-                <span class="checkicon f15 theme-text" style="background-color: #cffce4; color: #39b54a; padding: 4px 8px; border-radius: 50px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; padding-bottom: 2px;" xml:space="preserve" width="15px" height="15px" fill="#39b54a">
-                        <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z"></path>
-                    </svg>
-                    <span style="background-color: #cffce4; color: #39b54a;">PAID</span>
-                </span>
-            <?php } ?>
-
-            <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
-                <div class="d-flex justify-content-end align-items-center">
-                    <div class="form-check form-switch d-flex align-items-center">
-                        <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
-                            <label class="form-check-label autopay-label" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
-                            <?php } else { ?>
-                                <label class="form-check-label autopay-label" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
-                                <?php } ?>
-                                <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
-                                </label>
-                    </div>
+            <div class="row" style="width: 100%;">
+                <div class="col-5">
+                    <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
                 </div>
-            <?php } ?>
+                <div class="col-2">
+                    <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
+                        <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><br>
+                    <?php } ?>
+                </div>
+                <div class="col-2">
+                    <a href="javascript:void(0)" class="view-schedule text-primary show_enrollment_details_button" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
+                </div>
+                <div class="col-1">
+                    <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                        <span class="checkicon f15 theme-text" style="background-color: #cffce4; color: #39b54a; padding: 4px 8px; border-radius: 50px; float: right;">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; padding-bottom: 2px;" xml:space="preserve" width="15px" height="15px" fill="#39b54a">
+                                <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z"></path>
+                            </svg>
+                            <span style="background-color: #cffce4; color: #39b54a;">PAID</span>
+                        </span>
+                    <?php } ?>
+                </div>
+                <div class="col-2">
+                    <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
+                        <div class="d-flex justify-content-end align-items-center">
+                            <div class="form-check form-switch d-flex align-items-center">
+                                <?php if (!is_null($enrollment_data->fields['PAYMENT_METHOD']) && $enrollment_data->fields['PAYMENT_METHOD_ID'] != '') { ?>
+                                    <label class="form-check-label autopay-label" onclick="changeEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
+                                    <?php } else { ?>
+                                        <label class="form-check-label autopay-label" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
+                                        <?php } ?>
+                                        <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
+                                        </label>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
         </div>
 
         <div class="table-responsive" style="border: none;">

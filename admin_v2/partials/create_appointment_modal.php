@@ -72,7 +72,8 @@ if ($location_operational_hour->RecordCount() > 0) {
 <!-- Individual Appointment -->
 <div class="overlay"></div>
 <div class="side-drawer" id="sideDrawer">
-    <div class="drawer-header text-end border-bottom px-3">
+    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Create New Appointment</h6>
         <span class="close-btn" id="closeDrawer">&times;</span>
     </div>
 
@@ -91,6 +92,7 @@ if ($location_operational_hour->RecordCount() > 0) {
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Record" type="button" onclick="$('#FORM_NAME').val('create_record_only_form')">Record Only</button>
         </li>
     </ul>
+
     <div class="modal-body p-3" style="overflow-y: auto; height: calc(100% - 130px);">
         <input type="hidden" id="FORM_NAME" value="create_appointment_form">
         <input type="hidden" id="slot_time">
