@@ -170,6 +170,13 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
+        /* Custom styles for the header */
+        a {
+            color: #690C24;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
         body {
             background-color: #f8f9fa;
             color: #333;
