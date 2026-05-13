@@ -80,7 +80,7 @@ if (!empty($_GET['NAME'])) {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
 
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">

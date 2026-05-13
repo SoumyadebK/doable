@@ -74,21 +74,42 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     <div class="reports-nav-wrapper">
         <div class="reports-nav-group">
             <?php
-            $nav_items = [
-                'reports.php' => 'Weekly Reports',
-                'business_reports.php' => 'Business Reports',
-                'service_provider_reports.php' => 'Service Provider Reports',
-                'student_mailing_list.php' => 'Student Mailing List',
-                'total_open_liability.php' => 'Total Open Liability',
-                'active_account_balance_report.php' => 'Customer Reports',
-                'sales_report.php' => 'Sales Report'
+            // Define active groups with multiple files
+            $active_groups = [
+                'weekly_reports' => ['reports.php'],
+                'business_reports' => ['business_reports.php'],
+                'service_provider_reports' => ['service_provider_reports.php'],
+                'student_mailing_list' => ['student_mailing_list.php'],
+                'total_open_liability' => ['total_open_liability.php'],
+                'customer_reports' => ['active_account_balance_report.php', 'active_account_balance_report_details.php', 'customer_summary_report.php'],
+                'sales_report' => ['sales_report.php']
             ];
 
-            foreach ($nav_items as $file => $label):
-                $is_active = ($current_address == $file) ? 'active' : '';
+            // Find which group current page belongs to
+            $current_group = '';
+            foreach ($active_groups as $group => $files) {
+                if (in_array($current_address, $files)) {
+                    $current_group = $group;
+                    break;
+                }
+            }
+
+            $nav_items = [
+                'reports.php' => ['label' => 'Weekly Reports', 'group' => 'weekly_reports'],
+                'business_reports.php' => ['label' => 'Business Reports', 'group' => 'business_reports'],
+                'service_provider_reports.php' => ['label' => 'Service Provider Reports', 'group' => 'service_provider_reports'],
+                'student_mailing_list.php' => ['label' => 'Student Mailing List', 'group' => 'student_mailing_list'],
+                'total_open_liability.php' => ['label' => 'Total Open Liability', 'group' => 'total_open_liability'],
+                'active_account_balance_report.php' => ['label' => 'Customer Reports', 'group' => 'customer_reports'],
+
+                'sales_report.php' => ['label' => 'Sales Report', 'group' => 'sales_report']
+            ];
+
+            foreach ($nav_items as $file => $item):
+                $is_active = ($current_group == $item['group']) ? 'active' : '';
             ?>
                 <button class="reports-nav-btn <?= $is_active ?>" onclick="window.location.href='../admin_v2/<?= $file ?>'">
-                    <?= htmlspecialchars($label) ?>
+                    <?= htmlspecialchars($item['label']) ?>
                 </button>
             <?php endforeach; ?>
         </div>
