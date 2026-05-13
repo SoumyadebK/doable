@@ -84,10 +84,10 @@ if ($page == 1) { ?>
         <?php
         if ($page == 1) {
             if ($_GET['type'] == 'normal') { ?>
-                <h6 class="fw-bold mb-3">List of Pending Services</h6>
+                <h6 class="fw-bold mb-3">Summary of Pending Services</h6>
                 <?php require_once('customer_pending_services.php'); ?>
             <?php } else { ?>
-                <h6 class="fw-bold mb-3">List of Completed Services</h6>
+                <h6 class="fw-bold mb-3">Summary of Completed Services</h6>
                 <?php require_once('customer_completed_services.php'); ?>
         <?php }
         } ?>
