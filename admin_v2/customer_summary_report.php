@@ -52,49 +52,162 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
                                                 <th style="width:10%; text-align: center; font-weight: bold">UnpaidPRI</th>
                                                 <th style="width:10%; text-align: center; font-weight: bold">PRIs</th>
                                                 <th style="width:10%; text-align: center; font-weight: bold">AMOUNT</th>
-
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
                                             $i = 1;
-                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                            $customers_with_data = [];
+
+                                            $row = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER WHERE DOA_USERS.ACTIVE=1 AND DOA_USERS.IS_DELETED=0 AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY FIRST_NAME");
+
                                             while (!$row->EOF) {
-                                                $balance_data = $db->Execute("SELECT SUM(BALANCE_PAYABLE) AS ENROLLED, SUM(TOTAL_BALANCE_PAID) AS TOTAL_PAID, SUM(TOTAL_BALANCE_USED) AS BALANCE_USED, SUM(AMOUNT) AS AMOUNT, SUM(REMAINING_AMOUNT) AS REMAINING, SUM(PAID_AMOUNT) AS PAID, SUM(BILLED_AMOUNT) AS BILLED FROM `DOA_ENROLLMENT_BALANCE` LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_USER_MASTER.PK_USER = " . $row->fields['PK_USER']);
-                                                $enrolled = 0.00;
-                                                $total_paid = 0.00;
-                                                $balance_left = 0.00;
-                                                $used = 0.00;
-                                                $balance = 0.00;
-                                                $amount = 0.00;
-                                                $remaining = 0.00;
-                                                $paid_amount = 0.00;
-                                                if ($balance_data->RecordCount() > 0) {
-                                                    $enrolled = $balance_data->fields['ENROLLED'];
-                                                    $total_paid = $balance_data->fields['TOTAL_PAID'];
-                                                    $balance = $balance_data->fields['TOTAL_PAID'];
-                                                    $used = $balance_data->fields['BALANCE_USED'];
-                                                    $amount = $balance_data->fields['AMOUNT'];
-                                                    $remaining = $balance_data->fields['REMAINING'];
-                                                    $balance_left = $balance_data->fields['TOTAL_PAID'] - $balance_data->fields['BALANCE_USED'];
-                                                    $paid_amount = $balance_data->fields['PAID'];
-                                                } ?>
-                                                <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= $row->fields['NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= $row->fields['USER_NAME'] ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($enrolled, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($used, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($balance_left, 2) ?></td>
-                                                    <td style="text-align: right" onclick="editpage(<?= $row->fields['PK_USER'] ?>, <?= $row->fields['PK_USER_MASTER'] ?>);"><?= number_format($paid_amount, 2) ?></td>
-                                                </tr>
-                                            <?php $row->MoveNext();
+                                                $pk_user_master = $row->fields['PK_USER_MASTER'];
+                                                $pk_user = $row->fields['PK_USER'];
+
+                                                // Initialize totals
+                                                $total_enrolled = 0;
+                                                $total_used = 0;
+                                                $total_remaining = 0;
+                                                $total_cost = 0;
+                                                $total_lesson_avg = 0;
+                                                $total_balance = 0;
+                                                $total_unpaid_pri = 0;
+                                                $total_pri = 0;
+                                                $total_amount = 0;
+
+                                                // Array to store unique teacher names
+                                                $teachers_array = [];
+
+                                                // Get all active enrollments for this customer
+                                                $enrollments = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE PK_USER_MASTER = " . $pk_user_master . " AND (STATUS = 'A' OR STATUS = 'CA')");
+
+                                                while (!$enrollments->EOF) {
+                                                    $pk_enrollment_master = $enrollments->fields['PK_ENROLLMENT_MASTER'];
+
+                                                    // Get teachers for this enrollment from DOA_ENROLLMENT_SERVICE_PROVIDER
+                                                    $teachers = $db_account->Execute("SELECT DISTINCT esp.SERVICE_PROVIDER_ID, CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS TEACHER_NAME 
+                                                        FROM DOA_ENROLLMENT_SERVICE_PROVIDER esp 
+                                                        LEFT JOIN " . $master_database . ".DOA_USERS u ON esp.SERVICE_PROVIDER_ID = u.PK_USER 
+                                                        WHERE esp.PK_ENROLLMENT_MASTER = " . $pk_enrollment_master . " AND u.ACTIVE = 1 AND u.IS_DELETED = 0");
+
+                                                    while (!$teachers->EOF) {
+                                                        if (!empty($teachers->fields['TEACHER_NAME'])) {
+                                                            $teachers_array[$teachers->fields['SERVICE_PROVIDER_ID']] = $teachers->fields['TEACHER_NAME'];
+                                                        }
+                                                        $teachers->MoveNext();
+                                                    }
+
+                                                    // Get service details for this enrollment
+                                                    $services = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.*, DOA_SERVICE_CODE.SERVICE_CODE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE 
+                                                        FROM DOA_ENROLLMENT_SERVICE 
+                                                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                                                        JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                                                        WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $pk_enrollment_master);
+
+                                                    while (!$services->EOF) {
+                                                        // Calculate number of sessions
+                                                        if ($services->fields['CHARGE_TYPE'] == 'Membership') {
+                                                            $number_of_sessions = getSessionCreatedCount($services->fields['PK_ENROLLMENT_SERVICE']);
+                                                        } else {
+                                                            $number_of_sessions = $services->fields['NUMBER_OF_SESSION'];
+                                                        }
+
+                                                        $sessions_completed = getSessionCompletedCount($services->fields['PK_ENROLLMENT_SERVICE']);
+                                                        $sessions_scheduled = getSessionScheduledCount($services->fields['PK_ENROLLMENT_SERVICE']);
+
+                                                        $remaining_sessions = $number_of_sessions - ($sessions_completed + $sessions_scheduled);
+                                                        $price_per_session = $services->fields['PRICE_PER_SESSION'];
+                                                        $total_amount_paid = $services->fields['TOTAL_AMOUNT_PAID'];
+                                                        $total_cost_services = $number_of_sessions * $price_per_session;
+
+                                                        // Calculate paid sessions and balance
+                                                        $paid_sessions = ($price_per_session > 0) ? $total_amount_paid / $price_per_session : $number_of_sessions;
+                                                        $balance_sessions = $paid_sessions - $sessions_completed;
+
+                                                        // Add to totals
+                                                        $total_enrolled += $number_of_sessions;
+                                                        $total_used += $sessions_completed;
+                                                        $total_remaining += $remaining_sessions;
+                                                        $total_cost += $total_cost_services;
+                                                        $total_balance += $balance_sessions;
+
+                                                        // Calculate lesson average (if there are used lessons)
+                                                        if ($sessions_completed > 0) {
+                                                            $total_lesson_avg += ($total_amount_paid / $sessions_completed);
+                                                        }
+
+                                                        // Unpaid PRI (negative balance sessions)
+                                                        if ($balance_sessions < 0) {
+                                                            $total_unpaid_pri += abs($balance_sessions);
+                                                        }
+
+                                                        // Total PRI (if price per session exists)
+                                                        if ($price_per_session > 0) {
+                                                            $total_pri += $balance_sessions;
+                                                        }
+
+                                                        $total_amount += $total_amount_paid;
+
+                                                        $services->MoveNext();
+                                                    }
+
+                                                    $enrollments->MoveNext();
+                                                }
+
+                                                // Calculate lesson average properly
+                                                $lesson_avg = ($total_used > 0) ? ($total_amount / $total_used) : 0;
+
+                                                // Get teachers names as a comma-separated string
+                                                $teachers_names = !empty($teachers_array) ? implode(', ', $teachers_array) : '-';
+
+                                                // Check if customer has any non-zero values
+                                                $has_data = ($total_enrolled != 0 || $total_used != 0 || $total_remaining != 0 ||
+                                                    $total_cost != 0 || $lesson_avg != 0 || $total_balance != 0 ||
+                                                    $total_unpaid_pri != 0 || $total_pri != 0 || $total_amount != 0);
+
+                                                // Only add to array if customer has data
+                                                if ($has_data) {
+                                                    $customers_with_data[] = [
+                                                        'name' => $row->fields['NAME'],
+                                                        'teachers' => $teachers_names,
+                                                        'pk_user' => $row->fields['PK_USER'],
+                                                        'pk_user_master' => $row->fields['PK_USER_MASTER'],
+                                                        'total_enrolled' => $total_enrolled,
+                                                        'total_used' => $total_used,
+                                                        'total_remaining' => $total_remaining,
+                                                        'total_cost' => $total_cost,
+                                                        'lesson_avg' => $lesson_avg,
+                                                        'total_balance' => $total_balance,
+                                                        'total_unpaid_pri' => $total_unpaid_pri,
+                                                        'total_pri' => $total_pri,
+                                                        'total_amount' => $total_amount
+                                                    ];
+                                                }
+
+                                                $row->MoveNext();
                                                 $i++;
-                                            } ?>
+                                            }
+
+                                            // Display only customers with data
+                                            foreach ($customers_with_data as $customer) {
+                                            ?>
+                                                <tr>
+                                                    <td><?= $customer['name'] ?></td>
+                                                    <td><?= $customer['teachers'] ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_enrolled'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_used'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_remaining'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_cost'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['lesson_avg'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_balance'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_unpaid_pri'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_pri'], 2) ?></td>
+                                                    <td style="text-align: right"><?= number_format($customer['total_amount'], 2) ?></td>
+                                                </tr>
+                                            <?php
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -109,23 +222,18 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
-        // $(function () {
-        //     $('#myTable').DataTable({
-        //         "columnDefs": [
-        //             { "targets": [0,2,5], "searchable": false }
-        //         ]
-        //     });
-        // });
         function ConfirmDelete(anchor) {
             let conf = confirm("Are you sure you want to delete?");
             if (conf)
                 window.location = anchor.attr("href");
         }
-        // function editpage(id, master_id){
-        //     window.location.href = "customer.php?id="+id+"&master_id="+master_id;
-        //
-        // }
+
+        function editpage(id, master_id) {
+            window.location.href = "customer.php?id=" + id + "&master_id=" + master_id;
+        }
     </script>
+
+
 
 </body>
 

@@ -239,6 +239,14 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
     <style>
+        /* Custom styles for the header */
+        a {
+            color: #690C24;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+
         body {
             background-color: #f8f9fa;
             color: #333;

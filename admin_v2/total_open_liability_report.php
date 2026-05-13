@@ -45,7 +45,7 @@ if (!empty($_GET['START_DATE'])) {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper">
+        <div class="page-wrapper" style="padding-top: 0px !important;">
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid body_content">
                 <div class="row page-titles">

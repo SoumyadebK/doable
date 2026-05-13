@@ -150,6 +150,13 @@ function truncateText($text, $length = 30)
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        /* Custom styles for the header */
+        a {
+            color: #690C24;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
         body {
             background-color: #f8f9fa;
             font-family: 'Inter', sans-serif;

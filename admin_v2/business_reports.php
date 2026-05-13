@@ -50,14 +50,31 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
 <style>
-    .menu-list {
-        list-style-type: none;
-        margin-left: -30px;
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
     }
 
-    .menu-list li {
-        margin: 10px;
+    .btn {
+        border: 0;
+        color: #fff;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        border-radius: 0.375rem !important;
     }
 </style>
 
@@ -65,7 +82,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
 
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">

@@ -19,16 +19,10 @@ if (!empty($_GET['SELECTED_DATE'])) {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
-<style>
-    .menu-list {
-        list-style-type: none;
-        margin-left: -30px;
-    }
 
-    .menu-list li {
-        margin: 10px;
-    }
-</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
@@ -64,7 +58,7 @@ if (!empty($_GET['SELECTED_DATE'])) {
                                         </div>
                                         <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
-                                                <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
+                                                <input type="submit" name="view" value="View" class="btn btn-info border-0 rounded-pill px-4" style="background-color: #39B54A !important; color: #fff !important;">
                                             <?php } ?>
                                         </div>
                                     </div>

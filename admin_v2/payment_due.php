@@ -14,7 +14,20 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 $type = $_GET['type'];
 
 $selected_date = date('Y-m-d', strtotime($_GET['selected_date']));
-$due_date = "AND DOA_ENROLLMENT_LEDGER.DUE_DATE <= '" . date('Y-m-d', strtotime($selected_date)) . "'";
+$due_date = "";
+// For Upcoming status, we want due dates >= selected_date
+// For Overdue, due dates < selected_date
+// For Due Today, due_date = selected_date
+
+// If you want to show ALL payments regardless, keep as is, but the status will be calculated correctly
+// If you want to filter the query itself, you can uncomment and modify:
+/*
+if ($type == 'upcoming') {
+    $due_date = "AND DOA_ENROLLMENT_LEDGER.DUE_DATE >= '" . date('Y-m-d', strtotime($selected_date)) . "'";
+} else {
+    $due_date = "AND DOA_ENROLLMENT_LEDGER.DUE_DATE <= '" . date('Y-m-d', strtotime($selected_date)) . "'";
+}
+*/
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -63,21 +76,24 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 $header = "payment_due.php?selected_date=" . $_GET['selected_date'] . "&type=view";
 
 // Helper function to determine status based on due date
-function getPaymentStatus($due_date)
+function getPaymentStatus($due_date, $selected_date)
 {
-    $today = date('Y-m-d');
-    if ($due_date < $today) {
+    $selected = new DateTime($selected_date);
+    $due = new DateTime($due_date);
+
+    if ($due < $selected) {
         return ['label' => 'Overdue', 'class' => 'status-overdue'];
-    } elseif ($due_date == $today) {
+    } elseif ($due == $selected) {
         return ['label' => 'Due Today', 'class' => 'status-due-today'];
     } else {
+        // This includes tomorrow and all future dates
         return ['label' => 'Upcoming', 'class' => 'status-upcoming'];
     }
 }
 
 // Fetch all payment due records
 $payment_rows = [];
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, DOA_ENROLLMENT_LEDGER.AMOUNT_REMAIN, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_LEDGER.DUE_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE DESC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, DOA_ENROLLMENT_LEDGER.AMOUNT_REMAIN, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_LEDGER.DUE_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE ASC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
 while (!$row->EOF) {
     $AMOUNT_TO_PAY = ($row->fields['AMOUNT_REMAIN'] > 0) ? $row->fields['AMOUNT_REMAIN'] : $row->fields['BILLED_AMOUNT'];
     $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = " . $row->fields['PK_USER_MASTER']);
@@ -98,7 +114,7 @@ while (!$row->EOF) {
         'due_date' => $row->fields['DUE_DATE'],
         'due_date_formatted' => date('m-d-Y', strtotime($row->fields['DUE_DATE'])),
         'amount' => $AMOUNT_TO_PAY,
-        'status' => getPaymentStatus($row->fields['DUE_DATE'])
+        'status' => getPaymentStatus($row->fields['DUE_DATE'], $selected_date)
     ];
     $row->MoveNext();
 }
@@ -122,6 +138,17 @@ $total_payments = count($payment_rows);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <style>
+        /* Custom styles for the header */
+        a {
+            color: #690C24;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-success {
+            background-color: #39b54a;
+        }
+
         body {
             background-color: #fcfcfc;
             color: #344054;
@@ -340,7 +367,7 @@ $total_payments = count($payment_rows);
                 </div>
             </div>
             <div>
-                <a href="payment_due_report.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+                <a href="payment_due_report.php" class="btn btn-success border-0 rounded-pill px-3"><i class="bi bi-arrow-left"></i> Back</a>
             </div>
         </div>
 
@@ -352,9 +379,9 @@ $total_payments = count($payment_rows);
             <div class="d-flex gap-2">
                 <div class="btn-group bg-white border rounded-pill p-1" id="statusFilterGroup">
                     <button class="btn btn-sm text-green rounded-pill px-3 filter-status active" data-status="all">All</button>
-                    <button class="btn btn-sm text-muted px-3 filter-status" data-status="Overdue">Overdue</button>
-                    <button class="btn btn-sm text-muted px-3 filter-status" data-status="Upcoming">Upcoming</button>
-                    <button class="btn btn-sm text-muted px-3 filter-status" data-status="Due Today">Due Today</button>
+                    <button class="btn btn-sm text-muted rounded-pill px-3 filter-status" data-status="Overdue">Overdue</button>
+                    <button class="btn btn-sm text-muted rounded-pill px-3 filter-status" data-status="Upcoming">Upcoming</button>
+                    <button class="btn btn-sm text-muted rounded-pill px-3 filter-status" data-status="Due Today">Due Today</button>
                 </div>
                 <!-- <div class="input-group" style="width: auto;">
                     <span class="input-group-text bg-white" id="dateIconBtn" style="cursor: pointer; border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
@@ -607,6 +634,32 @@ $total_payments = count($payment_rows);
             });
         });
 
+        // Function to update status based on selected date
+        function updateStatusBasedOnDate(dueDate, selectedDate) {
+            const due = new Date(dueDate);
+            const selected = new Date(selectedDate);
+
+            // Reset time part for accurate date comparison
+            due.setHours(0, 0, 0, 0);
+            selected.setHours(0, 0, 0, 0);
+
+            if (due < selected) {
+                return {
+                    label: 'Overdue',
+                    class: 'status-overdue'
+                };
+            } else if (due.getTime() === selected.getTime()) {
+                return {
+                    label: 'Due Today',
+                    class: 'status-due-today'
+                };
+            } else {
+                return {
+                    label: 'Upcoming',
+                    class: 'status-upcoming'
+                };
+            }
+        }
 
         // Date filter functionality - Fixed version
         $(function() {
@@ -690,6 +743,7 @@ $total_payments = count($payment_rows);
                 saveBtn.onclick = function() {
                     const updatedDate = input.value;
                     const ledgerId = row.getAttribute('data-id');
+                    const selectedDate = '<?= $selected_date ?>'; // Get the selected date from PHP
 
                     fetch('includes/save_due_date.php', {
                             method: 'POST',
@@ -708,20 +762,25 @@ $total_payments = count($payment_rows);
                                 dateCell.innerHTML = formattedDate;
                                 dateCell.setAttribute('data-date', updatedDate);
 
-                                // Update status based on new date
-                                const today = new Date().toISOString().slice(0, 10);
+                                // Use the new function to determine status
+                                const selectedDateObj = new Date(selectedDate);
+                                const dueDateObj = new Date(updatedDate);
+                                selectedDateObj.setHours(0, 0, 0, 0);
+                                dueDateObj.setHours(0, 0, 0, 0);
+
                                 let newStatus = '';
                                 let statusClass = '';
-                                if (updatedDate < today) {
+                                if (dueDateObj < selectedDateObj) {
                                     newStatus = 'Overdue';
                                     statusClass = 'status-overdue';
-                                } else if (updatedDate === today) {
+                                } else if (dueDateObj.getTime() === selectedDateObj.getTime()) {
                                     newStatus = 'Due Today';
                                     statusClass = 'status-due-today';
                                 } else {
                                     newStatus = 'Upcoming';
                                     statusClass = 'status-upcoming';
                                 }
+
                                 const statusSpan = row.querySelector('.badge-status');
                                 statusSpan.textContent = newStatus;
                                 statusSpan.className = `badge-status ${statusClass}`;
