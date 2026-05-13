@@ -14,136 +14,6 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $header = 'all_enrollments.php';
 
-$PK_ENROLLMENT_MASTER = 0;
-$ENROLLMENT_NAME = '';
-$ENROLLMENT_DATE = date('m/d/Y');
-$PK_ENROLLMENT_TYPE = '';
-$PK_LOCATION = '';
-$PK_PACKAGE = '';
-$TOTAL = '';
-$FINAL_AMOUNT = '';
-$PK_AGREEMENT_TYPE = '';
-$PK_DOCUMENT_LIBRARY = 1;
-$AGREEMENT_PDF_LINK = '';
-$ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
-$ENROLLMENT_BY_PERCENTAGE = '';
-$MEMO = '';
-$ACTIVE = '';
-$ACTIVE_AUTO_PAY = 0;
-
-$PK_ENROLLMENT_BILLING = '';
-$BILLING_REF = '';
-$BILLING_DATE = '';
-$DOWN_PAYMENT = 0.00;
-$BALANCE_PAYABLE = 0.00;
-$PAYMENT_METHOD = 'One Time';
-$PAYMENT_TERM = '';
-$NUMBER_OF_PAYMENT = '';
-$FIRST_DUE_DATE = '';
-$INSTALLMENT_AMOUNT = '';
-
-$PK_ENROLLMENT_PAYMENT = '';
-$PK_PAYMENT_TYPE = '';
-$AMOUNT = '';
-$NAME = '';
-$CARD_NUMBER = '';
-$SECURITY_CODE = '';
-$EXPIRY_DATE = '';
-$CHECK_NUMBER = '';
-$CHECK_DATE = '';
-$NOTE = '';
-$CHARGE_TYPE = '';
-
-$PK_USER_MASTER = '';
-if (!empty($_GET['master_id_customer'])) {
-    $PK_USER_MASTER = $_GET['master_id_customer'];
-    $user_location = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = " . $PK_USER_MASTER);
-    if ($user_location->RecordCount() > 0) {
-        $PK_LOCATION = $user_location->fields['PK_LOCATION'];
-    } else {
-        $PK_LOCATION = 0;
-    }
-}
-
-$months = '';
-$day = '';
-if (!empty($_GET['id'])) {
-    $res = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-    if ($res->RecordCount() == 0) {
-        header("location:all_enrollments.php");
-        exit;
-    }
-    $PK_ENROLLMENT_MASTER = $_GET['id'];
-    $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
-    $ENROLLMENT_NAME = $res->fields['ENROLLMENT_NAME'];
-    $ENROLLMENT_DATE = date('m/d/Y', strtotime($res->fields['ENROLLMENT_DATE']));
-    $PK_ENROLLMENT_TYPE = $res->fields['PK_ENROLLMENT_TYPE'];
-    $PK_LOCATION = $res->fields['PK_LOCATION'];
-    $PK_PACKAGE = $res->fields['PK_PACKAGE'];
-    $CHARGE_TYPE = $res->fields['CHARGE_TYPE'];
-    $EXPIRY_DATE = new DateTime($res->fields['EXPIRY_DATE']);
-    $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
-    $PK_DOCUMENT_LIBRARY = is_null($res->fields['PK_DOCUMENT_LIBRARY']) ? 1 : $res->fields['PK_DOCUMENT_LIBRARY'];
-    $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
-    $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
-    $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
-    $MEMO = $res->fields['MEMO'];
-    $ACTIVE = $res->fields['ACTIVE'];
-    $ACTIVE_AUTO_PAY = $res->fields['ACTIVE_AUTO_PAY'];
-
-    $CREATED_ON = new DateTime($res->fields['CREATED_ON']);
-    $interval = $EXPIRY_DATE->diff($CREATED_ON);
-    $months = intval($interval->days / 30);
-
-    $day = $EXPIRY_DATE->format('d');
-
-    $billing_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-    if ($billing_data->RecordCount() > 0) {
-        $PK_ENROLLMENT_BILLING = $billing_data->fields['PK_ENROLLMENT_BILLING'];
-        $BILLING_REF = $billing_data->fields['BILLING_REF'];
-        $BILLING_DATE = $billing_data->fields['BILLING_DATE'];
-        $DOWN_PAYMENT = $billing_data->fields['DOWN_PAYMENT'];
-        $BALANCE_PAYABLE = $billing_data->fields['BALANCE_PAYABLE'];
-        $PAYMENT_METHOD = $billing_data->fields['PAYMENT_METHOD'];
-        $PAYMENT_TERM = $billing_data->fields['PAYMENT_TERM'];
-        $NUMBER_OF_PAYMENT = $billing_data->fields['NUMBER_OF_PAYMENT'];
-        $FIRST_DUE_DATE = $billing_data->fields['FIRST_DUE_DATE'];
-        $INSTALLMENT_AMOUNT = $billing_data->fields['INSTALLMENT_AMOUNT'];
-    }
-
-    $payment_data = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_PAYMENT` WHERE `PK_ENROLLMENT_MASTER` = '$_GET[id]'");
-    if ($payment_data->RecordCount() > 0) {
-        $PK_ENROLLMENT_PAYMENT = $payment_data->fields['PK_ENROLLMENT_PAYMENT'];
-        $PK_PAYMENT_TYPE = $payment_data->fields['PK_PAYMENT_TYPE'];
-        $AMOUNT = $payment_data->fields['AMOUNT'];
-        $NOTE = $payment_data->fields['NOTE'];
-    }
-}
-
-$user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-if ($user_payment_gateway->RecordCount() > 0) {
-    $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
-    $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
-    $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
-    $ACCESS_TOKEN = $user_payment_gateway->fields['ACCESS_TOKEN'];
-    $PUBLISHABLE_KEY = $user_payment_gateway->fields['PUBLISHABLE_KEY'];
-    $SECRET_KEY = $user_payment_gateway->fields['SECRET_KEY'];
-    $LOGIN_ID = $user_payment_gateway->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $user_payment_gateway->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $user_payment_gateway->fields['AUTHORIZE_CLIENT_KEY'];
-} else {
-    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-    $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-    $SQUARE_APP_ID             = $account_data->fields['APP_ID'];
-    $SQUARE_LOCATION_ID     = $account_data->fields['LOCATION_ID'];
-    $ACCESS_TOKEN             = $account_data->fields['ACCESS_TOKEN'];
-    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
-    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
-}
-
 $payment_gateway_data = getPaymentGatewayData();
 
 $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
@@ -176,7 +46,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
         <form class="mb-0" id="enrollment_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
-            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
+            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
             <input type="hidden" name="PK_LOCATION" id="PK_LOCATION">
             <div class="row mb-2 align-items-center">
                 <div class="col-4 col-md-4">
@@ -196,7 +66,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <?php
                             $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE (DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" data-customer_id="<?= $row->fields['PK_USER_MASTER'] ?>" data-pk_user="<?= $row->fields['PK_USER'] ?>" data-location_id="<?= ((empty($_GET['id'])) ? $row->fields['PRIMARY_LOCATION_ID'] : $PK_LOCATION) ?>" data-customer_name="<?= $row->fields['NAME'] ?>" <?= ($PK_USER_MASTER == $row->fields['PK_USER_MASTER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' . ' (' . $row->fields['EMAIL_ID'] . ')' ?></option>
+                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" data-customer_id="<?= $row->fields['PK_USER_MASTER'] ?>" data-pk_user="<?= $row->fields['PK_USER'] ?>" data-location_id="<?= $row->fields['PRIMARY_LOCATION_ID'] ?>" data-customer_name="<?= $row->fields['NAME'] ?>"><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' . ' (' . $row->fields['EMAIL_ID'] . ')' ?></option>
                             <?php $row->MoveNext();
                             } ?>
                         </select>
@@ -218,7 +88,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name" value="<?= $ENROLLMENT_NAME ?>">
+                        <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name">
                     </div>
                 </div>
             </div>
@@ -238,11 +108,11 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <div class="form-group">
                         <select class="form-control form-select customerselect" name="PK_ENROLLMENT_TYPE" id="PK_ENROLLMENT_TYPE">
                             <option value="">Select Enrollment Type</option>
-                            <option value="5" <?= ($PK_ENROLLMENT_TYPE == 5) ? 'selected' : '' ?>>1st Enrollment</option>
-                            <option value="2" <?= ($PK_ENROLLMENT_TYPE == 2) ? 'selected' : '' ?>>2nd Enrollment</option>
-                            <option value="9" <?= ($PK_ENROLLMENT_TYPE == 9) ? 'selected' : '' ?>>3rd Enrollment</option>
-                            <option value="13" <?= ($PK_ENROLLMENT_TYPE == 13) ? 'selected' : '' ?>>4+ Enrollment</option>
-                            <option value="16" <?= ($PK_ENROLLMENT_TYPE == 16) ? 'selected' : '' ?>>MISC</option>
+                            <option value="5">1st Enrollment</option>
+                            <option value="2">2nd Enrollment</option>
+                            <option value="9">3rd Enrollment</option>
+                            <option value="13">4+ Enrollment</option>
+                            <option value="16">MISC</option>
                         </select>
                     </div>
                 </div>
@@ -264,7 +134,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <?php
                             $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND IS_DELETED = 0 ORDER BY SORT_ORDER ASC");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_PACKAGE']; ?>" data-expiry_date="<?= $row->fields['EXPIRY_DATE'] ?>" <?= ($row->fields['PK_PACKAGE'] == $PK_PACKAGE) ? 'selected' : '' ?>><?= $row->fields['PACKAGE_NAME'] ?></option>
+                                <option value="<?php echo $row->fields['PK_PACKAGE']; ?>" data-expiry_date="<?= $row->fields['EXPIRY_DATE'] ?>"><?= $row->fields['PACKAGE_NAME'] ?></option>
                             <?php $row->MoveNext();
                             } ?>
                         </select>
@@ -273,14 +143,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <?php
                     $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
                     if ($payment_gateway_type->RecordCount() > 0) { ?>
-                        <div class="d-flex gap-3 mt-1 mb-2 <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
+                        <div class="d-flex gap-3 mt-1 mb-2">
                             <label class="radio" for="Session">
-                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session" <?= ($CHARGE_TYPE == 'Session') ? 'checked' : '' ?>>
+                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session">
                                 <span></span>
                                 Charge by sessions
                             </label>
                             <label class="radio" for="Membership">
-                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" <?= ($CHARGE_TYPE == 'Membership') ? 'checked' : '' ?>>
+                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership">
                                 <span></span>
                                 Membership
                             </label>
@@ -293,9 +163,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
                     <button type="button" class="btn-secondary w-100 f12 mb-2" onclick="addMoreServices()">Add More Service</button>
 
-                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100" <?= ($PK_ENROLLMENT_MASTER > 0) ? 'disabled_div' : '' ?>">
+                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100"">
                         <span>Total Amount</span>
-                        <span class="fw-semibold text-dark TOTAL_AMOUNT_TEXT" readonly></span>
+                        <span class=" fw-semibold text-dark TOTAL_AMOUNT_TEXT" readonly></span>
                     </div>
 
                 </div>
@@ -313,14 +183,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= $ENROLLMENT_DATE ?>" required onkeydown="return false;">
-                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" <?php echo ($CHARGE_TYPE != 'Membership') ? 'required' : '' ?>>
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" required onkeydown="return false;">
+                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE">
                             <option value="" selected disabled>-- Expire In --</option>
-                            <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
-                            <option value="2" data-expiry_date="60" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
-                            <option value="3" data-expiry_date="90" <?= ($months == 3) ? 'selected' : '' ?>>90 days</option>
-                            <option value="6" data-expiry_date="180" <?= ($months == 6) ? 'selected' : '' ?>>180 days</option>
-                            <option value="12" data-expiry_date="365" <?= ($months == 12) ? 'selected' : '' ?>>365 days</option>
+                            <option value="1" data-expiry_date="30">30 days</option>
+                            <option value="2" data-expiry_date="60">60 days</option>
+                            <option value="3" data-expiry_date="90">90 days</option>
+                            <option value="6" data-expiry_date="180">180 days</option>
+                            <option value="12" data-expiry_date="365">365 days</option>
                         </select>
                     </div>
                 </div>
@@ -343,7 +213,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <?php
                             $row = $db_account->Execute("SELECT PK_DOCUMENT_LIBRARY, DOCUMENT_NAME FROM DOA_DOCUMENT_LIBRARY WHERE ACTIVE = 1 ORDER BY PK_DOCUMENT_LIBRARY");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY']; ?>" <?= ($PK_DOCUMENT_LIBRARY == $row->fields['PK_DOCUMENT_LIBRARY']) ? 'selected' : '' ?>><?= $row->fields['DOCUMENT_NAME'] ?></option>
+                                <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY']; ?>"><?= $row->fields['DOCUMENT_NAME'] ?></option>
                             <?php $row->MoveNext();
                             } ?>
                         </select>
@@ -366,7 +236,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <option value="" selected disabled>-- Select --</option>
                         </select>
                         <div class="position-relative">
-                            <input type="text" style="max-width: 120px;" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" placeholder="Enter %" value="<?= $ENROLLMENT_BY_PERCENTAGE ?>">
+                            <input type="text" style="max-width: 120px;" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" placeholder="Enter %">
                         </div>
                     </div>
                 </div>
@@ -382,41 +252,15 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                 </div>
                 <div class="col-8 col-md-8">
-                    <?php
-                    if (!empty($_GET['id'])) {
-                        $enrollment_service_provider_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$_GET[id]'");
-                        while (!$enrollment_service_provider_data->EOF) { ?>
-
-                            <div class="form-group d-flex gap-2 align-items-center" id="salesby">
-                                <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER" disabled>
-                                    <option value="" selected disabled>-- Select --</option>
-                                    <?php
-                                    $row = $db->Execute("SELECT DISTINCT(DOA_USERS.PK_USER), CONCAT(FIRST_NAME, ' ', LAST_NAME) AS NAME FROM DOA_USERS LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY FIRST_NAME");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_USER']; ?>" <?= ($row->fields['PK_USER'] == $enrollment_service_provider_data->fields['SERVICE_PROVIDER']) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
-                                    <?php $row->MoveNext();
-                                    } ?>
-                                </select>
-                                <div class="position-relative">
-                                    <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]" value="<?= number_format((float)$enrollment_service_provider_data->fields['SERVICE_PROVIDER_PERCENTAGE'], 2, '.', '') ?>">
-                                </div>
-                            </div>
-
-                        <?php $enrollment_service_provider_data->MoveNext();
-                        } ?>
-                    <?php } else { ?>
-
-                        <div class="form-group d-flex gap-2 align-items-center" id="salesby">
-                            <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
-                                <option value="" selected disabled>-- Select --</option>
-                            </select>
-                            <div class="position-relative">
-                                <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
-                            </div>
+                    <div class="form-group d-flex gap-2 align-items-center" id="salesby">
+                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                            <option value="" selected disabled>-- Select --</option>
+                        </select>
+                        <div class="position-relative">
+                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
                         </div>
+                    </div>
 
-
-                    <?php } ?>
                     <div id="append_service_provider_div">
 
                     </div>
@@ -435,7 +279,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <textarea class="form-control" name="MEMO"><?= $MEMO ?></textarea>
+                        <textarea class="form-control" name="MEMO"></textarea>
                     </div>
                 </div>
             </div>
@@ -472,8 +316,8 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         <h5 class="mb-4 text-dark">Payment Plans</h5>
         <form class="mb-0" id="billing_form">
             <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
-            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
-            <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING" value="<?= $PK_ENROLLMENT_BILLING ?>">
+            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+            <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
             <input type="hidden" name="TOTAL_AMOUNT" class="TOTAL_AMOUNT">
             <div class="row mb-2 align-items-center">
                 <div class="col-4 col-md-4">
@@ -486,7 +330,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control" value="<?= $BILLING_REF ?>">
+                        <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control">
                     </div>
                 </div>
             </div>
@@ -504,17 +348,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <div class="form-group">
                         <div class="d-flex flex-column gap-2">
                             <label class="one_time">
-                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" <?= ($PAYMENT_METHOD == 'One Time') ? 'checked' : '' ?> required>
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" required>
                                 <span></span>
                                 One Time
                             </label>
                             <label class="payment_plans">
-                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'checked' : '' ?> required>
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" required>
                                 <span></span>
                                 Payment Plans
                             </label>
                             <label class="flexible_payments">
-                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" <?= ($PAYMENT_METHOD == 'Flexible Payments') ? 'checked' : '' ?> required>
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" required>
                                 <span></span>
                                 Flexible Payments
                             </label>
@@ -534,7 +378,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" value="<?= ($BILLING_DATE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($BILLING_DATE)) ?>" readonly>
+                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" readonly>
                     </div>
                 </div>
             </div>
@@ -551,7 +395,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 <div class="col-8 col-md-8">
                     <div class="form-group">
                         <div class="position-relative">
-                            <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" value="<?= $DOWN_PAYMENT ?>" class="form-control" onkeyup="calculatePayment()">
+                            <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" class="form-control" onkeyup="calculatePayment()">
                         </div>
                     </div>
                 </div>
@@ -560,14 +404,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
             <!-- Payment Plans -->
-            <div class="payment_method_div" id="payment_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans') ? '' : 'none' ?>;">
+            <div class="payment_method_div" id="payment_plans_div" style="display: none;">
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4"></div>
-                    <div class="col-md-8 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: <?= ($PAYMENT_METHOD == 'Payment Plans' || $PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>;">
+                    <div class="col-md-8 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: none;">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
                             <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
-                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" <?= ($ACTIVE_AUTO_PAY == '1') ? 'checked' : '' ?> /></label>
+                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" /></label>
                             </div>
                         </div>
                     </div>
@@ -584,13 +428,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <select class="form-control form-select installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <select class="form-control form-select installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM">
                                 <option value="">Select</option>
-                                <option value="Weekly" <?= ($PAYMENT_TERM == 'Weekly') ? 'selected' : '' ?>>Weekly</option>
-                                <option value="Monthly" <?= ($PAYMENT_TERM == 'Monthly') ? 'selected' : '' ?>>Monthly</option>
-                                <option value="Quarterly" <?= ($PAYMENT_TERM == 'Quarterly') ? 'selected' : '' ?>>Quarterly</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
                             </select>
-                            <input type="text" placeholder="Number of Payments" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" value="<?= $NUMBER_OF_PAYMENT ?>" class="form-control installment-input" onkeyup="calculatePaymentPlans();" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <input type="text" placeholder="Number of Payments" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" class="form-control installment-input" onkeyup="calculatePaymentPlans();">
                         </div>
                     </div>
                 </div>
@@ -621,7 +465,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     </div>
                     <div class="col-8 col-md-8">
                         <div class="form-group d-flex gap-2">
-                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" value="<?= $INSTALLMENT_AMOUNT ?>" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)" <?= ($PAYMENT_METHOD == 'Payment Plans') ? 'required' : '' ?>>
+                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)">
                         </div>
                     </div>
                 </div>
@@ -630,14 +474,14 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
             <!-- Flexible Payments -->
-            <div class="payment_method_div" id="flexible_plans_div" style="display: <?= ($PAYMENT_METHOD == 'Flexible Payments') ? '' : 'none' ?>">
+            <div class="payment_method_div" id="flexible_plans_div" style="display: none;">
                 <div class="row mb-2 align-items-center">
                     <div class="col-4 col-md-4"></div>
                     <div class="col-md-8 ms-auto pe-0 mb-2">
                         <div class="d-flex justify-content-between">
                             <label>Auto-Pay</label>
                             <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
-                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" <?= ($ACTIVE_AUTO_PAY == '1') ? 'checked' : '' ?> /></label>
+                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" /></label>
                             </div>
                         </div>
                     </div>
@@ -690,7 +534,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             <hr class="mb-3">
             <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
                 <span>Balance Payable</span>
-                <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" value="<?= $BALANCE_PAYABLE ?>" class="form-control" style="width: 330px;" readonly>
+                <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" class="form-control" style="width: 330px;" readonly>
             </div>
         </form>
     </div>
@@ -701,85 +545,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     </div>
 </div>
 <!-- End Billing -->
-
-
-
-<!-- Enrollment Payment -->
-<!-- <div class="overlay6"></div>
-<div class="side-drawer" id="sideDrawer6">
-    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
-        <h6>
-            <svg id="closeDrawer6" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
-                <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
-            </svg>
-            <span class="mb-0">Create New Enrollment / Billing</span>
-        </h6>
-        <span class="close-btn" id="closeDrawer6">&times;</span>
-    </div>
-    <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
-        <h5 class="mb-4 text-dark">Payment</h5>
-        <form class="mb-0 appointmentform">
-            <div class="totalamount p-2 text-dark border rounded-2 f12 d-flex flex-column gap-2">
-                <div class="d-inline-flex align-items-center justify-content-between w-100">
-                    <span>Total Amount</span>
-                    <span class="fw-semibold text-dark">$290.00</span>
-                </div>
-                <div class="d-inline-flex align-items-center justify-content-between w-100">
-                    <span class="fw-semibold">Amount to Pay</span>
-                    <span class="fw-semibold text-dark">$290.00</span>
-                </div>
-            </div>
-            <hr class="my-3">
-            <div class="row mb-2 align-items-center">
-                <div class="col-4 col-md-4">
-                    <div class="d-flex gap-2 align-items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 22" fill="#ccc">
-                            <path d="M1.2 0H22.8C23.1183 0 23.4235 0.126428 23.6485 0.351472C23.8736 0.576516 24 0.88174 24 1.2V20.4C24 20.7183 23.8736 21.0235 23.6485 21.2485C23.4235 21.4736 23.1183 21.6 22.8 21.6H1.2C0.88174 21.6 0.576515 21.4736 0.351472 21.2485C0.126428 21.0235 0 20.7183 0 20.4V1.2C0 0.88174 0.126428 0.576516 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0ZM21.6 10.8H2.4V19.2H21.6V10.8ZM21.6 6V2.4H2.4V6H21.6Z" />
-                        </svg>
-                        <label class="mb-0">Payment Type</label>
-                    </div>
-                </div>
-                <div class="col-8 col-md-8">
-                    <div class="form-group">
-                        <select class="form-control form-select">
-                            <option value="" selected disabled>-- Select --</option>
-                            <option value="Cash">Cash</option>
-                            <option value="">Credit Card</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-3">
-            <div class="row mb-2">
-                <div class="col-4 col-md-4">
-                    <div class="d-flex gap-2 align-items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="#ccc">
-                            <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
-                        </svg>
-                        <label class="mb-0">Internal Note</label>
-                    </div>
-                </div>
-                <div class="col-8 col-md-8">
-                    <div class="form-group">
-                        <textarea class="form-control"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
-                <span>Amount to Pay</span>
-                <span class="fw-semibold text-dark">$290.00</span>
-            </div>
-        </form>
-    </div>
-
-    <div class="modal-footer flex-nowrap p-2 border-top">
-        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer6">Cancel</button>
-        <button type="button" class="btn-primary w-100 m-1">Save</button>
-    </div>
-</div> -->
-<!-- End Enrollment Payment -->
-
-
 
 
 <!--Confirm Model-->
@@ -809,7 +574,17 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
 <!--Payment Model-->
-<?php include('includes/enrollment_payment_v2.php'); ?>
+<?php
+$url_array = explode("/", $mail_url['path']);
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    $current_address = $url_array[3];
+} else {
+    $current_address = $url_array[2];
+}
+if ($current_address != 'customer.php') {
+    include('includes/enrollment_payment_v2.php');
+}
+?>
 
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
@@ -859,7 +634,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         $('#PK_USER_MASTER').trigger("change");
     }); */
 
-    let ENROLLMENT_BY_ID = parseInt(<?= $ENROLLMENT_BY_ID ?>);
+    let ENROLLMENT_BY_ID = 0;
 
     const appId = '<?= $SQUARE_APP_ID ?>';
     const locationId = '<?= $SQUARE_LOCATION_ID ?>';
@@ -992,7 +767,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 </script>
 
 <script>
-    let PK_ENROLLMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+    let PK_ENROLLMENT_MASTER = 0;
 
     // $('#PK_USER_MASTER').SumoSelect({
     //     placeholder: 'Select Customer',
@@ -1076,13 +851,13 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             async: false,
             cache: false,
             success: function(result) {
-                $('.SERVICE_PROVIDER').empty().append(result);
+                $('#enrollment_form .SERVICE_PROVIDER').prop('disabled', false).empty().append(result);
             }
         });
     }
 
     function getEnrollmentCount() {
-        let PK_ENROLLMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+        let PK_ENROLLMENT_MASTER = 0;
         let PK_USER_MASTER = $('#enrollment_form #PK_USER_MASTER').val();
         let PK_LOCATION = $('#enrollment_form #PK_LOCATION').val();
         if (PK_USER_MASTER > 0 && PK_LOCATION > 0 && PK_ENROLLMENT_MASTER == 0) {

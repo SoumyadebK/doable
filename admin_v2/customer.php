@@ -161,6 +161,13 @@ $customer = getProfileBadge($CUSTOMER_NAME);
 $customer_initial = $customer['initials'];
 $customer_color = $customer['color'];
 
+$interval = $db->Execute("SELECT MIN(TIME_SLOT_INTERVAL) AS TIME_SLOT_INTERVAL FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")");
+if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
+    $INTERVAL = "00:15:00";
+} else {
+    $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1680,6 +1687,10 @@ $customer_color = $customer['color'];
 
 <?php require_once('../includes/footer.php'); ?>
 
+<?php include 'partials/create_appointment_modal.php'; ?>
+
+<?php include 'partials/create_enrollment_modal.php'; ?>
+
 <!--Payment Model-->
 <?php include('includes/enrollment_payment_v2.php'); ?>
 
@@ -1701,6 +1712,29 @@ $customer_color = $customer['color'];
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <script>
+    $(document).ready(function() {
+        $(".btn-available").click(function() {
+            $(this).toggleClass("active");
+            $(".slot_div").toggle();
+        });
+
+        $('#openDrawer').click(function() {
+            $('#sideDrawer, .overlay').addClass('active');
+            $('.group_class_tab').show();
+            $('.to_do_tab').show();
+            $('#slot_time').val('');
+        });
+
+        $('#closeDrawer, .overlay').click(function() {
+            $('#sideDrawer, .overlay').removeClass('active');
+        });
+
+        $('#closeDrawer4, .overlay').click(function() {
+            $('#sideDrawer4, .overlay').removeClass('active');
+        });
+    });
+
+
     $(document).ready(function() {
         var hash = window.location.hash;
         if (hash) {
@@ -2086,8 +2120,6 @@ $customer_color = $customer['color'];
     }
 </script>
 
-
-
 <!-- All function related to Family Member -->
 <script>
     function openFamilyMemberModel() {
@@ -2165,9 +2197,17 @@ $customer_color = $customer['color'];
     }
 </script>
 
-
 <!-- All function related to enrollment -->
 <script>
+    function createCustomerEnrollment() {
+        let PK_USER_MASTER = '<?= $PK_USER_MASTER ?>';
+        $('#sideDrawer4, .overlay4').addClass('active');
+        $('#enrollment_form #PK_USER_MASTER').SumoSelect();
+        $('#enrollment_form #PK_USER_MASTER').val(PK_USER_MASTER);
+        $('#enrollment_form #PK_USER_MASTER')[0].sumo.reload();
+        $('#enrollment_form #PK_USER_MASTER').trigger('change');
+    }
+
     function loadEnrollment(type) {
         enr_tab_type = type;
         page_count = 1;
@@ -2646,6 +2686,24 @@ $customer_color = $customer['color'];
             }
         });
         window.scrollTo(0, 0);
+    }
+
+    function loadCreateAppointmentModal() {
+        let PK_USER_MASTER = <?= $PK_USER_MASTER ?>;
+        $('#sideDrawer, .overlay').addClass('active');
+
+        $('#myTabContent').show();
+
+        $('#create_appointment_form #SELECTED_CUSTOMER_ID').SumoSelect();
+        $('#create_appointment_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+        $('#create_appointment_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
+        $('#create_appointment_form #SELECTED_CUSTOMER_ID').trigger('change');
+        $('.group_class_tab').hide();
+        $('.to_do_tab').hide();
+
+        $('#create_record_only_form #SELECTED_CUSTOMER_ID').SumoSelect();
+        $('#create_record_only_form #SELECTED_CUSTOMER_ID').val(PK_USER_MASTER);
+        $('#create_record_only_form #SELECTED_CUSTOMER_ID')[0].sumo.reload();
     }
 </script>
 

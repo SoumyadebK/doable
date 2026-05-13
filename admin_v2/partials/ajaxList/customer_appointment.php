@@ -103,7 +103,7 @@ if ($source !== 'customer_modal') {
             <p class="text-muted small">Optional settings section description</p>
         </div>
 
-        <div class="view-toggle m-r-15" style="top: 24px; right: 24px; height: 37px; display: flex; gap: 10px;">
+        <div class="view-toggle m-r-15" style="top: 24px; right: 24px; height: 37px; display: flex;">
             <button class="view-btn-icon <?= ($type == 'normal') ? 'active' : '' ?>" onclick="getAppointmentList('normal')">
                 Today's & Future
             </button>
@@ -115,8 +115,8 @@ if ($source !== 'customer_modal') {
             </button>
         </div>
 
-        <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;">
-            <i class="bi bi-plus"></i> New Appointment
+        <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="loadCreateAppointmentModal()">
+            <i class=" bi bi-plus"></i> New Appointment
         </button>
     </div>
 <?php } ?>
