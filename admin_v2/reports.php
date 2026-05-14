@@ -123,7 +123,7 @@ if (!empty($_GET['NAME'])) {
                     <div class="col-12">
                         <!-- Electronic Weekly Reports -->
                         <div class="card mb-4">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Weekly Reports</h4>
                                 </div>
@@ -166,7 +166,7 @@ if (!empty($_GET['NAME'])) {
 
                         <!-- Extra Reports -->
                         <div class="card">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Extra Reports</h4>
                                 </div>
@@ -207,7 +207,7 @@ if (!empty($_GET['NAME'])) {
 
                         <!-- Electronic Miscellaneous Reports -->
                         <div class="card">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-12 col-sm-3 mt-3">
                                     <h4 class="card-title">Electronic Miscellaneous Report: *Deduction will be automatically created upon submission*</h4>
                                 </div>
