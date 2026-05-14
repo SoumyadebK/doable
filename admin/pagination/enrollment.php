@@ -638,10 +638,12 @@ if ($page == 1) { ?>
                     if (TOTAL_POSITIVE_BALANCE > 0) {
                         $('.credit_balance_div').slideDown();
                         $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
+                        $('#cancel_and_store_btn').attr('title', 'Cancels the enrollment but keeps it in the Active tab so the remaining credit can be refunded or moved to the wallet later.');
                     }
                     if (TOTAL_NEGATIVE_BALANCE < 0) {
                         $('.negative_balance_div').slideDown();
                         $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
+                        $('#cancel_and_store_btn').attr('title', 'Cancels the enrollment but keeps it in the Active tab so the outstanding balance can be collected later.');
                     }
                 }
             });

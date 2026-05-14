@@ -183,7 +183,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
-                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" required onkeydown="return false;">
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= date('m/d/Y'); ?>" required onkeydown="return false;">
                         <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE">
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30">30 days</option>
