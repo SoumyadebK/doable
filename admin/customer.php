@@ -2374,10 +2374,10 @@ if (isset($_POST['SUBMIT'])) {
                                             </div>
 
                                             <input type="hidden" name="SUBMIT" id="SUBMIT">
-                                            <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only</button>
+                                            <button type="submit" class="btn btn-info waves-effect waves-light text-white" id="cancel_and_store_btn" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only <span><i class="fa fa-info-circle"></i></span></button>
                                             <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Submit')" style="float: right; margin-right: 5px;">Submit</button>
+                                            <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
 
-                                            <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" style="*float: right;" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                                         </div>
 
                                     </div>

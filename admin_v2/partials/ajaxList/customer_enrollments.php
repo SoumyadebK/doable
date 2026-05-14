@@ -29,24 +29,28 @@ if ($type == 'completed') {
 if ($page == 1) { ?>
     <div class="enrollment-container mb-4">
 
-        <div class="d-flex justify-content-between align-items-start mb-4">
-            <div>
+        <div class="d-flex justify-content-between align-items-start mb-4 row">
+            <div class="col-6">
                 <h5 class="fw-bold mb-1"><?= $enr_title ?></h5>
                 <p class="text-muted mb-4 small">Optional settings section description</p>
             </div>
 
-            <div class="view-toggle m-r-15" style="height: 37px;">
-                <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
-                    Active
-                </button>
-                <button class="view-btn-icon <?= ($type == 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('completed')">
-                    Complete
-                </button>
+            <div class="col-4 d-flex justify-content-end align-items-center">
+                <div class="view-toggle m-r-15" style="height: 37px;">
+                    <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
+                        Active
+                    </button>
+                    <button class="view-btn-icon <?= ($type == 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('completed')">
+                        Complete
+                    </button>
+                </div>
             </div>
 
-            <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="createCustomerEnrollment()">
-                <i class="bi bi-plus"></i> New Enrollment
-            </button>
+            <div class="col-2 text-end">
+                <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="createCustomerEnrollment()">
+                    <i class="bi bi-plus"></i> New Enrollment
+                </button>
+            </div>
         </div>
 
         <?php

@@ -97,27 +97,31 @@ if ($source !== 'customer_modal') {
 
 
 <?php if ($source !== 'customer_modal') { ?>
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
+    <div class="d-flex justify-content-between align-items-start mb-4 row">
+        <div class="col-5">
             <h5 class="fw-bold mb-1"><?= $appointment_title ?></h5>
             <p class="text-muted small">Optional settings section description</p>
         </div>
 
-        <div class="view-toggle m-r-15" style="top: 24px; right: 24px; height: 37px; display: flex;">
-            <button class="view-btn-icon <?= ($type == 'normal') ? 'active' : '' ?>" onclick="getAppointmentList('normal')">
-                Today's & Future
-            </button>
-            <button class="view-btn-icon <?= ($type == 'cancelled') ? 'active' : '' ?>" onclick="getAppointmentList('cancelled')">
-                Cancelled
-            </button>
-            <button class="view-btn-icon <?= ($type == 'past') ? 'active' : '' ?>" onclick="getAppointmentList('past')">
-                Past
-            </button>
+        <div class="col-5 d-flex justify-content-end align-items-center">
+            <div class="view-toggle m-r-15" style="top: 24px; right: 24px; height: 37px; display: flex;">
+                <button class="view-btn-icon <?= ($type == 'normal') ? 'active' : '' ?>" onclick="getAppointmentList('normal')">
+                    Today's & Future
+                </button>
+                <button class="view-btn-icon <?= ($type == 'cancelled') ? 'active' : '' ?>" onclick="getAppointmentList('cancelled')">
+                    Cancelled
+                </button>
+                <button class="view-btn-icon <?= ($type == 'past') ? 'active' : '' ?>" onclick="getAppointmentList('past')">
+                    Past
+                </button>
+            </div>
         </div>
 
-        <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="loadCreateAppointmentModal()">
-            <i class=" bi bi-plus"></i> New Appointment
-        </button>
+        <div class="col-2 text-end">
+            <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="loadCreateAppointmentModal()">
+                <i class=" bi bi-plus"></i> New Appointment
+            </button>
+        </div>
     </div>
 <?php } ?>
 
