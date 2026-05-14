@@ -87,7 +87,10 @@ if (!empty($_GET['NAME'])) {
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="row" style="padding: 15px 15px 15px 15px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
+                                <div class="col-md-3 col-sm-3 mt-3">
+                                    <h4 class="card-title">Customer Reports</h4>
+                                </div>
                                 <form class="form-material form-horizontal" action="" method="get">
                                     <input type="hidden" name="selected_date" id="selected_date">
                                     <div class="row">

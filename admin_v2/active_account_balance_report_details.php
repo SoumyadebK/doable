@@ -95,31 +95,44 @@ if (!empty($_GET['SELECTED_DATE'])) {
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
+<style>
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn {
+        border: 0;
+        color: #fff;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        border-radius: 0.375rem !important;
+    }
+</style>
+
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid body_content" style="margin-top: 0px;">
-                <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
-                    <div class="col-md-7 align-self-center text-end">
-                        <div class="d-flex justify-content-end align-items-center">
-                            <ol class="breadcrumb justify-content-end">
-                                <li class="breadcrumb-item"><a href="active_account_balance_report.php">Select Date & Range</a></li>
-                                <li class="breadcrumb-item active"><a href="active_account_balance_report_details.php"><?= $title ?></a></li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="row" style="padding: 15px 0px 0px 15px;">
+                            <div class="row" style="padding: 25px 0px 0px 15px;">
                                 <form class="form-material form-horizontal" action="" method="get">
                                     <input type="hidden" name="selected_date" id="selected_date">
                                     <div class="row">

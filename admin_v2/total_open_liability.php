@@ -92,7 +92,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Open Liability Report</h4>
                                 </div>

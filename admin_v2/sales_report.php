@@ -62,6 +62,13 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 <style>
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
     .btn {
         border: 0;
         color: #fff;
@@ -81,14 +88,14 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
 
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Sales Report</h4>
                                 </div>

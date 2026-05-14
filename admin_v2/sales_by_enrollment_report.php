@@ -75,17 +75,41 @@ if (!empty($_GET['START_DATE'])) {
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
+<style>
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn {
+        border: 0;
+        color: #fff;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        border-radius: 0.375rem !important;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-
-        <div class="page-wrapper" style="padding-top: 0px !important;">
-
-            <div class="container-fluid body_content" style="margin-top: 0px;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
+            <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
@@ -191,10 +215,10 @@ if (!empty($_GET['START_DATE'])) {
                                         <div class="col-md-2 text-left">
                                             <img src="../assets/images/background/doable_logo.png" style="margin-bottom:-35px; height: 60px; width: auto;">
                                         </div>
-                                        <div class="col-md-2 text-center">
+                                        <div class="col-md-4 text-center">
                                             <h3 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $title ?></h3>
                                         </div>
-                                        <div class="col-md-5 text-center">
+                                        <div class="col-md-3 text-center">
                                             <h5 class="card-title" style="padding-bottom:15px; text-align: center; font-weight: bold"><?= $concatenatedResults ?></h5>
                                         </div>
                                         <div class="col-md-3 text-center">
@@ -559,7 +583,7 @@ if (!empty($_GET['START_DATE'])) {
 
                                     <!-- Debug Section: Show enrollments with multiple providers -->
                                     <div class="table-responsive mt-4">
-                                        <table class="table table-bordered table-sm" style="background-color: #fff3cd;">
+                                        <table class="table table-bordered table-sm" style="background-color: #fff3cd !important;">
                                             <thead>
                                                 <tr>
                                                     <th colspan="4" style="text-align: center; font-weight: bold; font-size: 14px;">ENROLLMENTS WITH MULTIPLE PROVIDERS</th>

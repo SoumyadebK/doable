@@ -116,13 +116,13 @@ if (!empty($_GET['NAME'])) {
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
             <?php require_once('layout/report_menu.php') ?>
             <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="row" style="padding: 15px 35px 35px 35px;">
+                            <div class="row" style="padding: 15px 15px 15px 35px;">
                                 <div class="col-md-3 col-sm-3 mt-3">
                                     <h4 class="card-title">Service Provider Reports</h4>
                                 </div>
@@ -173,17 +173,17 @@ if (!empty($_GET['NAME'])) {
                                                 <label for="include_no_provider">With No Service Provider</label>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-1">
                                             <div class="form-group">
                                                 <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-1">
                                             <div class="form-group">
                                                 <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>" required>
                                             </div>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-4">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
                                                 <span class="export-buttons" id="exportButtons">

@@ -774,6 +774,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                             <label class="form-label">Phone<span class="text-danger">*</span></label>
                                                                             <div class="col-md-12">
                                                                                 <input type="text" id="PHONE" name="PHONE" class="form-control format_phone_number" placeholder="Enter Phone Number" value="<?= formatPhone($PHONE) ?>" required>
+                                                                                <span id="phone_error" style="font-size: 12px;"></span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -785,6 +786,7 @@ if (isset($_POST['SUBMIT'])) {
                                                                             <label class="form-label">Email <?php if (empty($_GET['id'])) { ?> <span class="text-danger">*</span><?php } ?></label>
                                                                             <div class="col-md-12">
                                                                                 <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= $EMAIL_ID ?>" <?= (empty($_GET['id'])) ? 'required' : '' ?>>
+                                                                                <span id="email_error" style="font-size: 12px;"></span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -4129,6 +4131,121 @@ if (isset($_POST['SUBMIT'])) {
             }
         });
     });
+
+    // Phone duplicate checker
+    $(document).ready(function() {
+        let phoneTimeout = null;
+        let emailTimeout = null;
+
+        // Phone number duplicate check
+        $('#PHONE').on('keyup', function() {
+            clearTimeout(phoneTimeout);
+            let phone = $(this).val().replace(/\D/g, '');
+            let PK_USER = $('.PK_USER').val();
+
+            if (phone.length >= 10) {
+                phoneTimeout = setTimeout(function() {
+                    $.ajax({
+                        url: 'ajax/username_checker.php',
+                        type: 'post',
+                        data: {
+                            PHONE: phone,
+                            PK_USER: PK_USER
+                        },
+                        success: function(response) {
+                            if (response !== '') {
+                                $('#phone_error').html(response);
+                                $('#submit').attr('disabled', 'disabled');
+                            } else {
+                                $('#phone_error').html('<span class="text-success">Phone number is available!</span>');
+                                checkFormValidity();
+                            }
+                        }
+                    });
+                }, 500);
+            } else {
+                $('#phone_error').html('');
+            }
+        });
+
+        // Email duplicate check
+        $('#EMAIL_ID').on('keyup', function() {
+            clearTimeout(emailTimeout);
+            let email = $(this).val();
+            let PK_USER = $('.PK_USER').val();
+
+            if (email !== '' && isValidEmail(email)) {
+                emailTimeout = setTimeout(function() {
+                    $.ajax({
+                        url: 'ajax/username_checker.php',
+                        type: 'post',
+                        data: {
+                            EMAIL_ID: email,
+                            PK_USER: PK_USER
+                        },
+                        success: function(response) {
+                            if (response !== '') {
+                                $('#email_error').html(response);
+                                $('#submit').attr('disabled', 'disabled');
+                            } else {
+                                $('#email_error').html('<span class="text-success">Email is available!</span>');
+                                checkFormValidity();
+                            }
+                        }
+                    });
+                }, 500);
+            } else {
+                $('#email_error').html('');
+            }
+        });
+
+        // Function to check if all validations pass
+        function checkFormValidity() {
+            let phoneValid = $('#phone_error').html() === '<span class="text-success">Phone number is available!</span>';
+            let emailValid = $('#email_error').html() === '<span class="text-success">Email is available!</span>';
+            let phoneHasValue = $('#PHONE').val().replace(/\D/g, '').length >= 10;
+            let emailHasValue = $('#EMAIL_ID').val() !== '';
+
+            if ((phoneHasValue && phoneValid) && (emailHasValue && emailValid)) {
+                $('#submit').removeAttr('disabled');
+            } else if ((!phoneHasValue || phoneValid) && (!emailHasValue || emailValid)) {
+                // If fields are empty or valid
+                if ((phoneHasValue && phoneValid) || !phoneHasValue) {
+                    if ((emailHasValue && emailValid) || !emailHasValue) {
+                        $('#submit').removeAttr('disabled');
+                    }
+                }
+            }
+        }
+    });
+
+    // Email validation helper function
+    function isValidEmail(email) {
+        let regex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+        return regex.test(email);
+    }
+
+    // Phone formatting with duplicate check trigger
+    function formatPhoneNumber(input) {
+        let digits = input.value.replace(/\D/g, '');
+        if (digits.length > 10) {
+            digits = digits.slice(0, 10);
+        }
+        let formatted = digits;
+
+        if (digits.length <= 3) {
+            formatted = digits;
+        } else if (digits.length <= 6) {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        } else {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        input.value = formatted;
+
+        // Trigger duplicate check after formatting
+        $(input).trigger('keyup');
+    }
 
     $('#edit_due_date_form').on('submit', function(event) {
         event.preventDefault();
