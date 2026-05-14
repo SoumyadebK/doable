@@ -85,7 +85,33 @@ sort($lastProviders);
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
+
 <style>
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn {
+        border: 0;
+        color: #fff;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        border-radius: 0.375rem !important;
+    }
+
     .filter-bar {
         background: #f8f9fa;
         padding: 15px;
@@ -112,7 +138,7 @@ sort($lastProviders);
         font-weight: 500;
         font-size: 13px;
         display: inline-block;
-        margin-bottom: 5px;
+        margin-bottom: 2px;
     }
 
     .filter-group select,
@@ -132,14 +158,16 @@ sort($lastProviders);
     }
 
     .btn-clear {
-        padding: 5px 15px;
+        padding: 5px 10px;
         background-color: #6c757d;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
         cursor: pointer;
         font-size: 13px;
-        margin-top: 22px;
+        margin-top: 25px;
     }
 
     .btn-clear:hover {

@@ -82,7 +82,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 'student_mailing_list' => ['student_mailing_list.php'],
                 'total_open_liability' => ['total_open_liability.php'],
                 'customer_reports' => ['active_account_balance_report.php', 'active_account_balance_report_details.php', 'customer_summary_report.php'],
-                'sales_report' => ['sales_report.php']
+                'sales_report' => ['sales_report.php', 'sales_report_details.php']
             ];
 
             // Find which group current page belongs to
