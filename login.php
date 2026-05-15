@@ -1,9 +1,15 @@
 <?php
+
+use Twilio\Rest\Client;
+
 global $db;
 require_once('global/config.php');
+require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
+
 $msg = '';
 $success_msg = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
+$IP_BYPASS = ['202.142.91.42'];
 
 if ($FUNCTION_NAME == 'loginFunction') {
     $USER_NAME = trim($_POST['USER_NAME']);
@@ -13,72 +19,113 @@ if ($FUNCTION_NAME == 'loginFunction') {
     if ($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD']) || ($PASSWORD == 'Master@Pass@2025')) {
-                $selected_role = '';
                 $PK_USER = $result->fields['PK_USER'];
-                $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
-                $selected_role = $selected_roles_row->fields['PK_ROLES'];
+                $IP_ADDRESS = getUserIP();
 
-                $_SESSION['PK_USER'] = $result->fields['PK_USER'];
-                $_SESSION['PK_ROLES'] = $selected_role;
-                $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
+                $auth_data = $db->Execute("SELECT * FROM `DOA_USER_AUTH_LOG` WHERE `PK_USER` = '$PK_USER' ORDER BY `LOGIN_TIME` DESC LIMIT 1");
 
-                if ($_SESSION['PK_ROLES'] == 4) {
-                    $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
-                    $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
-                    $_SESSION['PK_USER_MASTER'] = $customer_account_data->fields['PK_USER_MASTER'];
-                } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                } elseif ($_SESSION['PK_ROLES'] != 1) {
-                    $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
-                }
+                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($PK_USER == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || $customer_account_data->fields['PK_USER_MASTER'] != 1042) {
+                    $selected_role = '';
+                    $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
+                    $selected_role = $selected_roles_row->fields['PK_ROLES'];
 
-                $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
-                $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
-                $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
+                    $_SESSION['PK_USER'] = $result->fields['PK_USER'];
+                    $_SESSION['PK_ROLES'] = $selected_role;
+                    $_SESSION['IS_NEW'] = $result->fields['IS_NEW'];
 
-                if ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 11) {
-                    $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                    $LOCATION_ARRAY = [];
-                    while (!$row->EOF) {
-                        $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
-                        $row->MoveNext();
+                    if ($_SESSION['PK_ROLES'] == 4) {
+                        $customer_account_data = $db->Execute("SELECT DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_ACCOUNT_MASTER INNER JOIN DOA_USER_MASTER ON DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  = DOA_USER_MASTER.PK_ACCOUNT_MASTER WHERE DOA_USER_MASTER.PK_USER = '$PK_USER' LIMIT 1");
+                        $_SESSION['DB_NAME'] = $customer_account_data->fields['DB_NAME'];
+                        $_SESSION['PK_ACCOUNT_MASTER'] = $customer_account_data->fields['PK_ACCOUNT_MASTER'];
+                        $_SESSION['PK_USER_MASTER'] = $customer_account_data->fields['PK_USER_MASTER'];
+                    } elseif ($_SESSION['PK_ROLES'] == 5) {
+                        $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                        $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
+                    } elseif ($_SESSION['PK_ROLES'] != 1) {
+                        $_SESSION['DB_NAME'] = $result->fields['DB_NAME'];
+                        $_SESSION['PK_ACCOUNT_MASTER'] = $result->fields['PK_ACCOUNT_MASTER'];
                     }
-                    $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+
+                    $_SESSION['FIRST_NAME'] = $result->fields['FIRST_NAME'];
+                    $_SESSION['LAST_NAME'] = $result->fields['LAST_NAME'];
+                    $_SESSION['TICKET_SYSTEM_ACCESS'] = $result->fields['TICKET_SYSTEM_ACCESS'];
+
+                    if ($_SESSION['PK_ROLES'] == 2 || $_SESSION['PK_ROLES'] == 11) {
+                        $row = $db->Execute("SELECT PK_LOCATION FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                        $LOCATION_ARRAY = [];
+                        while (!$row->EOF) {
+                            $LOCATION_ARRAY[] = $row->fields['PK_LOCATION'];
+                            $row->MoveNext();
+                        }
+                        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $LOCATION_ARRAY);
+                    } else {
+                        $selected_location = [];
+                        $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $_SESSION['PK_USER']);
+                        while (!$selected_location_row->EOF) {
+                            $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
+                            $selected_location_row->MoveNext();
+                        }
+                        $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $selected_location);
+                    }
+
+                    if (!file_exists('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'])) {
+                        mkdir('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'], 0777, true);
+                        chmod('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'], 0777);
+                    }
+
+                    if ($_SESSION['PK_ROLES'] == 1) {
+                        header("location: super_admin/all_accounts.php");
+                    } elseif ($_SESSION['PK_ROLES'] == 4) {
+                        $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = " . $result->fields['PK_USER'] . " LIMIT 1");
+                        $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
+
+                        if ($account->fields['PRIMARY_LOCATION_ID'] > 0) {
+                            $_SESSION['DEFAULT_LOCATION_ID'] = $account->fields['PRIMARY_LOCATION_ID'];
+                        }
+
+                        header("location: customer/all_schedules.php?view=table");
+                    } elseif ($_SESSION['PK_ROLES'] == 5) {
+                        header("location: admin_v2/calendar.php");
+                    } elseif ($_SESSION['IS_NEW'] == 1) {
+                        header("location: admin/wizard_corporation.php");
+                    } else {
+                        header("location: admin_v2/calendar.php");
+                    }
                 } else {
-                    $selected_location = [];
-                    $selected_location_row = $db->Execute("SELECT `PK_LOCATION` FROM `DOA_USER_LOCATION` WHERE `PK_USER` = " . $_SESSION['PK_USER']);
-                    while (!$selected_location_row->EOF) {
-                        $selected_location[] = $selected_location_row->fields['PK_LOCATION'];
-                        $selected_location_row->MoveNext();
+                    $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_TEXT_SETTINGS = 1");
+                    $SID = $text_setting->fields['SID'];
+                    $TOKEN = $text_setting->fields['TOKEN'];
+                    $TWILIO_PHONE_NO = $text_setting->fields['FROM_NO'];
+
+                    $PHONE = $result->fields['PHONE'];
+                    $OTP = rand(100000, 999999);
+
+                    $message = $OTP . ' is your verification code for DOable.';
+                    //echo $message . "<br>"; die();
+                    try {
+                        $client = new Client($SID, $TOKEN);
+                        $response = $client->messages->create(
+                            '+1' . $PHONE,
+                            [
+                                'from' => $TWILIO_PHONE_NO,
+                                'body' => $message //$msg->fields['CONTENT']
+                            ]
+                        );
+
+                        $AUTH_LOG_DATA['PK_USER'] = $result->fields['PK_USER'];
+                        $AUTH_LOG_DATA['IP_ADDRESS'] = $IP_ADDRESS;
+                        $AUTH_LOG_DATA['OTP'] = $OTP;
+                        $AUTH_LOG_DATA['LOGIN_TIME'] = date('Y-m-d H:i:s');
+                        $AUTH_LOG_DATA['IS_VERIFIED'] = 0;
+                        db_perform('DOA_USER_AUTH_LOG', $AUTH_LOG_DATA, 'insert');
+
+                        $_SESSION['TEMP_PK_USER'] = $result->fields['PK_USER'];
+                        $_SESSION['OTP_SEND_SUCCESS'] = 'An OTP is send to you mobile number ' . formatPhone($PHONE);
+
+                        header("location: verify_login_otp.php");
+                    } catch (\Twilio\Exceptions\TwilioException $e) {
+                        $msg = 'OTP Sending Error : ' . $e->getMessage();
                     }
-                    $_SESSION['DEFAULT_LOCATION_ID'] = implode(',', $selected_location);
-                }
-
-                if (!file_exists('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'])) {
-                    mkdir('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'], 0777, true);
-                    chmod('uploads/' . $_SESSION['PK_ACCOUNT_MASTER'], 0777);
-                }
-
-                if ($_SESSION['PK_ROLES'] == 1) {
-                    header("location: super_admin/all_accounts.php");
-                } elseif ($_SESSION['PK_ROLES'] == 4) {
-                    $account = $db->Execute("SELECT * FROM DOA_USER_MASTER WHERE PK_USER = " . $result->fields['PK_USER'] . " LIMIT 1");
-                    $_SESSION['PK_ACCOUNT_MASTER'] = $account->fields['PK_ACCOUNT_MASTER'];
-
-                    if ($account->fields['PRIMARY_LOCATION_ID'] > 0) {
-                        $_SESSION['DEFAULT_LOCATION_ID'] = $account->fields['PRIMARY_LOCATION_ID'];
-                    }
-
-                    header("location: customer/all_schedules.php?view=table");
-                } elseif ($_SESSION['PK_ROLES'] == 5) {
-                    header("location: admin_v2/calendar.php");
-                } elseif ($_SESSION['IS_NEW'] == 1) {
-                    header("location: admin/wizard_corporation.php");
-                } else {
-                    header("location: admin_v2/calendar.php");
                 }
             } else {
                 $msg = "Invalid Password";
@@ -164,7 +211,7 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
     <div class="preloader">
         <div class="loader">
             <div class="loader__figure"></div>
-            <p class="loader__label">Doable</p>
+            <p class="loader__label">DOable</p>
         </div>
     </div>
     <section id="wrapper">

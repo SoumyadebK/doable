@@ -1455,3 +1455,22 @@ function formatPhone($PHONE)
 
     return $PHONE;
 }
+
+function getUserIP()
+{
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        // IP from shared internet
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // IP passed from proxy
+        $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ipArray[0]); // first IP is the real one
+    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        // Nginx real IP header
+        $ip = $_SERVER['HTTP_X_REAL_IP'];
+    } else {
+        // Default
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    return $ip;
+}

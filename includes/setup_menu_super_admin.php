@@ -67,6 +67,7 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="../super_admin/all_chat_section.php">Assistant</a>
+                                <a class="dropdown-item" href="../super_admin/login_log.php">Login Log</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
