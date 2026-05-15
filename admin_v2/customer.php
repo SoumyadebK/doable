@@ -174,6 +174,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 <?php include 'layout/header_script.php'; ?>
 <?php include 'layout/header.php'; ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
+
 <style>
     .sidebar-link {
         color: #6c757d;
@@ -1822,6 +1824,35 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     </div>
 </div>
 
+<!-- Delete Enrollment Modal -->
+<div class="modal fade" id="delete_enrollment_model" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="delete_enrollment_form" method="post">
+            <input type="hidden" name="FUNCTION_NAME" value="deleteActiveEnrollmentData">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Delete Enrollment</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <input type="hidden" name="PK_ENROLLMENT_MASTER" id="DELETE_ENROLLMENT_ID">
+                <div class="modal-body">
+                    <div class="row p-20">
+                        <div>
+                            <label><input type="radio" id="delete_type_1" name="delete_type" value="1" checked>&nbsp;&nbsp;&nbsp;Delete All Appointment</label><br><br>
+                            <label><input type="radio" id="delete_type_0" name="delete_type" value="0">&nbsp;&nbsp;&nbsp;Move Appointment to Ad-Hoc</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" id="card-button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <?php require_once('../includes/footer.php'); ?>
 
@@ -3208,6 +3239,38 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
         });
     }
+
+    function openDeleteEnrollmentModal(PK_ENROLLMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure you want to delete this enrollment?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#delete_enrollment_model').modal('show');
+                $('#DELETE_ENROLLMENT_ID').val(PK_ENROLLMENT_MASTER);
+            }
+        });
+    }
+
+    $(document).on('submit', '#delete_enrollment_form', function(event) {
+        event.preventDefault();
+        let form_data = new FormData($('#delete_enrollment_form')[0]);
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                window.location.reload();
+            }
+        });
+    });
 </script>
 
 </html>

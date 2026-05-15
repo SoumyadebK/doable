@@ -183,7 +183,7 @@ while (!$enrollment_data->EOF) {
                     if ($payment_data->RecordCount() == 0) {
                     ?>
                         <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="ti-trash"></i></a>
+                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="bi bi-trash"></i></a>
                         <?php } ?>
                     <?php } ?>
 
