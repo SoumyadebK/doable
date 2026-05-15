@@ -183,14 +183,15 @@ while (!$enrollment_data->EOF) {
                     if ($payment_data->RecordCount() == 0) {
                     ?>
                         <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="bi bi-trash"></i></a>
+                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px;"><i class="bi bi-trash"></i></a>
                         <?php } ?>
                     <?php } ?>
 
                     <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
 
                         <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
-                            <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;" title="Cancel"></a>
+                            <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')" title="Cancel" style="color: red; font-size: 21px; margin-left: 5px;">
+                                <i class="bi bi-ban"></i></a>
                         <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
                             <p style="color: red; margin-top: auto;">Cancelled</p>
                             <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
