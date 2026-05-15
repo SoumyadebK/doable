@@ -47,8 +47,8 @@ if ($page == 1) { ?>
             </div>
 
             <div class="col-2 text-end">
-                <button class="btn btn-light btn-outline-edit btn-sm border text-muted px-3 py-2" style="border-radius: 8px;" onclick="createCustomerEnrollment()">
-                    <i class="bi bi-plus"></i> New Enrollment
+                <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important;" onclick="createCustomerEnrollment()">
+                    <i class="bi bi-plus"></i> Create New Enrollment
                 </button>
             </div>
         </div>
@@ -101,7 +101,7 @@ if ($page == 1) { ?>
 
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -119,7 +119,8 @@ while (!$enrollment_data->EOF) {
     while (!$serviceMasterData->EOF) {
         $serviceMaster[] = $serviceMasterData->fields['SERVICE_NAME'];
         $serviceMasterData->MoveNext();
-    } ?>
+    }
+    $enrollment_title = ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID']; ?>
 
     <div class="enrollment-container enrollment_div mb-4" style="position: relative;">
 
@@ -140,7 +141,7 @@ while (!$enrollment_data->EOF) {
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row" style="width: 100%;">
-                <div class="col-5">
+                <div class="col-4">
                     <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
                 </div>
                 <div class="col-2">
@@ -174,6 +175,27 @@ while (!$enrollment_data->EOF) {
                                         </label>
                             </div>
                         </div>
+                    <?php } ?>
+                </div>
+                <div class="col-1">
+                    <?php
+                    $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+                    if ($payment_data->RecordCount() == 0) {
+                    ?>
+                        <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
+                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px; margin-top: auto;"><i class="ti-trash"></i></a>
+                        <?php } ?>
+                    <?php } ?>
+
+                    <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
+
+                        <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
+                            <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')"><img src="../assets/images/noun-cancel-button.png" alt="LOGO" style="height: 21px; width: 21px; margin-top: auto;" title="Cancel"></a>
+                        <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
+                            <p style="color: red; margin-top: auto;">Cancelled</p>
+                            <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
+                        <?php } ?>
+
                     <?php } ?>
                 </div>
             </div>
@@ -283,3 +305,16 @@ while (!$enrollment_data->EOF) {
 <?php
     $enrollment_data->MoveNext();
 } ?>
+
+<style>
+    .btn-outline-edit {
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-edit:hover {
+        background-color: #2e9e3d !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(57, 181, 74, 0.35);
+        cursor: pointer;
+    }
+</style>

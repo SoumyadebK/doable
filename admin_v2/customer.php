@@ -1684,6 +1684,144 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     </div>
 </div>
 
+<div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="p-20" action="" method="post">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><b>Cancel Enrollment</b></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+
+                            <div id="step_1">
+                                <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+                                <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label>Cancel All Future Appointments for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_1" value="1" checked /></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label>Cancel Only Unpaid Future Appointments for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_2" value="2" /></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label>Move Future Appointments As Ad-Hoc for <span class="enrollment_title"></span>? <input type="radio" name="CANCEL_FUTURE_APPOINTMENT" id="CANCEL_FUTURE_APPOINTMENT_3" value="3" /></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white next" style="float: right;" onclick="$('#step_1').hide();$('#step_2').show();">Continue</a>
+                            </div>
+
+                            <div id="step_2" style="display: none;">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label>Use available credits to pay pending balances?</label>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label><input type="radio" name="USE_AVAILABLE_CREDIT" value="1" checked />&nbsp;Yes</label>&nbsp;&nbsp;
+                                            <!--<label><input type="radio" name="USE_AVAILABLE_CREDIT" value="0"/>&nbsp;No</label>-->
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light m-l-10 text-white next" style="float: right;" onclick="$('#step_2').hide();$('#step_3').show();showEnrollmentServiceDetails();">Continue</a>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white prev" style="*float: right;" onclick="$('#step_2').hide();$('#step_1').show();">Go Back</a>
+                            </div>
+
+                            <div id="step_3" style="display: none;">
+                                <div id="enrollment_service_details">
+
+                                </div>
+                                <div class="form-group negative_balance_div" style="display: none;">
+                                    <label class="form-label">How you want to your pay?</label>
+                                    <div class="col-md-8">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE">
+                                            <option value="">Select</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group negative_balance_div" style="display: none;">
+                                    <div class="row">
+                                        <b>Note: Please pay $<span id="total_negative_balance"></span> to cancel your enrollment.</b>
+                                    </div>
+                                </div>
+
+                                <div class="form-group credit_balance_div" style="display: none;">
+                                    <label class="form-label">Refund Method?</label>
+                                    <div class="col-md-8">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
+                                            <option value="">Select</option>
+                                            <?php
+                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                            while (!$row->EOF) { ?>
+                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                            <?php $row->MoveNext();
+                                            } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group credit_balance_div" style="display: none;">
+                                    <div class="row">
+                                        <b>Note: Credit balance $<span id="total_credit_balance"></span> will be moved to Wallet.</b>
+                                    </div>
+                                </div>
+
+                                <div class="row" id="check_payment" style="display: none;">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Number</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Check Date</label>
+                                            <div class="col-md-12">
+                                                <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="SUBMIT" id="SUBMIT">
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" id="cancel_and_store_btn" onclick="$('#SUBMIT').val('Cancel and Store Info only')" style="float: right;">Cancel and Store Info only <span><i class="fa fa-info-circle"></i></span></button>
+                                <button type="submit" class="btn btn-info waves-effect waves-light text-white" onclick="$('#SUBMIT').val('Submit')" style="float: right; margin-right: 5px;">Submit</button>
+                                <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
+                </div>-->
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <?php require_once('../includes/footer.php'); ?>
 
@@ -3006,6 +3144,69 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     function openWalletModel() {
         $('#wallet_payment_model').modal('show');
+    }
+</script>
+
+<script>
+    function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER, enrollment_title) {
+        $('.PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+        $('.PK_USER_MASTER').val(PK_USER_MASTER);
+        $('.enrollment_title').text(enrollment_title);
+        $('#CANCEL_FUTURE_APPOINTMENT_3').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_2').prop('checked', false);
+        $('#CANCEL_FUTURE_APPOINTMENT_1').prop('checked', true);
+        $('#step_3').hide();
+        $('#step_2').hide();
+        $('#step_1').show();
+        $('#enrollment_cancel_modal').modal('show');
+    }
+
+    function selectRefundType(param) {
+        let paymentType = parseInt($(param).val());
+        if (paymentType === 2) {
+            $(param).closest('.modal-body').find('#check_payment').slideDown();
+        } else {
+            $(param).closest('.modal-body').find('#check_payment').slideUp();
+        }
+    }
+
+    function showEnrollmentServiceDetails() {
+        let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+        let USE_AVAILABLE_CREDIT = $('input[name="USE_AVAILABLE_CREDIT"]:checked').val();
+        let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
+        $.ajax({
+            url: "includes/enrollment_service_details.php",
+            type: 'GET',
+            data: {
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                USE_AVAILABLE_CREDIT: USE_AVAILABLE_CREDIT,
+                CANCEL_FUTURE_APPOINTMENT: CANCEL_FUTURE_APPOINTMENT
+            },
+            success: function(data) {
+                $('#enrollment_service_details').html(data);
+                $('.negative_balance_div').slideUp();
+                $('.credit_balance_div').slideUp();
+
+                let TOTAL_POSITIVE_BALANCE = parseFloat($('#TOTAL_POSITIVE_BALANCE').val());
+                let TOTAL_NEGATIVE_BALANCE = parseFloat($('#TOTAL_NEGATIVE_BALANCE').val());
+
+                if (USE_AVAILABLE_CREDIT == 1) {
+                    TOTAL_POSITIVE_BALANCE += TOTAL_NEGATIVE_BALANCE;
+                    TOTAL_NEGATIVE_BALANCE = TOTAL_POSITIVE_BALANCE;
+                }
+
+                if (TOTAL_POSITIVE_BALANCE > 0) {
+                    $('.credit_balance_div').slideDown();
+                    $('#total_credit_balance').text(parseFloat(TOTAL_POSITIVE_BALANCE).toFixed(2));
+                    $('#cancel_and_store_btn').attr('title', 'Cancels the enrollment but keeps it in the Active tab so the remaining credit can be refunded or moved to the wallet later.');
+                }
+                if (TOTAL_NEGATIVE_BALANCE < 0) {
+                    $('.negative_balance_div').slideDown();
+                    $('#total_negative_balance').text(Math.abs(parseFloat(TOTAL_NEGATIVE_BALANCE).toFixed(2)));
+                    $('#cancel_and_store_btn').attr('title', 'Cancels the enrollment but keeps it in the Active tab so the outstanding balance can be collected later.');
+                }
+            }
+        });
     }
 </script>
 
