@@ -289,8 +289,9 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                             <li class="">
                                 <a class="nav-link <?= (('all_products.php' === $current_address) ? 'active' : '') ?>" href="all_products.php">E-Commerce</a>
                             </li>
+                            <!-- Original Reports tab (line ~117) -->
                             <li class="">
-                                <a class="nav-link <?= (('reports.php' === $current_address) ? 'active' : '') ?>" href="reports.php">Reports</a>
+                                <a class="nav-link <?= ((strpos($current_address, 'report') !== false) ? 'active' : '') ?>" href="reports.php">Reports</a>
                             </li>
                         </ul>
                     </div>

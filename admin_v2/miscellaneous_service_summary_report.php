@@ -141,7 +141,32 @@ if (!empty($_GET['NAME'])) {
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
 <style>
+    /* Custom styles for the header */
+    a {
+        color: #690C24;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn {
+        border: 0;
+        color: #fff;
+        border-radius: 50rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        border-radius: 0.375rem !important;
+    }
+
     .form-group {
         display: flex;
         align-items: center;
@@ -162,10 +187,8 @@ if (!empty($_GET['NAME'])) {
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-
-        <div class="page-wrapper" style="padding-top: 0px !important;">
-
-            <div class="container-fluid body_content" style="margin-top: 0px;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
+            <div class="container-fluid" style="padding: 10px 20px 0 20px; margin-top: 0px;">
                 <div class="row page-titles">
                     <div class="col-md-5 align-self-center">
                         <h4 class="text-themecolor"><?= $title ?></h4>
@@ -261,7 +284,7 @@ if (!empty($_GET['NAME'])) {
                                         <table id="myTable" class="table table-bordered" data-page-length='50'>
                                             <thead>
                                                 <tr>
-                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="8"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
+                                                    <th style="width:50%; text-align: center; vertical-align:auto; font-weight: bold" colspan="9"><?= ($account_data->fields['FRANCHISE'] == 1) ? 'Franchisee: ' : '' ?><?= $business_name . " (" . $concatenatedResults . ")" ?></th>
                                                 </tr>
                                                 <tr>
                                                     <th style="width:10%; text-align: center">Receipt No.</th>

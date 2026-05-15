@@ -4140,7 +4140,7 @@ if (isset($_POST['SUBMIT'])) {
         // Phone number duplicate check
         $('#PHONE').on('keyup', function() {
             clearTimeout(phoneTimeout);
-            let phone = $(this).val().replace(/\D/g, '');
+            let phone = $(this).val();
             let PK_USER = $('.PK_USER').val();
 
             if (phone.length >= 10) {
