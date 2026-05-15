@@ -65,7 +65,7 @@ if ($standing_param == 1) {
     $standing_group = " GROUP BY DOA_APPOINTMENT_MASTER.STANDING_ID ";
     //$standing_type = 'standing';
 } else {
-    $standing_cond = ' AND DOA_APPOINTMENT_MASTER.STANDING_ID = 0 ';
+    $standing_cond = ' ';
     //$standing_type = 'normal';
 }
 
