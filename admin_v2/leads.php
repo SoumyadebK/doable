@@ -105,20 +105,20 @@ if (!empty($_POST)) {
     exit;
 }
 
-function getUserIP()
-{
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip = trim($ipArray[0]);
-    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-        $ip = $_SERVER['HTTP_X_REAL_IP'];
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    return $ip;
-}
+// function getUserIP()
+// {
+//     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+//         $ip = $_SERVER['HTTP_CLIENT_IP'];
+//     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+//         $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+//         $ip = trim($ipArray[0]);
+//     } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+//         $ip = $_SERVER['HTTP_X_REAL_IP'];
+//     } else {
+//         $ip = $_SERVER['REMOTE_ADDR'];
+//     }
+//     return $ip;
+// }
 
 // Handle AJAX request to get follow-up data for a specific status
 if (isset($_GET['ajax']) && $_GET['ajax'] == 'get_status_data' && isset($_GET['lead_id']) && isset($_GET['status_id'])) {

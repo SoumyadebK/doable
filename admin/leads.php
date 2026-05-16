@@ -69,20 +69,20 @@ if (!empty($_POST)) {
     header("location:all_leads.php");
 }
 
-function getUserIP()
-{
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip = trim($ipArray[0]);
-    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-        $ip = $_SERVER['HTTP_X_REAL_IP'];
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    return $ip;
-}
+// function getUserIP()
+// {
+//     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+//         $ip = $_SERVER['HTTP_CLIENT_IP'];
+//     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+//         $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+//         $ip = trim($ipArray[0]);
+//     } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+//         $ip = $_SERVER['HTTP_X_REAL_IP'];
+//     } else {
+//         $ip = $_SERVER['REMOTE_ADDR'];
+//     }
+//     return $ip;
+// }
 
 if (empty($_GET['id'])) {
     $PK_LOCATION = '';
