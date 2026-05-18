@@ -162,7 +162,7 @@ while (!$enrollment_data->EOF) {
                         </span>
                     <?php } ?>
                 </div>
-                <div class="col-2">
+                <div class="col-1">
                     <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
                         <div class="d-flex justify-content-end align-items-center">
                             <div class="form-check form-switch d-flex align-items-center">
@@ -177,26 +177,43 @@ while (!$enrollment_data->EOF) {
                         </div>
                     <?php } ?>
                 </div>
-                <div class="col-1">
+                <div class="col-2 d-flex justify-content-end align-items-center text-end">
                     <?php
                     $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-                    if ($payment_data->RecordCount() == 0) {
+                    $balance_owed = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BALANCE_OWED FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Balance Owed' AND STATUS = 'CA' AND IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+                    $refund_available = $db_account->Execute("SELECT SUM(BALANCE) AS TOTAL_REFUND_AVAILABLE FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Refund Credit Available' AND STATUS = 'CA' AND IS_PAID = 2 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+                    if ($payment_data->RecordCount() == 0 && $balance_owed->fields['TOTAL_BALANCE_OWED'] <= 0) {
                     ?>
                         <?php if (in_array('Enrollments Delete', $PERMISSION_ARRAY)) { ?>
-                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px;"><i class="bi bi-trash"></i></a>
+                            <a href="javascript:;" onclick="openDeleteEnrollmentModal(<?= $PK_ENROLLMENT_MASTER ?>);" title="Delete" style="color: red; font-size: 21px;">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         <?php } ?>
                     <?php } ?>
-
                     <?php if ($_SESSION['PK_ROLES'] != 5) { ?>
-
                         <?php if ($enrollment_data->fields['STATUS'] == 'A') { ?>
-                            <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')" title="Cancel" style="color: red; font-size: 21px; margin-left: 5px;">
-                                <i class="bi bi-ban"></i></a>
+                            <a href="javascript:;" onclick="cancelEnrollment(<?= $PK_ENROLLMENT_MASTER ?>, <?= $enrollment_data->fields['PK_USER_MASTER'] ?>, '<?= $enrollment_title ?>')" title="Cancel" style="color: red; font-size: 21px; margin-left: 10px;">
+                                <i class="bi bi-ban"></i>
+                            </a>
                         <?php } elseif ($enrollment_data->fields['STATUS'] == 'C' || $enrollment_data->fields['STATUS'] == 'CA') { ?>
-                            <p style="color: red; margin-top: auto;">Cancelled</p>
-                            <!--<a href="all_enrollments.php?id=<?php /*=$enrollment_data->fields['PK_ENROLLMENT_MASTER']*/ ?>&status=active">Active Enrollment</a>-->
+                            <div class="d-flex flex-column align-items-end">
+                                <p style="color: red; margin: 0;">
+                                    Cancelled
+                                </p>
+                                <?php if ($enrollment_data->fields['STATUS'] === 'CA') { ?>
+                                    <?php if ($refund_available->fields['TOTAL_REFUND_AVAILABLE'] > 0) { ?>
+                                        <p style="color: green; margin: 0; font-size: 12px; font-weight: bold;">
+                                            (Refund Credit Available)
+                                        </p>
+                                    <?php } elseif ($balance_owed->fields['TOTAL_BALANCE_OWED'] > 0) { ?>
+                                        <p style="color: red; margin: 0; font-size: 12px; font-weight: bold;">
+                                            (Balance Owed)
+                                        </p>
+                                    <?php } ?>
+                                <?php } ?>
+                            </div>
                         <?php } ?>
-
                     <?php } ?>
                 </div>
             </div>

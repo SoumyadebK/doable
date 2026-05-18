@@ -35,7 +35,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <?php if ($call_from != 'enrollment_auto_pay') { ?>
         <div class="row m-b-20">
             <div class="col-md-8">
-                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                <a class="btn btn-secondary" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
             </div>
         </div>
     <?php } ?>
@@ -60,7 +60,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
         <div class="row">
             <div class="col-8">
-                <button type="submit" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                <button type="submit" id="save-card-btn" class="btn btn-secondary" style="float: right;">Save</button>
             </div>
         </div>
     </form>
@@ -135,7 +135,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <?php if ($call_from != 'enrollment_auto_pay') { ?>
         <div class="row m-b-20">
             <div class="col-md-8">
-                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                <a class="btn btn-secondary" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
             </div>
         </div>
     <?php } ?>
@@ -160,7 +160,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
         <div class="row">
             <div class="col-8">
-                <button type="button" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="addSquareTokenForSaveCard()" style="float: right;">Save</a>
+                <button type="button" id="save-card-btn" class="btn btn-secondary" onclick="addSquareTokenForSaveCard()" style="float: right;">Save</a>
             </div>
         </div>
     </form>
@@ -219,7 +219,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
     <?php if ($call_from != 'enrollment_auto_pay') { ?>
         <div class="row m-b-20">
             <div class="col-md-8">
-                <a class="btn btn-info d-none d-lg-block text-white" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
+                <a class="btn btn-secondary" href="javascript:" onclick="addCreditCard()" style="float: right; margin-bottom: 10px;"><i class="fa fa-plus-circle"></i> Add Credit Card</a>
             </div>
         </div>
     <?php } ?>
@@ -282,7 +282,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
             </div>
             <div class="row">
                 <div class="col-8">
-                    <button type="submit" id="save-card-btn" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Save</button>
+                    <button type="submit" id="save-card-btn" class="btn btn-secondary" style="float: right;">Save</button>
                 </div>
             </div>
         </div>

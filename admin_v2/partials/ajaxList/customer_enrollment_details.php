@@ -224,9 +224,9 @@ while (!$serviceCodeData->EOF) {
                 <td style="text-align: right; padding-right: 45px;"><?= number_format((float)$cancelled_enrollment_ledger->fields['BALANCE'], 2, '.', '') ?></td>
                 <td style="text-align: right; padding-right: 45px;">
                     <?php if ($cancelled_enrollment_ledger->fields['IS_PAID'] == 0) { ?>
-                        <button id="payNow" class="pay_now_button btn btn-secondary" onclick="payNow(<?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?>, '');">Pay Now</button>
+                        <button id="payNow" class="pay_now_button btn btn-secondary" onclick="payNow(<?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $cancelled_enrollment_ledger->fields['BILLED_AMOUNT'] ?>, '');" style="color: red; border: 2px solid red; font-weight: bold;">Pay Now</button>
                     <?php } elseif ($cancelled_enrollment_ledger->fields['IS_PAID'] == 2) { ?>
-                        <button class="btn btn-secondary" onclick="moveToWallet(this, 0, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= $cancelled_enrollment_ledger->fields['BALANCE'] ?>, 'cancelled', 'Refund', 0)">Refund</button>
+                        <button class="btn btn-secondary" onclick="moveToWallet(this, 0, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $cancelled_enrollment_ledger->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= $cancelled_enrollment_ledger->fields['BALANCE'] ?>, 'cancelled', 'Refund', 0)" style="color: #39b54a; border: 2px solid #39b54a; font-weight: bold;">Refund</button>
                     <?php } ?>
                 </td>
             </tr>

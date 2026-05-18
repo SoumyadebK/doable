@@ -1783,8 +1783,8 @@ if (isset($_POST['SUBMIT'])) {
                 <input type="hidden" name="AUTO_PAY_PAYMENT_METHOD_ID" id="AUTO_PAY_PAYMENT_METHOD_ID">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
-                <button type="button" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;" onclick="addEnrollmentAutoPayCreditCard()">Process</button>
+                <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal" onclick="$('#credit_card_modal').modal('hide');">Close</button>
+                <button type="button" class="btn btn-secondary" style="float: right;" onclick="addEnrollmentAutoPayCreditCard()">Process</button>
             </div>
         </div>
     </div>
