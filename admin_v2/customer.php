@@ -171,6 +171,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 if (isset($_POST['SUBMIT'])) {
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
     $PK_PAYMENT_TYPE_REFUND = ($_POST['PK_PAYMENT_TYPE_REFUND']) ?? 0;
+    $SOURCE = isset($_POST['SOURCE']) ? $_POST['SOURCE'] : '';
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     if (empty($enrollment_data->fields['ENROLLMENT_NAME'])) {
         $enrollment_name = '';
@@ -185,131 +186,105 @@ if (isset($_POST['SUBMIT'])) {
     $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
     $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
 
-    if ($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) {
-        $UPDATE_DATA['STATUS'] = 'C';
-    } else {
-        $UPDATE_DATA['STATUS'] = 'CA';
-    }
-
-
-    if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
-        $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
-        $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
-        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
-    } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
-        $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
-        $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
-    } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
-        $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_MASTER'] = 0;
-        $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_SERVICE'] = 0;
-        $APPOINTMENT_UPDATE_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
-        $APPOINTMENT_UPDATE_DATA['IS_PAID'] = 0;
-        $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
-    }
-    db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
-
     $BALANCE = $TOTAL_POSITIVE_BALANCE + $TOTAL_NEGATIVE_BALANCE;
 
-    $TOTAL_ACTUAL_AMOUNT = 0;
-    for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
-        $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION, TOTAL_AMOUNT_PAID, FINAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
-        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1 || $_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
-            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+    if ($SOURCE == 'CANCEL_MODAL') {
+        if ($TOTAL_POSITIVE_BALANCE == 0 && $TOTAL_NEGATIVE_BALANCE == 0) {
+            $UPDATE_DATA['STATUS'] = 'C';
+        } else {
+            $UPDATE_DATA['STATUS'] = 'CA';
+        }
+
+        if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
+            $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
+            $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
+            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
+            $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
-            $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
+            $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
+            $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
+        } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
+            $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_MASTER'] = 0;
+            $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_SERVICE'] = 0;
+            $APPOINTMENT_UPDATE_DATA['APPOINTMENT_TYPE'] = 'AD-HOC';
+            $APPOINTMENT_UPDATE_DATA['IS_PAID'] = 0;
+            $CONDITION = " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
+            db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
         }
 
-        $TOTAL_PAID_AMOUNT = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
-        if ($TOTAL_POSITIVE_BALANCE >= 0) {
-            $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = ($enr_service_data->fields['TOTAL_AMOUNT_PAID'] < $TOTAL_PAID_AMOUNT) ? $enr_service_data->fields['TOTAL_AMOUNT_PAID'] : $TOTAL_PAID_AMOUNT;
-        }
-
-        $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $TOTAL_PAID_AMOUNT;
-        db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update', " PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
-
-        $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_SERVICE'] = $_POST['PK_ENROLLMENT_SERVICE'][$i];
-        $CANCEL_ENROLLMENT_DATA['ACTUAL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'];
-        $CANCEL_ENROLLMENT_DATA['CANCEL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'] - $ENR_SERVICE_UPDATE['FINAL_AMOUNT'];
-        $CANCEL_ENROLLMENT_DATA['CANCEL_DATE'] = date('Y-m-d H:i:s');
-        db_perform_account('DOA_ENROLLMENT_CANCEL', $CANCEL_ENROLLMENT_DATA, 'insert');
-
-        $TOTAL_ACTUAL_AMOUNT += $ENR_SERVICE_UPDATE['FINAL_AMOUNT'];
-    }
-    $ENR_BILLING_UPDATE['TOTAL_AMOUNT'] = $ENR_BILLING_UPDATE['BALANCE_PAYABLE'] = $TOTAL_ACTUAL_AMOUNT;
-    db_perform_account('DOA_ENROLLMENT_BILLING', $ENR_BILLING_UPDATE, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-
-    /*if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
-        $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
-        $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
+        $TOTAL_ACTUAL_AMOUNT = 0;
         for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
-            $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $_POST['TOTAL_AMOUNT_PAID'][$i];
-            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            $enr_service_data = $db_account->Execute("SELECT PRICE_PER_SESSION, TOTAL_AMOUNT_PAID, FINAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1 || $_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
+                $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getSessionCompletedCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
+                $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] = getPaidSessionCount($_POST['PK_ENROLLMENT_SERVICE'][$i]);
+            }
+
+            $TOTAL_PAID_AMOUNT = $ENR_SERVICE_UPDATE['NUMBER_OF_SESSION'] * $enr_service_data->fields['PRICE_PER_SESSION'];
+            if ($TOTAL_POSITIVE_BALANCE >= 0) {
+                $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = ($enr_service_data->fields['TOTAL_AMOUNT_PAID'] < $TOTAL_PAID_AMOUNT) ? $enr_service_data->fields['TOTAL_AMOUNT_PAID'] : $TOTAL_PAID_AMOUNT;
+            }
+
+            $ENR_SERVICE_UPDATE['FINAL_AMOUNT'] = $TOTAL_PAID_AMOUNT;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update', " PK_ENROLLMENT_SERVICE = " . $_POST['PK_ENROLLMENT_SERVICE'][$i]);
+
+            $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $CANCEL_ENROLLMENT_DATA['PK_ENROLLMENT_SERVICE'] = $_POST['PK_ENROLLMENT_SERVICE'][$i];
+            $CANCEL_ENROLLMENT_DATA['ACTUAL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'];
+            $CANCEL_ENROLLMENT_DATA['CANCEL_AMOUNT'] = $enr_service_data->fields['FINAL_AMOUNT'] - $ENR_SERVICE_UPDATE['FINAL_AMOUNT'];
+            $CANCEL_ENROLLMENT_DATA['CANCEL_DATE'] = date('Y-m-d H:i:s');
+            db_perform_account('DOA_ENROLLMENT_CANCEL', $CANCEL_ENROLLMENT_DATA, 'insert');
+
+            $TOTAL_ACTUAL_AMOUNT += $ENR_SERVICE_UPDATE['FINAL_AMOUNT'];
         }
-    }*/
+        $ENR_BILLING_UPDATE['TOTAL_AMOUNT'] = $ENR_BILLING_UPDATE['BALANCE_PAYABLE'] = $TOTAL_ACTUAL_AMOUNT;
+        db_perform_account('DOA_ENROLLMENT_BILLING', $ENR_BILLING_UPDATE, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 
-    db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-    db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-    db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 
-    if ($TOTAL_NEGATIVE_BALANCE < 0) {
-        $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
-        $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
-        $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_BILLING['IS_PAID'] = 0;
-        $LEDGER_DATA_BILLING['STATUS'] = 'A';
-        $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($TOTAL_NEGATIVE_BALANCE);
-        $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
-    } elseif ($TOTAL_POSITIVE_BALANCE >= 0) {
-        $LEDGER_DATA['TRANSACTION_TYPE'] = (($TOTAL_POSITIVE_BALANCE == 0) ? 'Cancelled' : (($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund'));
-        $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
-        $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA['IS_PAID'] = ($_POST['SUBMIT'] === 'Submit') ? 1 : 2;
-        $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA['BALANCE'] = $BALANCE;
-        $LEDGER_DATA['STATUS'] = $UPDATE_DATA['STATUS'];
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        if ($TOTAL_NEGATIVE_BALANCE < 0) {
+            $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
+            $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
+            $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
+            $LEDGER_DATA_BILLING['IS_PAID'] = 0;
+            $LEDGER_DATA_BILLING['STATUS'] = 'A';
+            $LEDGER_DATA_BILLING['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA_BILLING['BILLED_AMOUNT'] = abs($TOTAL_NEGATIVE_BALANCE);
+            $LEDGER_DATA_BILLING['BALANCE'] = abs($TOTAL_NEGATIVE_BALANCE);
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_BILLING, 'insert');
+            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        } elseif ($TOTAL_POSITIVE_BALANCE >= 0) {
+            $LEDGER_DATA['TRANSACTION_TYPE'] = (($TOTAL_POSITIVE_BALANCE == 0) ? 'Cancelled' : (($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund'));
+            $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
+            $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+            $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+            $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
+            $LEDGER_DATA['IS_PAID'] = ($_POST['SUBMIT'] === 'Submit') ? 1 : 2;
+            $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
+            $LEDGER_DATA['BILLED_AMOUNT'] = 0.00;
+            $LEDGER_DATA['BALANCE'] = $BALANCE;
+            $LEDGER_DATA['STATUS'] = $UPDATE_DATA['STATUS'];
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'insert');
+            $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();
+        }
+    } else {
+        $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
+        if ($TOTAL_POSITIVE_BALANCE >= 0) {
+            $LEDGER_DATA['IS_PAID'] = 1;
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'update', ' PK_ENROLLMENT_LEDGER = ' . $PK_ENROLLMENT_LEDGER);
+        }
     }
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     if ($TOTAL_POSITIVE_BALANCE >= 0) {
-        /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
-        } else {
-            $INSERT_DATA['CURRENT_BALANCE'] = $TOTAL_POSITIVE_BALANCE;
-        }
-        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $INSERT_DATA['CREDIT'] = $TOTAL_POSITIVE_BALANCE;
-        $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
-        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');*/
-
-        /*$LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
-        $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['IS_PAID'] = ($LEDGER_DATA_REFUND['TRANSACTION_TYPE'] === 'Refund') ? 1 : 2;
-        $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
-        $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
-
         if ($_POST['SUBMIT'] === 'Submit') {
             $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
@@ -338,6 +313,7 @@ if (isset($_POST['SUBMIT'])) {
                 }
             } elseif ($PK_PAYMENT_TYPE_REFUND == 7) {
                 $old_receipts = getRefundReceipts($PK_ENROLLMENT_MASTER, $BALANCE);
+
                 foreach ($old_receipts as $key => $old_receipt_data) {
                     $return_amount = ($BALANCE > $old_receipt_data['AMOUNT']) ? $old_receipt_data['AMOUNT'] : $BALANCE;
 
@@ -1855,15 +1831,16 @@ if (isset($_POST['SUBMIT'])) {
     </div>
 </div>
 
-<!--Refund Model-->
+<!--Refund Modal-->
 <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog" style="max-width: 450px;">
+    <div class="modal-dialog" style="max-width: 500px;">
         <form class="p-20" action="" method="post">
+            <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
             <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
-            <input type="hidden" name="TOTAL_NEGATIVE_BALANCE">
-            <input type="hidden" name="CANCEL_FUTURE_APPOINTMENT">
-            <input type="hidden" name="PK_ENROLLMENT_SERVICE">
+            <input type="hidden" name="TOTAL_NEGATIVE_BALANCE" value="0">
+            <input type="hidden" name="CANCEL_FUTURE_APPOINTMENT" value="0">
+            <input type="hidden" name="SOURCE" value="REFUND_MODAL">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1905,9 +1882,9 @@ if (isset($_POST['SUBMIT'])) {
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="TOTAL_POSITIVE_BALANCE">How much refund you want?</label>
+                                <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
                                 <div class="col-md-12">
-                                    <input class="form-control" name="TOTAL_POSITIVE_BALANCE" value="0">
+                                    <input class="form-control" name="TOTAL_POSITIVE_BALANCE" id="REFUND_AMOUNT" value="0">
                                 </div>
                             </div>
                         </div>
@@ -1947,10 +1924,11 @@ if (isset($_POST['SUBMIT'])) {
     </div>
 </div>
 
+<!-- Cancel enrollment modal -->
 <div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 700px !important;">
         <form class="p-20" action="" method="post">
-
+            <input type="hidden" name="SOURCE" value="CANCEL_MODAL">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><b>Cancel Enrollment</b></h4>
@@ -2968,8 +2946,12 @@ if (isset($_POST['SUBMIT'])) {
         if (TRANSACTION_TYPE == 'Refund' && PK_PAYMENT_TYPE == 0) {
             $('.trigger_this').removeClass('trigger_this');
             $(param).addClass('trigger_this');
-            $('#REFUND_AMOUNT').val(BALANCE);
             $('#refund_modal').modal('show');
+
+            $('#refund_modal  #REFUND_AMOUNT').val(BALANCE);
+            $('#refund_modal .PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
+            $('#refund_modal .PK_USER_MASTER').val(PK_USER_MASTER);
+            $('#refund_modal .PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
         } else {
             if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
                 $('.trigger_this').removeClass('trigger_this');

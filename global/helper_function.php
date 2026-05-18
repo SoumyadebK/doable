@@ -1480,44 +1480,39 @@ function getRefundReceipts($PK_ENROLLMENT_MASTER, $refund_amount)
     global $db_account;
 
     $sql = "
-        WITH receipt_totals AS (
-            SELECT 
-                RECEIPT_NUMBER,
-                MAX(PAYMENT_DATE) AS PAYMENT_DATE,
-                SUM(AMOUNT) AS TOTAL_AMOUNT
-            FROM doa_enrollment_payment
-            WHERE PK_ENROLLMENT_MASTER = '" . $PK_ENROLLMENT_MASTER . "'
-              AND IS_REFUNDED = 0
-              AND PAYMENT_STATUS = 'SUCCESS'
-            GROUP BY RECEIPT_NUMBER
-        ),
-
-        receipt_running AS (
-            SELECT 
-                *,
-                SUM(TOTAL_AMOUNT) OVER (
-                    ORDER BY PAYMENT_DATE DESC, RECEIPT_NUMBER DESC
-                ) AS running_total
-            FROM receipt_totals
-        )
-
-        SELECT *
-        FROM receipt_running
-        WHERE running_total - TOTAL_AMOUNT < '" . $refund_amount . "'
-        ORDER BY PAYMENT_DATE DESC
+        SELECT 
+            RECEIPT_NUMBER,
+            SUM(AMOUNT) AS TOTAL_AMOUNT,
+            MAX(PAYMENT_DATE) AS PAYMENT_DATE
+        FROM DOA_ENROLLMENT_PAYMENT
+        WHERE PK_ENROLLMENT_MASTER = '" . $PK_ENROLLMENT_MASTER . "'
+            AND IS_REFUNDED = 0
+            AND PAYMENT_STATUS = 'SUCCESS'
+        GROUP BY RECEIPT_NUMBER
+        ORDER BY PAYMENT_DATE DESC, PK_ENROLLMENT_PAYMENT DESC
     ";
 
     $result = $db_account->Execute($sql);
 
     $receipts = [];
+    $total = 0;
 
     while (!$result->EOF) {
 
+        $amount = (float)$result->fields['TOTAL_AMOUNT'];
+
         $receipts[] = [
             'RECEIPT_NUMBER' => $result->fields['RECEIPT_NUMBER'],
-            'AMOUNT' => $result->fields['TOTAL_AMOUNT'],
+            'AMOUNT' => $amount,
             'PAYMENT_DATE' => $result->fields['PAYMENT_DATE']
         ];
+
+        $total += $amount;
+
+        // stop when refund amount covered
+        if ($total >= $refund_amount) {
+            break;
+        }
 
         $result->MoveNext();
     }
