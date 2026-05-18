@@ -1474,3 +1474,53 @@ function getUserIP()
     }
     return $ip;
 }
+
+function getRefundReceipts($PK_ENROLLMENT_MASTER, $refund_amount)
+{
+    global $db_account;
+
+    $sql = "
+        WITH receipt_totals AS (
+            SELECT 
+                RECEIPT_NUMBER,
+                MAX(PAYMENT_DATE) AS PAYMENT_DATE,
+                SUM(AMOUNT) AS TOTAL_AMOUNT
+            FROM doa_enrollment_payment
+            WHERE PK_ENROLLMENT_MASTER = '" . $PK_ENROLLMENT_MASTER . "'
+              AND IS_REFUNDED = 0
+              AND PAYMENT_STATUS = 'SUCCESS'
+            GROUP BY RECEIPT_NUMBER
+        ),
+
+        receipt_running AS (
+            SELECT 
+                *,
+                SUM(TOTAL_AMOUNT) OVER (
+                    ORDER BY PAYMENT_DATE DESC, RECEIPT_NUMBER DESC
+                ) AS running_total
+            FROM receipt_totals
+        )
+
+        SELECT *
+        FROM receipt_running
+        WHERE running_total - TOTAL_AMOUNT < '" . $refund_amount . "'
+        ORDER BY PAYMENT_DATE DESC
+    ";
+
+    $result = $db_account->Execute($sql);
+
+    $receipts = [];
+
+    while (!$result->EOF) {
+
+        $receipts[] = [
+            'RECEIPT_NUMBER' => $result->fields['RECEIPT_NUMBER'],
+            'AMOUNT' => $result->fields['TOTAL_AMOUNT'],
+            'PAYMENT_DATE' => $result->fields['PAYMENT_DATE']
+        ];
+
+        $result->MoveNext();
+    }
+
+    return $receipts;
+}

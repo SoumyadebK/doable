@@ -337,46 +337,68 @@ if (isset($_POST['SUBMIT'])) {
                     $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                 }
             } elseif ($PK_PAYMENT_TYPE_REFUND == 7) {
-                $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-                if ($wallet_data->RecordCount() > 0) {
-                    $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
-                } else {
-                    $INSERT_DATA['CURRENT_BALANCE'] = $BALANCE;
-                }
-                $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-                $INSERT_DATA['DEBIT'] = 0;
-                $INSERT_DATA['CREDIT'] = $BALANCE;
-                $INSERT_DATA['BALANCE_LEFT'] = $BALANCE;
-                $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-                $INSERT_DATA['PK_PAYMENT_TYPE'] = 0;
-                $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-                $INSERT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-                $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-                $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
-                $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
+                $old_receipts = getRefundReceipts($PK_ENROLLMENT_MASTER, $BALANCE);
+                foreach ($old_receipts as $key => $old_receipt_data) {
+                    $return_amount = ($BALANCE > $old_receipt_data['AMOUNT']) ? $old_receipt_data['AMOUNT'] : $BALANCE;
 
-                $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
-                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
-                $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 0;
-                $PAYMENT_DATA['AMOUNT'] = $BALANCE;
-                $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
-                $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
-                $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
-                $PAYMENT_DATA['TYPE'] = 'Wallet';
-                $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
-                $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
-                $PAYMENT_DATA['PAYMENT_INFO'] = '';
-                $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
-                $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
-                $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
-                db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+                    $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+                    if ($wallet_data->RecordCount() > 0) {
+                        $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $return_amount;
+                    } else {
+                        $INSERT_DATA['CURRENT_BALANCE'] = $return_amount;
+                    }
+
+                    $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                    $INSERT_DATA['DEBIT'] = 0;
+                    $INSERT_DATA['CREDIT'] = $return_amount;
+                    $INSERT_DATA['BALANCE_LEFT'] = $return_amount;
+                    $INSERT_DATA['DESCRIPTION'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                    $INSERT_DATA['PK_PAYMENT_TYPE'] = 0;
+                    $INSERT_DATA['RECEIPT_NUMBER'] = $old_receipt_data['RECEIPT_NUMBER'];
+                    $INSERT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                    $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+                    $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
+
+                    $WALLET_PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $WALLET_PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+                    $WALLET_PAYMENT_DATA['PK_PAYMENT_TYPE'] = 7;
+                    $WALLET_PAYMENT_DATA['AMOUNT'] = $return_amount;
+                    $WALLET_PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                    $WALLET_PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
+                    $WALLET_PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+                    $WALLET_PAYMENT_DATA['TYPE'] = 'Wallet';
+                    $WALLET_PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                    $WALLET_PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                    $WALLET_PAYMENT_DATA['PAYMENT_INFO'] = '';
+                    $WALLET_PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                    $WALLET_PAYMENT_DATA['RECEIPT_NUMBER'] = $old_receipt_data['RECEIPT_NUMBER'];
+                    $WALLET_PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 0;
+                    db_perform_account('DOA_ENROLLMENT_PAYMENT', $WALLET_PAYMENT_DATA, 'insert');
+
+                    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
+                    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+                    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 7;
+                    $PAYMENT_DATA['AMOUNT'] = $return_amount;
+                    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
+                    $PAYMENT_DATA['TYPE'] = 'Move';
+                    $PAYMENT_DATA['NOTE'] = "Balance credited from enrollment " . $enrollment_name . $enrollment_id;
+                    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                    $PAYMENT_DATA['PAYMENT_INFO'] = '';
+                    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                    $PAYMENT_DATA['RECEIPT_NUMBER'] = $old_receipt_data['RECEIPT_NUMBER'];
+                    $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 0;
+                    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
+                    $BALANCE -= $return_amount;
+                }
             } elseif ($PK_PAYMENT_TYPE_REFUND == 2) {
                 $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['REFUND_CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['REFUND_CHECK_DATE']))];
                 $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
             }
 
-            if ($TOTAL_POSITIVE_BALANCE > 0) {
+            if ($TOTAL_POSITIVE_BALANCE > 0 && $PK_PAYMENT_TYPE_REFUND != 7) {
                 $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                 $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
                 $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
@@ -1836,60 +1858,67 @@ if (isset($_POST['SUBMIT'])) {
 <!--Refund Model-->
 <div class="modal fade" id="refund_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" style="max-width: 450px;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label class="form-label">How you want your money back?</label>
-                            <div class="col-md-12">
-                                <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
-                                    <option value="">Select</option>
-                                    <?php
-                                    $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                    while (!$row->EOF) { ?>
-                                        <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
-                                    <?php $row->MoveNext();
-                                    } ?>
-                                </select>
+        <form class="p-20" action="" method="post">
+            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+            <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
+            <input type="hidden" name="TOTAL_NEGATIVE_BALANCE">
+            <input type="hidden" name="CANCEL_FUTURE_APPOINTMENT">
+            <input type="hidden" name="PK_ENROLLMENT_SERVICE">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">How you want your money back?</label>
+                                <div class="col-md-12">
+                                    <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
+                                        <option value="">Select</option>
+                                        <?php
+                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                        while (!$row->EOF) { ?>
+                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                        <?php $row->MoveNext();
+                                        } ?>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="row" id="check_payment" style="display: none;">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Number</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="REFUND_CHECK_NUMBER" id="REFUND_CHECK_NUMBER" class="form-control">
+                            <div class="row" id="check_payment" style="display: none;">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Check Number</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="REFUND_CHECK_NUMBER" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Check Date</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Check Date</label>
-                                    <div class="col-md-12">
-                                        <input type="text" name="REFUND_CHECK_DATE" id="REFUND_CHECK_DATE" class="form-control datepicker-normal">
-                                    </div>
+                            <div class="form-group">
+                                <label class="form-label" for="TOTAL_POSITIVE_BALANCE">How much refund you want?</label>
+                                <div class="col-md-12">
+                                    <input class="form-control" name="TOTAL_POSITIVE_BALANCE" value="0">
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
-                            <div class="col-md-12">
-                                <input class="form-control" name="REFUND_AMOUNT" id="REFUND_AMOUNT" value="0">
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="SUBMIT" value="Submit">
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Process</button>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;" onclick="$('.trigger_this').trigger('click');">Process</button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -1919,7 +1948,7 @@ if (isset($_POST['SUBMIT'])) {
 </div>
 
 <div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog" style="max-width: 600px !important;">
+    <div class="modal-dialog" style="max-width: 700px !important;">
         <form class="p-20" action="" method="post">
 
             <div class="modal-content">
@@ -2689,7 +2718,11 @@ if (isset($_POST['SUBMIT'])) {
         });
     }
 
-    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
+    /* function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
+        $(param).html(`<span class="d-flex align-items-center gap-2">
+                            View Payment Schedule
+                            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                        </span>`);
         $.ajax({
             url: "partials/ajaxList/customer_enrollment_details.php",
             type: "GET",
@@ -2700,10 +2733,43 @@ if (isset($_POST['SUBMIT'])) {
                 ENROLLMENT_ID: ENROLLMENT_ID,
                 type: type
             },
-            async: false,
             cache: false,
             success: function(result) {
                 $(param).closest('.enrollment_div').find('.enrollment_details').html(result).slideToggle();
+                $(param).html(`View Payment Schedule`);
+            }
+        });
+    } */
+
+    function showEnrollmentDetails(param, PK_USER, PK_USER_MASTER, PK_ENROLLMENT_MASTER, ENROLLMENT_ID, type, details) {
+        let enrollmentDetails = $(param).closest('.enrollment_div').find('.enrollment_details');
+
+        // Check if table already loaded
+        if (enrollmentDetails.find('#myTable').length > 0) {
+            enrollmentDetails.slideToggle();
+            return;
+        }
+
+        // Show loader
+        $(param).html(`<span class="d-flex align-items-center gap-2">
+                        View Payment Schedule
+                        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    </span>`);
+
+        $.ajax({
+            url: "partials/ajaxList/customer_enrollment_details.php",
+            type: "GET",
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER,
+                PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                ENROLLMENT_ID: ENROLLMENT_ID,
+                type: type
+            },
+            cache: false,
+            success: function(result) {
+                enrollmentDetails.html(result).slideDown();
+                $(param).html(`View Payment Schedule`);
             }
         });
     }
@@ -2954,6 +3020,7 @@ if (isset($_POST['SUBMIT'])) {
         $('#due_date').val(DUE_DATE);
         $('#edit_type').val(TYPE);
         $('.trigger_this_enr_details').removeClass('trigger_this_enr_details');
+        $(param).closest('.enrollment_div').find('.enrollment_details').html('');
         $(param).closest('.enrollment-container').find('.show_enrollment_details_button').addClass('trigger_this_enr_details');
         $('#billing_due_date_model').modal('show');
     }
