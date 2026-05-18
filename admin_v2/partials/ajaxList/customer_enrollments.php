@@ -47,7 +47,7 @@ if ($page == 1) { ?>
             </div>
 
             <div class="col-2 text-end">
-                <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important;" onclick="createCustomerEnrollment()">
+                <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important; width: max-content; height: 36px;" onclick="createCustomerEnrollment()">
                     <i class="bi bi-plus"></i> Create New Enrollment
                 </button>
             </div>
@@ -140,9 +140,9 @@ while (!$enrollment_data->EOF) {
         ?>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="row" style="width: 100%;">
-                <div class="col-4">
-                    <h6 class="fw-bold mb-0"><?= $enrollment_data->fields['LOCATION_NAME'] ?> | <?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
+            <div class="row align-items-center flex-nowrap gx-2" style="width:100%;">
+                <div class="col-3">
+                    <h6 class="fw-bold mb-0"><?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
                 </div>
                 <div class="col-2">
                     <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
@@ -162,7 +162,7 @@ while (!$enrollment_data->EOF) {
                         </span>
                     <?php } ?>
                 </div>
-                <div class="col-1">
+                <div class="col-2">
                     <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
                         <div class="d-flex justify-content-end align-items-center">
                             <div class="form-check form-switch d-flex align-items-center">

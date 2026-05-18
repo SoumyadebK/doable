@@ -118,7 +118,7 @@ if ($source !== 'customer_modal') {
         </div>
 
         <div class="col-2 text-end">
-            <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important;" onclick="loadCreateAppointmentModal()">
+            <button class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important; width: max-content; height: 36px;" onclick="loadCreateAppointmentModal()">
                 <i class=" bi bi-plus"></i> New Appointment
             </button>
         </div>
