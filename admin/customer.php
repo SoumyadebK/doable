@@ -4123,7 +4123,7 @@ if (isset($_POST['SUBMIT'])) {
                         icon: "success",
                         timer: 3000,
                     }).then((result) => {
-                        window.location.href = 'all_customers.php';
+                        window.location.href = '../admin_v2/all_customers.php';
                     });
                 } else {
                     $('#verify_password_error').text("Incorrect Password").slideDown();
