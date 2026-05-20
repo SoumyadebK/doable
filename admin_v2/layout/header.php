@@ -286,8 +286,12 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                             <li class="">
                                 <a class="nav-link <?= (('all_events.php' === $current_address) ? 'active' : '') ?>" href="events_list.php">Events</a>
                             </li>
-                            <li class="">
-                                <a class="nav-link <?= (('all_products.php' === $current_address) ? 'active' : '') ?>" href="all_products.php">E-Commerce</a>
+                            <li class="dropdown drop-menu">
+                                <a href="javascript:;" class="nav-link <?= (('products_list.php' === $current_address || 'order_list.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">E-Commerce <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
+                                <ul class="dropdown-menu sub-menu">
+                                    <li><a href="products_list.php"><i class="bi bi-cart" aria-hidden="true"></i> Products</a></li>
+                                    <li><a href="order_list.php"><i class="bi bi-list" aria-hidden="true"></i> Orders</a></li>
+                                </ul>
                             </li>
                             <!-- Original Reports tab (line ~117) -->
                             <li class="">
