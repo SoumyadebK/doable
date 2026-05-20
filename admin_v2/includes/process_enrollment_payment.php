@@ -842,7 +842,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
             $LEDGER_UPDATE_DATA['AMOUNT_REMAIN'] = 0;
             $LEDGER_UPDATE_DATA['IS_PAID'] = ($PAYMENT_STATUS == 'Failed') ? 0 : 1;
         }
-        $LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
+        //$LEDGER_UPDATE_DATA['ENROLLMENT_LEDGER_PARENT'] = 0;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$ENROLLMENT_LEDGER_PARENT_ARRAY[$i]'");
     }
 
