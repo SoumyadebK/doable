@@ -1,6 +1,16 @@
 <?php
 require_once('../global/config.php');
 require_once("../global/stripe-php-master/init.php");
+
+use Stripe\Exception\ApiErrorException;
+use Stripe\Stripe;
+use Stripe\StripeClient;
+
+require_once('../global/authorizenet/autoload.php');
+
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
 global $db;
 global $db_account;
 global $master_database;
@@ -170,6 +180,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 if (isset($_POST['SUBMIT'])) {
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
+    $PK_ENROLLMENT_PAYMENT = $_POST['PK_ENROLLMENT_PAYMENT'];
     $PK_PAYMENT_TYPE_REFUND = ($_POST['PK_PAYMENT_TYPE_REFUND']) ?? 0;
     $SOURCE = isset($_POST['SOURCE']) ? $_POST['SOURCE'] : '';
     $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
@@ -277,9 +288,34 @@ if (isset($_POST['SUBMIT'])) {
         }
     } else {
         $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
-        if ($TOTAL_POSITIVE_BALANCE >= 0) {
-            $LEDGER_DATA['IS_PAID'] = 1;
-            db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA, 'update', ' PK_ENROLLMENT_LEDGER = ' . $PK_ENROLLMENT_LEDGER);
+
+        $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_ENROLLMENT_PAYMENT =  '$PK_ENROLLMENT_PAYMENT'");
+
+        $UPDATE_DATA['IS_PAID'] = 2;
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+        $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$PK_ENROLLMENT_LEDGER'");
+        $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
+        if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
+            $PARENT_DATA['AMOUNT_REMAIN'] = 0;
+            $PARENT_DATA['IS_PAID'] = 0;
+        } else {
+            $PARENT_DATA['IS_PAID'] = 0;
+            $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
+        }
+        db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+        $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+        $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+        $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+        while (!$enrollmentServiceData->EOF) {
+            $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
+            $serviceAmount = ($BALANCE * $servicePercent) / 100;
+            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+            $enrollmentServiceData->MoveNext();
         }
     }
 
@@ -288,28 +324,107 @@ if (isset($_POST['SUBMIT'])) {
         if ($_POST['SUBMIT'] === 'Submit') {
             $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
-            $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+            if ($PK_ENROLLMENT_PAYMENT > 0) {
+                $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO, RECEIPT_NUMBER FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND PK_ENROLLMENT_PAYMENT = '$PK_ENROLLMENT_PAYMENT'");
+            } else {
+                $old_payment_data = $db_account->Execute("SELECT PAYMENT_INFO FROM DOA_ENROLLMENT_PAYMENT WHERE PK_PAYMENT_TYPE = '$PK_PAYMENT_TYPE_REFUND' AND TYPE = 'Payment' AND IS_REFUNDED = 0 AND PAYMENT_STATUS = 'Success' AND PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' ORDER BY AMOUNT DESC LIMIT 1");
+            }
+
             $PAYMENT_INFO = ($old_payment_data->RecordCount() > 0) ? $old_payment_data->fields['PAYMENT_INFO'] : 'Refund';;
-            if ($PK_PAYMENT_TYPE_REFUND == 1) {
-                $payment_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
-                if (isset($payment_info->CHARGE_ID)) {
-                    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
+            if ($PK_PAYMENT_TYPE_REFUND == 1 || $PK_PAYMENT_TYPE_REFUND == 14) {
 
-                    Stripe::setApiKey($SECRET_KEY);
+                $payment_gateway_data = getPaymentGatewayData();
 
-                    $transaction_id = $payment_info->CHARGE_ID;
-                    try {
-                        $refund = \Stripe\Refund::create([
-                            'charge' => $transaction_id,
-                            'amount' => $TOTAL_POSITIVE_BALANCE * 100
-                        ]);
-                    } catch (Exception $e) {
-                        echo $e->getMessage();
-                        die();
+                $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+                $GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+                $SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+                $PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+                $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+                $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+                $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+                $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+                $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+                $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+                $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+                $API_KEY                = $payment_gateway_data->fields['API_KEY'];
+                $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+                $transaction_info = json_decode($old_payment_data->fields['PAYMENT_INFO']);
+                if ($PAYMENT_GATEWAY == 'Stripe') {
+                    if (isset($transaction_info->CHARGE_ID)) {
+                        Stripe::setApiKey($SECRET_KEY);
+
+                        $transaction_id = $transaction_info->CHARGE_ID;
+                        try {
+                            $refund = \Stripe\Refund::create([
+                                'charge' => $transaction_id,
+                                'amount' => $BALANCE * 100
+                            ]);
+                        } catch (Exception $e) {
+                            echo $e->getMessage();
+                            die();
+                        }
+                        $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $transaction_info->LAST4];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
                     }
-                    $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $payment_info->LAST4];
-                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                } elseif ($PAYMENT_GATEWAY = 'Authorized.net') {
+                    $transaction_id = $transaction_info->CHARGE_ID;
+                    $accountNumber = $transaction_info->LAST4;
+
+                    // Merchant Authentication
+                    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                    $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+                    $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
+
+                    $originalTransactionId = $transaction_id;
+                    $last4 = substr($accountNumber, -4);
+                    $refundAmount = $BALANCE;
+
+                    // Refund Request
+                    $transactionRequest = new AnetAPI\TransactionRequestType();
+                    $transactionRequest->setTransactionType("refundTransaction");
+                    $transactionRequest->setRefTransId($originalTransactionId);
+                    $transactionRequest->setAmount($refundAmount);
+
+                    // Payment object with last 4 digits + dummy expiry
+                    $creditCard = new AnetAPI\CreditCardType();
+                    $creditCard->setCardNumber($last4);      // only last 4 digits
+                    $creditCard->setExpirationDate("1230");  // or "1225"
+                    $payment = new AnetAPI\PaymentType();
+                    $payment->setCreditCard($creditCard);
+
+                    $transactionRequest->setPayment($payment);
+
+                    // Build request
+                    $request = new AnetAPI\CreateTransactionRequest();
+                    $request->setMerchantAuthentication($merchantAuthentication);
+                    $request->setTransactionRequest($transactionRequest);
+
+                    $controller = new AnetController\CreateTransactionController($request);
+
+                    if ($GATEWAY_MODE == 'test') {
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+                    } else {
+                        $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                    }
+
+                    if ($response != null) {
+                        $tresponse = $response->getTransactionResponse();
+                        if ($tresponse != null && $tresponse->getResponseCode() == "1") {
+                            $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $tresponse->getTransId(), 'LAST4' => $accountNumber];
+                            $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                        } else {
+                            echo "Refund ERROR: " . $tresponse->getErrors()[0]->getErrorText();
+                            die;
+                        }
+                    } else {
+                        echo "No response returned.";
+                        die;
+                    }
                 }
             } elseif ($PK_PAYMENT_TYPE_REFUND == 7) {
                 $old_receipts = getRefundReceipts($PK_ENROLLMENT_MASTER, $BALANCE);
@@ -1836,6 +1951,7 @@ if (isset($_POST['SUBMIT'])) {
     <div class="modal-dialog" style="max-width: 500px;">
         <form class="p-20" action="" method="post">
             <input type="hidden" name="PK_ENROLLMENT_LEDGER" class="PK_ENROLLMENT_LEDGER">
+            <input type="hidden" name="PK_ENROLLMENT_PAYMENT" class="PK_ENROLLMENT_PAYMENT">
             <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
             <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
             <input type="hidden" name="TOTAL_NEGATIVE_BALANCE" value="0">
@@ -2952,6 +3068,7 @@ if (isset($_POST['SUBMIT'])) {
             $('#refund_modal .PK_ENROLLMENT_MASTER').val(PK_ENROLLMENT_MASTER);
             $('#refund_modal .PK_USER_MASTER').val(PK_USER_MASTER);
             $('#refund_modal .PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+            $('#refund_modal .PK_ENROLLMENT_PAYMENT').val(PK_ENROLLMENT_PAYMENT);
         } else {
             if (TRANSACTION_TYPE == 'Move' && confirm_move == 0) {
                 $('.trigger_this').removeClass('trigger_this');
