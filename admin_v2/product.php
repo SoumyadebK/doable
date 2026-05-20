@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once('../global/config.php');
 global $db;
 global $db_account;
@@ -47,11 +48,12 @@ if (empty($_GET['id'])) {
 }
 
 if (!empty($_POST)) {
-    $PRODUCT_SIZE = $_POST['PRODUCT_SIZE'];
+    $PRODUCT_SIZE = $_POST['PRODUCT_SIZE'] ?? [];
     unset($_POST['PRODUCT_SIZE']);
-    $PRODUCT_COLOR = $_POST['PRODUCT_COLOR'];
+    $PRODUCT_COLOR = $_POST['PRODUCT_COLOR'] ?? [];
     unset($_POST['PRODUCT_COLOR']);
     $PRODUCT_DATA = $_POST;
+
     if ($_FILES['PRODUCT_IMAGES']['name'] != '') {
         if (!file_exists('../' . $upload_path . '/product_image/')) {
             mkdir('../' . $upload_path . '/product_image/', 0777, true);
@@ -88,305 +90,423 @@ if (!empty($_POST)) {
     $db_account->Execute("DELETE FROM `DOA_PRODUCT_SIZE` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
     if (count($PRODUCT_SIZE) > 0) {
         for ($i = 0; $i < count($PRODUCT_SIZE); $i++) {
-            $PRODUCT_SIZE_DATA['PK_PRODUCT'] = $PK_PRODUCT;
-            $PRODUCT_SIZE_DATA['SIZE'] = $PRODUCT_SIZE[$i];
-            db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE_DATA, 'insert');
+            if (!empty($PRODUCT_SIZE[$i])) {
+                $PRODUCT_SIZE_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+                $PRODUCT_SIZE_DATA['SIZE'] = $PRODUCT_SIZE[$i];
+                db_perform_account('DOA_PRODUCT_SIZE', $PRODUCT_SIZE_DATA, 'insert');
+            }
         }
     }
 
     $db_account->Execute("DELETE FROM `DOA_PRODUCT_COLOR` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
-    if (isset($PRODUCT_COLOR)) {
+    if (isset($PRODUCT_COLOR) && count($PRODUCT_COLOR) > 0) {
         for ($i = 0; $i < count($PRODUCT_COLOR); $i++) {
-            $PRODUCT_COLOR_DATA['PK_PRODUCT'] = $PK_PRODUCT;
-            $PRODUCT_COLOR_DATA['COLOR'] = $PRODUCT_COLOR[$i];
-            db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR_DATA, 'insert');
+            if (!empty($PRODUCT_COLOR[$i])) {
+                $PRODUCT_COLOR_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+                $PRODUCT_COLOR_DATA['COLOR'] = $PRODUCT_COLOR[$i];
+                db_perform_account('DOA_PRODUCT_COLOR', $PRODUCT_COLOR_DATA, 'insert');
+            }
         }
     }
 
-    header("location:all_products.php");
+    header("location:products_list.php");
+    exit;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
-<body class="skin-default-dark fixed-layout">
-    <?php require_once('../includes/loader.php'); ?>
-    <div id="main-wrapper">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $title ?> | Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+        }
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        .dashboard-container {
+            max-width: 1400px;
+        }
 
-            <div class="container-fluid body_content" style="margin-top: 0px;">
-                <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
-                    <div class="col-md-7 align-self-center text-end">
-                        <div class="d-flex justify-content-end align-items-center">
-                            <ol class="breadcrumb justify-content-end">
-                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                                <li class="breadcrumb-item"><a href="all_products.php">All Products</a></li>
-                                <li class="breadcrumb-item active"><?= $title ?></li>
-                            </ol>
+        .form-label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #00b633;
+            box-shadow: 0 0 0 0.2rem rgba(0, 182, 51, 0.1);
+        }
+
+        .btn-success-custom {
+            background-color: #00b633;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-success-custom:hover {
+            background-color: #00992b;
+            color: #ffffff;
+        }
+
+        .btn-outline-secondary-custom {
+            border: 1px solid #dee2e6;
+            background-color: white;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline-secondary-custom:hover {
+            border-color: #00b633;
+            color: #00b633;
+        }
+
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid #dee2e6;
+            transition: all 0.2s ease;
+        }
+
+        .image-preview:hover {
+            border-color: #00b633;
+            transform: scale(1.02);
+        }
+
+        .card-hover {
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        }
+
+        .breadcrumb-item a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #00b633;
+        }
+
+        .required-field::after {
+            content: "*";
+            color: #dc3545;
+            margin-left: 4px;
+        }
+
+        .size-color-card {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .remove-btn {
+            color: #dc3545;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            color: #bb2d3b;
+        }
+
+        hr {
+            opacity: 0.5;
+        }
+
+        .container {
+            max-width: 1874px;
+        }
+
+        .sub-menu {
+            padding: 10px 10px;
+            font-size: 14px;
+        }
+
+        .sub-menu a {
+            padding: 5px;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .sub-menu a:hover {
+            color: #333;
+            background-color: #ddd;
+        }
+
+        a {
+            color: black;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container py-4 px-4 bg-white m-3 rounded border mx-auto dashboard-container">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-white border rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                    <i class="bi bi-box-seam text-secondary fs-5"></i>
+                </div>
+                <div>
+                    <h1 class="h4 fw-bold mb-0 text-dark"><?= $title ?></h1>
+                    <p class="text-muted small mb-0"><?= empty($_GET['id']) ? 'Create a new product' : 'Edit existing product details' ?></p>
+                </div>
+            </div>
+            <a href="products_list.php" class="btn btn-success-custom rounded-pill">
+                <i class="bi bi-arrow-left"></i> Back to Products
+            </a>
+        </div>
+
+        <hr class="mb-4">
+
+        <!-- Form Section -->
+        <form action="" method="post" enctype="multipart/form-data">
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <!-- Basic Information Card -->
+                    <div class="card border-0 shadow-sm mb-4 card-hover">
+                        <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                            <h5 class="fw-semibold mb-0"><i class="bi bi-info-circle me-2 text-success"></i>Basic Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required-field">Product ID / SKU</label>
+                                    <input type="text" id="PRODUCT_ID" name="PRODUCT_ID" class="form-control" placeholder="Enter Product ID/SKU" value="<?= htmlspecialchars($PRODUCT_ID) ?>" required>
+                                    <small class="text-muted">Unique identifier for inventory tracking</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required-field">Product Name</label>
+                                    <input type="text" id="PRODUCT_NAME" name="PRODUCT_NAME" class="form-control" placeholder="Enter Product Name" value="<?= htmlspecialchars($PRODUCT_NAME) ?>" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label required-field">Product Description</label>
+                                    <textarea id="PRODUCT_DESCRIPTION" name="PRODUCT_DESCRIPTION" class="form-control" rows="3" placeholder="Enter Product Description" required><?= htmlspecialchars($PRODUCT_DESCRIPTION) ?></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label required-field">Price ($)</label>
+                                    <input type="number" step="0.01" id="PRICE" name="PRICE" class="form-control" placeholder="0.00" value="<?= htmlspecialchars($PRICE) ?>" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" id="BRAND" name="BRAND" class="form-control" placeholder="Enter Brand" value="<?= htmlspecialchars($BRAND) ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Category</label>
+                                    <input type="text" id="CATEGORY" name="CATEGORY" class="form-control" placeholder="Enter Category" value="<?= htmlspecialchars($CATEGORY) ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Shipping Information</label>
+                                    <textarea id="SHIPPING_INFORMATION" name="SHIPPING_INFORMATION" class="form-control" rows="2" placeholder="Enter Shipping Information"><?= htmlspecialchars($SHIPPING_INFORMATION) ?></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Weight</label>
+                                    <input type="text" id="WEIGHT" name="WEIGHT" class="form-control" placeholder="e.g., 1.5 kg, 500g" value="<?= htmlspecialchars($WEIGHT) ?>">
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Size & Color Card -->
+                    <div class="card border-0 shadow-sm mb-4 card-hover">
+                        <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                            <h5 class="fw-semibold mb-0"><i class="bi bi-grid-3x3-gap-fill me-2 text-success"></i>Size & Color Variants</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold mb-2">Size / Dimensions</label>
+                                    <div id="add_more_size">
+                                        <?php if (!empty($_GET['id']) && isset($PK_PRODUCT)) {
+                                            $product_size = $db_account->Execute("SELECT * FROM DOA_PRODUCT_SIZE WHERE PK_PRODUCT = '$PK_PRODUCT'");
+                                            while (!$product_size->EOF) { ?>
+                                                <div class="row mb-2">
+                                                    <div class="col-10">
+                                                        <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions" value="<?= htmlspecialchars($product_size->fields['SIZE']) ?>">
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <i class="bi bi-trash3 remove-btn fs-5" onclick="removeThis(this);"></i>
+                                                    </div>
+                                                </div>
+                                        <?php $product_size->MoveNext();
+                                            }
+                                        } ?>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary-custom rounded-pill btn-sm mt-2" onclick="addMoreSize();">
+                                        <i class="bi bi-plus-lg"></i> Add Size
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold mb-2">Color</label>
+                                    <div id="add_more_color">
+                                        <?php if (!empty($_GET['id']) && isset($PK_PRODUCT)) {
+                                            $product_color = $db_account->Execute("SELECT * FROM DOA_PRODUCT_COLOR WHERE PK_PRODUCT = '$PK_PRODUCT'");
+                                            while (!$product_color->EOF) { ?>
+                                                <div class="row mb-2">
+                                                    <div class="col-10">
+                                                        <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color" value="<?= htmlspecialchars($product_color->fields['COLOR']) ?>">
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <i class="bi bi-trash3 remove-btn fs-5" onclick="removeThis(this);"></i>
+                                                    </div>
+                                                </div>
+                                        <?php $product_color->MoveNext();
+                                            }
+                                        } ?>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary-custom rounded-pill btn-sm mt-2" onclick="addMoreColor();">
+                                        <i class="bi bi-plus-lg"></i> Add Color
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Status (for edit mode) -->
+                    <?php if (!empty($_GET['id'])) { ?>
+                        <div class="card border-0 shadow-sm mb-4 card-hover">
+                            <div class="card-body">
+                                <label class="form-label fw-semibold">Product Status</label>
+                                <div class="d-flex gap-4 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="ACTIVE" id="active_yes" value="1" <?= ($ACTIVE == 1) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="active_yes">
+                                            <i class="bi bi-check-circle-fill text-success"></i> Active
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="ACTIVE" id="active_no" value="0" <?= ($ACTIVE == 0) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="active_no">
+                                            <i class="bi bi-x-circle-fill text-danger"></i> Inactive
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
                 </div>
 
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Product ID/ SKU (Stock Keeping Unit)<span class="text-danger">*</span></label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRODUCT_ID" name="PRODUCT_ID" class="form-control" placeholder="Enter Product ID/SKU" value="<?php echo $PRODUCT_ID ?>" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Product Name<span class="text-danger">*</span></label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRODUCT_NAME" name="PRODUCT_NAME" class="form-control" placeholder="Enter Product Name" value="<?php echo $PRODUCT_NAME ?>" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Product Description<span class="text-danger">*</span></span>
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRODUCT_DESCRIPTION" name="PRODUCT_DESCRIPTION" class="form-control" placeholder="Enter Product Description" value="<?php echo $PRODUCT_DESCRIPTION ?>" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Price<span class="text-danger">*</span></span>
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRICE" name="PRICE" class="form-control" placeholder="Enter Price" value="<?php echo $PRICE ?>" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Shipping Information</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="SHIPPING_INFORMATION" name="SHIPPING_INFORMATION" class="form-control" placeholder="Enter Shipping Information" value="<?php echo $SHIPPING_INFORMATION ?>" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Product Images<span class="text-danger">*</span></label>
-                                                <div class="col-md-12">
-                                                    <input type="file" name="PRODUCT_IMAGES" id="PRODUCT_IMAGES" class="form-control" onchange="previewFile(this)" <?php echo !empty($PRODUCT_IMAGES) ? '' : 'required' ?>>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <?php if ($PRODUCT_IMAGES != '') { ?>
-                                            <div style="width: 120px;height: 120px;margin-top: 25px;">
-                                                <a class="fancybox" href="<?php echo $PRODUCT_IMAGES; ?>" data-fancybox-group="gallery">
-                                                    <img id="profile-img" src="<?php echo $PRODUCT_IMAGES; ?>" style="width:120px; height:120px" /></a>
-                                            </div><?php } ?>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Brand</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="BRAND" name="BRAND" class="form-control" placeholder="Enter Brand" value="<?php echo $BRAND ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Category</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="CATEGORY" name="CATEGORY" class="form-control" placeholder="Enter Category" value="<?php echo $CATEGORY ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-5">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Size/Dimensions</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRODUCT_SIZE" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-1">
-                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreSize();"><i class="ti-plus"></i> Add</a>
-                                        </div>
-                                        <div class="col-5">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Color</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PRODUCT_COLOR" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-1">
-                                            <a href="javascript:;" class="btn btn-info waves-effect waves-light text-white" style="margin-top: 30px;" onclick="addMoreColor();"><i class="ti-plus"></i> Add</a>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-6" id="add_more_size">
-                                            <?php
-                                            if (!empty($_GET['id'])) {
-                                                $product_size = $db_account->Execute("SELECT * FROM DOA_PRODUCT_SIZE WHERE PK_PRODUCT = '$PK_PRODUCT'");
-                                                while (!$product_size->EOF) { ?>
-                                                    <div class="row">
-                                                        <div class="col-10">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Size/Dimensions<span class="text-danger">*</span></label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions" value="<?= $product_size->fields['SIZE'] ?>" required>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2" style="padding-top: 25px;">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                <?php $product_size->MoveNext();
-                                                } ?>
-                                            <?php } ?>
-                                        </div>
-                                        <div class="col-6" id="add_more_color">
-                                            <?php
-                                            if (!empty($_GET['id'])) {
-                                                $product_color = $db_account->Execute("SELECT * FROM DOA_PRODUCT_COLOR WHERE PK_PRODUCT = '$PK_PRODUCT'");
-                                                while (!$product_color->EOF) { ?>
-                                                    <div class="row">
-                                                        <div class="col-10">
-                                                            <div class="form-group">
-                                                                <label class="col-md-12">Color<span class="text-danger">*</span></label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color" value="<?= $product_color->fields['COLOR'] ?>" required>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-2" style="padding-top: 25px;">
-                                                            <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                                        </div>
-                                                    </div>
-                                                <?php $product_color->MoveNext();
-                                                } ?>
-                                            <?php } ?>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Weight</label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="WEIGHT" name="WEIGHT" class="form-control" placeholder="Enter Weight" value="<?php echo $WEIGHT ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <?php if (!empty($_GET['id'])) { ?>
-                                        <div class="row" style="margin-bottom: 15px;">
-                                            <div class="col-6">
-                                                <div class="col-md-2">
-                                                    <label>Active</label>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="1" <? if ($ACTIVE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                    <label><input type="radio" name="ACTIVE" id="ACTIVE" value="0" <? if ($ACTIVE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php } ?>
-
-                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
-                                </form>
+                <!-- Right Column - Product Image -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm card-hover" style="top: 20px;">
+                        <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                            <h5 class="fw-semibold mb-0"><i class="bi bi-image me-2 text-success"></i>Product Image</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <?php if ($PRODUCT_IMAGES != '') { ?>
+                                    <img id="profile-img" src="<?= htmlspecialchars($PRODUCT_IMAGES) ?>" class="image-preview mb-3" alt="Product Image">
+                                <?php } else { ?>
+                                    <img id="profile-img" src="https://placehold.co/400x400?text=No+Image" class="image-preview mb-3" alt="Product Image">
+                                <?php } ?>
                             </div>
+                            <div class="mb-2">
+                                <label for="PRODUCT_IMAGES" class="btn btn-success-custom rounded-pill w-100">
+                                    <i class="bi bi-cloud-upload"></i> Upload Image
+                                </label>
+                                <input type="file" name="PRODUCT_IMAGES" id="PRODUCT_IMAGES" class="d-none" onchange="previewFile(this)" <?= empty($PRODUCT_IMAGES) ? 'required' : '' ?>>
+                            </div>
+                            <small class="text-muted">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <style>
-            .progress-bar {
-                border-radius: 5px;
-                height: 18px !important;
-            }
-        </style>
-        <?php require_once('../includes/footer.php'); ?>
-        <script>
-            function previewFile(input) {
-                let file = $("#USER_IMAGE").get(0).files[0];
-                if (file) {
-                    let reader = new FileReader();
-                    reader.onload = function() {
-                        $("#profile-img").attr("src", reader.result);
-                    }
-                    reader.readAsDataURL(file);
+
+            <!-- Form Actions -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <hr>
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="all_products.php" class="btn btn-outline-secondary-custom rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-success-custom rounded-pill">
+                            <i class="bi bi-check-lg"></i> <?= empty($_GET['id']) ? 'Create Product' : 'Update Product' ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function previewFile(input) {
+            let file = input.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function() {
+                    $("#profile-img").attr("src", reader.result);
                 }
+                reader.readAsDataURL(file);
             }
-        </script>
-        <script>
-            function removeThis(param) {
-                $(param).closest('.row').remove();
-            }
+        }
 
-            function addMoreSize() {
-                $('#add_more_size').append(`<div class="row">
-                                            <div class="col-10">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-2" style="padding-top: 25px;">
-                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                            </div>
-                                        </div>`);
-            }
+        function removeThis(param) {
+            $(param).closest('.row').remove();
+        }
 
-            function addMoreColor() {
-                $('#add_more_color').append(`<div class="row">
-                                            <div class="col-10">
-                                                <div class="form-group">
-                                                    <div class="col-md-12">
-                                                        <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-2" style="padding-top: 25px;">
-                                                <a href="javascript:;" onclick="removeThis(this);" style="color: red; font-size: 20px;"><i class="ti-trash"></i></a>
-                                            </div>
-                                        </div>`);
-            }
-        </script>
+        function addMoreSize() {
+            $('#add_more_size').append(`
+            <div class="row mb-2">
+                <div class="col-10">
+                    <input type="text" name="PRODUCT_SIZE[]" class="form-control" placeholder="Enter Size/Dimensions">
+                </div>
+                <div class="col-2">
+                    <i class="bi bi-trash3 remove-btn fs-5" onclick="removeThis(this);"></i>
+                </div>
+            </div>
+        `);
+        }
+
+        function addMoreColor() {
+            $('#add_more_color').append(`
+            <div class="row mb-2">
+                <div class="col-10">
+                    <input type="text" name="PRODUCT_COLOR[]" class="form-control" placeholder="Enter Color">
+                </div>
+                <div class="col-2">
+                    <i class="bi bi-trash3 remove-btn fs-5" onclick="removeThis(this);"></i>
+                </div>
+            </div>
+        `);
+        }
+    </script>
 </body>
 
 </html>
+<?php ob_end_flush(); ?>

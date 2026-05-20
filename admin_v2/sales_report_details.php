@@ -357,8 +357,9 @@ if (!empty($_GET['START_DATE'])) {
 
                                                         // Subtract actual amount from total and add cancel amount
                                                         // This logic depends on how you want to show in totals
-                                                        $total_amount += $actual_amount;
-                                                        $total_amount -= $cancel_amount;
+                                                        //$total_amount += $actual_amount;
+                                                        //$total_amount -= $cancel_amount;
+
 
                                                         $serviceCodeData = $db_account->Execute(
                                                             "
@@ -379,6 +380,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         );
 
                                                         $display_cancel_amount = $serviceCodeData->fields['ACTUAL_AMOUNT'];
+                                                        $total_amount += $display_cancel_amount; // instead of $actual_amount - $cancel_amount
 
                                                         while (!$serviceCodeData->EOF) {
                                                             // Show original session count before cancellation
@@ -451,16 +453,20 @@ if (!empty($_GET['START_DATE'])) {
 
                                                     // Calculate service provider total based on actual amount for cancelled enrollments
                                                     if ($enr_status == 'C' || $enr_status == 'CA') {
-                                                        $service_provider_total -= ($actual_amount * $provider_percentage / 100);
-                                                        $service_provider_total += ($cancel_amount * $provider_percentage / 100);
+                                                        //$service_provider_total -= ($actual_amount * $provider_percentage / 100);
+                                                        //$service_provider_total += ($cancel_amount * $provider_percentage / 100);
 
                                                         // For display amount in the table
                                                         $display_amount = $display_cancel_amount;
                                                         $provider_display_amount = ($display_cancel_amount * $provider_percentage / 100);
+
+                                                        $service_provider_total += $provider_display_amount; // instead of using $actual_amount and $cancel_amount separately
                                                     } else {
-                                                        $service_provider_total += ($row->fields['TOTAL_AMOUNT'] * $provider_percentage / 100);
+                                                        //$service_provider_total += ($row->fields['TOTAL_AMOUNT'] * $provider_percentage / 100);
                                                         $display_amount = $row->fields['TOTAL_AMOUNT'];
                                                         $provider_display_amount = ($row->fields['TOTAL_AMOUNT'] * $provider_percentage / 100);
+
+                                                        $service_provider_total += $provider_display_amount;
                                                     }
                                                 ?>
                                                     <tr <?php if ($enr_status == 'C' || $enr_status == 'CA') {

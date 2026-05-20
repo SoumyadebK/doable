@@ -352,7 +352,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <p class="text-muted small mb-0"><?= empty($_GET['id']) ? 'Create a new event' : 'Update event details' ?></p>
                             </div>
                         </div>
-                        <button class="btn btn-success border-0 rounded-pill px-3" onclick="window.location.href='all_events.php'">
+                        <button class="btn btn-success border-0 rounded-pill px-3" onclick="window.location.href='events_list.php'">
                             <i class="bi bi-arrow-left me-1"></i> Back to Events
                         </button>
                     </div>
