@@ -180,7 +180,7 @@ while (!$enrollment_data->EOF) {
                 <div class="col-2 d-flex justify-content-end align-items-center text-end">
                     <?php
                     $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-                    $balance_owed = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BALANCE_OWED FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Balance Owed' AND STATUS = 'CA' AND IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+                    $balance_owed = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BALANCE_OWED FROM DOA_ENROLLMENT_LEDGER WHERE (TRANSACTION_TYPE = 'Balance Owed' OR TRANSACTION_TYPE = 'Billing') AND STATUS = 'CA' AND IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                     $refund_available = $db_account->Execute("SELECT SUM(BALANCE) AS TOTAL_REFUND_AVAILABLE FROM DOA_ENROLLMENT_LEDGER WHERE TRANSACTION_TYPE = 'Refund Credit Available' AND STATUS = 'CA' AND IS_PAID = 2 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
                     if ($payment_data->RecordCount() == 0 && $balance_owed->fields['TOTAL_BALANCE_OWED'] <= 0) {
