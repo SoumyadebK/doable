@@ -413,14 +413,14 @@ $events_result = $db_account->Execute($events_sql);
                             </div>
 
                             <!-- View Toggle -->
-                            <div class="btn-group ms-2 border rounded-pill p-1" style="border-radius: 20px !important;">
+                            <!-- <div class="btn-group ms-2 border rounded-pill p-1" style="border-radius: 20px !important;">
                                 <button class="toolbar-btn me-1 border-0 rounded-pill" style="background: transparent; color: #6c757d;" onclick="window.location.href='events_grid.php'">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </button>
                                 <button class="toolbar-btn border-0 rounded-pill" style="background: #39b54a; color: white;">
                                     <i class="bi bi-list-ul"></i>
                                 </button>
-                            </div>
+                            </div> -->
 
                             <!-- Date Range Filter -->
                             <div class="d-flex gap-2 align-items-center">
