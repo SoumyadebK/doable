@@ -305,7 +305,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                                                         <?php if (empty($_GET['id'])) { ?>
                                                             <div class="form-group session_base" style="display: <?php echo ($CHARGE_TYPE != 'Membership') ? ' ' : 'none' ?>">
                                                                 <label class="form-label">Expiration Date</label>
-                                                                <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                                                                <select class="form-control" name="EXPIRY_DATE" id="EXPIRY_DATE" required>
                                                                     <option value="">Select Expiration Date</option>
                                                                     <option value="1" data-expiry_date="30" <?= ($months == 1) ? 'selected' : '' ?>>30 days</option>
                                                                     <option value="2" data-expiry_date="60" <?= ($months == 2) ? 'selected' : '' ?>>60 days</option>
@@ -1852,6 +1852,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $('.TOTAL').prop('readonly', true);
                     $('.add_more').hide();
                     $('.session_base').show();
+                    $('#EXPIRY_DATE').prop('required', true);
                     $('.member_base').hide();
                 } else {
                     $('#Session').prop('checked', false);
@@ -1862,6 +1863,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     $('.TOTAL').prop('readonly', false);
                     $('.add_more').show();
                     $('.session_base').hide();
+                    $('#EXPIRY_DATE').prop('required', false);
                     $('.member_base').show();
                 }
                 $('#BILLING_DATE').prop('readonly', true).css("pointer-events", "none");
@@ -1876,6 +1878,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 $('#save_card_on_file_div').show();
             } else {
                 $('.session_base').show();
+                $('#EXPIRY_DATE').prop('required', true);
                 $('.member_base').hide();
 
                 $('.add_more').show();

@@ -289,33 +289,35 @@ if (isset($_POST['SUBMIT'])) {
     } else {
         $PK_ENROLLMENT_LEDGER = $_POST['PK_ENROLLMENT_LEDGER'];
 
-        $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
-        db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_ENROLLMENT_PAYMENT =  '$PK_ENROLLMENT_PAYMENT'");
-
-        $UPDATE_DATA['IS_PAID'] = 2;
+        $UPDATE_DATA['IS_PAID'] = 1;
         db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 
-        $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$PK_ENROLLMENT_LEDGER'");
-        $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
-        if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
-            $PARENT_DATA['AMOUNT_REMAIN'] = 0;
-            $PARENT_DATA['IS_PAID'] = 0;
-        } else {
-            $PARENT_DATA['IS_PAID'] = 0;
-            $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
-        }
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+        if ($PK_ENROLLMENT_PAYMENT > 0) {
+            $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
+            db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_ENROLLMENT_PAYMENT =  '$PK_ENROLLMENT_PAYMENT'");
 
-        $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
-        $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
-        $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
-        while (!$enrollmentServiceData->EOF) {
-            $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
-            $serviceAmount = ($BALANCE * $servicePercent) / 100;
-            $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
-            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
-            markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
-            $enrollmentServiceData->MoveNext();
+            $enrollment_billing_data = $db_account->Execute("SELECT `BILLED_AMOUNT`, `AMOUNT_REMAIN` FROM `DOA_ENROLLMENT_LEDGER` WHERE `PK_ENROLLMENT_LEDGER` = '$PK_ENROLLMENT_LEDGER'");
+            $AMOUNT_REMAIN = $enrollment_billing_data->fields['AMOUNT_REMAIN'] + $BALANCE;
+            if ($AMOUNT_REMAIN >= $enrollment_billing_data->fields['BILLED_AMOUNT']) {
+                $PARENT_DATA['AMOUNT_REMAIN'] = 0;
+                $PARENT_DATA['IS_PAID'] = 0;
+            } else {
+                $PARENT_DATA['IS_PAID'] = 0;
+                $PARENT_DATA['AMOUNT_REMAIN'] = $AMOUNT_REMAIN;
+            }
+            db_perform_account('DOA_ENROLLMENT_LEDGER', $PARENT_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
+
+            $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+            $enrollmentBillingData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_BILLING` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+            $ACTUAL_AMOUNT = $enrollmentBillingData->fields['TOTAL_AMOUNT'];
+            while (!$enrollmentServiceData->EOF) {
+                $servicePercent = ($enrollmentServiceData->fields['FINAL_AMOUNT'] * 100) / $ACTUAL_AMOUNT;
+                $serviceAmount = ($BALANCE * $servicePercent) / 100;
+                $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] - $serviceAmount;
+                db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+                markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+                $enrollmentServiceData->MoveNext();
+            }
         }
     }
 
@@ -1964,7 +1966,7 @@ if (isset($_POST['SUBMIT'])) {
                 <div class="modal-body">
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-group">
+                            <div class="form-group  mb-4">
                                 <label class="form-label">How you want your money back?</label>
                                 <div class="col-md-12">
                                     <select class="form-control" required name="PK_PAYMENT_TYPE_REFUND" id="PK_PAYMENT_TYPE_REFUND" onchange="selectRefundType(this)">
@@ -1979,7 +1981,7 @@ if (isset($_POST['SUBMIT'])) {
                                 </div>
                             </div>
 
-                            <div class="row" id="check_payment" style="display: none;">
+                            <div class="row  mb-4 check_payment" style="display: none;">
                                 <div class="col-6">
                                     <div class="form-group">
                                         <label class="form-label">Check Number</label>
@@ -1997,6 +1999,7 @@ if (isset($_POST['SUBMIT'])) {
                                     </div>
                                 </div>
                             </div>
+
                             <div class="form-group">
                                 <label class="form-label" for="REFUND_AMOUNT">How much refund you want?</label>
                                 <div class="col-md-12">
@@ -2104,7 +2107,7 @@ if (isset($_POST['SUBMIT'])) {
                                 <div class="form-group mb-2 negative_balance_div" style="display: none;">
                                     <label class="form-label">How you want to your pay?</label>
                                     <div class="col-md-8">
-                                        <select class="form-control" name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE">
+                                        <select class="form-control" name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectRefundType(this)">
                                             <option value="">Select</option>
                                             <?php
                                             $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
@@ -2141,7 +2144,7 @@ if (isset($_POST['SUBMIT'])) {
                                     </div>
                                 </div>
 
-                                <div class="row mb-4" id="check_payment" style="display: none;">
+                                <div class="row mb-4 check_payment" style="display: none;">
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label class="form-label">Check Number</label>
@@ -3593,9 +3596,9 @@ if (isset($_POST['SUBMIT'])) {
     function selectRefundType(param) {
         let paymentType = parseInt($(param).val());
         if (paymentType === 2) {
-            $(param).closest('.modal-body').find('#check_payment').slideDown();
+            $(param).closest('.modal-body').find('.check_payment').slideDown();
         } else {
-            $(param).closest('.modal-body').find('#check_payment').slideUp();
+            $(param).closest('.modal-body').find('.check_payment').slideUp();
         }
     }
 

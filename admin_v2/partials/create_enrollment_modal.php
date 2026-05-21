@@ -184,7 +184,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                         <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= date('m/d/Y'); ?>" required onkeydown="return false;">
-                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE">
+                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" required>
                             <option value="" selected disabled>-- Expire In --</option>
                             <option value="1" data-expiry_date="30">30 days</option>
                             <option value="2" data-expiry_date="60">60 days</option>
@@ -213,7 +213,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <?php
                             $row = $db_account->Execute("SELECT PK_DOCUMENT_LIBRARY, DOCUMENT_NAME FROM DOA_DOCUMENT_LIBRARY WHERE ACTIVE = 1 ORDER BY PK_DOCUMENT_LIBRARY");
                             while (!$row->EOF) { ?>
-                                <option value="<?php echo $row->fields['PK_DOCUMENT_LIBRARY']; ?>"><?= $row->fields['DOCUMENT_NAME'] ?></option>
+                                <option value="<?= $row->fields['PK_DOCUMENT_LIBRARY']; ?>" <?= (1 == $row->fields['PK_DOCUMENT_LIBRARY']) ? 'selected' : '' ?>><?= $row->fields['DOCUMENT_NAME'] ?></option>
                             <?php $row->MoveNext();
                             } ?>
                         </select>
@@ -236,7 +236,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                             <option value="" selected disabled>-- Select --</option>
                         </select>
                         <div class="position-relative">
-                            <input type="text" style="max-width: 120px;" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" placeholder="Enter %">
+                            <input type="text" style="max-width: 120px;" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" placeholder="Enter %" required>
                         </div>
                     </div>
                 </div>
@@ -963,7 +963,7 @@ if ($current_address != 'customer.php') {
 
                                             <div class="align-self-center mb-2">
                                                 <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this);" required>
-                                                    <option>Select</option>
+                                                    <option value="">Select</option>
                                                     <?php
                                                     $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
                                                     while (!$row->EOF) { ?>
@@ -978,12 +978,12 @@ if ($current_address != 'customer.php') {
                                                 <div class="d-inline-flex gap-1">
                                                     <div class="session-item">
                                                         <label class="small text-muted">No. of sessions</label>
-                                                        <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} value="${value}">
+                                                        <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" required>
                                                     </div>
                                                     <div class="session-item">
                                                         <label class="small text-muted">Price / session</label>
                                                         <div class="session-item position-relative">
-                                                            <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" ${type} value="${value}" style="padding-left: 20px;">
+                                                            <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;" required>
                                                             <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
                                                         </div>
                                                     </div>
@@ -1291,29 +1291,35 @@ if ($current_address != 'customer.php') {
 
     $(document).on('submit', '#enrollment_form', function(event) {
         event.preventDefault();
+        let PK_PACKAGE = $('#PK_PACKAGE').val();
+        let service_area = $('.service_code_area').length;
 
-        let service_provider = $('#SERVICE_PROVIDER').val();
-        let is_confirm = $('#is_confirm').val();
-        if (service_provider == '' && is_confirm == 0) {
-            $('#confirm_modal').modal('show');
-        } else {
-            $('#confirm_modal').modal('hide');
-            let form_data = $('#enrollment_form').serialize();
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                dataType: 'json',
-                success: function(data) {
-                    if (PK_ENROLLMENT_MASTER > 0) {
-                        window.location.reload();
-                    } else {
-                        $('#sideDrawer5, .overlay5').addClass('active');
-                        $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
-                        goToPaymentTab(data.PK_ENROLLMENT_MASTER);
+        if (PK_PACKAGE || service_area > 0) {
+            let service_provider = $('#SERVICE_PROVIDER').val();
+            let is_confirm = $('#is_confirm').val();
+            if (service_provider == '' && is_confirm == 0) {
+                $('#confirm_modal').modal('show');
+            } else {
+                $('#confirm_modal').modal('hide');
+                let form_data = $('#enrollment_form').serialize();
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        if (PK_ENROLLMENT_MASTER > 0) {
+                            window.location.reload();
+                        } else {
+                            $('#sideDrawer5, .overlay5').addClass('active');
+                            $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
+                            goToPaymentTab(data.PK_ENROLLMENT_MASTER);
+                        }
                     }
-                }
-            });
+                });
+            }
+        } else {
+            swal("Select Service!", "Please select any Package or add Service to continue.", "error");
         }
     });
 
