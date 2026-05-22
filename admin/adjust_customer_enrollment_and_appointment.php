@@ -41,7 +41,7 @@ while (!$enrollment_data->EOF) {
 
     //echo $PK_ENROLLMENT_MASTER . "<br>";
 
-    //markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
+    markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER);
 
     $enrollment_data->MoveNext();
 }
