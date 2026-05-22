@@ -181,7 +181,7 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER): void
 
             if ($SESSION_LEFT > 0) {
                 $appointments = $db_account->Execute("SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.IS_CHARGED, DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS, DOA_SCHEDULING_CODE.UNIT FROM DOA_APPOINTMENT_MASTER INNER JOIN DOA_APPOINTMENT_CUSTOMER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_CUSTOMER.PK_APPOINTMENT_MASTER LEFT JOIN DOA_SCHEDULING_CODE ON DOA_APPOINTMENT_MASTER.PK_SCHEDULING_CODE = DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE WHERE DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = '$PK_USER_MASTER' AND DOA_APPOINTMENT_MASTER.PK_SERVICE_MASTER = '$PK_SERVICE_MASTER' AND DOA_APPOINTMENT_MASTER.PK_SERVICE_CODE = '$PK_SERVICE_CODE' AND DOA_APPOINTMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'AD-HOC' ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC");
-                while (!$appointments->EOF) {
+                /* while (!$appointments->EOF) {
                     if (($appointments->fields['PK_APPOINTMENT_STATUS'] != 4 && $appointments->fields['PK_APPOINTMENT_STATUS'] != 6) || $appointments->fields['IS_CHARGED'] == 1) {
                         $unit = ($appointments->fields['UNIT'] > 0) ? $appointments->fields['UNIT'] : 1;
                         $SESSION_LEFT -= $unit;
@@ -191,6 +191,19 @@ function markAdhocAppointmentNormal($PK_ENROLLMENT_MASTER): void
                     }
 
                     $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER',`PK_ENROLLMENT_SERVICE` = '$PK_ENROLLMENT_SERVICE', `APPOINTMENT_TYPE` = 'NORMAL' WHERE DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = " . $appointments->fields['PK_APPOINTMENT_MASTER']);
+                    $appointments->MoveNext();
+                } */
+
+                while (!$appointments->EOF) {
+                    if (($appointments->fields['PK_APPOINTMENT_STATUS'] != 4 && $appointments->fields['PK_APPOINTMENT_STATUS'] != 6) || $appointments->fields['IS_CHARGED'] == 1) {
+                        $unit = ($appointments->fields['UNIT'] > 0) ? $appointments->fields['UNIT'] : 1;
+                        // Check BEFORE deduction
+                        if ($SESSION_LEFT < $unit) {
+                            break;
+                        }
+                        $SESSION_LEFT -= $unit;
+                        $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER SET PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER', PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE', APPOINTMENT_TYPE = 'NORMAL' WHERE PK_APPOINTMENT_MASTER = " . $appointments->fields['PK_APPOINTMENT_MASTER']);
+                    }
                     $appointments->MoveNext();
                 }
             }
