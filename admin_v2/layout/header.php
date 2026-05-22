@@ -159,6 +159,17 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         color: #333;
         background-color: #ddd;
     }
+
+    .text-success {
+        color: #39b54a !important;
+    }
+
+    #cart_items {
+        width: 400px;
+        right: 180px !important;
+        top: 55px !important;
+        left: auto !important;
+    }
 </style>
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">
@@ -290,7 +301,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a href="javascript:;" class="nav-link <?= (('products_list.php' === $current_address || 'order_list.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">E-Commerce <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
                                 <ul class="dropdown-menu sub-menu">
                                     <li><a href="products_list.php"><i class="bi bi-cart" aria-hidden="true"></i> Products</a></li>
-                                    <li><a href="order_list.php"><i class="bi bi-list" aria-hidden="true"></i> Orders</a></li>
+                                    <li><a href="orders_list.php"><i class="bi bi-list" aria-hidden="true"></i> Orders</a></li>
                                 </ul>
                             </li>
                             <!-- Original Reports tab (line ~117) -->
@@ -316,7 +327,31 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         </div>
 
         <div class="d-flex align-items-center" style="gap: 1.5rem !important;">
+            <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4 || $_SESSION["PK_ROLES"] == 11) { ?>
+                <div class="topbar-item d-none d-sm-flex">
+                    <a class="top-bar-icon" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/ ?>;"> <span class="button"></span> </div>-->
+                        <div class="button">
+                            <i class="fa fa-shopping-cart" aria-hidden="true" style="font-size: 18px"></i>
+                            <span class="button__badge" id="cart_count"><?= (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) ? count($_SESSION['CART_DATA']) : 0 ?></span>
+                        </div>
+                    </a>
 
+                    <div id="cart_items"
+                        class="dropdown-menu dropdown-menu-end animated bounceInDown p-0"
+                        style="width: 400px; max-width: 95vw;">
+
+                        <div class="card border-0">
+                            <div class="card-header text-center">
+                                <h5 class="fw-bold text-success mb-0">Cart Items</h5>
+                            </div>
+
+                            <div id="cart_item_list" class="card-body">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="to_do_list.php">
                     <i class="fa fa-tasks" aria-hidden="true" style="font-size: 18px;"></i>
@@ -448,6 +483,53 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 success: function(result) {
                     //console.log(result);
                     window.location.reload();
+                }
+            });
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('.minus').click(function() {
+            let $input = $(this).parent().find('input');
+            let count = parseInt($input.val()) - 1;
+            count = count < 1 ? 1 : count;
+            $input.val(count);
+            $input.change();
+            return false;
+        });
+        $('.plus').click(function() {
+            let $input = $(this).parent().find('input');
+            $input.val(parseInt($input.val()) + 1);
+            $input.change();
+            return false;
+        });
+    });
+
+    function getCartItemList() {
+        $.ajax({
+            url: "../includes/get_cart_item_list.php",
+            type: 'GET',
+            data: {},
+            success: function(data) {
+                $('#cart_item_list').html(data);
+            }
+        });
+    }
+
+    function removeFromCart(PK_PRODUCT) {
+        let conf = confirm("Are you sure you want to remove this item from cart?");
+        if (conf) {
+            $.ajax({
+                url: "ajax/AjaxFunctionProductPurchase.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'removeFromCart',
+                    PK_PRODUCT: PK_PRODUCT
+                },
+                success: function(data) {
+                    $('#cart_count').text(data);
                 }
             });
         }

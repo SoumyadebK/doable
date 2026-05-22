@@ -2235,6 +2235,169 @@ function deletePackageData($RESPONSE_DATA)
     echo 1;
 }
 
+function saveProduct($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $upload_path;
+
+    // Get the product data from the form
+    $PRODUCT_DATA['PRODUCT_NAME'] = $RESPONSE_DATA['PRODUCT_NAME'];
+    $PRODUCT_DATA['PRODUCT_ID'] = $RESPONSE_DATA['PRODUCT_ID'] ?? '';
+    $PRODUCT_DATA['BRAND'] = $RESPONSE_DATA['BRAND'] ?? '';
+    $PRODUCT_DATA['CATEGORY'] = $RESPONSE_DATA['CATEGORY'] ?? '';
+    $PRODUCT_DATA['PRODUCT_DESCRIPTION'] = $RESPONSE_DATA['PRODUCT_DESCRIPTION'] ?? '';
+    $PRODUCT_DATA['PRICE'] = $RESPONSE_DATA['PRICE'] ?? 0;
+    $PRODUCT_DATA['WEIGHT'] = $RESPONSE_DATA['WEIGHT'] ?? '';
+    $PRODUCT_DATA['SHIPPING_INFORMATION'] = $RESPONSE_DATA['SHIPPING_INFORMATION'] ?? '';
+    $PRODUCT_DATA['ACTIVE'] = $RESPONSE_DATA['ACTIVE'] ?? 1;
+
+    // Handle image upload
+    if (isset($_FILES['PRODUCT_IMAGES_FILE']) && $_FILES['PRODUCT_IMAGES_FILE']['name'] != '') {
+        // Create directory if it doesn't exist
+        if (!file_exists('../../' . $upload_path . '/product_images/')) {
+            mkdir('../../' . $upload_path . '/product_images/', 0777, true);
+            chmod('../../' . $upload_path . '/product_images/', 0777);
+        }
+
+        $extn = explode(".", $_FILES['PRODUCT_IMAGES_FILE']['name']);
+        $iindex = count($extn) - 1;
+        $rand_string = time() . "-" . rand(100000, 999999);
+        $filename = 'product_image_' . $rand_string . "." . $extn[$iindex];
+        $extension = strtolower($extn[$iindex]);
+
+        if ($extension == "gif" || $extension == "jpeg" || $extension == "pjpeg" || $extension == "png" || $extension == "jpg") {
+            $upload_dir = '../../' . $upload_path . '/product_images/' . $filename;
+            $image_path = '../' . $upload_path . '/product_images/' . $filename;
+            move_uploaded_file($_FILES['PRODUCT_IMAGES_FILE']['tmp_name'], $upload_dir);
+            $PRODUCT_DATA['PRODUCT_IMAGES'] = $image_path;
+        }
+    } elseif (!empty($RESPONSE_DATA['EXISTING_IMAGE'])) {
+        $PRODUCT_DATA['PRODUCT_IMAGES'] = $RESPONSE_DATA['EXISTING_IMAGE'];
+    } else {
+        $PRODUCT_DATA['PRODUCT_IMAGES'] = '';
+    }
+
+    // Insert or update product
+    if (empty($RESPONSE_DATA['PK_PRODUCT'])) {
+        // Insert new product
+        $PRODUCT_DATA['IS_DELETED'] = 0;
+        $PRODUCT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $PRODUCT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_PRODUCT', $PRODUCT_DATA, 'insert');
+        $PK_PRODUCT = $db_account->insert_ID();
+    } else {
+        // Update existing product
+        $PK_PRODUCT = $RESPONSE_DATA['PK_PRODUCT'];
+        $PRODUCT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $PRODUCT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_PRODUCT', $PRODUCT_DATA, 'update', " PK_PRODUCT = '$PK_PRODUCT'");
+    }
+
+    // Handle product sizes
+    if (isset($RESPONSE_DATA['PRODUCT_SIZE']) && is_array($RESPONSE_DATA['PRODUCT_SIZE'])) {
+        // Delete existing sizes
+        $db_account->Execute("DELETE FROM `DOA_PRODUCT_SIZE` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+
+        // Insert new sizes
+        foreach ($RESPONSE_DATA['PRODUCT_SIZE'] as $size) {
+            if (!empty(trim($size))) {
+                $SIZE_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+                $SIZE_DATA['SIZE'] = trim($size);
+                db_perform_account('DOA_PRODUCT_SIZE', $SIZE_DATA, 'insert');
+            }
+        }
+    }
+
+    // Handle product colors
+    if (isset($RESPONSE_DATA['PRODUCT_COLOR']) && is_array($RESPONSE_DATA['PRODUCT_COLOR'])) {
+        // Delete existing colors
+        $db_account->Execute("DELETE FROM `DOA_PRODUCT_COLOR` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+
+        // Insert new colors
+        foreach ($RESPONSE_DATA['PRODUCT_COLOR'] as $color) {
+            if (!empty(trim($color))) {
+                $COLOR_DATA['PK_PRODUCT'] = $PK_PRODUCT;
+                $COLOR_DATA['COLOR'] = trim($color);
+                db_perform_account('DOA_PRODUCT_COLOR', $COLOR_DATA, 'insert');
+            }
+        }
+    }
+
+    $response['success'] = true;
+    $response['message'] = 'Product saved successfully';
+    $response['PK_PRODUCT'] = $PK_PRODUCT;
+    echo json_encode($response);
+}
+
+function updateProduct($RESPONSE_DATA)
+{
+    // This is the same as saveProduct for now
+    // We can call saveProduct directly or duplicate the logic
+    saveProduct($RESPONSE_DATA);
+}
+
+function duplicateProduct($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_PRODUCT = $RESPONSE_DATA['PK_PRODUCT'];
+
+    // Get original product data
+    $product_data = $db_account->Execute("SELECT * FROM `DOA_PRODUCT` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+
+    if ($product_data->RecordCount() > 0) {
+        $original = $product_data->fields;
+
+        // Prepare duplicate data
+        $duplicate_data = [
+            'PRODUCT_NAME' => $original['PRODUCT_NAME'] . ' (Copy)',
+            'PRODUCT_ID' => $original['PRODUCT_ID'] . '_copy',
+            'BRAND' => $original['BRAND'],
+            'CATEGORY' => $original['CATEGORY'],
+            'PRODUCT_DESCRIPTION' => $original['PRODUCT_DESCRIPTION'],
+            'PRICE' => $original['PRICE'],
+            'WEIGHT' => $original['WEIGHT'],
+            'SHIPPING_INFORMATION' => $original['SHIPPING_INFORMATION'],
+            'ACTIVE' => $original['ACTIVE'],
+            'PRODUCT_IMAGES' => $original['PRODUCT_IMAGES'],
+            'IS_DELETED' => 0,
+            'CREATED_BY' => $_SESSION['PK_USER'],
+            'CREATED_ON' => date("Y-m-d H:i")
+        ];
+
+        // Insert duplicate product
+        db_perform_account('DOA_PRODUCT', $duplicate_data, 'insert');
+        $new_product_id = $db_account->insert_ID();
+
+        // Duplicate sizes
+        $sizes = $db_account->Execute("SELECT * FROM `DOA_PRODUCT_SIZE` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+        while (!$sizes->EOF) {
+            $size_data = [
+                'PK_PRODUCT' => $new_product_id,
+                'SIZE' => $sizes->fields['SIZE']
+            ];
+            db_perform_account('DOA_PRODUCT_SIZE', $size_data, 'insert');
+            $sizes->MoveNext();
+        }
+
+        // Duplicate colors
+        $colors = $db_account->Execute("SELECT * FROM `DOA_PRODUCT_COLOR` WHERE `PK_PRODUCT` = '$PK_PRODUCT'");
+        while (!$colors->EOF) {
+            $color_data = [
+                'PK_PRODUCT' => $new_product_id,
+                'COLOR' => $colors->fields['COLOR']
+            ];
+            db_perform_account('DOA_PRODUCT_COLOR', $color_data, 'insert');
+            $colors->MoveNext();
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Product duplicated successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Product not found']);
+    }
+}
+
 function deleteProductData($RESPONSE_DATA)
 {
     global $db_account;

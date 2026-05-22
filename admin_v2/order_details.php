@@ -16,7 +16,7 @@ if (!empty($_POST)) {
     //$ORDER_DATA['ORDER_TYPE'] = $_POST['ORDER_TYPE'];
     $ORDER_DATA['PK_ORDER_STATUS'] = $_POST['PK_ORDER_STATUS'];
     db_perform_account('DOA_ORDER', $ORDER_DATA, 'update', ' PK_ORDER = ' . $_POST['PK_ORDER']);
-    header("location:all_orders.php");
+    header("location:orders_list.php");
 }
 
 $PK_ORDER = $_GET['id'];
