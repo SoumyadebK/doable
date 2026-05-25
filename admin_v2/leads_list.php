@@ -14,6 +14,8 @@ $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'] ?? 0;
 $search_text = isset($_GET['search_text']) ? trim($_GET['search_text']) : '';
 $status_filter = isset($_GET['status']) ? trim($_GET['status']) : '';
 $choose_date = isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '' ? date('Y-m-d', strtotime($_GET['CHOOSE_DATE'])) : '';
+$date_from = isset($_GET['DATE_FROM']) && $_GET['DATE_FROM'] != '' ? date('Y-m-d', strtotime($_GET['DATE_FROM'])) : '';
+$date_to = isset($_GET['DATE_TO']) && $_GET['DATE_TO'] != '' ? date('Y-m-d', strtotime($_GET['DATE_TO'])) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
 
@@ -41,12 +43,22 @@ if ($page < 1) $page = 1;
 $where_clause = "DOA_LEADS.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")";
 
 if ($search_text != '') {
-    $search_escaped =  $search_text; // No need to escape here as we are using prepared statements or properly handling input in the actual implementation
-    $where_clause .= " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.PHONE LIKE '%$search_escaped%' 
-                     OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
-                     OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    $search_escaped = addslashes($search_text);
+    $search_numeric = preg_replace('/\D/', '', $search_text);
+
+    if (strlen($search_numeric) >= 3) {
+        $where_clause .= " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR REPLACE(REPLACE(REPLACE(REPLACE(DOA_LEADS.PHONE, '(', ''), ')', ''), '-', ''), ' ', '') LIKE '%$search_numeric%'
+                         OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
+                         OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    } else {
+        $where_clause .= " AND (DOA_LEADS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.PHONE LIKE '%$search_escaped%' 
+                         OR DOA_LEADS.EMAIL_ID LIKE '%$search_escaped%' 
+                         OR LS.LEAD_STATUS LIKE '%$search_escaped%')";
+    }
 }
 
 if ($status_filter != '' && $status_filter != 'inactive') {
@@ -57,13 +69,37 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     $where_clause .= " AND DOA_LEADS.ACTIVE = 1";
 }
 
+// Date condition - using the same logic as grid view
+$date_condition = '';
 if ($choose_date != '') {
-    $where_clause .= " AND EXISTS (SELECT 1 FROM DOA_LEAD_DATE 
+    // Single date filter
+    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
                        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       AND DATE = '$choose_date')";
+                       ORDER BY CREATED_ON DESC 
+                       LIMIT 1) = '$choose_date'";
+} elseif ($date_from != '' && $date_to != '') {
+    // Date range filter
+    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
+                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                       ORDER BY CREATED_ON DESC 
+                       LIMIT 1) BETWEEN '$date_from' AND '$date_to'";
+} elseif ($date_from != '') {
+    // Only from date
+    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
+                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                       ORDER BY CREATED_ON DESC 
+                       LIMIT 1) >= '$date_from'";
+} elseif ($date_to != '') {
+    // Only to date
+    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
+                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+                       ORDER BY CREATED_ON DESC 
+                       LIMIT 1) <= '$date_to'";
 }
 
-// Get total count - simplified query
+$where_clause .= $date_condition;
+
+// Get total count
 $count_sql = "SELECT COUNT(DISTINCT DOA_LEADS.PK_LEADS) AS TOTAL 
               FROM DOA_LEADS 
               INNER JOIN " . $master_database . ".DOA_LOCATION AS DOA_LOCATION 
@@ -286,28 +322,11 @@ function truncateText($text, $length = 30)
             box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
         }
 
-        /* Optional: Add hover effect */
         .status-pill:hover {
             background: #fff;
             border-color: #dee2e6;
             transform: translateY(-1px);
             transition: all 0.2s;
-        }
-
-        .status-pill-new::before {
-            background-color: #6c757d;
-        }
-
-        .status-pill-enrolled::before {
-            background-color: #198754;
-        }
-
-        .status-pill-not-enrolled::before {
-            background-color: #fd7e14;
-        }
-
-        .status-pill-inactive::before {
-            background-color: #dc3545;
         }
 
         .pagination-container {
@@ -392,16 +411,6 @@ function truncateText($text, $length = 30)
             opacity: 1;
         }
 
-        .sortable-header.asc .sort-icon::before {
-            content: "\F235";
-            /* bi-arrow-down */
-        }
-
-        .sortable-header.desc .sort-icon::before {
-            content: "\F229";
-            /* bi-arrow-up */
-        }
-
         .sort-indicator {
             display: inline-block;
             margin-left: 5px;
@@ -414,6 +423,29 @@ function truncateText($text, $length = 30)
 
         .sortable-header.desc .sort-indicator:after {
             content: "↓";
+        }
+
+        .date-range-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: white;
+            border-radius: 20px;
+            padding: 2px 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .date-range-group input {
+            border: none;
+            padding: 6px 0;
+            width: 120px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .date-range-group span {
+            color: #6c757d;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -447,9 +479,8 @@ function truncateText($text, $length = 30)
                             <div class="btn-group bg-white border rounded-pill p-1">
                                 <button class="btn btn-sm status-filter-btn rounded-pill px-3 <?= ($status_filter == '') ? 'active' : '' ?>" data-status="">All</button>
                                 <?php
-                                // Show dynamic statuses from database
-                                $status_options = [];
                                 if ($all_status && $all_status->RecordCount() > 0) {
+                                    //$all_status->MoveFirst();
                                     while (!$all_status->EOF) {
                                         $status_val = $all_status->fields['PK_LEAD_STATUS'];
                                         $status_label = $all_status->fields['LEAD_STATUS'];
@@ -470,11 +501,18 @@ function truncateText($text, $length = 30)
                                     <i class="bi bi-list-ul"></i>
                                 </button>
                             </div>
-                            <div class="position-relative">
-                                <input type="text" id="CHOOSE_DATE" class="form-control datepicker-normal" placeholder="Filter by Follow up Date" value="<?= htmlspecialchars($_GET['CHOOSE_DATE'] ?? '') ?>" style="border-radius: 20px; width: 180px;">
+
+                            <!-- Date Range Filter -->
+                            <div class="date-range-group">
+                                <i class="bi bi-calendar3" style="color: #6c757d;"></i>
+                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From Date" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
+                                <span>—</span>
+                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To Date" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
+                                <?php if (!empty($date_from) || !empty($date_to)): ?>
+                                    <button type="button" id="clearDateRange" class="btn btn-link p-0 ms-1" style="color: #dc3545; font-size: 1rem;">✕</button>
+                                <?php endif; ?>
                             </div>
-                            <!-- <button class="toolbar-btn rounded-pill" onclick="submitFilters()"><i class="bi bi-filter me-1"></i> Filter</button> -->
-                            <!-- <button class="toolbar-btn rounded-pill"><i class="bi bi-arrow-down-up me-1"></i> Sort by <i class="bi bi-chevron-down ms-1"></i></button> -->
+
                             <button class="toolbar-btn rounded-pill" onclick="resetFilters()"><i class="bi bi-arrow-repeat me-1"></i> Reset</button>
                         </div>
                     </div>
@@ -525,13 +563,6 @@ function truncateText($text, $length = 30)
                                             $customer_initial = $customer['initials'];
                                             $customer_color = $customer['color'];
 
-                                            $status_lower = strtolower($lead['LEAD_STATUS'] ?? '');
-                                            $status_class = '';
-                                            if ($status_lower == 'new') $status_class = 'status-pill-new';
-                                            elseif ($status_lower == 'enrolled') $status_class = 'status-pill-enrolled';
-                                            elseif ($status_lower == 'not enrolled') $status_class = 'status-pill-not-enrolled';
-                                            elseif ($lead['ACTIVE'] == 0) $status_class = 'status-pill-inactive';
-
                                             $display_status = $lead['ACTIVE'] == 0 ? 'Inactive' : ($lead['LEAD_STATUS'] ?? 'New');
                                             $follow_up_date = (!empty($lead['LATEST_DATE']) && $lead['LATEST_DATE'] != '0000-00-00')
                                                 ? date('m/d/Y', strtotime($lead['LATEST_DATE']))
@@ -567,28 +598,11 @@ function truncateText($text, $length = 30)
                                                 </td>
                                                 <td>
                                                     <?php
-                                                    // Get status color from the database
-                                                    $status_color = '#6c757d'; // Default gray
+                                                    $status_color = '#6c757d';
                                                     if ($lead['ACTIVE'] == 0) {
-                                                        $status_color = '#dc3545'; // Red for inactive
+                                                        $status_color = '#dc3545';
                                                     } elseif (!empty($lead['STATUS_COLOR'])) {
                                                         $status_color = $lead['STATUS_COLOR'];
-                                                    } else {
-                                                        // Fallback colors based on status name
-                                                        $status_lower = strtolower($lead['LEAD_STATUS'] ?? '');
-                                                        switch ($status_lower) {
-                                                            case 'new':
-                                                                $status_color = '#6c757d';
-                                                                break;
-                                                            case 'enrolled':
-                                                                $status_color = '#198754';
-                                                                break;
-                                                            case 'not enrolled':
-                                                                $status_color = '#fd7e14';
-                                                                break;
-                                                            default:
-                                                                $status_color = '#6c757d';
-                                                        }
                                                     }
                                                     ?>
                                                     <span class="status-pill">
@@ -672,7 +686,6 @@ function truncateText($text, $length = 30)
                 dateFormat: 'mm/dd/yy',
             });
 
-            // Search with debounce
             let searchTimeout;
             $('#search_text').on('input', function() {
                 clearTimeout(searchTimeout);
@@ -681,49 +694,33 @@ function truncateText($text, $length = 30)
                 }, 500);
             });
 
-            // Status filter buttons
             $('.status-filter-btn').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-
                 $('.status-filter-btn').removeClass('active');
                 $(this).addClass('active');
-
-                let perPage = $('#per_page').val() || <?= $per_page ?>;
-                let searchText = $('#search_text').val() || '';
-                let status = $(this).data('status') || '';
-                let chooseDate = $('#CHOOSE_DATE').val() || '';
-                let currentSort = getCurrentSort();
-                let currentOrder = getCurrentOrder();
-
-                let url = window.location.pathname + '?';
-                let params = [];
-
-                if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
-                if (status) params.push('status=' + encodeURIComponent(status));
-                if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
-                if (currentSort) params.push('sort=' + encodeURIComponent(currentSort));
-                if (currentOrder) params.push('order=' + encodeURIComponent(currentOrder));
-                params.push('per_page=' + perPage);
-                params.push('page=1');
-
-                url += params.join('&');
-                window.location.href = url;
+                submitFilters();
             });
 
-            // Sorting functionality
+            $('#DATE_FROM, #DATE_TO').on('change', function() {
+                submitFilters();
+            });
+
+            $('#clearDateRange').on('click', function() {
+                $('#DATE_FROM, #DATE_TO').val('');
+                submitFilters();
+            });
+
             $('.sortable-header').on('click', function() {
                 let sortColumn = $(this).data('sort');
                 let currentSort = getCurrentSort();
                 let currentOrder = getCurrentOrder();
                 let newOrder = 'DESC';
 
-                // Toggle order if clicking the same column
                 if (currentSort === sortColumn) {
                     newOrder = currentOrder === 'DESC' ? 'ASC' : 'DESC';
                 }
 
-                // Update sort indicators
                 $('.sortable-header').removeClass('asc desc');
                 if (newOrder === 'ASC') {
                     $(this).addClass('asc');
@@ -731,19 +728,19 @@ function truncateText($text, $length = 30)
                     $(this).addClass('desc');
                 }
 
-                // Get other filter values
                 let perPage = $('#per_page').val() || <?= $per_page ?>;
                 let searchText = $('#search_text').val() || '';
                 let status = $('.status-filter-btn.active').data('status') || '';
-                let chooseDate = $('#CHOOSE_DATE').val() || '';
+                let dateFrom = $('#DATE_FROM').val() || '';
+                let dateTo = $('#DATE_TO').val() || '';
 
-                // Build URL
                 let url = window.location.pathname + '?';
                 let params = [];
 
                 if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
                 if (status) params.push('status=' + encodeURIComponent(status));
-                if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+                if (dateFrom) params.push('DATE_FROM=' + encodeURIComponent(dateFrom));
+                if (dateTo) params.push('DATE_TO=' + encodeURIComponent(dateTo));
                 params.push('sort=' + encodeURIComponent(sortColumn));
                 params.push('order=' + encodeURIComponent(newOrder));
                 params.push('per_page=' + perPage);
@@ -753,19 +750,10 @@ function truncateText($text, $length = 30)
                 window.location.href = url;
             });
 
-            // Date filter
-            $('#CHOOSE_DATE').on('change', function() {
-                let perPage = $('#per_page').val() || <?= $per_page ?>;
-                submitFiltersWithPerPage(perPage);
-            });
-
-            // Per page change
             $('#per_page').on('change', function() {
-                let perPage = $(this).val() || <?= $per_page ?>;
-                submitFiltersWithPerPage(perPage);
+                submitFilters();
             });
 
-            // Pagination
             $(document).on('click', '.page-link-custom', function(e) {
                 e.preventDefault();
                 let page = $(this).data('page');
@@ -778,12 +766,10 @@ function truncateText($text, $length = 30)
                 }
             });
 
-            // Select all functionality
             $('#selectAll').on('change', function() {
                 $('.lead-checkbox').prop('checked', $(this).is(':checked'));
             });
 
-            // Set initial sort indicator
             setInitialSortIndicator();
         });
 
@@ -816,13 +802,10 @@ function truncateText($text, $length = 30)
 
         function submitFilters() {
             let perPage = $('#per_page').val() || <?= $per_page ?>;
-            submitFiltersWithPerPage(perPage);
-        }
-
-        function submitFiltersWithPerPage(perPage) {
             let searchText = $('#search_text').val() || '';
             let status = $('.status-filter-btn.active').data('status') || '';
-            let chooseDate = $('#CHOOSE_DATE').val() || '';
+            let dateFrom = $('#DATE_FROM').val() || '';
+            let dateTo = $('#DATE_TO').val() || '';
             let currentSort = getCurrentSort();
             let currentOrder = getCurrentOrder();
 
@@ -831,7 +814,8 @@ function truncateText($text, $length = 30)
 
             if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
             if (status) params.push('status=' + encodeURIComponent(status));
-            if (chooseDate) params.push('CHOOSE_DATE=' + encodeURIComponent(chooseDate));
+            if (dateFrom) params.push('DATE_FROM=' + encodeURIComponent(dateFrom));
+            if (dateTo) params.push('DATE_TO=' + encodeURIComponent(dateTo));
             if (currentSort) params.push('sort=' + encodeURIComponent(currentSort));
             if (currentOrder) params.push('order=' + encodeURIComponent(currentOrder));
             params.push('per_page=' + perPage);
@@ -846,7 +830,18 @@ function truncateText($text, $length = 30)
         }
 
         function editpage(id, date) {
-            window.location.href = "leads.php?id=" + id + (date ? "&date=" + date : "");
+            let urlParams = new URLSearchParams(window.location.search);
+            let params = [];
+            let paramsToPreserve = ['search_text', 'status', 'DATE_FROM', 'DATE_TO', 'sort', 'order', 'per_page'];
+            for (let param of paramsToPreserve) {
+                if (urlParams.has(param) && urlParams.get(param) !== '') {
+                    params.push(param + '=' + encodeURIComponent(urlParams.get(param)));
+                }
+            }
+            let url = "leads.php?id=" + id;
+            if (date) params.push('date=' + encodeURIComponent(date));
+            if (params.length > 0) url += '&' + params.join('&');
+            window.location.href = url;
         }
 
         function sendEmail(email) {
@@ -872,11 +867,8 @@ function truncateText($text, $length = 30)
                         title: 'Deleting...',
                         text: 'Please wait',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => Swal.showLoading()
                     });
-
                     $.ajax({
                         url: "ajax/AjaxFunctions.php",
                         type: 'POST',
@@ -904,11 +896,8 @@ function truncateText($text, $length = 30)
                 title: 'Initiating Call...',
                 text: 'Please wait',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => Swal.showLoading()
             });
-
             $.ajax({
                 url: "../voice_agent/outbound_call.php",
                 type: 'GET',

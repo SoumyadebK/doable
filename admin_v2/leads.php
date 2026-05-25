@@ -11,12 +11,20 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
     exit;
 }
 
-// Capture filter parameters to preserve them when going back
-$filter_start_date = isset($_GET['filter_start_date']) ? $_GET['filter_start_date'] : (isset($_POST['filter_start_date']) ? $_POST['filter_start_date'] : '');
-$filter_end_date = isset($_GET['filter_end_date']) ? $_GET['filter_end_date'] : (isset($_POST['filter_end_date']) ? $_POST['filter_end_date'] : '');
-$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : (isset($_POST['filter_status']) ? $_POST['filter_status'] : '');
-$filter_search = isset($_GET['filter_search']) ? $_GET['filter_search'] : (isset($_POST['filter_search']) ? $_POST['filter_search'] : '');
-$filter_page = isset($_GET['filter_page']) ? $_GET['filter_page'] : (isset($_POST['filter_page']) ? $_POST['filter_page'] : '');
+// Capture ALL filter parameters from URL (GET) to preserve them when going back
+$filter_start_date = isset($_GET['filter_start_date']) ? $_GET['filter_start_date'] : '';
+$filter_end_date = isset($_GET['filter_end_date']) ? $_GET['filter_end_date'] : '';
+$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : '';
+$filter_search = isset($_GET['filter_search']) ? $_GET['filter_search'] : '';
+$filter_page = isset($_GET['filter_page']) ? $_GET['filter_page'] : '';
+// Also capture grid filters (from leads_grid.php)
+$grid_status = isset($_GET['status']) ? $_GET['status'] : '';
+$grid_search_text = isset($_GET['search_text']) ? $_GET['search_text'] : '';
+$grid_choose_date = isset($_GET['CHOOSE_DATE']) ? $_GET['CHOOSE_DATE'] : '';
+$grid_sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : '';
+// Capture date range filters
+$grid_date_from = isset($_GET['DATE_FROM']) ? $_GET['DATE_FROM'] : '';
+$grid_date_to = isset($_GET['DATE_TO']) ? $_GET['DATE_TO'] : '';
 
 if (!empty($_POST)) {
     $IP_ADDRESS = getUserIP();
@@ -60,7 +68,6 @@ if (!empty($_POST)) {
     }
 
     if (!empty($PK_LEADS) && !empty($_POST['DATE'])) {
-        // Insert new lead status record
         $LEAD_DATE = array(
             'PK_LEADS' => $PK_LEADS,
             'PK_LEAD_STATUS' => $_POST['PK_LEAD_STATUS'],
@@ -72,11 +79,11 @@ if (!empty($_POST)) {
         db_perform('DOA_LEAD_DATE', $LEAD_DATE, 'insert');
     }
 
-    // Preserve ALL filters when redirecting back
+    // Build redirect URL with preserved filters from POST or original GET
     $redirect_url = "leads_grid.php";
     $preserve_params = array();
 
-    // Preserve from POST or GET for all possible filter parameters
+    // Check all possible filter parameters from POST (hidden inputs)
     $filter_params = [
         'filter_start_date',
         'filter_end_date',
@@ -86,13 +93,15 @@ if (!empty($_POST)) {
         'status',
         'search_text',
         'CHOOSE_DATE',
-        'sort_by'
+        'sort_by',
+        'DATE_FROM',
+        'DATE_TO'
     ];
 
     foreach ($filter_params as $param) {
-        if (!empty($_POST[$param])) {
+        if (isset($_POST[$param]) && $_POST[$param] !== '') {
             $preserve_params[$param] = $_POST[$param];
-        } elseif (!empty($_GET[$param])) {
+        } elseif (isset($_GET[$param]) && $_GET[$param] !== '') {
             $preserve_params[$param] = $_GET[$param];
         }
     }
@@ -104,21 +113,6 @@ if (!empty($_POST)) {
     header("location:" . $redirect_url);
     exit;
 }
-
-// function getUserIP()
-// {
-//     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-//         $ip = $_SERVER['HTTP_CLIENT_IP'];
-//     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-//         $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-//         $ip = trim($ipArray[0]);
-//     } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-//         $ip = $_SERVER['HTTP_X_REAL_IP'];
-//     } else {
-//         $ip = $_SERVER['REMOTE_ADDR'];
-//     }
-//     return $ip;
-// }
 
 // Handle AJAX request to get follow-up data for a specific status
 if (isset($_GET['ajax']) && $_GET['ajax'] == 'get_status_data' && isset($_GET['lead_id']) && isset($_GET['status_id'])) {
@@ -161,10 +155,20 @@ if (empty($_GET['id'])) {
     $ACTIVE = '';
     $status_logs = array();
 } else {
-    // Get lead data
     $res = $db->Execute("SELECT * FROM `DOA_LEADS` WHERE PK_LEADS = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
-        header("location:all_leads.php");
+        $redirect_url = "leads_grid.php";
+        $preserve_params = array();
+        $filter_params = ['status', 'search_text', 'CHOOSE_DATE', 'sort_by', 'DATE_FROM', 'DATE_TO', 'filter_start_date', 'filter_end_date', 'filter_status', 'filter_search', 'filter_page'];
+        foreach ($filter_params as $param) {
+            if (isset($_GET[$param]) && $_GET[$param] !== '') {
+                $preserve_params[$param] = $_GET[$param];
+            }
+        }
+        if (!empty($preserve_params)) {
+            $redirect_url .= "?" . http_build_query($preserve_params);
+        }
+        header("location:" . $redirect_url);
         exit;
     }
 
@@ -172,24 +176,6 @@ if (empty($_GET['id'])) {
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
     $PHONE = $res->fields['PHONE'];
-
-    // function formatPhone($PHONE)
-    // {
-    //     $PHONE = preg_replace('/\D/', '', $PHONE);
-
-    //     if (strlen($PHONE) == 11 && substr($PHONE, 0, 1) == '1') {
-    //         $PHONE = substr($PHONE, 1);
-    //     }
-
-    //     if (strlen($PHONE) == 10) {
-    //         return '(' . substr($PHONE, 0, 3) . ') '
-    //             . substr($PHONE, 3, 3) . '-'
-    //             . substr($PHONE, 6);
-    //     }
-
-    //     return $PHONE;
-    // }
-
     $EMAIL_ID = $res->fields['EMAIL_ID'];
     $PK_LEAD_STATUS = $res->fields['PK_LEAD_STATUS'];
     $OPPORTUNITY_SOURCE = $res->fields['OPPORTUNITY_SOURCE'];
@@ -239,13 +225,11 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
     <style>
-        /* Custom styles for the header */
         a {
             color: #690C24;
             text-decoration: none;
             font-size: 14px;
         }
-
 
         body {
             background-color: #f8f9fa;
@@ -350,7 +334,6 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid body_content" style="margin-top: 0px;">
                 <div class="container-fluid py-4 px-4 bg-white m-3 rounded border mx-auto">
-                    <!-- Header Section - Same as Grid Page -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="d-flex align-items-center">
                             <div class="p-2 bg-white border me-3 icon-circle">
@@ -366,11 +349,10 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                         </button>
                     </div>
 
-                    <!-- Form Section -->
                     <form class="form-material form-horizontal" name="form1" id="form1" action="" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= $_GET['id'] ?? '' ?>" />
 
-                        <!-- Hidden fields to preserve filters when saving -->
+                        <!-- Hidden fields to preserve ALL filters when saving -->
                         <?php if (!empty($filter_start_date)): ?>
                             <input type="hidden" name="filter_start_date" value="<?= htmlspecialchars($filter_start_date) ?>">
                         <?php endif; ?>
@@ -386,11 +368,29 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                         <?php if (!empty($filter_page)): ?>
                             <input type="hidden" name="filter_page" value="<?= htmlspecialchars($filter_page) ?>">
                         <?php endif; ?>
+                        <!-- Grid filter parameters -->
+                        <?php if (!empty($grid_status)): ?>
+                            <input type="hidden" name="status" value="<?= htmlspecialchars($grid_status) ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($grid_search_text)): ?>
+                            <input type="hidden" name="search_text" value="<?= htmlspecialchars($grid_search_text) ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($grid_choose_date)): ?>
+                            <input type="hidden" name="CHOOSE_DATE" value="<?= htmlspecialchars($grid_choose_date) ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($grid_sort_by)): ?>
+                            <input type="hidden" name="sort_by" value="<?= htmlspecialchars($grid_sort_by) ?>">
+                        <?php endif; ?>
+                        <!-- Date range filters -->
+                        <?php if (!empty($grid_date_from)): ?>
+                            <input type="hidden" name="DATE_FROM" value="<?= htmlspecialchars($grid_date_from) ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($grid_date_to)): ?>
+                            <input type="hidden" name="DATE_TO" value="<?= htmlspecialchars($grid_date_to) ?>">
+                        <?php endif; ?>
 
                         <div class="row">
-                            <!-- Left Column -->
                             <div class="col-md-6">
-                                <!-- Location -->
                                 <div class="mb-3">
                                     <label class="form-label">Location <span class="text-danger">*</span></label>
                                     <select class="form-select" name="PK_LOCATION" id="PK_LOCATION" required>
@@ -405,19 +405,16 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                     </select>
                                 </div>
 
-                                <!-- First Name -->
                                 <div class="mb-3">
                                     <label class="form-label">First Name <span class="text-danger">*</span></label>
                                     <input type="text" id="FIRST_NAME" name="FIRST_NAME" class="form-control" placeholder="Enter First Name" value="<?= htmlspecialchars($FIRST_NAME) ?>" required>
                                 </div>
 
-                                <!-- Last Name -->
                                 <div class="mb-3">
                                     <label class="form-label">Last Name</label>
                                     <input type="text" id="LAST_NAME" name="LAST_NAME" class="form-control" placeholder="Enter Last Name" value="<?= htmlspecialchars($LAST_NAME) ?>">
                                 </div>
 
-                                <!-- Phone -->
                                 <div class="mb-3">
                                     <label class="form-label">Phone</label>
                                     <?php if (empty($_GET['id'])) { ?>
@@ -427,16 +424,13 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                     <?php } ?>
                                 </div>
 
-                                <!-- Email -->
                                 <div class="mb-3">
                                     <label class="form-label">Email</label>
                                     <input type="email" id="EMAIL_ID" name="EMAIL_ID" class="form-control" placeholder="Enter Email Address" value="<?= htmlspecialchars($EMAIL_ID) ?>">
                                 </div>
                             </div>
 
-                            <!-- Right Column -->
                             <div class="col-md-6">
-                                <!-- Lead Status -->
                                 <div class="mb-3">
                                     <label class="form-label">Lead Status <span class="text-danger">*</span></label>
                                     <select class="form-select" name="PK_LEAD_STATUS" id="PK_LEAD_STATUS" required onchange="loadStatusData()">
@@ -449,19 +443,16 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                                     </select>
                                 </div>
 
-                                <!-- Opportunity Source -->
                                 <div class="mb-3">
                                     <label class="form-label">Opportunity Source</label>
                                     <input type="text" id="OPPORTUNITY_SOURCE" name="OPPORTUNITY_SOURCE" class="form-control" placeholder="Enter Opportunity Source" value="<?php echo htmlspecialchars($OPPORTUNITY_SOURCE) ?>">
                                 </div>
 
-                                <!-- Remarks -->
                                 <div class="mb-3">
                                     <label class="form-label">Remarks</label>
                                     <textarea class="form-control" id="DESCRIPTION" name="DESCRIPTION" rows="3" placeholder="Enter lead description"><?= htmlspecialchars($DESCRIPTION) ?></textarea>
                                 </div>
 
-                                <!-- Active (Only for Edit) -->
                                 <?php if (!empty($_GET['id'])) { ?>
                                     <div class="mb-3">
                                         <label class="form-label d-block">Active</label>
@@ -478,7 +469,6 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                             </div>
                         </div>
 
-                        <!-- Follow-up Section -->
                         <div class="row mt-3">
                             <div class="col-md-12">
                                 <hr class="my-3">
@@ -499,7 +489,6 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                             </div>
                         </div>
 
-                        <!-- Status Log Section -->
                         <?php if (!empty($_GET['id'])): ?>
                             <div class="row mt-3">
                                 <div class="col-md-8">
@@ -532,14 +521,13 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                             </div>
                         <?php endif; ?>
 
-                        <!-- Action Buttons -->
                         <div class="row mt-4">
                             <div class="col-12">
                                 <hr class="my-3">
                                 <button type="submit" class="btn btn-success rounded-pill px-4">
                                     <i class="bi bi-check-lg me-1"></i> Save
                                 </button>
-                                <button type="button" class="btn btn-secondary rounded-pill px-4 ms-2" onclick="window.location.href='leads_grid.php'">
+                                <button type="button" class="btn btn-secondary rounded-pill px-4 ms-2" onclick="goBackToLeads()">
                                     <i class="bi bi-x-lg me-1"></i> Cancel
                                 </button>
                                 <a href="javascript:;" onclick="createCustomer()" class="btn btn-info rounded-pill px-4 ms-2 text-white">
@@ -560,31 +548,20 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
 
     <script>
         function goBackToLeads() {
-            // Get all current filter parameters from URL
+            // Build URL with all preserved filter parameters from URL
             let urlParams = new URLSearchParams(window.location.search);
             let filters = [];
 
-            // Preserve all filter parameters
-            let paramsToPreserve = ['filter_start_date', 'filter_end_date', 'filter_status', 'filter_search', 'filter_page'];
+            // Preserve ALL possible filter parameters including date range
+            let paramsToPreserve = [
+                'filter_start_date', 'filter_end_date', 'filter_status', 'filter_search', 'filter_page',
+                'status', 'search_text', 'CHOOSE_DATE', 'sort_by', 'DATE_FROM', 'DATE_TO'
+            ];
 
             for (let param of paramsToPreserve) {
-                if (urlParams.has(param)) {
+                if (urlParams.has(param) && urlParams.get(param) !== '') {
                     filters.push(param + '=' + encodeURIComponent(urlParams.get(param)));
                 }
-            }
-
-            // Also preserve status, search_text, CHOOSE_DATE from other possible sources
-            if (urlParams.has('status')) {
-                filters.push('status=' + encodeURIComponent(urlParams.get('status')));
-            }
-            if (urlParams.has('search_text')) {
-                filters.push('search_text=' + encodeURIComponent(urlParams.get('search_text')));
-            }
-            if (urlParams.has('CHOOSE_DATE')) {
-                filters.push('CHOOSE_DATE=' + encodeURIComponent(urlParams.get('CHOOSE_DATE')));
-            }
-            if (urlParams.has('sort_by')) {
-                filters.push('sort_by=' + encodeURIComponent(urlParams.get('sort_by')));
             }
 
             let url = 'leads_grid.php';
@@ -595,7 +572,6 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
             window.location.href = url;
         }
 
-        // Function to format phone number as user types
         function formatPhoneNumber(input) {
             let digits = input.value.replace(/\D/g, '');
             if (digits.length > 10) {
@@ -729,7 +705,6 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
             return nextText;
         }
 
-        // Initialize on page load
         $(document).ready(function() {
             <?php if (!empty($_GET['id'])): ?>
                 let currentId = $('#PK_LEAD_STATUS').val();
