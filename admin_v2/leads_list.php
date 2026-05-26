@@ -69,32 +69,36 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     $where_clause .= " AND DOA_LEADS.ACTIVE = 1";
 }
 
-// Date condition - using the same logic as grid view
+// Date condition - using EXISTS to check ANY follow-up date (same as grid view)
 $date_condition = '';
 if ($choose_date != '') {
-    // Single date filter
-    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
-                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       ORDER BY CREATED_ON DESC 
-                       LIMIT 1) = '$choose_date'";
+    // Single date filter - check if ANY follow-up date matches
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
+        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+        AND DATE = '$choose_date'
+    )";
 } elseif ($date_from != '' && $date_to != '') {
-    // Date range filter
-    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
-                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       ORDER BY CREATED_ON DESC 
-                       LIMIT 1) BETWEEN '$date_from' AND '$date_to'";
+    // Date range filter - check if ANY follow-up date falls within range
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
+        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+        AND DATE BETWEEN '$date_from' AND '$date_to'
+    )";
 } elseif ($date_from != '') {
-    // Only from date
-    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
-                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       ORDER BY CREATED_ON DESC 
-                       LIMIT 1) >= '$date_from'";
+    // Only from date - check if ANY follow-up date is on or after from date
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
+        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+        AND DATE >= '$date_from'
+    )";
 } elseif ($date_to != '') {
-    // Only to date
-    $date_condition = " AND (SELECT DATE FROM DOA_LEAD_DATE 
-                       WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-                       ORDER BY CREATED_ON DESC 
-                       LIMIT 1) <= '$date_to'";
+    // Only to date - check if ANY follow-up date is on or before to date
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
+        WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
+        AND DATE <= '$date_to'
+    )";
 }
 
 $where_clause .= $date_condition;
@@ -186,7 +190,6 @@ function truncateText($text, $length = 30)
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        /* Custom styles for the header */
         a {
             color: #690C24;
             text-decoration: none;
@@ -257,48 +260,6 @@ function truncateText($text, $length = 30)
             vertical-align: middle;
             font-size: 0.85rem;
             border-bottom: 1px solid #dee2e6;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 12px;
-        }
-
-        .avatar-jb {
-            background: #eff8ff;
-            color: #175cd3;
-        }
-
-        .avatar-sw {
-            background: #fef0c7;
-            color: #93370d;
-        }
-
-        .avatar-at {
-            background: #e0f2fe;
-            color: #026aa2;
-        }
-
-        .avatar-bg1 {
-            background: #e8f3ec;
-            color: #2e7d32;
-        }
-
-        .avatar-bg2 {
-            background: #fce4ec;
-            color: #c62828;
-        }
-
-        .avatar-bg3 {
-            background: #f3e5f5;
-            color: #7b1fa2;
         }
 
         .status-pill {
@@ -425,27 +386,41 @@ function truncateText($text, $length = 30)
             content: "↓";
         }
 
+        /* Compact date range group - no extra spaces */
         .date-range-group {
             display: flex;
-            gap: 8px;
+            gap: 2px;
             align-items: center;
             background: white;
             border-radius: 20px;
-            padding: 2px 12px;
+            padding: 2px 8px;
             border: 1px solid #dee2e6;
+        }
+
+        .date-range-group i {
+            font-size: 0.8rem;
+            color: #6c757d;
         }
 
         .date-range-group input {
             border: none;
-            padding: 6px 0;
-            width: 120px;
-            font-size: 0.85rem;
+            padding: 8px 0;
+            width: 70px;
+            font-size: 0.8rem;
             outline: none;
         }
 
         .date-range-group span {
             color: #6c757d;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            margin: 0 -2px;
+        }
+
+        .date-range-group .btn-link {
+            font-size: 0.85rem;
+            padding: 0;
+            margin-left: 2px;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -480,7 +455,6 @@ function truncateText($text, $length = 30)
                                 <button class="btn btn-sm status-filter-btn rounded-pill px-3 <?= ($status_filter == '') ? 'active' : '' ?>" data-status="">All</button>
                                 <?php
                                 if ($all_status && $all_status->RecordCount() > 0) {
-                                    //$all_status->MoveFirst();
                                     while (!$all_status->EOF) {
                                         $status_val = $all_status->fields['PK_LEAD_STATUS'];
                                         $status_label = $all_status->fields['LEAD_STATUS'];
@@ -502,14 +476,14 @@ function truncateText($text, $length = 30)
                                 </button>
                             </div>
 
-                            <!-- Date Range Filter -->
+                            <!-- Compact Date Range Filter -->
                             <div class="date-range-group">
-                                <i class="bi bi-calendar3" style="color: #6c757d;"></i>
-                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From Date" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
-                                <span>—</span>
-                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To Date" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
+                                <i class="bi bi-calendar3"></i>
+                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
+                                <span>–</span>
+                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
                                 <?php if (!empty($date_from) || !empty($date_to)): ?>
-                                    <button type="button" id="clearDateRange" class="btn btn-link p-0 ms-1" style="color: #dc3545; font-size: 1rem;">✕</button>
+                                    <button type="button" id="clearDateRange" class="btn btn-link" style="color: #dc3545;">✕</button>
                                 <?php endif; ?>
                             </div>
 

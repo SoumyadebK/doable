@@ -58,40 +58,36 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     $status_condition = " AND DOA_LEADS.ACTIVE = 1";
 }
 
-// Updated date condition: either specific date OR date range
+// Updated date condition: Check if ANY follow-up date falls within the range
 $date_condition = '';
 if ($choose_date != '') {
-    // Single date filter (kept for backward compatibility)
-    $date_condition = " AND (
-        SELECT DATE FROM DOA_LEAD_DATE 
+    // Single date filter - check if ANY follow-up date matches
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        ORDER BY CREATED_ON DESC 
-        LIMIT 1
-    ) = '$choose_date'";
+        AND DATE = '$choose_date'
+    )";
 } elseif ($date_from != '' && $date_to != '') {
-    // Date range filter (from and to)
-    $date_condition = " AND (
-        SELECT DATE FROM DOA_LEAD_DATE 
+    // Date range filter - check if ANY follow-up date falls within range
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        ORDER BY CREATED_ON DESC 
-        LIMIT 1
-    ) BETWEEN '$date_from' AND '$date_to'";
+        AND DATE BETWEEN '$date_from' AND '$date_to'
+    )";
 } elseif ($date_from != '') {
-    // Only from date provided
-    $date_condition = " AND (
-        SELECT DATE FROM DOA_LEAD_DATE 
+    // Only from date - check if ANY follow-up date is on or after from date
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        ORDER BY CREATED_ON DESC 
-        LIMIT 1
-    ) >= '$date_from'";
+        AND DATE >= '$date_from'
+    )";
 } elseif ($date_to != '') {
-    // Only to date provided
-    $date_condition = " AND (
-        SELECT DATE FROM DOA_LEAD_DATE 
+    // Only to date - check if ANY follow-up date is on or before to date
+    $date_condition = " AND EXISTS (
+        SELECT 1 FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        ORDER BY CREATED_ON DESC 
-        LIMIT 1
-    ) <= '$date_to'";
+        AND DATE <= '$date_to'
+    )";
 }
 
 // Sorting
@@ -433,25 +429,26 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 
         .date-range-group {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             align-items: center;
             background: white;
             border-radius: 20px;
-            padding: 2px 12px;
+            padding: 2px 8px;
             border: 1px solid #dee2e6;
         }
 
         .date-range-group input {
             border: none;
-            padding: 6px 0;
-            width: 120px;
-            font-size: 0.85rem;
+            padding: 8px 0;
+            width: 66px;
+            font-size: 0.8rem;
             outline: none;
         }
 
         .date-range-group span {
             color: #6c757d;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            margin: 0 -2px;
         }
     </style>
 </head>
@@ -488,14 +485,14 @@ if ($status_filter != '' && $status_filter != 'inactive') {
                                 <button class="btn btn-sm status-filter-btn rounded-pill px-3 <?= ($status_filter == 'inactive') ? 'active' : '' ?>" data-status="inactive">Inactive</button>
                             </div>
 
-                            <!-- Date Range Filter -->
+                            <!-- Date Range Filter - Compact version -->
                             <div class="date-range-group">
-                                <i class="bi bi-calendar3" style="color: #6c757d;"></i>
-                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From Date" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
-                                <span>—</span>
-                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To Date" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
+                                <i class="bi bi-calendar3" style="color: #6c757d; font-size: 0.8rem;"></i>
+                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
+                                <span>–</span>
+                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
                                 <?php if (!empty($date_from) || !empty($date_to)): ?>
-                                    <button type="button" id="clearDateRange" class="btn btn-link p-0 ms-1" style="color: #dc3545; font-size: 1rem;">✕</button>
+                                    <button type="button" id="clearDateRange" class="btn btn-link p-0 ms-0" style="color: #dc3545; font-size: 0.9rem; text-decoration: none;">✕</button>
                                 <?php endif; ?>
                             </div>
 
@@ -510,7 +507,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 
                             <div class="dropdown d-inline-block">
                                 <button class="toolbar-btn rounded-pill dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-arrow-down-up me-1"></i> Sort by
+                                    <i class="bi bi-arrow-down-up me-1"></i> Sort
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="sortDropdown">
                                     <li><a class="dropdown-item <?= ($sort_by == 'newest') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="newest">📅 Newest First</a></li>
