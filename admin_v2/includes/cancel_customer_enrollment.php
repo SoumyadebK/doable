@@ -51,14 +51,35 @@ if (isset($_POST['SUBMIT'])) {
         if ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 1) {
             $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
             $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
-            $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_ENROLLMENT` WHERE `PK_ENROLLMENT_MASTER` = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 1");
             $CONDITION = " PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
             db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
+
+            $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER AM
+                                    INNER JOIN DOA_APPOINTMENT_ENROLLMENT AE 
+                                        ON AE.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+                                    SET 
+                                        AM.STATUS = 'C',
+                                        AM.PK_APPOINTMENT_STATUS = 6,
+                                        AE.IS_CHARGED = 0
+                                    WHERE 
+                                        AE.PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER
+                                        AND AE.IS_CHARGED = 0");
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 2) {
             $APPOINTMENT_UPDATE_DATA['PK_APPOINTMENT_STATUS'] = 6;
             $APPOINTMENT_UPDATE_DATA['STATUS'] = 'C';
             $CONDITION = " PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0 AND IS_PAID = 0";
             db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
+
+            $db_account->Execute("UPDATE DOA_APPOINTMENT_MASTER AM
+                                    INNER JOIN DOA_APPOINTMENT_ENROLLMENT AE 
+                                        ON AE.PK_APPOINTMENT_MASTER = AM.PK_APPOINTMENT_MASTER
+                                    SET 
+                                        AM.STATUS = 'C',
+                                        AM.PK_APPOINTMENT_STATUS = 6,
+                                        AE.IS_CHARGED = 0
+                                    WHERE 
+                                        AE.PK_ENROLLMENT_MASTER = $PK_ENROLLMENT_MASTER
+                                        AND AE.IS_CHARGED = 0");
         } elseif ($_POST['CANCEL_FUTURE_APPOINTMENT'] == 3) {
             $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_MASTER'] = 0;
             $APPOINTMENT_UPDATE_DATA['PK_ENROLLMENT_SERVICE'] = 0;
@@ -66,6 +87,8 @@ if (isset($_POST['SUBMIT'])) {
             $APPOINTMENT_UPDATE_DATA['IS_PAID'] = 0;
             $CONDITION = " PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0";
             db_perform_account('DOA_APPOINTMENT_MASTER', $APPOINTMENT_UPDATE_DATA, 'update', $CONDITION);
+
+            $db_account->Execute("UPDATE DOA_APPOINTMENT_ENROLLMENT SET PK_ENROLLMENT_MASTER = 0, PK_ENROLLMENT_SERVICE = 0 WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND IS_CHARGED = 0");
         }
 
         $TOTAL_ACTUAL_AMOUNT = 0;
