@@ -177,6 +177,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 } else {
     $INTERVAL = $interval->fields['TIME_SLOT_INTERVAL'];
 }
+
+if ($PK_USER_MASTER > 0) {
+    makeExpiryEnrollmentComplete($PK_USER_MASTER);
+    makeMiscComplete($PK_USER_MASTER);
+    makeDroppedCancelled($PK_USER_MASTER);
+    checkAllEnrollmentStatus($PK_USER_MASTER);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

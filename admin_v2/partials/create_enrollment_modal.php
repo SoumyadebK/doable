@@ -559,9 +559,9 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     <div class="card-body">
                         <div>
                             <input type="hidden" id="is_confirm" value="0">
-                            <label>Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
-                            <button type="button" class="btn btn-info waves-effect waves-light m-l-20 text-white" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
-                            <button type="button" class="btn btn-danger waves-effect waves-light m-l-10 text-white" data-bs-dismiss="modal" aria-label="No">No</button>
+                            <label class="mb-3">Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
+                            <button type="button" class="btn btn-secondary" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
+                            <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal" aria-label="No">No</button>
                         </div>
                     </div>
                 </div>
