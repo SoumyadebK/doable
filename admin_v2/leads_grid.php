@@ -58,36 +58,36 @@ if ($status_filter != '' && $status_filter != 'inactive') {
     $status_condition = " AND DOA_LEADS.ACTIVE = 1";
 }
 
-// Updated date condition: Check if ANY follow-up date falls within the range
+// Updated date condition: Check if LATEST follow-up date falls within the range
 $date_condition = '';
 if ($choose_date != '') {
-    // Single date filter - check if ANY follow-up date matches
-    $date_condition = " AND EXISTS (
-        SELECT 1 FROM DOA_LEAD_DATE 
+    // Single date filter - check if latest follow-up date matches
+    $date_condition = " AND (
+        SELECT DATE FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        AND DATE = '$choose_date'
-    )";
+        ORDER BY CREATED_ON DESC LIMIT 1
+    ) = '$choose_date'";
 } elseif ($date_from != '' && $date_to != '') {
-    // Date range filter - check if ANY follow-up date falls within range
-    $date_condition = " AND EXISTS (
-        SELECT 1 FROM DOA_LEAD_DATE 
+    // Date range filter - check if latest follow-up date falls within range
+    $date_condition = " AND (
+        SELECT DATE FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        AND DATE BETWEEN '$date_from' AND '$date_to'
-    )";
+        ORDER BY CREATED_ON DESC LIMIT 1
+    ) BETWEEN '$date_from' AND '$date_to'";
 } elseif ($date_from != '') {
-    // Only from date - check if ANY follow-up date is on or after from date
-    $date_condition = " AND EXISTS (
-        SELECT 1 FROM DOA_LEAD_DATE 
+    // Only from date - check if latest follow-up date is on or after from date
+    $date_condition = " AND (
+        SELECT DATE FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        AND DATE >= '$date_from'
-    )";
+        ORDER BY CREATED_ON DESC LIMIT 1
+    ) >= '$date_from'";
 } elseif ($date_to != '') {
-    // Only to date - check if ANY follow-up date is on or before to date
-    $date_condition = " AND EXISTS (
-        SELECT 1 FROM DOA_LEAD_DATE 
+    // Only to date - check if latest follow-up date is on or before to date
+    $date_condition = " AND (
+        SELECT DATE FROM DOA_LEAD_DATE 
         WHERE PK_LEADS = DOA_LEADS.PK_LEADS 
-        AND DATE <= '$date_to'
-    )";
+        ORDER BY CREATED_ON DESC LIMIT 1
+    ) <= '$date_to'";
 }
 
 // Sorting
