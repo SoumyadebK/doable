@@ -96,12 +96,12 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
     $REPEAT = $_POST['REPEAT'];
     $standing_id = 0;
 
-    if ($REPEAT == 'Custom') {
-        $STARTING_ON = $_POST['APPOINTMENT_DATE'];
-        $LENGTH = 12;
-        $FREQUENCY = 'month';
-        $END_DATE = isset($_POST['END_ON_APPOINTMENT_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_APPOINTMENT_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+    $STARTING_ON = $_POST['APPOINTMENT_DATE'];
+    $LENGTH = 12;
+    $FREQUENCY = 'month';
+    $END_DATE = isset($_POST['END_ON_APPOINTMENT_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_APPOINTMENT_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
+    if ($REPEAT == 'Custom') {
         if (!empty($_POST['OCCURRENCE'])) {
             $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
             if ($_POST['OCCURRENCE'] == 'WEEKLY') {
@@ -128,50 +128,32 @@ if ($_POST['PK_ENROLLMENT_MASTER'] == 'AD-HOC') {
             }
         }
 
-
-
-        /* $OCCURRENCE = 'WEEKLY';
-        if (!empty($OCCURRENCE)) {
-            $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
-            if ($OCCURRENCE == 'WEEKLY') {
-                if (isset($_POST['DAYS'])) {
-                    $DAYS = $_POST['DAYS'];
-                } else {
-                    $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
-                }
-                while ($APPOINTMENT_DATE < $END_DATE) {
-                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
-                    if (in_array(strtolower($appointment_day), $DAYS)) {
-                        $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
-                    }
-                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
-                }
-            } else {
-                $OCCURRENCE_DAYS = (isset($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
-
-                while ($APPOINTMENT_DATE < $END_DATE) {
-                    $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
-                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
-                    //echo $APPOINTMENT_DATE . "<br>";
-                }
-            }
-        } */
-
-
-
-
-
         $standing_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_APPOINTMENT_MASTER` ORDER BY STANDING_ID DESC LIMIT 1");
         if ($standing_data->RecordCount() > 0) {
             $standing_id = $standing_data->fields['STANDING_ID'] + 1;
         } else {
             $standing_id = 1;
         }
+    } elseif ($REPEAT == 'Weekly') {
+        $DAYS = date('l', strtotime($STARTING_ON));
+
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        while ($APPOINTMENT_DATE < $END_DATE) {
+            $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+            if ($appointment_day == $DAYS) {
+                $APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+            }
+            $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+        }
     } else {
         $APPOINTMENT_DATE_ARRAY[] = (isset($_POST['APPOINTMENT_DATE']) && !empty($_POST['APPOINTMENT_DATE'])) ? date('Y-m-d', strtotime($_POST['APPOINTMENT_DATE'])) : date('Y-m-d');
     }
 
-    $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($APPOINTMENT_DATE_ARRAY);
+    if ($REPEAT == 'Weekly') {
+        $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['END_AFTER'])) ? $_POST['END_AFTER'] : 1;
+    } else {
+        $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['OCCURRENCE_AFTER']) && $REPEAT == 'Custom') ? $_POST['OCCURRENCE_AFTER'] : count($APPOINTMENT_DATE_ARRAY);
+    }
 
     $APPOINTMENT_DATA['PK_SERVICE_MASTER'] = $PK_SERVICE_MASTER;
     $APPOINTMENT_DATA['PK_SERVICE_CODE'] = $PK_SERVICE_CODE;

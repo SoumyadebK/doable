@@ -245,7 +245,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <select class="form-control" id="REPEAT" name="REPEAT" onclick="setDayOption(this)" onchange="repeatSchedule(this)">
+                                <select class="form-control" id="REPEAT" name="REPEAT" onmousedown="setDayOption(this)" onchange="repeatSchedule(this)">
                                     <option value="">-- Select --</option>
                                     <option value="Daily">Daily</option>
                                     <option value="Weekly">Weekly on </option>
@@ -258,7 +258,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <div class="row">
                                         <div class="col-12">
                                             <label>Ends After:</label>
-                                            <input type="text" class="form-control" placeholder="1 Occurrence">
+                                            <input type="text" name="END_AFTER" class="form-control" placeholder="1 Occurrence">
                                         </div>
                                     </div>
                                 </div>
@@ -512,7 +512,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                             </div>
 
                             <div class="form-group mt-2 custom-date-time-repeat">
-                                <select class="form-control" id="REPEAT" name="REPEAT" onclick="setDayOption(this)" onchange="repeatSchedule(this)">
+                                <select class="form-control" id="REPEAT" name="REPEAT" onmousedown="setDayOption(this)" onchange="repeatSchedule(this)">
                                     <option value="">-- Select --</option>
                                     <option value="Daily">Daily</option>
                                     <option value="Weekly">Weekly on </option>
@@ -526,7 +526,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <div class="row">
                                         <div class="col-12">
                                             <label>Ends After:</label>
-                                            <input type="text" class="form-control" placeholder="1 Occurrence">
+                                            <input type="text" name="END_AFTER" class="form-control" placeholder="1 Occurrence">
                                         </div>
                                     </div>
                                 </div>
@@ -800,7 +800,7 @@ if ($location_operational_hour->RecordCount() > 0) {
 
                             <div class="col-12 col-md-12">
                                 <div class="form-group">
-                                    <select class="form-control" id="REPEAT" name="REPEAT" onclick="setDayOption(this)" onchange="repeatSchedule(this)">
+                                    <select class="form-control" id="REPEAT" name="REPEAT" onmousedown="setDayOption(this)" onchange="repeatSchedule(this)">
                                         <option value="">-- Select --</option>
                                         <option value="Daily">Daily</option>
                                         <option value="Weekly">Weekly</option>
@@ -813,7 +813,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         <div class="row">
                                             <div class="col-12">
                                                 <label>Ends After:</label>
-                                                <input type="text" class="form-control" placeholder="1 Occurrence">
+                                                <input type="text" name="END_AFTER" class="form-control" placeholder="1 Occurrence">
                                             </div>
                                         </div>
                                     </div>
@@ -1086,6 +1086,19 @@ if ($location_operational_hour->RecordCount() > 0) {
     $('#APPOINTMENT_DATE_CREATION').datepicker({
         onSelect: function() {
             getSlotsForAppointmentCreation(this);
+            setDayOption($('#create_appointment_form #REPEAT'));
+        }
+    });
+
+    $('#STARTING_ON').datepicker({
+        onSelect: function() {
+            setDayOption($('#create_group_class_form #REPEAT'));
+        }
+    });
+
+    $('#TO_DO_DATE').datepicker({
+        onSelect: function() {
+            setDayOption($('#create_to_do_form #REPEAT'));
         }
     });
 
@@ -1316,8 +1329,6 @@ if ($location_operational_hour->RecordCount() > 0) {
         console.log(start_time_array.sort(), end_time_array.sort());
     }
 
-
-
     function repeatSchedule(param) {
         $(param).closest('.tab-pane').find('.custom-date-time-format').addClass('d-none');
         $(param).closest('.tab-pane').find('.day-end-option').addClass("d-none");
@@ -1333,7 +1344,7 @@ if ($location_operational_hour->RecordCount() > 0) {
         let date = $(param).closest('.tab-pane').find('.datepicker-normal').val();
         let dayName = getDayName(date);
 
-        let selectBox = $(param);
+        let selectBox = $(param).closest('.tab-pane').find('#REPEAT');
         selectBox.find('option').each(function() {
             if ($(this).val() === 'Weekly') {
                 $(this).text(`Weekly on ${dayName}`);

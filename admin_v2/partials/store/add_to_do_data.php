@@ -9,12 +9,12 @@ $SPECIAL_APPOINTMENT_DATE_ARRAY = [];
 $REPEAT = $_POST['REPEAT'];
 $standing_id = 0;
 
-if ($REPEAT == 'Custom') {
-    $STARTING_ON = $_POST['TO_DO_DATE'];
-    $LENGTH = 12;
-    $FREQUENCY = 'month';
-    $END_DATE = isset($_POST['END_ON_TO_DO_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_TO_DO_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
+$STARTING_ON = $_POST['TO_DO_DATE'];
+$LENGTH = 12;
+$FREQUENCY = 'month';
+$END_DATE = isset($_POST['END_ON_TO_DO_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_TO_DO_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
+if ($REPEAT == 'Custom') {
     if (!empty($_POST['OCCURRENCE'])) {
         $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
         if ($_POST['OCCURRENCE'] == 'WEEKLY') {
@@ -47,11 +47,26 @@ if ($REPEAT == 'Custom') {
     } else {
         $standing_id = 1;
     }
+} elseif ($REPEAT == 'Weekly') {
+    $DAYS = date('l', strtotime($STARTING_ON));
+
+    $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+    while ($APPOINTMENT_DATE < $END_DATE) {
+        $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+        if ($appointment_day == $DAYS) {
+            $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
+        }
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+    }
 } else {
     $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['TO_DO_DATE']));
 }
 
-$TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($SPECIAL_APPOINTMENT_DATE_ARRAY);
+if ($REPEAT == 'Weekly') {
+    $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['END_AFTER'])) ? $_POST['END_AFTER'] : 1;
+} else {
+    $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['OCCURRENCE_AFTER']) && $REPEAT == 'Custom') ? $_POST['OCCURRENCE_AFTER'] : count($SPECIAL_APPOINTMENT_DATE_ARRAY);
+}
 
 if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
     if (isset($_POST['PK_USER'])) {
