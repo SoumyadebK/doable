@@ -174,6 +174,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
+<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
 <head>
@@ -440,7 +441,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
         .date-range-group input {
             border: none;
             padding: 8px 0;
-            width: 66px;
+            width: 75px;
             font-size: 0.8rem;
             outline: none;
         }
