@@ -170,6 +170,25 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         top: 55px !important;
         left: auto !important;
     }
+
+    .button {
+        color: white;
+        display: inline-block;
+        position: relative;
+        padding: 2px 5px;
+    }
+
+    .button__badge {
+        background-color: #fa3e3e;
+        border-radius: 20px;
+        color: white;
+        padding: 1px 4px;
+        font-size: 10px;
+        position: absolute;
+        top: 4px;
+        right: -8px;
+        line-height: normal;
+    }
 </style>
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">
@@ -295,7 +314,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                 <a class="nav-link <?= (('leads_grid.php' === $current_address || 'leads_list.php' === $current_address) ? 'active' : '') ?>" href="leads_grid.php">Leads</a>
                             </li>
                             <li class="">
-                                <a class="nav-link <?= (('all_events.php' === $current_address) ? 'active' : '') ?>" href="events_list.php">Events</a>
+                                <a class="nav-link <?= (('all_events.php' === $current_address || 'events_list.php' === $current_address) ? 'active' : '') ?>" href="events_list.php">Events</a>
                             </li>
                             <li class="dropdown drop-menu">
                                 <a href="javascript:;" class="nav-link <?= (('products_list.php' === $current_address || 'order_list.php' === $current_address) ? 'active' : '') ?>" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">E-Commerce <i class="fa fa-angle-down" style="font-size: 15px; margin: 0px 0px 0px 6px;"></i></a>
