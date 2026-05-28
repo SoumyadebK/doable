@@ -378,7 +378,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group">
-                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" readonly>
+                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" onkeydown="return false;">
                     </div>
                 </div>
             </div>
@@ -1188,7 +1188,7 @@ if ($current_address != 'customer.php') {
                 $('.session_base').hide();
                 $('.member_base').show();
             }
-            $('#BILLING_DATE').prop('readonly', true).css("pointer-events", "none");
+            $('#BILLING_DATE').css("pointer-events", "none");
             $('.one_time').show();
             $('.payment_plans').hide();
             $('.flexible_payments').hide();
@@ -1203,7 +1203,7 @@ if ($current_address != 'customer.php') {
             $('.member_base').hide();
 
             $('.add_more').show();
-            $('#BILLING_DATE').prop('readonly', false).css("pointer-events", "auto");
+            $('#BILLING_DATE').css("pointer-events", "auto");
             $('.one_time').show();
             $('.payment_plans').show();
             $('.flexible_payments').show();
@@ -1366,6 +1366,7 @@ if ($current_address != 'customer.php') {
         $('#down_payment_div').slideDown();
         $('#FIRST_DUE_DATE').prop('required', false);
         $('.FLEXIBLE_PAYMENT_DATE').prop('required', false);
+        $('#BILLING_DATE').prop('required', false);
         $('#auto-pay-div').slideUp();
         $('.FLEXIBLE_PAYMENT_AMOUNT').val(0);
         //$('#IS_ONE_TIME_PAY').val(0);
@@ -1375,6 +1376,7 @@ if ($current_address != 'customer.php') {
             $('#DOWN_PAYMENT').val(0.00);
             $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
             $('#down_payment_div').slideUp();
+            $('#BILLING_DATE').prop('required', true);
             $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
             $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
             //$('#payment_confirmation_form_div').slideDown();
