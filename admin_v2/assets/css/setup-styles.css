@@ -1,0 +1,225 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+a {
+    color: #690C24;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+}
+
+.sidebar-section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.sidebar-section-title:first-of-type {
+    margin-top: 0;
+}
+
+.nav-link {
+    color: #64748b;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+.nav-link.active {
+    background-color: #f1f5f9;
+    color: #10b981;
+}
+
+.nav-link i {
+    font-size: 1.1rem;
+}
+
+/* Main Content Area Styling */
+.main-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 32px;
+}
+
+/* Buttons & Toggles */
+.btn-success-custom {
+    background-color: #22c55e;
+    border-color: #22c55e;
+    color: white;
+    font-weight: 500;
+
+}
+
+.btn-success-custom:hover {
+    background-color: #16a34a;
+    border-color: #16a34a;
+}
+
+.status-toggle-group {
+    border: 1px solid #e2e8f0;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: #fff;
+    display: inline-flex;
+}
+
+.status-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 20px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.status-btn.active {
+    background-color: #ffffff;
+    color: #22c55e;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Search Input */
+.search-container {
+    position: relative;
+    max-width: 320px;
+    width: 100%;
+}
+
+.search-container i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    z-index: 1;
+}
+
+.search-input {
+    padding-left: 40px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    height: 42px;
+}
+
+.search-input:focus {
+    border-color: #cbd5e1;
+    box-shadow: none;
+}
+
+/* Table Styling */
+.custom-table th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 16px;
+}
+
+.custom-table td {
+    padding: 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+/* Standard Checkboxes Styling */
+.custom-table .form-check-input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1.5px solid #cbd5e1;
+    cursor: pointer;
+}
+
+.custom-table .form-check-input[type="checkbox"]:checked {
+    background-color: #22c55e;
+    border-color: #22c55e;
+}
+
+/* Custom Switch / Toggle Styling */
+.custom-table .form-switch .form-check-input {
+    width: 36px;
+    height: 20px;
+    background-color: #e2e8f0;
+    border-color: #e2e8f0;
+    border-radius: 20px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.custom-table .form-switch .form-check-input:checked {
+    background-color: #cbd5e1;
+    border-color: #cbd5e1;
+    background-position: right center;
+}
+
+.custom-table .form-switch .form-check-input:focus {
+    box-shadow: none;
+}
+
+/* User Avatar */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: #fef08a;
+    color: #854d0e;
+    font-weight: 600;
+    display: flex;
+    align-items: cen4er;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    line-height: 40px;
+}
+
+/* Pagination Styling */
+.pagination .page-link {
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    margin: 0 2px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    padding: 8px 14px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.page-select {
+    width: 100px;
+    display: inline-block;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.875rem;
+}
