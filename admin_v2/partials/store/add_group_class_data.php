@@ -57,79 +57,55 @@ if ($REPEAT == 'NOT_REPEAT') {
     $GROUP_CLASS_DATE_ARRAY[0] = $GROUP_CLASS_DATA['DATE'];
 } else {
     $GROUP_CLASS_DATE_ARRAY = [];
-
     $STARTING_ON = $_POST['GROUP_CLASS_START_DATE'];
     $LENGTH = 12;
     $FREQUENCY = 'month';
     $END_DATE = isset($_POST['END_ON_GROUP_CLASS_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_GROUP_CLASS_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
-    if (!empty($_POST['OCCURRENCE'])) {
-        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
-        if ($_POST['OCCURRENCE'] == 'WEEKLY') {
-            if (isset($_POST['DAYS'])) {
-                $DAYS = $_POST['DAYS'];
-            } else {
-                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
-            }
-            while ($APPOINTMENT_DATE < $END_DATE) {
-                $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
-                if (in_array(strtolower($appointment_day), $DAYS)) {
-                    $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+    if ($REPEAT == 'Custom') {
+        if (!empty($_POST['OCCURRENCE'])) {
+            $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+            if ($_POST['OCCURRENCE'] == 'WEEKLY') {
+                if (isset($_POST['DAYS'])) {
+                    $DAYS = $_POST['DAYS'];
+                } else {
+                    $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
                 }
-                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
-            }
-        } else {
-            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
+                while ($APPOINTMENT_DATE < $END_DATE) {
+                    $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+                    if (in_array(strtolower($appointment_day), $DAYS)) {
+                        $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    }
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+                }
+            } else {
+                $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'])) ? 7 : $_POST['OCCURRENCE_DAYS'];
 
-            while ($APPOINTMENT_DATE < $END_DATE) {
-                $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
-                $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
-                //echo $APPOINTMENT_DATE . "<br>";
+                while ($APPOINTMENT_DATE < $END_DATE) {
+                    $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+                    $APPOINTMENT_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($APPOINTMENT_DATE)));
+                    //echo $APPOINTMENT_DATE . "<br>";
+                }
             }
+        }
+    } elseif ($REPEAT == 'Weekly') {
+        $DAYS = date('l', strtotime($STARTING_ON));
+
+        $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        while ($APPOINTMENT_DATE < $END_DATE) {
+            $appointment_day = date('l', strtotime($APPOINTMENT_DATE));
+            if ($appointment_day == $DAYS) {
+                $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_DATE;
+            }
+            $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
         }
     }
 
-    $TOTAL_APPOINTMENT_TO_CREATE = isset($_POST['OCCURRENCE_AFTER']) ? $_POST['OCCURRENCE_AFTER'] : count($GROUP_CLASS_DATE_ARRAY);
-
-    /* $STARTING_ON = $_POST['STARTING_ON'][$i];
-    $LENGTH = $_POST['LENGTH'][$i];
-    $FREQUENCY = $_POST['FREQUENCY'][$i];
-    $END_DATE = date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
-
-    $START_TIME = $_POST['START_TIME'][$i];
-    $END_TIME = date("H:i", strtotime($START_TIME) + ($DURATION * 60));
-
-    $OCCURRENCE = 'WEEKLY';
-
-    $GROUP_CLASS_DATE_ARRAY = [];
-
-
-    if (!empty($OCCURRENCE)) {
-        $SERVICE_DATE = date('Y-m-d', strtotime($STARTING_ON));
-        if ($OCCURRENCE == 'WEEKLY') {
-            if (isset($_POST['DAYS'][$i])) {
-                $DAYS = explode(', ', $_POST['DAYS'][$i]);
-            } else {
-                $DAYS[] = strtolower(date('l', strtotime($STARTING_ON)));
-            }
-            $DAYS = array_map('strtolower', $DAYS);
-            while ($SERVICE_DATE < $END_DATE) {
-                $appointment_day = date('l', strtotime($SERVICE_DATE));
-                if (in_array(strtolower($appointment_day), $DAYS)) {
-                    $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
-                }
-                $SERVICE_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($SERVICE_DATE)));
-            }
-        } else {
-            $OCCURRENCE_DAYS = (empty($_POST['OCCURRENCE_DAYS'][$i])) ? 7 : $_POST['OCCURRENCE_DAYS'][$i];
-
-            while ($SERVICE_DATE < $END_DATE) {
-                $GROUP_CLASS_DATE_ARRAY[] = $SERVICE_DATE;
-                $SERVICE_DATE = date('Y-m-d', strtotime('+ ' . $OCCURRENCE_DAYS . ' day', strtotime($SERVICE_DATE)));
-                //echo $SERVICE_DATE . "<br>";
-            }
-        }
-    } */
+    if ($REPEAT == 'Weekly') {
+        $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['END_AFTER'])) ? $_POST['END_AFTER'] : 1;
+    } else {
+        $TOTAL_APPOINTMENT_TO_CREATE = (isset($_POST['OCCURRENCE_AFTER']) && $REPEAT == 'Custom') ? $_POST['OCCURRENCE_AFTER'] : count($GROUP_CLASS_DATE_ARRAY);
+    }
 
     if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
         if ($TOTAL_APPOINTMENT_TO_CREATE > 1 || count($PK_SERVICE_PROVIDER) > 1) {

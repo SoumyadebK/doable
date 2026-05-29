@@ -491,7 +491,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
             return;
         } else {
             $.ajax({
-                url: "ajax/AjaxFunctions.php",
+                url: "../admin_v2/ajax/AjaxFunctions.php",
                 type: "POST",
                 data: {
                     FUNCTION_NAME: 'selectDefaultLocation',
@@ -502,53 +502,6 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 success: function(result) {
                     //console.log(result);
                     window.location.reload();
-                }
-            });
-        }
-    }
-</script>
-
-<script>
-    $(document).ready(function() {
-        $('.minus').click(function() {
-            let $input = $(this).parent().find('input');
-            let count = parseInt($input.val()) - 1;
-            count = count < 1 ? 1 : count;
-            $input.val(count);
-            $input.change();
-            return false;
-        });
-        $('.plus').click(function() {
-            let $input = $(this).parent().find('input');
-            $input.val(parseInt($input.val()) + 1);
-            $input.change();
-            return false;
-        });
-    });
-
-    function getCartItemList() {
-        $.ajax({
-            url: "../includes/get_cart_item_list.php",
-            type: 'GET',
-            data: {},
-            success: function(data) {
-                $('#cart_item_list').html(data);
-            }
-        });
-    }
-
-    function removeFromCart(PK_PRODUCT) {
-        let conf = confirm("Are you sure you want to remove this item from cart?");
-        if (conf) {
-            $.ajax({
-                url: "ajax/AjaxFunctionProductPurchase.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'removeFromCart',
-                    PK_PRODUCT: PK_PRODUCT
-                },
-                success: function(data) {
-                    $('#cart_count').text(data);
                 }
             });
         }
