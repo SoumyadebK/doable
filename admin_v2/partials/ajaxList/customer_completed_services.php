@@ -1,5 +1,5 @@
-<div class="table-responsive mb-5">
-    <table class="table border-0">
+<div class="table-responsive mb-1">
+    <table class="table border-0 mb-0">
         <thead>
             <tr>
                 <th style="text-align: center;">Service Code</th>

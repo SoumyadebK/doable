@@ -635,7 +635,7 @@ if ($PK_USER_MASTER > 0) {
     .stat-label {
         font-size: 0.85rem;
         color: #6c757d;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
     }
 
     .stat-value {
@@ -692,7 +692,7 @@ if ($PK_USER_MASTER > 0) {
     }
 
     .table tbody td {
-        padding: 18px 20px;
+        padding: 10px 20px;
         font-size: 0.9rem;
         color: #333;
         border-bottom: 1px solid #f1f1f1;
@@ -841,11 +841,11 @@ if ($PK_USER_MASTER > 0) {
 
             <div class="container-fluid mt-4">
                 <div class="card-box" style="margin-top: 20px;">
-                    <a href="all_customers.php" class="d-flex mb-3 px-3">
+                    <a href="all_customers.php" class="d-flex mb-2 px-3">
                         <i class="bi bi-chevron-left font-12"></i>
                         <h6 style="margin-top: 2px; margin-left: 10px;">Customers</h6>
                     </a>
-                    <div class="d-flex justify-content-between align-items-center mb-0 pb-4 border-bottom px-3">
+                    <div class="d-flex justify-content-between align-items-center mb-0 pb-2 border-bottom px-3">
                         <div class="d-flex align-items-center">
                             <div class="bg-warning-subtle text-warning-emphasis d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 50px; height: 50px; font-weight: bold; color: #fff !important; background-color: <?= $customer_color ?> !important;"><?= $customer_initial ?></div>
                             <h3 class="mb-0"><?= $CUSTOMER_NAME ?></h3>
@@ -854,7 +854,7 @@ if ($PK_USER_MASTER > 0) {
                     </div>
 
                     <div class="row">
-                        <div class="col-md-2 border-right-light pt-4">
+                        <div class="col-md-2 border-right-light pt-2">
                             <nav class="flex-column left-tabs">
                                 <a class="sidebar-link profile-active active" data-toggle-target=".tab-content-1" href="#"><i class="bi bi-grid me-2"></i> Profile</a>
                                 <a class="sidebar-link family-active" href="javascript:void(0);" data-toggle-target=".tab-content-2"><i class="bi bi-people me-2"></i> Family</a>
