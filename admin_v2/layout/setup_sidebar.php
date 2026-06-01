@@ -15,7 +15,7 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
         <a class="nav-link sidebar-link <?= $current_page == 'all_users_new.php' ? 'active' : '' ?>" href="all_users_new.php">
             <i class="bi bi-person"></i> Users
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'followups' ? 'active' : '' ?>" href="../followups/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_followups_new.php' ? 'active' : '' ?>" href="all_followups_new.php">
             <i class="bi bi-journal-text"></i> Follow Ups
         </a>
     </nav>
@@ -25,39 +25,39 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
         <a class="nav-link sidebar-link <?= $current_page == 'all_scheduling_codes_new.php' ? 'active' : '' ?>" href="all_scheduling_codes_new.php">
             <i class="bi bi-box-arrow-up-right"></i> Scheduling Codes
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'services' ? 'active' : '' ?>" href="../services/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_service_codes_new.php' ? 'active' : '' ?>" href="all_service_codes_new.php">
             <i class="bi bi-handbag"></i> Services
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'packages' ? 'active' : '' ?>" href="../packages/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_packages_new.php' ? 'active' : '' ?>" href="all_packages_new.php">
             <i class="bi bi-box-seam"></i> Packages
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'document-library' ? 'active' : '' ?>" href="../document-library/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_document_library_new.php' ? 'active' : '' ?>" href="all_document_library_new.php">
             <i class="bi bi-file-earmark-text"></i> Document Library
         </a>
     </nav>
 
     <div class="sidebar-section-title">Other</div>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link sidebar-link <?= $current_page == 'gift-certificates' ? 'active' : '' ?>" href="../gift-certificates/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificates_new.php' ? 'active' : '' ?>" href="all_gift_certificates_new.php">
             <i class="bi bi-gift"></i> Gift Certificates
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'gift-certificate-setup' ? 'active' : '' ?>" href="../gift-certificate-setup/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificate_setup_new.php' ? 'active' : '' ?>" href="all_gift_certificate_setup_new.php">
             <i class="bi bi-sliders2"></i> Gift Certificate Setup
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'event-types' ? 'active' : '' ?>" href="../event-types/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_event_types_new.php' ? 'active' : '' ?>" href="all_event_types_new.php">
             <i class="bi bi-star"></i> Event Types
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'inquiry-method' ? 'active' : '' ?>" href="../inquiry-method/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_inquiry_method_new.php' ? 'active' : '' ?>" href="all_inquiry_method_new.php">
             <i class="bi bi-book"></i> Inquiry Method
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'lead-status' ? 'active' : '' ?>" href="../lead-status/">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_lead_status_new.php' ? 'active' : '' ?>" href="all_lead_status_new.php">
             <i class="bi bi-dot text-secondary"></i> Lead Status
         </a>
     </nav>
 
     <div class="sidebar-section-title">Logs</div>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link sidebar-link <?= $current_page == 'sms-logs' ? 'active' : '' ?>" href="../sms-logs/">
+        <a class="nav-link sidebar-link <?= $current_page == 'sms_logs_new.php' ? 'active' : '' ?>" href="sms_logs_new.php">
             <i class="bi bi-chat-left-text"></i> SMS Logs
         </a>
     </nav>
