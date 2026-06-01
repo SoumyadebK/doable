@@ -1,0 +1,1678 @@
+<?php
+require_once('../global/config.php');
+global $db;
+global $db_account;
+global $master_database;
+global $upload_path;
+
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
+    header("location:../login.php");
+    exit;
+}
+
+$header = 'all_enrollments.php';
+
+$payment_gateway_data = getPaymentGatewayData();
+
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+?>
+
+<!-- New Enrollment -->
+<div class="overlay4"></div>
+<div class="side-drawer" id="sideDrawer4">
+    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Create New Enrollment</h6>
+        <span class="close-btn" id="closeDrawer4">&times;</span>
+    </div>
+    <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
+        <form class="mb-0" id="enrollment_form">
+            <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
+            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+            <input type="hidden" name="PK_LOCATION" id="PK_LOCATION">
+            <div class="row mb-2 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 32 32" viewBox="0 0 32 32" width="24px" height="24px" fill="#ccc">
+                            <path d="m14.545 16.872c3.665 0 6.647-2.982 6.647-6.647s-2.982-6.647-6.647-6.647-6.647 2.982-6.647 6.647 2.982 6.647 6.647 6.647zm0-11.294c2.563 0 4.647 2.084 4.647 4.647s-2.084 4.647-4.647 4.647-4.647-2.084-4.647-4.647 2.085-4.647 4.647-4.647z" />
+                            <path d="m3.15 28.387c.089.024.178.036.266.036.439 0 .841-.292.964-.735 1.253-4.555 5.434-7.736 10.166-7.736 2.11 0 4.146.623 5.888 1.8.458.308 1.079.189 1.389-.269.309-.458.189-1.079-.269-1.389-2.074-1.402-4.497-2.143-7.008-2.143-5.629 0-10.602 3.785-12.094 9.205-.147.533.166 1.084.698 1.231z" />
+                            <path d="m22.766 25.513h1.909v1.909c0 .552.448 1 1 1s1-.448 1-1v-1.909h1.909c.552 0 1-.448 1-1s-.448-1-1-1h-1.909v-1.909c0-.552-.448-1-1-1s-1 .448-1 1v1.909h-1.909c-.552 0-1 .448-1 1s.448 1 1 1z" />
+                        </svg>
+                        <label class="mb-0">Customer</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <select class="form-control customer_select" required name="PK_USER_MASTER" id="PK_USER_MASTER" onchange="selectThisCustomer(this);">
+                            <option>Select Customer</option>
+                            <?php
+                            $row = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER, DOA_USER_MASTER.PRIMARY_LOCATION_ID FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER LEFT JOIN DOA_USER_LOCATION ON DOA_USER_LOCATION.PK_USER = DOA_USERS.PK_USER WHERE (DOA_USER_LOCATION.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") OR DOA_USER_MASTER.PRIMARY_LOCATION_ID IN (" . $DEFAULT_LOCATION_ID . ")) AND DOA_USER_ROLES.PK_ROLES = 4 AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_USER_MASTER.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DOA_USERS.FIRST_NAME ASC");
+                            while (!$row->EOF) { ?>
+                                <option value="<?php echo $row->fields['PK_USER_MASTER']; ?>" data-customer_id="<?= $row->fields['PK_USER_MASTER'] ?>" data-pk_user="<?= $row->fields['PK_USER'] ?>" data-location_id="<?= $row->fields['PRIMARY_LOCATION_ID'] ?>" data-customer_name="<?= $row->fields['NAME'] ?>"><?= $row->fields['NAME'] . ' (' . $row->fields['USER_NAME'] . ')' . ' (' . $row->fields['PHONE'] . ')' . ' (' . $row->fields['EMAIL_ID'] . ')' ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-2 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="#ccc">
+                            <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
+                            <path d="m107.7045 91.5695a3 3 0 0 0 -2.7573-1.85 2.9415 2.9415 0 0 0 -2.7734 1.8252l-28.6245 67.25a3 3 0 0 0 2.76 4.1748h56.5581a3 3 0 0 0 2.7705-4.15zm-26.8574 65.4 24.0529-56.5104 23.473 56.5109z" />
+                            <path d="m233.0087 223.2169h-9.8213v-162.3291h9.8213a3 3 0 0 0 0-6h-25.6426a3 3 0 1 0 0 6h9.8213v162.3291h-9.8213a3 3 0 0 0 0 6h25.6426a3 3 0 0 0 0-6z" />
+                            <path d="m17.1913 55.23a3 3 0 0 0 3-3v-9.8217h173.1358v9.8217a3 3 0 1 0 6 0v-25.642a3 3 0 0 0 -6 0v9.82h-173.1358v-9.82a3 3 0 1 0 -6 0v25.642a3 3 0 0 0 3 3z" />
+                        </svg>
+                        <label class="mb-0">Enrollment Name</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <input type="text" id="ENROLLMENT_NAME" name="ENROLLMENT_NAME" class="form-control" placeholder="Enter Enrollment Name">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" id="Line_copy" viewBox="0 0 256 256" width="24px" height="24px" fill="transparent">
+                            <path d="m195.6347 214.5626c-11.3591.7708-14.3591-7.7292-16.4248-11.7246-1.3408-2.8574-40.3667-96.8164-60.8149-146.1a3 3 0 0 0 -2.771-1.8506h-11.1817a3.0007 3.0007 0 0 0 -2.7339 1.7646l-66.5484 147.238c-1.8423 3.2354-3.3423 9.11-9.5278 9.3135-1.9761.2344-8.44 1.3594-8.44 1.3594a3 3 0 0 0 -3 3v8.9658a3 3 0 0 0 3 3h50.24a3 3 0 0 0 3-3v-9.832a2.9989 2.9989 0 0 0 -2.6455-2.9785c-1.8218-.2168-3.625-.44-5.3882-.6807-3.2568-.4375-3.9121-1.5664-4.0752-2.42 1.1416-3.0869 14.4219-34.1689 15.1626-35.9229h61.8613l13.373 32.2891c.0259.0635 1.5146 3.1858.556 4.2666-1.63 1.8375-6.1216 2.4016-7.7449 2.6611a50.6 50.6 0 0 1 -5.1528.541 3 3 0 0 0 -2.8271 2.9951v9.0811a3 3 0 0 0 3 3h59.7734a3 3 0 0 0 2.9976-2.8848l.3442-8.9658c.109-2.178-1.9691-3.3248-4.0319-3.1154zm-2.1978 8.9658h-53.8862v-3.31c4.0583-.7187 15.3916-1.3854 15.9463-8.793a11.7331 11.7331 0 0 0 -1.2715-6.8281l-14.103-34.0508a3 3 0 0 0 -2.7715-1.8525h-65.8691a3.0006 3.0006 0 0 0 -2.8091 1.9473c-.2061.55-16.4009 37.2471-16.4009 39.6777.0454 2.8057 1.0454 8.3057 12.16 9.0332v4.1758h-44.24v-3.3613c6.001-1.292 12.376-.542 16.4717-6.668a40.798 40.798 0 0 0 3.9546-7.1172l65.7601-145.4937h7.2422c7.24 17.4482 58.5117 140.9912 60.1567 144.4971 3.665 7.4485 7.3317 14.4485 19.7759 15.1182z" />
+                            <path d="m107.7045 91.5695a3 3 0 0 0 -2.7573-1.85 2.9415 2.9415 0 0 0 -2.7734 1.8252l-28.6245 67.25a3 3 0 0 0 2.76 4.1748h56.5581a3 3 0 0 0 2.7705-4.15zm-26.8574 65.4 24.0529-56.5104 23.473 56.5109z" />
+                            <path d="m233.0087 223.2169h-9.8213v-162.3291h9.8213a3 3 0 0 0 0-6h-25.6426a3 3 0 1 0 0 6h9.8213v162.3291h-9.8213a3 3 0 0 0 0 6h25.6426a3 3 0 0 0 0-6z" />
+                            <path d="m17.1913 55.23a3 3 0 0 0 3-3v-9.8217h173.1358v9.8217a3 3 0 1 0 6 0v-25.642a3 3 0 0 0 -6 0v9.82h-173.1358v-9.82a3 3 0 1 0 -6 0v25.642a3 3 0 0 0 3 3z" />
+                        </svg>
+                        <label class="mb-0">Enrollment Type</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <select class="form-control form-select customerselect" name="PK_ENROLLMENT_TYPE" id="PK_ENROLLMENT_TYPE">
+                            <option value="">Select Enrollment Type</option>
+                            <option value="5">1st Enrollment</option>
+                            <option value="2">2nd Enrollment</option>
+                            <option value="9">3rd Enrollment</option>
+                            <option value="13">4+ Enrollment</option>
+                            <option value="16">MISC</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-2">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 25 25" fill="#ccc">
+                            <path d="M11.3829 0L23.2617 1.698L24.9585 13.578L13.9281 24.6084C13.7031 24.8334 13.3979 24.9597 13.0797 24.9597C12.7615 24.9597 12.4564 24.8334 12.2313 24.6084L0.351344 12.7284C0.126379 12.5034 0 12.1982 0 11.88C0 11.5618 0.126379 11.2566 0.351344 11.0316L11.3829 0ZM12.2313 2.5464L2.89654 11.88L13.0797 22.062L22.4133 12.7284L21.1413 3.8184L12.2313 2.5464ZM14.7753 10.1832C14.3252 9.73286 14.0723 9.12214 14.0724 8.48538C14.0725 8.17008 14.1346 7.85789 14.2554 7.56662C14.3761 7.27535 14.553 7.01071 14.7759 6.7878C14.9989 6.56489 15.2636 6.38809 15.5549 6.26749C15.8463 6.14688 16.1585 6.08483 16.4738 6.08489C17.1105 6.085 17.7212 6.33806 18.1713 6.7884C18.6215 7.23874 18.8744 7.84946 18.8743 8.48623C18.8741 9.12299 18.6211 9.73362 18.1707 10.1838C17.7204 10.634 17.1097 10.8868 16.4729 10.8867C15.8362 10.8866 15.2255 10.6335 14.7753 10.1832Z" />
+                        </svg>
+                        <label class="mb-0">Packages</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group mb-2">
+                        <select class="form-control form-select PK_PACKAGE" name="PK_PACKAGE" id="PK_PACKAGE" onchange="selectThisPackage(this)">
+                            <option value="">Select Package</option>
+                            <?php
+                            $row = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND IS_DELETED = 0 ORDER BY SORT_ORDER ASC");
+                            while (!$row->EOF) { ?>
+                                <option value="<?php echo $row->fields['PK_PACKAGE']; ?>" data-expiry_date="<?= $row->fields['EXPIRY_DATE'] ?>"><?= $row->fields['PACKAGE_NAME'] ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
+                        </select>
+                    </div>
+
+                    <?php
+                    $payment_gateway_type = $db->Execute("SELECT PAYMENT_GATEWAY_TYPE FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER=" . $_SESSION['PK_ACCOUNT_MASTER']);
+                    if ($payment_gateway_type->RecordCount() > 0) { ?>
+                        <div class="d-flex gap-3 mt-1 mb-2">
+                            <label class="radio" for="Session">
+                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session">
+                                <span></span>
+                                Charge by sessions
+                            </label>
+                            <label class="radio" for="Membership">
+                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership">
+                                <span></span>
+                                Membership
+                            </label>
+                        </div>
+                    <?php } ?>
+
+                    <div class="mb-2" id="append_service_div">
+
+                    </div>
+
+                    <button type="button" class="btn-secondary w-100 f12 mb-2" onclick="addMoreServices()">Add More Service</button>
+
+                    <div class="totalamount p-2 border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100"">
+                        <span>Total Amount</span>
+                        <span class=" fw-semibold text-dark TOTAL_AMOUNT_TEXT" readonly></span>
+                    </div>
+
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-3 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                            <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                            <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                        </svg>
+                        <label class="mb-0">Start Date & Expiration</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group d-flex gap-2 align-items-center" id="datetime">
+                        <input type="text" class="form-control datepicker-normal" style="min-width: 110px;" id="ENROLLMENT_DATE" name="ENROLLMENT_DATE" value="<?= date('m/d/Y'); ?>" required onkeydown="return false;">
+                        <select class="form-control form-select" name="EXPIRY_DATE" id="EXPIRY_DATE" required>
+                            <option value="" selected disabled>-- Expire In --</option>
+                            <option value="1" data-expiry_date="30">30 days</option>
+                            <option value="2" data-expiry_date="60">60 days</option>
+                            <option value="3" data-expiry_date="90">90 days</option>
+                            <option value="6" data-expiry_date="180">180 days</option>
+                            <option value="12" data-expiry_date="365">365 days</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-3 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 55.668 55.668" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                            <path d="M27.833,0C12.487,0,0,12.486,0,27.834s12.487,27.834,27.833,27.834 c15.349,0,27.834-12.486,27.834-27.834S43.182,0,27.833,0z M27.833,51.957c-13.301,0-24.122-10.821-24.122-24.123 S14.533,3.711,27.833,3.711c13.303,0,24.123,10.821,24.123,24.123S41.137,51.957,27.833,51.957z" />
+                            <path d="M41.618,25.819H29.689V10.046c0-1.025-0.831-1.856-1.855-1.856c-1.023,0-1.854,0.832-1.854,1.856 v19.483h15.638c1.024,0,1.855-0.83,1.854-1.855C43.472,26.65,42.64,25.819,41.618,25.819z" />
+                        </svg>
+                        <label class="mb-0">Agreement</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <select class="form-control form-select" required name="PK_DOCUMENT_LIBRARY" id="PK_DOCUMENT_LIBRARY">
+                            <option value="" selected disabled>-- Select --</option>
+                            <?php
+                            $row = $db_account->Execute("SELECT PK_DOCUMENT_LIBRARY, DOCUMENT_NAME FROM DOA_DOCUMENT_LIBRARY WHERE ACTIVE = 1 ORDER BY PK_DOCUMENT_LIBRARY");
+                            while (!$row->EOF) { ?>
+                                <option value="<?= $row->fields['PK_DOCUMENT_LIBRARY']; ?>" <?= (1 == $row->fields['PK_DOCUMENT_LIBRARY']) ? 'selected' : '' ?>><?= $row->fields['DOCUMENT_NAME'] ?></option>
+                            <?php $row->MoveNext();
+                            } ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-3">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
+                            <path d="M20.4 24H3.6C2.64522 24 1.72955 23.6207 1.05442 22.9456C0.379285 22.2705 0 21.3548 0 20.4V1.2C0 0.88174 0.126428 0.576515 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0H18C18.3183 0 18.6235 0.126428 18.8485 0.351472C19.0736 0.576515 19.2 0.88174 19.2 1.2V15.6H24V20.4C24 21.3548 23.6207 22.2705 22.9456 22.9456C22.2705 23.6207 21.3548 24 20.4 24ZM19.2 18V20.4C19.2 20.7183 19.3264 21.0235 19.5515 21.2485C19.7765 21.4736 20.0817 21.6 20.4 21.6C20.7183 21.6 21.0235 21.4736 21.2485 21.2485C21.4736 21.0235 21.6 20.7183 21.6 20.4V18H19.2ZM16.8 21.6V2.4H2.4V20.4C2.4 20.7183 2.52643 21.0235 2.75147 21.2485C2.97652 21.4736 3.28174 21.6 3.6 21.6H16.8ZM4.8 6H14.4V8.4H4.8V6ZM4.8 10.8H14.4V13.2H4.8V10.8ZM4.8 15.6H10.8V18H4.8V15.6Z" />
+                        </svg>
+                        <label class="mb-0">Enrollment By</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group d-flex gap-2 align-items-center" id="salesby">
+                        <select class="form-control form-select" required name="ENROLLMENT_BY_ID" id="ENROLLMENT_BY_ID">
+                            <option value="" selected disabled>-- Select --</option>
+                        </select>
+                        <div class="position-relative">
+                            <input type="text" style="max-width: 120px;" class="form-control ENROLLMENT_BY_PERCENTAGE" name="ENROLLMENT_BY_PERCENTAGE" placeholder="Enter %" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row mb-3">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
+                            <path d="M20.4 24H3.6C2.64522 24 1.72955 23.6207 1.05442 22.9456C0.379285 22.2705 0 21.3548 0 20.4V1.2C0 0.88174 0.126428 0.576515 0.351472 0.351472C0.576515 0.126428 0.88174 0 1.2 0H18C18.3183 0 18.6235 0.126428 18.8485 0.351472C19.0736 0.576515 19.2 0.88174 19.2 1.2V15.6H24V20.4C24 21.3548 23.6207 22.2705 22.9456 22.9456C22.2705 23.6207 21.3548 24 20.4 24ZM19.2 18V20.4C19.2 20.7183 19.3264 21.0235 19.5515 21.2485C19.7765 21.4736 20.0817 21.6 20.4 21.6C20.7183 21.6 21.0235 21.4736 21.2485 21.2485C21.4736 21.0235 21.6 20.7183 21.6 20.4V18H19.2ZM16.8 21.6V2.4H2.4V20.4C2.4 20.7183 2.52643 21.0235 2.75147 21.2485C2.97652 21.4736 3.28174 21.6 3.6 21.6H16.8ZM4.8 6H14.4V8.4H4.8V6ZM4.8 10.8H14.4V13.2H4.8V10.8ZM4.8 15.6H10.8V18H4.8V15.6Z" />
+                        </svg>
+                        <label class="mb-0"><?= $service_provider_title ?></label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group d-flex gap-2 align-items-center" id="salesby">
+                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                            <option value="" selected disabled>-- Select --</option>
+                        </select>
+                        <div class="position-relative">
+                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                        </div>
+                    </div>
+
+                    <div id="append_service_provider_div">
+
+                    </div>
+                    <button type="button" class="btn-secondary w-100 f12 mt-2" onclick="addMoreServiceProviders();">Add Service Provider</button>
+                </div>
+            </div>
+            <hr class="mb-3">
+            <div class="row">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24px" height="19px" fill="#ccc">
+                            <path d="M487.104,24.954c-33.274-33.269-87.129-33.273-120.407,0L51.948,339.665c-2.098,2.097-3.834,4.825-4.831,7.817 L1.057,485.647c-5.2,15.598,9.679,30.503,25.298,25.296l138.182-46.055c2.922-0.974,5.665-2.678,7.819-4.831l314.748-314.711 C520.299,112.154,520.299,58.146,487.104,24.954z M51.654,460.352l23.177-69.525l46.356,46.35L51.654,460.352z M158.214,417.634 l-63.837-63.829l267.272-267.24l63.837,63.83L158.214,417.634z M458.818,117.065l-5.049,5.049l-63.837-63.83l5.049-5.048 c17.602-17.597,46.239-17.597,63.837,0C476.419,70.833,476.419,99.467,458.818,117.065z" />
+                        </svg>
+                        <label class="mb-0">Internal Note</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <textarea class="form-control" name="MEMO"></textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer flex-nowrap p-2 border-top">
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer4">Cancel</button>
+        <button type="submit" class="btn-primary w-100 m-1" onclick="continueToBilling()">Continue to Billing</button>
+    </div>
+</div>
+<!-- New Enrollment -->
+
+
+<!-- Enrollment Billing -->
+<div class="overlay5"></div>
+<div class="side-drawer" id="sideDrawer5">
+    <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
+        <h6>
+            <svg id="closeDrawer5" xmlns="http://www.w3.org/2000/svg" id="Layer_1" enable-background="new 0 0 100 100" viewBox="0 0 100 100" width="16px" height="16px" fill="CurrentColor">
+                <path d="m44.93 76.47c.49.49 1.13.73 1.77.73s1.28-.24 1.77-.73c.98-.98.98-2.56 0-3.54l-21.43-21.43h51.96c1.38 0 2.5-1.12 2.5-2.5s-1.12-2.5-2.5-2.5h-51.96l21.43-21.43c.98-.98.98-2.56 0-3.54s-2.56-.98-3.54 0l-25.7 25.7c-.98.98-.98 2.56 0 3.54z"></path>
+            </svg>
+            <span class="mb-0">Enrollment Billing</span>
+        </h6>
+        <span class="close-btn" id="closeDrawer5">&times;</span>
+    </div>
+    <div class="drawer-body p-3" style="overflow-y: auto; height: calc(100% - 100px);">
+        <h5 class="mb-4 text-dark">Billing</h5>
+
+        <div class="booking-lesson" id="payment_tab_div">
+            <!--Data coming from ajax-->
+        </div>
+
+        <hr class="my-3">
+        <h5 class="mb-4 text-dark">Payment Plans</h5>
+        <form class="mb-0" id="billing_form">
+            <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
+            <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
+            <input type="hidden" name="PK_ENROLLMENT_BILLING" class="PK_ENROLLMENT_BILLING">
+            <input type="hidden" name="TOTAL_AMOUNT" class="TOTAL_AMOUNT">
+            <div class="row mb-2 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="#ccc">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Billing Ref #</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <input type="text" name="BILLING_REF" id="BILLING_REF" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 24 24" fill="#ccc">
+                            <path d="M12 24C5.3724 24 0 18.6276 0 12C0 5.3724 5.3724 0 12 0C18.6276 0 24 5.3724 24 12C24 18.6276 18.6276 24 12 24ZM12 21.6C14.5461 21.6 16.9879 20.5886 18.7882 18.7882C20.5886 16.9879 21.6 14.5461 21.6 12C21.6 9.45392 20.5886 7.01212 18.7882 5.21178C16.9879 3.41143 14.5461 2.4 12 2.4C9.45392 2.4 7.01212 3.41143 5.21178 5.21178C3.41143 7.01212 2.4 9.45392 2.4 12C2.4 14.5461 3.41143 16.9879 5.21178 18.7882C7.01212 20.5886 9.45392 21.6 12 21.6ZM7.8 14.4H14.4C14.5591 14.4 14.7117 14.3368 14.8243 14.2243C14.9368 14.1117 15 13.9591 15 13.8C15 13.6409 14.9368 13.4883 14.8243 13.3757C14.7117 13.2632 14.5591 13.2 14.4 13.2H9.6C8.80435 13.2 8.04129 12.8839 7.47868 12.3213C6.91607 11.7587 6.6 10.9957 6.6 10.2C6.6 9.40435 6.91607 8.64129 7.47868 8.07868C8.04129 7.51607 8.80435 7.2 9.6 7.2H10.8V4.8H13.2V7.2H16.2V9.6H9.6C9.44087 9.6 9.28826 9.66321 9.17574 9.77574C9.06321 9.88826 9 10.0409 9 10.2C9 10.3591 9.06321 10.5117 9.17574 10.6243C9.28826 10.7368 9.44087 10.8 9.6 10.8H14.4C15.1957 10.8 15.9587 11.1161 16.5213 11.6787C17.0839 12.2413 17.4 13.0044 17.4 13.8C17.4 14.5956 17.0839 15.3587 16.5213 15.9213C15.9587 16.4839 15.1957 16.8 14.4 16.8H13.2V19.2H10.8V16.8H7.8V14.4Z" />
+                        </svg>
+                        <label class="mb-0">Payment Method</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <div class="d-flex flex-column gap-2">
+                            <label class="one_time">
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="One Time" required>
+                                <span></span>
+                                One Time
+                            </label>
+                            <label class="payment_plans">
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Payment Plans" required>
+                                <span></span>
+                                Payment Plans
+                            </label>
+                            <label class="flexible_payments">
+                                <input type="radio" class="form-check-inline PAYMENT_METHOD" name="PAYMENT_METHOD" value="Flexible Payments" required>
+                                <span></span>
+                                Flexible Payments
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-2 align-items-center">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Billing Date</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <input type="text" class="form-control datepicker-normal" name="BILLING_DATE" id="BILLING_DATE" onkeydown="return false;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-2 align-items-center" id="down_payment_div" style="display: none;">
+                <div class="col-4 col-md-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                            <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                        </svg>
+                        <label class="mb-0">Down Payment</label>
+                    </div>
+                </div>
+                <div class="col-8 col-md-8">
+                    <div class="form-group">
+                        <div class="position-relative">
+                            <input type="text" class="form-control" name="DOWN_PAYMENT" id="DOWN_PAYMENT" class="form-control" onkeyup="calculatePayment()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Payment Plans -->
+            <div class="payment_method_div" id="payment_plans_div" style="display: none;">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4"></div>
+                    <div class="col-md-8 ms-auto pe-0 mb-2" id="auto-pay-div" style="display: none;">
+                        <div class="d-flex justify-content-between">
+                            <label>Auto-Pay</label>
+                            <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" /></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Payment Term</label>
+                        </div>
+                    </div>
+                    <div class="col-8 col-md-8">
+                        <div class="form-group d-flex gap-2">
+                            <select class="form-control form-select installment-input" name="PAYMENT_TERM" id="PAYMENT_TERM">
+                                <option value="">Select</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
+                            </select>
+                            <input type="text" placeholder="Number of Payments" name="NUMBER_OF_PAYMENT" id="NUMBER_OF_PAYMENT" class="form-control installment-input" onkeyup="calculatePaymentPlans();">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">1st Scheduled Payment Date</label>
+                        </div>
+                    </div>
+                    <div class="col-8 col-md-8">
+                        <div class="form-group d-flex gap-2">
+                            <input type="text" name="FIRST_DUE_DATE" id="FIRST_DUE_DATE" class="form-control datepicker-future installment-input" onkeydown="return false;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Installment Amount</label>
+                        </div>
+                    </div>
+                    <div class="col-8 col-md-8">
+                        <div class="form-group d-flex gap-2">
+                            <input type="text" name="INSTALLMENT_AMOUNT" id="INSTALLMENT_AMOUNT" class="form-control installment-input" onkeyup="calculateNumberOfPayment(this)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Flexible Payments -->
+            <div class="payment_method_div" id="flexible_plans_div" style="display: none;">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4"></div>
+                    <div class="col-md-8 ms-auto pe-0 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <label>Auto-Pay</label>
+                            <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                <input class="form-check-input" type="checkbox" class="ACTIVE_AUTO_PAY" name="ACTIVE_AUTO_PAY" id="ACTIVE_AUTO_PAY_YES" value="1" /></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                            <label class="mb-0">Next Payment Dates</label>
+                        </div>
+                    </div>
+                    <div class="col-8 col-md-8">
+                        <div class="form-group d-flex gap-2 mb-2">
+                            <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" placeholder="Select Date" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" onkeydown="return false;">
+                            <div class="position-relative">
+                                <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
+                                <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-3 col-md-3">
+                        <div class="d-flex gap-2 align-items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="19px" viewBox="0 0 20 20" fill="transparent">
+                                <path d="M6 2L3 0L0 2V17C0 18.6569 1.34315 20 3 20H17C18.6569 20 20 18.6569 20 17V14H18V2L15 0L12 2L9 0L6 2ZM16 14H4V17C4 17.5523 3.55228 18 3 18C2.44772 18 2 17.5523 2 17V3.07037L3 2.4037L6 4.4037L9 2.4037L12 4.4037L15 2.4037L16 3.07037V14ZM17 18H5.82929C5.93985 17.6872 6 17.3506 6 17V16H18V17C18 17.5523 17.5523 18 17 18Z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="col-9 col-md-9" id="next_payment_dates_div">
+
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <div class="col-4 col-md-4"> </div>
+                    <div class="col-8 col-md-8">
+                        <button type="button" class="btn-secondary w-100 f12 mb-2" onclick="addMorePayments()">Add More Payment Dates</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+            <hr class="mb-3">
+            <div class="totalamount p-2 bg-light text-dark border rounded-2 d-inline-flex align-items-center f12 justify-content-between w-100">
+                <span>Balance Payable</span>
+                <input type="text" name="BALANCE_PAYABLE" id="BALANCE_PAYABLE" class="form-control" style="width: 330px;" readonly>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer flex-nowrap p-2 border-top">
+        <button type="button" class="btn-secondary w-100 m-1" id="closeDrawer5">Cancel</button>
+        <button type="button" class="btn-primary w-100 m-1" onclick="continueToPayment()">Continue to Payment</button>
+    </div>
+</div>
+<!-- End Billing -->
+
+
+<!--Confirm Model-->
+<div class="modal fade" id="confirm_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <input type="hidden" id="is_confirm" value="0">
+                            <label class="mb-3">Are you sure you want to proceed without selecting <?= $service_provider_title ?> ?</label>
+                            <button type="button" class="btn btn-secondary" onclick="$('#is_confirm').val(1); $('#enrollment_form').submit();">Yes</button>
+                            <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal" aria-label="No">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Confirm Model End -->
+
+
+
+<!--Payment Model-->
+<?php
+$url_array = explode("/", $mail_url['path']);
+if ($_SERVER['HTTP_HOST'] == 'localhost') {
+    $current_address = $url_array[3];
+} else {
+    $current_address = $url_array[2];
+}
+if ($current_address != 'customer.php') {
+    include('includes/enrollment_payment_v2.php');
+}
+?>
+
+<script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
+<script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    $('#closeDrawer4, .overlay4').click(function() {
+        $('#sideDrawer4, .overlay4').removeClass('active');
+    });
+
+    $('#closeDrawer5, .overlay5').click(function() {
+        $('#sideDrawer5, .overlay5').removeClass('active');
+    });
+
+    $('#closeDrawer6, .overlay6').click(function() {
+        $('#sideDrawer6, .overlay6').removeClass('active');
+    });
+
+    $('.datepicker-normal').datepicker({
+        format: 'mm/dd/yyyy',
+    });
+
+    function continueToBilling() {
+        let form = $('#enrollment_form');
+
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return false;
+        }
+
+        form.submit();
+    }
+
+    function continueToPayment() {
+        let form = $('#billing_form');
+
+        if (!form[0].checkValidity()) {
+            form[0].reportValidity();
+            return false;
+        }
+
+        form.submit();
+    }
+
+
+    /* $(document).ready(function() {
+        $('#PK_USER_MASTER').trigger("change");
+    }); */
+
+    let ENROLLMENT_BY_ID = 0;
+
+    const appId = '<?= $SQUARE_APP_ID ?>';
+    const locationId = '<?= $SQUARE_LOCATION_ID ?>';
+
+    async function initializeCard(payments) {
+        if (document.getElementById("card-container") !== null) {
+            const card = await payments.card();
+            await card.attach('#card-container');
+            return card;
+        } else {
+            return false;
+        }
+    }
+
+    async function createPayment(token) {
+        document.getElementById('sourceId').value = token;
+        $('#payment_confirmation_form').submit();
+
+        /*const body = JSON.stringify({
+          locationId,
+          sourceId: token,
+        });
+
+        const paymentResponse = await fetch('payment.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body,
+        });
+
+        if (paymentResponse.ok) {
+          return paymentResponse.json();
+        }
+
+        const errorBody = await paymentResponse.text();
+        throw new Error(errorBody);*/
+
+    }
+
+    /*async function tokenize(paymentMethod) {
+        const tokenResult = await paymentMethod.tokenize();
+        if (tokenResult.status === 'OK') {
+            return tokenResult.token;
+        } else {
+            let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
+            if (tokenResult.errors) {
+                errorMessage += ` and errors: ${JSON.stringify(
+                    tokenResult.errors
+                )}`;
+            }
+
+            throw new Error(errorMessage);
+        }
+    }
+
+    // status is either SUCCESS or FAILURE;
+    function displayPaymentResults(status) {
+        if (document.getElementById("payment-status-container") !== null) {
+            const statusContainer = document.getElementById(
+                'payment-status-container'
+            );
+        } else {
+            return false;
+        }
+        if (status === 'SUCCESS') {
+            statusContainer.classList.remove('is-failure');
+            statusContainer.classList.add('is-success');
+        } else {
+            statusContainer.classList.remove('is-success');
+            statusContainer.classList.add('is-failure');
+        }
+
+        statusContainer.style.visibility = 'visible';
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        if (!window.Square) {
+            throw new Error('Square.js failed to load properly');
+        }
+
+        let payments;
+        try {
+            payments = window.Square.payments(appId, locationId);
+        } catch {
+            if (document.getElementById("payment-status-container") !== null) {
+                const statusContainer = document.getElementById(
+                    'payment-status-container'
+                );
+            } else {
+                return false;
+            }
+            statusContainer.className = 'missing-credentials';
+            statusContainer.style.visibility = 'visible';
+            return;
+        }
+
+        let card;
+        try {
+            card = await initializeCard(payments);
+        } catch (e) {
+            console.error('Initializing Card failed', e);
+            return;
+        }
+
+        // Checkpoint 2.
+        async function handlePaymentMethodSubmission(event, paymentMethod) {
+            event.preventDefault();
+
+            try {
+                // disable the submit button as we await tokenization and make a payment request.
+                cardButton.disabled = true;
+                const token = await tokenize(paymentMethod);
+                const paymentResults = await createPayment(token);
+                displayPaymentResults('SUCCESS');
+
+                console.debug('Payment Success', paymentResults);
+            } catch (e) {
+                cardButton.disabled = false;
+                displayPaymentResults('FAILURE');
+                console.error(e.message);
+            }
+        }
+
+        const cardButton = document.getElementById('card-button');
+        cardButton.addEventListener('click', async function (event) {
+            await handlePaymentMethodSubmission(event, card);
+        });
+    });*/
+</script>
+
+<script>
+    let PK_ENROLLMENT_MASTER = 0;
+
+    // $('#PK_USER_MASTER').SumoSelect({
+    //     placeholder: 'Select Customer',
+    //     search: true,
+    //     searchText: 'Search...'
+    // });
+
+    $('.datepicker-normal').datepicker({
+        dateFormat: 'mm/dd/yy'
+    });
+
+    $('.datepicker-future').datepicker({
+        dateFormat: 'mm/dd/yy',
+        beforeShow: function(input, inst) {
+            var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+            if (selectedDate) {
+                var nextDay = new Date(selectedDate.getTime());
+                nextDay.setDate(nextDay.getDate() + 1);
+                $(this).datepicker('option', 'minDate', nextDay);
+            } else {
+                $(this).datepicker('option', 'minDate', 0);
+            }
+        }
+    });
+
+
+    function selectThisCustomer(param) {
+        let location_id = $(param).find(':selected').data('location_id');
+        let PK_USER = $(param).find(':selected').data('pk_user');
+        let PK_USER_MASTER = $(param).val();
+        $('.CUSTOMER_ID').val(PK_USER_MASTER);
+        $('#enrollment_form #PK_LOCATION').val(location_id);
+        //alert(location_id);
+        $.ajax({
+            url: "ajax/get_locations.php",
+            type: "POST",
+            data: {
+                PK_USER: PK_USER,
+                LOCATION_ID: location_id
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                //$('#PK_LOCATION').empty().append(result);
+                if (PK_ENROLLMENT_MASTER == 0) {
+                    showEnrollmentInstructor();
+                }
+                showEnrollmentBy();
+                getEnrollmentCount();
+            }
+        });
+    }
+
+    function showEnrollmentBy() {
+        let location_id = $('#enrollment_form #PK_LOCATION').val();
+        $.ajax({
+            url: "ajax/get_enrollment_by.php",
+            type: "POST",
+            data: {
+                LOCATION_ID: location_id
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#enrollment_form #ENROLLMENT_BY_ID').empty().append(result);
+                if (PK_ENROLLMENT_MASTER > 0) {
+                    $('#enrollment_form #ENROLLMENT_BY_ID').val(ENROLLMENT_BY_ID);
+                }
+            }
+        });
+    }
+
+    function showEnrollmentInstructor() {
+        let location_id = $('#enrollment_form #PK_LOCATION').val();
+        $.ajax({
+            url: "ajax/get_instructor.php",
+            type: "POST",
+            data: {
+                LOCATION_ID: location_id
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $('#enrollment_form .SERVICE_PROVIDER').prop('disabled', false).empty().append(result);
+            }
+        });
+    }
+
+    function getEnrollmentCount() {
+        let PK_ENROLLMENT_MASTER = 0;
+        let PK_USER_MASTER = $('#enrollment_form #PK_USER_MASTER').val();
+        let PK_LOCATION = $('#enrollment_form #PK_LOCATION').val();
+        if (PK_USER_MASTER > 0 && PK_LOCATION > 0 && PK_ENROLLMENT_MASTER == 0) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    PK_USER_MASTER: PK_USER_MASTER,
+                    PK_LOCATION: PK_LOCATION,
+                    FUNCTION_NAME: 'getEnrollmentCount'
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    switch (parseInt(result)) {
+                        case 0:
+                            $('#PK_ENROLLMENT_TYPE').val(5);
+                            break;
+                        case 1:
+                            $('#PK_ENROLLMENT_TYPE').val(2);
+                            break;
+                        case 2:
+                            $('#PK_ENROLLMENT_TYPE').val(9);
+                            break;
+                        default:
+                            $('#PK_ENROLLMENT_TYPE').val(13);
+                            break;
+                    }
+                }
+            });
+        }
+    }
+
+
+
+    function toggleDiscount(checkbox) {
+        const discountTypeSelect = checkbox.closest('.d-flex').nextElementSibling.querySelector('select');
+        const discountValueInput = checkbox.closest('.d-flex').nextElementSibling.querySelector('input');
+        if (checkbox.checked) {
+            discountTypeSelect.removeAttribute('disabled');
+            discountValueInput.removeAttribute('disabled');
+        } else {
+            discountTypeSelect.setAttribute('disabled', 'disabled');
+            discountValueInput.setAttribute('disabled', 'disabled');
+            discountTypeSelect.value = '';
+            discountValueInput.value = '';
+            calculateServiceTotal(discountValueInput);
+        }
+    }
+
+    // Add delete functionality
+    $(document).ready(function() {
+        $('.delete-package-service').click(function() {
+            $(this).closest('.individual_service_div').remove();
+
+            // Recalculate total
+            let total = 0;
+            $('.FINAL_AMOUNT').each(function() {
+                total += parseFloat($(this).val()) || 0;
+            });
+            $('.TOTAL_AMOUNT_TEXT').text('$' + total.toFixed(2));
+            $('.TOTAL_AMOUNT').val(total.toFixed(2));
+        });
+    });
+
+
+
+    var service_counter = 20;
+
+    function addMoreServices() {
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            var value = "XX";
+            var type = "readonly";
+            var total = "";
+        } else {
+            var value = 0;
+            var type = 0;
+            var total = "readonly";
+        }
+
+        $('#append_service_div').append(`<div class="service_code_area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_${service_counter}">
+                                            <div class="datetime-item d-flex mb-2">
+                                                <div class="align-self-center">
+                                                    Service
+                                                </div>
+                                                <div class="d-flex gap-2 ms-auto align-items-start">
+                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm delete-package-service" data-service-id="${service_counter}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
+                                                            <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
+                                                            <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" data-bs-target="#package${service_counter}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
+                                                            <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="align-self-center mb-2">
+                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this);" required>
+                                                    <option value="">Select</option>
+                                                    <?php
+                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
+                                                    while (!$row->EOF) { ?>
+                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" data-price="<?= $row->fields['PRICE'] ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
+                                                    <?php $row->MoveNext();
+                                                    } ?>
+                                                </select>
+                                            </div>
+
+                                            <div id="package${service_counter}" class="collapse show">
+                                                <!-- Sessions -->
+                                                <div class="d-inline-flex gap-1">
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">No. of sessions</label>
+                                                        <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" required>
+                                                    </div>
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Price / session</label>
+                                                        <div class="session-item position-relative">
+                                                            <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;" required>
+                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
+                                                        <label class="small text-muted">Total</label>
+                                                        <input type="hidden" class="TOTAL" name="TOTAL[]" value="0.00">
+                                                        <div class="f10 pt-2"><span class="TOTAL_TEXT">$0.00</span></div>
+                                                    </div>
+                                                </div>
+                                                <hr class="my-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <label class="f12 text-muted">Discount</label>
+                                                    <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
+                                                        <input class="form-check-input" type="checkbox" name="HAS_DISCOUNT[]" onchange="toggleDiscount(this)">
+                                                    </div>
+                                                </div>
+                                                <div class="d-inline-flex gap-1">
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Type</label>
+                                                        <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" disabled onchange="calculateServiceTotal(this)">
+                                                            <option value="">Select</option>
+                                                            <option value="1">Fixed</option>
+                                                            <option value="2">Percent</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="session-item">
+                                                        <label class="small text-muted">Value</label>
+                                                        <div class="session-item position-relative">
+                                                            <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" disabled onkeyup="calculateServiceTotal(this)">
+                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
+                                                        <label class="small text-muted">Total</label>
+                                                        <div class="f10 pt-2 FINAL_AMOUNT_TEXT">$0.00</div>
+                                                        <input type="hidden" class="FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="0.00">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>`);
+
+        service_counter++;
+        updateServiceAvailability();
+    }
+
+    function addMoreServiceProviders() {
+        $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;">
+                                                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                                                            <option value="" selected disabled>-- Select --</option>
+                                                        </select>
+                                                        <div class="position-relative">
+                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
+                                                        </div>
+                                                    </div>`);
+        showEnrollmentInstructor();
+    }
+
+    function removeThis(param) {
+        $(param).closest('.row').remove();
+    }
+
+    function removeThisAmount(param) {
+        $(param).closest('.form-group').remove();
+        let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+        let total_flexible_payment = 0;
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
+            total_flexible_payment += parseFloat($(this).val());
+        });
+        total_flexible_payment = isNaN(total_flexible_payment) ? 0 : total_flexible_payment;
+        $('#BALANCE_PAYABLE').val(parseFloat(total_bill - total_flexible_payment).toFixed(2));
+    }
+
+    function updateServiceAvailability() {
+        // Get all selected service IDs
+        let selectedServices = [];
+        $('.PK_SERVICE_MASTER').each(function() {
+            let val = $(this).val();
+            if (val && val !== 'Select') {
+                selectedServices.push(val);
+            }
+        });
+
+        // Update each service select
+        $('.PK_SERVICE_MASTER').each(function() {
+            let currentSelect = $(this);
+            let currentValue = currentSelect.val();
+
+            // Enable all options first
+            currentSelect.find('option').prop('disabled', false);
+
+            // Disable options that are selected in other selects
+            selectedServices.forEach(function(serviceId) {
+                // Don't disable the option if it's the current select's value
+                if (serviceId !== currentValue) {
+                    currentSelect.find('option[value="' + serviceId + '"]').prop('disabled', true);
+                }
+            });
+        });
+    }
+
+    function selectThisServiceCode(param) {
+        let pk_service_id = $(param).val();
+        let service_row = $(param).closest('.service-row');
+
+        let service_details = $(param).find(':selected').data('details');
+        let price = $(param).find(':selected').data('price');
+
+        let charge_type = $('.charge_type:checked').val();
+        if (charge_type === 'Membership') {
+            $(param).closest('.service_code_area').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val("XX");
+        } else {
+            $(param).closest('.service_code_area').find('.SERVICE_DETAILS').val(service_details);
+            $(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val(price);
+        }
+
+        calculateServiceTotal(param);
+        updateServiceAvailability();
+    }
+
+    function selectThisService(param) {
+        let PK_SERVICE_MASTER = $(param).val();
+        $.ajax({
+            url: "ajax/get_service_codes.php",
+            type: "POST",
+            data: {
+                PK_SERVICE_MASTER: PK_SERVICE_MASTER
+            },
+            async: false,
+            cache: false,
+            success: function(result) {
+                $(param).closest('.row').find('.PK_SERVICE_CODE').empty();
+                $(param).closest('.row').find('.PK_SERVICE_CODE').append(result);
+            }
+        });
+    }
+
+    function selectThisPackage(param) {
+        let PK_PACKAGE = $(param).val();
+        let EXPIRY_DATE = $(param).find(':selected').data('expiry_date');
+        if (PK_PACKAGE) {
+            $.ajax({
+                url: "ajax/get_packages.php",
+                type: "POST",
+                data: {
+                    PK_PACKAGE: PK_PACKAGE
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    // Clear existing services
+                    $('#append_service_div').empty();
+
+                    // Append the package services
+                    $('#append_service_div').html(result);
+
+                    // Calculate total amount from FINAL_AMOUNT hidden inputs
+                    let TOTAL_AMOUNT = 0;
+                    $('#append_service_div .FINAL_AMOUNT').each(function() {
+                        TOTAL_AMOUNT += parseFloat($(this).val()) || 0;
+                    });
+                    $('.TOTAL_AMOUNT_TEXT').text('$' + TOTAL_AMOUNT.toFixed(2));
+                    $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
+
+                    // Set expiry date
+                    $('select[name="EXPIRY_DATE"] option').each(function() {
+                        if ($(this).data('expiry_date') == EXPIRY_DATE) {
+                            $(this).prop('selected', true);
+                        }
+                    });
+                }
+            });
+        } else {
+            $('#append_service_div').empty();
+            $('.TOTAL_AMOUNT_TEXT').text('$0.00');
+            $('.TOTAL_AMOUNT').val('0.00');
+            addMoreServices();
+        }
+    }
+
+    function chargeBySessions(param) {
+        $('.NUMBER_OF_SESSION').prop('readonly', false);
+        $('.NUMBER_OF_SESSION').val('').css('pointer-events', 'none').trigger('change');
+        $('.PRICE_PER_SESSION').prop('readonly', false);
+        $('.PRICE_PER_SESSION').val('').css('pointer-events', 'none').trigger('change');
+        if ($(param).is(':checked') && ($(param).val() === 'Session' || $(param).val() === 'Membership')) {
+            if ($(param).val() === 'Session') {
+                $('#Membership').prop('checked', false);
+                $('.TOTAL').prop('readonly', true);
+                $('.add_more').hide();
+                $('.session_base').show();
+                $('.member_base').hide();
+            } else {
+                $('#Session').prop('checked', false);
+                $('.NUMBER_OF_SESSION').prop('readonly', true);
+                $('.NUMBER_OF_SESSION').val('XX').css('pointer-events', 'none').trigger('change');
+                $('.PRICE_PER_SESSION').prop('readonly', true);
+                $('.PRICE_PER_SESSION').val('XX').css('pointer-events', 'none').trigger('change');
+                $('.TOTAL').prop('readonly', false);
+                $('.add_more').show();
+                $('.session_base').hide();
+                $('.member_base').show();
+            }
+            $('#BILLING_DATE').css("pointer-events", "none");
+            $('.one_time').show();
+            $('.payment_plans').hide();
+            $('.flexible_payments').hide();
+            document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = true;
+            $('#down_payment_div').slideUp();
+            $('#AMOUNT_TO_PAY').prop('readonly', true);
+            $('.partial_payment').hide();
+            $('.ENROLLMENT_PAYMENT_TYPE').val(1).css('pointer-events', 'none').trigger('change');
+            $('#save_card_on_file_div').show();
+        } else {
+            $('.session_base').show();
+            $('.member_base').hide();
+
+            $('.add_more').show();
+            $('#BILLING_DATE').css("pointer-events", "auto");
+            $('.one_time').show();
+            $('.payment_plans').show();
+            $('.flexible_payments').show();
+            document.querySelector("input[name='PAYMENT_METHOD'][value='One Time']").checked = false;
+            $('#down_payment_div').slideDown();
+            $('#AMOUNT_TO_PAY').prop('readonly', false);
+            $('.ENROLLMENT_PAYMENT_TYPE').css('pointer-events', 'auto');
+            $('.partial_payment').show();
+            $('#save_card_on_file_div').hide();
+        }
+    }
+
+    function calculateServiceTotal(param) {
+        let charge_type = $('.charge_type:checked').val();
+        let TOTAL = 0;
+
+        if (charge_type === 'Membership') {
+            TOTAL = ($(param).closest('.service_code_area').find('.TOTAL').val() == '') ? 0 : $(param).closest('.service_code_area').find('.TOTAL').val();
+        } else {
+            let number_of_session = ($(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val();
+            let service_price = ($(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val()) ?? 0;
+            TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
+            $(param).closest('.service_code_area').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
+            $(param).closest('.service_code_area').find('.TOTAL_TEXT').text('$' + parseFloat(TOTAL).toFixed(2));
+        }
+
+        let DISCOUNT = ($(param).closest('.service_code_area').find('.DISCOUNT').val()) ?? 0;
+        let DISCOUNT_TYPE = ($(param).closest('.service_code_area').find('.DISCOUNT_TYPE').val()) ?? 0;
+        let FINAL_AMOUNT = parseFloat(TOTAL);
+        if (DISCOUNT_TYPE == 1) {
+            FINAL_AMOUNT = parseFloat(TOTAL - DISCOUNT);
+        } else {
+            if (DISCOUNT_TYPE == 2) {
+                FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
+            }
+        }
+        $(param).closest('.service_code_area').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
+        $(param).closest('.service_code_area').find('.FINAL_AMOUNT_TEXT').text('$' + FINAL_AMOUNT.toFixed(2));
+
+        let TOTAL_AMOUNT = 0;
+        $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function() {
+            TOTAL_AMOUNT += parseFloat($(this).val());
+        });
+        $('.TOTAL_AMOUNT').val(TOTAL_AMOUNT.toFixed(2));
+        $('.TOTAL_AMOUNT_TEXT').text('$' + TOTAL_AMOUNT.toFixed(2));
+    }
+
+    $(document).on('click', '#cancel_button', function() {
+        window.location.href = 'all_enrollments.php'
+    });
+
+    function addMorePayments() {
+        let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+        let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+        let total_flexible_payment = 0;
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
+            total_flexible_payment += parseFloat($(this).val());
+        });
+        if ((total_flexible_payment + down_payment) < total_bill) {
+            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2" style="margin-left: 16px;">
+                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
+                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;">
+                                                    <div class="position-relative">
+                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
+                                                        <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
+                                                    </div>
+                                                </div>`);
+            $('.datepicker-future').datepicker({
+                dateFormat: 'mm/dd/yy',
+                beforeShow: function(input, inst) {
+                    var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+                    if (selectedDate) {
+                        var nextDay = new Date(selectedDate.getTime());
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        $(this).datepicker('option', 'minDate', nextDay);
+                    } else {
+                        $(this).datepicker('option', 'minDate', 0);
+                    }
+                }
+            });
+        } else {
+            alert('Total Bill Amount Exceed');
+        }
+    }
+
+    $(document).on('submit', '#enrollment_form', function(event) {
+        event.preventDefault();
+        let PK_PACKAGE = $('#PK_PACKAGE').val();
+        let service_area = $('.service_code_area').length;
+
+        if (PK_PACKAGE || service_area > 0) {
+            let service_provider = $('#SERVICE_PROVIDER').val();
+            let is_confirm = $('#is_confirm').val();
+            if (service_provider == '' && is_confirm == 0) {
+                $('#confirm_modal').modal('show');
+            } else {
+                $('#confirm_modal').modal('hide');
+                let form_data = $('#enrollment_form').serialize();
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        if (PK_ENROLLMENT_MASTER > 0) {
+                            window.location.reload();
+                        } else {
+                            $('#sideDrawer5, .overlay5').addClass('active');
+                            $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
+                            goToPaymentTab(data.PK_ENROLLMENT_MASTER);
+                        }
+                    }
+                });
+            }
+        } else {
+            swal("Select Service!", "Please select any Package or add Service to continue.", "error");
+        }
+    });
+
+    function goToPaymentTab() {
+        let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+        if (PK_ENROLLMENT_MASTER) {
+            $.ajax({
+                url: "ajax/show_payment_tab.php",
+                type: 'POST',
+                data: {
+                    PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                },
+                success: function(data) {
+                    $('#payment_tab_div').html(data);
+                    $('#AMOUNT_SHOW').val($('.TOTAL_AMOUNT').val());
+                    calculatePayment();
+                }
+            });
+        } else {
+            alert('Please fill up the enrollment form first');
+            $('#enrollment_link')[0].click();
+        }
+    }
+
+    function goToLedgerTab() {
+        let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+        if (!PK_ENROLLMENT_MASTER) {
+            alert('Please fill up the enrollment form first');
+            $('#enrollment_link')[0].click();
+        }
+    }
+
+    function calculatePayment() {
+        let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+        let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+        let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+        $('#BALANCE_PAYABLE').val(parseFloat(total_bill - down_payment).toFixed(2));
+        calculateBalancePayable();
+        calculatePaymentPlans();
+    }
+
+    $(document).on('change', '.PAYMENT_METHOD', function() {
+        $('.payment_method_div').slideUp();
+        $('#down_payment_div').slideDown();
+        $('#FIRST_DUE_DATE').prop('required', false);
+        $('.FLEXIBLE_PAYMENT_DATE').prop('required', false);
+        $('#BILLING_DATE').prop('required', false);
+        $('#auto-pay-div').slideUp();
+        $('.FLEXIBLE_PAYMENT_AMOUNT').val(0);
+        //$('#IS_ONE_TIME_PAY').val(0);
+        if ($(this).val() == 'One Time') {
+            $('#one_time_div').slideDown();
+            let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+            $('#DOWN_PAYMENT').val(0.00);
+            $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
+            $('#down_payment_div').slideUp();
+            $('#BILLING_DATE').prop('required', true);
+            $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
+            $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
+            //$('#payment_confirmation_form_div').slideDown();
+            //$('#IS_ONE_TIME_PAY').val(1);
+            $('#PAYMENT_BILLING_REF').val($('#BILLING_REF').val());
+            $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
+            //$('#enrollment_payment_modal').modal('show');
+        }
+        if ($(this).val() == 'Payment Plans') {
+            $('#FIRST_DUE_DATE').prop('required', true);
+            $('#payment_plans_div').slideDown();
+            $('#auto-pay-div').slideDown();
+        }
+        if ($(this).val() == 'Flexible Payments') {
+            $('#flexible_plans_div').slideDown();
+            $('.FLEXIBLE_PAYMENT_DATE').prop('required', true);
+            let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+            $('#DOWN_PAYMENT').val(0.00);
+            $('#BALANCE_PAYABLE').val(total_bill.toFixed(2));
+            $('#down_payment_div').slideDown();
+            $('#ACTUAL_AMOUNT').val(total_bill.toFixed(2));
+            $('#AMOUNT_TO_PAY').val(total_bill.toFixed(2));
+            $('#auto-pay-div').slideDown();
+            //$('#payment_confirmation_form_div').slideDown();
+            //$('#enrollment_payment_modal').modal('show');
+        }
+    });
+
+    $(document).on('click', '.ACTIVE_AUTO_PAY', function() {
+        if ($(this).val() == '1') {
+            $('#credit_card_modal').modal('show');
+            getSavedCreditCardListAutoPay();
+        } else {
+            $('#TEMP_PAYMENT_METHOD_ID').val('');
+            $('#TEMP_LAST4').val('');
+            $('#AUTO_PAY_PAYMENT_METHOD_ID').val('');
+            $('#selected_card_span').css('color', 'red').text('Auto Pay is not active');
+        }
+    });
+
+    function getSavedCreditCardListAutoPay() {
+        let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+        $.ajax({
+            url: "ajax/get_credit_card_list.php",
+            type: 'POST',
+            data: {
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'enrollment_auto_pay'
+            },
+            success: function(data) {
+                $('#saved_credit_card_list').slideDown().html(data);
+                addCreditCardAutoPay();
+            }
+        });
+    }
+
+    function selectAutoPayCreditCard(param) {
+        let payment_id = $(param).attr('id');
+        let last4 = $(param).data('last4');
+
+        $('.credit-card-div').css("opacity", "1");
+        $(param).css("opacity", "0.6");
+
+        $('#TEMP_PAYMENT_METHOD_ID').val(payment_id);
+        $('#TEMP_LAST4').val(last4);
+    }
+
+    function addAutoPayCardDetails() {
+        let payment_id = $('#TEMP_PAYMENT_METHOD_ID').val();
+        let last4 = $('#TEMP_LAST4').val();
+
+        $('#AUTO_PAY_PAYMENT_METHOD_ID').val(payment_id);
+        $('#selected_card_span').css('color', 'green').html('Card ending in <b>' + last4 + '</b> selected for Auto Pay');
+        $('#credit_card_modal').modal('hide');
+    }
+
+    function addCreditCardAutoPay() {
+        let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+        let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+        $.ajax({
+            url: "includes/save_credit_card.php",
+            type: 'POST',
+            data: {
+                PK_USER: PK_USER,
+                PK_USER_MASTER: PK_USER_MASTER,
+                call_from: 'enrollment_auto_pay'
+            },
+            success: function(data) {
+                $('#add_credit_card_div').slideDown().html(data);
+                addCreditCard();
+            }
+        });
+    }
+
+    function calculateBalancePayable() {
+        let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+        let total_flexible_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
+            total_flexible_payment += parseFloat(($(this).val()) ? $(this).val() : 0);
+        });
+        total_flexible_payment = isNaN(total_flexible_payment) ? 0 : total_flexible_payment;
+        $('#BALANCE_PAYABLE').val(parseFloat(total_bill - total_flexible_payment).toFixed(2));
+    }
+
+    function calculatePaymentPlans() {
+        let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+        let NUMBER_OF_PAYMENT = parseInt(($('#NUMBER_OF_PAYMENT').val()) ? $('#NUMBER_OF_PAYMENT').val() : 1);
+        $('#INSTALLMENT_AMOUNT').val(parseFloat(balance_payable / NUMBER_OF_PAYMENT).toFixed(2));
+    }
+
+    function calculateNumberOfPayment(param) {
+        let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+        let entered_amount = $(param).val();
+        let number_of_payment = balance_payable / entered_amount;
+        $('#NUMBER_OF_PAYMENT').val(number_of_payment);
+        if (Number.isInteger(number_of_payment)) {
+            $('#number_of_payment_error').hide();
+        } else {
+            $('#number_of_payment_error').show();
+        }
+    }
+
+    $(document).on('submit', '#billing_form', function(event) {
+        event.preventDefault();
+        calculateBalancePayable();
+        calculatePaymentPlans();
+        let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
+        let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+        let total_flexible_payment = 0;
+        $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
+            total_flexible_payment += parseFloat($(this).val());
+        });
+        total_flexible_payment = isNaN(total_flexible_payment) ? 0 : total_flexible_payment;
+        if ((total_flexible_payment + down_payment) <= total_bill) {
+            let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+            let payment_method = $('.PAYMENT_METHOD:checked').val();
+            if (payment_method == 'Flexible Payments' && balance_payable > 0) {
+                swal("Balance Payable!", "Remaining Balance Payable must be fully allocated between Next Payment Dates.", "error");
+            } else {
+                let number_of_payment = $('#NUMBER_OF_PAYMENT').val();
+                if (Number.isInteger(Number(number_of_payment))) {
+                    if ((payment_method === 'One Time') && (balance_payable <= 0)) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "The user want to create a $0.00 enrollment?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, create it!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                submitBillingForm();
+                            }
+                        });
+                    } else {
+                        if (payment_method == 'Flexible Payments' || payment_method == 'Payment Plans') {
+                            let ACTIVE_AUTO_PAY = $('.ACTIVE_AUTO_PAY:checked').val();
+                            let AUTO_PAY_PAYMENT_METHOD_ID = $('#AUTO_PAY_PAYMENT_METHOD_ID').val();
+                            if (ACTIVE_AUTO_PAY == '1' && AUTO_PAY_PAYMENT_METHOD_ID == '') {
+                                Swal.fire({
+                                    title: "Are you sure?",
+                                    text: "You selected to active Auto Pay but no credit card selected. Do you want to proceed without Auto Pay?",
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#3085d6",
+                                    cancelButtonColor: "#d33",
+                                    confirmButtonText: "Yes, proceed!"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $('#ACTIVE_AUTO_PAY_NO').prop('checked', true);
+                                        submitBillingForm();
+                                    }
+                                });
+                            } else {
+                                submitBillingForm();
+                            }
+                        } else {
+                            submitBillingForm();
+                        }
+                    }
+                } else {
+                    $('#number_of_payment_error').slideUp();
+                    $('#number_of_payment_error').slideDown();
+                }
+            }
+        } else {
+            alert('Total Bill Amount Exceed');
+        }
+    });
+
+    function submitBillingForm() {
+        let form_data = $('#billing_form').serialize();
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            dataType: 'json',
+            success: function(data) {
+                $('.PK_ENROLLMENT_BILLING').val(data.PK_ENROLLMENT_BILLING);
+                $('.PK_ENROLLMENT_LEDGER').val(data.PK_ENROLLMENT_LEDGER);
+                let payment_method = $('.PAYMENT_METHOD:checked').val();
+                let down_payment = parseFloat($('#DOWN_PAYMENT').val());
+                let today = new Date().getTime();
+                let firstPaymentDate = new Date($('#FIRST_DUE_DATE').val()).getTime();
+                let billingDate = new Date($('#BILLING_DATE').val()).getTime();
+                let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
+
+                //alert((today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear() >= billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear()));
+
+                //console.log($('.PAYMENT_METHOD:checked').val(), today.getDate() + '/' + today.getMonth() + '/' + today.getFullYear(), billingDate.getDate() + '/' + billingDate.getMonth() + '/' + billingDate.getFullYear());
+
+                if (((down_payment > 0) && (today >= billingDate)) || ((payment_method === 'One Time') && (today >= billingDate) && (balance_payable > 0)) || ((payment_method === 'Payment Plans') && (today >= firstPaymentDate))) {
+                    if (payment_method === 'One Time') {
+                        $('#AMOUNT_TO_PAY').val(balance_payable.toFixed(2));
+                        $('#ACTUAL_AMOUNT').val(balance_payable.toFixed(2));
+                    } else {
+                        if (down_payment > 0) {
+                            $('#AMOUNT_TO_PAY').val(down_payment.toFixed(2));
+                            $('#ACTUAL_AMOUNT').val(down_payment.toFixed(2));
+                        } else {
+                            if ((payment_method === 'Payment Plans') && (today >= firstPaymentDate)) {
+                                let installment_amount = parseFloat(($('#INSTALLMENT_AMOUNT').val()) ? $('#INSTALLMENT_AMOUNT').val() : 0);
+                                $('#AMOUNT_TO_PAY').val(installment_amount.toFixed(2));
+                                $('#ACTUAL_AMOUNT').val(installment_amount.toFixed(2));
+                            }
+                        }
+                    }
+                    $('#enrollment_payment_modal').modal('show');
+                } else {
+                    window.location.reload();
+                    $('#sideDrawer6, .overlay6').addClass('active');
+                    /* let header = '<?= $header ?>';
+                    if (header) {
+                    window.location.href = header;
+                    } else {
+                    let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
+                    let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                    } */
+                }
+            }
+        });
+    }
+
+    function payNow(PK_ENROLLMENT_LEDGER, BILLED_AMOUNT) {
+        $('.PK_ENROLLMENT_LEDGER').val(PK_ENROLLMENT_LEDGER);
+        $('#AMOUNT_TO_PAY').val(BILLED_AMOUNT);
+        $('#ACTUAL_AMOUNT').val(BILLED_AMOUNT);
+        $('#payment_confirmation_form_div').slideDown();
+        $('#PK_PAYMENT_TYPE').val('');
+        $('.payment_type_div').slideUp();
+        $('#wallet_balance_div').slideUp();
+        $('#remaining_amount_div').slideUp();
+        $('#PK_PAYMENT_TYPE_REMAINING').prop('required', false);
+        $('#enrollment_payment_modal').modal('show');
+    }
+
+    function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+        for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
+            window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + ' &receipt=' + RECEIPT_NUMBER_ARRAY[i], ' _blank');
+        }
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethods = document.querySelectorAll('.PAYMENT_METHOD');
+        const paymentPlanFields = document.getElementById('payment_plans_div');
+        const installmentInputs = document.querySelectorAll('.installment-input');
+
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                if (this.value === 'Payment Plans') {
+                    paymentPlanFields.style.display = 'block';
+                    installmentInputs.forEach(input => {
+                        input.required = true;
+                    });
+                } else {
+                    paymentPlanFields.style.display = 'none';
+                    installmentInputs.forEach(input => {
+                        input.required = false;
+                        input.value = ''; // Clear values when not needed
+                    });
+                }
+            });
+        });
+
+        // Initialize on page load
+        const selectedMethod = document.querySelector('.PAYMENT_METHOD:checked');
+        if (selectedMethod && selectedMethod.value === 'Payment Plans') {
+            paymentPlanFields.style.display = 'block';
+            installmentInputs.forEach(input => {
+                input.required = true;
+            });
+        }
+    });
+</script>
