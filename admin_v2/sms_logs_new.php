@@ -371,8 +371,9 @@ $sms_logs = $db_account->Execute($query);
                                         $error_message = $sms_logs->fields['ERROR_MESSAGE'] ?? '';
 
                                         $formatted_date = !empty($send_date) ? date('m/d/Y h:i A', strtotime($send_date)) : '—';
-                                        $initials = getInitials($customer_name);
-                                        $bg_color = getAvatarColor($counter);
+                                        $customer = getProfileBadge($customer_name);
+                                        $customer_initial = $customer['initials'];
+                                        $customer_color = $customer['color'];
                                 ?>
                                         <tr>
                                             <td>
@@ -387,10 +388,8 @@ $sms_logs = $db_account->Execute($query);
                                                 </span>
                                             </td>
                                             <td>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="avatar-circle" style="background: linear-gradient(135deg, <?= $bg_color['start'] ?>, <?= $bg_color['end'] ?>);">
-                                                        <?= $initials ?>
-                                                    </div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                                     <span class="fw-medium"><?= htmlspecialchars($customer_name) ?></span>
                                                 </div>
                                             </td>

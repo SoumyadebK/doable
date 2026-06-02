@@ -308,12 +308,13 @@ $gift_setups = $db_account->Execute($query);
                         <table class="table custom-table align-middle mb-4">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;">#</th>
-                                    <th>Certificate Name / Code</th>
-                                    <th>Amount Range</th>
-                                    <th>Effective Date</th>
-                                    <th>End Date</th>
-                                    <th>Status</th>
+                                    <th style="width: 40px; align-items: center;">#</th>
+                                    <th>Certificate Name</th>
+                                    <th>Certificate Code</th>
+                                    <th style="text-align: center;">Amount Range</th>
+                                    <th style="text-align: center;">Effective Date</th>
+                                    <th style="text-align: center;">End Date</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;">Actions</th>
                                 </tr>
                             </thead>
@@ -343,33 +344,32 @@ $gift_setups = $db_account->Execute($query);
                                         $is_expired = (!empty($end_date) && $end_date != '0000-00-00' && strtotime($end_date) < time());
                                 ?>
                                         <tr>
-                                            <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
+                                            <td class="text-muted small fw-medium" style="text-align: center;"><?= $row_number++ ?></td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <div class="avatar-circle" style="background: linear-gradient(135deg, <?= $bg_color['start'] ?>, <?= $bg_color['end'] ?>);">
-                                                        <i class="bi bi-gift-fill"></i>
-                                                    </div>
                                                     <div>
                                                         <div class="fw-semibold"><?= htmlspecialchars($gift_name) ?></div>
-                                                        <div class="mt-1">
-                                                            <span class="certificate-code">
-                                                                <i class="bi bi-upc-scan me-1"></i> <?= htmlspecialchars($gift_code) ?>
-                                                            </span>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div>
+                                                        <div class="fw-semibold"><?= htmlspecialchars($gift_code) ?></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
                                                 <span class="amount-range">
                                                     <i class="bi bi-currency-dollar"></i> <?= number_format($min_amount, 2) ?> - <?= number_format($max_amount, 2) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <span class="date-badge">
                                                     <i class="bi bi-calendar-check"></i> <?= $formatted_effective ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div>
                                                     <span class="date-badge">
                                                         <i class="bi bi-calendar-x"></i> <?= $formatted_end ?>
@@ -381,7 +381,7 @@ $gift_setups = $db_account->Execute($query);
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>

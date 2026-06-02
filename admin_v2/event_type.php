@@ -25,7 +25,7 @@ if (!empty($_POST)) {
         $EVENT_TYPE_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_EVENT_TYPE', $EVENT_TYPE_DATA, 'update', " PK_EVENT_TYPE =  '$_GET[id]'");
     }
-    header("location:all_event_types.php");
+    header("location:all_event_types_new.php");
 }
 
 if (empty($_GET['id'])) {

@@ -146,8 +146,9 @@ $users = $db->Execute($query);
                                 $counter = 0;
                                 while (!$users->EOF):
                                     $PK_USER = $users->fields['PK_USER'];
-                                    $initials = getInitials($users->fields['NAME']);
-                                    $bg_color = getAvatarColor($counter);
+                                    $customer = getProfileBadge($users->fields['NAME']);
+                                    $customer_initial = $customer['initials'];
+                                    $customer_color = $customer['color'];
 
                                     // Get roles
                                     $roles = [];
@@ -176,10 +177,8 @@ $users = $db->Execute($query);
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-3">
-                                                <div class="avatar-circle" style="background-color: <?= $bg_color ?>;">
-                                                    <?= $initials ?>
-                                                </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                                 <div>
                                                     <div class="fw-semibold"><?= htmlspecialchars($users->fields['NAME']) ?></div>
                                                     <div class="text-muted small"><?= htmlspecialchars($users->fields['EMAIL_ID']) ?></div>

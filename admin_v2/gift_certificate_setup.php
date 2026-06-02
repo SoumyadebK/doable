@@ -39,7 +39,7 @@ if (!empty($_POST)) {
         $GIFT_CERTIFICATE_SETUP_DATA['ACTIVE'] = $_POST['ACTIVE'];
         db_perform_account('DOA_GIFT_CERTIFICATE_SETUP', $GIFT_CERTIFICATE_SETUP_DATA, 'update', "PK_GIFT_CERTIFICATE_SETUP = '$_GET[id]'");
         $PK_GIFT_CERTIFICATE_SETUP = $_GET['id'];
-        header("location:all_gift_certificate_setup.php");
+        header("location:all_gift_certificate_setup_new.php");
     }
 
     $db_account->Execute("DELETE FROM `DOA_GIFT_LOCATION` WHERE `PK_GIFT_CERTIFICATE_SETUP` = '$PK_GIFT_CERTIFICATE_SETUP'");

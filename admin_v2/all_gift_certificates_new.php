@@ -127,15 +127,15 @@ $gift_certificates = $db_account->Execute($query);
         }
 
         .amount-badge {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 6px 14px;
+            background: #f1f5f9;
+            padding: 4px 12px;
             border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            color: #1e293b;
         }
 
         .certificate-code {
@@ -296,8 +296,8 @@ $gift_certificates = $db_account->Execute($query);
                                     <th>Gift Certificate Name</th>
                                     <th>Gift Certificate Code</th>
                                     <th>Purchase Date</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Amount</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 100px;">Actions</th>
                                 </tr>
                             </thead>
@@ -315,8 +315,9 @@ $gift_certificates = $db_account->Execute($query);
                                         $amount = $gift_certificates->fields['AMOUNT'];
                                         $is_active = $gift_certificates->fields['ACTIVE'] == 1;
 
-                                        $initials = getGiftInitials($customer_name);
-                                        $bg_color = getGiftAvatarColor($counter);
+                                        $customer = getProfileBadge($customer_name);
+                                        $customer_initial = $customer['initials'];
+                                        $customer_color = $customer['color'];
 
                                         // Format date
                                         $formatted_date = !empty($purchase_date) && $purchase_date != '0000-00-00' ? date('M d, Y', strtotime($purchase_date)) : '—';
@@ -324,10 +325,8 @@ $gift_certificates = $db_account->Execute($query);
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
                                             <td>
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="avatar-circle" style="background-color: <?= $bg_color ?>;">
-                                                        <?= $initials ?>
-                                                    </div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                                     <div>
                                                         <div class="fw-semibold"><?= htmlspecialchars($customer_name) ?></div>
                                                     </div>
@@ -335,13 +334,11 @@ $gift_certificates = $db_account->Execute($query);
                                             </td>
                                             <td>
                                                 <div>
-                                                    <i class="bi bi-tag-fill text-primary gift-card-icon"></i>
                                                     <span class="fw-medium"><?= htmlspecialchars($gift_name) ?></span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div>
-                                                    <i class="bi bi-tag-fill text-primary gift-card-icon"></i>
                                                     <span class="fw-medium"><?= htmlspecialchars($gift_code) ?></span>
                                                 </div>
                                             </td>
@@ -350,12 +347,12 @@ $gift_certificates = $db_account->Execute($query);
                                                     <i class="bi bi-calendar3"></i> <?= $formatted_date ?>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <span class="amount-badge">
                                                     <i class="bi bi-currency-dollar"></i> <?= number_format($amount, 2) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>
