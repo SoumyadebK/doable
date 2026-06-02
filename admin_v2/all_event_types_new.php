@@ -240,8 +240,8 @@ $event_types = $db_account->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Event Type</th>
-                                    <th>Color</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Color</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;">Actions</th>
                                 </tr>
                             </thead>
@@ -269,15 +269,15 @@ $event_types = $db_account->Execute($query);
                                                     <div class="fw-semibold"><?= htmlspecialchars($event_type_name) ?></div>
                                                 </div>
                                             </td>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2">
+                                            <td style="text-align: center;">
+                                                <div class="d-flex justify-content-center align-items-center gap-2">
                                                     <div class="color-swatch" style="background-color: <?= htmlspecialchars($color_code) ?>;"></div>
                                                     <span class="color-name" style="background: <?= htmlspecialchars($color_code) ?>20; border: 1px solid <?= htmlspecialchars($color_code) ?>40;">
                                                         <?= strtoupper(htmlspecialchars($color_code)) ?>
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>
