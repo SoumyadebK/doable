@@ -84,6 +84,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                             $payment_details = " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
                         }
                     }
+                    $balance_left = $db_account->Execute("SELECT BALANCE_LEFT FROM DOA_CUSTOMER_WALLET WHERE CUSTOMER_WALLET_PARENT = " . $walletTransaction->fields['PK_CUSTOMER_WALLET'] . " ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
                 ?>
                     <tr class="accordion-toggle" data-bs-toggle="collapse" data-bs-target="#row<?= $i ?>-details">
                         <td class="text-center">
@@ -93,7 +94,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                         <td><?= $walletTransaction->fields['RECEIPT_NUMBER'] ?></td>
                         <td><?= $walletTransaction->fields['DESCRIPTION'] . ' ' . $payment_details ?></td>
                         <td><?= $walletTransaction->fields['CREDIT'] ?></td>
-                        <td><?= $walletTransaction->fields['BALANCE_LEFT'] ?></td>
+                        <td><?= ($balance_left->RecordCount() > 0) ? $balance_left->fields['BALANCE_LEFT'] : $walletTransaction->fields['BALANCE_LEFT'] ?></td>
                         <td>
                             <?php if ($RECEIPT_NUMBER != '') { ?>
                                 <a class="btn btn-secondary btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank" onclick="event.stopPropagation(); event.preventDefault(); window.open(this.href, '_blank'); return false;">Receipt</a>

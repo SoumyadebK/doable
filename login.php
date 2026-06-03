@@ -9,7 +9,7 @@ require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
 $msg = '';
 $success_msg = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
-$IP_BYPASS = ['202.142.91.42', '127.0.0.1'];
+$IP_BYPASS = ['202.142.91.42', '202.142.89.165', '127.0.0.1'];
 
 if ($FUNCTION_NAME == 'loginFunction') {
     $USER_NAME = trim($_POST['USER_NAME']);

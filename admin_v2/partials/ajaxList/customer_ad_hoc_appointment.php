@@ -32,7 +32,7 @@ $ORPHAN_APPOINTMENT_QUERY = "SELECT
                         LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_APPOINTMENT_CUSTOMER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
                         LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON DOA_USER_MASTER.PK_USER = CUSTOMER.PK_USER
 
-                        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE = 0 AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = 0
+                        LEFT JOIN DOA_APPOINTMENT_ENROLLMENT ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_ENROLLMENT.PK_APPOINTMENT_MASTER AND DOA_APPOINTMENT_MASTER.APPOINTMENT_TYPE = 'GROUP' AND DOA_APPOINTMENT_MASTER.DATE >= '2026-05-01' AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_SERVICE = 0 AND DOA_APPOINTMENT_ENROLLMENT.PK_ENROLLMENT_MASTER = 0
                                 
                         LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_APPOINTMENT_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
                                 
@@ -83,7 +83,8 @@ if ($orphan_appointment_data->RecordCount() > 0) {
                     <?php
                     $i = $orphan_appointment_data->RecordCount();
                     while (!$orphan_appointment_data->EOF) {
-                        $profile = getProfileBadge($orphan_appointment_data->fields['SERVICE_PROVIDER_NAME']);
+                        $SERVICE_PROVIDER_NAME = ($orphan_appointment_data->fields['SERVICE_PROVIDER_NAME'] != '') ? $orphan_appointment_data->fields['SERVICE_PROVIDER_NAME'] : 'Unassigned';
+                        $profile = getProfileBadge($SERVICE_PROVIDER_NAME);
                         $profile_initial = $profile['initials'];
                         $profile_color = $profile['color']; ?>
                         <tr>

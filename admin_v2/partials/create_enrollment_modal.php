@@ -145,12 +145,12 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                     if ($payment_gateway_type->RecordCount() > 0) { ?>
                         <div class="d-flex gap-3 mt-1 mb-2">
                             <label class="radio" for="Session">
-                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session">
+                                <input type="checkbox" id="Session" name="CHARGE_TYPE" class="charge_type" value="Session" onchange="chargeBySessions(this);">
                                 <span></span>
                                 Charge by sessions
                             </label>
                             <label class="radio" for="Membership">
-                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership">
+                                <input type="checkbox" id="Membership" name="CHARGE_TYPE" class="charge_type" value="Membership" onchange="chargeBySessions(this);">
                                 <span></span>
                                 Membership
                             </label>
@@ -1166,7 +1166,13 @@ if ($current_address != 'customer.php') {
     }
 
     function chargeBySessions(param) {
-        $('.NUMBER_OF_SESSION').prop('readonly', false);
+        if ($(param).val() === 'Session') {
+            $('#Membership').prop('checked', false);
+        } else {
+            $('#Session').prop('checked', false);
+        }
+
+        /* $('.NUMBER_OF_SESSION').prop('readonly', false);
         $('.NUMBER_OF_SESSION').val('').css('pointer-events', 'none').trigger('change');
         $('.PRICE_PER_SESSION').prop('readonly', false);
         $('.PRICE_PER_SESSION').val('').css('pointer-events', 'none').trigger('change');
@@ -1213,7 +1219,7 @@ if ($current_address != 'customer.php') {
             $('.ENROLLMENT_PAYMENT_TYPE').css('pointer-events', 'auto');
             $('.partial_payment').show();
             $('#save_card_on_file_div').hide();
-        }
+        } */
     }
 
     function calculateServiceTotal(param) {

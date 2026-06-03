@@ -59,7 +59,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
 
             <tbody>
                 <?php
-                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' OR DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund') AND IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
+                $payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' OR DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund') AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE DESC");
                 if ($payment_details->RecordCount() > 0) {
                     while (!$payment_details->EOF) {
                         if ($payment_details->fields['TYPE'] == 'Move') {
@@ -94,7 +94,7 @@ $PK_USER_MASTER = !empty($_GET['master_id']) ? $_GET['master_id'] : 0;
                         <tr style="color: <?= ($payment_details->fields['TYPE'] == 'Refund') ? 'red' : 'black' ?>;">
                             <td><a onclick="openReceipt(<?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:" style="color: #39b54a;"><?= $payment_details->fields['RECEIPT_NUMBER'] ?></a></td>
                             <td><?= date('m/d/Y', strtotime($payment_details->fields['PAYMENT_DATE'])) ?></td>
-                            <td><a href="../admin/enrollment.php?id=<?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>" target="_blank" style="color: #39b54a;">#<?= $payment_details->fields['ENROLLMENT_ID'] ?></a></td>
+                            <td><a href="../admin/enrollment.php?id=<?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>" target="_blank" style="color: #39b54a;">#<?= ($payment_details->fields['ENROLLMENT_ID']) ? $payment_details->fields['ENROLLMENT_ID'] : $payment_details->fields['MISC_ID'] ?></a></td>
                             <td><?= $payment_type ?></td>
                             <td><?= $payment_details->fields['NOTE'] ?></td>
                             <td>$<?= number_format($payment_details->fields['AMOUNT'], 2) ?></td>

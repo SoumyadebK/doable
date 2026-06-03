@@ -298,7 +298,7 @@ function saveEnrollmentData($RESPONSE_DATA)
     $ENROLLMENT_MASTER_DATA['CHARGE_TYPE'] = empty($RESPONSE_DATA['CHARGE_TYPE']) ? 0 : $RESPONSE_DATA['CHARGE_TYPE'];
 
     if ($RESPONSE_DATA['CHARGE_TYPE'] == 'Membership') {
-        $selectedOption = $RESPONSE_DATA['AUTO_RENEWAL'];
+        $selectedOption = isset($RESPONSE_DATA['AUTO_RENEWAL']) ? $RESPONSE_DATA['AUTO_RENEWAL'] : 1;
         $currentDate = new DateTime();
         if ($selectedOption == '0') {
             $renewalDate = clone $currentDate;
