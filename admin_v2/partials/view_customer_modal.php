@@ -156,7 +156,7 @@ while (!$row->EOF) {
         </div>
         <div class="profilename-data">
             <h6 class="mb-1">
-                <a href="../admin/customer.php?id=<?= $PK_USER ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $selected_customer; ?></a>
+                <a href="customer.php?id=<?= $PK_USER ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $selected_customer; ?></a>
             </h6>
             <span><?= htmlspecialchars($LOCATION_NAME ?: 'Studio Location'); ?></span>
         </div>

@@ -246,7 +246,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                         <td class="d-flex align-items-center" style="height: 60px;">
                                             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                             <div>
-                                                <div><a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $CUSTOMER_NAME ?></a></div>
+                                                <div><a href="customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>"><?= $CUSTOMER_NAME ?></a></div>
                                                 <small class="text-muted"><?= $customer_data->fields['EMAIL_ID'] ?></small>
                                             </div>
                                         </td>
@@ -275,7 +275,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                         </td>
 
                                         <td class="text-center" style="vertical-align: middle;">
-                                            <a href="../admin/customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>">
+                                            <a href="customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>">
                                                 <button type="button" class="bg-transparent p-0 border-0">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
                                                         <circle cx="256" cy="256" r="48" />
