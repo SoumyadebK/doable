@@ -29,7 +29,7 @@ if ($type == 'completed') {
 if ($page == 1) { ?>
     <div class="enrollment-container mb-4">
 
-        <div class="d-flex justify-content-between align-items-start mb-3 row">
+        <div class="d-flex justify-content-between align-items-start mb-1 row">
             <div class="col-6">
                 <h5 class="fw-bold mb-1"><?= $enr_title ?></h5>
                 <p class="text-muted mb-2 small">Optional settings section description</p>
@@ -68,7 +68,7 @@ if ($page == 1) { ?>
             $enr_service_data->MoveNext();
         } ?>
 
-        <div class="d-flex align-items-center border-top border-bottom py-3 mb-3">
+        <div class="d-flex align-items-center border-top border-bottom py-2 mb-3">
             <div class="flex-grow-1">
                 <div class="stat-label">Total Balance</div>
                 <div class="stat-value">$<?= number_format((float)$credit_balance, 2) ?></div>
@@ -127,7 +127,7 @@ while (!$enrollment_data->EOF) {
     }
     $enrollment_title = ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID']; ?>
 
-    <div class="enrollment-container enrollment_div mb-4" style="position: relative;">
+    <div class="enrollment-container enrollment_div mb-3" style="position: relative;">
 
         <?php
         $amount_to_pay = 0;

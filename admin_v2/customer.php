@@ -438,7 +438,7 @@ if ($PK_USER_MASTER > 0) {
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 12px;
-        padding: 30px;
+        padding: 15px 30px;
         margin: auto;
     }
 
@@ -453,6 +453,7 @@ if ($PK_USER_MASTER > 0) {
         font-size: 1.5rem;
         font-weight: 700;
         color: #1a1a1a;
+        line-height: 25px;
     }
 
     .stat-divider {
