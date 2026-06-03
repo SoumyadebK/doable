@@ -384,7 +384,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
             </div>
 
             <div class="topbar-item d-none d-sm-flex">
-                <a class="top-bar-icon" href="setup.php">
+                <a class="top-bar-icon" href="all_corporations.php">
                     <i class="fa fa-cog" aria-hidden="true" style="font-size: 18px;"></i>
                 </a>
             </div>

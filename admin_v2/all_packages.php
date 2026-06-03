@@ -6,9 +6,24 @@ global $master_database;
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
+// Simple fix - convert to array if it's a string
+if (!is_array($DEFAULT_LOCATION_ID)) {
+    if (strpos($DEFAULT_LOCATION_ID, ',') !== false) {
+        $DEFAULT_LOCATION_ID = array_map('trim', explode(',', $DEFAULT_LOCATION_ID));
+    } else {
+        $DEFAULT_LOCATION_ID = !empty($DEFAULT_LOCATION_ID) ? [$DEFAULT_LOCATION_ID] : [];
+    }
+}
+
+$location_ids_for_sql = implode(',', $DEFAULT_LOCATION_ID);
+$multiple_locations = (count($DEFAULT_LOCATION_ID) > 1);
+
 $title = "All Packages";
 
-$status_check = empty($_GET['status']) ? 'active' : $_GET['status'];
+$status_check = isset($_GET['status']) ? $_GET['status'] : 'active';
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
 
 if ($status_check == 'active') {
     $status = 1;
@@ -23,9 +38,44 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 $header_text = '';
 $header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Packages page'");
-if ($header_data->RecordCount() > 0) {
+if ($header_data && $header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
+
+$offset = ($page - 1) * $per_page;
+
+// Count total records
+$count_query = "SELECT COUNT(DISTINCT DOA_PACKAGE.PK_PACKAGE) as total 
+                FROM DOA_PACKAGE 
+                LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_PACKAGE.PK_LOCATION = DOA_LOCATION.PK_LOCATION 
+                WHERE (DOA_PACKAGE.PK_LOCATION IN (" . $location_ids_for_sql . ") OR DOA_PACKAGE.PK_LOCATION IS NULL) 
+                AND DOA_PACKAGE.IS_DELETED = 0 
+                AND DOA_PACKAGE.ACTIVE = '$status'";
+
+if (!empty($search)) {
+    $count_query .= " AND (DOA_PACKAGE.PACKAGE_NAME LIKE '%" . addslashes($search) . "%' 
+                      OR DOA_LOCATION.LOCATION_NAME LIKE '%" . addslashes($search) . "%')";
+}
+
+$total_result = $db_account->Execute($count_query);
+$total_records = $total_result->fields['total'];
+$total_pages = ceil($total_records / $per_page);
+
+// Get packages for current page
+$query = "SELECT DOA_PACKAGE.*, DOA_LOCATION.LOCATION_NAME 
+          FROM DOA_PACKAGE 
+          LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_PACKAGE.PK_LOCATION = DOA_LOCATION.PK_LOCATION 
+          WHERE (DOA_PACKAGE.PK_LOCATION IN (" . $location_ids_for_sql . ") OR DOA_PACKAGE.PK_LOCATION IS NULL) 
+          AND DOA_PACKAGE.IS_DELETED = 0 
+          AND DOA_PACKAGE.ACTIVE = '$status'";
+
+if (!empty($search)) {
+    $query .= " AND (DOA_PACKAGE.PACKAGE_NAME LIKE '%" . addslashes($search) . "%' 
+                OR DOA_LOCATION.LOCATION_NAME LIKE '%" . addslashes($search) . "%')";
+}
+
+$query .= " ORDER BY CASE WHEN DOA_PACKAGE.SORT_ORDER IS NULL THEN 1 ELSE 0 END, DOA_PACKAGE.SORT_ORDER ASC LIMIT $offset, $per_page";
+$packages = $db_account->Execute($query);
 ?>
 
 <!DOCTYPE html>
@@ -34,132 +84,569 @@ if ($header_data->RecordCount() > 0) {
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
-<body class="skin-default-dark fixed-layout">
-    <?php require_once('../includes/loader.php'); ?>
-    <div id="main-wrapper">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($title) ?> - Setup Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="assets/css/setup-styles.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="assets/css/setup-styles.css" rel="stylesheet">
+    <style>
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            flex-shrink: 0;
+        }
 
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-            <?php require_once('layout/setup_menu.php') ?>
-            <div class="container-fluid body_content m-0" style="margin-top: 0px !important;">
-                <div class="row page-titles">
-                    <div class="col-md-3 align-self-center">
-                        <?php if ($status_check == 'inactive') { ?>
-                            <h4 class="text-themecolor">Not Active Packages</h4>
-                        <?php } elseif ($status_check == 'active') { ?>
-                            <h4 class="text-themecolor">Active Packages</h4>
-                        <?php } ?>
+        .badge-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .package-badge {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .services-list {
+            max-width: 300px;
+        }
+
+        .service-chip {
+            background: #eef2ff;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 2px;
+            white-space: nowrap;
+        }
+
+        .service-chip i {
+            font-size: 0.65rem;
+            margin-right: 3px;
+        }
+
+        .more-services {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        .sort-order-badge {
+            background: #fef9c3;
+            color: #854d0e;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .location-badge {
+            background: #f8f9fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .pagination .page-link {
+            border-radius: 30px !important;
+            margin: 0 2px;
+            color: #334155;
+            border: none;
+            background: transparent;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .dropdown-item i {
+            width: 1.2rem;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .action-icons a {
+            color: #64748b;
+            transition: color 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .action-icons a:hover {
+            color: #0d6efd;
+        }
+
+        .action-icons .text-danger:hover {
+            color: #dc2626 !important;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 0.75rem;
+            }
+
+            .status-toggle-group {
+                align-self: flex-start;
+            }
+
+            .services-list {
+                max-width: 200px;
+            }
+        }
+
+        .header-note {
+            background: #f0f9ff;
+            border-left: 3px solid #0d6efd;
+        }
+
+        .package-description {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-12 col-md-4 col-xl-3">
+                <?php include 'layout/setup_sidebar.php'; ?>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-12 col-md-8 col-xl-9">
+                <div class="main-card">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-semibold h4 mb-1">
+                                <?php if ($status_check == 'inactive') { ?>
+                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Packages
+                                <?php } else { ?>
+                                    <i class="bi bi-box-seam me-2 text-success"></i>Active Packages
+                                <?php } ?>
+                            </h2>
+                            <p class="text-muted small mb-0">Manage service packages, bundled services, and pricing structures</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="createNewPackage()">
+                                <i class="bi bi-plus-lg"></i> Create New Package
+                            </button>
+                        </div>
                     </div>
 
-                    <?php if ($status_check == 'inactive') { ?>
-                        <div class="col-md-3 align-self-center">
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_packages.php?status=active'"><i class="fa fa-user"></i> Show Active</button>
+                    <!-- Filters -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="search-container">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="form-control search-input" placeholder="Search by name, location..." id="searchInput" value="<?= htmlspecialchars($search) ?>">
                         </div>
-                    <?php } elseif ($status_check == 'active') { ?>
-                        <div class="col-md-3 align-self-center">
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='all_packages.php?status=inactive'"><i class="fa fa-user-times"></i> Show Not Active</button>
-                        </div>
-                    <?php } ?>
-
-                    <div class="col-md-6 align-self-center text-end">
-                        <div class="d-flex justify-content-end align-items-center">
-                            <ol class="breadcrumb justify-content-end">
-                                <li class="breadcrumb-item"><a href="setup.php">Setup</a></li>
-                                <li class="breadcrumb-item active"><?= $title ?></li>
-                            </ol>
-                            <button type="button" class="btn btn-info d-none d-lg-block m-l-15 text-white" onclick="window.location.href='package.php'"><i class="fa fa-plus-circle"></i> Create New</button>
+                        <div class="status-toggle-group">
+                            <button class="status-btn <?= $status_check == 'active' ? 'active' : '' ?>" data-status="active">Active</button>
+                            <button class="status-btn <?= $status_check == 'inactive' ? 'active' : '' ?>" data-status="inactive">Not Active</button>
                         </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row" style="text-align: center;">
-                                    <h5 style="font-weight: bold;"><?= $header_text ?></h5>
-                                </div>
-                                <div class="table-responsive">
-                                    <table id="myTable" class="table table-striped border" data-page-length="50">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Package Name</th>
-                                                <th>Location Name</th>
-                                                <th>Description</th>
-                                                <th>Sort Order</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
+                    <!-- Results count -->
+                    <div class="text-muted small mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-box-seam"></i> <?= $total_records ?> <?= $total_records == 1 ? 'package' : 'packages' ?>
+                    </div>
 
-                                        <tbody>
-                                            <?php
-                                            $i = 1;
-                                            $row = $db_account->Execute("SELECT DOA_PACKAGE.*, DOA_LOCATION.LOCATION_NAME FROM DOA_PACKAGE LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_PACKAGE.PK_LOCATION = DOA_LOCATION.PK_LOCATION WHERE (DOA_PACKAGE.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") OR DOA_PACKAGE.PK_LOCATION IS NULL) AND IS_DELETED = 0 AND DOA_PACKAGE.ACTIVE = '$status' ORDER BY CASE WHEN SORT_ORDER IS NULL THEN 1 ELSE 0 END, SORT_ORDER ASC");
-                                            while (!$row->EOF) {
-                                                $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE, DOA_PACKAGE_SERVICE.NUMBER_OF_SESSION FROM DOA_SERVICE_CODE JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_PACKAGE_SERVICE.PK_PACKAGE = " . $row->fields['PK_PACKAGE']);
-                                                $serviceCode = [];
-                                                while (!$serviceCodeData->EOF) {
-                                                    $serviceCode[] = $serviceCodeData->fields['SERVICE_CODE'] . ': ' . $serviceCodeData->fields['NUMBER_OF_SESSION'];
-                                                    $serviceCodeData->MoveNext();
-                                                } ?>
-                                                <tr>
-                                                    <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= $i; ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= $row->fields['PACKAGE_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= $row->fields['LOCATION_NAME'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= implode(', ', $serviceCode) ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_PACKAGE'] ?>);"><?= $row->fields['SORT_ORDER'] ?></td>
-                                                    <td>
-                                                        <a href="package.php?id=<?= $row->fields['PK_PACKAGE'] ?>" title="Edit" style="font-size:18px"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <a href="javascript:;" onclick="ConfirmDelete(<?= $row->fields['PK_PACKAGE'] ?>);" title="Delete" style="font-size:18px"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                        <?php if ($row->fields['ACTIVE'] == 1) { ?>
-                                                            <span class="active-box-green"></span>
-                                                        <?php } else { ?>
-                                                            <span class="active-box-red"></span>
-                                                        <?php } ?>
-                                                    </td>
-                                                </tr>
-                                            <?php $row->MoveNext();
-                                                $i++;
-                                            } ?>
-                                        </tbody>
-                                    </table>
-                                </div>
+                    <!-- Packages Table -->
+                    <div class="table-responsive">
+                        <table class="table custom-table align-middle mb-4">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Package Name</th>
+                                    <th>Location</th>
+                                    <th>Services Included</th>
+                                    <th>Sort Order</th>
+                                    <th>Status</th>
+                                    <th style="width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $counter = 0;
+                                $row_number = $offset + 1;
+                                if ($packages && !$packages->EOF):
+                                    while (!$packages->EOF):
+                                        $PK_PACKAGE = $packages->fields['PK_PACKAGE'];
+                                        $package_name = $packages->fields['PACKAGE_NAME'];
+                                        $location_name = $packages->fields['LOCATION_NAME'] ?? 'Global (All Locations)';
+                                        $sort_order = $packages->fields['SORT_ORDER'] ?? '—';
+                                        $is_active = $packages->fields['ACTIVE'] == 1;
+
+                                        // Get service codes for this package
+                                        $serviceCodeData = $db_account->Execute("SELECT DOA_SERVICE_CODE.SERVICE_CODE, DOA_PACKAGE_SERVICE.NUMBER_OF_SESSION 
+                                        FROM DOA_SERVICE_CODE 
+                                        JOIN DOA_PACKAGE_SERVICE ON DOA_PACKAGE_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                                        WHERE DOA_PACKAGE_SERVICE.PK_PACKAGE = " . $PK_PACKAGE);
+
+                                        $serviceCodes = [];
+                                        while (!$serviceCodeData->EOF) {
+                                            $serviceCodes[] = [
+                                                'code' => $serviceCodeData->fields['SERVICE_CODE'],
+                                                'sessions' => $serviceCodeData->fields['NUMBER_OF_SESSION']
+                                            ];
+                                            $serviceCodeData->MoveNext();
+                                        }
+
+                                        $initials = getPackageInitials($package_name);
+                                        $bg_color = getPackageAvatarColor($counter);
+                                ?>
+                                        <tr>
+                                            <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div>
+                                                        <div class="fw-semibold"><?= htmlspecialchars($package_name) ?></div>
+                                                        <div class="package-description">
+                                                            <?= count($serviceCodes) ?> service<?= count($serviceCodes) != 1 ? 's' : '' ?> included
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="location-badge">
+                                                    <i class="bi bi-geo-alt-fill text-secondary"></i> <?= htmlspecialchars($location_name) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="services-list">
+                                                    <?php
+                                                    $displayCount = 0;
+                                                    foreach ($serviceCodes as $index => $service):
+                                                        if ($index < 3):
+                                                    ?>
+                                                            <span class="service-chip">
+                                                                <i class="bi bi-tag"></i> <?= htmlspecialchars($service['code']) ?>
+                                                                <?php if ($service['sessions'] > 1): ?>
+                                                                    (x<?= $service['sessions'] ?>)
+                                                                <?php endif; ?>
+                                                            </span>
+                                                            <?php
+                                                        else:
+                                                            $remaining = count($serviceCodes) - 3;
+                                                            if ($index == 3):
+                                                            ?>
+                                                                <span class="more-services" onclick="showAllServices(<?= $PK_PACKAGE ?>)" title="Click to see all services">
+                                                                    +<?= $remaining ?> more
+                                                                </span>
+                                                        <?php
+                                                            endif;
+                                                        endif;
+                                                    endforeach;
+                                                    if (empty($serviceCodes)):
+                                                        ?>
+                                                        <span class="text-muted small">No services assigned</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="sort-order-badge">
+                                                    <i class="bi bi-sort-numeric-down-alt me-1"></i> <?= htmlspecialchars($sort_order) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php if ($is_active): ?>
+                                                    <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
+                                                <?php else: ?>
+                                                    <span class="badge-status badge-inactive"><i class="bi bi-x-circle-fill"></i> Inactive</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <div class="action-icons">
+                                                    <a href="javascript:;" onclick="editPackage(<?= $PK_PACKAGE ?>);" title="Edit">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <a href="javascript:;" onclick="ConfirmDelete(<?= $PK_PACKAGE ?>);" title="Delete" class="text-danger">
+                                                        <i class="bi bi-trash3"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php
+                                        $packages->MoveNext();
+                                        $counter++;
+                                    endwhile;
+                                endif;
+                                if ($total_records == 0):
+                                    ?>
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <i class="bi bi-box-seam display-1 text-muted"></i>
+                                            <p class="mt-3 text-muted">No packages found for the selected filters</p>
+                                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="createNewPackage()">Create your first package</button>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <?php if ($total_pages > 1): ?>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-2">
+                            <div class="text-muted small">
+                                Page <?= $page ?> of <?= $total_pages ?>
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0 align-items-center">
+                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link border-0" href="?page=1&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                                    </li>
+                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link border-0" href="?page=<?= $page - 1 ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                                    </li>
+                                    <?php
+                                    $start_page = max(1, $page - 2);
+                                    $end_page = min($total_pages, $page + 2);
+                                    if ($start_page > 1): ?>
+                                        <li class="page-item"><a class="page-link" href="?page=1&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>">1</a></li>
+                                        <?php if ($start_page > 2): ?>
+                                            <li class="page-item disabled"><span class="page-link border-0 bg-transparent">...</span></li>
+                                        <?php endif; ?>
+                                    <?php endif;
+                                    for ($i = $start_page; $i <= $end_page; $i++): ?>
+                                        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                                            <a class="page-link" href="?page=<?= $i ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>"><?= $i ?></a>
+                                        </li>
+                                    <?php endfor;
+                                    if ($end_page < $total_pages): ?>
+                                        <?php if ($end_page < $total_pages - 1): ?>
+                                            <li class="page-item disabled"><span class="page-link border-0 bg-transparent">...</span></li>
+                                        <?php endif; ?>
+                                        <li class="page-item"><a class="page-link" href="?page=<?= $total_pages ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>"><?= $total_pages ?></a></li>
+                                    <?php endif; ?>
+                                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
+                                        <a class="page-link border-0" href="?page=<?= $page + 1 ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                                    </li>
+                                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
+                                        <a class="page-link border-0" href="?page=<?= $total_pages ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <div>
+                                <select class="form-select form-select-sm page-select rounded-pill py-1 px-3" id="perPageSelect">
+                                    <option value="8" <?= $per_page == 8 ? 'selected' : '' ?>>8 / page</option>
+                                    <option value="10" <?= $per_page == 10 ? 'selected' : '' ?>>10 / page</option>
+                                    <option value="25" <?= $per_page == 25 ? 'selected' : '' ?>>25 / page</option>
+                                    <option value="50" <?= $per_page == 50 ? 'selected' : '' ?>>50 / page</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 
     <?php require_once('../includes/footer.php'); ?>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        $(function() {
-            $('#myTable').DataTable();
+        // Search with debounce
+        let searchTimeout;
+        $('#searchInput').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                let searchVal = encodeURIComponent($(this).val());
+                window.location.href = '?status=<?= $status_check ?>&search=' + searchVal + '&per_page=<?= $per_page ?>';
+            }, 500);
         });
 
-        function ConfirmDelete(PK_PACKAGE) {
-            var conf = confirm("Are you sure you want to delete?");
-            if (conf) {
-                $.ajax({
-                    url: "ajax/AjaxFunctions.php",
-                    type: 'POST',
-                    data: {
-                        FUNCTION_NAME: 'deletePackageData',
-                        PK_PACKAGE: PK_PACKAGE
-                    },
-                    success: function(data) {
-                        window.location.href = `all_packages.php`;
-                    }
-                });
+        // Per page change
+        $('#perPageSelect').on('change', function() {
+            window.location.href = '?status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=' + $(this).val();
+        });
+
+        // Status toggle buttons
+        $('.status-btn').on('click', function() {
+            let newStatus = $(this).data('status');
+            if (newStatus) {
+                window.location.href = '?status=' + newStatus + '&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>';
             }
+        });
+
+        // Delete package
+        function ConfirmDelete(PK_PACKAGE) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deletePackageData',
+                            PK_PACKAGE: PK_PACKAGE
+                        },
+                        success: function(data) {
+                            Swal.fire('Deleted!', 'Package has been deleted.', 'success');
+                            window.location.href = `all_packages.php?status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>`;
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Something went wrong.', 'error');
+                        }
+                    });
+                }
+            });
         }
 
-        function editpage(id) {
+        // Edit package
+        function editPackage(id) {
             window.location.href = "package.php?id=" + id;
         }
+
+        // Create new package
+        function createNewPackage() {
+            window.location.href = 'package.php';
+        }
+
+        // Show all services in a modal
+        function showAllServices(pk_package) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'getPackageServices',
+                    PK_PACKAGE: pk_package
+                },
+                success: function(data) {
+                    let services = JSON.parse(data);
+                    let serviceList = '';
+                    services.forEach(service => {
+                        serviceList += `<div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                        <span><i class="bi bi-tag me-2"></i>${service.SERVICE_CODE}</span>
+                        <span class="badge bg-primary rounded-pill">${service.NUMBER_OF_SESSION} session${service.NUMBER_OF_SESSION != 1 ? 's' : ''}</span>
+                    </div>`;
+                    });
+
+                    Swal.fire({
+                        title: 'Services in Package',
+                        html: `<div style="max-height: 400px; overflow-y: auto;">${serviceList}</div>`,
+                        icon: 'info',
+                        confirmButtonText: 'Close'
+                    });
+                },
+                error: function() {
+                    Swal.fire('Error', 'Could not load services', 'error');
+                }
+            });
+        }
     </script>
+
+    <?php
+    // Helper functions
+    function getPackageInitials($name)
+    {
+        $words = explode(' ', trim($name));
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper($word[0]);
+            }
+            if (strlen($initials) >= 2) break;
+        }
+        return $initials ?: 'PK';
+    }
+
+    function getPackageAvatarColor($index)
+    {
+        $gradients = [
+            ['start' => '#667eea', 'end' => '#764ba2'],
+            ['start' => '#f093fb', 'end' => '#f5576c'],
+            ['start' => '#4facfe', 'end' => '#00f2fe'],
+            ['start' => '#43e97b', 'end' => '#38f9d7'],
+            ['start' => '#fa709a', 'end' => '#fee140'],
+            ['start' => '#a18cd1', 'end' => '#fbc2eb'],
+            ['start' => '#ff9a9e', 'end' => '#fecfef'],
+            ['start' => '#ffecd2', 'end' => '#fcb69f'],
+            ['start' => '#a6c1ee', 'end' => '#fbc2eb'],
+            ['start' => '#fbc2eb', 'end' => '#a6c1ee']
+        ];
+        return $gradients[$index % count($gradients)];
+    }
+    ?>
 </body>
 
 </html>
