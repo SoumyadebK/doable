@@ -73,12 +73,12 @@ $corporations = $db->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar (same as users page) -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -118,7 +118,7 @@ $corporations = $db->Execute($query);
                                 <tr>
                                     <th style="width: 50px;">#</th>
                                     <th>Corporation Name</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 80px;">Actions</th>
                                 </tr>
                             </thead>
@@ -142,7 +142,7 @@ $corporations = $db->Execute($query);
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <?php if ($is_active): ?>
                                                 <span class="badge-status badge-active"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
                                             <?php else: ?>

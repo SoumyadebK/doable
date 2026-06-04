@@ -314,12 +314,12 @@ $services = $db_account->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -373,12 +373,12 @@ $services = $db_account->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Service Name / Code</th>
-                                    <th>Location</th>
-                                    <th>Description</th>
-                                    <th>Documents</th>
-                                    <th>Count on Calendar</th>
-                                    <th>Sort Order</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Description</th>
+                                    <th style="text-align: center;">Documents</th>
+                                    <th style="text-align: center;">Count on Calendar</th>
+                                    <th style="text-align: center;">Sort Order</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 80px;">Actions</th>
                                 </tr>
                             </thead>
@@ -418,40 +418,40 @@ $services = $db_account->Execute($query);
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="location-badge">
                                                     <i class="bi bi-geo-alt-fill text-secondary"></i> <?= htmlspecialchars($location_name) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <div class="description-text" title="<?= htmlspecialchars($description) ?>">
                                                     <?= htmlspecialchars(strlen($description) > 60 ? substr($description, 0, 60) . '...' : $description) ?>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="doc-count">
                                                     <i class="bi bi-paperclip"></i> <?= $doc_count ?> <?= $doc_count == 1 ? 'file' : 'files' ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <label class="switch">
                                                     <input type="checkbox" class="calendar-switch" data-service-id="<?= $PK_SERVICE_MASTER ?>" <?= $count_on_calendar ? 'checked' : '' ?>>
                                                     <span class="slider"></span>
                                                 </label>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="sort-order-badge">
                                                     <i class="bi bi-sort-numeric-down-alt me-1"></i> <?= htmlspecialchars($sort_order) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>
                                                     <span class="badge-status badge-inactive"><i class="bi bi-x-circle-fill"></i> Inactive</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <div class="action-icons">
                                                     <a href="javascript:;" onclick="editService(<?= $PK_SERVICE_MASTER ?>);" title="Edit" style="font-size:18px">
                                                         <i class="bi bi-pencil-square"></i>

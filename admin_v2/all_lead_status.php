@@ -224,12 +224,12 @@ $lead_statuses = $db->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -274,9 +274,9 @@ $lead_statuses = $db->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Status Name</th>
-                                    <th>Color</th>
-                                    <th>Sort Order</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Color</th>
+                                    <th style="text-align: center;">Sort Order</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;">Actions</th>
                                 </tr>
                             </thead>
@@ -308,19 +308,19 @@ $lead_statuses = $db->Execute($query);
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="d-flex align-items-center gap-2">
+                                                <div class="d-flex justify-content-center align-items-center gap-2">
                                                     <div class="color-swatch" style="background-color: <?= htmlspecialchars($status_color) ?>;"></div>
                                                     <span class="color-name" style="background: <?= htmlspecialchars($status_color) ?>20; border: 1px solid <?= htmlspecialchars($status_color) ?>40;">
                                                         <?= strtoupper(htmlspecialchars($status_color)) ?>
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="sort-order-badge">
                                                     <i class="bi bi-sort-numeric-down-alt me-1"></i> <?= htmlspecialchars($display_order) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>

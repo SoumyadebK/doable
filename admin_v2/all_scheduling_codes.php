@@ -228,12 +228,12 @@ $scheduling_codes = $db_account->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -269,14 +269,14 @@ $scheduling_codes = $db_account->Execute($query);
                             <thead>
                                 <tr>
                                     <th style="width: 40px;">#</th>
-                                    <th>Code</th>
-                                    <th>Name</th>
-                                    <th>Location</th>
-                                    <th>Duration</th>
-                                    <th>Color</th>
-                                    <th>To Dos</th>
-                                    <th>Sort Order</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Code</th>
+                                    <th style="text-align: center;">Name</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Duration</th>
+                                    <th style="text-align: center;">Color</th>
+                                    <th style="text-align: center;">To Dos</th>
+                                    <th style="text-align: center;">Sort Order</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;"></th>
                                 </tr>
                             </thead>
@@ -297,7 +297,7 @@ $scheduling_codes = $db_account->Execute($query);
                                         $to_dos = isset($scheduling_codes->fields['TO_DOS']) && $scheduling_codes->fields['TO_DOS'] == 1;
                                         $is_active = isset($scheduling_codes->fields['ACTIVE']) && $scheduling_codes->fields['ACTIVE'] == 1;
 
-                                        $duration_display = ($duration != '—' && $duration != '') ? $duration . ' ' . ($unit == '0.5' ? 'hr' : ($unit == '1' ? 'hr' : 'hrs')) : '—';
+                                        $duration_display = ($duration != '—' && $duration != '') ? $duration . ' min'  : '—';
                                         $initials = getSchedulingInitials($code, $name);
                                         $bg_color = getSchedulingAvatarColor($counter);
 
@@ -307,8 +307,8 @@ $scheduling_codes = $db_account->Execute($query);
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-3">
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center align-items-center gap-3">
                                                     <div>
                                                         <div class="fw-semibold mb-1">
                                                             <!-- Code Name displayed inside a colored box matching the scheduling code color -->
@@ -319,22 +319,22 @@ $scheduling_codes = $db_account->Execute($query);
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <div class="fw-semibold"><?= htmlspecialchars($name) ?></div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="location-badge">
                                                     <i class="bi bi-geo-alt-fill text-secondary"></i> <?= htmlspecialchars($location_name) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($duration_display != '—'): ?>
                                                     <span class="duration-chip"><i class="bi bi-clock"></i> <?= htmlspecialchars($duration_display) ?></span>
                                                 <?php else: ?>
                                                     <span class="text-muted small">—</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <!-- Color swatch + color name (hex) with the actual color background -->
                                                 <div class="d-flex align-items-center gap-2">
                                                     <div class="color-swatch" style="background-color: <?= htmlspecialchars($color_code) ?>; border: 1px solid rgba(0,0,0,0.1);"></div>
@@ -343,24 +343,24 @@ $scheduling_codes = $db_account->Execute($query);
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($to_dos): ?>
-                                                    <span class="badge-todo"><i class="bi bi-check2-circle"></i> Enabled</span>
+                                                    <span class="badge-todo"><i class="bi bi-check2-circle"></i></span>
                                                 <?php else: ?>
                                                     <span class="text-muted small">—</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="text-muted small fw-medium"><?= htmlspecialchars($sort_order) ?></span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>
                                                     <span class="badge-status badge-inactive"><i class="bi bi-x-circle-fill"></i> Inactive</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <div class="dropdown">
                                                     <i class="bi bi-three-dots-vertical text-muted cursor-pointer" data-bs-toggle="dropdown" style="cursor: pointer;"></i>
                                                     <ul class="dropdown-menu">

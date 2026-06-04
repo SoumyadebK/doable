@@ -287,12 +287,12 @@ $sms_logs = $db_account->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -348,12 +348,12 @@ $sms_logs = $db_account->Execute($query);
                             <thead>
                                 <tr>
                                     <th>Send Date</th>
-                                    <th>Location</th>
-                                    <th>Customer</th>
-                                    <th>Phone Number</th>
-                                    <th>Message</th>
-                                    <th>Status</th>
-                                    <th>Error Message</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Customer</th>
+                                    <th style="text-align: center;">Phone Number</th>
+                                    <th style="text-align: center;">Message</th>
+                                    <th style="text-align: center;">Status</th>
+                                    <th style="text-align: center;">Error Message</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -382,30 +382,30 @@ $sms_logs = $db_account->Execute($query);
                                                     <span class="small"><?= $formatted_date ?></span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <span class="badge bg-light text-dark px-3 py-2 rounded-pill small">
                                                     <i class="bi bi-geo-alt-fill me-1 text-secondary"></i> <?= htmlspecialchars($location_name) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div class="d-flex align-items-center">
                                                     <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                                     <span class="fw-medium"><?= htmlspecialchars($customer_name) ?></span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div class="d-flex align-items-center gap-1">
                                                     <i class="bi bi-telephone-fill text-muted small"></i>
                                                     <span><?= htmlspecialchars($phone_number) ?></span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div class="message-preview" title="<?= htmlspecialchars($message) ?>" onclick='showFullMessage(`<?= htmlspecialchars(str_replace("'", "\\'", $message)) ?>`)'>
                                                     <i class="bi bi-chat-text me-1 text-muted"></i>
                                                     <?= htmlspecialchars(strlen($message) > 60 ? substr($message, 0, 60) . '...' : $message) ?>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <?php if (!$is_error): ?>
                                                     <span class="badge-status badge-success">
                                                         <i class="bi bi-check-circle-fill"></i> Success
@@ -416,7 +416,7 @@ $sms_logs = $db_account->Execute($query);
                                                     </span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <?php if (!empty($error_message)): ?>
                                                     <div class="error-message" title="<?= htmlspecialchars($error_message) ?>">
                                                         <i class="bi bi-exclamation-triangle-fill me-1"></i>

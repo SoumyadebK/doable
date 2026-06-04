@@ -187,11 +187,14 @@ $gift_certificates = $db_account->Execute($query);
         }
 
         .date-text {
-            font-size: 0.75rem;
-            color: #64748b;
-            display: flex;
+            background: #f8f9fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            display: inline-flex;
             align-items: center;
             gap: 5px;
+            color: #475569;
         }
 
         @media (max-width: 768px) {
@@ -238,12 +241,12 @@ $gift_certificates = $db_account->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -293,9 +296,9 @@ $gift_certificates = $db_account->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Customer</th>
-                                    <th>Gift Certificate Name</th>
-                                    <th>Gift Certificate Code</th>
-                                    <th>Purchase Date</th>
+                                    <th style="text-align: center;">Gift Certificate Name</th>
+                                    <th style="text-align: center;">Gift Certificate Code</th>
+                                    <th style="text-align: center;">Purchase Date</th>
                                     <th style="text-align: center;">Amount</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="width: 100px;">Actions</th>
@@ -332,17 +335,17 @@ $gift_certificates = $db_account->Execute($query);
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div>
                                                     <span class="fw-medium"><?= htmlspecialchars($gift_name) ?></span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div>
                                                     <span class="fw-medium"><?= htmlspecialchars($gift_code) ?></span>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td style="text-align: center; vertical-align: middle;">
                                                 <div class="date-text">
                                                     <i class="bi bi-calendar3"></i> <?= $formatted_date ?>
                                                 </div>

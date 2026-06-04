@@ -82,12 +82,12 @@ $users = $db->Execute($query);
         <div class="row g-4">
 
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
 
                     <!-- Header -->
@@ -135,10 +135,10 @@ $users = $db->Execute($query);
                                         </div>
                                     </th>
                                     <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Location</th>
-                                    <th>Show as Recipient</th>
-                                    <th style="width: 40px;"></th>
+                                    <th style="text-align: center;">Role</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Show as Recipient</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -185,12 +185,15 @@ $users = $db->Execute($query);
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><?= implode(', ', array_slice($roles, 0, 2)) ?><?= count($roles) > 2 ? '...' : '' ?></td>
-                                        <td><?= implode(', ', array_slice($locations, 0, 2)) ?><?= count($locations) > 2 ? '...' : '' ?></td>
-                                        <td>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input recipient-switch" type="checkbox" role="switch"
-                                                    data-user-id="<?= $PK_USER ?>" <?= ($users->fields['IS_RECIPIENT'] == 1) ? 'checked' : '' ?>>
+                                        <td class="text-center"><?= implode(', ', array_slice($roles, 0)) ?></td>
+                                        <td class="text-center"><?= implode(', ', array_slice($locations, 0, 2)) ?><?= count($locations) > 2 ? '...' : '' ?></td>
+                                        <td class="text-center">
+                                            <div class="form-check form-switch d-flex justify-content-center align-items-center m-0">
+                                                <input class="form-check-input recipient-switch"
+                                                    type="checkbox"
+                                                    role="switch"
+                                                    data-user-id="<?= $PK_USER ?>"
+                                                    <?= ($users->fields['IS_RECIPIENT'] == 1) ? 'checked' : '' ?>>
                                             </div>
                                         </td>
                                         <td>

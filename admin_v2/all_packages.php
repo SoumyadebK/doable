@@ -279,12 +279,12 @@ $packages = $db_account->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -329,10 +329,10 @@ $packages = $db_account->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Package Name</th>
-                                    <th>Location</th>
-                                    <th>Services Included</th>
-                                    <th>Sort Order</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Services Included</th>
+                                    <th style="text-align: center;">Sort Order</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 80px;">Actions</th>
                                 </tr>
                             </thead>
@@ -378,12 +378,12 @@ $packages = $db_account->Execute($query);
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="location-badge">
                                                     <i class="bi bi-geo-alt-fill text-secondary"></i> <?= htmlspecialchars($location_name) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <div class="services-list">
                                                     <?php
                                                     $displayCount = 0;
@@ -414,12 +414,12 @@ $packages = $db_account->Execute($query);
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <span class="sort-order-badge">
                                                     <i class="bi bi-sort-numeric-down-alt me-1"></i> <?= htmlspecialchars($sort_order) ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>

@@ -1,5 +1,262 @@
 <?php
 require_once('../global/config.php');
+//session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['PK_USER'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'] ?? 0;
+$user_id = $_SESSION['PK_USER'];
+$current_time = date('Y-m-d H:i:s');
+
+// Handle AJAX requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+    header('Content-Type: application/json');
+
+    $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+    // Save automation
+    if ($action === 'save') {
+        try {
+            $conn = db_connect();
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            if (!$input) {
+                throw new Exception('Invalid input data');
+            }
+
+            $automation_id = $input['automation_id'] ?? 0;
+            $title = mysqli_real_escape_string($conn, $input['title']);
+            $is_active = $input['is_active'] ? 1 : 0;
+            $schedule_type = mysqli_real_escape_string($conn, $input['schedule_type']);
+            $start_reminder_value = intval($input['start_reminder_value']);
+            $start_reminder_unit = mysqli_real_escape_string($conn, $input['start_reminder_unit']);
+            $max_reminders = intval($input['max_reminders']);
+            $notify_service_provider = $input['notify_service_provider'] ? 1 : 0;
+            $notify_studio_manager = $input['notify_studio_manager'] ? 1 : 0;
+            $trigger_type = mysqli_real_escape_string($conn, $input['trigger_type'] ?? 'customer_completes_class');
+            $trigger_value = mysqli_real_escape_string($conn, $input['trigger_value'] ?? 'trial_class');
+            $condition_type = mysqli_real_escape_string($conn, $input['condition_type'] ?? 'customer_not_purchased_contract');
+            $condition_value = mysqli_real_escape_string($conn, json_encode($input['condition_value'] ?? []));
+            $custom_reminders = $input['custom_reminders'] ?? [];
+            $messages = $input['messages'] ?? [];
+
+            mysqli_begin_transaction($conn);
+
+            if ($automation_id > 0) {
+                $query = "UPDATE DOA_AUTOMATIONS SET 
+                            TITLE = '$title',
+                            IS_ACTIVE = $is_active,
+                            TRIGGER_TYPE = '$trigger_type',
+                            TRIGGER_VALUE = '$trigger_value',
+                            CONDITION_TYPE = '$condition_type',
+                            CONDITION_VALUE = '$condition_value',
+                            SCHEDULE_TYPE = '$schedule_type',
+                            START_REMINDER_VALUE = $start_reminder_value,
+                            START_REMINDER_UNIT = '$start_reminder_unit',
+                            MAX_REMINDERS = $max_reminders,
+                            NOTIFY_SERVICE_PROVIDER = $notify_service_provider,
+                            NOTIFY_STUDIO_MANAGER = $notify_studio_manager,
+                            EDITED_ON = '$current_time',
+                            EDITED_BY = $user_id
+                          WHERE PK_AUTOMATION_ID = $automation_id 
+                          AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER";
+
+                if (!mysqli_query($conn, $query)) {
+                    throw new Exception('Failed to update automation: ' . mysqli_error($conn));
+                }
+
+                mysqli_query($conn, "DELETE FROM DOA_AUTOMATION_REMINDERS WHERE PK_AUTOMATION_ID = $automation_id");
+                mysqli_query($conn, "DELETE FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = $automation_id");
+            } else {
+                $query = "INSERT INTO DOA_AUTOMATIONS (
+                            PK_ACCOUNT_MASTER, TITLE, IS_ACTIVE, TRIGGER_TYPE, TRIGGER_VALUE,
+                            CONDITION_TYPE, CONDITION_VALUE, SCHEDULE_TYPE, START_REMINDER_VALUE,
+                            START_REMINDER_UNIT, MAX_REMINDERS, NOTIFY_SERVICE_PROVIDER,
+                            NOTIFY_STUDIO_MANAGER, CREATED_ON, CREATED_BY, EDITED_ON, EDITED_BY
+                          ) VALUES (
+                            $PK_ACCOUNT_MASTER, '$title', $is_active, '$trigger_type', '$trigger_value',
+                            '$condition_type', '$condition_value', '$schedule_type', $start_reminder_value,
+                            '$start_reminder_unit', $max_reminders, $notify_service_provider,
+                            $notify_studio_manager, '$current_time', $user_id, '$current_time', $user_id
+                          )";
+
+                if (!mysqli_query($conn, $query)) {
+                    throw new Exception('Failed to create automation: ' . mysqli_error($conn));
+                }
+                $automation_id = mysqli_insert_id($conn);
+            }
+
+            if ($schedule_type === 'custom' && !empty($custom_reminders)) {
+                foreach ($custom_reminders as $order => $reminder) {
+                    $is_enabled = $reminder['enabled'] ? 1 : 0;
+                    $value = intval($reminder['value']);
+                    $unit = mysqli_real_escape_string($conn, $reminder['unit']);
+
+                    $query = "INSERT INTO DOA_AUTOMATION_REMINDERS (
+                                PK_AUTOMATION_ID, REMINDER_ORDER, IS_ENABLED, VALUE, UNIT, 
+                                CREATED_ON, EDITED_ON
+                              ) VALUES (
+                                $automation_id, $order, $is_enabled, $value, '$unit',
+                                '$current_time', '$current_time'
+                              )";
+
+                    if (!mysqli_query($conn, $query)) {
+                        throw new Exception('Failed to save reminder: ' . mysqli_error($conn));
+                    }
+                }
+            }
+
+            foreach ($messages as $index => $message_content) {
+                $clean_content = mysqli_real_escape_string($conn, $message_content);
+                $follow_up_number = $index + 1;
+
+                $query = "INSERT INTO DOA_AUTOMATION_MESSAGES (
+                            PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, 
+                            CREATED_ON, EDITED_ON
+                          ) VALUES (
+                            $automation_id, $follow_up_number, '$clean_content',
+                            '$current_time', '$current_time'
+                          )";
+
+                if (!mysqli_query($conn, $query)) {
+                    throw new Exception('Failed to save message template: ' . mysqli_error($conn));
+                }
+            }
+
+            mysqli_commit($conn);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Automation saved successfully',
+                'automation_id' => $automation_id
+            ]);
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+
+    // Load automation
+    if ($action === 'load') {
+        $automation_id = intval($_GET['id'] ?? 0);
+
+        if ($automation_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid automation ID']);
+            exit;
+        }
+
+        try {
+            $conn = db_connect();
+
+            $query = "SELECT * FROM DOA_AUTOMATIONS 
+                      WHERE PK_AUTOMATION_ID = $automation_id 
+                      AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER";
+
+            $result = mysqli_query($conn, $query);
+            $automation = mysqli_fetch_assoc($result);
+
+            if (!$automation) {
+                throw new Exception('Automation not found');
+            }
+
+            $reminders = [];
+            $query = "SELECT * FROM DOA_AUTOMATION_REMINDERS 
+                      WHERE PK_AUTOMATION_ID = $automation_id 
+                      ORDER BY REMINDER_ORDER";
+            $result = mysqli_query($conn, $query);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $reminders[] = [
+                    'enabled' => (bool)$row['IS_ENABLED'],
+                    'value' => intval($row['VALUE']),
+                    'unit' => $row['UNIT']
+                ];
+            }
+
+            $messages = [];
+            $query = "SELECT * FROM DOA_AUTOMATION_MESSAGES 
+                      WHERE PK_AUTOMATION_ID = $automation_id 
+                      ORDER BY FOLLOW_UP_NUMBER";
+            $result = mysqli_query($conn, $query);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $messages[] = $row['MESSAGE_CONTENT'];
+            }
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'automation_id' => $automation['PK_AUTOMATION_ID'],
+                    'title' => $automation['TITLE'],
+                    'is_active' => (bool)$automation['IS_ACTIVE'],
+                    'trigger_type' => $automation['TRIGGER_TYPE'],
+                    'trigger_value' => $automation['TRIGGER_VALUE'],
+                    'condition_type' => $automation['CONDITION_TYPE'],
+                    'condition_value' => json_decode($automation['CONDITION_VALUE'], true),
+                    'schedule_type' => $automation['SCHEDULE_TYPE'],
+                    'start_reminder_value' => intval($automation['START_REMINDER_VALUE']),
+                    'start_reminder_unit' => $automation['START_REMINDER_UNIT'],
+                    'max_reminders' => intval($automation['MAX_REMINDERS']),
+                    'notify_service_provider' => (bool)$automation['NOTIFY_SERVICE_PROVIDER'],
+                    'notify_studio_manager' => (bool)$automation['NOTIFY_STUDIO_MANAGER'],
+                    'custom_reminders' => $reminders,
+                    'messages' => $messages
+                ]
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+
+    // Delete automation
+    if ($action === 'delete') {
+        $automation_id = intval($_POST['automation_id'] ?? 0);
+
+        if ($automation_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid automation ID']);
+            exit;
+        }
+
+        try {
+            $conn = db_connect();
+
+            $query = "DELETE FROM DOA_AUTOMATIONS 
+                      WHERE PK_AUTOMATION_ID = $automation_id 
+                      AND PK_ACCOUNT_MASTER = $PK_ACCOUNT_MASTER";
+
+            if (mysqli_query($conn, $query)) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Automation deleted successfully'
+                ]);
+            } else {
+                throw new Exception('Failed to delete automation');
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+}
+
+// Get automation ID from URL for editing
+$automation_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,7 +282,6 @@ require_once('../global/config.php');
             color: #1e293b;
         }
 
-        /* Sidebar styling */
         .sidebar-card {
             background: #ffffff;
             border-radius: 20px;
@@ -74,7 +330,6 @@ require_once('../global/config.php');
             color: #10b981;
         }
 
-        /* main panel */
         .main-card {
             background: #ffffff;
             border-radius: 24px;
@@ -246,7 +501,6 @@ require_once('../global/config.php');
             }
         }
 
-        /* Make checkboxes visible */
         .form-check-input[type="checkbox"] {
             width: 1.2em;
             height: 1.2em;
@@ -266,34 +520,57 @@ require_once('../global/config.php');
             border-color: #10b981;
         }
 
-        /* Ensure the flex layout doesn't hide the checkboxes */
         .d-flex.align-items-center.gap-2 {
             display: flex !important;
             align-items: center !important;
             gap: 0.5rem !important;
         }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
     </style>
 </head>
 
 <body>
+    <div class="loading">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 
     <div class="container-fluid py-4 px-3 dashboard-container">
         <div class="row g-4">
-            <!-- Left Sidebar (similar style) -->
             <div class="col-12 col-md-4 col-xl-3">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
-            <!-- Main content -->
             <div class="col-12 col-md-8 col-lg-9">
                 <div class="main-card p-4">
                     <div class="main-header border-bottom pb-3 mb-4 d-flex align-items-center gap-2">
-                        <a href="#" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a>
+                        <a href="automations_list.php" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a>
                         <h2 class="h5 mb-0 fw-semibold">Automations</h2>
                     </div>
 
                     <form id="automationForm">
-                        <!-- Title & toggle -->
                         <div class="form-section row align-items-end mb-4">
                             <div class="col">
                                 <label class="form-label-custom">Title</label>
@@ -307,28 +584,29 @@ require_once('../global/config.php');
                             </div>
                         </div>
 
-                        <!-- Triggers and conditions (static demo) -->
                         <div class="form-section mb-4">
                             <label class="form-label-custom">When this happens</label>
                             <div class="row g-2 mb-2">
-                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light">
-                                        <option>Customer completes a class</option>
+                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light" id="triggerType">
+                                        <option value="customer_completes_class">Customer completes a class</option>
                                     </select></div>
-                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light">
-                                        <option>Trial class</option>
+                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light" id="triggerValue">
+                                        <option value="trial_class">Trial class</option>
                                     </select></div>
                             </div>
                             <button type="button" class="btn btn-pill-outline mt-1">Add a trigger</button>
                         </div>
+
                         <div class="form-section mb-4">
                             <label class="form-label-custom">Only if</label>
                             <div class="row mb-2">
-                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light">
-                                        <option>Customer has not purchased a contract</option>
+                                <div class="col-12 col-sm-6"><select class="form-select form-select-custom bg-light" id="conditionType">
+                                        <option value="customer_not_purchased_contract">Customer has not purchased a contract</option>
                                     </select></div>
                             </div>
                             <button type="button" class="btn btn-pill-outline mt-1">Add a condition</button>
                         </div>
+
                         <div class="form-section mb-4">
                             <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                 <span class="text-dark small fw-medium">Start first reminder</span>
@@ -340,6 +618,7 @@ require_once('../global/config.php');
                             </div>
                             <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
                         </div>
+
                         <div class="form-section mb-4">
                             <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                 <span class="text-dark small fw-medium">Send up to</span>
@@ -349,7 +628,6 @@ require_once('../global/config.php');
                             <span class="text-muted extra-small">Stops immediately once conditions are no longer met</span>
                         </div>
 
-                        <!-- Schedule radio buttons + custom matrix area -->
                         <div class="form-section mb-4">
                             <label class="form-label-custom mb-2">Schedule</label>
                             <div class="d-flex flex-column gap-2 mb-3">
@@ -363,7 +641,6 @@ require_once('../global/config.php');
                                 </div>
                             </div>
 
-                            <!-- CUSTOM SCHEDULE MATRIX (initially visible because custom selected) -->
                             <div id="customScheduleContainer" class="custom-schedule-matrix ms-0 ms-md-3 mt-3">
                                 <div class="row text-muted extra-small fw-semibold mb-2 g-2 align-items-center">
                                     <div class="col-1">Reminder</div>
@@ -376,7 +653,6 @@ require_once('../global/config.php');
                             </div>
                         </div>
 
-                        <!-- Who gets notified -->
                         <div class="form-section mb-4">
                             <label class="form-label-custom mb-2">Who gets notified</label>
                             <div class="d-flex align-items-center gap-2 mb-2">
@@ -389,14 +665,11 @@ require_once('../global/config.php');
                             </div>
                         </div>
 
-                        <!-- Message Templates Accordion (fully working variable buttons and editable) -->
                         <div class="form-section mb-3">
                             <label class="form-label-custom mb-1">Message templates</label>
                             <p class="text-muted extra-small mb-2">Optionally provide example language. This will only appear in the To Do list item for the assigned team members.</p>
                         </div>
-                        <div class="accordion custom-accordion mb-4" id="messagesAccordion">
-                            <!-- dynamic follow-ups will be generated from maxReminders, but to keep full interaction we prebuild 5 follow-ups with variable insertion -->
-                        </div>
+                        <div class="accordion custom-accordion mb-4" id="messagesAccordion"></div>
 
                         <div class="mt-4 text-center">
                             <button type="submit" class="btn btn-save-automation w-100 py-2 fw-semibold mb-3">Save Automation</button>
@@ -410,7 +683,7 @@ require_once('../global/config.php');
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ---------- CUSTOM SCHEDULE STATE ----------
+        const automationId = <?php echo $automation_id ?: 'null'; ?>;
         let reminders = [{
                 id: Date.now() + 1,
                 enabled: true,
@@ -443,7 +716,14 @@ require_once('../global/config.php');
             }
         ];
 
-        // Helper: render custom schedule rows
+        function showLoading() {
+            document.querySelector('.loading').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.querySelector('.loading').classList.remove('active');
+        }
+
         function renderReminders() {
             const container = document.getElementById('remindersList');
             if (!container) return;
@@ -453,25 +733,25 @@ require_once('../global/config.php');
                 rowDiv.className = 'row align-items-center g-2 mb-3 reminder-row';
                 rowDiv.setAttribute('data-id', rem.id);
                 rowDiv.innerHTML = `
-                <div class="col-1 text-dark small fw-medium ps-2">${idx+1}</div>
-                <div class="col-1 d-flex justify-content-center">
-                    <div class="m-0 p-0">
-                        <input class="reminder-enabled" type="checkbox" ${rem.enabled ? 'checked' : ''}>
+                    <div class="col-1 text-dark small fw-medium ps-2">${idx+1}</div>
+                    <div class="col-1 d-flex justify-content-center">
+                        <div class="m-0 p-0">
+                            <input class="reminder-enabled" type="checkbox" ${rem.enabled ? 'checked' : ''}>
+                        </div>
                     </div>
-                </div>
-                <div class="col-2 d-flex align-items-center gap-2 flex-wrap">
-                    <input type="number" class="form-control form-control-inline bg-light text-center reminder-value" value="${rem.value}" style="width:75px">
-                    <select class="form-select form-select-inline bg-light reminder-unit" style="width:80px">
-                        <option value="Days" ${rem.unit === 'Days' ? 'selected' : ''}>Days</option>
-                        <option value="Hours" ${rem.unit === 'Hours' ? 'selected' : ''}>Hours</option>
-                        <option value="Weeks" ${rem.unit === 'Weeks' ? 'selected' : ''}>Weeks</option>
-                    </select>
-                </div>
-                <div class="col-1 text-center">
-                    <button type="button" class="btn btn-link p-0 text-muted delete-reminder-btn"><i class="bi bi-trash3"></i></button>
-                </div>
-            `;
-                // attach event to delete button
+                    <div class="col-2 d-flex align-items-center gap-2 flex-wrap">
+                        <input type="number" class="form-control form-control-inline bg-light text-center reminder-value" value="${rem.value}" style="width:75px">
+                        <select class="form-select form-select-inline bg-light reminder-unit" style="width:80px">
+                            <option value="Days" ${rem.unit === 'Days' ? 'selected' : ''}>Days</option>
+                            <option value="Hours" ${rem.unit === 'Hours' ? 'selected' : ''}>Hours</option>
+                            <option value="Weeks" ${rem.unit === 'Weeks' ? 'selected' : ''}>Weeks</option>
+                        </select>
+                    </div>
+                    <div class="col-1 text-center">
+                        <button type="button" class="btn btn-link p-0 text-muted delete-reminder-btn"><i class="bi bi-trash3"></i></button>
+                    </div>
+                `;
+
                 const delBtn = rowDiv.querySelector('.delete-reminder-btn');
                 delBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -482,7 +762,7 @@ require_once('../global/config.php');
                     reminders = reminders.filter(r => r.id !== rem.id);
                     renderReminders();
                 });
-                // attach change events to update state
+
                 const enableChk = rowDiv.querySelector('.reminder-enabled');
                 const valueInp = rowDiv.querySelector('.reminder-value');
                 const unitSel = rowDiv.querySelector('.reminder-unit');
@@ -499,11 +779,9 @@ require_once('../global/config.php');
             });
         }
 
-        // add reminder button
         function addNewReminder() {
-            const newId = Date.now();
             reminders.push({
-                id: newId,
+                id: Date.now(),
                 enabled: true,
                 value: 1,
                 unit: "Days"
@@ -511,37 +789,61 @@ require_once('../global/config.php');
             renderReminders();
         }
 
-        // handle schedule radio toggle: show/hide custom matrix and also optionally hide simple interval UI
-        // in the design, we already have simple interval above? but specification: when custom selected, custom section appears.
-        // The simple schedule part (start reminder + send up to) remains but the custom matrix shows fully interactive.
-        // Also the "Simple" radio will hide the custom matrix and simple schedule will be used.
         const radioSimple = document.getElementById('radioSimple');
         const radioCustom = document.getElementById('radioCustom');
         const customContainerDiv = document.getElementById('customScheduleContainer');
 
         function toggleScheduleDisplay() {
-            if (radioCustom.checked) {
-                if (customContainerDiv) customContainerDiv.style.display = 'block';
-            } else {
-                if (customContainerDiv) customContainerDiv.style.display = 'none';
+            if (customContainerDiv) {
+                customContainerDiv.style.display = radioCustom.checked ? 'block' : 'none';
             }
         }
 
         if (radioSimple && radioCustom) {
             radioSimple.addEventListener('change', toggleScheduleDisplay);
             radioCustom.addEventListener('change', toggleScheduleDisplay);
-            toggleScheduleDisplay(); // initial
+            toggleScheduleDisplay();
         }
 
-        // Attach add reminder button listener after DOM ready
         document.getElementById('addReminderBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
             addNewReminder();
         });
 
-        // ========== MESSAGE ACCORDION DYNAMIC GENERATION (fully functional variable insertion) ==========
-        // We'll generate 5 Follow-up accordion items matching the maxReminders but also keep editability.
-        // For full variable buttons, each accordion body will contain editable region + variable chips.
+        function attachVariableButtons() {
+            document.querySelectorAll('.var-btn').forEach(btn => {
+                btn.removeEventListener('click', handleVariableInsert);
+                btn.addEventListener('click', handleVariableInsert);
+            });
+        }
+
+        function handleVariableInsert(e) {
+            e.preventDefault();
+            const varName = this.getAttribute('data-var');
+            const accordBody = this.closest('.accordion-body');
+            if (accordBody) {
+                const editableDiv = accordBody.querySelector('.editable-content-area');
+                if (editableDiv) {
+                    const variableSpan = document.createElement('span');
+                    variableSpan.className = 'variable-badge';
+                    variableSpan.setAttribute('contenteditable', 'false');
+                    variableSpan.innerText = varName;
+                    editableDiv.focus();
+                    const selection = window.getSelection();
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(variableSpan);
+                    range.collapse(false);
+                    const spaceNode = document.createTextNode('\u00A0');
+                    range.insertNode(spaceNode);
+                    range.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    editableDiv.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+
         function buildAccordionItems(count) {
             const accordionContainer = document.getElementById('messagesAccordion');
             if (!accordionContainer) return;
@@ -560,68 +862,35 @@ require_once('../global/config.php');
                 const collapseId = `collapseFollow${i}`;
                 const expanded = (i === 1);
                 accordionItem.innerHTML = `
-                <h2 class="accordion-header" id="${headerId}">
-                    <button class="accordion-button ${expanded ? '' : 'collapsed'} fs-6 text-dark fw-medium py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="${expanded}" aria-controls="${collapseId}">
-                        Follow up ${i}
-                    </button>
-                </h2>
-                <div id="${collapseId}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="${headerId}" data-bs-parent="#messagesAccordion">
-                    <div class="accordion-body p-3 pt-1">
-                        <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
-                            <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">
-                                ${sampleTexts[(i-1) % sampleTexts.length]}
+                    <h2 class="accordion-header" id="${headerId}">
+                        <button class="accordion-button ${expanded ? '' : 'collapsed'} fs-6 text-dark fw-medium py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="${expanded}" aria-controls="${collapseId}">
+                            Follow up ${i}
+                        </button>
+                    </h2>
+                    <div id="${collapseId}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="${headerId}" data-bs-parent="#messagesAccordion">
+                        <div class="accordion-body p-3 pt-1">
+                            <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
+                                <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">
+                                    ${sampleTexts[(i-1) % sampleTexts.length]}
+                                </div>
                             </div>
-                        </div>
-                        <div class="variables-section">
-                            <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
-                            <div class="d-flex flex-wrap gap-1">
-                                <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
-                                <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
-                                <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
-                                <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                            <div class="variables-section">
+                                <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
                 accordionContainer.appendChild(accordionItem);
             }
-            // attach variable insertion logic for all variable buttons after rendering
-            document.querySelectorAll('.var-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const varName = btn.getAttribute('data-var');
-                    // find the parent accordion-body -> editable area
-                    const accordBody = btn.closest('.accordion-body');
-                    if (accordBody) {
-                        const editableDiv = accordBody.querySelector('.editable-content-area');
-                        if (editableDiv) {
-                            const variableSpan = document.createElement('span');
-                            variableSpan.className = 'variable-badge';
-                            variableSpan.setAttribute('contenteditable', 'false');
-                            variableSpan.innerText = varName;
-                            // insert at cursor position (simplified: append, but better: focus & insert)
-                            editableDiv.focus();
-                            const selection = window.getSelection();
-                            const range = selection.getRangeAt(0);
-                            range.deleteContents();
-                            range.insertNode(variableSpan);
-                            range.collapse(false);
-                            // add a space after
-                            const spaceNode = document.createTextNode('\u00A0');
-                            range.insertNode(spaceNode);
-                            range.collapse(false);
-                            selection.removeAllRanges();
-                            selection.addRange(range);
-                            editableDiv.dispatchEvent(new Event('input'));
-                        }
-                    }
-                });
-            });
-            // ensure existing variable badges are non-editable (they already are)
+            attachVariableButtons();
         }
 
-        // Sync number of follow-ups with maxReminders input (live)
         const maxRemindersInput = document.getElementById('maxReminders');
 
         function updateAccordionCount() {
@@ -630,100 +899,202 @@ require_once('../global/config.php');
             if (maxVal > 20) maxVal = 20;
             buildAccordionItems(maxVal);
         }
+
         if (maxRemindersInput) {
             maxRemindersInput.addEventListener('change', updateAccordionCount);
-            // also on load generate initial 5 according to current value (5)
             updateAccordionCount();
         } else {
             buildAccordionItems(5);
         }
 
-        // also sync the "Start first reminder" simple fields and "send up to" can be used for demo but custom matrix overrides.
-        // functionality for insert variable from tokens works for all accordions.
+        async function saveAutomation() {
+            showLoading();
 
-        // Delete automation button alert simulation
-        const deleteBtn = document.getElementById('deleteAutomationBtn');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (confirm('Are you sure you want to delete this automation? This action cannot be undone.')) {
-                    alert('Automation deleted (demo)');
-                    // optional reset form
-                    document.getElementById('automationForm').reset();
-                    reminders = [{
-                        id: Date.now(),
-                        enabled: true,
-                        value: 1,
-                        unit: "Days"
-                    }];
-                    renderReminders();
-                    updateAccordionCount();
-                }
+            const title = document.getElementById('automationTitle')?.value || '';
+            const isActive = document.getElementById('automationToggle')?.checked;
+            const scheduleType = radioCustom.checked ? 'custom' : 'simple';
+
+            let customRemindersData = [];
+            if (scheduleType === 'custom') {
+                customRemindersData = reminders.map(r => ({
+                    enabled: r.enabled,
+                    value: r.value,
+                    unit: r.unit
+                }));
+            }
+
+            const messages = [];
+            const accordItems = document.querySelectorAll('#messagesAccordion .accordion-item');
+            accordItems.forEach((item) => {
+                const editableDiv = item.querySelector('.editable-content-area');
+                messages.push(editableDiv ? editableDiv.innerHTML : '');
             });
+
+            const automationData = {
+                automation_id: automationId || 0,
+                title: title,
+                is_active: isActive,
+                schedule_type: scheduleType,
+                start_reminder_value: document.getElementById('startReminderValue')?.value || 3,
+                start_reminder_unit: document.getElementById('startReminderUnit')?.value || 'Days',
+                max_reminders: maxRemindersInput?.value || 5,
+                notify_service_provider: document.getElementById('checkServiceProvider')?.checked,
+                notify_studio_manager: document.getElementById('checkStudioManager')?.checked,
+                trigger_type: document.getElementById('triggerType')?.value || 'customer_completes_class',
+                trigger_value: document.getElementById('triggerValue')?.value || 'trial_class',
+                condition_type: document.getElementById('conditionType')?.value || 'customer_not_purchased_contract',
+                condition_value: {},
+                custom_reminders: customRemindersData,
+                messages: messages
+            };
+
+            try {
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(automationData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Automation saved successfully!');
+                    if (!automationId && result.automation_id) {
+                        window.location.href = `?id=${result.automation_id}`;
+                    }
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving automation:', error);
+                alert('An error occurred while saving the automation');
+            } finally {
+                hideLoading();
+            }
         }
 
-        // Save automation: collect data
-        const saveBtn = document.querySelector('.btn-save-automation');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const title = document.getElementById('automationTitle')?.value || '';
-                const isActive = document.getElementById('automationToggle')?.checked;
-                const scheduleType = radioCustom.checked ? 'custom' : 'simple';
-                let customRemindersData = [];
-                if (scheduleType === 'custom') {
-                    customRemindersData = reminders.map(r => ({
-                        enabled: r.enabled,
-                        value: r.value,
-                        unit: r.unit
-                    }));
-                }
-                const notified = {
-                    serviceProvider: document.getElementById('checkServiceProvider')?.checked,
-                    studioManager: document.getElementById('checkStudioManager')?.checked
-                };
-                // extract message templates from each follow-up accordion
-                const messages = [];
-                const accordItems = document.querySelectorAll('#messagesAccordion .accordion-item');
-                accordItems.forEach((item, idx) => {
-                    const editableDiv = item.querySelector('.editable-content-area');
-                    if (editableDiv) {
-                        // capture inner HTML with variable spans
-                        messages.push(editableDiv.innerHTML);
-                    } else {
-                        messages.push('');
+        async function loadAutomation(id) {
+            showLoading();
+            try {
+                const response = await fetch(`${window.location.href}?action=load&id=${id}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                console.log('Saved Automation:', {
-                    title,
-                    isActive,
-                    scheduleType,
-                    customRemindersData,
-                    notified,
-                    messages,
-                    startReminderValue: document.getElementById('startReminderValue')?.value,
-                    maxReminders: maxRemindersInput?.value
-                });
-                alert('Automation saved successfully! (demo)');
-            });
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const data = result.data;
+                    document.getElementById('automationTitle').value = data.title;
+                    document.getElementById('automationToggle').checked = data.is_active;
+                    document.getElementById('startReminderValue').value = data.start_reminder_value;
+                    document.getElementById('startReminderUnit').value = data.start_reminder_unit;
+                    document.getElementById('maxReminders').value = data.max_reminders;
+                    document.getElementById('checkServiceProvider').checked = data.notify_service_provider;
+                    document.getElementById('checkStudioManager').checked = data.notify_studio_manager;
+
+                    if (data.schedule_type === 'simple') {
+                        radioSimple.checked = true;
+                        radioCustom.checked = false;
+                    } else {
+                        radioSimple.checked = false;
+                        radioCustom.checked = true;
+                    }
+                    toggleScheduleDisplay();
+
+                    if (data.custom_reminders && data.custom_reminders.length > 0) {
+                        reminders = data.custom_reminders.map((rem, idx) => ({
+                            id: Date.now() + idx,
+                            enabled: rem.enabled,
+                            value: rem.value,
+                            unit: rem.unit
+                        }));
+                        renderReminders();
+                    }
+
+                    if (data.messages && data.messages.length > 0) {
+                        maxRemindersInput.value = data.messages.length;
+                        buildAccordionItems(data.messages.length);
+                        setTimeout(() => {
+                            const accordItems = document.querySelectorAll('#messagesAccordion .accordion-item');
+                            accordItems.forEach((item, idx) => {
+                                const editableDiv = item.querySelector('.editable-content-area');
+                                if (editableDiv && data.messages[idx]) {
+                                    editableDiv.innerHTML = data.messages[idx];
+                                }
+                            });
+                        }, 100);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading automation:', error);
+            } finally {
+                hideLoading();
+            }
         }
 
-        // also ensure delete individual reminder rows works fully and the "Add another reminder" pushes new row.
-        // for the "Simple" mode: optionally hide custom matrix, but we already handle that.
-        // Also make sure that when custom radio is selected, the custom schedule matrix is fully interactive, and delete row & add row, checkbox toggles all work.
-        // fix initial render of reminders after DOM ready
-        renderReminders();
+        async function deleteAutomation() {
+            if (!automationId) {
+                alert('No automation to delete');
+                return;
+            }
 
-        // small edge: when maxReminders changes, we also want to make sure variable buttons inside newly built accordion still attach events (handled inside buildAccordionItems)
-        // Additional for any dynamic follow-ups: we reassign variable clicks in buildAccordionItems. Also reinit on any change.
-        // support for "editable-content-area" to maintain variable badges; badges are non-editable.
-        // set up event delegation for variable buttons re-init after accordion dynamic? Already inside building function.
-        // plus for delete reminder rows confirmation
-        // Also final sync on load: ensure custom schedule is visible
+            if (!confirm('Are you sure you want to delete this automation? This action cannot be undone.')) {
+                return;
+            }
+
+            showLoading();
+            try {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('automation_id', automationId);
+
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Automation deleted successfully!');
+                    window.location.href = 'automations_list.php';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting automation:', error);
+                alert('An error occurred while deleting the automation');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('automationForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveAutomation();
+        });
+
+        document.getElementById('deleteAutomationBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            deleteAutomation();
+        });
+
+        if (automationId) {
+            loadAutomation(automationId);
+        }
+
+        renderReminders();
         window.addEventListener('load', () => {
             renderReminders();
             toggleScheduleDisplay();
-            // ensure all current delete buttons working
         });
     </script>
 </body>

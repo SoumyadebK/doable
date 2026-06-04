@@ -94,12 +94,12 @@ $locations = $db->Execute($query);
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
             <!-- Sidebar (same as users page) -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
             <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="main-card">
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -136,10 +136,10 @@ $locations = $db->Execute($query);
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th>Location</th>
-                                    <th>Corporation</th>
-                                    <th>City</th>
-                                    <th>Contact</th>
-                                    <th>Status</th>
+                                    <th style="text-align: center;">Corporation</th>
+                                    <th style="text-align: center;">City</th>
+                                    <th style="text-align: center;">Contact</th>
+                                    <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;">Actions</th>
                                 </tr>
                             </thead>
@@ -173,22 +173,22 @@ $locations = $db->Execute($query);
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <span class="info-chip">
                                                 <i class="bi bi-building me-1"></i> <?= htmlspecialchars($corp_name) ?>
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <i class="bi bi-pin-map-fill text-secondary me-1"></i> <?= htmlspecialchars($city) ?>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <?php if ($phone != '—'): ?>
                                                 <div><i class="bi bi-telephone"></i> <?= htmlspecialchars($phone) ?></div>
                                             <?php else: ?>
                                                 <span class="text-muted small">—</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <?php if ($is_active): ?>
                                                 <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                             <?php else: ?>
