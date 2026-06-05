@@ -6,6 +6,12 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 } else {
     $current_address = $url_array[2];
 }
+
+$LOCATIONS = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
+if (count($LOCATIONS) == 1) {
+    $location_data = $db->Execute("SELECT FOCUSBIZ_ACCESS_TOKEN FROM DOA_LOCATION WHERE PK_LOCATION = " . $LOCATIONS[0]);
+    $FOCUSBIZ_ACCESS_TOKEN = ($location_data->RecordCount() > 0) ? $location_data->fields['FOCUSBIZ_ACCESS_TOKEN'] : '';
+}
 ?>
 <style>
     .navbar-nav .nav-link {
@@ -346,12 +352,22 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         </div>
 
         <div class="d-flex align-items-center" style="gap: 1.5rem !important;">
+
+            <?php if (($_SESSION['TICKET_SYSTEM_ACCESS'] == 1) && (count($LOCATIONS) == 1) && ($FOCUSBIZ_ACCESS_TOKEN != null && $FOCUSBIZ_ACCESS_TOKEN != '')): ?>
+                <div class="topbar-item d-none d-sm-flex">
+                    <a class="top-bar-icon" target="_blank" href="https://focusbiz.com/sso.php?t=<?= $FOCUSBIZ_ACCESS_TOKEN ?>">
+                        <i class="fa fa-ticket" aria-hidden="true" style="font-size: 22px;"></i>
+                    </a>
+                </div>
+            <?php endif; ?>
+
+
             <?php if ($_SESSION["PK_ROLES"] == 2 || $_SESSION["PK_ROLES"] == 4 || $_SESSION["PK_ROLES"] == 11) { ?>
                 <div class="topbar-item d-none d-sm-flex">
                     <a class="top-bar-icon" href="javascript:" onclick="getCartItemList()" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <!--<div class="notify" id="cart_notify" style="display: <?php /*=(isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0)?'':'none'*/ ?>;"> <span class="button"></span> </div>-->
                         <div class="button">
-                            <i class="fa fa-shopping-cart" aria-hidden="true" style="font-size: 18px"></i>
+                            <i class="fa fa-shopping-cart" aria-hidden="true" style="font-size: 20px"></i>
                             <span class="button__badge" id="cart_count"><?= (isset($_SESSION['CART_DATA']) && count($_SESSION['CART_DATA']) > 0) ? count($_SESSION['CART_DATA']) : 0 ?></span>
                         </div>
                     </a>
@@ -371,6 +387,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                     </div>
                 </div>
             <?php } ?>
+
             <div class="topbar-item d-none d-sm-flex">
                 <a class="top-bar-icon" href="to_do_list.php">
                     <i class="fa fa-tasks" aria-hidden="true" style="font-size: 18px;"></i>
