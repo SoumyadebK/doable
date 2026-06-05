@@ -1,56 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
 <?php
 require_once('../global/config.php');
-$title = "All Corporations";
+$title = "All Follow Ups";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
 
-// Fetch header text (optional note)
-$header_text = '';
-$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Corporations page'");
-if ($header_data->RecordCount() > 0) {
-    $header_text = $header_data->fields['HEADER_TEXT'];
+// Handle AJAX request for status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+
+    // Get the raw POST data
+    $automation_id = isset($_POST['automation_id']) ? intval($_POST['automation_id']) : 0;
+    $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+    $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+
+    if ($automation_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid automation ID']);
+        exit;
+    }
+
+    // Update the automation status
+    $update_data = array(
+        'IS_ACTIVE' => $is_active,
+        'EDITED_BY' => $_SESSION['PK_USER'],
+        'EDITED_ON' => date("Y-m-d H:i:s")
+    );
+
+    $result = db_perform_account('DOA_AUTOMATIONS', $update_data, 'update', " PK_AUTOMATION_ID = '$automation_id' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+
+    if ($result) {
+        echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update status in database']);
+    }
+    exit;
 }
 
-// --- START: same style as Users page (search, pagination, status filter, modern UI) ---
-$status_check = isset($_GET['status']) ? $_GET['status'] : 'active';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
+// Fetch all automations/follow ups
+$query = "SELECT * FROM DOA_AUTOMATIONS WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " ORDER BY PK_AUTOMATION_ID DESC";
+$automations = $db_account->Execute($query);
 
-$status = ($status_check == 'active') ? 1 : 0;
+// Function to format time ago
+function time_ago($datetime)
+{
+    if (empty($datetime)) return "never";
+    $time = strtotime($datetime);
+    $now = time();
+    $diff = $now - $time;
 
-// base conditions: account master, optionally active flag, soft delete check (if applicable, similar to users)
-// Since original corporations table may not have IS_DELETED, we adapt: active = 1/0 based on status
-$active_condition = "ACTIVE = '$status'";
-if ($status_check == 'active') {
-    $active_condition = "ACTIVE = 1";
-} else {
-    $active_condition = "ACTIVE = 0";
+    if ($diff < 60) {
+        return "just now";
+    } elseif ($diff < 3600) {
+        $mins = floor($diff / 60);
+        return $mins . " minute" . ($mins > 1 ? "s" : "") . " ago";
+    } elseif ($diff < 86400) {
+        $hours = floor($diff / 3600);
+        return $hours . " hour" . ($hours > 1 ? "s" : "") . " ago";
+    } elseif ($diff < 604800) {
+        $days = floor($diff / 86400);
+        return $days . " day" . ($days > 1 ? "s" : "") . " ago";
+    } else {
+        return date("M j, Y", $time);
+    }
 }
-
-$offset = ($page - 1) * $per_page;
-
-// count query
-$count_query = "SELECT COUNT(*) as total FROM DOA_CORPORATION WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND $active_condition";
-if (!empty($search)) {
-    $count_query .= " AND CORPORATION_NAME LIKE '%" . addslashes($search) . "%'";
-}
-$total_result = $db->Execute($count_query);
-$total_records = $total_result->fields['total'];
-$total_pages = ceil($total_records / $per_page);
-
-// data query
-$query = "SELECT PK_CORPORATION, CORPORATION_NAME, ACTIVE FROM DOA_CORPORATION WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND $active_condition";
-if (!empty($search)) {
-    $query .= " AND CORPORATION_NAME LIKE '%" . addslashes($search) . "%'";
-}
-$query .= " ORDER BY CORPORATION_NAME ASC LIMIT $offset, $per_page";
-$corporations = $db->Execute($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,12 +88,6 @@ $corporations = $db->Execute($query);
         color: #333;
     }
 
-
-    .dashboard-container {
-        /* max-width: 1400px; */
-    }
-
-    /* Sidebar Styles */
     .sidebar-card {
         background: #ffffff;
         border-radius: 12px;
@@ -134,11 +142,9 @@ $corporations = $db->Execute($query);
         color: #1a202c;
     }
 
-    /* Active State for 'Follow Ups' */
     .sidebar-card .nav-link.active {
         background-color: #f1f5f9;
         color: #10b981 !important;
-        /* Green icon color as per UI */
         font-weight: 600;
     }
 
@@ -146,7 +152,6 @@ $corporations = $db->Execute($query);
         color: #10b981;
     }
 
-    /* Main Content Area */
     .main-card {
         background: #ffffff;
         border-radius: 12px;
@@ -160,11 +165,15 @@ $corporations = $db->Execute($query);
         font-weight: 600;
     }
 
-    /* Automation Card Component */
     .automation-card {
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         background: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .automation-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .icon-wrapper {
@@ -179,7 +188,6 @@ $corporations = $db->Execute($query);
         font-size: 1.1rem;
     }
 
-    /* Custom Bootstrap Form Switch to match UI exactly */
     .custom-switch {
         position: relative;
     }
@@ -194,7 +202,6 @@ $corporations = $db->Execute($query);
 
     .custom-switch .form-check-input:checked {
         background-color: #10b981;
-        /* Green color match */
         border-color: transparent;
     }
 
@@ -203,12 +210,10 @@ $corporations = $db->Execute($query);
         border-color: transparent;
     }
 
-    /* Add Follow Up Button styling */
     .btn-add-followup {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 20px;
-        /* Pillow oval shape like the image */
         color: #4a5568;
         font-size: 0.9rem;
         transition: all 0.2s ease;
@@ -219,47 +224,107 @@ $corporations = $db->Execute($query);
         border-color: #cbd5e1;
         color: #1a202c;
     }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h4 {
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin-bottom: 1.5rem;
+    }
+
+    .toggle-loading {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+        z-index: 9999;
+    }
 </style>
 
 <body>
 
     <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
         <div class="row g-4">
-            <!-- Sidebar (same as users page) -->
-            <div class="col-12 col-md-4 col-xl-3">
+            <div class="col-12 col-md-4 col-xl-2">
                 <?php include 'layout/setup_sidebar.php'; ?>
             </div>
 
-            <!-- Main Content -->
-            <div class="col-12 col-md-8 col-xl-9">
-
+            <div class="col-12 col-md-8 col-xl-10">
                 <div class="col-12 col-md-8 col-lg-12">
                     <div class="main-card p-4 h-100">
-
-                        <div class="main-header border-bottom pb-3 mb-4">
-                            <h2 class="h4 mb-1 fw-semibold text-dark">Automations</h2>
-                            <p class="text-muted small mb-0">Enable automatic to-do's</p>
+                        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+                            <div>
+                                <h2 class="fw-semibold h4 mb-1">Automations</h2>
+                                <p class="text-muted small mb-0">Enable automatic to-do's</p>
+                            </div>
+                            <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='add_follow_up.php'">
+                                <i class="bi bi-plus-lg"></i> Add Follow Up
+                            </button>
                         </div>
 
-                        <div class="automation-card p-3 mb-3 d-flex align-items-start justify-content-between">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="icon-wrapper d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-lightning-charge-fill text-secondary"></i>
-                                </div>
-                                <div>
-                                    <h3 class="h6 mb-1 fw-semibold text-dark">Trial Class Follow Up</h3>
-                                    <p class="text-muted small mb-1">When a customer completes a class and has not purchased a contract</p>
-                                    <span class="text-uppercase text-muted extra-small">EDITED 1 DAY AGO</span>
-                                </div>
-                            </div>
 
-                            <div class="d-flex align-items-center gap-3 pt-1">
-                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="switch1" checked>
-                                    <label class="form-check-label text-dark small fw-medium" for="switch1">On</label>
+                        <div id="automationsList">
+                            <?php if ($automations && $automations->RecordCount() > 0): ?>
+                                <?php while (!$automations->EOF):
+                                    $automation = $automations->fields;
+                                    $trigger_text = "When a customer completes a class";
+                                    $condition_text = !empty($automation['CONDITION_TYPE']) ? "and has not purchased a contract" : "";
+                                    $edited_time = !empty($automation['EDITED_ON']) ? $automation['EDITED_ON'] : $automation['CREATED_ON'];
+                                ?>
+                                    <div class="automation-card p-3 mb-3 d-flex align-items-start justify-content-between" data-automation-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
+                                        <div class="d-flex align-items-start gap-3">
+                                            <div class="icon-wrapper d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-lightning-charge-fill text-secondary"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="h6 mb-1 fw-semibold text-dark"><?= htmlspecialchars($automation['TITLE']) ?></h3>
+                                                <p class="text-muted small mb-1"><?= $trigger_text ?> <?= $condition_text ?></p>
+                                                <span class="text-uppercase text-muted extra-small edited-time">EDITED <?= strtoupper(time_ago($edited_time)) ?></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-3 pt-1">
+                                            <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                                <input class="form-check-input m-0 toggle-automation" type="checkbox" role="switch"
+                                                    data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
+                                                    <?= $automation['IS_ACTIVE'] ? 'checked' : '' ?>>
+                                                <label class="form-check-label text-dark small fw-medium toggle-label">
+                                                    <?= $automation['IS_ACTIVE'] ? 'On' : 'Off' ?>
+                                                </label>
+                                            </div>
+                                            <button class="btn btn-link text-muted p-0 border-0 edit-automation"
+                                                data-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
+                                                <i class="bi bi-chevron-right fs-5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php
+                                    $automations->MoveNext();
+                                endwhile;
+                                ?>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="bi bi-envelope-paper"></i>
+                                    <h4>No automations yet</h4>
+                                    <p>Create your first automation to get started</p>
                                 </div>
-                                <button class="btn btn-link text-muted p-0 border-0"><i class="bi bi-chevron-right fs-5"></i></button>
-                            </div>
+                            <?php endif; ?>
                         </div>
 
                         <button class="btn btn-add-followup w-100 py-2.5 fw-medium" onclick="window.location='add_follow_up.php'">
@@ -268,13 +333,118 @@ $corporations = $db->Execute($query);
 
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Handle toggle switch change
+            $('.toggle-automation').on('change', function() {
+                const $toggle = $(this);
+                const $automationCard = $toggle.closest('.automation-card');
+                const automationId = $toggle.data('id');
+                const isActive = $toggle.is(':checked') ? 1 : 0;
+                const $label = $toggle.closest('.custom-switch').find('.toggle-label');
+                const originalState = !$toggle.is(':checked');
+                const originalLabelText = $label.text();
+
+                // Disable toggle during AJAX request
+                $toggle.prop('disabled', true);
+                $automationCard.addClass('toggle-loading');
+
+                // Show loading state
+                $label.html('<span class="spinner-border spinner-border-sm me-1" style="width: 0.8rem; height: 0.8rem;"></span> Saving...');
+
+                // Send AJAX request
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    data: {
+                        automation_id: automationId,
+                        is_active: isActive
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update label text
+                            $label.text(isActive ? 'On' : 'Off');
+
+                            // Update the edited time
+                            $automationCard.find('.edited-time').text('EDITED JUST NOW');
+
+                            // Show success message
+                            showToast('Status updated successfully', 'success');
+                        } else {
+                            // Revert toggle if failed
+                            $toggle.prop('checked', originalState);
+                            $label.text(originalLabelText);
+                            showToast('Error: ' + response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        console.log('Response:', xhr.responseText);
+                        // Revert toggle
+                        $toggle.prop('checked', originalState);
+                        $label.text(originalLabelText);
+                        showToast('Error updating status. Please try again.', 'error');
+                    },
+                    complete: function() {
+                        // Re-enable toggle
+                        $toggle.prop('disabled', false);
+                        $automationCard.removeClass('toggle-loading');
+                    }
+                });
+            });
+
+            // Handle edit button click
+            $('.edit-automation').on('click', function() {
+                const automationId = $(this).data('id');
+                window.location.href = 'add_follow_up.php?id=' + automationId;
+            });
+        });
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const bgColor = type === 'success' ? 'bg-success' : 'bg-danger';
+
+            const toastHtml = `
+            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                <div class="toast-header ${bgColor} text-white">
+                    <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
+                    <strong class="me-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+    </script>
 
 </body>
 
