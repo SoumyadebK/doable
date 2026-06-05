@@ -334,11 +334,16 @@ $scheduling_codes = $db_account->Execute($query);
                                                     <span class="text-muted small">—</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td class="text-center">
-                                                <!-- Color swatch + color name (hex) with the actual color background -->
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="color-swatch" style="background-color: <?= htmlspecialchars($color_code) ?>; border: 1px solid rgba(0,0,0,0.1);"></div>
-                                                    <span class="color-name" style="background: <?= htmlspecialchars($color_code) ?>20; color: <?= $is_light_color ? '#1e293b' : '#1e293b'; ?> border: 1px solid <?= htmlspecialchars($color_code) ?>40;">
+                                            <td class="text-center align-middle">
+                                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                                    <div class="color-swatch"
+                                                        style="background-color: <?= htmlspecialchars($color_code) ?>; border: 1px solid rgba(0,0,0,0.1);">
+                                                    </div>
+
+                                                    <span class="color-name"
+                                                        style="background: <?= htmlspecialchars($color_code) ?>20;
+                     color: <?= $is_light_color ? '#1e293b' : '#1e293b'; ?>;
+                     border: 1px solid <?= htmlspecialchars($color_code) ?>40;">
                                                         <?= strtoupper(htmlspecialchars($color_code)) ?>
                                                     </span>
                                                 </div>
