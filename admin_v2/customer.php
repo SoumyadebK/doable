@@ -3038,7 +3038,7 @@ if ($PK_USER_MASTER > 0) {
                 // Initialize Datepickers
                 $("#START_DATE").datepicker({
                     numberOfMonths: 1,
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/yy",
                     onSelect: function(selected) {
                         $("#END_DATE").datepicker("option", "minDate", selected);
                         table.draw();
@@ -3047,7 +3047,7 @@ if ($PK_USER_MASTER > 0) {
 
                 $("#END_DATE").datepicker({
                     numberOfMonths: 1,
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/yy",
                     onSelect: function(selected) {
                         $("#START_DATE").datepicker("option", "maxDate", selected);
                         table.draw();
