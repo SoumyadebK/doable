@@ -1885,6 +1885,73 @@ if ($PK_USER_MASTER > 0) {
 </div>
 
 
+
+<!--Refund Money From Wallet Modal-->
+<div class="modal fade" id="refund_from_wallet_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 500px;">
+        <form class="p-20" id="refund_from_wallet">
+            <input type="hidden" name="PK_CUSTOMER_WALLET" id="PK_CUSTOMER_WALLET">
+            <input type="hidden" name="ORIGINAL_REFUND_AMOUNT" id="ORIGINAL_REFUND_AMOUNT">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group  mb-4">
+                                <label class="form-label">How you want your money back?</label>
+                                <div class="col-md-12">
+                                    <select class="form-control" required name="PK_PAYMENT_TYPE_WALLET_REFUND" id="PK_PAYMENT_TYPE_WALLET_REFUND" onchange="selectRefundType(this)">
+                                        <option value="">Select</option>
+                                        <?php
+                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE != 7 AND ACTIVE = 1");
+                                        while (!$row->EOF) { ?>
+                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                        <?php $row->MoveNext();
+                                        } ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row  mb-4 check_payment" style="display: none;">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Check Number</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="REFUND_CHECK_NUMBER" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Check Date</label>
+                                        <div class="col-md-12">
+                                            <input type="text" name="REFUND_CHECK_DATE" class="form-control datepicker-normal">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="WALLET_REFUND_AMOUNT">How much refund you want?</label>
+                                <div class="col-md-12">
+                                    <input class="form-control" name="WALLET_REFUND_AMOUNT" id="WALLET_REFUND_AMOUNT" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="SUBMIT" value="Submit">
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 <?php require_once('../includes/footer.php'); ?>
 
 <?php include 'partials/create_appointment_modal.php'; ?>
@@ -3038,7 +3105,7 @@ if ($PK_USER_MASTER > 0) {
                 // Initialize Datepickers
                 $("#START_DATE").datepicker({
                     numberOfMonths: 1,
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/yy",
                     onSelect: function(selected) {
                         $("#END_DATE").datepicker("option", "minDate", selected);
                         table.draw();
@@ -3047,7 +3114,7 @@ if ($PK_USER_MASTER > 0) {
 
                 $("#END_DATE").datepicker({
                     numberOfMonths: 1,
-                    dateFormat: "yy-mm-dd",
+                    dateFormat: "mm/dd/yy",
                     onSelect: function(selected) {
                         $("#START_DATE").datepicker("option", "maxDate", selected);
                         table.draw();
@@ -3250,6 +3317,46 @@ if ($PK_USER_MASTER > 0) {
     function openWalletModel() {
         $('#wallet_payment_model').modal('show');
     }
+
+    function refundWalletData(PK_CUSTOMER_WALLET, BALANCE_LEFT) {
+        $('#refund_from_wallet_modal').modal('show');
+        $('#PK_CUSTOMER_WALLET').val(PK_CUSTOMER_WALLET);
+        $('#ORIGINAL_REFUND_AMOUNT').val(BALANCE_LEFT);
+        $('#WALLET_REFUND_AMOUNT').val(BALANCE_LEFT);
+    }
+
+    $('#refund_from_wallet').submit(function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            type: 'POST',
+            url: 'includes/process_refund_wallet.php',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'error') {
+                    Swal.fire({
+                        title: "Refund Failed!",
+                        text: response.message,
+                        icon: "error",
+                        timer: 3000,
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Refund Processed!",
+                        text: "The refund has been processed successfully.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((res) => {
+                        window.location.reload();
+                    });
+                }
+            },
+            error: function() {
+                alert('An error occurred while processing the refund.');
+            }
+        });
+    });
 </script>
 
 <!-- Cancel enrollment related functions -->

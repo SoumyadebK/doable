@@ -46,7 +46,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     </div>
 
     <div class="summary-row d-flex align-items-center">
-        <?php $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1"); ?>
+        <?php $wallet_data = $db_account->Execute("SELECT SUM(BALANCE_LEFT) as CURRENT_BALANCE FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER'"); ?>
         <div class="flex-grow-1">
             <div class="stat-label">Wallet Balance</div>
             <div class="stat-value">$<?= number_format((float)($wallet_data->RecordCount() > 0 ? $wallet_data->fields['CURRENT_BALANCE'] : 0.00), 2) ?></div>
@@ -84,7 +84,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                             $payment_details = " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
                         }
                     }
-                    $balance_left = $db_account->Execute("SELECT BALANCE_LEFT FROM DOA_CUSTOMER_WALLET WHERE CUSTOMER_WALLET_PARENT = " . $walletTransaction->fields['PK_CUSTOMER_WALLET'] . " ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
+
                 ?>
                     <tr class="accordion-toggle" data-bs-toggle="collapse" data-bs-target="#row<?= $i ?>-details">
                         <td class="text-center">
@@ -94,13 +94,16 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                         <td><?= $walletTransaction->fields['RECEIPT_NUMBER'] ?></td>
                         <td><?= $walletTransaction->fields['DESCRIPTION'] . ' ' . $payment_details ?></td>
                         <td><?= $walletTransaction->fields['CREDIT'] ?></td>
-                        <td><?= ($balance_left->RecordCount() > 0) ? $balance_left->fields['BALANCE_LEFT'] : $walletTransaction->fields['BALANCE_LEFT'] ?></td>
-                        <td>
+                        <td><?= $walletTransaction->fields['BALANCE_LEFT'] ?></td>
+                        <td style="width: 200px;">
                             <?php if ($RECEIPT_NUMBER != '') { ?>
-                                <a class="btn btn-secondary btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank" onclick="event.stopPropagation(); event.preventDefault(); window.open(this.href, '_blank'); return false;">Receipt</a>
+                                <a class=" btn btn-secondary btn-receipt" href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $walletTransaction->fields['RECEIPT_NUMBER'] ?>" target="_blank" onclick="event.stopPropagation(); event.preventDefault(); window.open(this.href, '_blank'); return false;">Receipt</a>
                             <?php }
                             if (($walletTransaction->fields['CREDIT'] == $walletTransaction->fields['BALANCE_LEFT']) && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
                                 <a href="javascript:;" class="btn btn-outline-danger rounded-pill" onclick=" deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)" style="font-size: 12px;"><i class="bi bi-trash"></i></a>
+                            <?php } ?>
+                            <?php if ($walletTransaction->fields['BALANCE_LEFT'] > 0) { ?>
+                                <button class="btn btn-secondary" onclick="refundWalletData(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>, <?= $walletTransaction->fields['BALANCE_LEFT'] ?>)">Refund</button>
                             <?php } ?>
                         </td>
                     </tr>

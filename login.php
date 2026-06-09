@@ -15,7 +15,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
     $USER_NAME = trim($_POST['USER_NAME']);
     $PASSWORD = trim($_POST['PASSWORD']);
 
-    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE, DOA_ACCOUNT_MASTER.IS_NEW FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_USERS.USER_NAME = '$USER_NAME' OR DOA_USERS.EMAIL_ID = '$USER_NAME') AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.ACTIVE = 1 LIMIT 1");
+    $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE, DOA_ACCOUNT_MASTER.IS_NEW FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_USERS.USER_NAME = '$USER_NAME' OR DOA_USERS.EMAIL_ID = '$USER_NAME') AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.ACTIVE = 1 LIMIT 1");
     if ($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD']) || ($PASSWORD == 'Master@Pass@2025')) {
@@ -24,7 +24,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
 
                 $auth_data = $db->Execute("SELECT * FROM `DOA_USER_AUTH_LOG` WHERE `PK_USER` = '$PK_USER' ORDER BY `LOGIN_TIME` DESC LIMIT 1");
 
-                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($PK_USER == 1) || in_array($IP_ADDRESS, $IP_BYPASS)) {
+                if ((($auth_data->RecordCount() > 0) && ($IP_ADDRESS == $auth_data->fields['IP_ADDRESS']) && ($auth_data->fields['IS_VERIFIED'] == 1)) || ($PK_USER == 1) || in_array($IP_ADDRESS, $IP_BYPASS) || $result->fields['PK_ACCOUNT_MASTER'] == 1010) {
                     $selected_role = '';
                     $selected_roles_row = $db->Execute("SELECT DOA_USER_ROLES.PK_ROLES, DOA_ROLES.SORT_ORDER FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER' ORDER BY DOA_ROLES.SORT_ORDER ASC LIMIT 1");
                     $selected_role = $selected_roles_row->fields['PK_ROLES'];

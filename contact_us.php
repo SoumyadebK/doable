@@ -45,17 +45,17 @@ require_once('includes/homepage/header.php');
 
 
             <div id="form_status"></div>
-            <form method="POST" id="gsr-contact" action="contact_mail.php">
+            <form method="POST" id="gsr-contact" action="">
               <label class="label">Full Name <em>*</em></label>
               <label class="input">
-                <input type="text" name="name" id="name">
+                <input type="text" name="name" id="name" required>
               </label>
 
               <div class="clearfix"></div>
 
               <label class="label">E-mail <em>*</em></label>
               <label class="input">
-                <input type="email" name="email" id="email">
+                <input type="email" name="email" id="email" required>
               </label>
 
               <div class="clearfix"></div>
@@ -63,14 +63,14 @@ require_once('includes/homepage/header.php');
 
               <label class="label">Phone <em>*</em></label>
               <label class="input">
-                <input type="text" name="phone" id="phone">
+                <input type="text" name="phone" id="phone" required>
               </label>
 
               <div class="clearfix"></div>
 
               <label class="label">Business Type <em>*</em></label>
               <div class="select-box-2">
-                <select class="form-control" name="PK_BUSINESS_TYPE" id="PK_BUSINESS_TYPE">
+                <select class="form-control" name="PK_BUSINESS_TYPE" id="PK_BUSINESS_TYPE" required>
                   <option value="">Select Business Type</option>
                   <?php
                   $row = $db->Execute("SELECT PK_BUSINESS_TYPE, BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE = 1");
@@ -92,7 +92,7 @@ require_once('includes/homepage/header.php');
                 <div class="col-md-12">
                   <label>
                     <div class="col-md-1" style="margin-left: -20px;">
-                      <input type="checkbox" id="sms_consent" name="sms_consent">
+                      <input type="checkbox" id="sms_consent" name="sms_consent" required>
                     </div>
                     <div class="col-md-11" style="margin-left: -25px; width: 97%;">
                       <p>

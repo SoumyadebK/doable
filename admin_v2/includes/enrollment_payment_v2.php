@@ -790,7 +790,7 @@
                 break;
 
             case 7:
-                let PK_USER_MASTER = $('#PK_USER_MASTER').val();
+                let PK_USER_MASTER = $('#enrollment_payment_form #PK_USER_MASTER').val();
                 $.ajax({
                     url: "ajax/wallet_balance.php",
                     type: 'POST',
@@ -818,7 +818,7 @@
     }
 
     function getCreditCardList() {
-        let PK_USER_MASTER = $('.CUSTOMER_ID').val();
+        let PK_USER_MASTER = $('#enrollment_payment_form #PK_USER_MASTER').val();
         $.ajax({
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
