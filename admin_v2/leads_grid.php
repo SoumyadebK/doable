@@ -457,7 +457,7 @@ if ($status_filter != '' && $status_filter != 'inactive') {
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <div class="page-wrapper" style="padding-top: 0px !important;">
+        <div class="page-wrapper" style="padding-top: 1px !important;">
             <div class="container-fluid body_content" style="margin-top: 0px;">
                 <div class="container-fluid py-4 px-4 bg-white m-3 rounded border mx-auto">
                     <div class="d-flex justify-content-between align-items-center mb-4">
