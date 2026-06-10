@@ -42,12 +42,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 'get_services') {
 
     // Fetch services again for AJAX request
     $services = array();
-    $services_query = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+    $services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
     if ($services_query && $services_query->RecordCount() > 0) {
         while (!$services_query->EOF) {
             $services[] = array(
                 'id' => $services_query->fields['PK_SERVICE_MASTER'],
-                'name' => $services_query->fields['SERVICE_NAME']
+                'name' => $services_query->fields['SERVICE_NAME'] . " (" . $services_query->fields['SERVICE_CODE'] . ")"
             );
             $services_query->MoveNext();
         }
@@ -266,6 +266,7 @@ if (!empty($_GET['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
