@@ -155,29 +155,62 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 db_perform('error_info', $error, 'insert');
             }
 
+            $IS_PAID = 0;
+            $CHARGE_ID = '';
             $LAST4 = '';
             try {
-
                 if (empty($_POST['PAYMENT_METHOD_ID'])) {
                     $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
                     $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
+
+                    $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
+                    $charge = \Stripe\Charge::create(array(
+                        "amount" => $AMOUNT_TO_PAY * 100,
+                        "currency" => "usd",
+                        "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
+                        "customer" => $CUSTOMER_PAYMENT_ID,
+                        "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
+                    ));
+
+                    if (!isset($_POST['SAVE_FOR_FUTURE'])) {
+                        $stripe->customers->deleteSource($CUSTOMER_PAYMENT_ID, $charge->payment_method);
+                    }
+
+                    if ($charge->paid == 1) {
+                        $CHARGE_ID = $charge->id;
+                        $LAST4 = $charge->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
                 } else {
-                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $_POST['PAYMENT_METHOD_ID']]);
-                }
+                    $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
+                    $ch = curl_init('https://api.stripe.com/v1/payment_intents');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $PAYMENT_METHOD_ID,
+                        'amount' => $AMOUNT_TO_PAY * 100,
+                        'currency' => 'usd',
+                        'confirm' => 'true', // Auto-confirm charge
+                        'off_session' => 'true', // Charge without user interaction
+                        'statement_descriptor' => 'AllrentalZ Subscr.',
+                        'metadata[invoice_num]' => $RECEIPT_NUMBER_ORIGINAL,
+                        'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                    ]));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Authorization: Bearer ' . $SECRET_KEY,
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
 
-                $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
-                $charge = \Stripe\Charge::create(array(
-                    "amount" => $AMOUNT_TO_PAY * 100,
-                    "currency" => "usd",
-                    "description" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
-                    "customer" => $CUSTOMER_PAYMENT_ID,
-                    "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
-                ));
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+                    $payment_res = json_decode($response);
 
-                $LAST4 = $charge->payment_method_details->card->last4;
-
-                if (!isset($_POST['SAVE_FOR_FUTURE'])) {
-                    $stripe->customers->deleteSource($CUSTOMER_PAYMENT_ID, $charge->payment_method);
+                    if ($payment_res->charges->data[0]->paid == 1) {
+                        $CHARGE_ID = $payment_res->charges->data[0]->id;
+                        $LAST4 = $payment_res->charges->data[0]->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
                 }
             } catch (\Stripe\Exception\CardException $e) {
                 // Card declined or related issue
@@ -246,9 +279,9 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 }
             });
 
-            if (isset($charge) && $charge->paid == 1) {
+            if ($IS_PAID == 1) {
                 $PAYMENT_STATUS = 'Success';
-                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
+                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $CHARGE_ID, 'LAST4' => $LAST4];
                 $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
             } else {
                 $PAYMENT_STATUS = 'Failed';
