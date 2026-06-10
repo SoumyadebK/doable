@@ -27,7 +27,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                         
                                 LEFT JOIN DOA_MASTER.DOA_APPOINTMENT_STATUS AS DOA_APPOINTMENT_STATUS ON DOA_SPECIAL_APPOINTMENT.PK_APPOINTMENT_STATUS = DOA_APPOINTMENT_STATUS.PK_APPOINTMENT_STATUS
                                 LEFT JOIN DOA_SCHEDULING_CODE ON DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE = DOA_SPECIAL_APPOINTMENT.PK_SCHEDULING_CODE
-                                WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = ".$STANDING_ID."
+                                WHERE DOA_SPECIAL_APPOINTMENT.STANDING_ID = " . $STANDING_ID . "
                                 GROUP BY DOA_SPECIAL_APPOINTMENT_USER.PK_SPECIAL_APPOINTMENT
                                 ORDER BY DOA_SPECIAL_APPOINTMENT.DATE ASC, DOA_SPECIAL_APPOINTMENT.START_TIME ASC"; ?>
 
@@ -36,22 +36,23 @@ $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
 while (!$special_appointment_data->EOF) { ?>
     <tr class="added_standing" style="background-color: #dee2e6;">
         <td style="text-align: end;"></td>
-        <td><?=$special_appointment_data->fields['TITLE']?>
+        <td><?= $special_appointment_data->fields['TITLE'] ?>
             <?php if ($special_appointment_data->fields['STANDING_ID'] > 0) { ?>
                 <span style="font-weight: bold; color: #1B72B8">(S)</span>
             <?php } ?>
         </td>
-        <td><?=$special_appointment_data->fields['SERVICE_PROVIDER_NAME']?></td>
-        <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/?></td>-->
-        <td><?=date('l', strtotime($special_appointment_data->fields['DATE']))?></td>
-        <td><?=date('m/d/Y', strtotime($special_appointment_data->fields['DATE']))?></td>
-        <td><?=date('h:i A', strtotime($special_appointment_data->fields['START_TIME']))." - ".date('h:i A', strtotime($special_appointment_data->fields['END_TIME']))?></td>
-        <td style="color: <?=$special_appointment_data->fields['APPOINTMENT_COLOR']?>"><?=$special_appointment_data->fields['APPOINTMENT_STATUS']?></td>
-        <td>
-            <a href="edit_to_do.php?id=<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
-            <a href="javascript:" onclick='ConfirmDelete(<?=$special_appointment_data->fields['PK_SPECIAL_APPOINTMENT']?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
+        <td style="text-align: center;"><?= date('m/d/Y', strtotime($special_appointment_data->fields['DATE'])) . ', ' . date('l', strtotime($special_appointment_data->fields['DATE'])) . ', ' . date('h:i A', strtotime($special_appointment_data->fields['START_TIME'])) . " - " . date('h:i A', strtotime($special_appointment_data->fields['END_TIME'])) ?></td>
+        <td style="text-align:center; color: <?= $special_appointment_data->fields['APPOINTMENT_COLOR'] ?>"><?= $special_appointment_data->fields['APPOINTMENT_STATUS'] ?></td>
+        <!--<td><?php /*=$special_appointment_data->fields['CUSTOMER_NAME']*/ ?></td>-->
+
+
+        <td style="text-align: center;"><?= $special_appointment_data->fields['SERVICE_PROVIDER_NAME'] ?></td>
+        <td style="text-align: center;">
+            <a href="edit_to_do.php?id=<?= $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'] ?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;
+            <a href="javascript:" onclick='ConfirmDelete(<?= $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'] ?>);' title="Delete"><i class="fa fa-trash" style="font-size: 16px;"></i></a>&nbsp;&nbsp;&nbsp;
         </td>
     </tr>
 <?php
-$special_appointment_data->MoveNext();
-$i++; } ?>
+    $special_appointment_data->MoveNext();
+    $i++;
+} ?>

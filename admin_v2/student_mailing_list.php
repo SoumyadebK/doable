@@ -14,8 +14,14 @@ $tag_filter = isset($_GET['tag_filter']) ? $_GET['tag_filter'] : '';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 
+// Pagination variables
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$records_per_page = 50;
+$offset = ($page - 1) * $records_per_page;
+
 // Build WHERE conditions
 $where_conditions = ["DOA_USER_ROLES.PK_ROLES = 4"];
+$where_conditions = ["DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")"];
 
 // Add status filter
 if ($status_filter !== '' && $status_filter !== 'all') {
@@ -27,8 +33,7 @@ if ($tag_filter !== '' && $tag_filter !== 'all') {
     $where_conditions[] = "EXISTS (SELECT 1 FROM $account_database.DOA_USER_TAG AS DOA_USER_TAG WHERE DOA_USER_TAG.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER AND DOA_USER_TAG.PK_TAG = " . intval($tag_filter) . ")";
 }
 
-// Add date filter (assuming you have a date field - adjust column name as needed)
-// This example uses CREATED_ON from DOA_USERS - adjust based on your actual table structure
+// Add date filter
 if ($date_filter == 'range' && $start_date && $end_date) {
     $where_conditions[] = "DATE(DOA_USERS.CREATED_ON) BETWEEN '" . mysqli_real_escape_string($db->LinkID, $start_date) . "' AND '" . mysqli_real_escape_string($db->LinkID, $end_date) . "'";
 } elseif ($date_filter == 'today') {
@@ -43,13 +48,59 @@ if ($date_filter == 'range' && $start_date && $end_date) {
 
 $where_clause = "WHERE " . implode(" AND ", $where_conditions);
 
+// Get total records count for pagination
+$count_query = "SELECT COUNT(*) as total 
+    FROM DOA_USERS 
+    INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
+    INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER
+    INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER 
+    INNER JOIN $account_database.DOA_CUSTOMER_DETAILS AS DOA_CUSTOMER_DETAILS ON DOA_CUSTOMER_DETAILS.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+    INNER JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES 
+    $where_clause";
+
+$count_result = $db->Execute($count_query);
+if ($count_result) {
+    $total_records = $count_result->fields['total'];
+} else {
+    $total_records = 0;
+}
+$total_pages = ($records_per_page > 0) ? ceil($total_records / $records_per_page) : 1;
+
+// Get records for current page with LIMIT
+$query = "SELECT DOA_USERS.LAST_NAME, DOA_USERS.FIRST_NAME, 
+    CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME, 
+    DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, 
+    DOA_CUSTOMER_DETAILS.EMAIL, DOA_USERS.ACTIVE, DOA_USERS.CREATED_ON 
+    FROM DOA_USERS  
+    INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
+    INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER 
+    INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
+    INNER JOIN $account_database.DOA_CUSTOMER_DETAILS AS DOA_CUSTOMER_DETAILS ON DOA_CUSTOMER_DETAILS.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+    INNER JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES 
+    $where_clause 
+    ORDER BY DOA_USERS.LAST_NAME, DOA_USERS.FIRST_NAME 
+    LIMIT $offset, $records_per_page";
+
+$result = $db->Execute($query);
+
 // Get tags for dropdown
 $tags_query = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
 $tags = [];
-while (!$tags_query->EOF) {
-    $tags[] = ['PK_TAG' => $tags_query->fields['PK_TAG'], 'TAG_NAME' => $tags_query->fields['TAG_NAME']];
-    $tags_query->MoveNext();
+if ($tags_query) {
+    while (!$tags_query->EOF) {
+        $tags[] = ['PK_TAG' => $tags_query->fields['PK_TAG'], 'TAG_NAME' => $tags_query->fields['TAG_NAME']];
+        $tags_query->MoveNext();
+    }
 }
+
+// Build query string for pagination links
+$query_params = [];
+if ($date_filter) $query_params['date_filter'] = $date_filter;
+if ($status_filter && $status_filter != 'all') $query_params['status_filter'] = $status_filter;
+if ($tag_filter && $tag_filter != 'all') $query_params['tag_filter'] = $tag_filter;
+if ($start_date) $query_params['start_date'] = $start_date;
+if ($end_date) $query_params['end_date'] = $end_date;
+$query_string = http_build_query($query_params);
 ?>
 
 <!DOCTYPE html>
@@ -59,6 +110,7 @@ while (!$tags_query->EOF) {
 <?php include 'layout/header.php'; ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -127,6 +179,27 @@ while (!$tags_query->EOF) {
 
     .btn-success {
         background-color: #39b54a;
+    }
+
+    .pagination {
+        margin-bottom: 0;
+        justify-content: flex-end;
+    }
+
+    .pagination .page-link {
+        color: #690C24;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #690C24;
+        border-color: #690C24;
+        color: white;
+    }
+
+    .record-info {
+        padding-top: 10px;
+        color: #6c757d;
+        font-size: 14px;
     }
 </style>
 
@@ -232,6 +305,7 @@ while (!$tags_query->EOF) {
                                                 <th style="width:10%; text-align: center; vertical-align:auto; font-weight: bold">Last Name</th>
                                                 <th style="width:10%; text-align: center; font-weight: bold">First Name</th>
                                                 <th style="width:15%; text-align: center; font-weight: bold">Partner Name</th>
+                                                <th style="width:15%; text-align: center; font-weight: bold">Created On</th>
                                                 <th style="width:25%; text-align: center; font-weight: bold">Address</th>
                                                 <th style="width:15%; text-align: center; font-weight: bold">City</th>
                                                 <th style="width:5%; text-align: center; font-weight: bold">State</th>
@@ -242,26 +316,27 @@ while (!$tags_query->EOF) {
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $i = 1;
-                                            $query = "SELECT DOA_USERS.LAST_NAME, DOA_USERS.FIRST_NAME, CONCAT(DOA_CUSTOMER_DETAILS.PARTNER_FIRST_NAME, ' ', DOA_CUSTOMER_DETAILS.PARTNER_LAST_NAME) AS PARTNER_NAME, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_CUSTOMER_DETAILS.EMAIL, DOA_USERS.ACTIVE, DOA_USERS.CREATED_ON FROM DOA_USERS  INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER LEFT JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN $account_database.DOA_CUSTOMER_DETAILS AS DOA_CUSTOMER_DETAILS ON DOA_CUSTOMER_DETAILS.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN DOA_STATES ON DOA_USERS.PK_STATES=DOA_STATES.PK_STATES $where_clause";
-
-                                            $row = $db->Execute($query);
-
-                                            if (!$row || $row->RecordCount() == 0) {
+                                            if (!$result || $result->RecordCount() == 0) {
                                                 echo '<tr><td colspan="9" style="text-align: center;">No records found</td></tr>';
                                             } else {
-                                                while (!$row->EOF) {
-                                                    $STATUS = ($row->fields['ACTIVE'] == 1) ? "Active" : "Inactive";
+                                                // Debug - uncomment to see if we have records
+                                                // echo '<tr><td colspan="9" style="text-align: center;">Found ' . $result->RecordCount() . ' records</td></tr>';
+
+                                                while (!$result->EOF) {
+                                                    $STATUS = ($result->fields['ACTIVE'] == 1) ? "Active" : "Inactive";
                                             ?>
                                                     <tr>
-                                                        <td><?= htmlspecialchars($row->fields['LAST_NAME']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['FIRST_NAME']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['PARTNER_NAME']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['ADDRESS']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['CITY']) ?></td>
-                                                        <td style="text-align: center"><?= htmlspecialchars($row->fields['STATE_NAME']) ?></td>
-                                                        <td style="text-align: center"><?= htmlspecialchars($row->fields['ZIP']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['EMAIL']) ?></td>
+                                                        <td style="text-align: center"><?= htmlspecialchars($result->fields['LAST_NAME'] ?? '') ?></td>
+                                                        <td style="text-align: center"><?= htmlspecialchars($result->fields['FIRST_NAME'] ?? '') ?></td>
+                                                        <td style="text-align: center"><?= htmlspecialchars($result->fields['PARTNER_NAME'] ?? '') ?></td>
+                                                        <td style="text-align: center">
+                                                            <?= !empty($result->fields['CREATED_ON']) ? date('m-d-Y', strtotime($result->fields['CREATED_ON'])) : '' ?>
+                                                        </td>
+                                                        <td><?= htmlspecialchars($result->fields['ADDRESS'] ?? '') ?></td>
+                                                        <td><?= htmlspecialchars($result->fields['CITY'] ?? '') ?></td>
+                                                        <td style="text-align: center"><?= htmlspecialchars($result->fields['STATE_NAME'] ?? '') ?></td>
+                                                        <td style="text-align: center"><?= htmlspecialchars($result->fields['ZIP'] ?? '') ?></td>
+                                                        <td><?= htmlspecialchars($result->fields['EMAIL'] ?? '') ?></td>
                                                         <td style="text-align: center">
                                                             <span class="badge <?= $STATUS == 'Active' ? 'bg-success' : 'bg-danger' ?>">
                                                                 <?= $STATUS ?>
@@ -269,8 +344,7 @@ while (!$tags_query->EOF) {
                                                         </td>
                                                     </tr>
                                             <?php
-                                                    $row->MoveNext();
-                                                    $i++;
+                                                    $result->MoveNext();
                                                 }
                                             }
                                             ?>
@@ -278,12 +352,69 @@ while (!$tags_query->EOF) {
                                     </table>
                                 </div>
 
-                                <!-- Show record count -->
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <p class="text-muted">Total Records: <?= $row ? $row->RecordCount() : 0 ?></p>
+                                <!-- Pagination and Record Info -->
+                                <?php if ($total_records > 0): ?>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6 record-info">
+                                            Showing <?= $offset + 1 ?> to <?= min($offset + $records_per_page, $total_records) ?> of <?= $total_records ?> records
+                                        </div>
+                                        <div class="col-md-6">
+                                            <nav>
+                                                <ul class="pagination">
+                                                    <!-- First Page -->
+                                                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                                        <a class="page-link" href="?page=1<?= $query_string ? '&' . $query_string : '' ?>" aria-label="First">
+                                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                                        </a>
+                                                    </li>
+
+                                                    <!-- Previous Page -->
+                                                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                                                        <a class="page-link" href="?page=<?= $page - 1 ?><?= $query_string ? '&' . $query_string : '' ?>" aria-label="Previous">
+                                                            <span aria-hidden="true">&laquo;</span>
+                                                        </a>
+                                                    </li>
+
+                                                    <!-- Page Numbers -->
+                                                    <?php
+                                                    $start_page = max(1, $page - 2);
+                                                    $end_page = min($total_pages, $page + 2);
+
+                                                    if ($start_page > 1) {
+                                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                    }
+
+                                                    for ($i = $start_page; $i <= $end_page; $i++):
+                                                    ?>
+                                                        <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                                                            <a class="page-link" href="?page=<?= $i ?><?= $query_string ? '&' . $query_string : '' ?>"><?= $i ?></a>
+                                                        </li>
+                                                    <?php
+                                                    endfor;
+
+                                                    if ($end_page < $total_pages) {
+                                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                    }
+                                                    ?>
+
+                                                    <!-- Next Page -->
+                                                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                                                        <a class="page-link" href="?page=<?= $page + 1 ?><?= $query_string ? '&' . $query_string : '' ?>" aria-label="Next">
+                                                            <span aria-hidden="true">&raquo;</span>
+                                                        </a>
+                                                    </li>
+
+                                                    <!-- Last Page -->
+                                                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                                                        <a class="page-link" href="?page=<?= $total_pages ?><?= $query_string ? '&' . $query_string : '' ?>" aria-label="Last">
+                                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </div>
                                     </div>
-                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

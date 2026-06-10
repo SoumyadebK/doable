@@ -232,7 +232,7 @@ if (!empty($_GET['id'])) {
     }
 } else {
     $AUTOMATION = array(
-        'TITLE' => 'Trial Class Follow Up',
+        'TITLE' => '',
         'IS_ACTIVE' => 1,
         'TRIGGER_TYPE' => 'customer_completes_class',
         'TRIGGER_VALUE' => 'trial_class',
@@ -558,6 +558,31 @@ if (!empty($_GET['id'])) {
             color: #10b981;
             margin-top: 5px;
         }
+
+        /* Custom tooltip color */
+        .tooltip .tooltip-inner {
+            background-color: #39B54A;
+            max-width: 280px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .tooltip.bs-tooltip-top .tooltip-arrow::before {
+            border-top-color: #39B54A;
+        }
+
+        .tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+            border-bottom-color: #39B54A;
+        }
+
+        .tooltip.bs-tooltip-start .tooltip-arrow::before {
+            border-left-color: #39B54A;
+        }
+
+        .tooltip.bs-tooltip-end .tooltip-arrow::before {
+            border-right-color: #39B54A;
+        }
     </style>
 </head>
 
@@ -698,11 +723,33 @@ if (!empty($_GET['id'])) {
                             <label class="form-label-custom mb-2">Who gets notified</label>
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <input type="checkbox" id="NOTIFY_SERVICE_PROVIDER" name="NOTIFY_SERVICE_PROVIDER" value="1" <?= $AUTOMATION['NOTIFY_SERVICE_PROVIDER'] ? 'checked' : '' ?> style="width: 20px; height: 20px;">
-                                <label class="text-dark small" for="NOTIFY_SERVICE_PROVIDER">Service provider (The Service Provider will be notified who taught the class)</label>
+                                <label class="text-dark small" for="NOTIFY_SERVICE_PROVIDER">
+                                    Service provider on last class
+                                    <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="right"
+                                        title="The Service Provider will be notified who taught the class"></i>
+                                </label>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <input type="checkbox" id="NOTIFY_SERVICE_PROVIDER" name="NOTIFY_SERVICE_PROVIDER" value="1" <?= $AUTOMATION['NOTIFY_SERVICE_PROVIDER'] ? 'checked' : '' ?> style="width: 20px; height: 20px;">
+                                <label class="text-dark small" for="NOTIFY_SERVICE_PROVIDER">
+                                    Service provider on enrollment
+                                    <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="right"
+                                        title="The Service Provider will be notified who taught the class"></i>
+                                </label>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <input type="checkbox" id="NOTIFY_STUDIO_MANAGER" name="NOTIFY_STUDIO_MANAGER" value="1" <?= $AUTOMATION['NOTIFY_STUDIO_MANAGER'] ? 'checked' : '' ?> style="width: 20px; height: 20px;">
-                                <label class="text-dark small" for="NOTIFY_STUDIO_MANAGER">Studio manager</label>
+                                <label class="text-dark small" for="NOTIFY_STUDIO_MANAGER">
+                                    Studio manager
+                                    <i class="bi bi-info-circle-fill" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="right"
+                                        title="The Studio Manager will receive notifications for this automation"></i>
+                                </label>
                             </div>
                         </div>
 
@@ -1094,6 +1141,22 @@ if (!empty($_GET['id'])) {
             toggleScheduleDisplay();
             // Load the appropriate trigger value field based on current selection
             loadTriggerValueField();
+        });
+
+        // Initialize Bootstrap tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all tooltips on the page
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover', // Show on hover
+                    animation: true,
+                    delay: {
+                        "show": 300,
+                        "hide": 100
+                    } // Small delay before showing
+                });
+            });
         });
     </script>
 </body>
