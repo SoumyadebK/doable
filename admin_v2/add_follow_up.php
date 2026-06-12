@@ -729,7 +729,7 @@ if (!empty($_GET['id'])) {
                                     <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="right"
-                                        title="The Service Provider will be notified who taught the class"></i>
+                                        title="Follow up will be sent to service provider that taught the class associated in the criteria"></i>
                                 </label>
                             </div>
                             <div class="d-flex align-items-center gap-2 mb-2">
@@ -739,7 +739,7 @@ if (!empty($_GET['id'])) {
                                     <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="right"
-                                        title="The Service Provider will be notified who taught the class"></i>
+                                        title="Follow up will be sent to service provider in the enrollment associated in the criteria"></i>
                                 </label>
                             </div>
                             <div class="d-flex align-items-center gap-2">
