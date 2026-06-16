@@ -63,7 +63,6 @@ $users = $db->Execute($query);
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
 <head>

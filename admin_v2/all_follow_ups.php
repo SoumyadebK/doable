@@ -196,13 +196,13 @@ function time_ago($datetime)
     .custom-switch .form-check-input {
         width: 2.5em;
         height: 1.35em;
-        background-color: #cbd5e1;
+        background-color: #39b54a;
         border-color: transparent;
         cursor: pointer;
     }
 
     .custom-switch .form-check-input:checked {
-        background-color: #10b981;
+        background-color: #39b54a;
         border-color: transparent;
     }
 
