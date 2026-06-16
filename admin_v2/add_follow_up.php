@@ -704,14 +704,14 @@ if (!empty($_GET['id'])) {
                             <div class="row g-2 mb-2">
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select form-select-custom bg-light" name="TRIGGER_TYPE" id="TRIGGER_TYPE">
-                                        <option value="customer_completes_class" <?= $AUTOMATION['TRIGGER_TYPE'] == 'customer_completes_class' ? 'selected' : '' ?>>Customer completes a class</option>
-                                        <option value="no_future_appointments" <?= $AUTOMATION['TRIGGER_TYPE'] == 'no_future_appointments' ? 'selected' : '' ?>>No future appointments</option>
-                                        <option value="no_active_enrollments" <?= $AUTOMATION['TRIGGER_TYPE'] == 'no_active_enrollments' ? 'selected' : '' ?>>No active enrollments</option>
-                                        <option value="no_specific_services" <?= $AUTOMATION['TRIGGER_TYPE'] == 'no_specific_services' ? 'selected' : '' ?>>No specific services</option>
+                                        <option value="CUSTOMER_COMPLETE_CLASS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'CUSTOMER_COMPLETE_CLASS' ? 'selected' : '' ?>>Customer completes a class</option>
+                                        <option value="NO_FUTURE_APPOINTMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_FUTURE_APPOINTMENTS' ? 'selected' : '' ?>>No future appointments</option>
+                                        <option value="NO_ACTIVE_ENROLLMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS' ? 'selected' : '' ?>>No active enrollments</option>
+                                        <option value="NO_SPECIFIC_SERVICES" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES' ? 'selected' : '' ?>>No specific services</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6" id="triggerValueContainer">
-                                    <?php if ($AUTOMATION['TRIGGER_TYPE'] == 'no_specific_services'): ?>
+                                    <?php if ($AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES'): ?>
                                         <div class="services-checkbox-container" id="servicesCheckboxContainer">
                                             <div class="services-checkbox-item select-all-item">
                                                 <input type="checkbox" id="selectAllServices" class="form-check-input">
@@ -747,8 +747,8 @@ if (!empty($_GET['id'])) {
                                     min="1"
                                     onchange="if(this.value < 1) this.value = 1;">
                                 <select class="form-select form-select-inline bg-light" id="START_REMINDER_UNIT" name="START_REMINDER_UNIT">
-                                    <option value="Days" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'Days' ? 'selected' : '' ?>>Days</option>
-                                    <option value="Hours" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'Hours' ? 'selected' : '' ?>>Hours</option>
+                                    <option value="DAY" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'DAY' ? 'selected' : '' ?>>Days</option>
+                                    <option value="HOUR" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'HOUR' ? 'selected' : '' ?>>Hours</option>
                                 </select>
                             </div>
                             <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
