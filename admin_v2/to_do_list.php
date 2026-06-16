@@ -47,7 +47,7 @@ if (isset($_GET['standing'])) {
         $standing = 1;
         $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID > 0 ';
     } else {
-        $standing_cond = ' AND DOA_SPECIAL_APPOINTMENT.STANDING_ID = 0 ';
+        $standing_cond = '  ';
     }
 }
 
@@ -429,11 +429,11 @@ $page_first_result = ($page - 1) * $results_per_page;
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <!-- <div>
                         <a href="add_to_do.php" class="btn btn-success px-3 py-2 fw-semibold rounded-5 d-flex align-items-center gap-2" style="border-radius: 10px; background-color: #00b050; border-color: #00b050;">
                             <i class="bi bi-plus-lg"></i> New To Do
                         </a>
-                    </div>
+                    </div> -->
                 </div>
 
                 <form class="form-material form-horizontal" id="search_form" action="" method="get">
@@ -462,9 +462,15 @@ $page_first_result = ($page - 1) * $results_per_page;
                             </select>
 
                             <?php if ($standing == 0) { ?>
-                                <button type="submit" class="btn filter-btn d-flex align-items-center gap-2" onclick="$('#standing').val(1)">Show Standing</button>
+                                <button type="button" class="btn filter-btn"
+                                    onclick="$('#standing').val(1); $('#search_form').submit();">
+                                    Show Standing
+                                </button>
                             <?php } else { ?>
-                                <button type="submit" class="btn filter-btn d-flex align-items-center gap-2" onclick="$('#standing').val(0);">Show Normal</button>
+                                <button type="button" class="btn filter-btn"
+                                    onclick="$('#standing').val(''); $('#search_form').submit();">
+                                    Show Normal
+                                </button>
                             <?php } ?>
 
                             <button type="submit" class="btn filter-btn d-flex align-items-center gap-2"><i class="bi bi-sliders"></i> Filter</button>
@@ -686,19 +692,36 @@ $page_first_result = ($page - 1) * $results_per_page;
         });
 
         function showStandingToDoDetails(param, STANDING_ID) {
-            $(param).after('<tr class="standing-detail-row"><td colspan="6"><div class="text-center p-3">Loading...</div></td></tr>');
+
+            let $row = $(param);
+
+            // If already expanded, close it
+            if ($row.data('expanded')) {
+                $row.nextUntil('.standing-row').remove();
+                $row.data('expanded', false);
+                return;
+            }
+
+            // Close all other expanded standing rows
+            $('.standing-row').each(function() {
+                $(this).data('expanded', false);
+                $(this).nextUntil('.standing-row').remove();
+            });
+
+            $row.data('expanded', true);
+
             $.ajax({
                 url: "pagination/get_standing_to_do.php",
-                type: 'GET',
+                type: "GET",
                 data: {
                     STANDING_ID: STANDING_ID
                 },
                 success: function(result) {
-                    $(param).next('.standing-detail-row').remove();
-                    $(result).insertAfter($(param));
+                    $(result).insertAfter($row);
                 },
                 error: function() {
-                    $(param).next('.standing-detail-row').find('td').html('<div class="text-center p-3 text-danger">Error loading details</div>');
+                    alert('Error loading details');
+                    $row.data('expanded', false);
                 }
             });
         }
