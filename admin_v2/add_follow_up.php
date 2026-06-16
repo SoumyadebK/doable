@@ -36,10 +36,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 'get_services') {
     }
 
     $automation_id = isset($_GET['automation_id']) ? intval($_GET['automation_id']) : 0;
+    $location_id = isset($_GET['location_id']) ? intval($_GET['location_id']) : $_SESSION['DEFAULT_LOCATION_ID'];
     $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
     $services = array();
-    $services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
+    $services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION = '$location_id' AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
     if ($services_query && $services_query->RecordCount() > 0) {
         while (!$services_query->EOF) {
             $services[] = array(
@@ -111,6 +112,11 @@ if (!empty($_POST)) {
 
     $AUTOMATION_DATA = $_POST;
     $AUTOMATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+
+    // Ensure PK_LOCATION is set
+    if (!isset($AUTOMATION_DATA['PK_LOCATION']) || empty($AUTOMATION_DATA['PK_LOCATION'])) {
+        $AUTOMATION_DATA['PK_LOCATION'] = $_SESSION['DEFAULT_LOCATION_ID'];
+    }
 
     // Handle switch/checkbox values - they don't send value when unchecked
     $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_LAST'] = isset($_POST['NOTIFY_SERVICE_PROVIDER_LAST']) ? 1 : 0;
@@ -195,7 +201,7 @@ if (!empty($_GET['id'])) {
         exit;
     }
     $AUTOMATION = $res->fields;
-
+    $PK_LOCATION = $AUTOMATION['PK_LOCATION'];
     $reminders_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_REMINDERS` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY REMINDER_ORDER");
     $CUSTOM_REMINDERS = array();
     if ($reminders_res && $reminders_res->RecordCount() > 0) {
@@ -229,6 +235,7 @@ if (!empty($_GET['id'])) {
 } else {
     $AUTOMATION = array(
         'TITLE' => '',
+        'PK_LOCATION' => $_SESSION['DEFAULT_LOCATION_ID'],
         'IS_ACTIVE' => 1,
         'TRIGGER_TYPE' => 'customer_completes_class',
         'TRIGGER_VALUE' => 'trial_class',
@@ -342,7 +349,7 @@ if (!empty($_GET['id'])) {
         .form-select-custom {
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             padding: 0.6rem 0.9rem;
             background-color: #fefefe;
             transition: 0.2s;
@@ -686,14 +693,27 @@ if (!empty($_GET['id'])) {
                     <form id="automationForm" action="" method="post">
                         <!-- Title & toggle -->
                         <div class="form-section row align-items-end mb-4">
-                            <div class="col">
+                            <div class="col-md-5">
                                 <label class="form-label-custom">Title</label>
                                 <input type="text" class="form-control form-control-custom bg-light" value="<?= htmlspecialchars($AUTOMATION['TITLE']) ?>" id="TITLE" name="TITLE" required>
                             </div>
-                            <div class="col-auto ps-0 pb-2">
+                            <div class="col-md-5">
+                                <label class="form-label-custom">Location <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-custom bg-light" id="PK_LOCATION" name="PK_LOCATION" required>
+                                    <option value="">Select Location</option>
+                                    <?php
+                                    $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+                                    while (!$row->EOF) { ?>
+                                        <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($AUTOMATION['PK_LOCATION'] == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                    <?php $row->MoveNext();
+                                    } ?>
+                                </select>
+                            </div>
+                            <div class="col-md-2 ps-0 pb-2">
+                                <label class="form-label-custom d-block">&nbsp;</label>
                                 <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                     <input class="form-check-input m-0" type="checkbox" role="switch" id="IS_ACTIVE" name="IS_ACTIVE" value="1" <?= $AUTOMATION['IS_ACTIVE'] ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="IS_ACTIVE">On</label>
+                                    <label class="form-check-label text-dark small fw-medium" for="IS_ACTIVE">Active</label>
                                 </div>
                             </div>
                         </div>
@@ -1121,12 +1141,17 @@ if (!empty($_GET['id'])) {
         function loadTriggerValueField() {
             const selectedType = triggerTypeSelect.value;
             const automationId = '<?= $_GET['id'] ?? 0 ?>';
+            const locationId = document.getElementById('PK_LOCATION')?.value || '<?= $_SESSION['DEFAULT_LOCATION_ID'] ?>';
 
             if (selectedType === 'no_specific_services') {
+                if (!locationId || locationId === '') {
+                    triggerValueContainer.innerHTML = '<div class="text-warning">Please select a location first to load services.</div>';
+                    return;
+                }
+
                 triggerValueContainer.innerHTML = '<div class="text-muted">Loading services...</div>';
 
-                const url = window.location.href.split('?')[0] + '?ajax=get_services&automation_id=' + automationId;
-                console.log('Fetching services from:', url);
+                const url = window.location.href.split('?')[0] + '?ajax=get_services&automation_id=' + automationId + '&location_id=' + locationId;
 
                 fetch(url, {
                         credentials: 'same-origin',
@@ -1134,12 +1159,8 @@ if (!empty($_GET['id'])) {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        console.log('Services data:', data);
                         if (data.success && data.services && data.services.length > 0) {
                             let checkboxesHtml = '';
                             checkboxesHtml += '<div class="services-checkbox-item select-all-item">';
@@ -1168,12 +1189,12 @@ if (!empty($_GET['id'])) {
                             attachCheckboxEvents();
                             updateSelectedCount();
                         } else {
-                            triggerValueContainer.innerHTML = '<div class="text-warning">No services available. Please add services first.</div>';
+                            triggerValueContainer.innerHTML = '<div class="text-warning">No services available for this location. Please add services first.</div>';
                         }
                     })
                     .catch(error => {
                         console.error('Error loading services:', error);
-                        triggerValueContainer.innerHTML = '<div class="text-danger">Error loading services. Please refresh the page.<br>Details: ' + error.message + '</div>';
+                        triggerValueContainer.innerHTML = '<div class="text-danger">Error loading services. Please refresh the page.</div>';
                     });
             } else {
                 const currentValue = '<?= addslashes($AUTOMATION['TRIGGER_VALUE']) ?>';
@@ -1226,6 +1247,19 @@ if (!empty($_GET['id'])) {
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // Add event listener for location change
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationSelect = document.getElementById('PK_LOCATION');
+            if (locationSelect) {
+                locationSelect.addEventListener('change', function() {
+                    // Reload services if the trigger type is 'no_specific_services'
+                    if (document.getElementById('TRIGGER_TYPE').value === 'no_specific_services') {
+                        loadTriggerValueField();
+                    }
+                });
+            }
+        });
 
         if (triggerTypeSelect) {
             triggerTypeSelect.addEventListener('change', loadTriggerValueField);
@@ -1290,7 +1324,11 @@ if (!empty($_GET['id'])) {
             // Now render everything
             renderReminders();
             toggleScheduleDisplay();
-            loadTriggerValueField();
+
+            // Load services after a short delay to ensure location is set
+            setTimeout(function() {
+                loadTriggerValueField();
+            }, 100);
 
             // Ensure start reminder value is at least 1
             const startReminder = document.getElementById('START_REMINDER_VALUE');
