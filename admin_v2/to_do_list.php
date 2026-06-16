@@ -158,24 +158,116 @@ $page_first_result = ($page - 1) * $results_per_page;
             overflow: hidden;
         }
 
+        /* ===== UNIFIED STYLING - ALL INPUTS, SELECTS & BUTTONS MATCH ===== */
+        .staff-dropdown,
+        .filter-btn,
+        .history-btn,
+        .search-input,
+        .date-input {
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            font-size: 14px !important;
+            padding: 0.375rem 0.75rem !important;
+            height: 40px !important;
+            transition: all 0.3s ease !important;
+            color: #333 !important;
+        }
+
+        .staff-dropdown:focus,
+        .filter-btn:focus,
+        .history-btn:focus,
+        .search-input:focus,
+        .date-input:focus {
+            border-color: #39b54a !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+            outline: none !important;
+            background: #ffffff !important;
+        }
+
+        .staff-dropdown::placeholder,
+        .search-input::placeholder,
+        .date-input::placeholder {
+            color: #a0aec0 !important;
+        }
+
+        /* Search wrapper */
         .search-wrapper {
             position: relative;
-            max-width: 350px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .search-wrapper .bi-search {
             position: absolute;
-            left: 15px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
+            color: #a0aec0;
             z-index: 2;
-            color: #6c757d;
         }
 
-        .search-input {
-            border-radius: 15px !important;
-            padding-left: 45px !important;
+        .search-wrapper .search-input {
+            padding-left: 2.5rem !important;
+            width: 100%;
         }
+
+        /* Date inputs */
+        .date-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .date-input-group .date-input {
+            width: 130px;
+        }
+
+        .date-input-group span {
+            color: #a0aec0;
+            font-weight: 500;
+        }
+
+        /* Filter buttons - same as dropdown */
+        .filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            background: #ffffff !important;
+        }
+
+        .filter-btn:hover {
+            background: #f8fafc !important;
+            border-color: #cbd5e0 !important;
+        }
+
+        .staff-dropdown {
+            cursor: pointer;
+            background: #ffffff !important;
+            min-width: 140px;
+            appearance: auto;
+        }
+
+        /* Action buttons container */
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            border-radius: 50% !important;
+            width: 40px;
+            height: 40px;
+            padding: 0 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== END UNIFIED STYLING ===== */
 
         .avatar-stack {
             display: flex;
@@ -213,31 +305,6 @@ $page_first_result = ($page - 1) * $results_per_page;
         .bg-e {
             background-color: #dbeafe;
             color: #1d4ed8;
-        }
-
-        .staff-dropdown,
-        .filter-btn,
-        .history-btn {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            background: #fff;
-            font-size: 14px;
-            padding: 0.375rem 0.75rem;
-        }
-
-        /* Date Picker Styling */
-        .date-input {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-        }
-
-        .date-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            outline: none;
         }
 
         .todo-table {
@@ -405,16 +472,44 @@ $page_first_result = ($page - 1) * $results_per_page;
             cursor: pointer;
         }
 
-
-        .rounded-date {
-            border-radius: 10px !important;
-            padding-left: 15px;
-            border: 1px solid #000000;
+        .standing-row:hover {
+            background-color: #f8fafc;
         }
 
-        .rounded-date:focus {
-            border-color: #00b050;
-            box-shadow: 0 0 0 0.2rem rgba(0, 176, 80, 0.15);
+        .avatarname {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filter-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .date-input-group {
+                width: 100%;
+            }
+
+            .date-input-group .date-input {
+                width: 100%;
+            }
+
+            .search-wrapper {
+                width: 100%;
+            }
+
+            .staff-dropdown {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -424,13 +519,13 @@ $page_first_result = ($page - 1) * $results_per_page;
     <div id="main-wrapper">
         <div class="page-wrapper" style="padding-top: 1px !important;">
 
-
             <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
+                <!-- Header -->
                 <div class="p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2">
-                            <button class="btn history-btn p-2 d-inline-flex align-items-center justify-content-center" style="border-radius: 50%; width: 40px; height: 40px;">
+                            <button class="btn history-btn p-2 d-inline-flex align-items-center justify-content-center">
                                 <i class="bi bi-clock-history fs-5 text-secondary"></i>
                             </button>
                             <div>
@@ -439,51 +534,67 @@ $page_first_result = ($page - 1) * $results_per_page;
                             </div>
                         </div>
                     </div>
-                    <!-- <div>
-                        <a href="add_to_do.php" class="btn btn-success px-3 py-2 fw-semibold rounded-5 d-flex align-items-center gap-2" style="border-radius: 10px; background-color: #00b050; border-color: #00b050;">
-                            <i class="bi bi-plus-lg"></i> New To Do
-                        </a>
-                    </div> -->
                 </div>
 
+                <!-- Filters -->
                 <form class="form-material form-horizontal" id="search_form" action="" method="get">
                     <input type="hidden" name="standing" id="standing" value="<?= $standing ?>">
                     <input type="hidden" name="page" id="page" value="1">
-                    <div class="px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div class="search-wrapper flex-grow-1">
-                            <i class="bi bi-search"></i>
-                            <input type="text" class="form-control search-input w-100" name="search_text" id="search_text" placeholder="Search by title..." value="<?= htmlspecialchars($search_text) ?>">
-                        </div>
 
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="d-flex gap-2">
+                    <div class="px-4 pb-3">
+                        <div class="d-flex align-items-center gap-2 flex-nowrap">
+
+                            <!-- Search -->
+                            <div class="search-wrapper" style="min-width: 250px;">
+                                <i class="bi bi-search"></i>
+                                <input type="text"
+                                    class="form-control search-input"
+                                    name="search_text"
+                                    id="search_text"
+                                    placeholder="Search by title..."
+                                    value="<?= htmlspecialchars($search_text) ?>">
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="date-input-group d-flex align-items-center gap-2">
                                 <input type="text"
                                     id="START_DATE"
                                     name="START_DATE"
-                                    class="form-control datepicker-normal rounded-date"
+                                    class="form-control date-input datepicker-normal"
                                     placeholder="Start Date"
-                                    value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>"
-                                    style="width: 130px;">
+                                    style="width: 130px;"
+                                    value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>">
+
+                                <span>to</span>
 
                                 <input type="text"
                                     id="END_DATE"
                                     name="END_DATE"
-                                    class="form-control datepicker-normal rounded-date"
+                                    class="form-control date-input datepicker-normal"
                                     placeholder="End Date"
-                                    value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>"
-                                    style="width: 130px;">
+                                    style="width: 130px;"
+                                    value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>">
                             </div>
 
-                            <select class="form-select staff-dropdown w-auto" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
+                            <!-- Status -->
+                            <select class="form-select staff-dropdown"
+                                name="appointment_status"
+                                id="appointment_status"
+                                style="width: 180px;"
+                                onchange="$('#search_form').submit()">
                                 <option value="">All Status</option>
                                 <?php
                                 $row = $db->Execute("SELECT * FROM DOA_APPOINTMENT_STATUS WHERE ACTIVE = 1");
                                 while (!$row->EOF) { ?>
-                                    <option value="<?php echo $row->fields['PK_APPOINTMENT_STATUS']; ?>" <?= ($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status) ? "selected" : "" ?>><?= $row->fields['APPOINTMENT_STATUS'] ?></option>
+                                    <option value="<?= $row->fields['PK_APPOINTMENT_STATUS']; ?>"
+                                        <?= ($row->fields['PK_APPOINTMENT_STATUS'] == $appointment_status) ? "selected" : "" ?>>
+                                        <?= $row->fields['APPOINTMENT_STATUS'] ?>
+                                    </option>
                                 <?php $row->MoveNext();
                                 } ?>
                             </select>
 
+                            <!-- Buttons -->
                             <?php if ($standing == 0) { ?>
                                 <button type="button" class="btn filter-btn"
                                     onclick="$('#standing').val(1); $('#search_form').submit();">
@@ -496,12 +607,19 @@ $page_first_result = ($page - 1) * $results_per_page;
                                 </button>
                             <?php } ?>
 
-                            <button type="submit" class="btn filter-btn d-flex align-items-center gap-2"><i class="bi bi-sliders"></i> Filter</button>
-                            <a href="to_do_list.php" class="btn filter-btn d-flex align-items-center gap-2"><i class="bi bi-arrow-repeat"></i> Reset</a>
+                            <button type="submit" class="btn filter-btn">
+                                <i class="bi bi-sliders"></i> Filter
+                            </button>
+
+                            <a href="to_do_list.php" class="btn filter-btn">
+                                <i class="bi bi-arrow-repeat"></i> Reset
+                            </a>
+
                         </div>
                     </div>
                 </form>
 
+                <!-- Table -->
                 <div class="table-responsive px-4 py-2">
                     <div class="border rounded-2">
                         <table class="todo-table" id="to_do_list">
@@ -512,7 +630,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                     <th class="sortable" data-type="string" style="text-align: center;">Time</th>
                                     <th class="sortable" data-type="string" style="text-align: center;">Status</th>
                                     <th class="sortable" data-type="string" style="text-align: center;">Service Provider</th>
-                                    <th>Actions</th>
+                                    <th style="text-align: center;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -577,7 +695,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                                     }
                                                     ?>
                                                 </td>
-                                                <td>
+                                                <td style="text-align: center;">
                                                     <?php if (in_array("To-Do Edit", $PERMISSION_ARRAY)) { ?>
                                                         <a href="edit_to_do.php?id=<?= $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'] ?>" title="Edit" style="font-size:18px; margin-right: 10px;"><i class="fa fa-edit"></i></a>
                                                     <?php } ?>
@@ -629,6 +747,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                     </div>
                 </div>
 
+                <!-- Pagination -->
                 <div class="center">
                     <div class="pagination outer">
                         <ul>
@@ -663,7 +782,7 @@ $page_first_result = ($page - 1) * $results_per_page;
     <script>
         $(function() {
             $("#START_DATE, #END_DATE").datepicker({
-                dateFormat: 'mm-dd-yy',
+                dateFormat: 'yy-mm-dd',
                 changeMonth: true,
                 changeYear: true,
                 onSelect: function() {
