@@ -158,25 +158,23 @@ $page_first_result = ($page - 1) * $results_per_page;
             overflow: hidden;
         }
 
-        .search-input {
-            border-radius: 40px;
-            background-color: #fafafa;
-            border: 1px solid #e2e8f0;
-            padding-left: 2.5rem;
-            max-width: 300px;
-        }
-
         .search-wrapper {
             position: relative;
+            max-width: 350px;
         }
 
         .search-wrapper .bi-search {
             position: absolute;
-            left: 12px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #a0aec0;
-            z-index: 1;
+            z-index: 2;
+            color: #6c757d;
+        }
+
+        .search-input {
+            border-radius: 15px !important;
+            padding-left: 45px !important;
         }
 
         .avatar-stack {
@@ -406,6 +404,18 @@ $page_first_result = ($page - 1) * $results_per_page;
         .standing-row {
             cursor: pointer;
         }
+
+
+        .rounded-date {
+            border-radius: 10px !important;
+            padding-left: 15px;
+            border: 1px solid #000000;
+        }
+
+        .rounded-date:focus {
+            border-color: #00b050;
+            box-shadow: 0 0 0 0.2rem rgba(0, 176, 80, 0.15);
+        }
     </style>
 </head>
 
@@ -447,8 +457,21 @@ $page_first_result = ($page - 1) * $results_per_page;
 
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <div class="d-flex gap-2">
-                                <input type="text" id="START_DATE" name="START_DATE" class="form-control datepicker-normal" placeholder="Start Date" value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>" style="width: 130px;">
-                                <input type="text" id="END_DATE" name="END_DATE" class="form-control datepicker-normal" placeholder="End Date" value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>" style="width: 130px;">
+                                <input type="text"
+                                    id="START_DATE"
+                                    name="START_DATE"
+                                    class="form-control datepicker-normal rounded-date"
+                                    placeholder="Start Date"
+                                    value="<?= !empty($_GET['START_DATE']) ? $_GET['START_DATE'] : '' ?>"
+                                    style="width: 130px;">
+
+                                <input type="text"
+                                    id="END_DATE"
+                                    name="END_DATE"
+                                    class="form-control datepicker-normal rounded-date"
+                                    placeholder="End Date"
+                                    value="<?= !empty($_GET['END_DATE']) ? $_GET['END_DATE'] : '' ?>"
+                                    style="width: 130px;">
                             </div>
 
                             <select class="form-select staff-dropdown w-auto" name="appointment_status" id="appointment_status" onchange="$('#search_form').submit()">
@@ -635,10 +658,12 @@ $page_first_result = ($page - 1) * $results_per_page;
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script>
         $(function() {
             $("#START_DATE, #END_DATE").datepicker({
-                dateFormat: 'yy-mm-dd',
+                dateFormat: 'mm-dd-yy',
                 changeMonth: true,
                 changeYear: true,
                 onSelect: function() {
