@@ -50,7 +50,7 @@ a {
 
 .nav-link.active {
     background-color: #f1f5f9;
-    color: #10b981;
+    color: #39b54a;
 }
 
 .nav-link i {
@@ -67,8 +67,8 @@ a {
 
 /* Buttons & Toggles */
 .btn-success-custom {
-    background-color: #22c55e;
-    border-color: #22c55e;
+    background-color: #39b54a;
+    border-color: #39b54a;
     color: white;
     font-weight: 500;
 
@@ -99,7 +99,7 @@ a {
 
 .status-btn.active {
     background-color: #ffffff;
-    color: #22c55e;
+    color: #39b54a;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -159,8 +159,8 @@ a {
 }
 
 .custom-table .form-check-input[type="checkbox"]:checked {
-    background-color: #22c55e;
-    border-color: #22c55e;
+    background-color: #39b54a;
+    border-color: #39b54a;
 }
 
 /* Custom Switch / Toggle Styling */
