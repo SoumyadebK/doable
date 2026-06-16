@@ -349,7 +349,7 @@ if (!empty($_GET['id'])) {
         .form-select-custom {
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             padding: 0.6rem 0.9rem;
             background-color: #fefefe;
             transition: 0.2s;
