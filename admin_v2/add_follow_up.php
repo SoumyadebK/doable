@@ -258,7 +258,8 @@ if (!empty($_GET['id'])) {
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
+<?php //require_once('../includes/header.php'); 
+?>
 <?php include 'layout/header.php'; ?>
 
 <head>
@@ -320,12 +321,12 @@ if (!empty($_GET['id'])) {
 
         .sidebar-card .nav-link.active {
             background-color: #ecfdf5;
-            color: #10b981 !important;
+            color: #39b54a !important;
             font-weight: 600;
         }
 
         .sidebar-card .nav-link.active i {
-            color: #10b981;
+            color: #39b54a;
         }
 
         .main-card {
@@ -354,7 +355,7 @@ if (!empty($_GET['id'])) {
 
         .form-control-custom:focus,
         .form-select-custom:focus {
-            border-color: #10b981;
+            border-color: #39b54a;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
             background-color: #fff;
         }
@@ -391,7 +392,7 @@ if (!empty($_GET['id'])) {
         }
 
         .btn-save-automation {
-            background-color: #10b981;
+            background-color: #39b54a;
             border: none;
             color: white;
             border-radius: 40px;
@@ -412,7 +413,7 @@ if (!empty($_GET['id'])) {
         }
 
         .custom-switch .form-check-input:checked {
-            background-color: #10b981;
+            background-color: #39b54a;
         }
 
         .custom-switch .form-check-input:focus,
@@ -422,13 +423,13 @@ if (!empty($_GET['id'])) {
         }
 
         .custom-checkbox .form-check-input:checked {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: #39b54a;
+            border-color: #39b54a;
         }
 
         .custom-radio .form-check-input:checked {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: #39b54a;
+            border-color: #39b54a;
         }
 
         .variable-badge {
@@ -509,8 +510,8 @@ if (!empty($_GET['id'])) {
         }
 
         .form-check-input[type="checkbox"]:checked {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: #39b54a;
+            border-color: #39b54a;
         }
 
         .d-flex.align-items-center.gap-2 {
@@ -556,7 +557,7 @@ if (!empty($_GET['id'])) {
 
         .selected-count {
             font-size: 0.7rem;
-            color: #10b981;
+            color: #39b54a;
             margin-top: 5px;
         }
 
@@ -646,19 +647,17 @@ if (!empty($_GET['id'])) {
                                         <small class="text-muted">Check the boxes to select multiple services</small>
                                     <?php else: ?>
                                         <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
-                                            <option value="trial_class" <?= $AUTOMATION['TRIGGER_VALUE'] == 'trial_class' ? 'selected' : '' ?>>Trial class</option>
-                                            <option value="regular_class" <?= $AUTOMATION['TRIGGER_VALUE'] == 'regular_class' ? 'selected' : '' ?>>Regular class</option>
-                                            <option value="workshop" <?= $AUTOMATION['TRIGGER_VALUE'] == 'workshop' ? 'selected' : '' ?>>Workshop</option>
-                                            <option value="event" <?= $AUTOMATION['TRIGGER_VALUE'] == 'event' ? 'selected' : '' ?>>Event</option>
+                                            <option value="PRIVATE_CLASS" <?= $AUTOMATION['TRIGGER_VALUE'] == 'PRIVATE_CLASS' ? 'selected' : '' ?>>Private class</option>
+                                            <option value="GROUP_CLASS" <?= $AUTOMATION['TRIGGER_VALUE'] == 'GROUP_CLASS' ? 'selected' : '' ?>>Group class</option>
                                         </select>
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-pill-outline mt-1">Add a trigger</button>
+                            <!-- <button type="button" class="btn btn-pill-outline mt-1">Add a trigger</button> -->
                         </div>
 
                         <!-- Conditions -->
-                        <div class="form-section mb-4">
+                        <!-- <div class="form-section mb-4">
                             <label class="form-label-custom">Only if</label>
                             <div class="row mb-2">
                                 <div class="col-12 col-sm-6">
@@ -668,7 +667,7 @@ if (!empty($_GET['id'])) {
                                 </div>
                             </div>
                             <button type="button" class="btn btn-pill-outline mt-1">Add a condition</button>
-                        </div>
+                        </div> -->
 
                         <!-- Start first reminder -->
                         <div class="form-section mb-4">
@@ -699,11 +698,11 @@ if (!empty($_GET['id'])) {
                             <div class="d-flex flex-column gap-2 mb-3">
                                 <div class="form-check custom-radio d-flex align-items-center gap-2">
                                     <input class="form-check-input" type="radio" name="SCHEDULE_TYPE" id="radioSimple" value="simple" <?= $AUTOMATION['SCHEDULE_TYPE'] == 'simple' ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="radioSimple">Simple</label>
+                                    <label class="form-check-label" for="radioSimple">Simple</label>
                                 </div>
                                 <div class="form-check custom-radio d-flex align-items-center gap-2">
                                     <input class="form-check-input" type="radio" name="SCHEDULE_TYPE" id="radioCustom" value="custom" <?= $AUTOMATION['SCHEDULE_TYPE'] == 'custom' ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="radioCustom">Custom</label>
+                                    <label class="form-check-label" for="radioCustom">Custom</label>
                                 </div>
                             </div>
 
@@ -1060,11 +1059,9 @@ if (!empty($_GET['id'])) {
 
                 if (selectedType === 'customer_completes_class') {
                     optionsHtml = `
-                <option value="trial_class" ${currentValue === 'trial_class' ? 'selected' : ''}>Trial class</option>
-                <option value="regular_class" ${currentValue === 'regular_class' ? 'selected' : ''}>Regular class</option>
-                <option value="workshop" ${currentValue === 'workshop' ? 'selected' : ''}>Workshop</option>
-                <option value="event" ${currentValue === 'event' ? 'selected' : ''}>Event</option>
-            `;
+                                    <option value="PRIVATE_CLASS" ${currentValue === 'PRIVATE_CLASS' ? 'selected' : ''}>Private class</option>
+                                    <option value="GROUP_CLASS" ${currentValue === 'GROUP_CLASS' ? 'selected' : ''}>Group class</option>
+                                `;
                 } else {
                     optionsHtml = `<option value="yes" selected>Yes</option>`;
                 }

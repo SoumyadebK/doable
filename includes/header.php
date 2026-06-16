@@ -435,10 +435,10 @@
             position: absolute;
             left: 6px;
             /* Adjust for proper alignment */
-            top: 3px;
+            top: 2px;
             /* Adjust for proper alignment */
             width: 6px;
-            height: 12px;
+            height: 10px;
             border: solid white;
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
