@@ -13,11 +13,11 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 if (!empty($_POST)) {
     $EMAIL_ACCOUNT_DATA = $_POST;
+    unset($EMAIL_ACCOUNT_DATA['TEMP_CONTENT']);
     $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if ($_GET['id'] == '') {
         $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-
         db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
         header("location:all_email_templates.php");
     } else {
@@ -250,6 +250,10 @@ if (empty($_GET['id'])) {
     };
 
     resetForm();
+
+    quill.on('text-change', function() {
+        document.getElementById('CONTENT').value = quill.root.innerHTML;
+    });
 </script>
 
 

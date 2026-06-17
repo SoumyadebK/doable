@@ -199,6 +199,9 @@ if ($PAYMENT_GATEWAY == 'Stripe' && (!empty($_POST['PAYMENT_METHOD_ID']) || !emp
             $PAYMENT_STATUS = 'Success';
             $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
             $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+
+            $LOCATION_DATA_UPDATE['NEXT_RENEWAL_DATE'] = date('Y-m-d', strtotime('+1 month', strtotime($location_date->fields['NEXT_RENEWAL_DATE'])));
+            db_perform('DOA_LOCATION', $LOCATION_DATA_UPDATE, 'update', " PK_LOCATION = $PK_LOCATION");
         } else {
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO = $response->getErrors()[0]->getDetail();

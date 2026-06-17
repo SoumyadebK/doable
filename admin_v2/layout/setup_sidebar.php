@@ -55,6 +55,13 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
         </a>
     </nav>
 
+    <div class="sidebar-section-title">Communication</div>
+    <nav class="nav flex-column gap-1">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_email_templates.php' ? 'active' : '' ?>" href="all_email_templates.php">
+            <i class="bi bi-envelope"></i> Email Templates
+        </a>
+    </nav>
+
     <div class="sidebar-section-title">Logs</div>
     <nav class="nav flex-column gap-1">
         <a class="nav-link sidebar-link <?= $current_page == 'sms_logs.php' ? 'active' : '' ?>" href="sms_logs.php">
