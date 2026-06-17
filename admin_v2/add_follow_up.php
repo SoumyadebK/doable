@@ -15,12 +15,12 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 
 // Fetch services for the dropdown
 $services = array();
-$services_query = $db_account->Execute("SELECT PK_SERVICE_MASTER, SERVICE_NAME FROM DOA_SERVICE_MASTER WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 ORDER BY SERVICE_NAME");
+$services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
 if ($services_query && $services_query->RecordCount() > 0) {
     while (!$services_query->EOF) {
         $services[] = array(
             'id' => $services_query->fields['PK_SERVICE_MASTER'],
-            'name' => $services_query->fields['SERVICE_NAME']
+            'name' => $services_query->fields['SERVICE_NAME'] . (!empty($services_query->fields['SERVICE_CODE']) ? " (" . $services_query->fields['SERVICE_CODE'] . ")" : "")
         );
         $services_query->MoveNext();
     }
@@ -40,12 +40,18 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 'get_services') {
     $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
     $services = array();
-    $services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION = '$location_id' AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
+    $services_query = $db_account->Execute("SELECT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_CODE.SERVICE_CODE FROM DOA_SERVICE_MASTER LEFT JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION = '$location_id' AND DOA_SERVICE_MASTER.ACTIVE = 1 ORDER BY DOA_SERVICE_MASTER.SERVICE_NAME");
+
     if ($services_query && $services_query->RecordCount() > 0) {
         while (!$services_query->EOF) {
+            $service_name = $services_query->fields['SERVICE_NAME'];
+            $service_code = $services_query->fields['SERVICE_CODE'];
+            if (!empty($service_code)) {
+                $service_name .= " (" . $service_code . ")";
+            }
             $services[] = array(
                 'id' => $services_query->fields['PK_SERVICE_MASTER'],
-                'name' => $services_query->fields['SERVICE_NAME'] . " (" . $services_query->fields['SERVICE_CODE'] . ")"
+                'name' => $service_name
             );
             $services_query->MoveNext();
         }
@@ -106,9 +112,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['update_status'])) {
 if (!empty($_POST)) {
     $custom_reminders_json = isset($_POST['CUSTOM_REMINDERS']) ? $_POST['CUSTOM_REMINDERS'] : '';
     $messages_json = isset($_POST['MESSAGES']) ? $_POST['MESSAGES'] : '';
+    $message_notifications_json = isset($_POST['MESSAGE_NOTIFICATIONS']) ? $_POST['MESSAGE_NOTIFICATIONS'] : '[]';
+
+    // Debug: Log the received data
+    error_log("=== FORM SUBMISSION DEBUG ===");
+    error_log("Messages JSON length: " . strlen($messages_json));
+    error_log("Messages JSON: " . $messages_json);
+    error_log("Notifications JSON: " . $message_notifications_json);
 
     unset($_POST['CUSTOM_REMINDERS']);
     unset($_POST['MESSAGES']);
+    unset($_POST['MESSAGE_NOTIFICATIONS']);
 
     $AUTOMATION_DATA = $_POST;
     $AUTOMATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -126,7 +140,7 @@ if (!empty($_POST)) {
     // Keep the old field for backward compatibility if needed
     $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER'] = ($AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_LAST'] || $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? 1 : 0;
 
-    if (isset($_POST['TRIGGER_TYPE']) && $_POST['TRIGGER_TYPE'] == 'no_specific_services') {
+    if (isset($_POST['TRIGGER_TYPE']) && $_POST['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES') {
         if (isset($_POST['TRIGGER_VALUE_SERVICES']) && is_array($_POST['TRIGGER_VALUE_SERVICES'])) {
             $AUTOMATION_DATA['TRIGGER_VALUE'] = json_encode($_POST['TRIGGER_VALUE_SERVICES']);
         } else {
@@ -172,22 +186,78 @@ if (!empty($_POST)) {
         }
     }
 
+    // Save messages with their notification settings
+    $messages_saved = 0;
+
+    // Check if we have messages to save
     if (!empty($messages_json) && $messages_json != 'null' && $messages_json != '[]') {
         $messages = json_decode($messages_json, true);
-        if (is_array($messages) && !empty($messages)) {
-            foreach ($messages as $index => $message_content) {
-                if (!empty($message_content)) {
-                    $clean_content = trim($message_content);
-                    $created_on = date("Y-m-d H:i:s");
-                    $follow_up_num = $index + 1;
 
-                    $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, CREATED_ON, EDITED_ON) 
-                            VALUES ('$automation_id', '$follow_up_num', '$clean_content', '$created_on', '$created_on')";
-                    $db_account->Execute($sql);
+        if (is_array($messages) && !empty($messages)) {
+            // Decode notifications
+            $message_notifications = array();
+            if (!empty($message_notifications_json) && $message_notifications_json != 'null' && $message_notifications_json != '[]') {
+                $message_notifications = json_decode($message_notifications_json, true);
+                if (!is_array($message_notifications)) {
+                    $message_notifications = array();
                 }
             }
+
+            error_log("Messages found: " . count($messages));
+            error_log("Notifications found: " . count($message_notifications));
+
+            foreach ($messages as $index => $message_content) {
+                // Skip empty messages
+                if (empty($message_content)) {
+                    continue;
+                }
+
+                // Clean the content
+                $clean_content = trim($message_content);
+                $created_on = date("Y-m-d H:i:s");
+                $follow_up_num = $index + 1;
+
+                // Get notification settings for this message
+                if (isset($message_notifications[$index]) && is_array($message_notifications[$index])) {
+                    $notify_last = isset($message_notifications[$index]['notify_service_provider_last']) ? 1 : 0;
+                    $notify_enroll = isset($message_notifications[$index]['notify_service_provider_enroll']) ? 1 : 0;
+                    $notify_manager = isset($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
+                    $notify_customer = isset($message_notifications[$index]['notify_customer']) ? 1 : 0;
+                } else {
+                    // Default: send to customer only
+                    $notify_last = 0;
+                    $notify_enroll = 0;
+                    $notify_manager = 0;
+                    $notify_customer = 1;
+                }
+
+                error_log("Saving message $follow_up_num: Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager");
+                error_log("Message content: " . substr($clean_content, 0, 100) . "...");
+
+                $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, 
+                        NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
+                        CREATED_ON, EDITED_ON) 
+                        VALUES ('$automation_id', '$follow_up_num', '" . mysqli_real_escape_string($db_account->connection, $clean_content) . "', 
+                        '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
+                        '$created_on', '$created_on')";
+
+                $result = $db_account->Execute($sql);
+                if ($result) {
+                    $messages_saved++;
+                    error_log("Message $follow_up_num saved successfully");
+                } else {
+                    error_log("ERROR saving message $follow_up_num: " . $db_account->ErrorMsg());
+                }
+            }
+        } else {
+            error_log("Messages JSON decoded but not an array or empty");
         }
+    } else {
+        error_log("No messages JSON found or empty");
     }
+
+    error_log("Total messages saved: $messages_saved");
+    error_log("=== END FORM SUBMISSION DEBUG ===");
 
     header("location:all_follow_ups.php");
     exit;
@@ -217,14 +287,27 @@ if (!empty($_GET['id'])) {
 
     $messages_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_MESSAGES` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY FOLLOW_UP_NUMBER");
     $MESSAGES = array();
+    $MESSAGE_NOTIFICATIONS = array();
     if ($messages_res && $messages_res->RecordCount() > 0) {
         while (!$messages_res->EOF) {
+            // Check if columns exist, if not, use defaults
+            $notify_last = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST'] : false;
+            $notify_enroll = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL'] : false;
+            $notify_manager = isset($messages_res->fields['NOTIFY_STUDIO_MANAGER']) ? (bool)$messages_res->fields['NOTIFY_STUDIO_MANAGER'] : false;
+            $notify_customer = isset($messages_res->fields['NOTIFY_CUSTOMER']) ? (bool)$messages_res->fields['NOTIFY_CUSTOMER'] : true;
+
             $MESSAGES[] = $messages_res->fields['MESSAGE_CONTENT'];
+            $MESSAGE_NOTIFICATIONS[] = array(
+                'notify_service_provider_last' => $notify_last,
+                'notify_service_provider_enroll' => $notify_enroll,
+                'notify_studio_manager' => $notify_manager,
+                'notify_customer' => $notify_customer
+            );
             $messages_res->MoveNext();
         }
     }
 
-    if ($AUTOMATION['TRIGGER_TYPE'] == 'no_specific_services' && !empty($AUTOMATION['TRIGGER_VALUE'])) {
+    if ($AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES' && !empty($AUTOMATION['TRIGGER_VALUE'])) {
         $AUTOMATION['TRIGGER_VALUE_SERVICES'] = json_decode($AUTOMATION['TRIGGER_VALUE'], true);
         if (!is_array($AUTOMATION['TRIGGER_VALUE_SERVICES'])) {
             $AUTOMATION['TRIGGER_VALUE_SERVICES'] = array();
@@ -237,12 +320,12 @@ if (!empty($_GET['id'])) {
         'TITLE' => '',
         'PK_LOCATION' => $_SESSION['DEFAULT_LOCATION_ID'],
         'IS_ACTIVE' => 1,
-        'TRIGGER_TYPE' => 'customer_completes_class',
-        'TRIGGER_VALUE' => 'trial_class',
+        'TRIGGER_TYPE' => 'CUSTOMER_COMPLETE_CLASS',
+        'TRIGGER_VALUE' => 'PRIVATE_CLASS',
         'CONDITION_TYPE' => 'customer_not_purchased_contract',
         'SCHEDULE_TYPE' => 'custom',
         'START_REMINDER_VALUE' => 1,
-        'START_REMINDER_UNIT' => 'Days',
+        'START_REMINDER_UNIT' => 'DAY',
         'MAX_REMINDERS' => 5,
         'NOTIFY_SERVICE_PROVIDER_LAST' => 1,
         'NOTIFY_SERVICE_PROVIDER_ENROLL' => 1,
@@ -258,6 +341,7 @@ if (!empty($_GET['id'])) {
         array('enabled' => true, 'value' => 10, 'unit' => 'Days')
     );
     $MESSAGES = array();
+    $MESSAGE_NOTIFICATIONS = array();
 }
 ?>
 <!DOCTYPE html>
@@ -424,9 +508,6 @@ if (!empty($_GET['id'])) {
             box-shadow: none;
         }
 
-        /* ========== START: ALL CHECKBOXES GREEN ========== */
-
-        /* General checkbox style - all checkboxes */
         .form-check-input[type="checkbox"] {
             width: 1.2em;
             height: 1.2em;
@@ -437,56 +518,14 @@ if (!empty($_GET['id'])) {
             flex-shrink: 0;
         }
 
-        /* Checked state for all checkboxes with form-check-input class */
         .form-check-input[type="checkbox"]:checked {
             background-color: #39b54a !important;
             border-color: #39b54a !important;
         }
 
-        /* Checked state for all checkboxes (fallback) */
         input[type="checkbox"]:checked {
             accent-color: #39b54a !important;
         }
-
-        /* Custom checkboxes in "Who gets notified" section */
-        #NOTIFY_SERVICE_PROVIDER_LAST:checked,
-        #NOTIFY_SERVICE_PROVIDER_ENROLL:checked,
-        #NOTIFY_STUDIO_MANAGER:checked {
-            background-color: #39b54a !important;
-            border-color: #39b54a !important;
-        }
-
-        /* Service checkboxes */
-        .service-checkbox:checked {
-            background-color: #39b54a !important;
-            border-color: #39b54a !important;
-        }
-
-        /* Select all checkbox */
-        #selectAllServices:checked {
-            background-color: #39b54a !important;
-            border-color: #39b54a !important;
-        }
-
-        /* Reminder enabled checkboxes */
-        .reminder-enabled:checked {
-            background-color: #39b54a !important;
-            border-color: #39b54a !important;
-        }
-
-        /* Custom checkbox class */
-        .custom-checkbox .form-check-input:checked {
-            background-color: #39b54a !important;
-            border-color: #39b54a !important;
-        }
-
-        /* Custom radio buttons */
-        .custom-radio .form-check-input:checked {
-            background-color: #39b54a;
-            border-color: #39b54a;
-        }
-
-        /* ========== END: ALL CHECKBOXES GREEN ========== */
 
         .variable-badge {
             background-color: #eef2ff;
@@ -602,7 +641,6 @@ if (!empty($_GET['id'])) {
             margin-top: 5px;
         }
 
-        /* Tooltip styles */
         .tooltip .tooltip-inner {
             background-color: #39B54A;
             max-width: 280px;
@@ -627,7 +665,6 @@ if (!empty($_GET['id'])) {
             border-right-color: #39B54A;
         }
 
-        /* Make all checkbox labels clickable and aligned */
         .d-flex.align-items-center.gap-2 input[type="checkbox"] {
             flex-shrink: 0;
         }
@@ -637,7 +674,6 @@ if (!empty($_GET['id'])) {
             margin-bottom: 0;
         }
 
-        /* Fix for switch alignment */
         .custom-switch .form-check-input {
             width: 2.3em;
             height: 1.25em;
@@ -664,7 +700,6 @@ if (!empty($_GET['id'])) {
             padding-top: 2px;
         }
 
-        /* Ensure switches show green when checked */
         .custom-switch .form-check-input:checked {
             background-color: #39b54a !important;
             border-color: #39b54a !important;
@@ -672,6 +707,20 @@ if (!empty($_GET['id'])) {
 
         .custom-switch .form-check-input:focus {
             box-shadow: none;
+        }
+
+        .notification-settings {
+            border-left: 3px solid #39b54a;
+            background-color: #f8fafc !important;
+        }
+
+        .notification-settings .form-switch .form-check-input:checked {
+            background-color: #39b54a !important;
+            border-color: #39b54a !important;
+        }
+
+        .notification-settings .form-check-label {
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -724,7 +773,6 @@ if (!empty($_GET['id'])) {
                             <div class="row g-2 mb-2">
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select form-select-custom bg-light" name="TRIGGER_TYPE" id="TRIGGER_TYPE">
-                                        <option value="CUSTOMER_COMPLETE_CLASS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'CUSTOMER_COMPLETE_CLASS' ? 'selected' : '' ?>>Customer completes a class</option>
                                         <option value="NO_FUTURE_APPOINTMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_FUTURE_APPOINTMENTS' ? 'selected' : '' ?>>No future appointments</option>
                                         <option value="NO_ACTIVE_ENROLLMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS' ? 'selected' : '' ?>>No active enrollments</option>
                                         <option value="NO_SPECIFIC_SERVICES" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES' ? 'selected' : '' ?>>No specific services</option>
@@ -756,38 +804,41 @@ if (!empty($_GET['id'])) {
                             </div>
                         </div>
 
-                        <!-- Start first reminder - FIXED: default 1, min 1 -->
+                        <!-- Start first reminder & Send up to reminders -->
                         <div class="form-section mb-4">
-                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                <span class="text-dark small fw-medium">Start first reminder</span>
-                                <input type="number" class="form-control form-control-inline bg-light text-center"
-                                    value="<?= $AUTOMATION['START_REMINDER_VALUE'] ?>"
-                                    id="START_REMINDER_VALUE"
-                                    name="START_REMINDER_VALUE"
-                                    min="1"
-                                    onchange="if(this.value < 1) this.value = 1;">
-                                <select class="form-select form-select-inline bg-light" id="START_REMINDER_UNIT" name="START_REMINDER_UNIT">
-                                    <option value="DAY" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'DAY' ? 'selected' : '' ?>>Days</option>
-                                    <option value="HOUR" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'HOUR' ? 'selected' : '' ?>>Hours</option>
-                                </select>
-                            </div>
-                            <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
-                        </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-12 col-sm-3">
+                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="text-dark small fw-semibold">Start first reminder</span>
+                                        <input type="number" class="form-control form-control-inline bg-light text-center"
+                                            value="<?= $AUTOMATION['START_REMINDER_VALUE'] ?>"
+                                            id="START_REMINDER_VALUE"
+                                            name="START_REMINDER_VALUE"
+                                            min="1"
+                                            onchange="if(this.value < 1) this.value = 1;">
+                                        <select class="form-select form-select-inline bg-light" id="START_REMINDER_UNIT" name="START_REMINDER_UNIT">
+                                            <option value="DAY" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'DAY' ? 'selected' : '' ?>>Days</option>
+                                            <option value="HOUR" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'HOUR' ? 'selected' : '' ?>>Hours</option>
+                                        </select>
+                                    </div>
+                                    <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
+                                </div>
 
-                        <!-- Send up to reminders - FIXED: dynamically updates -->
-                        <div class="form-section mb-4">
-                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                <span class="text-dark small fw-medium">Send up to</span>
-                                <input type="number" class="form-control form-control-inline bg-light text-center"
-                                    value="<?= $AUTOMATION['MAX_REMINDERS'] ?>"
-                                    id="MAX_REMINDERS"
-                                    name="MAX_REMINDERS"
-                                    min="1"
-                                    max="20"
-                                    onchange="if(this.value < 1) this.value = 1; if(this.value > 20) this.value = 20; updateFollowUpsAndReminders();">
-                                <span class="text-dark small fw-medium">reminders</span>
+                                <div class="col-12 col-sm-3">
+                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                        <span class="text-dark small fw-semibold">Send up to</span>
+                                        <input type="number" class="form-control form-control-inline bg-light text-center"
+                                            value="<?= $AUTOMATION['MAX_REMINDERS'] ?>"
+                                            id="MAX_REMINDERS"
+                                            name="MAX_REMINDERS"
+                                            min="1"
+                                            max="20"
+                                            onchange="if(this.value < 1) this.value = 1; if(this.value > 20) this.value = 20; updateFollowUpsAndReminders();">
+                                        <span class="text-dark small fw-semibold">reminders</span>
+                                    </div>
+                                    <span class="text-muted extra-small">Stops immediately once conditions are no longer met</span>
+                                </div>
                             </div>
-                            <span class="text-muted extra-small">Stops immediately once conditions are no longer met</span>
                         </div>
 
                         <!-- Schedule -->
@@ -796,7 +847,12 @@ if (!empty($_GET['id'])) {
                             <div class="d-flex flex-column gap-2 mb-3">
                                 <div class="form-check custom-radio d-flex align-items-center gap-2">
                                     <input class="form-check-input" type="radio" name="SCHEDULE_TYPE" id="radioSimple" value="simple" <?= $AUTOMATION['SCHEDULE_TYPE'] == 'simple' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="radioSimple">Simple</label>
+                                    <label class="form-check-label" for="radioSimple">Simple
+                                        <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            title="As setup for first reminder"></i>
+                                    </label>
                                 </div>
                                 <div class="form-check custom-radio d-flex align-items-center gap-2">
                                     <input class="form-check-input" type="radio" name="SCHEDULE_TYPE" id="radioCustom" value="custom" <?= $AUTOMATION['SCHEDULE_TYPE'] == 'custom' ? 'checked' : '' ?>>
@@ -815,18 +871,15 @@ if (!empty($_GET['id'])) {
                             </div>
                         </div>
 
-                        <!-- Who gets notified -->
+                        <!-- Who gets notified - Global Settings (Fallback) -->
                         <div class="form-section mb-4">
-                            <label class="form-label-custom mb-2">Who gets notified</label>
+                            <label class="form-label-custom mb-2">Default Notification Settings (Fallback)</label>
+                            <p class="text-muted extra-small mb-2">These settings apply when not overridden per message below.</p>
                             <div class="d-flex align-items-center gap-3 mb-2">
                                 <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                     <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_SERVICE_PROVIDER_LAST" name="NOTIFY_SERVICE_PROVIDER_LAST" value="1" <?= isset($AUTOMATION['NOTIFY_SERVICE_PROVIDER_LAST']) && $AUTOMATION['NOTIFY_SERVICE_PROVIDER_LAST'] ? 'checked' : '' ?>>
                                     <label class="form-check-label text-dark small fw-medium" for="NOTIFY_SERVICE_PROVIDER_LAST">
                                         Service provider on last class
-                                        <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="right"
-                                            title="Follow up will be sent to service provider that taught the class associated in the criteria"></i>
                                     </label>
                                 </div>
                             </div>
@@ -835,10 +888,6 @@ if (!empty($_GET['id'])) {
                                     <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_SERVICE_PROVIDER_ENROLL" name="NOTIFY_SERVICE_PROVIDER_ENROLL" value="1" <?= isset($AUTOMATION['NOTIFY_SERVICE_PROVIDER_ENROLL']) && $AUTOMATION['NOTIFY_SERVICE_PROVIDER_ENROLL'] ? 'checked' : '' ?>>
                                     <label class="form-check-label text-dark small fw-medium" for="NOTIFY_SERVICE_PROVIDER_ENROLL">
                                         Service provider on enrollment
-                                        <i class="bi bi-info-circle-fill text-muted" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="right"
-                                            title="Follow up will be sent to service provider in the enrollment associated in the criteria"></i>
                                     </label>
                                 </div>
                             </div>
@@ -847,10 +896,6 @@ if (!empty($_GET['id'])) {
                                     <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_STUDIO_MANAGER" name="NOTIFY_STUDIO_MANAGER" value="1" <?= $AUTOMATION['NOTIFY_STUDIO_MANAGER'] ? 'checked' : '' ?>>
                                     <label class="form-check-label text-dark small fw-medium" for="NOTIFY_STUDIO_MANAGER">
                                         Studio manager
-                                        <i class="bi bi-info-circle-fill" style="font-size: 0.8rem; cursor: help; color: #39B54A !important;"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="right"
-                                            title="The Studio Manager will receive notifications for this automation"></i>
                                     </label>
                                 </div>
                             </div>
@@ -859,7 +904,7 @@ if (!empty($_GET['id'])) {
                         <!-- Message Templates -->
                         <div class="form-section mb-3">
                             <label class="form-label-custom mb-1">Message templates</label>
-                            <p class="text-muted extra-small mb-2">Optionally provide example language. This will only appear in the To Do list item for the assigned team members.</p>
+                            <p class="text-muted extra-small mb-2">Each follow-up can have its own notification recipients. Configure who receives each message below.</p>
                         </div>
                         <div class="accordion custom-accordion mb-4" id="messagesAccordion"></div>
 
@@ -877,12 +922,19 @@ if (!empty($_GET['id'])) {
 
     <input type="hidden" name="CUSTOM_REMINDERS" id="CUSTOM_REMINDERS" value='<?= htmlspecialchars(json_encode($CUSTOM_REMINDERS)) ?>'>
     <input type="hidden" name="MESSAGES" id="MESSAGES" value='<?= htmlspecialchars(json_encode($MESSAGES)) ?>'>
+    <input type="hidden" name="MESSAGE_NOTIFICATIONS" id="MESSAGE_NOTIFICATIONS" value='<?= htmlspecialchars(json_encode($MESSAGE_NOTIFICATIONS)) ?>'>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Parse existing data
         let reminders = <?= json_encode($CUSTOM_REMINDERS) ?>;
         let existingMessages = <?= json_encode($MESSAGES) ?>;
+        let messageNotifications = <?= json_encode($MESSAGE_NOTIFICATIONS) ?>;
+
+        // Ensure messageNotifications is an array
+        if (!Array.isArray(messageNotifications)) {
+            messageNotifications = [];
+        }
 
         // If reminders is empty or not an array, initialize with defaults
         if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
@@ -972,11 +1024,9 @@ if (!empty($_GET['id'])) {
             document.getElementById('CUSTOM_REMINDERS').value = JSON.stringify(remindersData);
         }
 
-        // FIXED: Dynamic update function
         function updateFollowUpsAndReminders() {
             const maxReminders = parseInt(document.getElementById('MAX_REMINDERS').value) || 1;
 
-            // Update reminders count
             while (reminders.length < maxReminders) {
                 reminders.push({
                     id: Date.now() + reminders.length,
@@ -992,13 +1042,11 @@ if (!empty($_GET['id'])) {
 
             renderReminders();
 
-            // Update messages accordion - preserve existing messages if they exist
             const currentMessages = [];
             document.querySelectorAll('#messagesAccordion .accordion-item .editable-content-area').forEach(el => {
                 currentMessages.push(el.innerHTML);
             });
 
-            // Only update existingMessages if we have new content
             if (currentMessages.length > 0) {
                 existingMessages = currentMessages;
             }
@@ -1065,10 +1113,35 @@ if (!empty($_GET['id'])) {
             document.getElementById('MESSAGES').value = JSON.stringify(messages);
         }
 
+        function attachMessageNotificationEvents() {
+            document.querySelectorAll('.msg-notify-customer, .msg-notify-provider-last, .msg-notify-provider-enroll, .msg-notify-manager').forEach(checkbox => {
+                checkbox.removeEventListener('change', updateMessageNotifications);
+                checkbox.addEventListener('change', updateMessageNotifications);
+            });
+        }
+
+        function updateMessageNotifications() {
+            const notifications = [];
+            const accordionItems = document.querySelectorAll('#messagesAccordion .accordion-item');
+
+            accordionItems.forEach((item) => {
+                const notif = {
+                    notify_customer: item.querySelector('.msg-notify-customer')?.checked || false,
+                    notify_service_provider_last: item.querySelector('.msg-notify-provider-last')?.checked || false,
+                    notify_service_provider_enroll: item.querySelector('.msg-notify-provider-enroll')?.checked || false,
+                    notify_studio_manager: item.querySelector('.msg-notify-manager')?.checked || false
+                };
+                notifications.push(notif);
+            });
+
+            document.getElementById('MESSAGE_NOTIFICATIONS').value = JSON.stringify(notifications);
+        }
+
         function buildAccordionItems(count) {
             const accordionContainer = document.getElementById('messagesAccordion');
             if (!accordionContainer) return;
             accordionContainer.innerHTML = '';
+
             const sampleTexts = [
                 'Hi <span class="variable-badge" contenteditable="false">Student Name</span> this is <span class="variable-badge" contenteditable="false">Service Provider Name</span> at <span class="variable-badge" contenteditable="false">Location</span>. How are you? I was wondering if you\'d be interested in signing up for our winter class.',
                 'Just following up again! <span class="variable-badge" contenteditable="false">Student Name</span>, we have limited spots. Let me know if you have any questions.',
@@ -1077,45 +1150,83 @@ if (!empty($_GET['id'])) {
                 'Last call! <span class="variable-badge" contenteditable="false">Student Name</span>, we\'d love to see you in our upcoming sessions.'
             ];
 
-            // Make sure existingMessages is an array
             if (!Array.isArray(existingMessages)) {
                 existingMessages = [];
             }
 
             for (let i = 1; i <= count; i++) {
                 const messageContent = (existingMessages[i - 1] && existingMessages[i - 1] !== '') ? existingMessages[i - 1] : sampleTexts[(i - 1) % sampleTexts.length];
+
+                // Get notification settings for this message
+                const notif = messageNotifications[i - 1] || {
+                    notify_customer: true,
+                    notify_service_provider_last: false,
+                    notify_service_provider_enroll: false,
+                    notify_studio_manager: false
+                };
+
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item mb-2 border rounded-3 overflow-hidden';
                 accordionItem.innerHTML = `
-            <h2 class="accordion-header">
-                <button class="accordion-button ${i === 1 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
-                    Follow up ${i}
-                </button>
-            </h2>
-            <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
-                <div class="accordion-body p-3 pt-1">
-                    <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
-                        <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">${messageContent}</div>
-                    </div>
-                    <div class="variables-section">
-                        <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
-                        <div class="d-flex flex-wrap gap-1">
-                            <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
-                            <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
-                            <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
-                            <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${i === 1 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
+                            Follow up ${i}
+                        </button>
+                    </h2>
+                    <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
+                        <div class="accordion-body p-3 pt-1">
+                            <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
+                                <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">${messageContent}</div>
+                            </div>
+                            
+                            <!-- Notification Settings for this message -->
+                            <div class="notification-settings mb-3 p-2 bg-light rounded-2">
+                                <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to:</span>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                        <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
+                                        <label class="form-check-label text-dark small">Customer</label>
+                                    </div>
+                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                        <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
+                                        <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
+                                    </div>
+                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                        <input class="form-check-input m-0 msg-notify-provider-enroll" type="checkbox" role="switch" ${notif.notify_service_provider_enroll ? 'checked' : ''}>
+                                        <label class="form-check-label text-dark small">Service Provider (Enrollment)</label>
+                                    </div>
+                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                        <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
+                                        <label class="form-check-label text-dark small">Studio Manager</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="variables-section">
+                                <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
+                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
+                `;
                 accordionContainer.appendChild(accordionItem);
             }
+
             attachVariableButtons();
+            attachMessageNotificationEvents();
+
             document.querySelectorAll('.editable-content-area').forEach(el => {
+                el.removeEventListener('input', updateMessagesInput);
                 el.addEventListener('input', updateMessagesInput);
             });
+
             updateMessagesInput();
+            updateMessageNotifications();
         }
 
         // Handle trigger type change for services dropdown
@@ -1143,7 +1254,7 @@ if (!empty($_GET['id'])) {
             const automationId = '<?= $_GET['id'] ?? 0 ?>';
             const locationId = document.getElementById('PK_LOCATION')?.value || '<?= $_SESSION['DEFAULT_LOCATION_ID'] ?>';
 
-            if (selectedType === 'no_specific_services') {
+            if (selectedType === 'NO_SPECIFIC_SERVICES') {
                 if (!locationId || locationId === '') {
                     triggerValueContainer.innerHTML = '<div class="text-warning">Please select a location first to load services.</div>';
                     return;
@@ -1151,7 +1262,8 @@ if (!empty($_GET['id'])) {
 
                 triggerValueContainer.innerHTML = '<div class="text-muted">Loading services...</div>';
 
-                const url = window.location.href.split('?')[0] + '?ajax=get_services&automation_id=' + automationId + '&location_id=' + locationId;
+                const currentUrl = window.location.href.split('?')[0];
+                const url = currentUrl + '?ajax=get_services&automation_id=' + automationId + '&location_id=' + locationId;
 
                 fetch(url, {
                         credentials: 'same-origin',
@@ -1159,7 +1271,12 @@ if (!empty($_GET['id'])) {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success && data.services && data.services.length > 0) {
                             let checkboxesHtml = '';
@@ -1171,20 +1288,20 @@ if (!empty($_GET['id'])) {
                             data.services.forEach(service => {
                                 const isSelected = data.selected_services && data.selected_services.includes(service.id.toString());
                                 checkboxesHtml += `
-                        <div class="services-checkbox-item">
-                            <input type="checkbox" class="form-check-input service-checkbox" name="TRIGGER_VALUE_SERVICES[]" value="${service.id}" id="service_${service.id}" ${isSelected ? 'checked' : ''}>
-                            <label for="service_${service.id}">${escapeHtml(service.name)}</label>
-                        </div>
-                    `;
+                                    <div class="services-checkbox-item">
+                                        <input type="checkbox" class="form-check-input service-checkbox" name="TRIGGER_VALUE_SERVICES[]" value="${service.id}" id="service_${service.id}" ${isSelected ? 'checked' : ''}>
+                                        <label for="service_${service.id}">${escapeHtml(service.name)}</label>
+                                    </div>
+                                `;
                             });
 
                             triggerValueContainer.innerHTML = `
-                    <div class="services-checkbox-container" id="servicesCheckboxContainer">
-                        ${checkboxesHtml}
-                    </div>
-                    <div class="selected-count" id="selectedCount"></div>
-                    <small class="text-muted">Check the boxes to select multiple services</small>
-                `;
+                                <div class="services-checkbox-container" id="servicesCheckboxContainer">
+                                    ${checkboxesHtml}
+                                </div>
+                                <div class="selected-count" id="selectedCount"></div>
+                                <small class="text-muted">Check the boxes to select multiple services</small>
+                            `;
 
                             attachCheckboxEvents();
                             updateSelectedCount();
@@ -1200,20 +1317,20 @@ if (!empty($_GET['id'])) {
                 const currentValue = '<?= addslashes($AUTOMATION['TRIGGER_VALUE']) ?>';
                 let optionsHtml = '';
 
-                if (selectedType === 'customer_completes_class') {
+                if (selectedType === 'CUSTOMER_COMPLETE_CLASS') {
                     optionsHtml = `
-                                    <option value="PRIVATE_CLASS" ${currentValue === 'PRIVATE_CLASS' ? 'selected' : ''}>Private class</option>
-                                    <option value="GROUP_CLASS" ${currentValue === 'GROUP_CLASS' ? 'selected' : ''}>Group class</option>
-                                `;
+                        <option value="PRIVATE_CLASS" ${currentValue === 'PRIVATE_CLASS' ? 'selected' : ''}>Private class</option>
+                        <option value="GROUP_CLASS" ${currentValue === 'GROUP_CLASS' ? 'selected' : ''}>Group class</option>
+                    `;
                 } else {
                     optionsHtml = `<option value="yes" selected>Yes</option>`;
                 }
 
                 triggerValueContainer.innerHTML = `
-            <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
-                ${optionsHtml}
-            </select>
-        `;
+                    <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
+                        ${optionsHtml}
+                    </select>
+                `;
             }
         }
 
@@ -1253,12 +1370,24 @@ if (!empty($_GET['id'])) {
             const locationSelect = document.getElementById('PK_LOCATION');
             if (locationSelect) {
                 locationSelect.addEventListener('change', function() {
-                    // Reload services if the trigger type is 'no_specific_services'
-                    if (document.getElementById('TRIGGER_TYPE').value === 'no_specific_services') {
+                    if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
                         loadTriggerValueField();
                     }
                 });
             }
+
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    animation: true,
+                    delay: {
+                        "show": 300,
+                        "hide": 100
+                    }
+                });
+            });
         });
 
         if (triggerTypeSelect) {
@@ -1284,20 +1413,24 @@ if (!empty($_GET['id'])) {
         }
 
         document.getElementById('automationForm').addEventListener('submit', function(e) {
+            // Ensure all data is updated before submit
             updateRemindersInput();
             updateMessagesInput();
+            updateMessageNotifications();
+
+            // Log what's being submitted
+            console.log('Submitting form...');
+            console.log('Messages:', document.getElementById('MESSAGES').value);
+            console.log('Notifications:', document.getElementById('MESSAGE_NOTIFICATIONS').value);
         });
 
         renderReminders();
 
         // Update the window load event handler
         window.addEventListener('load', function() {
-            // First, ensure reminders count matches MAX_REMINDERS
             const maxReminders = parseInt(document.getElementById('MAX_REMINDERS').value) || 5;
 
-            // If reminders array is empty or has different count than maxReminders, adjust it
             if (reminders.length === 0) {
-                // If no reminders, create default ones
                 for (let i = 0; i < maxReminders; i++) {
                     reminders.push({
                         id: Date.now() + i,
@@ -1307,7 +1440,6 @@ if (!empty($_GET['id'])) {
                     });
                 }
             } else if (reminders.length !== maxReminders) {
-                // If count mismatch, adjust
                 while (reminders.length < maxReminders) {
                     reminders.push({
                         id: Date.now() + reminders.length,
@@ -1321,45 +1453,31 @@ if (!empty($_GET['id'])) {
                 }
             }
 
-            // Now render everything
             renderReminders();
             toggleScheduleDisplay();
 
-            // Load services after a short delay to ensure location is set
+            // Load services on page load if NO_SPECIFIC_SERVICES is selected
             setTimeout(function() {
-                loadTriggerValueField();
-            }, 100);
+                if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
+                    loadTriggerValueField();
+                }
+            }, 200);
 
-            // Ensure start reminder value is at least 1
             const startReminder = document.getElementById('START_REMINDER_VALUE');
             if (startReminder && parseInt(startReminder.value) < 1) {
                 startReminder.value = 1;
             }
 
-            // Ensure max reminders value matches reminders count
             const maxRemindersInput = document.getElementById('MAX_REMINDERS');
             if (maxRemindersInput && parseInt(maxRemindersInput.value) !== reminders.length) {
                 maxRemindersInput.value = reminders.length;
             }
 
-            // Build accordion with correct count
             const messageCount = existingMessages.length > 0 ? existingMessages.length : reminders.length;
             buildAccordionItems(messageCount);
-        });
 
-        // Initialize Bootstrap tooltips
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    trigger: 'hover',
-                    animation: true,
-                    delay: {
-                        "show": 300,
-                        "hide": 100
-                    }
-                });
-            });
+            // Update message notifications after building
+            setTimeout(updateMessageNotifications, 100);
         });
     </script>
 </body>
