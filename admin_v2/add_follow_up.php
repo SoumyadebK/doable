@@ -972,6 +972,7 @@ if (!empty($_GET['id'])) {
 
                     // Reload services if trigger type needs it
                     if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
+                        window.location.reload(); // Simple way to ensure everything reloads correctly with new location context
                         loadTriggerValueField();
                     }
 

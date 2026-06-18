@@ -422,25 +422,24 @@ if (!empty($_POST)) {
             padding: 24px;
         }
 
-        /* Tabs */
+        /* Tabs - Updated without scroll */
         .tabs-modern {
             display: flex;
             gap: 4px;
             border-bottom: 2px solid var(--gray-200);
             padding-bottom: 0;
             margin-bottom: 24px;
-            overflow-x: auto;
-            flex-wrap: nowrap;
-            -webkit-overflow-scrolling: touch;
+            flex-wrap: wrap;
+            /* Changed from nowrap to wrap */
         }
 
+        /* Remove scrollbar styles */
         .tabs-modern::-webkit-scrollbar {
-            height: 2px;
+            display: none;
         }
 
         .tabs-modern::-webkit-scrollbar-thumb {
-            background: var(--gray-300);
-            border-radius: 4px;
+            display: none;
         }
 
         .tabs-modern .tab-item {
@@ -881,11 +880,12 @@ if (!empty($_POST)) {
             }
         }
 
-        /* Payment Register */
+        /* Payment Register - Updated */
         .table-modern {
-            width: 100%;
+            width: 100% !important;
             border-collapse: collapse;
             font-size: 14px;
+            min-width: 600px;
         }
 
         .table-modern thead th {
@@ -898,12 +898,14 @@ if (!empty($_POST)) {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.03em;
+            white-space: nowrap;
         }
 
         .table-modern tbody td {
             padding: 12px 16px;
             border-bottom: 1px solid var(--gray-100);
             color: var(--gray-700);
+            vertical-align: middle;
         }
 
         .table-modern tbody tr:hover {
@@ -912,10 +914,11 @@ if (!empty($_POST)) {
 
         .table-modern .status-badge {
             display: inline-block;
-            padding: 2px 12px;
+            padding: 4px 14px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 500;
+            white-space: nowrap;
         }
 
         .table-modern .status-badge.success {
@@ -931,6 +934,65 @@ if (!empty($_POST)) {
         .table-modern .status-badge.pending {
             background: #FEF3C7;
             color: #92400E;
+        }
+
+        /* DataTable wrapper fixes */
+        .dataTables_wrapper {
+            width: 100% !important;
+            overflow-x: auto;
+        }
+
+        .dataTables_wrapper .dataTables_scroll {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper .dataTables_scrollBody {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 6px 12px;
+            margin-left: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            margin: 0 4px;
+            outline: none;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            color: var(--gray-500);
+            font-size: 13px;
+            padding-top: 8px;
+        }
+
+        /* DataTable responsive for small screens */
+        @media (max-width: 768px) {
+            .table-modern {
+                font-size: 13px;
+                min-width: 500px;
+            }
+
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 8px 12px;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                max-width: 150px;
+            }
         }
 
         /* Holiday List */
@@ -1880,17 +1942,20 @@ if (!empty($_POST)) {
                                 <!-- Payment Register -->
                                 <div class="tab-pane-modern" id="payment_register" role="tabpanel">
                                     <div style="margin-bottom: 16px;">
-                                        <h5 style="font-weight: 600; color: var(--gray-800);"><i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>Payment History</h5>
+                                        <h5 style="font-weight: 600; color: var(--gray-800);">
+                                            <i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                            Payment History
+                                        </h5>
                                     </div>
-                                    <div>
-                                        <table class="table-modern" id="payment_table">
+                                    <div style="overflow-x: auto; width: 100%;">
+                                        <table class="table-modern" id="payment_table" style="width: 100% !important;">
                                             <thead>
                                                 <tr>
-                                                    <th>Date</th>
-                                                    <th>Status</th>
-                                                    <th>Amount</th>
-                                                    <th>Info</th>
-                                                    <th>Details</th>
+                                                    <th style="width: 20%;">Date</th>
+                                                    <th style="width: 15%;">Status</th>
+                                                    <th style="width: 15%;">Amount</th>
+                                                    <th style="width: 25%;">Info</th>
+                                                    <th style="width: 25%;">Details</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2068,6 +2133,34 @@ if (!empty($_POST)) {
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
+        // Initialize DataTable with proper settings
+        $(document).ready(function() {
+            // Check if table has data before initializing
+            if ($('#payment_table tbody tr').length > 0) {
+                // Use retrieve: true to prevent re-initialization errors
+                $('#payment_table').DataTable({
+                    retrieve: true,
+                    order: [
+                        [0, 'desc']
+                    ],
+                    columnDefs: [{
+                        type: 'date',
+                        targets: 0
+                    }],
+                    pageLength: 10,
+                    responsive: true,
+                    autoWidth: false,
+                    scrollX: true,
+                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                        '<"row"<"col-sm-12"tr>>' +
+                        '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                    language: {
+                        emptyTable: "No payment records found."
+                    }
+                });
+            }
+        });
+
         // Tab switching
         document.querySelectorAll('.tab-item').forEach(tab => {
             tab.addEventListener('click', function() {

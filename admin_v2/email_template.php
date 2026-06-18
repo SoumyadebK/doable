@@ -301,7 +301,6 @@ if (empty($_GET['id'])) {
     .radio-group-modern .radio-item input[type="radio"] {
         width: 18px;
         height: 18px;
-        accent-color: var(--primary-color);
         cursor: pointer;
         flex-shrink: 0;
     }
@@ -579,7 +578,7 @@ if (empty($_GET['id'])) {
                                             <select id="PK_EMAIL_ACCOUNT" name="PK_EMAIL_ACCOUNT" class="form-control-modern" required>
                                                 <option value="">Select Email Account</option>
                                                 <?php
-                                                $row = $db_account->Execute("SELECT PK_EMAIL_ACCOUNT, USER_NAME FROM DOA_EMAIL_ACCOUNT WHERE PK_ACCOUNT_MASTER='$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1");
+                                                $row = $db_account->Execute("SELECT PK_EMAIL_ACCOUNT, USER_NAME FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
                                                 while (!$row->EOF) {
                                                     $selected = '';
                                                     if ($PK_EMAIL_ACCOUNT != '' && $PK_EMAIL_ACCOUNT == $row->fields['PK_EMAIL_ACCOUNT']) {
