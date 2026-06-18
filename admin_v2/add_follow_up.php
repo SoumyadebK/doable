@@ -109,17 +109,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['update_status'])) {
 }
 
 // Handle form submission
+// Handle form submission
 if (!empty($_POST)) {
+    // Get the JSON data BEFORE unsetting POST variables
     $custom_reminders_json = isset($_POST['CUSTOM_REMINDERS']) ? $_POST['CUSTOM_REMINDERS'] : '';
     $messages_json = isset($_POST['MESSAGES']) ? $_POST['MESSAGES'] : '';
     $message_notifications_json = isset($_POST['MESSAGE_NOTIFICATIONS']) ? $_POST['MESSAGE_NOTIFICATIONS'] : '[]';
 
     // Debug: Log the received data
     error_log("=== FORM SUBMISSION DEBUG ===");
-    error_log("Messages JSON length: " . strlen($messages_json));
+    error_log("POST data: " . print_r($_POST, true));
     error_log("Messages JSON: " . $messages_json);
+    error_log("Messages JSON length: " . strlen($messages_json));
     error_log("Notifications JSON: " . $message_notifications_json);
+    error_log("Notifications JSON length: " . strlen($message_notifications_json));
 
+    // Check if messages JSON is valid
+    $test_decode = json_decode($messages_json, true);
+    if ($test_decode === null && $messages_json != '') {
+        error_log("ERROR: Messages JSON is invalid: " . json_last_error_msg());
+    } else {
+        error_log("Messages decoded successfully. Count: " . (is_array($test_decode) ? count($test_decode) : 'not array'));
+    }
+
+    // Check if notifications JSON is valid
+    $test_notif_decode = json_decode($message_notifications_json, true);
+    if ($test_notif_decode === null && $message_notifications_json != '') {
+        error_log("ERROR: Notifications JSON is invalid: " . json_last_error_msg());
+    } else {
+        error_log("Notifications decoded successfully. Count: " . (is_array($test_notif_decode) ? count($test_notif_decode) : 'not array'));
+    }
+
+    // Remove the JSON fields from POST data
     unset($_POST['CUSTOM_REMINDERS']);
     unset($_POST['MESSAGES']);
     unset($_POST['MESSAGE_NOTIFICATIONS']);
@@ -132,13 +153,11 @@ if (!empty($_POST)) {
         $AUTOMATION_DATA['PK_LOCATION'] = $_SESSION['DEFAULT_LOCATION_ID'];
     }
 
-    // Handle switch/checkbox values - they don't send value when unchecked
-    $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_LAST'] = isset($_POST['NOTIFY_SERVICE_PROVIDER_LAST']) ? 1 : 0;
-    $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_ENROLL'] = isset($_POST['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? 1 : 0;
-    $AUTOMATION_DATA['NOTIFY_STUDIO_MANAGER'] = isset($_POST['NOTIFY_STUDIO_MANAGER']) ? 1 : 0;
-
-    // Keep the old field for backward compatibility if needed
-    $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER'] = ($AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_LAST'] || $AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? 1 : 0;
+    // Remove global notification fields since they're now per-message
+    unset($AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_LAST']);
+    unset($AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER_ENROLL']);
+    unset($AUTOMATION_DATA['NOTIFY_STUDIO_MANAGER']);
+    unset($AUTOMATION_DATA['NOTIFY_SERVICE_PROVIDER']);
 
     if (isset($_POST['TRIGGER_TYPE']) && $_POST['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES') {
         if (isset($_POST['TRIGGER_VALUE_SERVICES']) && is_array($_POST['TRIGGER_VALUE_SERVICES'])) {
@@ -157,20 +176,25 @@ if (!empty($_POST)) {
         $AUTOMATION_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
         db_perform_account('DOA_AUTOMATIONS', $AUTOMATION_DATA, 'insert');
         $automation_id = $db_account->Insert_ID();
+        error_log("New automation created with ID: $automation_id");
     } else {
         $AUTOMATION_DATA['IS_ACTIVE'] = isset($_POST['IS_ACTIVE']) ? 1 : 0;
         $AUTOMATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $AUTOMATION_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
         db_perform_account('DOA_AUTOMATIONS', $AUTOMATION_DATA, 'update', " PK_AUTOMATION_ID = '$_GET[id]'");
         $automation_id = $_GET['id'];
+        error_log("Updating automation with ID: $automation_id");
 
         $db_account->Execute("DELETE FROM DOA_AUTOMATION_REMINDERS WHERE PK_AUTOMATION_ID = '$automation_id'");
         $db_account->Execute("DELETE FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$automation_id'");
+        error_log("Deleted existing reminders and messages for automation ID: $automation_id");
     }
 
+    // Save reminders
     if (!empty($custom_reminders_json) && $custom_reminders_json != 'null' && $custom_reminders_json != '[]') {
         $custom_reminders = json_decode($custom_reminders_json, true);
         if (is_array($custom_reminders) && !empty($custom_reminders)) {
+            error_log("Saving " . count($custom_reminders) . " reminders");
             foreach ($custom_reminders as $order => $reminder) {
                 if (is_array($reminder) && isset($reminder['value'])) {
                     $is_enabled = isset($reminder['enabled']) && $reminder['enabled'] ? 1 : 0;
@@ -181,37 +205,55 @@ if (!empty($_POST)) {
                     $sql = "INSERT INTO DOA_AUTOMATION_REMINDERS (PK_AUTOMATION_ID, REMINDER_ORDER, IS_ENABLED, VALUE, UNIT, CREATED_ON, EDITED_ON) 
                             VALUES ('$automation_id', '$order', '$is_enabled', '$value', '$unit', '$created_on', '$created_on')";
                     $db_account->Execute($sql);
+                    error_log("Saved reminder $order: enabled=$is_enabled, value=$value, unit=$unit");
                 }
             }
         }
+    } else {
+        error_log("No reminders to save");
     }
 
     // Save messages with their notification settings
     $messages_saved = 0;
 
     // Check if we have messages to save
-    if (!empty($messages_json) && $messages_json != 'null' && $messages_json != '[]') {
+    error_log("Checking messages JSON: " . $messages_json);
+
+    if (!empty($messages_json) && $messages_json != 'null' && $messages_json != '[]' && $messages_json != '[""]') {
         $messages = json_decode($messages_json, true);
 
-        if (is_array($messages) && !empty($messages)) {
+        // Check if json decode worked
+        if ($messages === null) {
+            error_log("ERROR: Failed to decode messages JSON: " . json_last_error_msg());
+        } elseif (!is_array($messages)) {
+            error_log("ERROR: Messages is not an array, type: " . gettype($messages));
+        } elseif (empty($messages)) {
+            error_log("Messages array is empty");
+        } else {
+            error_log("Messages found: " . count($messages));
+
             // Decode notifications
             $message_notifications = array();
             if (!empty($message_notifications_json) && $message_notifications_json != 'null' && $message_notifications_json != '[]') {
                 $message_notifications = json_decode($message_notifications_json, true);
                 if (!is_array($message_notifications)) {
                     $message_notifications = array();
+                    error_log("Notifications decoded but not an array, using empty array");
+                } else {
+                    error_log("Notifications found: " . count($message_notifications));
                 }
+            } else {
+                error_log("No notifications JSON found or empty");
             }
 
-            error_log("Messages found: " . count($messages));
-            error_log("Notifications found: " . count($message_notifications));
+            // Filter out empty messages
+            $filtered_messages = array_filter($messages, function ($msg) {
+                return !empty(trim(strip_tags($msg)));
+            });
 
-            foreach ($messages as $index => $message_content) {
-                // Skip empty messages
-                if (empty($message_content)) {
-                    continue;
-                }
+            error_log("Filtered messages count: " . count($filtered_messages));
 
+            foreach ($filtered_messages as $index => $message_content) {
                 // Clean the content
                 $clean_content = trim($message_content);
                 $created_on = date("Y-m-d H:i:s");
@@ -219,27 +261,33 @@ if (!empty($_POST)) {
 
                 // Get notification settings for this message
                 if (isset($message_notifications[$index]) && is_array($message_notifications[$index])) {
-                    $notify_last = isset($message_notifications[$index]['notify_service_provider_last']) ? 1 : 0;
-                    $notify_enroll = isset($message_notifications[$index]['notify_service_provider_enroll']) ? 1 : 0;
-                    $notify_manager = isset($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
-                    $notify_customer = isset($message_notifications[$index]['notify_customer']) ? 1 : 0;
+                    $notify_last = !empty($message_notifications[$index]['notify_service_provider_last']) ? 1 : 0;
+                    $notify_enroll = !empty($message_notifications[$index]['notify_service_provider_enroll']) ? 1 : 0;
+                    $notify_manager = !empty($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
+                    $notify_customer = !empty($message_notifications[$index]['notify_customer']) ? 1 : 0;
                 } else {
                     // Default: send to customer only
                     $notify_last = 0;
                     $notify_enroll = 0;
                     $notify_manager = 0;
                     $notify_customer = 1;
+                    error_log("No notification settings for message $follow_up_num, using defaults");
                 }
 
                 error_log("Saving message $follow_up_num: Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager");
-                error_log("Message content: " . substr($clean_content, 0, 100) . "...");
+                error_log("Message content length: " . strlen($clean_content));
+
+                // Escape the content for database insertion
+                $escaped_content = addslashes($clean_content);
 
                 $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, 
-                        NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
-                        CREATED_ON, EDITED_ON) 
-                        VALUES ('$automation_id', '$follow_up_num', '" . mysqli_real_escape_string($db_account->connection, $clean_content) . "', 
-                        '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
-                        '$created_on', '$created_on')";
+                    NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
+                    CREATED_ON, EDITED_ON) 
+                    VALUES ('$automation_id', '$follow_up_num', '$escaped_content', 
+                    '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
+                    '$created_on', '$created_on')";
+
+                error_log("SQL: " . $sql);
 
                 $result = $db_account->Execute($sql);
                 if ($result) {
@@ -249,11 +297,9 @@ if (!empty($_POST)) {
                     error_log("ERROR saving message $follow_up_num: " . $db_account->ErrorMsg());
                 }
             }
-        } else {
-            error_log("Messages JSON decoded but not an array or empty");
         }
     } else {
-        error_log("No messages JSON found or empty");
+        error_log("No valid messages JSON found. Value: " . $messages_json);
     }
 
     error_log("Total messages saved: $messages_saved");
@@ -327,10 +373,6 @@ if (!empty($_GET['id'])) {
         'START_REMINDER_VALUE' => 1,
         'START_REMINDER_UNIT' => 'DAY',
         'MAX_REMINDERS' => 5,
-        'NOTIFY_SERVICE_PROVIDER_LAST' => 1,
-        'NOTIFY_SERVICE_PROVIDER_ENROLL' => 1,
-        'NOTIFY_STUDIO_MANAGER' => 1,
-        'NOTIFY_SERVICE_PROVIDER' => 1,
         'TRIGGER_VALUE_SERVICES' => array()
     );
     $CUSTOM_REMINDERS = array(
@@ -740,6 +782,9 @@ if (!empty($_GET['id'])) {
                     </div>
 
                     <form id="automationForm" action="" method="post">
+                        <input type="hidden" name="CUSTOM_REMINDERS" id="CUSTOM_REMINDERS" value='<?= htmlspecialchars(json_encode($CUSTOM_REMINDERS)) ?>'>
+                        <input type="hidden" name="MESSAGES" id="MESSAGES" value='<?= htmlspecialchars(json_encode($MESSAGES)) ?>'>
+                        <input type="hidden" name="MESSAGE_NOTIFICATIONS" id="MESSAGE_NOTIFICATIONS" value='<?= htmlspecialchars(json_encode($MESSAGE_NOTIFICATIONS)) ?>'>
                         <!-- Title & toggle -->
                         <div class="form-section row align-items-end mb-4">
                             <div class="col-md-5">
@@ -871,40 +916,10 @@ if (!empty($_GET['id'])) {
                             </div>
                         </div>
 
-                        <!-- Who gets notified - Global Settings (Fallback) -->
-                        <div class="form-section mb-4">
-                            <label class="form-label-custom mb-2">Default Notification Settings (Fallback)</label>
-                            <p class="text-muted extra-small mb-2">These settings apply when not overridden per message below.</p>
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_SERVICE_PROVIDER_LAST" name="NOTIFY_SERVICE_PROVIDER_LAST" value="1" <?= isset($AUTOMATION['NOTIFY_SERVICE_PROVIDER_LAST']) && $AUTOMATION['NOTIFY_SERVICE_PROVIDER_LAST'] ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="NOTIFY_SERVICE_PROVIDER_LAST">
-                                        Service provider on last class
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_SERVICE_PROVIDER_ENROLL" name="NOTIFY_SERVICE_PROVIDER_ENROLL" value="1" <?= isset($AUTOMATION['NOTIFY_SERVICE_PROVIDER_ENROLL']) && $AUTOMATION['NOTIFY_SERVICE_PROVIDER_ENROLL'] ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="NOTIFY_SERVICE_PROVIDER_ENROLL">
-                                        Service provider on enrollment
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="NOTIFY_STUDIO_MANAGER" name="NOTIFY_STUDIO_MANAGER" value="1" <?= $AUTOMATION['NOTIFY_STUDIO_MANAGER'] ? 'checked' : '' ?>>
-                                    <label class="form-check-label text-dark small fw-medium" for="NOTIFY_STUDIO_MANAGER">
-                                        Studio manager
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Message Templates -->
                         <div class="form-section mb-3">
                             <label class="form-label-custom mb-1">Message templates</label>
-                            <p class="text-muted extra-small mb-2">Each follow-up can have its own notification recipients. Configure who receives each message below.</p>
+                            <p class="text-muted extra-small mb-2">Each follow-up message has its own notification recipients. Configure who receives each message below.</p>
                         </div>
                         <div class="accordion custom-accordion mb-4" id="messagesAccordion"></div>
 
@@ -920,12 +935,53 @@ if (!empty($_GET['id'])) {
         </div>
     </div>
 
-    <input type="hidden" name="CUSTOM_REMINDERS" id="CUSTOM_REMINDERS" value='<?= htmlspecialchars(json_encode($CUSTOM_REMINDERS)) ?>'>
-    <input type="hidden" name="MESSAGES" id="MESSAGES" value='<?= htmlspecialchars(json_encode($MESSAGES)) ?>'>
-    <input type="hidden" name="MESSAGE_NOTIFICATIONS" id="MESSAGE_NOTIFICATIONS" value='<?= htmlspecialchars(json_encode($MESSAGE_NOTIFICATIONS)) ?>'>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Redefine header's selectViewingLocation for this page only
+        window.selectViewingLocation = function() {
+            const checkedCheckboxes = document.querySelectorAll('.location-checkbox:checked');
+            const DEFAULT_LOCATION_ID = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+            if (DEFAULT_LOCATION_ID.length === 0) {
+                alert('Please select at least one location.');
+                return;
+            }
+
+            $.ajax({
+                url: "../admin_v2/ajax/AjaxFunctions.php",
+                type: "POST",
+                data: {
+                    FUNCTION_NAME: 'selectDefaultLocation',
+                    DEFAULT_LOCATION_ID: DEFAULT_LOCATION_ID
+                },
+                async: false,
+                cache: false,
+                success: function(result) {
+                    // Sync form's PK_LOCATION select to first checked location
+                    const locationSelect = document.getElementById('PK_LOCATION');
+                    if (locationSelect && DEFAULT_LOCATION_ID.length > 0) {
+                        const match = Array.from(locationSelect.options).find(opt =>
+                            DEFAULT_LOCATION_ID.includes(opt.value)
+                        );
+                        if (match) locationSelect.value = match.value;
+                    }
+
+                    // Reload services if trigger type needs it
+                    if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
+                        loadTriggerValueField();
+                    }
+
+                    // Close the dropdown
+                    const dropdownBtn = document.querySelector('[data-bs-toggle="dropdown"][href="location"]');
+                    if (dropdownBtn) {
+                        const instance = bootstrap.Dropdown.getInstance(dropdownBtn);
+                        if (instance) instance.hide();
+                    }
+                }
+            });
+        };
         // Parse existing data
         let reminders = <?= json_encode($CUSTOM_REMINDERS) ?>;
         let existingMessages = <?= json_encode($MESSAGES) ?>;
@@ -1159,7 +1215,7 @@ if (!empty($_GET['id'])) {
 
                 // Get notification settings for this message
                 const notif = messageNotifications[i - 1] || {
-                    notify_customer: true,
+                    notify_customer: false,
                     notify_service_provider_last: false,
                     notify_service_provider_enroll: false,
                     notify_studio_manager: false
