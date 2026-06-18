@@ -1882,7 +1882,7 @@ if (!empty($_POST)) {
                                     <div style="margin-bottom: 16px;">
                                         <h5 style="font-weight: 600; color: var(--gray-800);"><i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>Payment History</h5>
                                     </div>
-                                    <div style="overflow-x: auto;">
+                                    <div>
                                         <table class="table-modern" id="payment_table">
                                             <thead>
                                                 <tr>
