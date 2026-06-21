@@ -197,9 +197,9 @@ $event_types = $db_account->Execute($query);
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
                                 <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Event Types
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Event Types
                                 <?php } else { ?>
-                                    <i class="bi bi-calendar-event me-2 text-primary"></i>Active Event Types
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Event Types
                                 <?php } ?>
                             </h2>
                             <p class="text-muted small mb-0">Manage event categories, color coding, and classification</p>

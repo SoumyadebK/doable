@@ -515,7 +515,7 @@ if (empty($_GET['id'])) {
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="fas fa-file-alt"></i>
+                                    <i class="bi bi-envelope"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Template' : 'Create New Template' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>

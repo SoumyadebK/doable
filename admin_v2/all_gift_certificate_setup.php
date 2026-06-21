@@ -272,9 +272,9 @@ $gift_setups = $db_account->Execute($query);
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
                                 <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Gift Certificates Setup
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Gift Certificates Setup
                                 <?php } else { ?>
-                                    <i class="bi bi-gift-fill me-2 text-primary"></i>Active Gift Certificates Setup
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Gift Certificates Setup
                                 <?php } ?>
                             </h2>
                             <p class="text-muted small mb-0">Configure gift certificate templates, amount ranges, and validity periods</p>

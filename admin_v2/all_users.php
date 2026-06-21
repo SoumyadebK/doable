@@ -92,7 +92,13 @@ $users = $db->Execute($query);
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4">
                         <div>
-                            <h2 class="fw-semibold h4 mb-1"><?= $title ?></h2>
+                            <h2 class="fw-semibold h4 mb-1">
+                                <?php if ($status_check == 'inactive') { ?>
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Users
+                                <?php } else { ?>
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Users
+                                <?php } ?>
+                            </h2>
                             <p class="text-muted small mb-0">Manage your team members and their permissions</p>
                         </div>
                         <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='user.php'">

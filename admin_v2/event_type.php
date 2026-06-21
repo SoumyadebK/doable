@@ -464,7 +464,7 @@ if (empty($_GET['id'])) {
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="fas fa-tag"></i>
+                                    <i class="bi bi-star"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Event Type' : 'Create New Event Type' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>

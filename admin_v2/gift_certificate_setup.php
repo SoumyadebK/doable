@@ -559,7 +559,7 @@ if (empty($_GET['id'])) {
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="fas fa-ticket-alt"></i>
+                                    <i class="bi bi-sliders2"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Gift Certificate Setup' : 'Create New Gift Certificate Setup' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>

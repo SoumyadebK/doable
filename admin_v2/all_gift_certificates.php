@@ -253,9 +253,9 @@ $gift_certificates = $db_account->Execute($query);
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
                                 <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Gift Certificates
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Gift Certificates
                                 <?php } else { ?>
-                                    <i class="bi bi-gift-fill me-2 text-primary"></i>Active Gift Certificates
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Gift Certificates
                                 <?php } ?>
                             </h2>
                             <p class="text-muted small mb-0">Manage gift certificates, track purchases, and generate PDFs</p>

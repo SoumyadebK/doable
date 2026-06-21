@@ -975,7 +975,7 @@ if (!empty($_POST)) {
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="fas fa-ticket-alt"></i>
+                                    <i class="bi bi-gift-fill"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Gift Certificate' : 'Create New Gift Certificate' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>
