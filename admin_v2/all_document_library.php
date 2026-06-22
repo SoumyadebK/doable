@@ -217,9 +217,9 @@ $documents = $db_account->Execute($query);
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
                                 <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Document Library
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Document Library
                                 <?php } else { ?>
-                                    <i class="bi bi-folder2-open me-2 text-primary"></i>Active Document Library
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Document Library
                                 <?php } ?>
                             </h2>
                             <p class="text-muted small mb-0">Manage document templates, forms, and library resources</p>
@@ -310,7 +310,6 @@ $documents = $db_account->Execute($query);
                         <div class="empty-state">
                             <i class="bi bi-folder2-open"></i>
                             <p class="mt-3 text-muted">No documents found for the selected filters</p>
-                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="createNewDocument()">Create your first document</button>
                         </div>
                     <?php endif; ?>
 

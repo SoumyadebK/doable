@@ -55,7 +55,16 @@ $total_pages = ceil($total_records / $per_page);
 
 // Get gift certificates for current page
 $query = "SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, 
-          CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME,
+DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
+          DOA_GIFT_CERTIFICATE_MASTER.RECIPIENT,
+            DOA_GIFT_CERTIFICATE_MASTER.SENDER,
+            DOA_GIFT_CERTIFICATE_MASTER.GIFT_NOTE,
+            DOA_GIFT_CERTIFICATE_MASTER.UNIQUE_ID,
+            DOA_GIFT_CERTIFICATE_MASTER.EMAIL_ID,
+            DOA_GIFT_CERTIFICATE_MASTER.PHONE_NO,
+              DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
+                DOA_LOCATION.LOCATION_NAME,
+
           DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, 
           DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, 
           DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, 
@@ -63,8 +72,7 @@ $query = "SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER,
           DOA_GIFT_CERTIFICATE_MASTER.ACTIVE 
           FROM DOA_GIFT_CERTIFICATE_MASTER 
           INNER JOIN DOA_GIFT_CERTIFICATE_SETUP ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP = DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP 
-          LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
-          LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
+          LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
           WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' 
           AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
           $search_condition 
@@ -295,7 +303,12 @@ $gift_certificates = $db_account->Execute($query);
                             <thead>
                                 <tr>
                                     <th style="width: 40px;">#</th>
-                                    <th>Customer</th>
+                                    <th>To</th>
+                                    <th>From</th>
+                                    <th>Location</th>
+                                    <th>Unique ID</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
                                     <th style="text-align: center;">Gift Certificate Name</th>
                                     <th style="text-align: center;">Gift Certificate Code</th>
                                     <th style="text-align: center;">Purchase Date</th>
@@ -311,30 +324,55 @@ $gift_certificates = $db_account->Execute($query);
                                 if ($gift_certificates && !$gift_certificates->EOF):
                                     while (!$gift_certificates->EOF):
                                         $PK_GIFT_CERTIFICATE_MASTER = $gift_certificates->fields['PK_GIFT_CERTIFICATE_MASTER'];
-                                        $customer_name = !empty($gift_certificates->fields['CUSTOMER_NAME']) ? $gift_certificates->fields['CUSTOMER_NAME'] : '—';
+                                        $pk_location = $gift_certificates->fields['PK_LOCATION'];
                                         $gift_code = $gift_certificates->fields['GIFT_CERTIFICATE_CODE'];
                                         $gift_name = $gift_certificates->fields['GIFT_CERTIFICATE_NAME'];
                                         $purchase_date = $gift_certificates->fields['DATE_OF_PURCHASE'];
                                         $amount = $gift_certificates->fields['AMOUNT'];
                                         $is_active = $gift_certificates->fields['ACTIVE'] == 1;
-
-                                        $customer = getProfileBadge($customer_name);
-                                        $customer_initial = $customer['initials'];
-                                        $customer_color = $customer['color'];
+                                        $to = $gift_certificates->fields['RECIPIENT'];
+                                        $from = $gift_certificates->fields['SENDER'];
+                                        $gift_note = $gift_certificates->fields['GIFT_NOTE'];
+                                        $unique_id = $gift_certificates->fields['UNIQUE_ID'];
+                                        $email_id = $gift_certificates->fields['EMAIL_ID'];
+                                        $phone_no = $gift_certificates->fields['PHONE_NO'];
 
                                         // Format date
                                         $formatted_date = !empty($purchase_date) && $purchase_date != '0000-00-00' ? date('M d, Y', strtotime($purchase_date)) : '—';
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
-                                                    <div>
-                                                        <div class="fw-semibold"><?= htmlspecialchars($customer_name) ?></div>
-                                                    </div>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="fw-medium"><?= htmlspecialchars($to) ?></span>
                                                 </div>
                                             </td>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="fw-medium"><?= htmlspecialchars($from) ?></span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="fw-medium"><?= htmlspecialchars($gift_certificates->fields['LOCATION_NAME'] ?? '—') ?></span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="certificate-code"><?= htmlspecialchars($unique_id) ?></span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="fw-medium"><?= htmlspecialchars($email_id) ?></span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    <span class="fw-medium"><?= htmlspecialchars($phone_no) ?></span>
+                                                </div>
+                                            </td>
+
                                             <td style="text-align: center;">
                                                 <div>
                                                     <span class="fw-medium"><?= htmlspecialchars($gift_name) ?></span>
@@ -364,6 +402,9 @@ $gift_certificates = $db_account->Execute($query);
                                             </td>
                                             <td>
                                                 <div class="action-icons">
+                                                    <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>')" title="Create Customer">
+                                                        <i class="bi bi-person-add"></i>
+                                                    </a>
                                                     <a href="javascript:;" onclick="editGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Edit">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
@@ -384,7 +425,6 @@ $gift_certificates = $db_account->Execute($query);
                                         <td colspan="7" class="text-center py-5">
                                             <i class="bi bi-gift display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No gift certificates found for the selected filters</p>
-                                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="createNewGiftCertificate()">Create your first gift certificate</button>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -514,6 +554,19 @@ $gift_certificates = $db_account->Execute($query);
                     console.log(JSON.stringify(error));
                 }
             });
+        }
+
+        function createCustomer(pk_location, name, email, phone, amount, note) {
+            const params = new URLSearchParams({
+                PK_LOCATION: pk_location || '',
+                FIRST_NAME: name || '',
+                LAST_NAME: '',
+                EMAIL_ID: email || '',
+                PHONE: phone || '',
+                AMOUNT: amount || '',
+                NOTES: note || 'Created from Gift Certificate'
+            });
+            window.location.href = `../admin/customer.php?${params.toString()}`;
         }
     </script>
 

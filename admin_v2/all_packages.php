@@ -291,9 +291,9 @@ $packages = $db_account->Execute($query);
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
                                 <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-archive me-2 text-muted"></i>Not Active Packages
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Packages
                                 <?php } else { ?>
-                                    <i class="bi bi-box-seam me-2 text-success"></i>Active Packages
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Packages
                                 <?php } ?>
                             </h2>
                             <p class="text-muted small mb-0">Manage service packages, bundled services, and pricing structures</p>
@@ -448,7 +448,6 @@ $packages = $db_account->Execute($query);
                                         <td colspan="7" class="text-center py-5">
                                             <i class="bi bi-box-seam display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No packages found for the selected filters</p>
-                                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="createNewPackage()">Create your first package</button>
                                         </td>
                                     </tr>
                                 <?php endif; ?>

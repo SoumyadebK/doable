@@ -281,7 +281,6 @@ $inquiry_methods = $db_account->Execute($query);
                                         <td colspan="4" class="text-center py-5">
                                             <i class="bi bi-chat-dots display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No inquiry methods found for the selected filters</p>
-                                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="createNewInquiryMethod()">Create your first inquiry method</button>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
