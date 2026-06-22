@@ -38,13 +38,13 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
 
     <div class="sidebar-section-title">Other</div>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificates.php' ? 'active' : '' ?>" href="all_gift_certificates.php">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificates.php' || $current_page == 'gift_certificate.php' ? 'active' : '' ?>" href="all_gift_certificates.php">
             <i class="bi bi-gift"></i> Gift Certificates
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificate_setup.php' ? 'active' : '' ?>" href="all_gift_certificate_setup.php">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_gift_certificate_setup.php' || $current_page == 'gift_certificate_setup.php' ? 'active' : '' ?>" href="all_gift_certificate_setup.php">
             <i class="bi bi-sliders2"></i> Gift Certificate Setup
         </a>
-        <a class="nav-link sidebar-link <?= $current_page == 'all_event_types.php' ? 'active' : '' ?>" href="all_event_types.php">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_event_types.php' || $current_page == 'event_type.php' ? 'active' : '' ?>" href="all_event_types.php">
             <i class="bi bi-star"></i> Event Types
         </a>
         <a class="nav-link sidebar-link <?= $current_page == 'all_inquiry_methods.php' ? 'active' : '' ?>" href="all_inquiry_methods.php">
@@ -57,7 +57,7 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
 
     <div class="sidebar-section-title">Communication</div>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link sidebar-link <?= $current_page == 'all_email_templates.php' ? 'active' : '' ?>" href="all_email_templates.php">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_email_templates.php' || $current_page == 'email_template.php' ? 'active' : '' ?>" href="all_email_templates.php">
             <i class="bi bi-envelope"></i> Email Templates
         </a>
     </nav>

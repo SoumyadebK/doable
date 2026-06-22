@@ -57,6 +57,10 @@ if (empty($_GET['id'])) {
 <?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="assets/css/setup-styles.css" rel="stylesheet">
 
 <style>
     :root {
@@ -500,12 +504,18 @@ if (empty($_GET['id'])) {
             <div class="container-fluid body_content" style="margin-top: 24px !important;">
 
                 <!-- Main Content -->
-                <div class="row">
-                    <div class="col-12">
+                <div class="row g-4">
+                    <!-- Sidebar -->
+                    <div class="col-12 col-md-4 col-xl-2">
+                        <?php include 'layout/setup_sidebar.php'; ?>
+                    </div>
+
+                    <!-- Main Form -->
+                    <div class="col-12 col-md-8 col-xl-10">
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="fas fa-file-alt"></i>
+                                    <i class="bi bi-envelope"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Template' : 'Create New Template' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>
@@ -575,7 +585,7 @@ if (empty($_GET['id'])) {
                                         <!-- Email Account -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Email Account <span class="required">*</span></label>
-                                            <select id="PK_EMAIL_ACCOUNT" name="PK_EMAIL_ACCOUNT" class="form-control-modern" required>
+                                            <select id="PK_EMAIL_ACCOUNT" name="PK_EMAIL_ACCOUNT" class="form-control-modern">
                                                 <option value="">Select Email Account</option>
                                                 <?php
                                                 $row = $db_account->Execute("SELECT PK_EMAIL_ACCOUNT, USER_NAME FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");

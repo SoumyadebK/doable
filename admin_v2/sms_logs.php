@@ -298,7 +298,7 @@ $sms_logs = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <i class="bi bi-envelope-paper me-2 text-primary"></i><?= htmlspecialchars($title) ?>
+                                <i class="bi bi-chat-left-text me-2 text-primary"></i><?= htmlspecialchars($title) ?>
                             </h2>
                             <p class="text-muted small mb-0">Track SMS communications, delivery status, and error logs</p>
                             <?php if (!empty($header_text)): ?>

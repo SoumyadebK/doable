@@ -262,6 +262,10 @@ if (!empty($_POST)) {
     <?php include 'layout/header.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/setup-styles.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #39B54A;
@@ -1218,911 +1222,921 @@ if (!empty($_POST)) {
             <div class="container-fluid body_content" style="margin-top: 24px !important;">
 
                 <!-- Main Grid -->
-                <div class="main-grid">
-                    <!-- Main Content -->
-                    <div class="card-modern">
-                        <div class="card-header">
-                            <h5>
-                                <i class="fas fa-location-dot"></i>
-                                <?= !empty($_GET['id']) ?  $LOCATION_NAME : 'Create New Location' ?>
-                            </h5>
-                            <?php if (!empty($_GET['id'])): ?>
-                                <span class="location-name">
-                                    <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px; margin-right: 6px;"></i>
-                                    <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="card-body">
-                            <!-- Tabs -->
-                            <div class="tabs-modern" role="tablist">
-                                <button class="tab-item active" data-tab="location_div" role="tab">
-                                    <i class="fas fa-location-dot"></i> Location
-                                </button>
-                                <button class="tab-item" data-tab="operational_hours" role="tab">
-                                    <i class="fas fa-clock"></i> Hours
-                                </button>
-                                <?php if (!empty($_GET['id'])): ?>
-                                    <button class="tab-item" data-tab="holiday_list" role="tab">
-                                        <i class="fas fa-calendar-days"></i> Holidays
-                                    </button>
-                                    <button class="tab-item" data-tab="customer_tab_permissions" role="tab">
-                                        <i class="fas fa-check-circle"></i> Permissions
-                                    </button>
-                                    <button class="tab-item" data-tab="payment_register" role="tab">
-                                        <i class="fas fa-receipt"></i> Payments
-                                    </button>
-                                    <button class="tab-item" data-tab="billing" role="tab">
-                                        <i class="fas fa-credit-card"></i> Billing
-                                    </button>
-                                    <button class="tab-item" data-tab="credit_card" role="tab">
-                                        <i class="fas fa-credit-card"></i> Card
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-
-                            <!-- Tab Content -->
-                            <div class="tab-content-modern">
-                                <!-- Location Tab -->
-                                <div class="tab-pane-modern active" id="location_div" role="tabpanel">
-                                    <form id="location_form" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
-                                        <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-
-                                        <div class="form-grid">
-                                            <!-- Corporation -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Corporation <span class="required">*</span></label>
-                                                <select class="form-control-modern" name="PK_CORPORATION" id="PK_CORPORATION" required>
-                                                    <option value="">Select Corporation</option>
-                                                    <?php
-                                                    $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?= $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['CORPORATION_NAME']) ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-
-                                            <!-- Account Type -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Account Type <span class="required">*</span></label>
-                                                <div class="radio-group-modern">
-                                                    <?php
-                                                    $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
-                                                    while (!$row->EOF) { ?>
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="PK_ACCOUNT_TYPE" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
-                                                            <?= htmlspecialchars($row->fields['ACCOUNT_TYPE']) ?>
-                                                        </label>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </div>
-                                            </div>
-
-                                            <!-- Franchise -->
-                                            <?php if ($AMI_ENABLE == 1): ?>
-                                                <div class="form-group-modern">
-                                                    <label class="form-label">Arthur Murray Franchise</label>
-                                                    <div class="radio-group-modern">
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> Yes
-                                                        </label>
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> No
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <!-- Location Name -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Location <span class="required">*</span></label>
-                                                <input type="text" class="form-control-modern" name="LOCATION_NAME" placeholder="Enter Location Name" required value="<?= htmlspecialchars($LOCATION_NAME) ?>">
-                                            </div>
-
-                                            <!-- Location Code -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Location Code <span class="required">*</span></label>
-                                                <input type="text" class="form-control-modern" name="LOCATION_CODE" placeholder="Enter Location Code" required value="<?= htmlspecialchars($LOCATION_CODE) ?>">
-                                            </div>
-
-                                            <!-- Address -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Address</label>
-                                                <input type="text" class="form-control-modern" name="ADDRESS" placeholder="Enter Address" value="<?= htmlspecialchars($ADDRESS) ?>">
-                                            </div>
-
-                                            <!-- Address 1 -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Apt/Ste</label>
-                                                <input type="text" class="form-control-modern" name="ADDRESS_1" placeholder="Enter Apartment or Suite" value="<?= htmlspecialchars($ADDRESS_1) ?>">
-                                            </div>
-
-                                            <!-- Country -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Country <span class="required">*</span></label>
-                                                <select class="form-control-modern" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                    <option value="">Select Country</option>
-                                                    <?php
-                                                    $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?= $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['COUNTRY_NAME']) ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-
-                                            <!-- State -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">State <span class="required">*</span></label>
-                                                <div id="State_div"></div>
-                                            </div>
-
-                                            <!-- City -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">City</label>
-                                                <input type="text" class="form-control-modern" name="CITY" placeholder="Enter City" value="<?= htmlspecialchars($CITY) ?>">
-                                            </div>
-
-                                            <!-- ZIP -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Postal / Zip Code</label>
-                                                <input type="text" class="form-control-modern" name="ZIP_CODE" placeholder="Enter Postal / Zip Code" value="<?= htmlspecialchars($ZIP_CODE) ?>">
-                                            </div>
-
-                                            <!-- Phone -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Phone</label>
-                                                <input type="text" class="form-control-modern" name="PHONE" placeholder="Enter Phone No." value="<?= htmlspecialchars($PHONE) ?>">
-                                            </div>
-
-                                            <!-- Email -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control-modern" name="EMAIL" placeholder="Enter Email Address" value="<?= htmlspecialchars($EMAIL) ?>">
-                                            </div>
-
-                                            <!-- Image -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Location Image</label>
-                                                <input type="file" class="form-control-modern" name="IMAGE_PATH" accept="image/*">
-                                                <?php if ($IMAGE_PATH != ''): ?>
-                                                    <div class="image-preview">
-                                                        <a class="fancybox" href="<?= $IMAGE_PATH; ?>" data-fancybox-group="gallery">
-                                                            <img src="<?= $IMAGE_PATH; ?>" alt="Location Image">
-                                                        </a>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-
-                                            <!-- Timezone -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Timezone <span class="required">*</span></label>
-                                                <select class="form-control-modern" name="PK_TIMEZONE" required>
-                                                    <option value="">Select</option>
-                                                    <?php
-                                                    $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
-                                                    while (!$res_type->EOF) { ?>
-                                                        <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?php if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected'; ?>><?= htmlspecialchars($res_type->fields['NAME']) ?></option>
-                                                    <?php $res_type->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-
-                                            <!-- Time Interval -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Time Interval for Calendar Rows</label>
-                                                <select class="form-control-modern" name="TIME_SLOT_INTERVAL">
-                                                    <option value="">Select</option>
-                                                    <?php for ($i = 5; $i <= 60; $i += 5): ?>
-                                                        <option value="00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00" <?= ($TIME_SLOT_INTERVAL == '00:' . str_pad($i, 2, '0', STR_PAD_LEFT) . ':00') ? 'selected' : '' ?>>
-                                                            00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00
-                                                        </option>
-                                                    <?php endfor; ?>
-                                                </select>
-                                            </div>
-
-                                            <!-- Service Provider Title -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Title for Service Provider</label>
-                                                <input type="text" class="form-control-modern" name="SERVICE_PROVIDER_TITLE" placeholder="Title for Service Provider" value="<?= htmlspecialchars($SERVICE_PROVIDER_TITLE) ?>">
-                                            </div>
-
-                                            <!-- Operation Tab Title -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Name of the Tab for Charging Services</label>
-                                                <input type="text" class="form-control-modern" name="OPERATION_TAB_TITLE" placeholder="Name of the Tab for Charging Services" value="<?= htmlspecialchars($OPERATION_TAB_TITLE) ?>">
-                                            </div>
-
-                                            <!-- Enrollment Prefix -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Enrollment Prefix</label>
-                                                <input type="text" class="form-control-modern" name="ENROLLMENT_ID_CHAR" placeholder="Enrollment Prefix" value="<?= htmlspecialchars($ENROLLMENT_ID_CHAR) ?>">
-                                            </div>
-
-                                            <!-- Starting Enrollment -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Starting Enrollment Number</label>
-                                                <input type="number" class="form-control-modern" name="ENROLLMENT_ID_NUM" placeholder="Starting Enrollment Number" value="<?= htmlspecialchars($ENROLLMENT_ID_NUM) ?>">
-                                            </div>
-
-                                            <!-- Misc Enrollment Prefix -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Misc Enrollment Prefix</label>
-                                                <input type="text" class="form-control-modern" name="MISCELLANEOUS_ID_CHAR" placeholder="Misc Enrollment Prefix" value="<?= htmlspecialchars($MISCELLANEOUS_ID_CHAR) ?>">
-                                            </div>
-
-                                            <!-- Starting Misc Enrollment -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Starting Misc Enrollment Number</label>
-                                                <input type="number" class="form-control-modern" name="MISCELLANEOUS_ID_NUM" placeholder="Starting Misc Enrollment Number" value="<?= htmlspecialchars($MISCELLANEOUS_ID_NUM) ?>">
-                                            </div>
-
-                                            <!-- Royalty Percentage -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Royalty Percentage</label>
-                                                <div class="input-group-modern">
-                                                    <input type="text" class="form-control-modern" name="ROYALTY_PERCENTAGE" value="<?= htmlspecialchars($ROYALTY_PERCENTAGE) ?>">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Sales Tax -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Sales Tax</label>
-                                                <div class="input-group-modern">
-                                                    <input type="text" class="form-control-modern" name="SALES_TAX" value="<?= htmlspecialchars($SALES_TAX) ?>">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Receipt Prefix -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Receipt Prefix <span class="required">*</span></label>
-                                                <input type="text" class="form-control-modern" name="RECEIPT_CHARACTER" placeholder="Receipt Prefix" required value="<?= htmlspecialchars($RECEIPT_CHARACTER) ?>">
-                                            </div>
-
-                                            <!-- Focusbiz API Key -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Focusbiz API Key</label>
-                                                <input type="hidden" name="FOCUSBIZ_API_KEY_OLD" value="<?= $FOCUSBIZ_API_KEY ? $FOCUSBIZ_API_KEY : '' ?>">
-                                                <input type="text" class="form-control-modern" name="FOCUSBIZ_API_KEY" placeholder="Enter Focusbiz API Key" value="<?= htmlspecialchars($FOCUSBIZ_API_KEY) ?>">
-                                            </div>
-
-                                            <!-- User Inactive Days -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">User Inactive Days</label>
-                                                <select class="form-control-modern" name="USER_INACTIVE_DAYS">
-                                                    <option value="">Select</option>
-                                                    <option value="30" <?= ($USER_INACTIVE_DAYS == '30') ? 'selected' : '' ?>>30 Days</option>
-                                                    <option value="60" <?= ($USER_INACTIVE_DAYS == '60') ? 'selected' : '' ?>>60 Days</option>
-                                                    <option value="90" <?= ($USER_INACTIVE_DAYS == '90') ? 'selected' : '' ?>>90 Days</option>
-                                                </select>
-                                            </div>
-
-                                            <!-- Appointment Reminder -->
-                                            <div class="form-group-modern" style="grid-column: 1 / -1;">
-                                                <label class="form-label">Send an Appointment Reminder Text message.</label>
-                                                <div class="radio-group-modern">
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="APPOINTMENT_REMINDER" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);"> Yes
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="APPOINTMENT_REMINDER" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);"> No
-                                                    </label>
-                                                </div>
-                                                <div id="hour_box" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? 'block' : 'none' ?>; margin-top: 8px;">
-                                                    <label class="form-label" style="font-weight: 400;">How many hours before the appointment?</label>
-                                                    <input type="text" class="form-control-modern" name="HOUR" value="<?= htmlspecialchars($HOUR) ?>" style="max-width: 200px;">
-                                                </div>
-                                            </div>
-
-                                            <!-- Texting Feature -->
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Texting Feature Enabled?</label>
-                                                <div class="radio-group-modern">
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="TEXTING_FEATURE_ENABLED" value="1" <?php if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked'; ?>> Yes
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="TEXTING_FEATURE_ENABLED" value="0" <?php if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked'; ?>> No
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1): ?>
-                                                <div class="form-group-modern">
-                                                    <label class="form-label">Enable AI Voice Agent?</label>
-                                                    <div class="radio-group-modern">
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="1" <?php if ($ENABLE_AI_VOICE_AGENT == 1) echo 'checked'; ?>> Yes
-                                                        </label>
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="0" <?php if ($ENABLE_AI_VOICE_AGENT == 0) echo 'checked'; ?>> No
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <!-- Twilio Account Type -->
-                                            <div class="form-group-modern" style="grid-column: 1 / -1;">
-                                                <label class="form-label">Which Twilio Account You Want to Use?</label>
-                                                <div class="radio-group-modern">
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="0" <?php if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Doable's Twilio account
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="1" <?php if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Your own Twilio Account
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <!-- Twilio Settings -->
-                                            <div id="twilio_setting_div" style="display: <?= ($TWILIO_ACCOUNT_TYPE == 1) ? 'grid' : 'none' ?>; grid-column: 1 / -1; gap: 16px; padding-top: 8px;">
-                                                <div class="section-header">
-                                                    <i class="fas fa-phone"></i>
-                                                    <span>Twilio Settings</span>
-                                                </div>
-                                                <div class="form-grid">
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">SID</label>
-                                                        <input type="text" class="form-control-modern" name="SID" placeholder="Enter SID" value="<?= htmlspecialchars($SID) ?>">
-                                                    </div>
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">Token</label>
-                                                        <input type="text" class="form-control-modern" name="TOKEN" placeholder="Enter Token" value="<?= htmlspecialchars($TOKEN) ?>">
-                                                    </div>
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">Phone No.</label>
-                                                        <input type="text" class="form-control-modern" name="TWILIO_PHONE_NO" placeholder="Enter Phone No." value="<?= htmlspecialchars($TWILIO_PHONE_NO) ?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Payment Gateway -->
-                                            <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1): ?>
-                                                <div style="grid-column: 1 / -1;">
-                                                    <div class="section-header">
-                                                        <i class="fas fa-credit-card"></i>
-                                                        <span>Electronic Connection to Merchant Service</span>
-                                                    </div>
-                                                    <div class="form-grid">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Payment Gateway</label>
-                                                            <div class="radio-group-modern">
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Stripe
-                                                                </label>
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Square
-                                                                </label>
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Authorized.net
-                                                                </label>
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Clover
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Gateway Mode</label>
-                                                            <div class="radio-group-modern">
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="GATEWAY_MODE" value="test" <?= ($GATEWAY_MODE == 'test' || $GATEWAY_MODE == null || $GATEWAY_MODE == '') ? 'checked' : '' ?>> Test
-                                                                </label>
-                                                                <label class="radio-item">
-                                                                    <input type="radio" name="GATEWAY_MODE" value="live" <?= ($GATEWAY_MODE == 'live') ? 'checked' : '' ?>> Live
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Stripe -->
-                                                    <div id="stripe" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>; margin-top: 12px;">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Secret Key</label>
-                                                            <input type="text" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Publishable Key</label>
-                                                            <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" value="<?= htmlspecialchars($PUBLISHABLE_KEY) ?>">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Square -->
-                                                    <div id="square" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'grid' : 'none' ?>; margin-top: 12px;">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Application ID</label>
-                                                            <input type="text" class="form-control-modern" name="APP_ID" value="<?= htmlspecialchars($SQUARE_APP_ID) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Location ID</label>
-                                                            <input type="text" class="form-control-modern" name="LOCATION_ID" value="<?= htmlspecialchars($SQUARE_LOCATION_ID) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Access Token</label>
-                                                            <input type="text" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Authorized.net -->
-                                                    <div id="authorized" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'grid' : 'none' ?>; margin-top: 12px;">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Login ID</label>
-                                                            <input type="text" class="form-control-modern" name="LOGIN_ID" value="<?= htmlspecialchars($LOGIN_ID) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Transaction Key</label>
-                                                            <input type="text" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Authorize Client Key</label>
-                                                            <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Clover -->
-                                                    <div id="Clover" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'grid' : 'none' ?>; margin-top: 12px;">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Merchant ID</label>
-                                                            <input type="text" class="form-control-modern" name="MERCHANT_ID" value="<?= htmlspecialchars($MERCHANT_ID) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Private Token</label>
-                                                            <input type="text" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Public Token</label>
-                                                            <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" value="<?= htmlspecialchars($PUBLIC_API_KEY) ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <!-- Email Settings -->
-                                            <div style="grid-column: 1 / -1;">
-                                                <div class="section-header">
-                                                    <i class="fas fa-envelope"></i>
-                                                    <span>Email Connection</span>
-                                                </div>
-                                                <div class="form-grid">
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">SMTP Host</label>
-                                                        <input type="text" class="form-control-modern" name="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
-                                                    </div>
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">SMTP Port</label>
-                                                        <input type="text" class="form-control-modern" name="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
-                                                    </div>
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">SMTP Username</label>
-                                                        <input type="text" class="form-control-modern" name="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
-                                                    </div>
-                                                    <div class="form-group-modern">
-                                                        <label class="form-label">SMTP Password</label>
-                                                        <input type="text" class="form-control-modern" name="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Arthur Murray API -->
-                                            <?php if ($AMI_ENABLE == 1): ?>
-                                                <div id="arthur_murray_setup" style="grid-column: 1 / -1; display: <?= ($FRANCHISE == '1') ? 'block' : 'none' ?>;">
-                                                    <div class="section-header">
-                                                        <i class="fas fa-cog"></i>
-                                                        <span>Arthur Murray API Setup</span>
-                                                    </div>
-                                                    <div class="form-grid">
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">User Name</label>
-                                                            <input type="text" class="form-control-modern" name="AM_USER_NAME" value="<?= htmlspecialchars($AM_USER_NAME) ?>">
-                                                        </div>
-                                                        <div class="form-group-modern">
-                                                            <label class="form-label">Password</label>
-                                                            <input type="text" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <!-- Active Status -->
-                                            <?php if (!empty($_GET['id'])): ?>
-                                                <div class="form-group-modern" style="grid-column: 1 / -1;">
-                                                    <label class="form-label">Active</label>
-                                                    <div class="radio-group-modern">
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="ACTIVE" value="1" <?php if ($ACTIVE == 1) echo 'checked'; ?>> Yes
-                                                        </label>
-                                                        <label class="radio-item">
-                                                            <input type="radio" name="ACTIVE" value="0" <?php if ($ACTIVE == 0) echo 'checked'; ?>> No
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn-modern btn-modern-primary">
-                                                <i class="fas fa-save"></i> <?= empty($_GET['id']) ? 'Create Location' : 'Update Location' ?>
-                                            </button>
-                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Operational Hours Tab -->
-                                <div class="tab-pane-modern" id="operational_hours" role="tabpanel">
-                                    <form id="operational_hours_form" method="post">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
-                                        <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-
-                                        <div style="margin-bottom: 20px;">
-                                            <label class="checkbox-group-modern">
-                                                <input type="checkbox" name="ALL_DAYS" onclick="applyToAllDays(this)">
-                                                Apply to All Days
-                                            </label>
-                                        </div>
-
-                                        <?php
-                                        $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
-                                        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                                        if ($operational_hours->RecordCount() > 0) {
-                                            $i = 0;
-                                            while (!$operational_hours->EOF) {
-                                                $dayIndex = (int)$operational_hours->fields['DAY_NUMBER'] - 1;
-                                        ?>
-                                                <div class="hours-grid">
-                                                    <div class="day-label"><?= $days[$dayIndex] ?? 'Day ' . $operational_hours->fields['DAY_NUMBER'] ?></div>
-                                                    <div>
-                                                        <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                    </div>
-                                                    <div>
-                                                        <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
-                                                    </div>
-                                                    <label class="checkbox-group-modern closed-label">
-                                                        <input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>>
-                                                        Closed
-                                                    </label>
-                                                </div>
-                                            <?php
-                                                $operational_hours->MoveNext();
-                                                $i++;
-                                            }
-                                        } else {
-                                            for ($i = 1; $i <= 7; $i++) {
-                                            ?>
-                                                <div class="hours-grid">
-                                                    <div class="day-label"><?= $days[$i - 1] ?></div>
-                                                    <div>
-                                                        <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" readonly>
-                                                    </div>
-                                                    <div>
-                                                        <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" readonly>
-                                                    </div>
-                                                    <label class="checkbox-group-modern closed-label">
-                                                        <input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)">
-                                                        Closed
-                                                    </label>
-                                                </div>
-                                        <?php
-                                            }
-                                        }
-                                        ?>
-
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn-modern btn-modern-primary">
-                                                <i class="fas fa-save"></i> Save Hours
-                                            </button>
-                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Holiday List Tab -->
-                                <div class="tab-pane-modern" id="holiday_list" role="tabpanel">
-                                    <form method="post">
-                                        <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
-                                        <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-
-                                        <div id="holiday_list_section">
-                                            <?php
-                                            $holiday_list = $db->Execute("SELECT * FROM DOA_LOCATION_HOLIDAY_LIST WHERE PK_LOCATION = " . $PK_LOCATION);
-                                            if ($holiday_list->RecordCount() > 0) {
-                                                while (!$holiday_list->EOF) {
-                                            ?>
-                                                    <div class="holiday-row">
-                                                        <div>
-                                                            <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]" value="<?= date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE'])) ?>">
-                                                        </div>
-                                                        <div>
-                                                            <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]" value="<?= htmlspecialchars($holiday_list->fields['HOLIDAY_NAME']) ?>">
-                                                        </div>
-                                                        <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                <?php
-                                                    $holiday_list->MoveNext();
-                                                }
-                                            } else {
-                                                ?>
-                                                <div class="holiday-row">
-                                                    <div>
-                                                        <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]">
-                                                    </div>
-                                                    <div>
-                                                        <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]">
-                                                    </div>
-                                                    <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
-                                                </div>
-                                            <?php } ?>
-                                        </div>
-
-                                        <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreHoliday();" style="margin: 12px 0;">
-                                            <i class="fas fa-plus"></i> Add More
-                                        </button>
-
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn-modern btn-modern-primary">
-                                                <i class="fas fa-save"></i> Save Holidays
-                                            </button>
-                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='business_profile.php'">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Customer Tab Permissions -->
-                                <div class="tab-pane-modern" id="customer_tab_permissions" role="tabpanel">
-                                    <form method="post">
-                                        <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
-                                        <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-
-                                        <div style="margin-bottom: 16px;">
-                                            <div class="permission-row" style="grid-template-columns: 1fr auto; font-weight: 600; color: var(--gray-600); font-size: 13px; border-bottom: 2px solid var(--gray-200);">
-                                                <span>Customer Tab</span>
-                                                <span>Visible in Customer Login</span>
-                                            </div>
-                                            <?php
-                                            $tab_options = [
-                                                'Profile' => 'Profile',
-                                                'Family' => 'Family',
-                                                'Documents' => 'Documents',
-                                                'Active Enrollments' => 'Active Enrollments',
-                                                'Completed Enrollments' => 'Completed Enrollments',
-                                                'Payment Register' => 'Payment Register',
-                                                'Appointments' => 'Appointments',
-                                                'For Record Only' => 'For Record Only',
-                                                'Comments' => 'Comments',
-                                                'Credit Card' => 'Credit Card',
-                                                'Wallet' => 'Wallet',
-                                                'Delete' => 'Delete'
-                                            ];
-
-                                            $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
-                                            $existing_permissions = [];
-                                            while (!$customer_tabs->EOF) {
-                                                $existing_permissions[$customer_tabs->fields['TAB_NAME']] = $customer_tabs->fields['PERMISSION'];
-                                                $customer_tabs->MoveNext();
-                                            }
-
-                                            $i = 0;
-                                            foreach ($tab_options as $tab_key => $tab_label) {
-                                                $is_checked = isset($existing_permissions[$tab_key]) ? ($existing_permissions[$tab_key] == 1) : true;
-                                            ?>
-                                                <div class="permission-row">
-                                                    <span class="tab-name"><?= htmlspecialchars($tab_label) ?></span>
-                                                    <input type="hidden" name="TAB_NAME[]" value="<?= $tab_key ?>">
-                                                    <label class="switch-modern">
-                                                        <input type="checkbox" name="PERMISSION[<?= $i ?>]" value="1" <?= $is_checked ? 'checked' : '' ?>>
-                                                        <span class="slider"></span>
-                                                    </label>
-                                                </div>
-                                            <?php
-                                                $i++;
-                                            }
-                                            ?>
-                                        </div>
-
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn-modern btn-modern-primary">
-                                                <i class="fas fa-save"></i> Save Permissions
-                                            </button>
-                                            <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Payment Register -->
-                                <div class="tab-pane-modern" id="payment_register" role="tabpanel">
-                                    <div style="margin-bottom: 16px;">
-                                        <h5 style="font-weight: 600; color: var(--gray-800);">
-                                            <i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>
-                                            Payment History
-                                        </h5>
-                                    </div>
-                                    <div style="overflow-x: auto; width: 100%;">
-                                        <table class="table-modern" id="payment_table" style="width: 100% !important;">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width: 20%;">Date</th>
-                                                    <th style="width: 15%;">Status</th>
-                                                    <th style="width: 15%;">Amount</th>
-                                                    <th style="width: 25%;">Info</th>
-                                                    <th style="width: 25%;">Details</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE PK_LOCATION = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
-                                                if ($location_payments->RecordCount() > 0) {
-                                                    while (!$location_payments->EOF) {
-                                                        $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
-                                                        $payment_type = (isset($payment_info->LAST4)) ? 'Credit Card #' . $payment_info->LAST4 : $location_payments->fields['PAYMENT_INFO'];
-                                                        $statusClass = ($location_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'failed' : (($location_payments->fields['PAYMENT_STATUS'] == 'Pending') ? 'pending' : 'success');
-                                                ?>
-                                                        <tr>
-                                                            <td><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
-                                                            <td><span class="status-badge <?= $statusClass ?>"><?= $location_payments->fields['PAYMENT_STATUS'] ?></span></td>
-                                                            <td>$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
-                                                            <td><?= htmlspecialchars($payment_type) ?></td>
-                                                            <td><?= ($location_payments->fields['PAYMENT_FROM'] == 'corporation') ? 'Corporation' : 'Location' ?></td>
-                                                        </tr>
-                                                    <?php
-                                                        $location_payments->MoveNext();
-                                                    }
-                                                } else {
-                                                    ?>
-                                                    <tr>
-                                                        <td colspan="5" style="text-align: center; padding: 32px; color: var(--gray-400);">No payment records found.</td>
-                                                    </tr>
-                                                <?php } ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Billing Tab -->
-                                <div class="tab-pane-modern" id="billing" role="tabpanel">
-                                    <form id="location_payment_form" method="post">
-                                        <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
-                                        <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                        <input type="hidden" class="PK_CORPORATION" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
-                                        <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
-
-                                        <div class="form-grid">
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Subscription Start Date</label>
-                                                <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
-                                                    <?= (($SUBSCRIPTION_START_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))) : date('m/d/Y', strtotime($SUBSCRIPTION_START_DATE))) ?>
-                                                </p>
-                                            </div>
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Next Renewal Date</label>
-                                                <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
-                                                    <?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>
-                                                </p>
-                                            </div>
-                                            <div class="form-group-modern">
-                                                <label class="form-label">Status</label>
-                                                <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
-                                                    <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                                        <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px;"></i>
-                                                        <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
-                                                    </span>
-                                                </p>
-                                            </div>
-
-                                            <div class="form-group-modern" style="grid-column: 1 / -1;">
-                                                <label class="form-label">Payment From</label>
-                                                <div class="radio-group-modern">
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= (trim($PAYMENT_FROM) == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Location
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= (trim($PAYMENT_FROM) == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Corporation
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group-modern" style="grid-column: 1 / -1;">
-                                                <label class="form-label">Amount</label>
-                                                <div style="position: relative;">
-                                                    <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--gray-500);">$</span>
-                                                    <input type="text" class="form-control-modern" style="padding-left: 32px;" value="<?= number_format(($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT, 2) ?>" disabled>
-                                                    <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Payment Details -->
-                                        <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? 'block' : 'none' ?>;">
-                                            <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
-                                                <input type="hidden" name="stripe_token" id="stripe_token" value="">
-                                                <div class="form-group-modern" style="margin: 16px 0;">
-                                                    <label class="form-label">Card Details</label>
-                                                    <div id="card_div">
-                                                        <div id="card-element"></div>
-                                                        <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
-                                                    </div>
-                                                </div>
-                                            <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
-                                                <input type="hidden" name="square_token" class="square_token" value="">
-                                                <div class="form-group-modern" style="margin: 16px 0;">
-                                                    <label class="form-label">Card Details</label>
-                                                    <div id="payment-card-container" style="padding: 8px 0;"></div>
-                                                    <div id="payment-status-container"></div>
-                                                </div>
-                                            <?php endif; ?>
-                                            <div class="card_list_div"></div>
-                                        </div>
-
-                                        <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? 'block' : 'none' ?>; margin: 16px 0;">
-                                            <div id="corporation_card_list"></div>
-                                        </div>
-
-                                        <div id="location_payment_status"></div>
-
-                                        <div class="form-actions">
-                                            <button type="submit" id="location-payment-btn" class="btn-modern btn-modern-success">
-                                                <i class="fas fa-check"></i> Process Payment
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Credit Card Tab -->
-                                <div class="tab-pane-modern" id="credit_card" role="tabpanel">
-                                    <form id="credit_card_form" method="post">
-                                        <input type="hidden" name="PK_LOCATION" id="PK_LOCATION" value="<?= $PK_LOCATION ?>">
-                                        <input type="hidden" name="FROM" value="location">
-
-                                        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
-                                            <input type="hidden" name="stripe_token" id="stripe_token" value="">
-                                            <div class="form-group-modern" style="margin: 16px 0;">
-                                                <label class="form-label">Card Details</label>
-                                                <div id="card_div">
-                                                    <div id="card-element"></div>
-                                                    <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
-                                                </div>
-                                            </div>
-                                        <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
-                                            <input type="hidden" name="square_token" class="square_token" value="">
-                                            <div class="form-group-modern" style="margin: 16px 0;">
-                                                <label class="form-label">Card Details</label>
-                                                <div id="save_card-card-container" style="padding: 8px 0;"></div>
-                                                <div id="save_card-status-container"></div>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <div id="save_card_payment_status"></div>
-                                        <div class="card_list_div" style="margin: 16px 0;"></div>
-
-                                        <div class="form-actions">
-                                            <button type="submit" id="save_card-pay-button" class="btn-modern btn-modern-primary">
-                                                <i class="fas fa-save"></i> Save Card
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+                <div class="row g-4">
+                    <!-- Sidebar -->
+                    <div class="col-12 col-md-4 col-xl-2">
+                        <?php include 'layout/setup_sidebar.php'; ?>
                     </div>
 
-                    <!-- Help Sidebar -->
-                    <div>
-                        <div class="help-card">
-                            <div class="help-icon">
-                                <i class="fas fa-question"></i>
+                    <!-- Main Form -->
+                    <div class="col-12 col-md-8 col-xl-10">
+                        <div class="main-grid">
+                            <!-- Main Content -->
+                            <div class="card-modern">
+                                <div class="card-header">
+                                    <h5>
+                                        <i class="fas fa-location-dot"></i>
+                                        <?= !empty($_GET['id']) ?  $LOCATION_NAME : 'Create New Location' ?>
+                                    </h5>
+                                    <?php if (!empty($_GET['id'])): ?>
+                                        <span class="location-name">
+                                            <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px; margin-right: 6px;"></i>
+                                            <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Tabs -->
+                                    <div class="tabs-modern" role="tablist">
+                                        <button class="tab-item active" data-tab="location_div" role="tab">
+                                            <i class="fas fa-location-dot"></i> Location
+                                        </button>
+                                        <button class="tab-item" data-tab="operational_hours" role="tab">
+                                            <i class="fas fa-clock"></i> Hours
+                                        </button>
+                                        <?php if (!empty($_GET['id'])): ?>
+                                            <button class="tab-item" data-tab="holiday_list" role="tab">
+                                                <i class="fas fa-calendar-days"></i> Holidays
+                                            </button>
+                                            <button class="tab-item" data-tab="customer_tab_permissions" role="tab">
+                                                <i class="fas fa-check-circle"></i> Permissions
+                                            </button>
+                                            <button class="tab-item" data-tab="payment_register" role="tab">
+                                                <i class="fas fa-receipt"></i> Payments
+                                            </button>
+                                            <button class="tab-item" data-tab="billing" role="tab">
+                                                <i class="fas fa-credit-card"></i> Billing
+                                            </button>
+                                            <button class="tab-item" data-tab="credit_card" role="tab">
+                                                <i class="fas fa-credit-card"></i> Card
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Tab Content -->
+                                    <div class="tab-content-modern">
+                                        <!-- Location Tab -->
+                                        <div class="tab-pane-modern active" id="location_div" role="tabpanel">
+                                            <form id="location_form" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveLocationData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div class="form-grid">
+                                                    <!-- Corporation -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Corporation <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_CORPORATION" id="PK_CORPORATION" required>
+                                                            <option value="">Select Corporation</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_CORPORATION, CORPORATION_NAME FROM DOA_CORPORATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY PK_CORPORATION");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?= $row->fields['PK_CORPORATION']; ?>" <?= ($row->fields['PK_CORPORATION'] == $PK_CORPORATION) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['CORPORATION_NAME']) ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Account Type -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Account Type <span class="required">*</span></label>
+                                                        <div class="radio-group-modern">
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_ACCOUNT_TYPE,ACCOUNT_TYPE FROM DOA_ACCOUNT_TYPE WHERE ACTIVE='1' ORDER BY PK_ACCOUNT_TYPE");
+                                                            while (!$row->EOF) { ?>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="PK_ACCOUNT_TYPE" value="<?= $row->fields['PK_ACCOUNT_TYPE']; ?>" <?php if ($row->fields['PK_ACCOUNT_TYPE'] == $PK_ACCOUNT_TYPE) echo 'checked'; ?> required>
+                                                                    <?= htmlspecialchars($row->fields['ACCOUNT_TYPE']) ?>
+                                                                </label>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Franchise -->
+                                                    <?php if ($AMI_ENABLE == 1): ?>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Arthur Murray Franchise</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="FRANCHISE" value="1" <?php if ($FRANCHISE == 1) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked'; ?> onclick="showArthurMurraySetup(this);"> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Location Name -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="LOCATION_NAME" placeholder="Enter Location Name" required value="<?= htmlspecialchars($LOCATION_NAME) ?>">
+                                                    </div>
+
+                                                    <!-- Location Code -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location Code <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="LOCATION_CODE" placeholder="Enter Location Code" required value="<?= htmlspecialchars($LOCATION_CODE) ?>">
+                                                    </div>
+
+                                                    <!-- Address -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Address</label>
+                                                        <input type="text" class="form-control-modern" name="ADDRESS" placeholder="Enter Address" value="<?= htmlspecialchars($ADDRESS) ?>">
+                                                    </div>
+
+                                                    <!-- Address 1 -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Apt/Ste</label>
+                                                        <input type="text" class="form-control-modern" name="ADDRESS_1" placeholder="Enter Apartment or Suite" value="<?= htmlspecialchars($ADDRESS_1) ?>">
+                                                    </div>
+
+                                                    <!-- Country -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Country <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                            <option value="">Select Country</option>
+                                                            <?php
+                                                            $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?= $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['COUNTRY_NAME']) ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- State -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">State <span class="required">*</span></label>
+                                                        <div id="State_div"></div>
+                                                    </div>
+
+                                                    <!-- City -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">City</label>
+                                                        <input type="text" class="form-control-modern" name="CITY" placeholder="Enter City" value="<?= htmlspecialchars($CITY) ?>">
+                                                    </div>
+
+                                                    <!-- ZIP -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Postal / Zip Code</label>
+                                                        <input type="text" class="form-control-modern" name="ZIP_CODE" placeholder="Enter Postal / Zip Code" value="<?= htmlspecialchars($ZIP_CODE) ?>">
+                                                    </div>
+
+                                                    <!-- Phone -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Phone</label>
+                                                        <input type="text" class="form-control-modern" name="PHONE" placeholder="Enter Phone No." value="<?= htmlspecialchars($PHONE) ?>">
+                                                    </div>
+
+                                                    <!-- Email -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control-modern" name="EMAIL" placeholder="Enter Email Address" value="<?= htmlspecialchars($EMAIL) ?>">
+                                                    </div>
+
+                                                    <!-- Image -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Location Image</label>
+                                                        <input type="file" class="form-control-modern" name="IMAGE_PATH" accept="image/*">
+                                                        <?php if ($IMAGE_PATH != ''): ?>
+                                                            <div class="image-preview">
+                                                                <a class="fancybox" href="<?= $IMAGE_PATH; ?>" data-fancybox-group="gallery">
+                                                                    <img src="<?= $IMAGE_PATH; ?>" alt="Location Image">
+                                                                </a>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+
+                                                    <!-- Timezone -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Timezone <span class="required">*</span></label>
+                                                        <select class="form-control-modern" name="PK_TIMEZONE" required>
+                                                            <option value="">Select</option>
+                                                            <?php
+                                                            $res_type = $db->Execute("SELECT * FROM DOA_TIMEZONE WHERE ACTIVE = 1 ORDER BY NAME ASC");
+                                                            while (!$res_type->EOF) { ?>
+                                                                <option value="<?= $res_type->fields['PK_TIMEZONE'] ?>" <?php if ($res_type->fields['PK_TIMEZONE'] == $PK_TIMEZONE) echo 'selected'; ?>><?= htmlspecialchars($res_type->fields['NAME']) ?></option>
+                                                            <?php $res_type->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Time Interval -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Time Interval for Calendar Rows</label>
+                                                        <select class="form-control-modern" name="TIME_SLOT_INTERVAL">
+                                                            <option value="">Select</option>
+                                                            <?php for ($i = 5; $i <= 60; $i += 5): ?>
+                                                                <option value="00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00" <?= ($TIME_SLOT_INTERVAL == '00:' . str_pad($i, 2, '0', STR_PAD_LEFT) . ':00') ? 'selected' : '' ?>>
+                                                                    00:<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>:00
+                                                                </option>
+                                                            <?php endfor; ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Service Provider Title -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Title for Service Provider</label>
+                                                        <input type="text" class="form-control-modern" name="SERVICE_PROVIDER_TITLE" placeholder="Title for Service Provider" value="<?= htmlspecialchars($SERVICE_PROVIDER_TITLE) ?>">
+                                                    </div>
+
+                                                    <!-- Operation Tab Title -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Name of the Tab for Charging Services</label>
+                                                        <input type="text" class="form-control-modern" name="OPERATION_TAB_TITLE" placeholder="Name of the Tab for Charging Services" value="<?= htmlspecialchars($OPERATION_TAB_TITLE) ?>">
+                                                    </div>
+
+                                                    <!-- Enrollment Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Enrollment Prefix</label>
+                                                        <input type="text" class="form-control-modern" name="ENROLLMENT_ID_CHAR" placeholder="Enrollment Prefix" value="<?= htmlspecialchars($ENROLLMENT_ID_CHAR) ?>">
+                                                    </div>
+
+                                                    <!-- Starting Enrollment -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Starting Enrollment Number</label>
+                                                        <input type="number" class="form-control-modern" name="ENROLLMENT_ID_NUM" placeholder="Starting Enrollment Number" value="<?= htmlspecialchars($ENROLLMENT_ID_NUM) ?>">
+                                                    </div>
+
+                                                    <!-- Misc Enrollment Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Misc Enrollment Prefix</label>
+                                                        <input type="text" class="form-control-modern" name="MISCELLANEOUS_ID_CHAR" placeholder="Misc Enrollment Prefix" value="<?= htmlspecialchars($MISCELLANEOUS_ID_CHAR) ?>">
+                                                    </div>
+
+                                                    <!-- Starting Misc Enrollment -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Starting Misc Enrollment Number</label>
+                                                        <input type="number" class="form-control-modern" name="MISCELLANEOUS_ID_NUM" placeholder="Starting Misc Enrollment Number" value="<?= htmlspecialchars($MISCELLANEOUS_ID_NUM) ?>">
+                                                    </div>
+
+                                                    <!-- Royalty Percentage -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Royalty Percentage</label>
+                                                        <div class="input-group-modern">
+                                                            <input type="text" class="form-control-modern" name="ROYALTY_PERCENTAGE" value="<?= htmlspecialchars($ROYALTY_PERCENTAGE) ?>">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Sales Tax -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Sales Tax</label>
+                                                        <div class="input-group-modern">
+                                                            <input type="text" class="form-control-modern" name="SALES_TAX" value="<?= htmlspecialchars($SALES_TAX) ?>">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Receipt Prefix -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Receipt Prefix <span class="required">*</span></label>
+                                                        <input type="text" class="form-control-modern" name="RECEIPT_CHARACTER" placeholder="Receipt Prefix" required value="<?= htmlspecialchars($RECEIPT_CHARACTER) ?>">
+                                                    </div>
+
+                                                    <!-- Focusbiz API Key -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Focusbiz API Key</label>
+                                                        <input type="hidden" name="FOCUSBIZ_API_KEY_OLD" value="<?= $FOCUSBIZ_API_KEY ? $FOCUSBIZ_API_KEY : '' ?>">
+                                                        <input type="text" class="form-control-modern" name="FOCUSBIZ_API_KEY" placeholder="Enter Focusbiz API Key" value="<?= htmlspecialchars($FOCUSBIZ_API_KEY) ?>">
+                                                    </div>
+
+                                                    <!-- User Inactive Days -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">User Inactive Days</label>
+                                                        <select class="form-control-modern" name="USER_INACTIVE_DAYS">
+                                                            <option value="">Select</option>
+                                                            <option value="30" <?= ($USER_INACTIVE_DAYS == '30') ? 'selected' : '' ?>>30 Days</option>
+                                                            <option value="60" <?= ($USER_INACTIVE_DAYS == '60') ? 'selected' : '' ?>>60 Days</option>
+                                                            <option value="90" <?= ($USER_INACTIVE_DAYS == '90') ? 'selected' : '' ?>>90 Days</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Appointment Reminder -->
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Send an Appointment Reminder Text message.</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="APPOINTMENT_REMINDER" value="1" <?= ($APPOINTMENT_REMINDER == '1') ? 'checked' : '' ?> onclick="showHourBox(this);"> Yes
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="APPOINTMENT_REMINDER" value="0" <?= ($APPOINTMENT_REMINDER == '0') ? 'checked' : '' ?> onclick="showHourBox(this);"> No
+                                                            </label>
+                                                        </div>
+                                                        <div id="hour_box" style="display: <?= ($APPOINTMENT_REMINDER == '1') ? 'block' : 'none' ?>; margin-top: 8px;">
+                                                            <label class="form-label" style="font-weight: 400;">How many hours before the appointment?</label>
+                                                            <input type="text" class="form-control-modern" name="HOUR" value="<?= htmlspecialchars($HOUR) ?>" style="max-width: 200px;">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Texting Feature -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Texting Feature Enabled?</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TEXTING_FEATURE_ENABLED" value="1" <?php if ($TEXTING_FEATURE_ENABLED == 1) echo 'checked'; ?>> Yes
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TEXTING_FEATURE_ENABLED" value="0" <?php if ($TEXTING_FEATURE_ENABLED == 0) echo 'checked'; ?>> No
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php if ($account_data->fields['ENABLE_AI_VOICE_AGENT'] == 1): ?>
+                                                        <div class="form-group-modern">
+                                                            <label class="form-label">Enable AI Voice Agent?</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="1" <?php if ($ENABLE_AI_VOICE_AGENT == 1) echo 'checked'; ?>> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ENABLE_AI_VOICE_AGENT" value="0" <?php if ($ENABLE_AI_VOICE_AGENT == 0) echo 'checked'; ?>> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Twilio Account Type -->
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Which Twilio Account You Want to Use?</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="0" <?php if ($TWILIO_ACCOUNT_TYPE == 0) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Doable's Twilio account
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="TWILIO_ACCOUNT_TYPE" value="1" <?php if ($TWILIO_ACCOUNT_TYPE == 1) echo 'checked'; ?> onclick="showTwilioSetting(this);"> Using Your own Twilio Account
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Twilio Settings -->
+                                                    <div id="twilio_setting_div" style="display: <?= ($TWILIO_ACCOUNT_TYPE == 1) ? 'grid' : 'none' ?>; grid-column: 1 / -1; gap: 16px; padding-top: 8px;">
+                                                        <div class="section-header">
+                                                            <i class="fas fa-phone"></i>
+                                                            <span>Twilio Settings</span>
+                                                        </div>
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SID</label>
+                                                                <input type="text" class="form-control-modern" name="SID" placeholder="Enter SID" value="<?= htmlspecialchars($SID) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Token</label>
+                                                                <input type="text" class="form-control-modern" name="TOKEN" placeholder="Enter Token" value="<?= htmlspecialchars($TOKEN) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Phone No.</label>
+                                                                <input type="text" class="form-control-modern" name="TWILIO_PHONE_NO" placeholder="Enter Phone No." value="<?= htmlspecialchars($TWILIO_PHONE_NO) ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Payment Gateway -->
+                                                    <?php if ($ABLE_TO_EDIT_PAYMENT_GATEWAY == 1): ?>
+                                                        <div style="grid-column: 1 / -1;">
+                                                            <div class="section-header">
+                                                                <i class="fas fa-credit-card"></i>
+                                                                <span>Electronic Connection to Merchant Service</span>
+                                                            </div>
+                                                            <div class="form-grid">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Payment Gateway</label>
+                                                                    <div class="radio-group-modern">
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Stripe" <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Stripe
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Square" <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Square
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Authorized.net" <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Authorized.net
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="PAYMENT_GATEWAY_TYPE" value="Clover" <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'checked' : '' ?> onclick="showPaymentGateway(this);"> Clover
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Gateway Mode</label>
+                                                                    <div class="radio-group-modern">
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="GATEWAY_MODE" value="test" <?= ($GATEWAY_MODE == 'test' || $GATEWAY_MODE == null || $GATEWAY_MODE == '') ? 'checked' : '' ?>> Test
+                                                                        </label>
+                                                                        <label class="radio-item">
+                                                                            <input type="radio" name="GATEWAY_MODE" value="live" <?= ($GATEWAY_MODE == 'live') ? 'checked' : '' ?>> Live
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Stripe -->
+                                                            <div id="stripe" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Secret Key</label>
+                                                                    <input type="text" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Publishable Key</label>
+                                                                    <input type="text" class="form-control-modern" name="PUBLISHABLE_KEY" value="<?= htmlspecialchars($PUBLISHABLE_KEY) ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Square -->
+                                                            <div id="square" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Square') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Application ID</label>
+                                                                    <input type="text" class="form-control-modern" name="APP_ID" value="<?= htmlspecialchars($SQUARE_APP_ID) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Location ID</label>
+                                                                    <input type="text" class="form-control-modern" name="LOCATION_ID" value="<?= htmlspecialchars($SQUARE_LOCATION_ID) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Access Token</label>
+                                                                    <input type="text" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Authorized.net -->
+                                                            <div id="authorized" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Authorized.net') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Login ID</label>
+                                                                    <input type="text" class="form-control-modern" name="LOGIN_ID" value="<?= htmlspecialchars($LOGIN_ID) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Transaction Key</label>
+                                                                    <input type="text" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Authorize Client Key</label>
+                                                                    <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Clover -->
+                                                            <div id="Clover" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Clover') ? 'grid' : 'none' ?>; margin-top: 12px;">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Merchant ID</label>
+                                                                    <input type="text" class="form-control-modern" name="MERCHANT_ID" value="<?= htmlspecialchars($MERCHANT_ID) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Private Token</label>
+                                                                    <input type="text" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Public Token</label>
+                                                                    <input type="text" class="form-control-modern" name="PUBLIC_API_KEY" value="<?= htmlspecialchars($PUBLIC_API_KEY) ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Email Settings -->
+                                                    <div style="grid-column: 1 / -1;">
+                                                        <div class="section-header">
+                                                            <i class="fas fa-envelope"></i>
+                                                            <span>Email Connection</span>
+                                                        </div>
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Host</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Port</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Username</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
+                                                            </div>
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">SMTP Password</label>
+                                                                <input type="text" class="form-control-modern" name="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Arthur Murray API -->
+                                                    <?php if ($AMI_ENABLE == 1): ?>
+                                                        <div id="arthur_murray_setup" style="grid-column: 1 / -1; display: <?= ($FRANCHISE == '1') ? 'block' : 'none' ?>;">
+                                                            <div class="section-header">
+                                                                <i class="fas fa-cog"></i>
+                                                                <span>Arthur Murray API Setup</span>
+                                                            </div>
+                                                            <div class="form-grid">
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">User Name</label>
+                                                                    <input type="text" class="form-control-modern" name="AM_USER_NAME" value="<?= htmlspecialchars($AM_USER_NAME) ?>">
+                                                                </div>
+                                                                <div class="form-group-modern">
+                                                                    <label class="form-label">Password</label>
+                                                                    <input type="text" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Active Status -->
+                                                    <?php if (!empty($_GET['id'])): ?>
+                                                        <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                            <label class="form-label">Active</label>
+                                                            <div class="radio-group-modern">
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ACTIVE" value="1" <?php if ($ACTIVE == 1) echo 'checked'; ?>> Yes
+                                                                </label>
+                                                                <label class="radio-item">
+                                                                    <input type="radio" name="ACTIVE" value="0" <?php if ($ACTIVE == 0) echo 'checked'; ?>> No
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> <?= empty($_GET['id']) ? 'Create Location' : 'Update Location' ?>
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Operational Hours Tab -->
+                                        <div class="tab-pane-modern" id="operational_hours" role="tabpanel">
+                                            <form id="operational_hours_form" method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveOperationalHours">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div style="margin-bottom: 20px;">
+                                                    <label class="checkbox-group-modern">
+                                                        <input type="checkbox" name="ALL_DAYS" onclick="applyToAllDays(this)">
+                                                        Apply to All Days
+                                                    </label>
+                                                </div>
+
+                                                <?php
+                                                $operational_hours = $db_account->Execute("SELECT * FROM DOA_OPERATIONAL_HOUR WHERE `PK_LOCATION` = '$PK_LOCATION'");
+                                                $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                if ($operational_hours->RecordCount() > 0) {
+                                                    $i = 0;
+                                                    while (!$operational_hours->EOF) {
+                                                        $dayIndex = (int)$operational_hours->fields['DAY_NUMBER'] - 1;
+                                                ?>
+                                                        <div class="hours-grid">
+                                                            <div class="day-label"><?= $days[$dayIndex] ?? 'Day ' . $operational_hours->fields['DAY_NUMBER'] ?></div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" value="<?= ($operational_hours->fields['OPEN_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['OPEN_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" value="<?= ($operational_hours->fields['CLOSE_TIME'] == '00:00:00') ? '' : date('h:i A', strtotime($operational_hours->fields['CLOSE_TIME'])) ?>" style="pointer-events: <?= ($operational_hours->fields['CLOSED'] == 1) ? 'none' : '' ?>" readonly>
+                                                            </div>
+                                                            <label class="checkbox-group-modern closed-label">
+                                                                <input type="checkbox" name="CLOSED_<?= $i ?>" onchange="closeThisDay(this)" <?= ($operational_hours->fields['CLOSED'] == 1) ? 'checked' : '' ?>>
+                                                                Closed
+                                                            </label>
+                                                        </div>
+                                                    <?php
+                                                        $operational_hours->MoveNext();
+                                                        $i++;
+                                                    }
+                                                } else {
+                                                    for ($i = 1; $i <= 7; $i++) {
+                                                    ?>
+                                                        <div class="hours-grid">
+                                                            <div class="day-label"><?= $days[$i - 1] ?></div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker OPEN_TIME" name="OPEN_TIME[]" readonly>
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern time-picker CLOSE_TIME" name="CLOSE_TIME[]" readonly>
+                                                            </div>
+                                                            <label class="checkbox-group-modern closed-label">
+                                                                <input type="checkbox" name="CLOSED_<?= $i - 1 ?>" onchange="closeThisDay(this)">
+                                                                Closed
+                                                            </label>
+                                                        </div>
+                                                <?php
+                                                    }
+                                                }
+                                                ?>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Hours
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Holiday List Tab -->
+                                        <div class="tab-pane-modern" id="holiday_list" role="tabpanel">
+                                            <form method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveHolidayData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div id="holiday_list_section">
+                                                    <?php
+                                                    $holiday_list = $db->Execute("SELECT * FROM DOA_LOCATION_HOLIDAY_LIST WHERE PK_LOCATION = " . $PK_LOCATION);
+                                                    if ($holiday_list->RecordCount() > 0) {
+                                                        while (!$holiday_list->EOF) {
+                                                    ?>
+                                                            <div class="holiday-row">
+                                                                <div>
+                                                                    <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]" value="<?= date('m/d/Y', strtotime($holiday_list->fields['HOLIDAY_DATE'])) ?>">
+                                                                </div>
+                                                                <div>
+                                                                    <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]" value="<?= htmlspecialchars($holiday_list->fields['HOLIDAY_NAME']) ?>">
+                                                                </div>
+                                                                <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
+                                                            </div>
+                                                        <?php
+                                                            $holiday_list->MoveNext();
+                                                        }
+                                                    } else {
+                                                        ?>
+                                                        <div class="holiday-row">
+                                                            <div>
+                                                                <input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]">
+                                                            </div>
+                                                            <div>
+                                                                <input type="text" class="form-control-modern" name="HOLIDAY_NAME[]">
+                                                            </div>
+                                                            <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+
+                                                <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreHoliday();" style="margin: 12px 0;">
+                                                    <i class="fas fa-plus"></i> Add More
+                                                </button>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Holidays
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='business_profile.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Customer Tab Permissions -->
+                                        <div class="tab-pane-modern" id="customer_tab_permissions" role="tabpanel">
+                                            <form method="post">
+                                                <input type="hidden" name="FUNCTION_NAME" value="savePermissionData">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div style="margin-bottom: 16px;">
+                                                    <div class="permission-row" style="grid-template-columns: 1fr auto; font-weight: 600; color: var(--gray-600); font-size: 13px; border-bottom: 2px solid var(--gray-200);">
+                                                        <span>Customer Tab</span>
+                                                        <span>Visible in Customer Login</span>
+                                                    </div>
+                                                    <?php
+                                                    $tab_options = [
+                                                        'Profile' => 'Profile',
+                                                        'Family' => 'Family',
+                                                        'Documents' => 'Documents',
+                                                        'Active Enrollments' => 'Active Enrollments',
+                                                        'Completed Enrollments' => 'Completed Enrollments',
+                                                        'Payment Register' => 'Payment Register',
+                                                        'Appointments' => 'Appointments',
+                                                        'For Record Only' => 'For Record Only',
+                                                        'Comments' => 'Comments',
+                                                        'Credit Card' => 'Credit Card',
+                                                        'Wallet' => 'Wallet',
+                                                        'Delete' => 'Delete'
+                                                    ];
+
+                                                    $customer_tabs = $db->Execute("SELECT * FROM DOA_CUSTOMER_TAB WHERE PK_LOCATION = " . $PK_LOCATION);
+                                                    $existing_permissions = [];
+                                                    while (!$customer_tabs->EOF) {
+                                                        $existing_permissions[$customer_tabs->fields['TAB_NAME']] = $customer_tabs->fields['PERMISSION'];
+                                                        $customer_tabs->MoveNext();
+                                                    }
+
+                                                    $i = 0;
+                                                    foreach ($tab_options as $tab_key => $tab_label) {
+                                                        $is_checked = isset($existing_permissions[$tab_key]) ? ($existing_permissions[$tab_key] == 1) : true;
+                                                    ?>
+                                                        <div class="permission-row">
+                                                            <span class="tab-name"><?= htmlspecialchars($tab_label) ?></span>
+                                                            <input type="hidden" name="TAB_NAME[]" value="<?= $tab_key ?>">
+                                                            <label class="switch-modern">
+                                                                <input type="checkbox" name="PERMISSION[<?= $i ?>]" value="1" <?= $is_checked ? 'checked' : '' ?>>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </div>
+                                                    <?php
+                                                        $i++;
+                                                    }
+                                                    ?>
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Permissions
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Payment Register -->
+                                        <div class="tab-pane-modern" id="payment_register" role="tabpanel">
+                                            <div style="margin-bottom: 16px;">
+                                                <h5 style="font-weight: 600; color: var(--gray-800);">
+                                                    <i class="fas fa-receipt" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                                    Payment History
+                                                </h5>
+                                            </div>
+                                            <div style="overflow-x: auto; width: 100%;">
+                                                <table class="table-modern" id="payment_table" style="width: 100% !important;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 20%;">Date</th>
+                                                            <th style="width: 15%;">Status</th>
+                                                            <th style="width: 15%;">Amount</th>
+                                                            <th style="width: 25%;">Info</th>
+                                                            <th style="width: 25%;">Details</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $location_payments = $db->Execute("SELECT * FROM DOA_PAYMENT_DETAILS WHERE PK_LOCATION = " . $PK_LOCATION . " ORDER BY DATE_TIME DESC");
+                                                        if ($location_payments->RecordCount() > 0) {
+                                                            while (!$location_payments->EOF) {
+                                                                $payment_info = json_decode($location_payments->fields['PAYMENT_INFO']);
+                                                                $payment_type = (isset($payment_info->LAST4)) ? 'Credit Card #' . $payment_info->LAST4 : $location_payments->fields['PAYMENT_INFO'];
+                                                                $statusClass = ($location_payments->fields['PAYMENT_STATUS'] == 'Failed') ? 'failed' : (($location_payments->fields['PAYMENT_STATUS'] == 'Pending') ? 'pending' : 'success');
+                                                        ?>
+                                                                <tr>
+                                                                    <td><?= date('m/d/Y h:i A', strtotime($location_payments->fields['DATE_TIME'])) ?></td>
+                                                                    <td><span class="status-badge <?= $statusClass ?>"><?= $location_payments->fields['PAYMENT_STATUS'] ?></span></td>
+                                                                    <td>$<?= number_format($location_payments->fields['AMOUNT'], 2) ?></td>
+                                                                    <td><?= htmlspecialchars($payment_type) ?></td>
+                                                                    <td><?= ($location_payments->fields['PAYMENT_FROM'] == 'corporation') ? 'Corporation' : 'Location' ?></td>
+                                                                </tr>
+                                                            <?php
+                                                                $location_payments->MoveNext();
+                                                            }
+                                                        } else {
+                                                            ?>
+                                                            <tr>
+                                                                <td colspan="5" style="text-align: center; padding: 32px; color: var(--gray-400);">No payment records found.</td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Billing Tab -->
+                                        <div class="tab-pane-modern" id="billing" role="tabpanel">
+                                            <form id="location_payment_form" method="post">
+                                                <input type="hidden" class="PK_ACCOUNT_MASTER" name="PK_ACCOUNT_MASTER" value="<?= $PK_ACCOUNT_MASTER ?>">
+                                                <input type="hidden" class="PK_LOCATION" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                <input type="hidden" class="PK_CORPORATION" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
+                                                <input type="hidden" name="PAYMENT_METHOD_ID" id="PAYMENT_METHOD_ID" value="">
+
+                                                <div class="form-grid">
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Subscription Start Date</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <?= (($SUBSCRIPTION_START_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : date('m/d/Y', strtotime($START_DATE))) : date('m/d/Y', strtotime($SUBSCRIPTION_START_DATE))) ?>
+                                                        </p>
+                                                    </div>
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Next Renewal Date</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>
+                                                        </p>
+                                                    </div>
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Status</label>
+                                                        <p style="padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-700); font-size: 14px; margin: 0;">
+                                                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                                                <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? 'var(--success-color)' : 'var(--gray-400)'; ?>; font-size: 10px;"></i>
+                                                                <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                                            </span>
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Payment From</label>
+                                                        <div class="radio-group-modern">
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="location" <?= (trim($PAYMENT_FROM) == 'location') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Location
+                                                            </label>
+                                                            <label class="radio-item">
+                                                                <input type="radio" name="PAYMENT_FROM" class="PAYMENT_FROM" value="corporation" <?= (trim($PAYMENT_FROM) == 'corporation') ? 'checked' : '' ?> onclick="changePaymentFrom(this)"> Corporation
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                                        <label class="form-label">Amount</label>
+                                                        <div style="position: relative;">
+                                                            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--gray-500);">$</span>
+                                                            <input type="text" class="form-control-modern" style="padding-left: 32px;" value="<?= number_format(($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT, 2) ?>" disabled>
+                                                            <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= ($SUBSCRIPTION_AMOUNT == 0) ? $AMOUNT : $SUBSCRIPTION_AMOUNT ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Payment Details -->
+                                                <div id="payment_details_div" style="display: <?= ($PAYMENT_FROM == 'location') ? 'block' : 'none' ?>;">
+                                                    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+                                                        <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                        <div class="form-group-modern" style="margin: 16px 0;">
+                                                            <label class="form-label">Card Details</label>
+                                                            <div id="card_div">
+                                                                <div id="card-element"></div>
+                                                                <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
+                                                            </div>
+                                                        </div>
+                                                    <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
+                                                        <input type="hidden" name="square_token" class="square_token" value="">
+                                                        <div class="form-group-modern" style="margin: 16px 0;">
+                                                            <label class="form-label">Card Details</label>
+                                                            <div id="payment-card-container" style="padding: 8px 0;"></div>
+                                                            <div id="payment-status-container"></div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    <div class="card_list_div"></div>
+                                                </div>
+
+                                                <div id="corporation_card_div" style="display: <?= ($PAYMENT_FROM == 'corporation') ? 'block' : 'none' ?>; margin: 16px 0;">
+                                                    <div id="corporation_card_list"></div>
+                                                </div>
+
+                                                <div id="location_payment_status"></div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" id="location-payment-btn" class="btn-modern btn-modern-success">
+                                                        <i class="fas fa-check"></i> Process Payment
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Credit Card Tab -->
+                                        <div class="tab-pane-modern" id="credit_card" role="tabpanel">
+                                            <form id="credit_card_form" method="post">
+                                                <input type="hidden" name="PK_LOCATION" id="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+                                                <input type="hidden" name="FROM" value="location">
+
+                                                <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+                                                    <input type="hidden" name="stripe_token" id="stripe_token" value="">
+                                                    <div class="form-group-modern" style="margin: 16px 0;">
+                                                        <label class="form-label">Card Details</label>
+                                                        <div id="card_div">
+                                                            <div id="card-element"></div>
+                                                            <div id="card-errors" style="color: var(--danger-color); font-size: 13px; margin-top: 6px;"></div>
+                                                        </div>
+                                                    </div>
+                                                <?php elseif ($SA_PAYMENT_GATEWAY_TYPE == 'Square'): ?>
+                                                    <input type="hidden" name="square_token" class="square_token" value="">
+                                                    <div class="form-group-modern" style="margin: 16px 0;">
+                                                        <label class="form-label">Card Details</label>
+                                                        <div id="save_card-card-container" style="padding: 8px 0;"></div>
+                                                        <div id="save_card-status-container"></div>
+                                                    </div>
+                                                <?php endif; ?>
+
+                                                <div id="save_card_payment_status"></div>
+                                                <div class="card_list_div" style="margin: 16px 0;"></div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" id="save_card-pay-button" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save Card
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <h5><?= $help_title ?></h5>
-                            <p><?= $help_description ?></p>
+
+                            <!-- Help Sidebar -->
+                            <div>
+                                <div class="help-card">
+                                    <div class="help-icon">
+                                        <i class="fas fa-question"></i>
+                                    </div>
+                                    <h5><?= $help_title ?></h5>
+                                    <p><?= $help_description ?></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

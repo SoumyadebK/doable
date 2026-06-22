@@ -26,7 +26,7 @@ if (!empty($_POST)) {
         $LOCATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_INQUIRY_METHOD', $LOCATION_DATA, 'update', " PK_INQUIRY_METHOD =  '$_GET[id]'");
     }
-    header("location:all_inquiry_method_new.php");
+    header("location:all_inquiry_methods.php");
 }
 
 

@@ -105,7 +105,13 @@ $locations = $db->Execute($query);
                     <!-- Header -->
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
-                            <h2 class="fw-semibold h4 mb-1"><?= htmlspecialchars($title) ?></h2>
+                            <h2 class="fw-semibold h4 mb-1">
+                                <?php if ($status_check == 'inactive') { ?>
+                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Locations
+                                <?php } else { ?>
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Locations
+                                <?php } ?>
+                            </h2>
                             <p class="text-muted small mb-0">Manage locations, view corporation association, and control visibility</p>
                         </div>
                         <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='location.php'">
