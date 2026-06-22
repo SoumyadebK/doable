@@ -635,7 +635,40 @@ if (!empty($_POST)) {
                                             <div class="p-20">
                                                 <div class="row">
                                                     <?php if (empty($_GET['id'])) { ?>
-                                                        <div class="col-3">
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">To</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="TO_USER" id="TO_USER" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">From</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="FROM_USER" id="FROM_USER" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">To Email</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="TO_EMAIL" id="TO_EMAIL" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">To Phone</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="TO_PHONE" id="TO_PHONE" class="form-control">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <!-- <div class="col-3">
                                                             <div class="form-group">
                                                                 <label class="form-label" for="PK_USER_MASTER">Customer</label>
                                                                 <select id="PK_USER_MASTER" name="PK_USER_MASTER" class="form-control">
@@ -653,63 +686,63 @@ if (!empty($_POST)) {
                                                                     } ?>
                                                                 </select>
                                                             </div>
+                                                        </div> -->
                                                         </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
-                                                                <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" required>
-                                                                    <option disabled selected>Select Gift Certificate Name</option>
-                                                                    <?php
-                                                                    $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
-                                                                    while (!$row->EOF) {
-                                                                        $selected = '';
-                                                                        if ($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']) {
-                                                                            $selected = 'selected';
-                                                                        }
-                                                                    ?>
-                                                                        <option data-minimum="<?= $row->fields['MINIMUM_AMOUNT'] ?>" data-maximum="<?= $row->fields['MAXIMUM_AMOUNT'] ?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected; ?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
-                                                                    <?php $row->MoveNext();
-                                                                    } ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Date of Purchase</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?= ($DATE_OF_PURCHASE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($DATE_OF_PURCHASE)) ?>" class="form-control datepicker-normal">
+
+                                                        <div class="row">
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Date of Purchase</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" name="DATE_OF_PURCHASE" id="DATE_OF_PURCHASE" value="<?= ($DATE_OF_PURCHASE == '') ? date('m/d/Y') : date('m/d/Y', strtotime($DATE_OF_PURCHASE)) ?>" class="form-control datepicker-normal">
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="col-3 align-self-center">
-                                                            <label class="form-label">Gift Note</label>
-                                                            <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Amount</label>
-                                                                <div class="col-md-12">
-                                                                    <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT ?>">
-                                                                </div>
-                                                                <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="form-group">
-                                                                <label class="form-label">Payment Type</label>
-                                                                <div class="col-md-12">
-                                                                    <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
-                                                                        <option value="">Select</option>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label" for="GIFT_CERTIFICATE">Gift Certificate</label>
+                                                                    <select id="GIFT_CERTIFICATE" name="GIFT_CERTIFICATE" onchange="showMinMaxAmount()" class="form-control" required>
+                                                                        <option disabled selected>Select Gift Certificate Name</option>
                                                                         <?php
-                                                                        $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
-                                                                        while (!$row->EOF) { ?>
-                                                                            <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                                                        $row = $db_account->Execute("SELECT CONCAT(GIFT_CERTIFICATE_NAME,'-',GIFT_CERTIFICATE_CODE) AS GIFT_CERTIFICATE, MINIMUM_AMOUNT, MAXIMUM_AMOUNT, PK_GIFT_CERTIFICATE_SETUP FROM DOA_GIFT_CERTIFICATE_SETUP WHERE CURRENT_DATE()>=EFFECTIVE_DATE AND CURRENT_DATE()<=END_DATE AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER']);
+                                                                        while (!$row->EOF) {
+                                                                            $selected = '';
+                                                                            if ($PK_GIFT_CERTIFICATE_SETUP != '' && $PK_GIFT_CERTIFICATE_SETUP == $row->fields['PK_GIFT_CERTIFICATE_SETUP']) {
+                                                                                $selected = 'selected';
+                                                                            }
+                                                                        ?>
+                                                                            <option data-minimum="<?= $row->fields['MINIMUM_AMOUNT'] ?>" data-maximum="<?= $row->fields['MAXIMUM_AMOUNT'] ?>" value="<?php echo $row->fields['PK_GIFT_CERTIFICATE_SETUP']; ?>" <?php echo $selected; ?>><?php echo $row->fields['GIFT_CERTIFICATE']; ?></option>
                                                                         <?php $row->MoveNext();
                                                                         } ?>
                                                                     </select>
                                                                 </div>
-                                                                <div id="wallet_balance_div">
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Amount</label>
+                                                                    <div class="col-md-12">
+                                                                        <input type="text" id="AMOUNT" name="AMOUNT" class="form-control" placeholder="Enter Amount" required value="<?php echo $AMOUNT ?>">
+                                                                    </div>
+                                                                    <p id="number_of_payment_error" style="color: red; display: none; font-size: 12px; margin: 5px;"></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-3">
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Payment Type</label>
+                                                                    <div class="col-md-12">
+                                                                        <select class="form-control" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)">
+                                                                            <option value="">Select</option>
+                                                                            <?php
+                                                                            $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                                            while (!$row->EOF) { ?>
+                                                                                <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= $row->fields['PAYMENT_TYPE'] ?></option>
+                                                                            <?php $row->MoveNext();
+                                                                            } ?>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div id="wallet_balance_div">
 
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -760,10 +793,6 @@ if (!empty($_POST)) {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-3 align-self-center">
-                                                            <label class="form-label">Gift Note</label>
-                                                            <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
-                                                        </div>
                                                         <div class="col-3">
                                                             <div class="form-group">
                                                                 <label class="form-label">Amount</label>
@@ -798,6 +827,26 @@ if (!empty($_POST)) {
                                                             </div>
                                                         </div>
                                                     <?php } ?>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Gift Note</label>
+                                                            <div class="col-md-12">
+                                                                <textarea class="form-control" rows="3" name="GIFT_NOTE" id="GIFT_NOTE"><?php echo $GIFT_NOTE ?></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-3">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Unique ID</label>
+                                                            <div class="col-md-12">
+                                                                <input type="text" name="PK_GIFT_CERTIFICATE_MASTER" id="PK_GIFT_CERTIFICATE_MASTER" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <input type="hidden" name="PAYMENT_GATEWAY" id="PAYMENT_GATEWAY" value="<?= $PAYMENT_GATEWAY ?>">
