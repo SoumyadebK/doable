@@ -777,8 +777,8 @@ if (!empty($_GET['id'])) {
             <div class="col-12 col-md-8 col-lg-10">
                 <div class="main-card p-4">
                     <div class="main-header border-bottom pb-3 mb-4 d-flex align-items-center gap-2">
-                        <a href="all_follow_ups.php" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a>
-                        <h2 class="h5 mb-0 fw-semibold"><?= $title ?></h2>
+                        <!-- <a href="all_follow_ups.php" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a> -->
+                        <h2 class="h5 mb-0 fw-semibold"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Create New Automation</h2>
                     </div>
 
                     <form id="automationForm" action="" method="post">

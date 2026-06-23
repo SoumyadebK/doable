@@ -22,7 +22,7 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
 
     <div class="sidebar-section-title">Services</div>
     <nav class="nav flex-column gap-1">
-        <a class="nav-link sidebar-link <?= $current_page == 'all_scheduling_codes.php' ? 'active' : '' ?>" href="all_scheduling_codes.php">
+        <a class="nav-link sidebar-link <?= $current_page == 'all_scheduling_codes.php' || $current_page == 'add_scheduling_codes.php' ? 'active' : '' ?>" href="all_scheduling_codes.php">
             <i class="bi bi-box-arrow-up-right"></i> Scheduling Codes
         </a>
         <a class="nav-link sidebar-link <?= $current_page == 'all_service_codes.php' ? 'active' : '' ?>" href="all_service_codes.php">

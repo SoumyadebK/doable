@@ -238,11 +238,7 @@ $scheduling_codes = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Scheduling Codes
-                                <?php } else { ?>
-                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Scheduling Codes
-                                <?php } ?>
+                                <i class="bi bi-box-arrow-up-right me-2" style="color: #39b54a;"></i>Scheduling Codes
                             </h2>
                             <p class="text-muted small mb-0">Manage scheduling codes, durations, and visual settings</p>
                         </div>
