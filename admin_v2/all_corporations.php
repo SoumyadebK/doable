@@ -67,6 +67,27 @@ $corporations = $db->Execute($query);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
+    <style>
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+    </style>
 </head>
 
 <body>
@@ -85,11 +106,7 @@ $corporations = $db->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Corporations
-                                <?php } else { ?>
-                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Corporations
-                                <?php } ?>
+                                <i class="bi bi-building me-2" style="color: #39b54a;"></i>Corporations
                             </h2>
                             <p class="text-muted small mb-0">Manage all corporations and their status</p>
                             <?php if (!empty($header_text)): ?>

@@ -268,10 +268,10 @@ function time_ago($datetime)
 
             <div class="col-12 col-md-8 col-xl-10">
                 <div class="col-12 col-md-8 col-lg-12">
-                    <div class="main-card p-4 h-100">
+                    <div class="main-card">
                         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                             <div>
-                                <h2 class="fw-semibold h4 mb-1">Automations</h2>
+                                <h2 class="fw-semibold h4 mb-1"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Automations</h2>
                                 <p class="text-muted small mb-0">Enable automatic to-do's</p>
                             </div>
                             <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='add_follow_up.php'">

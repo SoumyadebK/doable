@@ -1235,7 +1235,7 @@ if (!empty($_POST)) {
                             <div class="card-modern">
                                 <div class="card-header">
                                     <h5>
-                                        <i class="fas fa-location-dot"></i>
+                                        <i class="bi bi-geo-alt me-2" style="color: #39b54a;"></i>
                                         <?= !empty($_GET['id']) ?  $LOCATION_NAME : 'Create New Location' ?>
                                     </h5>
                                     <?php if (!empty($_GET['id'])): ?>

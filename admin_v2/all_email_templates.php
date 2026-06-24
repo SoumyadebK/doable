@@ -193,11 +193,7 @@ $email_templates = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <?php if ($status_check == 'inactive') { ?>
-                                    <i class="bi bi-slash-circle me-2 text-muted"></i>Not Active Email Templates
-                                <?php } else { ?>
-                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Active Email Templates
-                                <?php } ?>
+                                <i class="bi bi-envelope me-2" style="color: #39b54a;"></i>Email Templates
                             </h2>
                             <p class="text-muted small mb-0">Manage email templates and their configurations</p>
                         </div>
@@ -282,7 +278,6 @@ $email_templates = $db_account->Execute($query);
                                         <td colspan="5" class="text-center py-5">
                                             <i class="bi bi-envelope display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No email templates found for the selected filters</p>
-                                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="window.location.href='email_template.php'">Create your first email template</button>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
