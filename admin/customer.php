@@ -4203,20 +4203,27 @@ if (isset($_POST['SUBMIT'])) {
 
         // Function to check if all validations pass
         function checkFormValidity() {
-            let phoneValid = $('#phone_error').html() === '<span class="text-success">Phone number is available!</span>';
-            let emailValid = $('#email_error').html() === '<span class="text-success">Email is available!</span>';
-            let phoneHasValue = $('#PHONE').val().replace(/\D/g, '').length >= 10;
-            let emailHasValue = $('#EMAIL_ID').val() !== '';
+            let phoneError = $('#phone_error').html();
+            let emailError = $('#email_error').html();
+            let phoneVal = $('#PHONE').val().replace(/\D/g, '');
+            let emailVal = $('#EMAIL_ID').val();
 
-            if ((phoneHasValue && phoneValid) && (emailHasValue && emailValid)) {
+            // Check if phone is valid (either empty OR has 10+ digits AND shows success)
+            let phoneOk = (phoneVal.length === 0) ||
+                (phoneVal.length >= 10 && phoneError === '<span class="text-success">Phone number is available!</span>');
+
+            // Check if email is valid (either empty OR not empty AND shows success)
+            let emailOk = (emailVal === '') ||
+                (emailVal !== '' && emailError === '<span class="text-success">Email is available!</span>');
+
+            // Also check for error messages that would block submission
+            let hasPhoneError = phoneError !== '' && phoneError !== '<span class="text-success">Phone number is available!</span>';
+            let hasEmailError = emailError !== '' && emailError !== '<span class="text-success">Email is available!</span>';
+
+            if (phoneOk && emailOk && !hasPhoneError && !hasEmailError) {
                 $('#submit').removeAttr('disabled');
-            } else if ((!phoneHasValue || phoneValid) && (!emailHasValue || emailValid)) {
-                // If fields are empty or valid
-                if ((phoneHasValue && phoneValid) || !phoneHasValue) {
-                    if ((emailHasValue && emailValid) || !emailHasValue) {
-                        $('#submit').removeAttr('disabled');
-                    }
-                }
+            } else {
+                $('#submit').attr('disabled', 'disabled');
             }
         }
     });
