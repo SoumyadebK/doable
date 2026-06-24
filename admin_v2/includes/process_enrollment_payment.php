@@ -193,7 +193,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         'currency' => 'usd',
                         'confirm' => 'true', // Auto-confirm charge
                         'off_session' => 'true', // Charge without user interaction
-                        'statement_descriptor' => 'AllrentalZ Subscr.',
+                        'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER_ORIGINAL,
                         'metadata[invoice_num]' => $RECEIPT_NUMBER_ORIGINAL,
                         'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]));

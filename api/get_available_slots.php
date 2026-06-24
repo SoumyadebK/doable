@@ -22,7 +22,7 @@ if ($db_account->error_number) {
 $slot_data = getAvailableSlots($db_account, $LOCATION_ID, 30);
 
 $return = [
-    'status' => 'success',
+    'success' => true,
     'data' => $slot_data
 ];
 echo json_encode($return);

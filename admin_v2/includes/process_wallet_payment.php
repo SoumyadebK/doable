@@ -171,7 +171,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'processWalletPayment') {
                         'currency' => 'usd',
                         'confirm' => 'true', // Auto-confirm charge
                         'off_session' => 'true', // Charge without user interaction
-                        'statement_descriptor' => 'AllrentalZ Subscr.',
+                        'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER,
                         'metadata[invoice_num]' => $RECEIPT_NUMBER,
                         'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]));
