@@ -1156,7 +1156,7 @@ function deleteEnrollment($PK_ENROLLMENT_MASTER)
     addEnrollmentLogData($PK_ENROLLMENT_MASTER, 'Deleted', 'Enrollment deleted from deleteEnrollment function.');
 }
 
-function generateReceiptNumber($PK_ENROLLMENT_MASTER)
+function generateReceiptNumber($PK_ENROLLMENT_MASTER = null)
 {
     global $db;
     global $db_account;

@@ -114,6 +114,7 @@ $SPECIAL_APPOINTMENT_QUERY = "SELECT
                                     DOA_SPECIAL_APPOINTMENT.*,
                                     DOA_APPOINTMENT_STATUS.STATUS_CODE,
                                     DOA_APPOINTMENT_STATUS.COLOR_CODE AS APPOINTMENT_COLOR,
+                                    DOA_SCHEDULING_CODE.SCHEDULING_NAME,
                                     DOA_SCHEDULING_CODE.COLOR_CODE,
                                     DOA_SCHEDULING_CODE.DURATION,
                                     GROUP_CONCAT(SERVICE_PROVIDER.PK_USER SEPARATOR ',') AS SERVICE_PROVIDER_ID
@@ -282,7 +283,7 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
         $appointment_array[] = [
             'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
             'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
-            'title' => preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']),
+            'title' => ($special_appointment_data->fields['TITLE']) ? preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']) : $special_appointment_data->fields['SCHEDULING_NAME'],
             'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
             'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
             'color' => $special_appointment_data->fields['COLOR_CODE'],

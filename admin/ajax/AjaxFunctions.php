@@ -1297,6 +1297,42 @@ function saveProfileData($RESPONSE_DATA)
         $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
     }
 
+    if (isset($RESPONSE_DATA['AMOUNT']) && $RESPONSE_DATA['AMOUNT'] > 0) {
+        $RECEIPT_NUMBER = generateReceiptNumber(0);
+        $AMOUNT = $RESPONSE_DATA['AMOUNT'];
+
+        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $INSERT_DATA['DEBIT'] = 0;
+        $INSERT_DATA['CREDIT'] = $AMOUNT;
+        $INSERT_DATA['BALANCE_LEFT'] = $AMOUNT;
+        $INSERT_DATA['DESCRIPTION'] = "Amount Credited to Your Wallet using Gift Certificate";
+        $INSERT_DATA['PK_PAYMENT_TYPE'] = 4;
+        $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $INSERT_DATA['NOTE'] = "Amount Credited to Your Wallet using Gift Certificate";
+        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+        $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
+
+        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 4;
+        $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
+        $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+        $TYPE = 'Wallet';
+        $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
+        $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+        $PAYMENT_DATA['TYPE'] = $TYPE;
+        $PAYMENT_DATA['NOTE'] = "Amount Credited to Your Wallet using Gift Certificate";
+        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+        $PAYMENT_DATA['PAYMENT_INFO'] = 'Gift Certificate';
+        $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+        $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+    }
+
     //$db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
     $return_data['PK_USER'] = $PK_USER;
