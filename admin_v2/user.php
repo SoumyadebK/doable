@@ -1264,7 +1264,7 @@ if (!empty($_GET['id'])) {
                                                         </div>
 
                                                         <!-- Location -->
-                                                        <div class="form-group-modern full-width">
+                                                        <div class="form-group-modern">
                                                             <label class="form-label">Location <span class="required">*</span>
                                                                 <span class="tooltip-bubble" tabindex="0">
                                                                     <i class="ti-help-alt" aria-hidden="true"></i>
