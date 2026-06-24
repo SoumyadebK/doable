@@ -1219,7 +1219,7 @@ if (!empty($_POST)) {
         <?php require_once('../includes/header.php'); ?>
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid body_content" style="margin-top: 24px !important;">
+            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
                 <!-- Main Grid -->
                 <div class="row g-4">
