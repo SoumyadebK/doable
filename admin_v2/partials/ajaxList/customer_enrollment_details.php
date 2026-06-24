@@ -333,6 +333,7 @@ while (!$serviceCodeData->EOF) {
     <thead style="cursor:pointer;" onclick="$(this).closest('.appointment_details').find('tbody').slideToggle();">
         <tr>
             <th style="text-align: left;">Service</th>
+            <th style="text-align: center;">With Partner</th>
             <th style="text-align: center;">Apt #</th>
             <th style="text-align: center;">Service Code</th>
             <th style="text-align: center;">Date</th>
@@ -361,10 +362,15 @@ while (!$serviceCodeData->EOF) {
                 $per_session_price = $db_account->Execute("SELECT TOTAL_AMOUNT_PAID, PRICE_PER_SESSION, NUMBER_OF_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_SERVICE` = " . $pk_enrollment_service);
                 $PRICE_PER_SESSION = $per_session_price->fields['PRICE_PER_SESSION'] * $UNIT;
                 //$total_amount_needed = $SESSION_CREATED * $per_session_price->fields['PRICE_PER_SESSION'];
-
+                $WITH_PARTNER = 0;
                 if ($appointment_data->fields['APPOINTMENT_TYPE'] == 'GROUP') {
                     $appointment_enr_data = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_ENROLLMENT WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER'] . " AND PK_USER_MASTER = '$PK_USER_MASTER'");
                     $IS_CHARGED = $appointment_enr_data->fields['IS_CHARGED'];
+
+                    $with_partner_data = $db_account->Execute("SELECT * FROM `DOA_APPOINTMENT_CUSTOMER` WHERE PK_APPOINTMENT_MASTER = " . $appointment_data->fields['PK_APPOINTMENT_MASTER'] . " AND PK_USER_MASTER = '$PK_USER_MASTER' AND IS_PARTNER = 1");
+                    if ($with_partner_data->RecordCount() > 0) {
+                        $WITH_PARTNER = 1;
+                    }
                 } else {
                     $IS_CHARGED = $appointment_data->fields['IS_CHARGED'];
                 }
@@ -396,6 +402,7 @@ while (!$serviceCodeData->EOF) {
                     "APPOINTMENT_STATUS" => $appointment_data->fields['APPOINTMENT_STATUS'],
                     "STATUS_COLOR" => $appointment_data->fields['STATUS_COLOR'],
                     "IS_CHARGED" => $IS_CHARGED,
+                    "WITH_PARTNER" => $WITH_PARTNER,
                     "APPOINTMENT_NUMBER" => ($IS_CHARGED == 1) ? $service_code_array[$appointment_data->fields['SERVICE_CODE']] . '/' . $NUMBER_OF_SESSION : '',
                     "SERVICE_CODE" => $appointment_data->fields['SERVICE_CODE'],
                     "COLOR_CODE" => $appointment_data->fields['COLOR_CODE'],
@@ -419,6 +426,7 @@ while (!$serviceCodeData->EOF) {
                             </a>
                         </div>
                     </td>
+                    <td style="text-align: center; color: #f88203f0;"><?= ($appointment_value['WITH_PARTNER'] == 1) ? '<i class="fa fa-star" aria-hidden="true"></i>' : ' ' ?></td>
                     <?php /*if(($appointment_value['APPOINTMENT_STATUS'] == 'Cancelled' && $appointment_value['IS_CHARGED'] == 0) || ($appointment_value['APPOINTMENT_STATUS'] == 'No Show' && $appointment_value['IS_CHARGED'] == 0))*/
                     if ($appointment_value['IS_CHARGED'] == 1) { ?>
                         <td style="text-align: center;"><?= $appointment_value['APPOINTMENT_NUMBER'] ?></td>

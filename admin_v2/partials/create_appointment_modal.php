@@ -727,7 +727,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                         <div class="col-8 col-md-8">
                             <div class="form-group">
                                 <select class="form-control form-select" name="PK_SCHEDULING_CODE" id="PK_SCHEDULING_CODE" onchange="calculateEndTime()" required>
-                                    <option disabled selected>Select Scheduling Code</option>
+                                    <option value="">Select Scheduling Code</option>
                                     <?php
                                     $booking_row = $db_account->Execute("SELECT DOA_SCHEDULING_CODE.`PK_SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_CODE`, DOA_SCHEDULING_CODE.`SCHEDULING_NAME`, DOA_SCHEDULING_CODE.`DURATION` FROM `DOA_SCHEDULING_CODE` WHERE PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_SCHEDULING_CODE.TO_DOS = 1 AND DOA_SCHEDULING_CODE.`ACTIVE` = 1");
                                     while (!$booking_row->EOF) { ?>

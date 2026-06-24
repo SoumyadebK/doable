@@ -729,6 +729,8 @@ if (isset($_POST['SUBMIT'])) {
                                                             <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
+                                                            <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= empty($_GET['AMOUNT']) ? 0 : $_GET['AMOUNT'] ?>">
+
                                                             <div class="p-20">
                                                                 <div class="row">
                                                                     <div class="col-4">
