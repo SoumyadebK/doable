@@ -1159,9 +1159,7 @@ if ($PK_USER_MASTER > 0) {
                                                                 <?php } ?>
                                                             </div>
                                                             <div>
-                                                                <a href="javascript:;" class="btn btn-sm btn-outline-edit" onclick="openPartnerModal()">
-                                                                    <i class="bi bi-pencil"></i> Edit
-                                                                </a>
+                                                                <a href="javascript:;" class="btn btn-outline-edit" onclick="openPartnerModal()">Edit</a>
                                                             </div>
                                                         </div>
                                                     <?php } else { ?>
@@ -3752,7 +3750,7 @@ if ($PK_USER_MASTER > 0) {
                 displayHtml += '</div>';
             }
             displayHtml += '</div>';
-            displayHtml += '<div><a href="javascript:;" class="btn btn-sm btn-outline-edit" onclick="openPartnerModal()"><i class="bi bi-pencil"></i> Edit</a></div>';
+            displayHtml += '<div><a href="javascript:;" class="btn btn-outline-edit" onclick="openPartnerModal()">Edit</a></div>';
             displayHtml += '</div>';
         } else {
             displayHtml = '<div class="text-center p-3 text-muted">No partner information added yet. <a href="javascript:;" onclick="openPartnerModal()">Add partner</a></div>';
