@@ -3328,7 +3328,7 @@ if (isset($_POST['SUBMIT'])) {
                 } else {
                     let PK_USER = $('.PK_USER').val();
                     let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                    window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                    window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
                 }
             }
         });
@@ -3371,7 +3371,7 @@ if (isset($_POST['SUBMIT'])) {
                                         } else {
                                             let PK_USER = $('.PK_USER').val();
                                             let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                            window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                                            window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
                                         }
                                     }
                                 });
@@ -3391,7 +3391,7 @@ if (isset($_POST['SUBMIT'])) {
                             } else {
                                 let PK_USER = $('.PK_USER').val();
                                 let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                                window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
                             }
                         }
                     });
@@ -3412,7 +3412,7 @@ if (isset($_POST['SUBMIT'])) {
             success: function(data) {
                 let PK_USER = $('.PK_USER').val();
                 let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
             }
         });
     });
@@ -3427,7 +3427,7 @@ if (isset($_POST['SUBMIT'])) {
             success: function(data) {
                 let PK_USER = $('.PK_USER').val();
                 let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
             }
         });
     });
@@ -3444,7 +3444,7 @@ if (isset($_POST['SUBMIT'])) {
             success: function(data) {
                 let PK_USER = $('.PK_USER').val();
                 let PK_USER_MASTER = $('.PK_USER_MASTER').val();
-                window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
+                window.location.href = '../admin_v2/customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER;
             }
         });
     });
