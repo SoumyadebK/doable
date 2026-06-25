@@ -228,10 +228,15 @@ function savePackageInfoData($RESPONSE_DATA)
     global $db;
     global $db_account;
 
+    // Package Data
     $PACKAGE_DATA['PACKAGE_NAME'] = $RESPONSE_DATA['PACKAGE_NAME'];
     $PACKAGE_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
     $PACKAGE_DATA['SORT_ORDER'] = $RESPONSE_DATA['SORT_ORDER'];
     $PACKAGE_DATA['EXPIRY_DATE'] = $RESPONSE_DATA['EXPIRY_DATE'];
+
+    // Add chatbot enabled flag for package
+    $PACKAGE_DATA['CHATBOT_ENABLED'] = isset($RESPONSE_DATA['PACKAGE_CHATBOT_ENABLED']) ? intval($RESPONSE_DATA['PACKAGE_CHATBOT_ENABLED']) : 0;
+
     if (empty($RESPONSE_DATA['PK_PACKAGE'])) {
         $PACKAGE_DATA['ACTIVE'] = 1;
         $PACKAGE_DATA['IS_DELETED'] = 0;
@@ -247,6 +252,7 @@ function savePackageInfoData($RESPONSE_DATA)
         $PK_PACKAGE = $RESPONSE_DATA['PK_PACKAGE'];
     }
 
+    // Handle Package Locations
     $db_account->Execute("DELETE FROM `DOA_PACKAGE_LOCATION` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
     if (isset($RESPONSE_DATA['PK_LOCATION'])) {
         $PK_LOCATION = $RESPONSE_DATA['PK_LOCATION'];
@@ -257,24 +263,36 @@ function savePackageInfoData($RESPONSE_DATA)
         }
     }
 
+    // Handle Package Services with Chatbot toggle
     if (isset($RESPONSE_DATA['PK_SERVICE_MASTER']) && count($RESPONSE_DATA['PK_SERVICE_MASTER']) > 0) {
         $db_account->Execute("DELETE FROM `DOA_PACKAGE_SERVICE` WHERE `PK_PACKAGE` = '$PK_PACKAGE'");
 
         for ($i = 0; $i < count($RESPONSE_DATA['PK_SERVICE_MASTER']); $i++) {
+            // Skip empty service rows
+            if (empty($RESPONSE_DATA['PK_SERVICE_MASTER'][$i]) || empty($RESPONSE_DATA['PK_SERVICE_CODE'][$i])) {
+                continue;
+            }
+
             $PACKAGE_SERVICE_DATA['PK_PACKAGE'] = $PK_PACKAGE;
             $PACKAGE_SERVICE_DATA['PK_SERVICE_MASTER'] = $RESPONSE_DATA['PK_SERVICE_MASTER'][$i];
             $PACKAGE_SERVICE_DATA['PK_SERVICE_CODE'] = $RESPONSE_DATA['PK_SERVICE_CODE'][$i];
-            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = $RESPONSE_DATA['SERVICE_DETAILS'][$i];
-            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = $RESPONSE_DATA['NUMBER_OF_SESSION'][$i];
-            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = $RESPONSE_DATA['PRICE_PER_SESSION'][$i];
-            $PACKAGE_SERVICE_DATA['TOTAL'] = $RESPONSE_DATA['TOTAL'][$i];
+            $PACKAGE_SERVICE_DATA['SERVICE_DETAILS'] = isset($RESPONSE_DATA['SERVICE_DETAILS'][$i]) ? $RESPONSE_DATA['SERVICE_DETAILS'][$i] : '';
+            $PACKAGE_SERVICE_DATA['NUMBER_OF_SESSION'] = isset($RESPONSE_DATA['NUMBER_OF_SESSION'][$i]) ? $RESPONSE_DATA['NUMBER_OF_SESSION'][$i] : 0;
+            $PACKAGE_SERVICE_DATA['PRICE_PER_SESSION'] = isset($RESPONSE_DATA['PRICE_PER_SESSION'][$i]) ? $RESPONSE_DATA['PRICE_PER_SESSION'][$i] : 0;
+            $PACKAGE_SERVICE_DATA['TOTAL'] = isset($RESPONSE_DATA['TOTAL'][$i]) ? $RESPONSE_DATA['TOTAL'][$i] : 0;
             $PACKAGE_SERVICE_DATA['DISCOUNT_TYPE'] = empty($RESPONSE_DATA['DISCOUNT_TYPE'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT_TYPE'][$i];
             $PACKAGE_SERVICE_DATA['DISCOUNT'] = empty($RESPONSE_DATA['DISCOUNT'][$i]) ? 0 : $RESPONSE_DATA['DISCOUNT'][$i];
-            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = $RESPONSE_DATA['FINAL_AMOUNT'][$i];
+            $PACKAGE_SERVICE_DATA['FINAL_AMOUNT'] = isset($RESPONSE_DATA['FINAL_AMOUNT'][$i]) ? $RESPONSE_DATA['FINAL_AMOUNT'][$i] : 0;
             $PACKAGE_SERVICE_DATA['ACTIVE'] = 1;
+
+            // Add chatbot enabled flag for each service
+            $PACKAGE_SERVICE_DATA['CHATBOT_ENABLED'] = isset($RESPONSE_DATA['SERVICE_CHATBOT_ENABLED'][$i]) ? intval($RESPONSE_DATA['SERVICE_CHATBOT_ENABLED'][$i]) : 0;
+
             db_perform_account('DOA_PACKAGE_SERVICE', $PACKAGE_SERVICE_DATA, 'insert');
         }
     }
+
+    return $PK_PACKAGE;
 }
 
 function getEnrollmentCount($RESPONSE_DATA)

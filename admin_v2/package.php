@@ -22,6 +22,7 @@ if (empty($_GET['id'])) {
     $SORT_ORDER = '';
     $EXPIRY_DATE = '';
     $ACTIVE = '';
+    $CHATBOT_ENABLED = 0;
 } else {
     $res = $db_account->Execute("SELECT * FROM `DOA_PACKAGE` WHERE `PK_PACKAGE` = '$_GET[id]'");
 
@@ -35,6 +36,7 @@ if (empty($_GET['id'])) {
     $SORT_ORDER = $res->fields['SORT_ORDER'];
     $EXPIRY_DATE = $res->fields['EXPIRY_DATE'];
     $ACTIVE = $res->fields['ACTIVE'];
+    $CHATBOT_ENABLED = isset($res->fields['CHATBOT_ENABLED']) ? $res->fields['CHATBOT_ENABLED'] : 0;
 }
 
 ?>
@@ -327,6 +329,88 @@ if (empty($_GET['id'])) {
         flex-shrink: 0;
     }
 
+    /* Toggle Switch Styles */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .3s;
+        border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch input:checked+.toggle-slider {
+        background-color: var(--primary-color);
+    }
+
+    .toggle-switch input:checked+.toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    .toggle-switch input:disabled+.toggle-slider {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0;
+    }
+
+    .toggle-wrapper .toggle-label {
+        font-size: 13px;
+        color: var(--gray-600);
+        font-weight: 500;
+        min-width: 70px;
+    }
+
+    .toggle-wrapper .toggle-status {
+        font-size: 12px;
+        color: var(--gray-500);
+        min-width: 50px;
+        font-weight: 500;
+    }
+
+    .toggle-wrapper .toggle-status.active {
+        color: var(--primary-color);
+    }
+
+    .toggle-wrapper .toggle-status.inactive {
+        color: var(--gray-400);
+    }
+
     /* Buttons */
     .btn-modern {
         display: inline-flex;
@@ -424,7 +508,7 @@ if (empty($_GET['id'])) {
 
     .service-table-wrapper .table-header {
         display: grid;
-        grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
+        grid-template-columns: 1.8fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
         gap: 8px;
         padding: 8px 4px 12px 4px;
         font-weight: 600;
@@ -433,11 +517,12 @@ if (empty($_GET['id'])) {
         text-transform: uppercase;
         letter-spacing: 0.03em;
         border-bottom: 2px solid var(--gray-200);
+        align-items: center;
     }
 
     .service-table-wrapper .service-row {
         display: grid;
-        grid-template-columns: 2fr 1fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
+        grid-template-columns: 1.8fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
         gap: 8px;
         padding: 8px 4px;
         border-bottom: 1px solid var(--gray-100);
@@ -470,11 +555,36 @@ if (empty($_GET['id'])) {
         transform: scale(1.2);
     }
 
+    .service-table-wrapper .service-row .toggle-switch {
+        width: 40px;
+        height: 22px;
+    }
+
+    .service-table-wrapper .service-row .toggle-slider:before {
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        bottom: 3px;
+    }
+
+    .service-table-wrapper .service-row .toggle-switch input:checked+.toggle-slider:before {
+        transform: translateX(18px);
+    }
+
+    @media (max-width: 1200px) {
+
+        .service-table-wrapper .table-header,
+        .service-table-wrapper .service-row {
+            grid-template-columns: 1.5fr 1fr 1.5fr 1fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.5fr;
+            font-size: 11px;
+        }
+    }
+
     @media (max-width: 992px) {
 
         .service-table-wrapper .table-header,
         .service-table-wrapper .service-row {
-            grid-template-columns: 1.5fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
+            grid-template-columns: 1.5fr 1fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 0.5fr;
             font-size: 12px;
         }
     }
@@ -511,6 +621,10 @@ if (empty($_GET['id'])) {
         .service-table-wrapper .service-row .remove-btn {
             justify-self: end;
             margin-top: 4px;
+        }
+
+        .service-table-wrapper .service-row .toggle-wrapper {
+            justify-content: flex-start;
         }
     }
 
@@ -573,6 +687,35 @@ if (empty($_GET['id'])) {
         font-size: 12px;
         color: var(--gray-400);
         margin-top: 4px;
+    }
+
+    .chatbot-section {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 16px 20px;
+        margin: 16px 0 8px 0;
+        border: 1px solid var(--gray-200);
+    }
+
+    .chatbot-section .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chatbot-section .section-title i {
+        color: var(--primary-color);
+    }
+
+    .chatbot-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
     }
 </style>
 
@@ -641,6 +784,26 @@ if (empty($_GET['id'])) {
                                                 </div>
                                             </div>
 
+                                            <!-- Chatbot Toggle for Package -->
+                                            <div class="chatbot-section">
+                                                <div class="section-title">
+                                                    <i class="bi bi-robot"></i> Chatbot Configuration
+                                                </div>
+                                                <div class="chatbot-toggle-row">
+                                                    <div class="toggle-wrapper">
+                                                        <span class="toggle-label">Package Chatbot</span>
+                                                        <label class="toggle-switch">
+                                                            <input type="checkbox" name="PACKAGE_CHATBOT_ENABLED" id="PACKAGE_CHATBOT_ENABLED" value="1" <?= ($CHATBOT_ENABLED == 1) ? 'checked' : '' ?> onchange="updateToggleStatus(this, 'package-status')">
+                                                            <span class="toggle-slider"></span>
+                                                        </label>
+                                                        <span class="toggle-status <?= ($CHATBOT_ENABLED == 1) ? 'active' : 'inactive' ?>" id="package-status">
+                                                            <?= ($CHATBOT_ENABLED == 1) ? 'Enabled' : 'Disabled' ?>
+                                                        </span>
+                                                    </div>
+                                                    <span class="form-helper" style="margin:0;">Enable AI chatbot for this package</span>
+                                                </div>
+                                            </div>
+
                                             <!-- Services Table -->
                                             <div style="margin-top: 24px;">
                                                 <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--gray-700);">Package Services</label>
@@ -657,6 +820,7 @@ if (empty($_GET['id'])) {
                                                         <span>Discount Type</span>
                                                         <span>Discount</span>
                                                         <span>Final Amount</span>
+                                                        <span>Chatbot</span>
                                                         <span></span>
                                                     </div>
 
@@ -665,7 +829,9 @@ if (empty($_GET['id'])) {
                                                         <?php
                                                         if (!empty($_GET['id'])) {
                                                             $package_service_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE_SERVICE WHERE PK_PACKAGE = '$_GET[id]'");
-                                                            while (!$package_service_data->EOF) { ?>
+                                                            while (!$package_service_data->EOF) {
+                                                                $service_chatbot = isset($package_service_data->fields['CHATBOT_ENABLED']) ? $package_service_data->fields['CHATBOT_ENABLED'] : 0;
+                                                        ?>
                                                                 <div class="service-row">
                                                                     <div>
                                                                         <span class="form-label-sm">Services</span>
@@ -721,6 +887,19 @@ if (empty($_GET['id'])) {
                                                                     <div>
                                                                         <span class="form-label-sm">Final Amount</span>
                                                                         <input type="text" class="form-control-modern FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="<?= htmlspecialchars($package_service_data->fields['FINAL_AMOUNT']) ?>" readonly>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="form-label-sm">Chatbot</span>
+                                                                        <div class="toggle-wrapper" style="padding:0;">
+                                                                            <label class="toggle-switch">
+                                                                                <input type="checkbox" class="service-chatbot" name="SERVICE_CHATBOT_ENABLED[]" value="1" <?= ($service_chatbot == 1) ? 'checked' : '' ?> onchange="updateToggleStatus(this, 'service-status-' + this.dataset.rowIndex)">
+                                                                                <span class="toggle-slider"></span>
+                                                                            </label>
+                                                                            <span class="toggle-status <?= ($service_chatbot == 1) ? 'active' : 'inactive' ?>" id="service-status-<?= $package_service_data->fields['PK_PACKAGE_SERVICE'] ?>">
+                                                                                <?= ($service_chatbot == 1) ? 'On' : 'Off' ?>
+                                                                            </span>
+                                                                        </div>
+                                                                        <input type="hidden" class="service-row-index" value="<?= $package_service_data->fields['PK_PACKAGE_SERVICE'] ?>">
                                                                     </div>
                                                                     <div>
                                                                         <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
@@ -779,6 +958,17 @@ if (empty($_GET['id'])) {
                                                                 <div>
                                                                     <span class="form-label-sm">Final Amount</span>
                                                                     <input type="text" class="form-control-modern FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
+                                                                </div>
+                                                                <div>
+                                                                    <span class="form-label-sm">Chatbot</span>
+                                                                    <div class="toggle-wrapper" style="padding:0;">
+                                                                        <label class="toggle-switch">
+                                                                            <input type="checkbox" class="service-chatbot" name="SERVICE_CHATBOT_ENABLED[]" value="1" onchange="updateToggleStatus(this, 'service-status-' + this.dataset.rowIndex)">
+                                                                            <span class="toggle-slider"></span>
+                                                                        </label>
+                                                                        <span class="toggle-status inactive" id="service-status-0">Off</span>
+                                                                    </div>
+                                                                    <input type="hidden" class="service-row-index" value="0">
                                                                 </div>
                                                                 <div>
                                                                     <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
@@ -846,7 +1036,18 @@ if (empty($_GET['id'])) {
     <script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
 
     <script>
-        let PK_SERVICE_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
+        let rowCounter = <?= !empty($_GET['id']) ? $package_service_data->RecordCount() : 0 ?>;
+
+        function updateToggleStatus(toggle, statusId) {
+            let statusSpan = document.getElementById(statusId);
+            if (toggle.checked) {
+                statusSpan.textContent = toggle.closest('.toggle-wrapper') ? 'On' : 'Enabled';
+                statusSpan.className = 'toggle-status active';
+            } else {
+                statusSpan.textContent = toggle.closest('.toggle-wrapper') ? 'Off' : 'Disabled';
+                statusSpan.className = 'toggle-status inactive';
+            }
+        }
 
         $('.multi_sumo_select').SumoSelect({
             placeholder: 'Select Location',
@@ -901,6 +1102,7 @@ if (empty($_GET['id'])) {
         }
 
         function addMoreServices() {
+            rowCounter++;
             $('#append_service_div').append(`<div class="service-row">
                 <div>
                     <span class="form-label-sm">Services</span>
@@ -953,6 +1155,17 @@ if (empty($_GET['id'])) {
                     <input type="text" class="form-control-modern FINAL_AMOUNT" name="FINAL_AMOUNT[]" readonly>
                 </div>
                 <div>
+                    <span class="form-label-sm">Chatbot</span>
+                    <div class="toggle-wrapper" style="padding:0;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="service-chatbot" name="SERVICE_CHATBOT_ENABLED[]" value="1" data-row-index="` + rowCounter + `" onchange="updateToggleStatus(this, 'service-status-' + this.dataset.rowIndex)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-status inactive" id="service-status-` + rowCounter + `">Off</span>
+                    </div>
+                    <input type="hidden" class="service-row-index" value="` + rowCounter + `">
+                </div>
+                <div>
                     <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`);
@@ -969,12 +1182,35 @@ if (empty($_GET['id'])) {
         $(document).on('submit', '#package_info_form', function(event) {
             event.preventDefault();
             let form_data = $('#package_info_form').serialize();
+
+            // Handle checkbox values properly (they only send value when checked)
+            // We need to ensure unchecked checkboxes are sent as 0
+            if (!$('#PACKAGE_CHATBOT_ENABLED').is(':checked')) {
+                form_data += '&PACKAGE_CHATBOT_ENABLED=0';
+            }
+
+            // Ensure all service chatbots are properly serialized
+            $('.service-row').each(function(index) {
+                let chatbotCheckbox = $(this).find('.service-chatbot');
+                if (!chatbotCheckbox.is(':checked')) {
+                    // If not checked, we need to ensure it's sent as 0
+                    let name = chatbotCheckbox.attr('name');
+                    // Remove any existing value for this checkbox
+                    form_data = form_data.replace(new RegExp(name + '=[^&]*&?', 'g'), '');
+                    form_data += name + '=0&';
+                }
+            });
+
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
                 data: form_data,
                 success: function(data) {
                     window.location.href = 'all_packages.php';
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error saving package:', error);
+                    alert('An error occurred while saving. Please try again.');
                 }
             });
         });
