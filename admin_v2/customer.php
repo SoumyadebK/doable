@@ -1120,6 +1120,62 @@ if ($PK_USER_MASTER > 0) {
                                         </div>
                                     </div>
 
+                                    <div id="partner_information">
+                                        <div class="profile-card">
+                                            <div class="border-bottom pb-3">
+                                                <div class="row">
+                                                    <div class="col-6 section-title">Will you be attending your lessons</div>
+
+                                                    <div class="col-2 section-title">
+                                                        <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="handleAttendingWithChange(this)" value="Solo" <?= (($ATTENDING_WITH == '') ? 'checked' : (($ATTENDING_WITH == 'Solo') ? 'checked' : '')) ?>> Solo</label>
+                                                    </div>
+                                                    <div class="col-3 section-title">
+                                                        <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="handleAttendingWithChange(this)" value="With a Partner" <?= (($ATTENDING_WITH == 'With a Partner') ? 'checked' : '') ?>> With a Partner</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-3" id="partner_details" style="display: <?= (($ATTENDING_WITH == 'With a Partner') ? '' : 'none') ?>;">
+                                                <div class="col-12">
+                                                    <?php if (!empty($PARTNER_FIRST_NAME) || !empty($PARTNER_LAST_NAME) || !empty($PARTNER_PHONE) || !empty($PARTNER_EMAIL)) { ?>
+                                                        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                                            <div>
+                                                                <strong><?= $PARTNER_FIRST_NAME ?> <?= $PARTNER_LAST_NAME ?></strong>
+                                                                <?php if (!empty($PARTNER_PHONE) || !empty($PARTNER_EMAIL) || !empty($PARTNER_GENDER) || !empty($PARTNER_DOB)) { ?>
+                                                                    <div class="text-muted small mt-1">
+                                                                        <?php if (!empty($PARTNER_PHONE)) { ?>
+                                                                            📞 <?= formatPhone($PARTNER_PHONE) ?>
+                                                                        <?php } ?>
+                                                                        <?php if (!empty($PARTNER_GENDER)) { ?>
+                                                                            <?= (!empty($PARTNER_PHONE) ? ' | ' : '') . $PARTNER_GENDER ?>
+                                                                        <?php } ?>
+                                                                        <?php if (!empty($PARTNER_DOB) && $PARTNER_DOB != '0000-00-00' && $PARTNER_DOB != '1969-12-31') { ?>
+                                                                            <?= (!empty($PARTNER_PHONE) || !empty($PARTNER_GENDER) ? ' | ' : '') . '🎂 ' . date('m/d/Y', strtotime($PARTNER_DOB)) ?>
+                                                                        <?php } ?>
+                                                                        <?php if (!empty($PARTNER_EMAIL)) { ?>
+                                                                            <?= (!empty($PARTNER_PHONE) || !empty($PARTNER_GENDER) || (!empty($PARTNER_DOB) && $PARTNER_DOB != '0000-00-00' && $PARTNER_DOB != '1969-12-31') ? ' | ' : '') . '✉️ ' . $PARTNER_EMAIL ?>
+                                                                        <?php } ?>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                            <div>
+                                                                <a href="javascript:;" class="btn btn-sm btn-outline-edit" onclick="openPartnerModal()">
+                                                                    <i class="bi bi-pencil"></i> Edit
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    <?php } else { ?>
+                                                        <div class="text-center p-3 text-muted">
+                                                            No partner information added yet.
+                                                            <a href="javascript:;" onclick="openPartnerModal()">Add partner</a>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                                     <div class="profile-card">
                                         <div class="d-flex justify-content-between border-bottom">
                                             <div>
@@ -1392,6 +1448,61 @@ if ($PK_USER_MASTER > 0) {
                         <div class="form-group mt-3">
                             <label class="form-label">Special Date</label>
                             <input class="form-control datepicker-normal" rows="10" name="CUSTOMER_SPECIAL_DATE" id="CUSTOMER_SPECIAL_DATE" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-secondary" style="float: right;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--Partner Modal-->
+<div class="modal fade" id="partner_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4><b id="partner_header">Partner Information</b></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#partner_modal').modal('hide');"></button>
+            </div>
+            <form id="partner_add_edit_form" role="form" action="" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="FUNCTION_NAME" value="savePartnerData">
+                    <input type="hidden" class="PK_USER" name="PK_USER" value="<?= $PK_USER ?>">
+                    <input type="hidden" class="PK_USER_MASTER" name="PK_USER_MASTER" value="<?= $PK_USER_MASTER ?>">
+                    <input type="hidden" class="PK_CUSTOMER_DETAILS" name="PK_CUSTOMER_DETAILS" value="<?= $PK_CUSTOMER_DETAILS ?>">
+                    <div class="p-20">
+                        <div class="form-group">
+                            <label class="form-label">Partner's First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter Partner's First Name" name="PARTNER_FIRST_NAME" id="PARTNER_FIRST_NAME_MODAL" value="<?= $PARTNER_FIRST_NAME ?>" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Partner's Last Name</label>
+                            <input type="text" class="form-control" placeholder="Enter Partner's Last Name" name="PARTNER_LAST_NAME" id="PARTNER_LAST_NAME_MODAL" value="<?= $PARTNER_LAST_NAME ?>">
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Partner's Phone</label>
+                            <input type="text" class="form-control format_phone_number" placeholder="Enter Partner's Phone" name="PARTNER_PHONE" id="PARTNER_PHONE_MODAL" value="<?= $PARTNER_PHONE ?>">
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Partner's Email</label>
+                            <input type="email" class="form-control" placeholder="Enter Partner's Email" name="PARTNER_EMAIL" id="PARTNER_EMAIL_MODAL" value="<?= $PARTNER_EMAIL ?>">
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Partner's Gender</label>
+                            <select class="form-control" name="PARTNER_GENDER" id="PARTNER_GENDER_MODAL">
+                                <option value="">Select Gender</option>
+                                <option value="Male" <?= (($PARTNER_GENDER == 'Male') ? 'selected' : '') ?>>Male</option>
+                                <option value="Female" <?= (($PARTNER_GENDER == 'Female') ? 'selected' : '') ?>>Female</option>
+                                <option value="Other" <?= (($PARTNER_GENDER == 'Other') ? 'selected' : '') ?>>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Partner's Date of Birth</label>
+                            <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" id="PARTNER_DOB_MODAL" value="<?= ($PARTNER_DOB == '' || $PARTNER_DOB == '0000-00-00' || $PARTNER_DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($PARTNER_DOB)) ?>">
                         </div>
                     </div>
                 </div>
@@ -2132,6 +2243,10 @@ if ($PK_USER_MASTER > 0) {
                 $('#user_edit_address').html(data);
             }
         });
+    }
+
+    function editPartner(PK_USER, PK_USER_MASTER) {
+        openPartnerModal();
     }
 </script>
 
@@ -3498,6 +3613,197 @@ if ($PK_USER_MASTER > 0) {
             contentType: false,
             success: function(data) {
                 window.location.reload();
+            }
+        });
+    });
+</script>
+
+<!-- Partner's information -->
+<script>
+    // Partner related functions
+    function handleAttendingWithChange(element) {
+        var isChecked = $(element).is(':checked');
+        var value = $(element).val();
+
+        if (value === 'Solo') {
+            if (isChecked) {
+                // Check if there's existing partner data
+                var hasPartnerData = checkIfPartnerDataExists();
+
+                if (hasPartnerData) {
+                    // Ask user if they want to clear partner data
+                    Swal.fire({
+                        title: "Clear Partner Information?",
+                        text: "Selecting 'Solo' will remove all partner information. Are you sure?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, clear it!",
+                        cancelButtonText: "Cancel"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Clear partner data and update UI
+                            clearPartnerData();
+                            $('#partner_details').slideUp();
+                            updatePartnerDisplay();
+                        } else {
+                            // Re-check the "With a Partner" radio button
+                            $('input[name="ATTENDING_WITH"][value="With a Partner"]').prop('checked', true);
+                            $('#partner_details').slideDown();
+                        }
+                    });
+                } else {
+                    // No partner data, just hide the section
+                    $('#partner_details').slideUp();
+                }
+            } else {
+                $('#partner_details').slideDown();
+            }
+        } else if (value === 'With a Partner') {
+            if (isChecked) {
+                // Check if there's existing partner data
+                var hasPartnerData = checkIfPartnerDataExists();
+
+                if (hasPartnerData) {
+                    // Show existing partner data without opening modal
+                    $('#partner_details').slideDown();
+                    updatePartnerDisplay();
+                } else {
+                    // No partner data, open modal to add new partner
+                    openPartnerModal();
+                }
+            } else {
+                $('#partner_details').slideUp();
+            }
+        }
+    }
+
+    function checkIfPartnerDataExists() {
+        var firstName = $('input[name="PARTNER_FIRST_NAME"]').val() || '';
+        var lastName = $('input[name="PARTNER_LAST_NAME"]').val() || '';
+        var phone = $('input[name="PARTNER_PHONE"]').val() || '';
+        var email = $('input[name="PARTNER_EMAIL"]').val() || '';
+
+        // Check if any partner field has data
+        return (firstName.trim() !== '' || lastName.trim() !== '' ||
+            phone.trim() !== '' || email.trim() !== '');
+    }
+
+    function clearPartnerData() {
+        // Clear all partner fields in the main form
+        $('input[name="PARTNER_FIRST_NAME"]').val('');
+        $('input[name="PARTNER_LAST_NAME"]').val('');
+        $('input[name="PARTNER_PHONE"]').val('');
+        $('input[name="PARTNER_EMAIL"]').val('');
+        $('select[name="PARTNER_GENDER"]').val('');
+        $('input[name="PARTNER_DOB"]').val('');
+
+        // Also clear the ATTENDING_WITH in database via AJAX
+        let PK_USER_MASTER = '<?= $PK_USER_MASTER ?>';
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: {
+                FUNCTION_NAME: 'clearPartnerData',
+                PK_USER_MASTER: PK_USER_MASTER
+            },
+            success: function(data) {
+                // Update the display
+                updatePartnerDisplay();
+            }
+        });
+    }
+
+    function openPartnerModal() {
+        // Set the radio button to "With a Partner" if not already selected
+        $('input[name="ATTENDING_WITH"][value="With a Partner"]').prop('checked', true);
+
+        // Populate modal fields with current values
+        $('#PARTNER_FIRST_NAME_MODAL').val($('input[name="PARTNER_FIRST_NAME"]').val() || '<?= $PARTNER_FIRST_NAME ?>');
+        $('#PARTNER_LAST_NAME_MODAL').val($('input[name="PARTNER_LAST_NAME"]').val() || '<?= $PARTNER_LAST_NAME ?>');
+        $('#PARTNER_PHONE_MODAL').val($('input[name="PARTNER_PHONE"]').val() || '<?= $PARTNER_PHONE ?>');
+        $('#PARTNER_EMAIL_MODAL').val($('input[name="PARTNER_EMAIL"]').val() || '<?= $PARTNER_EMAIL ?>');
+        $('#PARTNER_GENDER_MODAL').val($('select[name="PARTNER_GENDER"]').val() || '<?= $PARTNER_GENDER ?>');
+        $('#PARTNER_DOB_MODAL').val($('input[name="PARTNER_DOB"]').val() || '<?= ($PARTNER_DOB == '' || $PARTNER_DOB == '0000-00-00' || $PARTNER_DOB == '1969-12-31') ? '' : date('m/d/Y', strtotime($PARTNER_DOB)) ?>');
+
+        $('#partner_modal').modal('show');
+    }
+
+    function updatePartnerDisplay() {
+        var firstName = $('input[name="PARTNER_FIRST_NAME"]').val() || '';
+        var lastName = $('input[name="PARTNER_LAST_NAME"]').val() || '';
+        var phone = $('input[name="PARTNER_PHONE"]').val() || '';
+        var email = $('input[name="PARTNER_EMAIL"]').val() || '';
+        var gender = $('select[name="PARTNER_GENDER"]').val() || '';
+        var dob = $('input[name="PARTNER_DOB"]').val() || '';
+
+        var displayHtml = '';
+
+        if (firstName.trim() !== '' || lastName.trim() !== '' || phone.trim() !== '' || email.trim() !== '') {
+            displayHtml = '<div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">';
+            displayHtml += '<div><strong>' + firstName + ' ' + lastName + '</strong>';
+            if (phone || email || gender || dob) {
+                displayHtml += '<div class="text-muted small mt-1">';
+                if (phone) displayHtml += '📞 ' + phone + ' ';
+                if (gender) displayHtml += ' | ' + gender + ' ';
+                if (dob) displayHtml += ' | 🎂 ' + dob + ' ';
+                if (email) displayHtml += ' | ✉️ ' + email;
+                displayHtml += '</div>';
+            }
+            displayHtml += '</div>';
+            displayHtml += '<div><a href="javascript:;" class="btn btn-sm btn-outline-edit" onclick="openPartnerModal()"><i class="bi bi-pencil"></i> Edit</a></div>';
+            displayHtml += '</div>';
+        } else {
+            displayHtml = '<div class="text-center p-3 text-muted">No partner information added yet. <a href="javascript:;" onclick="openPartnerModal()">Add partner</a></div>';
+        }
+
+        $('#partner_details .col-12').html(displayHtml);
+    }
+
+    $(document).on('submit', '#partner_add_edit_form', function(event) {
+        event.preventDefault();
+
+        // Update the main form fields with modal values
+        $('input[name="PARTNER_FIRST_NAME"]').val($('#PARTNER_FIRST_NAME_MODAL').val());
+        $('input[name="PARTNER_LAST_NAME"]').val($('#PARTNER_LAST_NAME_MODAL').val());
+        $('input[name="PARTNER_PHONE"]').val($('#PARTNER_PHONE_MODAL').val());
+        $('input[name="PARTNER_EMAIL"]').val($('#PARTNER_EMAIL_MODAL').val());
+        $('select[name="PARTNER_GENDER"]').val($('#PARTNER_GENDER_MODAL').val());
+        $('input[name="PARTNER_DOB"]').val($('#PARTNER_DOB_MODAL').val());
+
+        // Show the partner details section
+        $('#partner_details').slideDown();
+
+        // Set the radio button
+        $('input[name="ATTENDING_WITH"][value="With a Partner"]').prop('checked', true);
+
+        // Now submit the form via AJAX to save the data
+        let form_data = new FormData($('#partner_add_edit_form')[0]);
+        $.ajax({
+            url: "ajax/AjaxFunctions.php",
+            type: 'POST',
+            data: form_data,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                $('#partner_modal').modal('hide');
+                // Update the display in the partner details section
+                updatePartnerDisplay();
+                Swal.fire({
+                    title: "Success!",
+                    text: "Partner information saved successfully.",
+                    icon: "success",
+                    timer: 2000,
+                });
+            },
+            error: function() {
+                Swal.fire({
+                    title: "Error!",
+                    text: "Something went wrong. Please try again.",
+                    icon: "error",
+                    timer: 3000,
+                });
             }
         });
     });

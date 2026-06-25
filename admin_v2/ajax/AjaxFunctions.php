@@ -3643,6 +3643,126 @@ function deleteSpecialDate($RESPONSE_DATA)
     $db_account->Execute("DELETE FROM `DOA_CUSTOMER_SPECIAL_DATE` WHERE `PK_CUSTOMER_SPECIAL_DATE` = '$PK_CUSTOMER_SPECIAL_DATE'");
 }
 
+function savePartnerData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    // Check if we have the required data
+    if (!isset($RESPONSE_DATA['PK_USER_MASTER']) || empty($RESPONSE_DATA['PK_USER_MASTER'])) {
+        return json_encode(['status' => 'error', 'message' => 'User master ID is required']);
+    }
+
+    // Check if customer details exist for this user
+    $check_customer = $db_account->Execute("SELECT PK_CUSTOMER_DETAILS FROM `DOA_CUSTOMER_DETAILS` 
+                                            WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]' 
+                                            AND `IS_PRIMARY` = 1");
+
+    // Prepare partner data
+    $partner_first_name = $RESPONSE_DATA['PARTNER_FIRST_NAME'] ?? '';
+    $partner_last_name = $RESPONSE_DATA['PARTNER_LAST_NAME'] ?? '';
+    $partner_phone = $RESPONSE_DATA['PARTNER_PHONE'] ?? '';
+    $partner_email = $RESPONSE_DATA['PARTNER_EMAIL'] ?? '';
+    $partner_gender = $RESPONSE_DATA['PARTNER_GENDER'] ?? '';
+    $partner_dob = !empty($RESPONSE_DATA['PARTNER_DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB'])) : NULL;
+
+    if ($check_customer->RecordCount() == 0) {
+        // If no primary customer record exists, create one
+        $insert_data = array(
+            'PK_USER_MASTER' => $RESPONSE_DATA['PK_USER_MASTER'],
+            'IS_PRIMARY' => 1,
+            'PARTNER_FIRST_NAME' => $partner_first_name,
+            'PARTNER_LAST_NAME' => $partner_last_name,
+            'PARTNER_PHONE' => $partner_phone,
+            'PARTNER_EMAIL' => $partner_email,
+            'PARTNER_GENDER' => $partner_gender,
+            'PARTNER_DOB' => $partner_dob,
+            'ATTENDING_WITH' => 'With a Partner'
+        );
+        db_perform_account('DOA_CUSTOMER_DETAILS', $insert_data, 'insert');
+    } else {
+        // Update the existing customer details with partner information
+        $PK_CUSTOMER_DETAILS = $check_customer->fields['PK_CUSTOMER_DETAILS'];
+
+        $update_data = array(
+            'PARTNER_FIRST_NAME' => $partner_first_name,
+            'PARTNER_LAST_NAME' => $partner_last_name,
+            'PARTNER_PHONE' => $partner_phone,
+            'PARTNER_EMAIL' => $partner_email,
+            'PARTNER_GENDER' => $partner_gender,
+            'PARTNER_DOB' => $partner_dob,
+            'ATTENDING_WITH' => 'With a Partner'
+        );
+
+        $where_clause = "PK_CUSTOMER_DETAILS = '$PK_CUSTOMER_DETAILS'";
+        db_perform_account('DOA_CUSTOMER_DETAILS', $update_data, 'update', $where_clause);
+    }
+
+    // Also update ATTENDING_WITH in DOA_CUSTOMER_INTEREST_OTHER_DATA if it exists
+    $check_interest = $db_account->Execute("SELECT PK_CUSTOMER_INTEREST_OTHER_DATA FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` 
+                                            WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+
+    if ($check_interest->RecordCount() > 0) {
+        $db_account->Execute("UPDATE `DOA_CUSTOMER_INTEREST_OTHER_DATA` 
+                              SET `ATTENDING_WITH` = 'With a Partner' 
+                              WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+    } else {
+        $interest_data = array(
+            'PK_USER_MASTER' => $RESPONSE_DATA['PK_USER_MASTER'],
+            'ATTENDING_WITH' => 'With a Partner'
+        );
+        db_perform_account('DOA_CUSTOMER_INTEREST_OTHER_DATA', $interest_data, 'insert');
+    }
+
+    return json_encode(['status' => 'success', 'message' => 'Partner information saved successfully']);
+}
+
+function clearPartnerData($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    // Check if we have the required data
+    if (!isset($RESPONSE_DATA['PK_USER_MASTER']) || empty($RESPONSE_DATA['PK_USER_MASTER'])) {
+        return json_encode(['status' => 'error', 'message' => 'User master ID is required']);
+    }
+
+    // Find the customer details record
+    $check_customer = $db_account->Execute("SELECT PK_CUSTOMER_DETAILS FROM `DOA_CUSTOMER_DETAILS` 
+                                            WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]' 
+                                            AND `IS_PRIMARY` = 1");
+
+    if ($check_customer->RecordCount() > 0) {
+        $PK_CUSTOMER_DETAILS = $check_customer->fields['PK_CUSTOMER_DETAILS'];
+
+        // Clear all partner fields and set ATTENDING_WITH to 'Solo'
+        $update_query = "UPDATE `DOA_CUSTOMER_DETAILS` SET 
+                         `PARTNER_FIRST_NAME` = '',
+                         `PARTNER_LAST_NAME` = '',
+                         `PARTNER_PHONE` = '',
+                         `PARTNER_EMAIL` = '',
+                         `PARTNER_GENDER` = '',
+                         `PARTNER_DOB` = NULL,
+                         `ATTENDING_WITH` = 'Solo'
+                         WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'";
+
+        $db_account->Execute($update_query);
+
+        // Also update ATTENDING_WITH in DOA_CUSTOMER_INTEREST_OTHER_DATA if it exists
+        $check_interest = $db_account->Execute("SELECT PK_CUSTOMER_INTEREST_OTHER_DATA FROM `DOA_CUSTOMER_INTEREST_OTHER_DATA` 
+                                                WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+
+        if ($check_interest->RecordCount() > 0) {
+            $db_account->Execute("UPDATE `DOA_CUSTOMER_INTEREST_OTHER_DATA` 
+                                  SET `ATTENDING_WITH` = 'Solo' 
+                                  WHERE `PK_USER_MASTER` = '$RESPONSE_DATA[PK_USER_MASTER]'");
+        }
+
+        return json_encode(['status' => 'success', 'message' => 'Partner data cleared successfully']);
+    }
+
+    return json_encode(['status' => 'error', 'message' => 'Customer record not found']);
+}
 
 function saveFamilyMemberData($RESPONSE_DATA)
 {
