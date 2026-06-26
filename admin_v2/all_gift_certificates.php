@@ -11,10 +11,16 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
 
+// Handle status filtering including redeemed
 if ($status_check == 'active') {
     $status = 1;
+    $redeemed_filter = false;
 } elseif ($status_check == 'inactive') {
     $status = 0;
+    $redeemed_filter = false;
+} elseif ($status_check == 'redeemed') {
+    $status = null; // Will handle redeemed separately
+    $redeemed_filter = true;
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
@@ -39,14 +45,22 @@ if (!empty($search)) {
                       OR DOA_GIFT_CERTIFICATE_MASTER.AMOUNT LIKE '%" . addslashes($search) . "%')";
 }
 
+// Add redeemed filter condition
+$redeemed_condition = '';
+if ($redeemed_filter) {
+    $redeemed_condition = " AND DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED = 1";
+} else {
+    $redeemed_condition = " AND DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' AND (DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED IS NULL OR DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED = 0)";
+}
+
 // Count total records
 $count_query = "SELECT COUNT(DISTINCT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER) as total 
                 FROM DOA_GIFT_CERTIFICATE_MASTER 
                 INNER JOIN DOA_GIFT_CERTIFICATE_SETUP ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP = DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP 
                 LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_GIFT_CERTIFICATE_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
                 LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
-                WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' 
-                AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                WHERE DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                $redeemed_condition 
                 $search_condition";
 
 $total_result = $db_account->Execute($count_query);
@@ -64,7 +78,8 @@ DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
             DOA_GIFT_CERTIFICATE_MASTER.PHONE_NO,
               DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
                 DOA_LOCATION.LOCATION_NAME,
-
+          DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED,
+          DOA_GIFT_CERTIFICATE_MASTER.REDEEMED_DATE,
           DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, 
           DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, 
           DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, 
@@ -73,13 +88,21 @@ DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
           FROM DOA_GIFT_CERTIFICATE_MASTER 
           INNER JOIN DOA_GIFT_CERTIFICATE_SETUP ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP = DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP 
           LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
-          WHERE DOA_GIFT_CERTIFICATE_MASTER.ACTIVE = '$status' 
-          AND DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+          WHERE DOA_GIFT_CERTIFICATE_MASTER.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+          $redeemed_condition 
           $search_condition 
           ORDER BY DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE DESC 
           LIMIT $offset, $per_page";
 
 $gift_certificates = $db_account->Execute($query);
+
+// Count redeemed certificates for badge
+$redeemed_count_query = "SELECT COUNT(*) as total 
+                         FROM DOA_GIFT_CERTIFICATE_MASTER 
+                         WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                         AND IS_REDEEMED = 1";
+$redeemed_count_result = $db_account->Execute($redeemed_count_query);
+$redeemed_count = $redeemed_count_result->fields['total'];
 ?>
 
 <!DOCTYPE html>
@@ -132,6 +155,11 @@ $gift_certificates = $db_account->Execute($query);
         .badge-inactive {
             background: #fee2e2;
             color: #b91c1c;
+        }
+
+        .badge-redeemed {
+            background: #dbeafe;
+            color: #1e40af;
         }
 
         .amount-badge {
@@ -241,6 +269,47 @@ $gift_certificates = $db_account->Execute($query);
             font-size: 1.5rem;
             margin-right: 8px;
         }
+
+
+        /* Separate Redeemed button style */
+        .redeemed-btn {
+            padding: 6px 16px;
+            border: none;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+
+        .redeemed-btn:hover {
+            background: #bfdbfe;
+        }
+
+        .redeemed-btn.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .redeemed-btn .badge-count {
+            background: rgba(255, 255, 255, 0.3);
+            color: inherit;
+            border-radius: 30px;
+            padding: 0 8px;
+            margin-left: 4px;
+            font-size: 0.7rem;
+        }
+
+        .redeemed-btn.active .badge-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .redeemed-btn:not(.active) .badge-count {
+            background: rgba(30, 64, 175, 0.2);
+            color: #1e40af;
+        }
     </style>
 </head>
 
@@ -282,9 +351,16 @@ $gift_certificates = $db_account->Execute($query);
                             <i class="bi bi-search"></i>
                             <input type="text" class="form-control search-input" placeholder="Search by customer, code, name, amount..." id="searchInput" value="<?= htmlspecialchars($search) ?>">
                         </div>
-                        <div class="status-toggle-group">
+                        <div class="status-toggle-group d-flex align-items-center">
+                            <!-- Existing Active/Inactive buttons -->
                             <button class="status-btn <?= $status_check == 'active' ? 'active' : '' ?>" data-status="active">Active</button>
                             <button class="status-btn <?= $status_check == 'inactive' ? 'active' : '' ?>" data-status="inactive">Not Active</button>
+
+                            <!-- Separated Redeemed button -->
+                            <button class="redeemed-btn <?= $status_check == 'redeemed' ? 'active' : '' ?>" data-status="redeemed">
+                                <i class="bi bi-check-circle-fill"></i> Redeemed
+                                <span class="badge-count"><?= $redeemed_count ?></span>
+                            </button>
                         </div>
                     </div>
 
@@ -326,6 +402,8 @@ $gift_certificates = $db_account->Execute($query);
                                         $purchase_date = $gift_certificates->fields['DATE_OF_PURCHASE'];
                                         $amount = $gift_certificates->fields['AMOUNT'];
                                         $is_active = $gift_certificates->fields['ACTIVE'] == 1;
+                                        $is_redeemed = $gift_certificates->fields['IS_REDEEMED'] == 1;
+                                        $redeemed_date = $gift_certificates->fields['REDEEMED_DATE'];
                                         $to = $gift_certificates->fields['RECIPIENT'];
                                         $from = $gift_certificates->fields['SENDER'];
                                         $gift_note = $gift_certificates->fields['GIFT_NOTE'];
@@ -335,6 +413,7 @@ $gift_certificates = $db_account->Execute($query);
 
                                         // Format date
                                         $formatted_date = !empty($purchase_date) && $purchase_date != '0000-00-00' ? date('M d, Y', strtotime($purchase_date)) : '—';
+                                        $formatted_redeemed_date = !empty($redeemed_date) && $redeemed_date != '0000-00-00' ? date('M d, Y', strtotime($redeemed_date)) : '—';
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
@@ -390,7 +469,14 @@ $gift_certificates = $db_account->Execute($query);
                                                 </span>
                                             </td>
                                             <td style="text-align: center;">
-                                                <?php if ($is_active): ?>
+                                                <?php if ($is_redeemed): ?>
+                                                    <span class="badge-status badge-redeemed">
+                                                        <i class="bi bi-check-circle-fill"></i> Redeemed
+                                                        <?php if ($formatted_redeemed_date != '—'): ?>
+                                                            <br><small class="text-muted" style="font-size: 0.6rem;"><?= $formatted_redeemed_date ?></small>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                <?php elseif ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
                                                 <?php else: ?>
                                                     <span class="badge-status badge-inactive"><i class="bi bi-x-circle-fill"></i> Inactive</span>
@@ -398,12 +484,16 @@ $gift_certificates = $db_account->Execute($query);
                                             </td>
                                             <td>
                                                 <div class="action-icons">
-                                                    <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>')" title="Create Customer">
-                                                        <i class="bi bi-person-add"></i>
-                                                    </a>
-                                                    <a href="javascript:;" onclick="editGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Edit">
-                                                        <i class="bi bi-pencil-square"></i>
-                                                    </a>
+                                                    <?php if (!$is_redeemed && $is_active): ?>
+                                                        <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>', <?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Create Customer">
+                                                            <i class="bi bi-person-add"></i>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <?php if (!$is_redeemed): ?>
+                                                        <a href="javascript:;" onclick="editGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Edit">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </a>
+                                                    <?php endif; ?>
                                                     <a href="javascript:;" onclick="downloadGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Download PDF">
                                                         <i class="bi bi-download"></i>
                                                     </a>
@@ -418,7 +508,7 @@ $gift_certificates = $db_account->Execute($query);
                                 if ($total_records == 0):
                                     ?>
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
+                                        <td colspan="13" class="text-center py-5">
                                             <i class="bi bi-gift display-1 text-muted"></i>
                                             <p class="mt-3 text-muted">No gift certificates found for the selected filters</p>
                                         </td>
@@ -505,8 +595,16 @@ $gift_certificates = $db_account->Execute($query);
             window.location.href = '?status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=' + $(this).val();
         });
 
-        // Status toggle buttons
+        // Status toggle buttons for Active and Inactive
         $('.status-btn').on('click', function() {
+            let newStatus = $(this).data('status');
+            if (newStatus) {
+                window.location.href = '?status=' + newStatus + '&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>';
+            }
+        });
+
+        // Redeemed button click
+        $('.redeemed-btn').on('click', function() {
             let newStatus = $(this).data('status');
             if (newStatus) {
                 window.location.href = '?status=' + newStatus + '&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>';
@@ -552,7 +650,8 @@ $gift_certificates = $db_account->Execute($query);
             });
         }
 
-        function createCustomer(pk_location, name, email, phone, amount, note) {
+        // Create customer and mark gift certificate as redeemed
+        function createCustomer(pk_location, name, email, phone, amount, note, pk_gift_certificate_master) {
             const params = new URLSearchParams({
                 PK_LOCATION: pk_location || '',
                 FIRST_NAME: name || '',
@@ -560,7 +659,8 @@ $gift_certificates = $db_account->Execute($query);
                 EMAIL_ID: email || '',
                 PHONE: phone || '',
                 AMOUNT: amount || '',
-                NOTES: note || 'Created from Gift Certificate'
+                NOTES: note || 'Created from Gift Certificate',
+                PK_GIFT_CERTIFICATE_MASTER: pk_gift_certificate_master || ''
             });
             window.location.href = `../admin/customer.php?${params.toString()}`;
         }
