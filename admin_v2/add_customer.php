@@ -187,7 +187,7 @@ if ($PK_USER_MASTER > 0) {
 }
 
 // Get locations, countries, tags, relationships for dropdowns
-$location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1");
+$location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
 $location_options = '';
 while (!$location_data->EOF) {
     $location_options .= '<option value="' . $location_data->fields['PK_LOCATION'] . '">' . $location_data->fields['LOCATION_NAME'] . '</option>';
@@ -223,10 +223,10 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 <?php include 'layout/header.php'; ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
+<!-- SumoSelect CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sumoselect@3.4.3/public/css/sumoselect.min.css" rel="stylesheet">
 
 <style>
-    /* ... ALL YOUR EXISTING STYLES ... */
-    /* Add these additional styles for create mode */
     .sidebar-link {
         color: #6c757d;
         text-decoration: none;
@@ -277,6 +277,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     .value {
         font-size: 0.9rem;
         margin-bottom: 15px;
+        margin-top: 5px;
     }
 
     .avatar-placeholder {
@@ -312,6 +313,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
         text-decoration: none;
         font-weight: 600;
         font-size: 0.85rem;
+        cursor: pointer;
     }
 
     .add-btn:hover {
@@ -379,55 +381,13 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
         margin-bottom: 10px;
     }
 
-    .sidebar-item {
-        position: relative;
-    }
-
-    .submenu-toggle-arrow {
-        display: inline-block;
-        transition: transform 0.3s ease;
-        transform: rotate(0deg);
-    }
-
-    .sidebar-item:hover .submenu-toggle-arrow {
-        transform: rotate(90deg);
-    }
-
-    .sidebar-submenu {
-        position: absolute;
-        left: 30px;
-        top: 100%;
-        width: 90%;
-        background-color: #fff;
-        border-radius: 8px;
-        z-index: 99;
-        margin-top: 0px;
-        opacity: 0;
-        max-height: 0;
-        overflow: hidden;
-        transition: opacity 1s ease, max-height 1s ease;
-        visibility: hidden;
-    }
-
-    .sidebar-item:hover .sidebar-submenu,
-    .sidebar-submenu:hover {
-        opacity: 1;
-        max-height: 500px;
-        visibility: visible;
-    }
-
-    .sidebar-submenu-item {
-        display: block;
-        padding: 10px 16px;
-        color: #6c757d;
-        text-decoration: none;
-        font-size: 0.92rem;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .sidebar-submenu-item:hover,
-    .sidebar-submenu-item.active {
-        color: #39b54a;
+    .main-card {
+        background: #fff;
+        border: 1px solid #eef0f2;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 700px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     }
 
     .family-member-card {
@@ -478,6 +438,91 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 
     .copy-icon:hover {
         color: #39b54a;
+    }
+
+    .add-family-btn {
+        display: inline-flex;
+        align-items: center;
+        color: #39b54a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .add-family-btn:hover {
+        background-color: #f0fff4;
+    }
+
+    .payments-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 30px;
+        margin: auto;
+    }
+
+    /* SumoSelect Override */
+    .SumoSelect {
+        width: 100% !important;
+    }
+
+    .SumoSelect>.CaptionCont {
+        border-radius: 6px !important;
+        border: 1px solid #d1d5db !important;
+        padding: 6px 12px !important;
+        min-height: 38px !important;
+    }
+
+    .SumoSelect>.CaptionCont>span {
+        padding-right: 20px !important;
+    }
+
+    .SumoSelect>.optWrapper>.options li.opt {
+        padding: 6px 12px !important;
+    }
+
+    .SumoSelect>.optWrapper>.options li.opt.selected {
+        background-color: #39b54a !important;
+        color: #fff !important;
+    }
+
+    .SumoSelect>.optWrapper>.options li.opt:hover {
+        background-color: #e8f5e9 !important;
+    }
+
+    /* Reminder Options Button Group */
+    .btn-group-reminder {
+        gap: 10px;
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    .btn-group-reminder .btn-check:checked+.btn-outline-reminder {
+        background-color: #39b54a !important;
+        color: white !important;
+        border-color: #39b54a !important;
+    }
+
+    .btn-outline-reminder {
+        border-radius: 50px !important;
+        border: 1px solid #39b54a !important;
+        color: #39b54a !important;
+        background: transparent !important;
+        font-size: 14px !important;
+        padding: 6px 18px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-outline-reminder:hover {
+        background-color: #39b54a !important;
+        color: white !important;
     }
 
     /* DataTables and other existing styles... */
@@ -537,6 +582,51 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     .btn.btn-secondary {
         padding: 5px 15px;
         font-size: 12px;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+    }
+
+    .btn.btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+        color: #fff;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: #fff;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        color: #fff;
+    }
+
+    .btn-outline-secondary {
+        color: #6c757d;
+        border-color: #6c757d;
+        background-color: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-light {
+        background-color: #f8f9fa;
+        border-color: #f8f9fa;
+        color: #212529;
+    }
+
+    .btn-light:hover {
+        background-color: #e2e6ea;
+        border-color: #dae0e5;
+        color: #212529;
     }
 
     .stat-label {
@@ -675,14 +765,6 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
         margin-right: 8px;
     }
 
-    .payments-card {
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 30px;
-        margin: auto;
-    }
-
     .summary-row {
         border-top: 1px dashed #dee2e6;
         border-bottom: 1px dashed #dee2e6;
@@ -770,6 +852,88 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 
     .dataTables_length select {
         width: auto !important;
+    }
+
+    .sidebar-item {
+        position: relative;
+    }
+
+    .submenu-toggle-arrow {
+        display: inline-block;
+        transition: transform 0.3s ease;
+        transform: rotate(0deg);
+    }
+
+    .sidebar-item:hover .submenu-toggle-arrow {
+        transform: rotate(90deg);
+    }
+
+    .sidebar-submenu {
+        position: absolute;
+        left: 30px;
+        top: 100%;
+        width: 90%;
+        background-color: #fff;
+        border-radius: 8px;
+        z-index: 99;
+        margin-top: 0px;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 1s ease, max-height 1s ease;
+        visibility: hidden;
+    }
+
+    .sidebar-item:hover .sidebar-submenu,
+    .sidebar-submenu:hover {
+        opacity: 1;
+        max-height: 500px;
+        visibility: visible;
+    }
+
+    .sidebar-submenu-item {
+        display: block;
+        padding: 10px 16px;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.92rem;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-submenu-item:hover,
+    .sidebar-submenu-item.active {
+        color: #39b54a;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+    }
+
+    .btn-outline-success {
+        color: #28a745;
+        border-color: #28a745;
+        background-color: transparent;
+    }
+
+    .btn-outline-success:hover {
+        color: #fff;
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+        background-color: transparent;
+    }
+
+    .btn-outline-danger:hover {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
     }
 </style>
 
@@ -899,32 +1063,33 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Preferred Locations</label>
-                                                            <select class="form-control" name="PK_LOCATIONS[]" multiple>
+                                                            <select class="form-control" name="PK_LOCATIONS[]" id="PK_LOCATIONS_MULTIPLE" multiple>
                                                                 <?= $location_options ?>
                                                             </select>
-                                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                                                         </div>
                                                     </div>
 
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Reminder Options</label>
-                                                            <select class="form-control" name="REMINDER_OPTION">
-                                                                <option value="">Select Reminder Option</option>
-                                                                <option value="Email">Email</option>
-                                                                <option value="SMS">SMS</option>
-                                                                <option value="Both">Both</option>
-                                                                <option value="None">None</option>
-                                                            </select>
+                                                            <div class="btn-group-reminder" role="group" aria-label="Reminder Options">
+                                                                <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_email" value="Email">
+                                                                <label class="btn btn-outline-reminder" for="reminder_email">Email</label>
+
+                                                                <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_text" value="Text Message">
+                                                                <label class="btn btn-outline-reminder" for="reminder_text">Text Message</label>
+
+                                                                <input type="checkbox" class="btn-check" name="REMINDER_OPTION[]" id="reminder_call" value="Phone Call">
+                                                                <label class="btn btn-outline-reminder" for="reminder_call">Phone Call</label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Tag</label>
-                                                            <select class="form-control" name="PK_TAGS[]" multiple>
+                                                            <select class="form-control" name="PK_TAGS[]" id="PK_TAGS_MULTIPLE" multiple>
                                                                 <?= $tag_options ?>
                                                             </select>
-                                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                                                         </div>
                                                     </div>
 
@@ -1228,7 +1393,20 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 
                                                         <div class="col-6">
                                                             <div class="label">Reminder Options</div>
-                                                            <div class="value"><?= $REMINDER_OPTION ?></div>
+                                                            <div class="value">
+                                                                <div class="btn-group-reminder" role="group" aria-label="Reminder Options" style="gap: 10px; flex-wrap: wrap; display: flex;">
+                                                                    <?php
+                                                                    $reminder_array = explode(',', $REMINDER_OPTION);
+                                                                    $reminder_options = ['Email', 'Text Message', 'Phone Call'];
+                                                                    foreach ($reminder_options as $option) {
+                                                                        $checked = in_array($option, $reminder_array) ? 'checked' : '';
+                                                                        $id = 'reminder_' . strtolower(str_replace(' ', '_', $option));
+                                                                    ?>
+                                                                        <input type="checkbox" class="btn-check" id="<?= $id ?>_view" <?= $checked ?> disabled>
+                                                                        <label class="btn btn-outline-reminder" for="<?= $id ?>_view" style="opacity: <?= $checked ? '1' : '0.5'; ?>"><?= $option ?></label>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div class="col-6">
                                                             <div class="label">Tag</div>
@@ -1524,7 +1702,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     </div>
                                                 </div>
 
-                                                <button type="button" onclick="addFamilyMemberField()" class="add-family-btn mt-2" style="display: inline-flex; align-items: center; color: #39b54a; text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 8px 12px; border-radius: 8px; transition: background 0.2s; background: none; border: none;">
+                                                <button type="button" onclick="addFamilyMemberField()" class="add-family-btn mt-2">
                                                     <i class="bi bi-plus-lg me-2"></i> Add Family Member
                                                 </button>
                                             </div>
@@ -1566,7 +1744,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     <?php } ?>
                                                 </div>
 
-                                                <a href="javascript:void(0)" onclick="addNewFamilyMember()" class="add-family-btn mt-2" style="display: inline-flex; align-items: center; color: #39b54a; text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 8px 12px; border-radius: 8px; transition: background 0.2s;">
+                                                <a href="javascript:void(0)" onclick="addNewFamilyMember()" class="add-family-btn mt-2">
                                                     <i class="bi bi-plus-lg me-2"></i> Add Family
                                                 </a>
                                             </div>
@@ -2299,7 +2477,31 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<!-- SumoSelect JS -->
+<script src="https://cdn.jsdelivr.net/npm/sumoselect@3.4.3/public/js/jquery.sumoselect.min.js"></script>
 
+<script>
+    $(document).ready(function() {
+        // Initialize SumoSelect for multi-selects
+        if ($('#PK_LOCATIONS_MULTIPLE').length) {
+            $('#PK_LOCATIONS_MULTIPLE').SumoSelect({
+                placeholder: 'Select Locations',
+                selectAll: true,
+                search: true,
+                searchText: 'Search...'
+            });
+        }
+
+        if ($('#PK_TAGS_MULTIPLE').length) {
+            $('#PK_TAGS_MULTIPLE').SumoSelect({
+                placeholder: 'Select Tags',
+                selectAll: true,
+                search: true,
+                searchText: 'Search...'
+            });
+        }
+    });
+</script>
 <script>
     // ============================================
     // All existing JavaScript functions from original

@@ -730,6 +730,7 @@ if (isset($_POST['SUBMIT'])) {
                                                             <input type="hidden" class="TYPE" name="TYPE" value="2">
                                                             <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
                                                             <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= empty($_GET['AMOUNT']) ? 0 : $_GET['AMOUNT'] ?>">
+                                                            <input type="hidden" name="PK_GIFT_CERTIFICATE_MASTER" id="PK_GIFT_CERTIFICATE_MASTER" value="<?= isset($_GET['PK_GIFT_CERTIFICATE_MASTER']) ? intval($_GET['PK_GIFT_CERTIFICATE_MASTER']) : 0 ?>">
 
                                                             <div class="p-20">
                                                                 <div class="row">

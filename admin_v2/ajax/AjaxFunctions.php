@@ -3449,6 +3449,222 @@ function getPaymentDueCount($RESPONSE_DATA)
     }
 }
 
+function addNewCustomer($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    global $upload_path;
+
+    try {
+        // Prepare user data
+        $USER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+        $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'] ?? '';
+        $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+        $USER_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $RESPONSE_DATA['PHONE']);
+        $USER_DATA['CREATE_LOGIN'] = 0;
+        $USER_DATA['APPEAR_IN_CALENDAR'] = 0;
+        $USER_DATA['TYPE'] = 2; // Customer type
+        $USER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'] ?? '';
+        $USER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
+        $USER_DATA['ADDRESS'] = $RESPONSE_DATA['ADDRESS'] ?? '';
+        $USER_DATA['ADDRESS_1'] = $RESPONSE_DATA['ADDRESS_1'] ?? '';
+        $USER_DATA['PK_COUNTRY'] = ($RESPONSE_DATA['PK_COUNTRY']) ?? 0;
+        $USER_DATA['PK_STATES'] = ($RESPONSE_DATA['PK_STATES']) ?? 0;
+        $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'] ?? '';
+        $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'] ?? '';
+        $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'] ?? '';
+        $USER_DATA['IS_DELETED'] = 0;
+        $USER_DATA['ACTIVE'] = 1;
+        $USER_DATA['JOINING_DATE'] = date("Y-m-d H:i");
+        $USER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $USER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+
+        // Generate UNIQUE_ID
+        $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");
+        if ($row->RecordCount() > 0 && $row->fields['UNIQUE_ID'] > 0) {
+            $USER_DATA['UNIQUE_ID'] = intval($row->fields['UNIQUE_ID']) + 1;
+        } else {
+            $USER_DATA['UNIQUE_ID'] = 300580;
+        }
+
+        // Insert into DOA_USERS (master database)
+        db_perform('DOA_USERS', $USER_DATA, 'insert');
+        $PK_USER = $db->insert_ID();
+
+        // Insert into account DOA_USERS
+        $USER_DATA_ACCOUNT['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $USER_DATA_ACCOUNT['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+        $USER_DATA_ACCOUNT['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'] ?? '';
+        $USER_DATA_ACCOUNT['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
+        $USER_DATA_ACCOUNT['PHONE'] = preg_replace('/[^0-9]/', '', $RESPONSE_DATA['PHONE']);
+        $USER_DATA_ACCOUNT['PK_USER_MASTER_DB'] = $PK_USER;
+        $USER_DATA_ACCOUNT['CREATED_BY'] = $_SESSION['PK_USER'];
+        $USER_DATA_ACCOUNT['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_USERS', $USER_DATA_ACCOUNT, 'insert');
+        $PK_USER_ACCOUNT_DB = $db_account->insert_ID();
+
+        // Insert into DOA_USER_MASTER
+        $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+        $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $RESPONSE_DATA['PK_LOCATION'];
+        $USER_MASTER_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $USER_MASTER_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'insert');
+        $PK_USER_MASTER = $db->insert_ID();
+
+        // Insert into DOA_USER_ROLES (Customer role = 4)
+        $USER_ROLE_DATA['PK_USER'] = $PK_USER;
+        $USER_ROLE_DATA['PK_ROLES'] = 4;
+        db_perform('DOA_USER_ROLES', $USER_ROLE_DATA, 'insert');
+
+        // Insert into DOA_USER_LOCATION (primary location)
+        $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+        $USER_LOCATION_DATA['PK_LOCATION'] = $RESPONSE_DATA['PK_LOCATION'];
+        db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+
+        // Insert secondary locations if provided
+        if (isset($RESPONSE_DATA['PK_LOCATIONS']) && is_array($RESPONSE_DATA['PK_LOCATIONS'])) {
+            foreach ($RESPONSE_DATA['PK_LOCATIONS'] as $location_id) {
+                if (!empty($location_id) && $location_id != $RESPONSE_DATA['PK_LOCATION']) {
+                    $USER_LOCATION_DATA['PK_USER'] = $PK_USER;
+                    $USER_LOCATION_DATA['PK_LOCATION'] = $location_id;
+                    db_perform('DOA_USER_LOCATION', $USER_LOCATION_DATA, 'insert');
+                }
+            }
+        }
+
+        // Insert into DOA_CUSTOMER_DETAILS
+        $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+        $CUSTOMER_DATA['IS_PRIMARY'] = 1;
+        $CUSTOMER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
+        $CUSTOMER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'] ?? '';
+        $CUSTOMER_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $RESPONSE_DATA['PHONE']);
+        $CUSTOMER_DATA['EMAIL'] = $RESPONSE_DATA['EMAIL_ID'];
+        $CUSTOMER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'] ?? '';
+        $CUSTOMER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
+        $CUSTOMER_DATA['CALL_PREFERENCE'] = $RESPONSE_DATA['CALL_PREFERENCE'] ?? '';
+        $CUSTOMER_DATA['REMINDER_OPTION'] = $RESPONSE_DATA['REMINDER_OPTION'] ?? '';
+        $CUSTOMER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'] ?? 'Solo';
+        $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'] ?? '';
+        $CUSTOMER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'] ?? '';
+        $CUSTOMER_DATA['PARTNER_PHONE'] = $RESPONSE_DATA['PARTNER_PHONE'] ?? '';
+        $CUSTOMER_DATA['PARTNER_EMAIL'] = $RESPONSE_DATA['PARTNER_EMAIL'] ?? '';
+        $CUSTOMER_DATA['PARTNER_GENDER'] = $RESPONSE_DATA['PARTNER_GENDER'] ?? '';
+        $CUSTOMER_DATA['PARTNER_DOB'] = !empty($RESPONSE_DATA['PARTNER_DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['PARTNER_DOB'])) : '0000-00-00';
+        db_perform_account('DOA_CUSTOMER_DETAILS', $CUSTOMER_DATA, 'insert');
+        $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
+
+        // Insert additional phones
+        if (isset($RESPONSE_DATA['ADDITIONAL_PHONES']) && is_array($RESPONSE_DATA['ADDITIONAL_PHONES'])) {
+            foreach ($RESPONSE_DATA['ADDITIONAL_PHONES'] as $phone) {
+                if (!empty($phone)) {
+                    $PHONE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                    $PHONE_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $phone);
+                    db_perform_account('DOA_CUSTOMER_PHONE', $PHONE_DATA, 'insert');
+                }
+            }
+        }
+
+        // Insert additional emails
+        if (isset($RESPONSE_DATA['ADDITIONAL_EMAILS']) && is_array($RESPONSE_DATA['ADDITIONAL_EMAILS'])) {
+            foreach ($RESPONSE_DATA['ADDITIONAL_EMAILS'] as $email) {
+                if (!empty($email)) {
+                    $EMAIL_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                    $EMAIL_DATA['EMAIL'] = $email;
+                    db_perform_account('DOA_CUSTOMER_EMAIL', $EMAIL_DATA, 'insert');
+                }
+            }
+        }
+
+        // Insert special dates
+        if (
+            isset($RESPONSE_DATA['SPECIAL_DATE_NAMES']) && isset($RESPONSE_DATA['SPECIAL_DATES']) &&
+            is_array($RESPONSE_DATA['SPECIAL_DATE_NAMES']) && is_array($RESPONSE_DATA['SPECIAL_DATES'])
+        ) {
+            for ($i = 0; $i < count($RESPONSE_DATA['SPECIAL_DATE_NAMES']); $i++) {
+                if (!empty($RESPONSE_DATA['SPECIAL_DATE_NAMES'][$i]) && !empty($RESPONSE_DATA['SPECIAL_DATES'][$i])) {
+                    $SPECIAL_DATE_DATA['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+                    $SPECIAL_DATE_DATA['DATE_NAME'] = $RESPONSE_DATA['SPECIAL_DATE_NAMES'][$i];
+                    $SPECIAL_DATE_DATA['SPECIAL_DATE'] = date('Y-m-d', strtotime($RESPONSE_DATA['SPECIAL_DATES'][$i]));
+                    db_perform_account('DOA_CUSTOMER_SPECIAL_DATE', $SPECIAL_DATE_DATA, 'insert');
+                }
+            }
+        }
+
+        // Insert family members - handle the array format from the form
+        // The form sends FAMILY_MEMBERS[index][FIELD_NAME]
+        // We need to extract the data from the POST array
+        $family_members = [];
+        if (isset($RESPONSE_DATA['FAMILY_MEMBERS']) && is_array($RESPONSE_DATA['FAMILY_MEMBERS'])) {
+            foreach ($RESPONSE_DATA['FAMILY_MEMBERS'] as $index => $member) {
+                if (!empty($member['FIRST_NAME']) && !empty($member['LAST_NAME'])) {
+                    $family_members[] = $member;
+                }
+            }
+        }
+
+        // Also check if family data is sent in a different format (flat arrays)
+        if (empty($family_members) && isset($RESPONSE_DATA['FAMILY_FIRST_NAME']) && is_array($RESPONSE_DATA['FAMILY_FIRST_NAME'])) {
+            $count = count($RESPONSE_DATA['FAMILY_FIRST_NAME']);
+            for ($i = 0; $i < $count; $i++) {
+                if (!empty($RESPONSE_DATA['FAMILY_FIRST_NAME'][$i]) && !empty($RESPONSE_DATA['FAMILY_LAST_NAME'][$i])) {
+                    $family_members[] = [
+                        'FIRST_NAME' => $RESPONSE_DATA['FAMILY_FIRST_NAME'][$i],
+                        'LAST_NAME' => $RESPONSE_DATA['FAMILY_LAST_NAME'][$i],
+                        'PK_RELATIONSHIP' => $RESPONSE_DATA['PK_RELATIONSHIP'][$i] ?? 0,
+                        'EMAIL' => $RESPONSE_DATA['FAMILY_EMAIL'][$i] ?? '',
+                        'PHONE' => $RESPONSE_DATA['FAMILY_PHONE'][$i] ?? ''
+                    ];
+                }
+            }
+        }
+
+        foreach ($family_members as $family_member) {
+            $FAMILY_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $FAMILY_DATA['PK_CUSTOMER_PRIMARY'] = $PK_CUSTOMER_DETAILS;
+            $FAMILY_DATA['IS_PRIMARY'] = 0;
+            $FAMILY_DATA['FIRST_NAME'] = $family_member['FIRST_NAME'];
+            $FAMILY_DATA['LAST_NAME'] = $family_member['LAST_NAME'] ?? '';
+            $FAMILY_DATA['PK_RELATIONSHIP'] = $family_member['PK_RELATIONSHIP'] ?? 0;
+            $FAMILY_DATA['EMAIL'] = $family_member['EMAIL'] ?? '';
+            $FAMILY_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $family_member['PHONE'] ?? '');
+            db_perform_account('DOA_CUSTOMER_DETAILS', $FAMILY_DATA, 'insert');
+        }
+
+        // Insert tags - handle both formats
+        if (isset($RESPONSE_DATA['PK_TAGS']) && is_array($RESPONSE_DATA['PK_TAGS'])) {
+            foreach ($RESPONSE_DATA['PK_TAGS'] as $tag_id) {
+                if (!empty($tag_id)) {
+                    $TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                    $TAG_DATA['PK_TAG'] = $tag_id;
+                    db_perform_account('DOA_USER_TAG', $TAG_DATA, 'insert');
+                }
+            }
+        } elseif (isset($RESPONSE_DATA['PK_TAGS']) && !is_array($RESPONSE_DATA['PK_TAGS']) && !empty($RESPONSE_DATA['PK_TAGS'])) {
+            // Handle case where single tag is sent
+            $TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+            $TAG_DATA['PK_TAG'] = $RESPONSE_DATA['PK_TAGS'];
+            db_perform_account('DOA_USER_TAG', $TAG_DATA, 'insert');
+        }
+
+        $response = [
+            'status' => 'success',
+            'PK_USER' => $PK_USER,
+            'PK_USER_MASTER' => $PK_USER_MASTER,
+            'PK_CUSTOMER_DETAILS' => $PK_CUSTOMER_DETAILS,
+            'message' => 'Customer created successfully'
+        ];
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $response = [
+            'status' => 'error',
+            'message' => 'An error occurred: ' . $e->getMessage()
+        ];
+        echo json_encode($response);
+    }
+}
+
 function updateCustomerProfileDetails($RESPONSE_DATA)
 {
     global $db;

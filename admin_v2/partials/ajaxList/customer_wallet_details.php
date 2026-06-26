@@ -102,7 +102,7 @@ $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
                             if (($walletTransaction->fields['CREDIT'] == $walletTransaction->fields['BALANCE_LEFT']) && $walletTransaction->fields['PK_PAYMENT_TYPE'] == 12 && $walletTransaction->fields['IS_DELETED'] == 0) { ?>
                                 <a href="javascript:;" class="btn btn-outline-danger rounded-pill" onclick=" deleteWalletPayment(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>)" style="font-size: 12px;"><i class="bi bi-trash"></i></a>
                             <?php } ?>
-                            <?php if ($walletTransaction->fields['BALANCE_LEFT'] > 0) { ?>
+                            <?php if ($walletTransaction->fields['BALANCE_LEFT'] > 0 && $paymentData->fields['PK_PAYMENT_TYPE'] != '4') { ?>
                                 <button class="btn btn-secondary" onclick="refundWalletData(<?= $walletTransaction->fields['PK_CUSTOMER_WALLET'] ?>, <?= $walletTransaction->fields['BALANCE_LEFT'] ?>)">Refund</button>
                             <?php } ?>
                         </td>

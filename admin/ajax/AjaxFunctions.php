@@ -1297,6 +1297,39 @@ function saveProfileData($RESPONSE_DATA)
         $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
     }
 
+    // Mark gift certificate as redeemed if provided
+    if (isset($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']) && $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] > 0) {
+        $pk_gift_certificate_master = intval($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+
+        // Check if the gift certificate exists and is not already redeemed
+        $check_query = "SELECT IS_REDEEMED FROM DOA_GIFT_CERTIFICATE_MASTER 
+                    WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master 
+                    AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'];
+        $check_result = $db_account->Execute($check_query);
+
+        if ($check_result->RecordCount() > 0 && $check_result->fields['IS_REDEEMED'] == 0) {
+            // Mark as redeemed
+            $update_query = "UPDATE DOA_GIFT_CERTIFICATE_MASTER 
+                         SET IS_REDEEMED = 1, 
+                             REDEEMED_DATE = NOW() 
+                         WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master";
+            $db_account->Execute($update_query);
+
+            // Add a comment to the customer about the gift certificate redemption
+            // $comment_data = [
+            //     'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
+            //     'COMMENT' => "Gift Certificate #" . $pk_gift_certificate_master . " redeemed and converted to customer profile.",
+            //     'COMMENT_DATE' => date("Y-m-d"),
+            //     'FOR_PK_USER' => $PK_USER,
+            //     'BY_PK_USER' => $_SESSION['PK_USER'],
+            //     'ACTIVE' => 1,
+            //     'CREATED_BY' => $_SESSION['PK_USER'],
+            //     'CREATED_ON' => date("Y-m-d H:i")
+            // ];
+            // db_perform_account('DOA_COMMENT', $comment_data, 'insert');
+        }
+    }
+
     if (isset($RESPONSE_DATA['AMOUNT']) && $RESPONSE_DATA['AMOUNT'] > 0) {
         $RECEIPT_NUMBER = generateReceiptNumber(0);
         $AMOUNT = $RESPONSE_DATA['AMOUNT'];
