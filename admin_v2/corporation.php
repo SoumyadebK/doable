@@ -87,6 +87,9 @@ if (empty($_GET['id'])) {
 
     $ACTIVE                  = '';
     $START_DATE              = '';
+
+    $PK_USER_MORNING         = '';
+    $PK_USER_AFTERNOON_EVENING = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_CORPORATION` WHERE PK_CORPORATION = '$PK_CORPORATION'");
     if ($res->RecordCount() == 0) {
@@ -136,6 +139,9 @@ if (empty($_GET['id'])) {
 
     $ACTIVE                 = $res->fields['ACTIVE'];
     $START_DATE             = $res->fields['CREATED_ON'];
+
+    $PK_USER_MORNING         = $res->fields['PK_USER_MORNING'];
+    $PK_USER_AFTERNOON_EVENING = $res->fields['PK_USER_AFTERNOON_EVENING'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -211,6 +217,18 @@ if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveCorporationData') {
         $CORPORATION_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $CORPORATION_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'update', " PK_CORPORATION =  '$_GET[id]'");
+    }
+
+    header("location:all_corporations.php");
+}
+
+if (!empty($_POST)  && $_POST['FUNCTION_NAME'] == 'saveChatbotSettings') {
+    $PK_CORPORATION = $_POST['PK_CORPORATION'];
+    $CORPORATION_DATA['PK_USER_MORNING'] = implode(',', $_POST['PK_USER_MORNING']);
+    $CORPORATION_DATA['PK_USER_AFTERNOON_EVENING'] = implode(',', $_POST['PK_USER_AFTERNOON_EVENING']);
+
+    if (!empty($_GET['id'])) {
+        db_perform('DOA_CORPORATION', $CORPORATION_DATA, 'update', " PK_CORPORATION =  '$PK_CORPORATION'");
     }
 
     header("location:all_corporations.php");
@@ -345,7 +363,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--gray-200);
-        overflow: hidden;
+        overflow: visible;
     }
 
     .card-modern:hover {
@@ -932,6 +950,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                             <button class="tab-item" data-tab="credit_card" role="tab" onclick="getSavedCreditCardList();">
                                                 <i class="bi bi-credit-card"></i> Credit Card
                                             </button>
+                                            <button class="tab-item" data-tab="chatbot_setting" role="tab">
+                                                <i class="bi bi-robot"></i> Chatbot Setting
+                                            </button>
                                         <?php endif; ?>
                                     </div>
 
@@ -1188,6 +1209,51 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                 </div>
                                             </form>
                                         </div>
+
+                                        <!-- Chatbot Settings Tab -->
+                                        <div class="tab-pane-modern active" id="chatbot_setting" role="tabpanel">
+                                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveChatbotSettings">
+                                                <input type="hidden" name="PK_CORPORATION" value="<?= $PK_CORPORATION ?>">
+
+                                                <div class="form-grid">
+                                                    <!-- Morning Service Provider -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Morning <?= $service_provider_title ?></label>
+                                                        <select class="multi_sumo_select" name="PK_USER_MORNING[]" multiple required>
+                                                            <?php
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= (strpos($PK_USER_MORNING, $row->fields['PK_USER']) !== false) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Afternoon OR Evening Service Provider -->
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Afternoon OR Evening <?= $service_provider_title ?></label>
+                                                        <select class="multi_sumo_select" name="PK_USER_AFTERNOON_EVENING[]" multiple required>
+                                                            <?php
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) { ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= (strpos($PK_USER_AFTERNOON_EVENING, $row->fields['PK_USER']) !== false) ? 'selected' : '' ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_corporations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1212,6 +1278,18 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
 </body>
 
 <script>
+    $('.multi_sumo_select').SumoSelect({
+        "okCancelInMulti": true,
+        "search": true,
+        "searchText": 'Search here.',
+        "placeholder": 'Select',
+        "selectAll": true,
+        "csvDispCount": 3,
+        "captionFormat": '{0} Selected',
+        "captionFormatAllSelected": 'All Selected.',
+        "locale": ['OK', 'Cancel', 'Select All'],
+    });
+
     // Tab switching
     document.querySelectorAll('.tab-item').forEach(tab => {
         tab.addEventListener('click', function() {

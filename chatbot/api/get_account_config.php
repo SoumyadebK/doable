@@ -1,8 +1,12 @@
 <?php
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+//session_start(); // ← start session ourselves before config.php does
 require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
+
+
 
 if (!$account_id) {
     $return_data['status'] = 'error';
@@ -10,7 +14,7 @@ if (!$account_id) {
     echo json_encode($return_data);
     exit;
 } else {
-    $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
+    $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = " . $account_id);
 
     if ($account_data->RecordCount() == 0) {
         $return_data['status'] = 'error';
