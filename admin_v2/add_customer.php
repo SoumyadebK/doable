@@ -594,8 +594,8 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     }
 
     .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
+        background-color: #39b54a;
+        border-color: #39b54a;
         color: #fff;
     }
 
@@ -913,15 +913,15 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     }
 
     .btn-outline-success {
-        color: #28a745;
-        border-color: #28a745;
+        color: #39b54a;
+        border-color: #39b54a;
         background-color: transparent;
     }
 
     .btn-outline-success:hover {
         color: #fff;
-        background-color: #28a745;
-        border-color: #28a745;
+        background-color: #39b54a;
+        border-color: #39b54a;
     }
 
     .btn-outline-danger {
@@ -1128,18 +1128,21 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Country</label>
-                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY">
-                                                                <option value="">Select Country</option>
-                                                                <?= $country_options ?>
+                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                                <option>Select Country</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                                                                <?php $row->MoveNext();
+                                                                } ?>
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">State</label>
-                                                            <select class="form-control" name="PK_STATES" id="PK_STATES">
-                                                                <option value="">Select State</option>
-                                                            </select>
+                                                            <div id="State_div"></div>
                                                         </div>
                                                     </div>
 
@@ -1234,7 +1237,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                                     <input type="text" class="form-control format_phone_number" name="ADDITIONAL_PHONES[]" placeholder="Additional Phone Number">
                                                                 </div>
                                                                 <div class="col-md-2">
-                                                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="addPhoneField()"><i class="bi bi-plus"></i></button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addPhoneField()"><i class="bi bi-plus"></i> Add More</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1246,7 +1249,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                                     <input type="email" class="form-control" name="ADDITIONAL_EMAILS[]" placeholder="Additional Email Address">
                                                                 </div>
                                                                 <div class="col-md-2">
-                                                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="addEmailField()"><i class="bi bi-plus"></i></button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addEmailField()"><i class="bi bi-plus"></i> Add More</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1273,7 +1276,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                                 <input type="text" class="form-control datepicker-normal" name="SPECIAL_DATES[]" placeholder="mm/dd/yyyy" autocomplete="off">
                                                             </div>
                                                             <div class="col-md-4">
-                                                                <button type="button" class="btn btn-sm btn-outline-success" onclick="addSpecialDateField()"><i class="bi bi-plus"></i> Add More</button>
+                                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addSpecialDateField()"><i class="bi bi-plus"></i> Add More</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1283,10 +1286,10 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                             <!-- Submit buttons for CREATE mode -->
                                             <div class="row mt-4 mb-4">
                                                 <div class="col-md-12 text-center">
-                                                    <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 8px;">
+                                                    <button type="submit" class="btn btn-success rounded-pill px-5 py-2" style="border-radius: 8px;">
                                                         <i class="bi bi-check-lg me-2"></i> Create Customer
                                                     </button>
-                                                    <a href="all_customers.php" class="btn btn-outline-secondary px-5 py-2 ms-3" style="border-radius: 8px;">
+                                                    <a href="all_customers.php" class="btn btn-outline-secondary rounded-pill px-5 py-2 ms-3" style="border-radius: 8px;">
                                                         Cancel
                                                     </a>
                                                 </div>
@@ -2503,6 +2506,21 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     });
 </script>
 <script>
+    function fetch_state(PK_COUNTRY) {
+        jQuery(document).ready(function() {
+            let data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+            let value = $.ajax({
+                url: "ajax/state.php",
+                type: "POST",
+                data: data,
+                async: false,
+                cache: false,
+                success: function(result) {
+                    document.getElementById('State_div').innerHTML = result;
+                }
+            }).responseText;
+        });
+    }
     // ============================================
     // All existing JavaScript functions from original
     // ============================================
@@ -2651,7 +2669,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                     <input type="text" class="form-control format_phone_number" name="ADDITIONAL_PHONES[]" placeholder="Additional Phone Number">
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeField(this)"><i class="bi bi-x"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeField(this)"><i class="bi bi-x"></i> Remove</button>
                 </div>
             </div>
         `;
@@ -2665,7 +2683,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                     <input type="email" class="form-control" name="ADDITIONAL_EMAILS[]" placeholder="Additional Email Address">
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeField(this)"><i class="bi bi-x"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeField(this)"><i class="bi bi-x"></i> Remove</button>
                 </div>
             </div>
         `;
@@ -2687,7 +2705,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                     <input type="text" class="form-control datepicker-normal" name="SPECIAL_DATES[]" placeholder="mm/dd/yyyy" autocomplete="off">
                 </div>
                 <div class="col-md-4">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeField(this)"><i class="bi bi-x"></i> Remove</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeField(this)"><i class="bi bi-x"></i> Remove</button>
                 </div>
             </div>
         `;

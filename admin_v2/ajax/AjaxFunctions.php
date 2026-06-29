@@ -3460,6 +3460,9 @@ function addNewCustomer($RESPONSE_DATA)
         $USER_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
         $USER_DATA['FIRST_NAME'] = $RESPONSE_DATA['FIRST_NAME'];
         $USER_DATA['LAST_NAME'] = $RESPONSE_DATA['LAST_NAME'] ?? '';
+        if (isset($RESPONSE_DATA['CUSTOMER_ID'])) {
+            $USER_DATA['USER_ID'] = $USER_DATA_ACCOUNT['USER_ID'] = $RESPONSE_DATA['CUSTOMER_ID'];
+        }
         $USER_DATA['EMAIL_ID'] = $RESPONSE_DATA['EMAIL_ID'];
         $USER_DATA['PHONE'] = preg_replace('/[^0-9]/', '', $RESPONSE_DATA['PHONE']);
         $USER_DATA['CREATE_LOGIN'] = 0;
@@ -3534,6 +3537,16 @@ function addNewCustomer($RESPONSE_DATA)
             }
         }
 
+        // ============================================
+        // FIX: Handle REMINDER_OPTION properly
+        // ============================================
+        // Convert REMINDER_OPTION array to comma-separated string
+        if (isset($RESPONSE_DATA['REMINDER_OPTION']) && is_array($RESPONSE_DATA['REMINDER_OPTION'])) {
+            $REMINDER_OPTION_STRING = implode(',', $RESPONSE_DATA['REMINDER_OPTION']);
+        } else {
+            $REMINDER_OPTION_STRING = '';
+        }
+
         // Insert into DOA_CUSTOMER_DETAILS
         $CUSTOMER_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $CUSTOMER_DATA['IS_PRIMARY'] = 1;
@@ -3544,7 +3557,7 @@ function addNewCustomer($RESPONSE_DATA)
         $CUSTOMER_DATA['GENDER'] = $RESPONSE_DATA['GENDER'] ?? '';
         $CUSTOMER_DATA['DOB'] = !empty($RESPONSE_DATA['DOB']) ? date('Y-m-d', strtotime($RESPONSE_DATA['DOB'])) : '0000-00-00';
         $CUSTOMER_DATA['CALL_PREFERENCE'] = $RESPONSE_DATA['CALL_PREFERENCE'] ?? '';
-        $CUSTOMER_DATA['REMINDER_OPTION'] = $RESPONSE_DATA['REMINDER_OPTION'] ?? '';
+        $CUSTOMER_DATA['REMINDER_OPTION'] = $REMINDER_OPTION_STRING; // <-- FIXED HERE
         $CUSTOMER_DATA['ATTENDING_WITH'] = $RESPONSE_DATA['ATTENDING_WITH'] ?? 'Solo';
         $CUSTOMER_DATA['PARTNER_FIRST_NAME'] = $RESPONSE_DATA['PARTNER_FIRST_NAME'] ?? '';
         $CUSTOMER_DATA['PARTNER_LAST_NAME'] = $RESPONSE_DATA['PARTNER_LAST_NAME'] ?? '';
@@ -3592,9 +3605,7 @@ function addNewCustomer($RESPONSE_DATA)
             }
         }
 
-        // Insert family members - handle the array format from the form
-        // The form sends FAMILY_MEMBERS[index][FIELD_NAME]
-        // We need to extract the data from the POST array
+        // Insert family members
         $family_members = [];
         if (isset($RESPONSE_DATA['FAMILY_MEMBERS']) && is_array($RESPONSE_DATA['FAMILY_MEMBERS'])) {
             foreach ($RESPONSE_DATA['FAMILY_MEMBERS'] as $index => $member) {
