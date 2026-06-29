@@ -1174,63 +1174,6 @@ if ($PK_USER_MASTER > 0) {
                                         </div>
                                     </div>
 
-<<<<<<< HEAD
-=======
-                                    <div id="partner_information">
-                                        <div class="profile-card">
-                                            <div class="border-bottom pb-3">
-                                                <div class="row">
-                                                    <div class="col-6 section-title">Will you be attending your lessons</div>
-
-                                                    <div class="col-2 section-title">
-                                                        <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="handleAttendingWithChange(this)" value="Solo" <?= (($ATTENDING_WITH == '') ? 'checked' : (($ATTENDING_WITH == 'Solo') ? 'checked' : '')) ?>> Solo</label>
-                                                    </div>
-                                                    <div class="col-3 section-title">
-                                                        <label><input type="radio" name="ATTENDING_WITH" class="form-check-inline" onclick="handleAttendingWithChange(this)" value="With a Partner" <?= (($ATTENDING_WITH == 'With a Partner') ? 'checked' : '') ?>> With a Partner</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row mt-3" id="partner_details" style="display: <?= (($ATTENDING_WITH == 'With a Partner') ? '' : 'none') ?>;">
-                                                <div class="col-12">
-                                                    <?php if (!empty($PARTNER_FIRST_NAME) || !empty($PARTNER_LAST_NAME) || !empty($PARTNER_PHONE) || !empty($PARTNER_EMAIL)) { ?>
-                                                        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
-                                                            <div>
-                                                                <strong><?= $PARTNER_FIRST_NAME ?> <?= $PARTNER_LAST_NAME ?></strong>
-                                                                <?php if (!empty($PARTNER_PHONE) || !empty($PARTNER_EMAIL) || !empty($PARTNER_GENDER) || !empty($PARTNER_DOB)) { ?>
-                                                                    <div class="text-muted small mt-1">
-                                                                        <?php if (!empty($PARTNER_PHONE)) { ?>
-                                                                            📞 <?= formatPhone($PARTNER_PHONE) ?>
-                                                                        <?php } ?>
-                                                                        <?php if (!empty($PARTNER_GENDER)) { ?>
-                                                                            <?= (!empty($PARTNER_PHONE) ? ' | ' : '') . $PARTNER_GENDER ?>
-                                                                        <?php } ?>
-                                                                        <?php if (!empty($PARTNER_DOB) && $PARTNER_DOB != '0000-00-00' && $PARTNER_DOB != '1969-12-31') { ?>
-                                                                            <?= (!empty($PARTNER_PHONE) || !empty($PARTNER_GENDER) ? ' | ' : '') . '🎂 ' . date('m/d/Y', strtotime($PARTNER_DOB)) ?>
-                                                                        <?php } ?>
-                                                                        <?php if (!empty($PARTNER_EMAIL)) { ?>
-                                                                            <?= (!empty($PARTNER_PHONE) || !empty($PARTNER_GENDER) || (!empty($PARTNER_DOB) && $PARTNER_DOB != '0000-00-00' && $PARTNER_DOB != '1969-12-31') ? ' | ' : '') . '✉️ ' . $PARTNER_EMAIL ?>
-                                                                        <?php } ?>
-                                                                    </div>
-                                                                <?php } ?>
-                                                            </div>
-                                                            <div>
-                                                                <a href="javascript:;" class="btn btn-outline-edit" onclick="openPartnerModal()">Edit</a>
-                                                            </div>
-                                                        </div>
-                                                    <?php } else { ?>
-                                                        <div class="text-center p-3 text-muted">
-                                                            No partner information added yet.
-                                                            <a href="javascript:;" onclick="openPartnerModal()">Add partner</a>
-                                                        </div>
-                                                    <?php } ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
->>>>>>> e5319823e5307422c0f89d5766c61af8ea464c8b
-
                                     <div class="profile-card">
                                         <div class="d-flex justify-content-between border-bottom">
                                             <div>
