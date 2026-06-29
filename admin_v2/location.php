@@ -120,6 +120,15 @@ if (empty($_GET['id'])) {
     $SUBSCRIPTION_START_DATE = '';
     $NEXT_RENEWAL_DATE = '';
     $SUBSCRIPTION_AMOUNT = '';
+
+    $IS_MORNING = 0;
+    $PK_USER_MORNING = '';
+    $IS_AFTERNOON = 0;
+    $PK_USER_AFTERNOON = '';
+    $IS_EVENING = 0;
+    $PK_USER_EVENING = '';
+    $IS_NIGHT = 0;
+    $PK_USER_NIGHT = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -195,6 +204,15 @@ if (empty($_GET['id'])) {
     $SUBSCRIPTION_START_DATE = $res->fields['SUBSCRIPTION_START_DATE'];
     $NEXT_RENEWAL_DATE = $res->fields['NEXT_RENEWAL_DATE'];
     $SUBSCRIPTION_AMOUNT = $res->fields['SUBSCRIPTION_AMOUNT'];
+
+    $IS_MORNING = $res->fields['IS_MORNING'];
+    $PK_USER_MORNING = $res->fields['PK_USER_MORNING'];
+    $IS_AFTERNOON = $res->fields['IS_AFTERNOON'];
+    $PK_USER_AFTERNOON = $res->fields['PK_USER_AFTERNOON'];
+    $IS_EVENING = $res->fields['IS_EVENING'];
+    $PK_USER_EVENING = $res->fields['PK_USER_EVENING'];
+    $IS_NIGHT = $res->fields['IS_NIGHT'];
+    $PK_USER_NIGHT = $res->fields['PK_USER_NIGHT'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -247,6 +265,44 @@ if (!empty($_POST)) {
                 db_perform('DOA_CUSTOMER_TAB', $PERMISSION_DATA, 'insert');
             }
         }
+    }
+
+    if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveConciergeSetting') {
+        $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+
+        // Get checkbox values (1 if checked, 0 if not)
+        $IS_MORNING = isset($_POST['IS_MORNING']) ? 1 : 0;
+        $IS_AFTERNOON = isset($_POST['IS_AFTERNOON']) ? 1 : 0;
+        $IS_EVENING = isset($_POST['IS_EVENING']) ? 1 : 0;
+        $IS_NIGHT = isset($_POST['IS_NIGHT']) ? 1 : 0;
+
+        // Get selected users (implode arrays to comma-separated strings)
+        $PK_USER_MORNING = isset($_POST['PK_USER_MORNING']) ? implode(',', $_POST['PK_USER_MORNING']) : '';
+        $PK_USER_AFTERNOON = isset($_POST['PK_USER_AFTERNOON']) ? implode(',', $_POST['PK_USER_AFTERNOON']) : '';
+        $PK_USER_EVENING = isset($_POST['PK_USER_EVENING']) ? implode(',', $_POST['PK_USER_EVENING']) : '';
+        $PK_USER_NIGHT = isset($_POST['PK_USER_NIGHT']) ? implode(',', $_POST['PK_USER_NIGHT']) : '';
+
+        // Update the location record
+        $update_data = array(
+            'IS_MORNING' => $IS_MORNING,
+            'PK_USER_MORNING' => $PK_USER_MORNING,
+            'IS_AFTERNOON' => $IS_AFTERNOON,
+            'PK_USER_AFTERNOON' => $PK_USER_AFTERNOON,
+            'IS_EVENING' => $IS_EVENING,
+            'PK_USER_EVENING' => $PK_USER_EVENING,
+            'IS_NIGHT' => $IS_NIGHT,
+            'PK_USER_NIGHT' => $PK_USER_NIGHT,
+            'EDITED_ON' => date('Y-m-d H:i:s'),
+            'EDITED_BY' => $_SESSION['PK_USER']
+        );
+
+        $where = "PK_LOCATION = " . $PK_LOCATION;
+        db_perform('DOA_LOCATION', $update_data, 'update', $where);
+
+        // Set success message and redirect back
+        $_SESSION['success_message'] = 'Concierge settings saved successfully!';
+        header("Location: location.php?id=" . $PK_LOCATION);
+        exit;
     }
 
     header("location:all_locations.php");
@@ -388,7 +444,7 @@ if (!empty($_POST)) {
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--gray-200);
-            overflow: hidden;
+            overflow: visible;
             transition: box-shadow 0.2s ease;
         }
 
@@ -1209,6 +1265,71 @@ if (!empty($_POST)) {
         .credit-card-item .card-details .card-brand {
             font-weight: 600;
         }
+
+        /* Booking Periods Grid - Horizontal */
+        .booking-grid {
+            display: flex;
+            gap: 121px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+
+        .period-label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .period-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Service Providers Grid - Horizontal */
+        .service-providers-grid {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+
+        .provider-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 160px;
+            flex: 1;
+        }
+
+        .provider-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .provider-group .multi_sumo_select {
+            width: 100%;
+            min-width: 160px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .booking-grid {
+                gap: 15px;
+            }
+
+            .service-providers-grid {
+                gap: 20px;
+            }
+
+            .provider-group {
+                min-width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -1270,6 +1391,11 @@ if (!empty($_POST)) {
                                             <button class="tab-item" data-tab="credit_card" role="tab">
                                                 <i class="fas fa-credit-card"></i> Card
                                             </button>
+                                            <?php if ($account_data->fields['IS_CONCIERGE'] == 1) {  ?>
+                                                <button class="tab-item" data-tab="concierge" role="tab">
+                                                    <i class="fas fa-gear"></i> Concierge
+                                                </button>
+                                            <?php } ?>
                                         <?php endif; ?>
                                     </div>
 
@@ -2123,6 +2249,114 @@ if (!empty($_POST)) {
                                                 </div>
                                             </form>
                                         </div>
+
+                                        <!-- Concierge Setting Tab -->
+                                        <div class="tab-pane-modern" id="concierge" role="tabpanel">
+                                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveConciergeSetting">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <!-- Booking Periods Section -->
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 15px;">Booking Periods</div>
+
+                                                <!-- Booking Periods Grid -->
+                                                <div class="booking-grid">
+                                                    <label class="period-label">
+                                                        <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning
+                                                    </label>
+                                                    <label class="period-label">
+                                                        <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon
+                                                    </label>
+                                                    <label class="period-label">
+                                                        <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening
+                                                    </label>
+                                                    <label class="period-label">
+                                                        <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night
+                                                    </label>
+                                                </div>
+
+                                                <!-- Service Providers Section -->
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px; margin-bottom: 15px;">Service Providers</div>
+
+                                                <!-- Service Providers Grid -->
+                                                <div class="service-providers-grid">
+
+                                                    <!-- Morning -->
+                                                    <div class="provider-group">
+                                                        <label class="provider-label">Morning</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_MORNING[]" multiple>
+                                                            <?php
+                                                            $selected_morning = !empty($PK_USER_MORNING) ? explode(',', $PK_USER_MORNING) : array();
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_morning)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Afternoon -->
+                                                    <div class="provider-group">
+                                                        <label class="provider-label">Afternoon</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" multiple>
+                                                            <?php
+                                                            $selected_afternoon = !empty($PK_USER_AFTERNOON) ? explode(',', $PK_USER_AFTERNOON) : array();
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_afternoon)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Evening -->
+                                                    <div class="provider-group">
+                                                        <label class="provider-label">Evening</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_EVENING[]" multiple>
+                                                            <?php
+                                                            $selected_evening = !empty($PK_USER_EVENING) ? explode(',', $PK_USER_EVENING) : array();
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_evening)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- Night -->
+                                                    <div class="provider-group">
+                                                        <label class="provider-label">Night</label>
+                                                        <select class="multi_sumo_select" name="PK_USER_NIGHT[]" multiple>
+                                                            <?php
+                                                            $selected_night = !empty($PK_USER_NIGHT) ? explode(',', $PK_USER_NIGHT) : array();
+                                                            $row = getServiceProvider();
+                                                            while (!$row->EOF) {
+                                                                $selected = (in_array($row->fields['PK_USER'], $selected_night)) ? 'selected' : '';
+                                                            ?>
+                                                                <option value="<?php echo $row->fields['PK_USER']; ?>" <?= $selected ?>><?= $row->fields['NAME'] ?></option>
+                                                            <?php $row->MoveNext();
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn-modern btn-modern-primary">
+                                                        <i class="fas fa-save"></i> Save
+                                                    </button>
+                                                    <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_locations.php'">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2147,6 +2381,18 @@ if (!empty($_POST)) {
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
+        $('.multi_sumo_select').SumoSelect({
+            "okCancelInMulti": false,
+            "search": true,
+            "searchText": 'Search here.',
+            "placeholder": 'Select',
+            "selectAll": true,
+            "csvDispCount": 3,
+            "captionFormat": '{0} Selected',
+            "captionFormatAllSelected": 'All Selected.',
+
+        });
+
         // Initialize DataTable with proper settings
         $(document).ready(function() {
             // Check if table has data before initializing

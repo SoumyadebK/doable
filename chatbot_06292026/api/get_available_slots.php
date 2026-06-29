@@ -39,16 +39,14 @@ if (!$account_id) {
             die("Connection Error");
         }
 
-        $PK_USER_MORNING = explode(',', $location_data->fields['PK_USER_MORNING'] ?? null);
-        $PK_USER_AFTERNOON = explode(',', $location_data->fields['PK_USER_AFTERNOON'] ?? null);
-        $PK_USER_EVENING = explode(',', $location_data->fields['PK_USER_EVENING'] ?? null);
-        $PK_USER_NIGHT = explode(',', $location_data->fields['PK_USER_NIGHT'] ?? null);
-
+        $corporation_data = $db->Execute("SELECT * FROM DOA_CORPORATION WHERE (PK_USER_MORNING IS NOT NULL OR PK_USER_AFTERNOON_EVENING IS NOT NULL) AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id . " ORDER BY PK_CORPORATION ASC LIMIT 1");
+        $PK_USER_MORNING = explode(',', $corporation_data->fields['PK_USER_MORNING'] ?? null);
+        $PK_USER_AFTERNOON_EVENING = explode(',', $corporation_data->fields['PK_USER_AFTERNOON_EVENING'] ?? null);
 
         $slot_duration = '00:30:00'; // Default slot duration
         $slot_data = [];
         $seen_slots = [];
-        $provider_ids = array_filter(array_merge($PK_USER_MORNING, $PK_USER_AFTERNOON, $PK_USER_EVENING, $PK_USER_NIGHT));
+        $provider_ids = array_filter(array_merge($PK_USER_MORNING, $PK_USER_AFTERNOON_EVENING), 'strlen');
 
         foreach ($provider_ids as $provider_id) {
             $available_slots = getAvailableSlots($db_account, $provider_id, $PK_LOCATION, $date, $slot_duration);

@@ -950,9 +950,9 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                             <button class="tab-item" data-tab="credit_card" role="tab" onclick="getSavedCreditCardList();">
                                                 <i class="bi bi-credit-card"></i> Credit Card
                                             </button>
-                                            <button class="tab-item" data-tab="chatbot_setting" role="tab">
+                                            <!-- <button class="tab-item" data-tab="chatbot_setting" role="tab">
                                                 <i class="bi bi-robot"></i> Chatbot Setting
-                                            </button>
+                                            </button> -->
                                         <?php endif; ?>
                                     </div>
 

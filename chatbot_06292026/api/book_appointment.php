@@ -177,14 +177,11 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
     }
 
     $timePeriod = getTimePeriod($START_TIME);
+    $corporation_data = $db->Execute("SELECT * FROM DOA_CORPORATION WHERE (PK_USER_MORNING IS NOT NULL OR PK_USER_AFTERNOON_EVENING IS NOT NULL) AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id . " ORDER BY PK_CORPORATION ASC LIMIT 1");
     if ($timePeriod === "Morning") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_MORNING'] ?? null)[0] ?? null;
-    } elseif ($timePeriod === "Afternoon") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_AFTERNOON'] ?? null)[0] ?? null;
-    } elseif ($timePeriod === "Evening") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_EVENING'] ?? null)[0] ?? null;
-    } elseif ($timePeriod === "Night") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_NIGHT'] ?? null)[0] ?? null;
+        $PK_USER = explode(',', $corporation_data->fields['PK_USER_MORNING'] ?? null)[0] ?? null;
+    } else {
+        $PK_USER = explode(',', $corporation_data->fields['PK_USER_AFTERNOON_EVENING'] ?? null)[0] ?? null;
     }
 
     $package_services = $db_account->Execute("SELECT DOA_PACKAGE_SERVICE.*, DOA_PACKAGE.* FROM DOA_PACKAGE_SERVICE LEFT JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 AND DOA_PACKAGE_SERVICE.CHATBOT_ENABLED = 1 AND DOA_PACKAGE.IS_DELETED = 0 ORDER BY DOA_PACKAGE.SORT_ORDER ASC LIMIT 1");
