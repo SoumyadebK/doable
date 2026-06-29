@@ -540,9 +540,8 @@
     document.documentElement.style.setProperty('--brand', '#c8102e');
 
     // ── API Config ──────────────────────────────────────────
-    const ACCOUNT_ID = '1039';
+    const ACCOUNT_ID = '1010';
     const API_BASE = 'https://doable.net/chatbot/api';
-    //const API_BASE = 'http://localhost/doable/chatbot/api';
 
     // ── API Calls ────────────────────────────────────────────
     async function fetchAccountConfig() {
@@ -595,7 +594,7 @@
       period: null,
       selectedDate: null,
       selectedSlot: null,
-      name: null, phone: null, address: null,
+      name: null, phone: null, email: null,
     };
 
     // ── Helpers ───────────────────────────────────────────
@@ -1085,14 +1084,14 @@
       } else if (state.step === "ask_phone") {
         addUserBubble(val);
         state.phone = val;
-        state.step = "ask_address";
+        state.step = "ask_email";
         hideInput();
-        addBotBubble("And your <strong>address</strong>?", 400)
-          .then(() => showInput("e.g. 123 Main St, Los Angeles, CA"));
+        addBotBubble("And your <strong>email address</strong>?", 400)
+          .then(() => showInput("e.g. jane@smith.com"));
 
-      } else if (state.step === "ask_address") {
+      } else if (state.step === "ask_email") {
         addUserBubble(val);
-        state.address = val;
+        state.email = val;
         state.step = "confirm";
         hideInput();
         showConfirmation();
@@ -1111,7 +1110,7 @@
     🕐 <strong>Time:</strong> ${state.selectedSlot}<br>
     👤 <strong>Name:</strong> ${state.name}<br>
     📞 <strong>Phone:</strong> ${state.phone}<br>
-    🏠 <strong>Address:</strong> ${state.address}
+    🏠 <strong>Email:</strong> ${state.email}
   `;
       setTimeout(() => {
         addElement(card);
@@ -1134,7 +1133,7 @@
         slot: state.selectedSlot,
         name: state.name,
         phone: state.phone,
-        address: state.address
+        email: state.email
       });
       removeTyping();
       if (bookingResult.status !== 'success') {
@@ -1178,7 +1177,7 @@
       state.period = null;
       state.selectedDate = null;
       state.selectedSlot = null;
-      state.name = null; state.phone = null; state.address = null;
+      state.name = null; state.phone = null; state.email = null;
       hideInput();
     }
 

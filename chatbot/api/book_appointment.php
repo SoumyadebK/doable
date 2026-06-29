@@ -7,13 +7,13 @@ require_once("../../global/config.php");
 // Read JSON body
 $input = json_decode(file_get_contents('php://input'), true);
 
-$account_id  = $input['account']  ?? null;
-$location_id = $input['location'] ?? null;
+$account_id  = 1039; //$input['account']  ?? null;
+$location_id = 'Demo'; //$input['location'] ?? null;
 $date        = $input['date']     ?? null;
 $slot        = $input['slot']     ?? null;
 $name        = $input['name']     ?? null;
 $phone       = $input['phone']    ?? null;
-$address     = $input['address']  ?? null;
+$email       = $input['email']    ?? null;
 
 if (!$account_id) {
     $return_data['status'] = 'error';
@@ -39,7 +39,7 @@ if (!$account_id) {
         die("Connection Error");
     }
 
-    [$PK_USER, $PK_USER_MASTER] = createUser($PK_LOCATION, $name, $phone, $address);
+    [$PK_USER, $PK_USER_MASTER] = createUser($PK_LOCATION, $name, $phone, $email);
     $PK_APPOINTMENT_MASTER = createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $date, $slot);
 
     if ($account_data->RecordCount() == 0) {
@@ -55,7 +55,7 @@ if (!$account_id) {
 }
 
 
-function createUser($PK_LOCATION, $name, $phone, $address)
+function createUser($PK_LOCATION, $name, $phone, $email)
 {
     global $db;
 
@@ -76,9 +76,9 @@ function createUser($PK_LOCATION, $name, $phone, $address)
     $PK_ACCOUNT_MASTER = $locationData->fields['PK_ACCOUNT_MASTER'] ?? null;
     $FIRST_NAME = explode(' ', $name)[0] ?? '';
     $LAST_NAME = explode(' ', $name)[1] ?? '';
-    $EMAIL_ID = '';
+    $EMAIL_ID = $email;
     $PHONE = $phone;
-    $ADDRESS = $address;
+    $ADDRESS = '';
 
     $isUserExist = $db->Execute("SELECT PK_USER FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER' AND PHONE = '" . addslashes($PHONE) . "' OR EMAIL_ID = '" . addslashes($EMAIL_ID) . "' LIMIT 1");
     if ($isUserExist->RecordCount() > 0) {
@@ -138,13 +138,13 @@ function createUser($PK_LOCATION, $name, $phone, $address)
         db_perform_account_own($db_account, 'DOA_CUSTOMER_DETAILS', $CUSTOMER_USER_DATA, 'insert');
         $PK_CUSTOMER_DETAILS = $db_account->insert_ID();
 
-        $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
+        /* $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
         $CUSTOMER_PHONE['PHONE'] = $PHONE;
         db_perform_account_own($db_account, 'DOA_CUSTOMER_PHONE', $CUSTOMER_PHONE, 'insert');
 
         $CUSTOMER_EMAIL['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
         $CUSTOMER_EMAIL['EMAIL'] = $EMAIL_ID;
-        db_perform_account_own($db_account, 'DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert');
+        db_perform_account_own($db_account, 'DOA_CUSTOMER_EMAIL', $CUSTOMER_EMAIL, 'insert'); */
 
         $USER_ROLE_DATA['PK_USER'] = $PK_USER;
         $USER_ROLE_DATA['PK_ROLES'] = 4;
