@@ -1,6 +1,8 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $current_section = basename(dirname($_SERVER['PHP_SELF']));
+
+$account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER`  = " . $_SESSION['PK_ACCOUNT_MASTER']);
 ?>
 
 <div class="sidebar">
@@ -9,6 +11,11 @@ $current_section = basename(dirname($_SERVER['PHP_SELF']));
         <a class="nav-link sidebar-link <?= $current_page == 'all_corporations.php' || $current_page == 'corporation.php' ? 'active' : '' ?>" href="all_corporations.php">
             <i class="bi bi-building"></i> Corporations
         </a>
+        <?php if ($account_data->fields['IS_CONCIERGE'] == 1) {  ?>
+            <a class="nav-link sidebar-link <?= $current_page == 'concierge_settings.php' ? 'active' : '' ?>" href="concierge_settings.php">
+                <i class="bi bi-gear"></i> Concierge Settings
+            </a>
+        <?php } ?>
         <a class="nav-link sidebar-link <?= $current_page == 'all_locations.php' || $current_page == 'location.php' ? 'active' : '' ?>" href="all_locations.php">
             <i class="bi bi-geo-alt"></i> Locations
         </a>

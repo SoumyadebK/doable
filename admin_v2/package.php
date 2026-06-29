@@ -711,11 +711,42 @@ if (empty($_GET['id'])) {
         color: var(--primary-color);
     }
 
+    /* Right alignment for toggle */
     .chatbot-toggle-row {
         display: flex;
         align-items: center;
-        gap: 20px;
+        justify-content: space-between;
         flex-wrap: wrap;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .chatbot-toggle-row .left-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chatbot-toggle-row .right-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chatbot-toggle-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .chatbot-toggle-row .right-content {
+            margin-left: 0;
+            width: 100%;
+            flex-wrap: wrap;
+        }
     }
 </style>
 
@@ -785,7 +816,7 @@ if (empty($_GET['id'])) {
                                             </div>
 
                                             <!-- Chatbot Toggle for Package -->
-                                            <div class="chatbot-section">
+                                            <!-- <div class="chatbot-section">
                                                 <div class="section-title">
                                                     <i class="bi bi-robot"></i> Chatbot Configuration
                                                 </div>
@@ -802,12 +833,26 @@ if (empty($_GET['id'])) {
                                                     </div>
                                                     <span class="form-helper" style="margin:0;">Enable AI chatbot for this package</span>
                                                 </div>
-                                            </div>
+                                            </div> -->
 
                                             <!-- Services Table -->
                                             <div style="margin-top: 24px;">
-                                                <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--gray-700);">Package Services</label>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; width: 100%;">
+                                                    <label class="form-label" style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin:0;">Package Services</label>
 
+                                                    <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+                                                        <div class="toggle-wrapper" style="padding:0;">
+                                                            <span class="toggle-label">AI-Concierge</span>
+                                                            <label class="toggle-switch">
+                                                                <input type="checkbox" name="PACKAGE_CHATBOT_ENABLED" id="PACKAGE_CHATBOT_ENABLED" value="1" <?= ($CHATBOT_ENABLED == 1) ? 'checked' : '' ?> onchange="updateToggleStatus(this, 'package-status')">
+                                                                <span class="toggle-slider"></span>
+                                                            </label>
+                                                            <span class="toggle-status <?= ($CHATBOT_ENABLED == 1) ? 'active' : 'inactive' ?>" id="package-status">
+                                                                <?= ($CHATBOT_ENABLED == 1) ? 'On' : 'Off' ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 <div class="service-table-wrapper">
                                                     <!-- Table Header -->
                                                     <div class="table-header">

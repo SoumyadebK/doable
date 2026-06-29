@@ -52,6 +52,7 @@ $AM_AMOUNT       = '';
 $NOT_AM_AMOUNT      = '';
 $RENEWAL_INTERVAL = '';
 $ENABLE_AI_VOICE_AGENT = '';
+$IS_CONCIERGE = '';
 
 $PK_USER_EDIT = '';
 $USER_NAME = '';
@@ -106,6 +107,7 @@ if (!empty($_GET['id'])) {
     $NOT_AM_AMOUNT = $account_res->fields['NOT_AM_AMOUNT'];
     $RENEWAL_INTERVAL = $account_res->fields['RENEWAL_INTERVAL'];
     $ENABLE_AI_VOICE_AGENT = $account_res->fields['ENABLE_AI_VOICE_AGENT'];
+    $IS_CONCIERGE = $account_res->fields['IS_CONCIERGE'];
 
     $user_res = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_ACCOUNT_MASTER = '$_GET[id]' AND PK_USER = '$_GET[user_id]'");
     if ($user_res->RecordCount() > 0) {
@@ -513,6 +515,16 @@ while (!$account_payment_info->EOF) {
                                                     <div class="col-md-4">
                                                         <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="1" <?php if ($TICKET_SYSTEM_ACCESS == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                         <label><input type="radio" name="TICKET_SYSTEM_ACCESS" id="TICKET_SYSTEM_ACCESS" value="0" <?php if ($TICKET_SYSTEM_ACCESS == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row m-b-20">
+                                                    <div class="col-md-2">
+                                                        <label class="form-label">Enable Doable Concierge : </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label><input type="radio" name="IS_CONCIERGE" id="IS_CONCIERGE" value="1" <?php if ($IS_CONCIERGE == 1) echo 'checked="checked"'; ?> />&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <label><input type="radio" name="IS_CONCIERGE" id="IS_CONCIERGE" value="0" <?php if ($IS_CONCIERGE == 0) echo 'checked="checked"'; ?> />&nbsp;No</label>
                                                     </div>
                                                 </div>
 
