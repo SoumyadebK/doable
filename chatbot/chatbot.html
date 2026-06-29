@@ -1,745 +1,970 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Harmony Dance – Appointment Chatbot</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harmony Dance – Appointment Chatbot</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: #f8f0f0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-  /* ── Demo page ── */
-  .demo-page {
-    text-align: center;
-    color: #64748b;
-    font-size: 13px;
-    padding: 20px;
-  }
-  .demo-page h2 {
-    font-family: 'Sora', sans-serif;
-    font-size: 24px;
-    color: #1e293b;
-    margin-bottom: 6px;
-  }
+    /* ── Demo page ── */
+    .demo-page {
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      padding: 20px;
+    }
 
-  /* ── Launcher ── */
-  #doable-launcher {
-    position: fixed;
-    bottom: 28px; right: 28px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: var(--brand, #c8102e);
-    box-shadow: 0 4px 18px rgba(200,16,46,0.38);
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 9999;
-  }
-  #doable-launcher:hover { transform: scale(1.08); }
-  #doable-launcher svg { width: 28px; height: 28px; fill: #fff; }
+    .demo-page h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 24px;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
 
-  /* ── Chat Window ── */
-  #doable-window {
-    position: fixed;
-    bottom: 100px; right: 28px;
-    width: 380px;
-    max-height: 600px;
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column;
-    overflow: hidden;
-    z-index: 9998;
-    transform: scale(0.92) translateY(16px);
-    opacity: 0; pointer-events: none;
-    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s ease;
-  }
-  #doable-window.open {
-    transform: scale(1) translateY(0);
-    opacity: 1; pointer-events: all;
-  }
+    /* ── Launcher ── */
+    #doable-launcher {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--brand, #c8102e);
+      box-shadow: 0 4px 18px rgba(200, 16, 46, 0.38);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      z-index: 9999;
+    }
 
-  /* Header */
-  .chat-header {
-    background: var(--brand, #c8102e);
-    padding: 16px 18px;
-    display: flex; align-items: center; gap: 12px;
-    flex-shrink: 0;
-  }
-  .chat-avatar {
-    width: 42px; height: 42px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .chat-header-info { flex: 1; }
-  .chat-header-name {
-    font-family: 'Sora', sans-serif;
-    font-size: 14px; font-weight: 700;
-    color: #fff; line-height: 1.2;
-  }
-  .chat-header-sub {
-    font-size: 11px; color: rgba(255,255,255,0.78);
-    display: flex; align-items: center; gap: 4px; margin-top: 2px;
-  }
-  .status-dot {
-    width: 6px; height: 6px;
-    background: #4ade80; border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+    #doable-launcher:hover {
+      transform: scale(1.08);
+    }
 
-  /* Messages */
-  .chat-messages {
-    flex: 1; overflow-y: auto;
-    padding: 16px 14px 16px;
-    display: flex; flex-direction: column; gap: 10px;
-    scroll-behavior: smooth;
-  }
-  .chat-messages::-webkit-scrollbar { width: 4px; }
-  .chat-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+    #doable-launcher svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
 
-  .msg { display: flex; flex-direction: column; max-width: 88%; }
-  .msg.bot { align-self: flex-start; }
-  .msg.user { align-self: flex-end; }
+    /* ── Chat Window ── */
+    #doable-window {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      width: 380px;
+      max-height: 600px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9998;
+      transform: scale(0.92) translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.22s cubic-bezier(.34, 1.56, .64, 1), opacity 0.18s ease;
+    }
 
-  .bubble {
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: 13.5px; line-height: 1.55;
-  }
-  .msg.bot .bubble {
-    background: #f1f5f9; color: #1e293b;
-    border-bottom-left-radius: 4px;
-  }
-  .msg.user .bubble {
-    background: var(--brand, #c8102e);
-    color: #fff; border-bottom-right-radius: 4px;
-  }
-  .msg-time { font-size: 10px; color: #94a3b8; margin-top: 3px; padding: 0 4px; }
-  .msg.user .msg-time { text-align: right; }
+    #doable-window.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
 
-  /* Typing */
-  .typing-bubble {
-    background: #f1f5f9; border-radius: 16px;
-    border-bottom-left-radius: 4px;
-    padding: 12px 16px;
-    display: flex; gap: 5px; align-items: center;
-    align-self: flex-start;
-  }
-  .typing-bubble span {
-    width: 7px; height: 7px;
-    background: #94a3b8; border-radius: 50%;
-    animation: bounce 1.2s infinite;
-  }
-  .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
+    /* Header */
+    .chat-header {
+      background: var(--brand, #c8102e);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
 
-  /* Button group */
-  .btn-group {
-    display: flex; flex-wrap: wrap; gap: 8px;
-    padding: 2px 0 4px; align-self: flex-start;
-  }
-  .choice-btn {
-    background: #fff;
-    border: 1.5px solid var(--brand, #c8102e);
-    color: var(--brand, #c8102e);
-    border-radius: 20px;
-    padding: 7px 14px;
-    font-size: 12.5px; font-weight: 500;
-    cursor: pointer; white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-    font-family: 'Inter', sans-serif;
-  }
-  .choice-btn:hover { background: var(--brand, #c8102e); color: #fff; }
-  .choice-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #fff; color: var(--brand,#c8102e); }
+    .chat-avatar {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
 
-  /* 7-day date grid */
-  .date-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 7px;
-    align-self: flex-start;
-    width: 100%;
-    padding: 2px 0 4px;
-  }
-  .date-box {
-    border: 1.5px solid var(--brand, #c8102e);
-    border-radius: 10px;
-    padding: 8px 4px;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    background: #fff;
-  }
-  .date-box:hover:not(.no-slots) { background: var(--brand, #c8102e); color: #fff; }
-  .date-box .day-name { font-size: 10px; font-weight: 600; color: inherit; text-transform: uppercase; letter-spacing: 0.04em; }
-  .date-box .day-num { font-size: 16px; font-weight: 700; color: inherit; line-height: 1.2; margin: 2px 0; }
-  .date-box .day-month { font-size: 10px; color: inherit; }
-  .date-box.no-slots {
-    border-color: #e2e8f0;
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  .date-box.no-slots .day-name,
-  .date-box.no-slots .day-num,
-  .date-box.no-slots .day-month { color: #94a3b8; }
-  .date-box.no-slots .slots-label { color: #cbd5e1; }
-  .slots-label { font-size: 9px; margin-top: 3px; color: #64748b; }
-  .date-box:not(.no-slots) .slots-label { color: var(--brand, #c8102e); }
-  .date-box:hover:not(.no-slots) .slots-label { color: rgba(255,255,255,0.8); }
+    .chat-header-info {
+      flex: 1;
+    }
 
-  /* Info card */
-  .info-card {
-    background: #fff8f8;
-    border: 1.5px solid #fecdd3;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: #1e293b;
-    line-height: 1.8;
-    align-self: flex-start;
-    max-width: 92%;
-  }
-  .info-card .card-title {
-    font-family: 'Sora', sans-serif;
-    font-weight: 700; font-size: 13px;
-    color: var(--brand, #c8102e);
-    margin-bottom: 6px;
-  }
+    .chat-header-name {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
 
-  /* Confirm card */
-  .confirm-card {
-    background: #f8faff;
-    border: 1.5px solid #c7d7fa;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: #1e293b;
-    line-height: 1.9;
-    align-self: flex-start;
-    max-width: 92%;
-  }
+    .chat-header-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.78);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
 
-  /* Success */
-  .success-msg {
-    text-align: center;
-    background: #f0fdf4;
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 13px;
-    color: #166534;
-    line-height: 1.7;
-    align-self: stretch;
-  }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
 
-  /* Contact card */
-  .contact-card {
-    background: #fff8f8;
-    border: 1.5px solid #fecdd3;
-    border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 13px;
-    color: #1e293b;
-    line-height: 2;
-    align-self: flex-start;
-  }
-  .contact-card .card-title {
-    font-family: 'Sora', sans-serif;
-    font-weight: 700; font-size: 13px;
-    color: var(--brand, #c8102e);
-    margin-bottom: 6px;
-  }
+    @keyframes pulse {
 
-  /* Input row */
-  .input-row {
-    display: flex; gap: 8px;
-    padding: 10px 14px 14px;
-    border-top: 1px solid #f1f5f9;
-    flex-shrink: 0;
-  }
-  .chat-input {
-    flex: 1;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 22px;
-    padding: 9px 14px;
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
-    outline: none; color: #1e293b;
-    transition: border-color 0.15s;
-  }
-  .chat-input:focus { border-color: var(--brand, #c8102e); }
-  .chat-input::placeholder { color: #94a3b8; }
-  .send-btn {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: var(--brand, #c8102e);
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: opacity 0.15s;
-  }
-  .send-btn:hover { opacity: 0.88; }
-  .send-btn svg { width: 16px; height: 16px; fill: #fff; }
-</style>
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    /* Messages */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 4px;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 88%;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    .msg.bot .bubble {
+      background: #f1f5f9;
+      color: #1e293b;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.user .bubble {
+      background: var(--brand, #c8102e);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 3px;
+      padding: 0 4px;
+    }
+
+    .msg.user .msg-time {
+      text-align: right;
+    }
+
+    /* Typing */
+    .typing-bubble {
+      background: #f1f5f9;
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      align-self: flex-start;
+    }
+
+    .typing-bubble span {
+      width: 7px;
+      height: 7px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing-bubble span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-bubble span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0)
+      }
+
+      30% {
+        transform: translateY(-6px)
+      }
+    }
+
+    /* Button group */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 2px 0 4px;
+      align-self: flex-start;
+    }
+
+    .choice-btn {
+      background: #fff;
+      border: 1.5px solid var(--brand, #c8102e);
+      color: var(--brand, #c8102e);
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .choice-btn:hover {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+
+    .choice-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #fff;
+      color: var(--brand, #c8102e);
+    }
+
+    /* 7-day date grid */
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      align-self: flex-start;
+      width: 100%;
+      padding: 2px 0 4px;
+    }
+
+    .date-box {
+      border: 1.5px solid var(--brand, #c8102e);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      background: #fff;
+    }
+
+    .date-box:hover:not(.no-slots) {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+
+    .date-box .day-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .date-box .day-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: inherit;
+      line-height: 1.2;
+      margin: 2px 0;
+    }
+
+    .date-box .day-month {
+      font-size: 10px;
+      color: inherit;
+    }
+
+    .date-box.no-slots {
+      border-color: #e2e8f0;
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .date-box.no-slots .day-name,
+    .date-box.no-slots .day-num,
+    .date-box.no-slots .day-month {
+      color: #94a3b8;
+    }
+
+    .date-box.no-slots .slots-label {
+      color: #cbd5e1;
+    }
+
+    .slots-label {
+      font-size: 9px;
+      margin-top: 3px;
+      color: #64748b;
+    }
+
+    .date-box:not(.no-slots) .slots-label {
+      color: var(--brand, #c8102e);
+    }
+
+    .date-box:hover:not(.no-slots) .slots-label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Info card */
+    .info-card {
+      background: #fff8f8;
+      border: 1.5px solid #fecdd3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.8;
+      align-self: flex-start;
+      max-width: 92%;
+    }
+
+    .info-card .card-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--brand, #c8102e);
+      margin-bottom: 6px;
+    }
+
+    /* Confirm card */
+    .confirm-card {
+      background: #f8faff;
+      border: 1.5px solid #c7d7fa;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.9;
+      align-self: flex-start;
+      max-width: 92%;
+    }
+
+    /* Success */
+    .success-msg {
+      text-align: center;
+      background: #f0fdf4;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 13px;
+      color: #166534;
+      line-height: 1.7;
+      align-self: stretch;
+    }
+
+    /* Contact card */
+    .contact-card {
+      background: #fff8f8;
+      border: 1.5px solid #fecdd3;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 2;
+      align-self: flex-start;
+    }
+
+    .contact-card .card-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--brand, #c8102e);
+      margin-bottom: 6px;
+    }
+
+    /* Input row */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px 14px;
+      border-top: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      color: #1e293b;
+      transition: border-color 0.15s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--brand, #c8102e);
+    }
+
+    .chat-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--brand, #c8102e);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .send-btn:hover {
+      opacity: 0.88;
+    }
+
+    .send-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: #fff;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="demo-page">
-  <h2>💃 Harmony Dance</h2>
-  <p>Appointment Chatbot — Phase 1 Prototype</p>
-  <p style="margin-top:8px;font-size:12px;color:#94a3b8;">Click the button in the bottom-right to open the chatbot.</p>
-</div>
+  <div class="demo-page">
+    <h2>💃 Harmony Dance</h2>
+    <p>Appointment Chatbot — Phase 1 Prototype</p>
+    <p style="margin-top:8px;font-size:12px;color:#94a3b8;">Click the button in the bottom-right to open the chatbot.
+    </p>
+  </div>
 
-<!-- Launcher -->
-<button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
-  <svg id="icon-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-  <svg id="icon-close" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-</button>
+  <!-- Launcher -->
+  <button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
+    <svg id="icon-chat" viewBox="0 0 24 24">
+      <path
+        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+    </svg>
+    <svg id="icon-close" viewBox="0 0 24 24" style="display:none">
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+    </svg>
+  </button>
 
-<!-- Chat Window -->
-<div id="doable-window">
-  <div class="chat-header">
-    <div class="chat-avatar" id="chat-avatar">💃</div>
-    <div class="chat-header-info">
-      <div class="chat-header-name" id="chat-title">Harmony Dance</div>
-      <div class="chat-header-sub"><span class="status-dot"></span> Booking Assistant</div>
+  <!-- Chat Window -->
+  <div id="doable-window">
+    <div class="chat-header">
+      <div class="chat-avatar" id="chat-avatar">💃</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chat-title">Harmony Dance</div>
+        <div class="chat-header-sub"><span class="status-dot"></span> Booking Assistant</div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="input-row" id="input-row" style="display:none">
+      <input class="chat-input" id="chat-input" type="text" placeholder="Type your answer…"
+        onkeydown="handleKey(event)">
+      <button class="send-btn" onclick="handleTextSend()">
+        <svg viewBox="0 0 24 24">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+      </button>
     </div>
   </div>
-  <div class="chat-messages" id="chat-messages"></div>
-  <div class="input-row" id="input-row" style="display:none">
-    <input class="chat-input" id="chat-input" type="text" placeholder="Type your answer…" onkeydown="handleKey(event)">
-    <button class="send-btn" onclick="handleTextSend()">
-      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
-  </div>
-</div>
 
-<script>
-// ── CSS variable for brand color ──────────────────────
-document.documentElement.style.setProperty('--brand', '#c8102e');
+  <script>
+    // ── CSS variable for brand color ──────────────────────
+    document.documentElement.style.setProperty('--brand', '#c8102e');
 
-// ── Mock Account Config (Phase 2: fetch from /api/get_account_config.php?account=ACC001) ──
-const ACCOUNT_CONFIG = {
-  account_id: "ACC001",
-  business_name: "Harmony Dance",
-  avatar_emoji: "💃",
-  primary_color: "#c8102e",
-  welcome_message: "Welcome to Arthur Murray Dance Studios in Woodland Hills CA and Thousand Oaks CA. How may I help you?",
-  locations: [
-    { location_id: "AMWH", name: "Woodland Hills, CA", phone: "(818) 225-8000" },
-    { location_id: "AMTO", name: "Thousand Oaks, CA", phone: "(805) 495-1445" },
-  ],
-  menu_options: [
-    { label: "💃 Types of Dances", type: "dances" },
-    { label: "💰 Pricing",          type: "pricing" },
-    { label: "📅 Book Appointment", type: "booking" },
-    { label: "📞 Contact Us",       type: "contact" },
-  ],
-};
+    // ── API Config ──────────────────────────────────────────
+    const ACCOUNT_ID = '1010';
+    const API_BASE = 'https://doable.net/chatbot/api';
 
-// ── Mock DB Data (Phase 2: fetch per account from DB) ──
-const DANCES = [
-  { name: "Salsa",    description: "High-energy Latin dance with vibrant rhythms — perfect for beginners and seasoned dancers alike." },
-  { name: "Ballroom", description: "Elegant partner dance covering Waltz, Foxtrot, and Quickstep. Grace and poise in every step." },
-  { name: "Tango",    description: "Passionate Argentine-style dance full of dramatic flair and close connection." },
-  { name: "Swing",    description: "Fun, upbeat social dance rooted in jazz music — great for all ages." },
-];
+    // ── API Calls ────────────────────────────────────────────
+    async function fetchAccountConfig() {
+      const res = await fetch(`${API_BASE}/get_account_config.php?account=${ACCOUNT_ID}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      throw new Error('Could not load account config');
+    }
 
-const PRICING = [
-  { label: "3 Classes", price: "$149", note: "Great way to get started!" },
-];
+    async function fetchServices() {
+      const res = await fetch(`${API_BASE}/get_services.php?account=${ACCOUNT_ID}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      return [];
+    }
 
-// Slots per location (Phase 2: fetch from /api/get_available_slots.php?account=ACC001&location=AMWH&date=YYYY-MM-DD)
-const SLOTS = {
-  AMWH: {
-    "2026-06-23": ["10:00:00", "14:00:00", "18:00:00"],
-    "2026-06-24": ["19:00:00", "20:00:00"],
-    "2026-06-25": ["11:00:00", "15:00:00", "17:00:00", "19:30:00"],
-    "2026-06-26": ["09:00:00", "14:30:00"],
-    "2026-06-27": ["18:00:00", "20:00:00"],
-    "2026-06-28": ["13:00:00", "16:00:00", "19:00:00"],
-    "2026-06-29": ["10:00:00", "15:00:00", "18:30:00"],
-  },
-  AMTO: {
-    "2026-06-23": ["09:00:00", "11:00:00", "17:30:00"],
-    "2026-06-24": ["14:00:00", "16:00:00", "19:00:00"],
-    "2026-06-25": ["18:00:00", "20:00:00"],
-    "2026-06-26": ["10:00:00", "15:00:00", "19:30:00"],
-    "2026-06-27": ["13:00:00", "17:00:00"],
-    "2026-06-28": ["18:00:00", "19:30:00"],
-    "2026-06-29": ["09:00:00", "11:00:00", "14:00:00", "18:00:00"],
-  },
-};
+    async function fetchPricing(locationId) {
+      const res = await fetch(`${API_BASE}/get_pricing.php?account=${ACCOUNT_ID}&location=${locationId}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      return [];
+    }
 
-// ── State ─────────────────────────────────────────────
-const state = {
-  step: "idle",
-  location: null,
-  period: null,
-  selectedDate: null,
-  selectedSlot: null,
-  name: null, phone: null, address: null,
-};
+    async function fetchSlots(locationId, date) {
+      const res = await fetch(`${API_BASE}/get_available_slots.php?account=${ACCOUNT_ID}&location=${locationId}&date=${date}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data.map(s => s.slot_start_time);
+      return [];
+    }
 
-// ── Helpers ───────────────────────────────────────────
-const $ = id => document.getElementById(id);
-const msgs = () => $('chat-messages');
+    async function postBooking(payload) {
+      const res = await fetch(`${API_BASE}/book_appointment.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      return json;
+    }
 
-function now() {
-  return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-}
-function scrollBottom() {
-  const el = msgs();
-  // Small delay ensures scroll fires after input bar height is included in layout
-  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
-}
+    // ── Runtime data (populated from APIs on load) ───────────
+    let ACCOUNT_CONFIG = null;
+    let DANCES = [];
+    let PRICING = [];
 
-function addBotBubble(html, delay = 0) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const wrap = document.createElement('div');
-      wrap.className = 'msg bot';
-      wrap.innerHTML = `<div class="bubble">${html}</div><div class="msg-time">${now()}</div>`;
-      msgs().appendChild(wrap);
-      scrollBottom();
-      resolve(wrap);
-    }, delay);
-  });
-}
+    // ── State ─────────────────────────────────────────────
+    const state = {
+      step: "idle",
+      location: null,
+      period: null,
+      selectedDate: null,
+      selectedSlot: null,
+      name: null, phone: null, email: null,
+    };
 
-function addUserBubble(text) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg user';
-  wrap.innerHTML = `<div class="bubble">${text}</div><div class="msg-time">${now()}</div>`;
-  msgs().appendChild(wrap);
-  scrollBottom();
-}
+    // ── Helpers ───────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const msgs = () => $('chat-messages');
 
-function addElement(el) {
-  msgs().appendChild(el);
-  scrollBottom();
-}
+    function now() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    function scrollBottom() {
+      const el = msgs();
+      // Small delay ensures scroll fires after input bar height is included in layout
+      setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
+    }
 
-function addButtons(buttons) {
-  const group = document.createElement('div');
-  group.className = 'btn-group';
-  group.id = 'active-btn-group';
-  buttons.forEach(btn => {
-    const b = document.createElement('button');
-    b.className = 'choice-btn';
-    b.textContent = btn.label;
-    b.onclick = () => { disableButtons(); btn.action(); };
-    group.appendChild(b);
-  });
-  addElement(group);
-}
-
-function disableButtons() {
-  const g = $('active-btn-group');
-  if (g) g.querySelectorAll('button').forEach(b => b.disabled = true);
-}
-
-function showTyping() {
-  const t = document.createElement('div');
-  t.className = 'typing-bubble'; t.id = 'typing';
-  t.innerHTML = '<span></span><span></span><span></span>';
-  addElement(t);
-}
-function removeTyping() { const t = $('typing'); if (t) t.remove(); }
-
-function showInput(placeholder = "Type your answer…") {
-  $('input-row').style.display = 'flex';
-  $('chat-input').placeholder = placeholder;
-  $('chat-input').value = '';
-  setTimeout(() => {
-    $('chat-input').focus();
-    scrollBottom();
-  }, 120);
-}
-function hideInput() {
-  $('input-row').style.display = 'none';
-  $('chat-input').value = '';
-}
-
-function formatTime(t) {
-  const [h, m] = t.split(':');
-  const hr = parseInt(h), ampm = hr >= 12 ? 'PM' : 'AM';
-  return `${hr % 12 || 12}:${m} ${ampm}`;
-}
-
-function formatDateLong(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-}
-
-function get7Days() {
-  const days = [], dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(); d.setDate(d.getDate() + i);
-    const iso = d.toISOString().split('T')[0];
-    days.push({
-      iso, dayName: dayNames[d.getDay()],
-      dayNum: d.getDate(), month: monthNames[d.getMonth()]
-    });
-  }
-  return days;
-}
-
-// ── Flow ──────────────────────────────────────────────
-async function startFlow() {
-  // Apply branding
-  document.documentElement.style.setProperty('--brand', ACCOUNT_CONFIG.primary_color);
-  $('chat-title').textContent = ACCOUNT_CONFIG.business_name;
-  $('chat-avatar').textContent = ACCOUNT_CONFIG.avatar_emoji;
-
-  state.step = "menu";
-  await addBotBubble(ACCOUNT_CONFIG.welcome_message, 400);
-  await addBotBubble("Please select an option below:", 1000);
-  setTimeout(() => {
-    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
-      label: opt.label,
-      action: () => handleMenu(opt.type)
-    })));
-  }, 1400);
-}
-
-async function handleMenu(type) {
-  if (type === "dances") {
-    addUserBubble("💃 Types of Dances");
-    await addBotBubble("Here are the dance styles we offer — tap one to learn more:", 500);
-    setTimeout(() => {
-      addButtons(DANCES.map(d => ({
-        label: d.name,
-        action: () => showDanceInfo(d)
-      })));
-    }, 900);
-
-  } else if (type === "pricing") {
-    addUserBubble("💰 Pricing");
-    showTyping();
-    await new Promise(r => setTimeout(r, 700));
-    removeTyping();
-    const card = document.createElement('div');
-    card.className = 'info-card';
-    card.innerHTML = `<div class="card-title">💰 Our Pricing</div>` +
-      PRICING.map(p => `<strong>${p.label}</strong> — ${p.price}<br><span style="font-size:12px;color:#64748b">${p.note}</span>`).join('<br>');
-    addElement(card);
-    setTimeout(() => {
-      addButtons([
-        { label: "📅 Book Now", action: () => startBooking() },
-        { label: "💬 More Info", action: () => backToMenu() },
-      ]);
-    }, 400);
-
-  } else if (type === "booking") {
-    addUserBubble("📅 Book Appointment");
-    startBooking();
-
-  } else if (type === "contact") {
-    addUserBubble("📞 Contact Us");
-    showTyping();
-    await new Promise(r => setTimeout(r, 600));
-    removeTyping();
-    const card = document.createElement('div');
-    card.className = 'contact-card';
-    card.innerHTML = `<div class="card-title">📞 Give us a call — we'd love to hear from you!</div>` +
-      ACCOUNT_CONFIG.locations.map(l => `<strong>${l.name}</strong><br>${l.phone}`).join('<br><br>');
-    addElement(card);
-    setTimeout(() => {
-      addButtons([{ label: "💬 More Info", action: () => backToMenu() }]);
-    }, 400);
-  }
-}
-
-async function showDanceInfo(dance) {
-  addUserBubble(dance.name);
-  const card = document.createElement('div');
-  card.className = 'info-card';
-  card.innerHTML = `<div class="card-title">💃 ${dance.name}</div>${dance.description}`;
-  await new Promise(r => setTimeout(r, 400));
-  addElement(card);
-  setTimeout(() => {
-    addButtons([
-      { label: "← Back to Dances", action: () => { addUserBubble("← Back"); handleMenu("dances"); } },
-      { label: "📅 Book Now",       action: () => startBooking() },
-      { label: "💬 More Info",      action: () => backToMenu() },
-    ]);
-  }, 400);
-}
-
-async function startBooking() {
-  state.step = "select_location";
-  await addBotBubble("Which location works best for you?", 400);
-  setTimeout(() => {
-    addButtons(ACCOUNT_CONFIG.locations.map(loc => ({
-      label: `📍 ${loc.name}`,
-      action: () => handleLocationSelected(loc)
-    })));
-  }, 800);
-}
-
-async function handleLocationSelected(loc) {
-  addUserBubble(`📍 ${loc.name}`);
-  state.location = loc;
-  state.step = "select_period";
-
-  showTyping();
-  await new Promise(r => setTimeout(r, 600));
-  removeTyping();
-
-  await addBotBubble(`Great choice! Do you prefer <strong>afternoon</strong> or <strong>evening</strong> classes?`);
-  setTimeout(() => {
-    addButtons([
-      { label: "🌤 Afternoon", action: () => handlePeriodSelected("afternoon") },
-      { label: "🌙 Evening",   action: () => handlePeriodSelected("evening") },
-    ]);
-  }, 400);
-}
-
-async function handlePeriodSelected(period) {
-  addUserBubble(period === "afternoon" ? "🌤 Afternoon" : "🌙 Evening");
-  state.period = period;
-  state.step = "select_date";
-
-  const locationSlots = SLOTS[state.location.location_id] || {};
-
-  // Find next 2 days that have slots matching the period
-  const isAfternoon = t => { const h = parseInt(t.split(':')[0]); return h >= 12 && h < 17; };
-  const isEvening   = t => { const h = parseInt(t.split(':')[0]); return h >= 17; };
-  const matchFn = period === "afternoon" ? isAfternoon : isEvening;
-
-  const dayNames     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const monthNames   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const matchingDays = [];
-
-  for (let i = 0; i < 14 && matchingDays.length < 2; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    const iso = d.toISOString().split('T')[0];
-    const slots = (locationSlots[iso] || []).filter(matchFn);
-    if (slots.length > 0) {
-      matchingDays.push({
-        iso,
-        dayName: dayNames[d.getDay()],
-        dayNum: d.getDate(),
-        month: monthNames[d.getMonth()],
-        slots
+    function addBotBubble(html, delay = 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const wrap = document.createElement('div');
+          wrap.className = 'msg bot';
+          wrap.innerHTML = `<div class="bubble">${html}</div><div class="msg-time">${now()}</div>`;
+          msgs().appendChild(wrap);
+          scrollBottom();
+          resolve(wrap);
+        }, delay);
       });
     }
-  }
 
-  showTyping();
-  await new Promise(r => setTimeout(r, 600));
-  removeTyping();
+    function addUserBubble(text) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg user';
+      wrap.innerHTML = `<div class="bubble">${text}</div><div class="msg-time">${now()}</div>`;
+      msgs().appendChild(wrap);
+      scrollBottom();
+    }
 
-  if (matchingDays.length === 0) {
-    await addBotBubble(`Sorry, no ${period} slots are available in the next two weeks at <strong>${state.location.name}</strong>.`);
-    setTimeout(() => {
-      addButtons([
-        { label: period === "afternoon" ? "🌙 Try Evening" : "🌤 Try Afternoon",
-          action: () => handlePeriodSelected(period === "afternoon" ? "evening" : "afternoon") },
-        { label: "💬 More Info", action: () => backToMenu() },
-      ]);
-    }, 400);
-    return;
-  }
+    function addElement(el) {
+      msgs().appendChild(el);
+      scrollBottom();
+    }
 
-  await addBotBubble(`Which day works better for you?`);
+    function addButtons(buttons) {
+      const group = document.createElement('div');
+      group.className = 'btn-group';
+      group.id = 'active-btn-group';
+      buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = 'choice-btn';
+        b.textContent = btn.label;
+        b.onclick = () => { disableButtons(); btn.action(); };
+        group.appendChild(b);
+      });
+      addElement(group);
+    }
 
-  setTimeout(() => {
-    const buttons = matchingDays.map(day => ({
-      label: `${day.dayName} ${day.dayNum} ${day.month}`,
-      action: () => handleDateSelected(day, day.slots)
-    }));
-    // Add Pick a Date as 3rd option
-    buttons.push({ label: "📅 Pick a Date", action: () => showMiniCalendar(locationSlots, matchFn) });
-    addButtons(buttons);
-  }, 400);
-}
+    function disableButtons() {
+      const g = $('active-btn-group');
+      if (g) g.querySelectorAll('button').forEach(b => b.disabled = true);
+    }
 
-async function handleDateSelected(day, slotList) {
-  addUserBubble(`${day.dayName} ${day.dayNum} ${day.month}`);
-  state.selectedDate = day.iso;
-  state.step = "select_slot";
+    function showTyping() {
+      const t = document.createElement('div');
+      t.className = 'typing-bubble'; t.id = 'typing';
+      t.innerHTML = '<span></span><span></span><span></span>';
+      addElement(t);
+    }
+    function removeTyping() { const t = $('typing'); if (t) t.remove(); }
 
-  showTyping();
-  await new Promise(r => setTimeout(r, 600));
-  removeTyping();
+    function showInput(placeholder = "Type your answer…") {
+      $('input-row').style.display = 'flex';
+      $('chat-input').placeholder = placeholder;
+      $('chat-input').value = '';
+      setTimeout(() => {
+        $('chat-input').focus();
+        scrollBottom();
+      }, 120);
+    }
+    function hideInput() {
+      $('input-row').style.display = 'none';
+      $('chat-input').value = '';
+    }
 
-  await addBotBubble(`Here are the available times for <strong>${formatDateLong(day.iso)}</strong> at <strong>${state.location.name}</strong>:`);
-  setTimeout(() => {
-    const timeButtons = slotList.map(s => {
-      const label = formatTime(s);
-      return { label, action: () => handleSlotSelected(label) };
-    });
-    addButtons(timeButtons);
-    // "Choose another date" option below the slots
-    setTimeout(() => {
-      const backBtn = document.createElement('div');
-      backBtn.className = 'btn-group';
-      const b = document.createElement('button');
-      b.className = 'choice-btn';
-      b.style.borderColor = '#94a3b8';
-      b.style.color = '#64748b';
-      b.textContent = '← Choose Another Date';
-      b.onclick = () => {
-        b.disabled = true;
-        handlePeriodSelected(state.period);
-      };
-      backBtn.appendChild(b);
-      document.getElementById('chat-messages').appendChild(backBtn);
-      const el = document.getElementById('chat-messages');
-      setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
-    }, 200);
-  }, 400);
-}
+    function formatTime(t) {
+      const [h, m] = t.split(':');
+      const hr = parseInt(h), ampm = hr >= 12 ? 'PM' : 'AM';
+      return `${hr % 12 || 12}:${m} ${ampm}`;
+    }
 
-function showMiniCalendar(locationSlots, matchFn) {
-  const existing = document.getElementById('mini-cal');
-  if (existing) existing.remove();
+    function formatDateLong(iso) {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    }
 
-  const today = new Date();
-  let calYear = today.getFullYear();
-  let calMonth = today.getMonth();
+    function get7Days() {
+      const days = [], dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(); d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        days.push({
+          iso, dayName: dayNames[d.getDay()],
+          dayNum: d.getDate(), month: monthNames[d.getMonth()]
+        });
+      }
+      return days;
+    }
 
-  const chatWin = document.getElementById('doable-window');
-  const overlay = document.createElement('div');
-  overlay.id = 'mini-cal';
-  overlay.style.cssText = `
+    // ── Flow ──────────────────────────────────────────────
+    async function startFlow() {
+      // Show typing while loading config
+      showTyping();
+      try {
+        ACCOUNT_CONFIG = await fetchAccountConfig();
+        DANCES = await fetchServices();
+      } catch (e) {
+        removeTyping();
+        addBotBubble("Sorry, I'm having trouble loading. Please try again shortly.");
+        return;
+      }
+      removeTyping();
+
+      // Apply branding from API
+      const color = ACCOUNT_CONFIG.primary_color || '#c8102e';
+      const emoji = ACCOUNT_CONFIG.avatar_emoji || '💃';
+      document.documentElement.style.setProperty('--brand', color);
+      $('chat-title').textContent = ACCOUNT_CONFIG.business_name;
+      $('chat-avatar').textContent = emoji;
+
+      // Add emoji labels to menu options
+      const emojiMap = { dances: '💃', pricing: '💰', booking: '📅', contact: '📞' };
+
+      state.step = "menu";
+      await addBotBubble(ACCOUNT_CONFIG.welcome_message, 400);
+      await addBotBubble("Please select an option below:", 900);
+      setTimeout(() => {
+        addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
+          label: `${emojiMap[opt.type] || ''} ${opt.label}`,
+          action: () => handleMenu(opt.type)
+        })));
+      }, 1300);
+    }
+
+    async function handleMenu(type) {
+      if (type === "dances") {
+        addUserBubble("💃 Types of Dances");
+        await addBotBubble("Here are the dance styles we offer — tap one to learn more:", 500);
+        setTimeout(() => {
+          addButtons(DANCES.map(d => ({
+            label: d.name,
+            action: () => showDanceInfo(d)
+          })));
+        }, 900);
+
+      } else if (type === "pricing") {
+        addUserBubble("💰 Pricing");
+        showTyping();
+        const locationId = state.location ? state.location.location_id : ACCOUNT_CONFIG.locations[0].location_id;
+        const pricingData = await fetchPricing(locationId);
+        removeTyping();
+        const card = document.createElement('div');
+        card.className = 'info-card';
+        card.innerHTML = `<div class="card-title">💰 Our Pricing</div>` +
+          pricingData.map(p => `<strong>${p.label}</strong> — ${p.price}<br><span style="font-size:12px;color:#64748b">${p.note}</span>`).join('<br>');
+        addElement(card);
+        setTimeout(() => {
+          addButtons([
+            { label: "📅 Book Now", action: () => startBooking() },
+            { label: "💬 More Info", action: () => backToMenu() },
+          ]);
+        }, 400);
+
+      } else if (type === "booking") {
+        addUserBubble("📅 Book Appointment");
+        startBooking();
+
+      } else if (type === "contact") {
+        addUserBubble("📞 Contact Us");
+        showTyping();
+        await new Promise(r => setTimeout(r, 600));
+        removeTyping();
+        const card = document.createElement('div');
+        card.className = 'contact-card';
+        const locations = state.location ? [state.location] : ACCOUNT_CONFIG.locations;
+        card.innerHTML = `<div class="card-title">📞 Give us a call — we'd love to hear from you!</div>` +
+          locations.map(l => `<strong>${l.name}</strong><br>${l.phone}`).join('<br><br>');
+        addElement(card);
+        setTimeout(() => {
+          addButtons([{ label: "💬 More Info", action: () => backToMenu() }]);
+        }, 400);
+      }
+    }
+
+    async function showDanceInfo(dance) {
+      addUserBubble(dance.name);
+      const card = document.createElement('div');
+      card.className = 'info-card';
+      card.innerHTML = `<div class="card-title">💃 ${dance.name}</div>${dance.description}`;
+      await new Promise(r => setTimeout(r, 400));
+      addElement(card);
+      setTimeout(() => {
+        addButtons([
+          { label: "← Back to Dances", action: () => { addUserBubble("← Back"); handleMenu("dances"); } },
+          { label: "📅 Book Now", action: () => startBooking() },
+          { label: "💬 More Info", action: () => backToMenu() },
+        ]);
+      }, 400);
+    }
+
+    async function startBooking() {
+      state.step = "select_location";
+      await addBotBubble("Which location works best for you?", 400);
+      setTimeout(() => {
+        addButtons(ACCOUNT_CONFIG.locations.map(loc => ({
+          label: `📍 ${loc.name}`,
+          action: () => handleLocationSelected(loc)
+        })));
+      }, 800);
+    }
+
+    async function handleLocationSelected(loc) {
+      addUserBubble(`📍 ${loc.name}`);
+      state.location = loc;
+      state.step = "select_period";
+
+      showTyping();
+      await new Promise(r => setTimeout(r, 600));
+      removeTyping();
+
+      await addBotBubble(`Great choice! Do you prefer <strong>afternoon</strong> or <strong>evening</strong> classes?`);
+      setTimeout(() => {
+        addButtons([
+          { label: "🌤 Afternoon", action: () => handlePeriodSelected("afternoon") },
+          { label: "🌙 Evening", action: () => handlePeriodSelected("evening") },
+        ]);
+      }, 400);
+    }
+
+    async function handlePeriodSelected(period) {
+      addUserBubble(period === "afternoon" ? "🌤 Afternoon" : "🌙 Evening");
+      state.period = period;
+      state.step = "select_date";
+
+      const isAfternoon = t => { const h = parseInt(t.split(':')[0]); return h >= 12 && h < 17; };
+      const isEvening = t => { const h = parseInt(t.split(':')[0]); return h >= 17; };
+      const matchFn = period === "afternoon" ? isAfternoon : isEvening;
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const matchingDays = [];
+
+      // Fetch slots for next 14 days from live API, find first 2 matching period
+      showTyping();
+      for (let i = 0; i < 14 && matchingDays.length < 2; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        const allSlots = await fetchSlots(state.location.location_id, iso);
+        const slots = allSlots.filter(matchFn);
+        if (slots.length > 0) {
+          matchingDays.push({
+            iso,
+            dayName: dayNames[d.getDay()],
+            dayNum: d.getDate(),
+            month: monthNames[d.getMonth()],
+            slots
+          });
+        }
+      }
+      removeTyping();
+
+      if (matchingDays.length === 0) {
+        await addBotBubble(`Sorry, no ${period} slots are available in the next two weeks at <strong>${state.location.name}</strong>.`);
+        setTimeout(() => {
+          addButtons([
+            {
+              label: period === "afternoon" ? "🌙 Try Evening" : "🌤 Try Afternoon",
+              action: () => handlePeriodSelected(period === "afternoon" ? "evening" : "afternoon")
+            },
+            { label: "💬 More Info", action: () => backToMenu() },
+          ]);
+        }, 400);
+        return;
+      }
+
+      await addBotBubble(`Which day works better for you?`);
+
+      setTimeout(() => {
+        const buttons = matchingDays.map(day => ({
+          label: `${day.dayName} ${day.dayNum} ${day.month}`,
+          action: () => handleDateSelected(day, day.slots)
+        }));
+        // Add Pick a Date as 3rd option
+        buttons.push({ label: "📅 Pick a Date", action: () => showMiniCalendar(matchFn) });
+        addButtons(buttons);
+      }, 400);
+    }
+
+    async function handleDateSelected(day, slotList) {
+      addUserBubble(`${day.dayName} ${day.dayNum} ${day.month}`);
+      state.selectedDate = day.iso;
+      state.step = "select_slot";
+
+      showTyping();
+      // If slotList not passed, fetch from API
+      if (!slotList || slotList.length === 0) {
+        slotList = await fetchSlots(state.location.location_id, day.iso);
+      }
+      removeTyping();
+
+      await addBotBubble(`Here are the available times for <strong>${formatDateLong(day.iso)}</strong> at <strong>${state.location.name}</strong>:`);
+      setTimeout(() => {
+        const timeButtons = slotList.map(s => {
+          const label = formatTime(s);
+          return { label, action: () => handleSlotSelected(label) };
+        });
+        addButtons(timeButtons);
+        // "Choose another date" option below the slots
+        setTimeout(() => {
+          const backBtn = document.createElement('div');
+          backBtn.className = 'btn-group';
+          const b = document.createElement('button');
+          b.className = 'choice-btn';
+          b.style.borderColor = '#94a3b8';
+          b.style.color = '#64748b';
+          b.textContent = '← Choose Another Date';
+          b.onclick = () => {
+            b.disabled = true;
+            handlePeriodSelected(state.period);
+          };
+          backBtn.appendChild(b);
+          document.getElementById('chat-messages').appendChild(backBtn);
+          const el = document.getElementById('chat-messages');
+          setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
+        }, 200);
+      }, 400);
+    }
+
+    function showMiniCalendar(matchFn) {
+      const existing = document.getElementById('mini-cal');
+      if (existing) existing.remove();
+
+      const today = new Date();
+      let calYear = today.getFullYear();
+      let calMonth = today.getMonth();
+
+      const chatWin = document.getElementById('doable-window');
+      const overlay = document.createElement('div');
+      overlay.id = 'mini-cal';
+      overlay.style.cssText = `
     position:absolute; inset:0; background:rgba(0,0,0,0.35);
     display:flex; align-items:center; justify-content:center;
     z-index:99999; border-radius:20px;
   `;
 
-  function renderCal() {
-    const monthNamesLong = ['January','February','March','April','May','June',
-                            'July','August','September','October','November','December'];
-    const dayLabels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-    const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      function renderCal() {
+        const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'];
+        const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
-    let daysHtml = '';
-    for (let i = 0; i < firstDay; i++) daysHtml += `<div></div>`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const iso = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isPast = new Date(iso + 'T00:00:00') < new Date(today.toISOString().split('T')[0] + 'T00:00:00');
-      daysHtml += `<div class="cal-day ${isPast ? 'cal-past' : 'cal-avail'}" data-iso="${iso}">${d}</div>`;
-    }
+        let daysHtml = '';
+        for (let i = 0; i < firstDay; i++) daysHtml += `<div></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const isPast = new Date(iso + 'T00:00:00') < new Date(today.toISOString().split('T')[0] + 'T00:00:00');
+          daysHtml += `<div class="cal-day ${isPast ? 'cal-past' : 'cal-avail'}" data-iso="${iso}">${d}</div>`;
+        }
 
-    overlay.innerHTML = `
+        overlay.innerHTML = `
       <div style="background:#fff;border-radius:16px;padding:18px;width:290px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <button id="cal-prev" style="background:none;border:none;font-size:20px;cursor:pointer;color:#1e293b;padding:0 6px;">&#8249;</button>
@@ -754,206 +979,230 @@ function showMiniCalendar(locationSlots, matchFn) {
       </div>
     `;
 
-    const style = document.getElementById('cal-style') || document.createElement('style');
-    style.id = 'cal-style';
-    style.textContent = `
+        const style = document.getElementById('cal-style') || document.createElement('style');
+        style.id = 'cal-style';
+        style.textContent = `
       .cal-day{text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;}
       .cal-past{color:#cbd5e1;cursor:not-allowed;}
       .cal-avail{color:#1e293b;cursor:pointer;}
       .cal-avail:hover{background:var(--brand,#c8102e);color:#fff;}
     `;
-    document.head.appendChild(style);
+        document.head.appendChild(style);
 
-    overlay.querySelector('#cal-prev').onclick = e => { e.stopPropagation(); calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); };
-    overlay.querySelector('#cal-next').onclick = e => { e.stopPropagation(); calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); };
-    overlay.querySelector('#cal-cancel').onclick = () => overlay.remove();
-    overlay.onclick = e => { if(e.target === overlay) overlay.remove(); };
+        overlay.querySelector('#cal-prev').onclick = e => { e.stopPropagation(); calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); };
+        overlay.querySelector('#cal-next').onclick = e => { e.stopPropagation(); calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+        overlay.querySelector('#cal-cancel').onclick = () => overlay.remove();
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 
-    overlay.querySelectorAll('.cal-avail').forEach(el => {
-      el.onclick = e => {
-        e.stopPropagation();
-        const iso = el.dataset.iso;
-        overlay.remove();
-        const d = new Date(iso + 'T00:00:00');
-        const dn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        const chosenDay = { iso, dayName: dn[d.getDay()], dayNum: d.getDate(), month: mn[d.getMonth()] };
-        // Filter slots by period, fallback to dummy if none match
-        const allSlots = locationSlots[iso] || ['10:00:00','14:00:00','19:00:00'];
-        const filtered = allSlots.filter(matchFn);
-        const slotList = filtered.length > 0 ? filtered : allSlots;
-        handleDateSelected(chosenDay, slotList);
-      };
-    });
-  }
+        overlay.querySelectorAll('.cal-avail').forEach(el => {
+          el.onclick = e => {
+            e.stopPropagation();
+            const iso = el.dataset.iso;
+            overlay.remove();
+            const d = new Date(iso + 'T00:00:00');
+            const dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const chosenDay = { iso, dayName: dn[d.getDay()], dayNum: d.getDate(), month: mn[d.getMonth()] };
+            // Filter slots by period, fallback to dummy if none match
+            fetchSlots(state.location.location_id, iso).then(allSlots => {
+              const filtered = allSlots.filter(matchFn);
+              const slotList = filtered.length > 0 ? filtered : (allSlots.length > 0 ? allSlots : ['10:00:00', '14:00:00', '19:00:00']);
+              handleDateSelected(chosenDay, slotList);
+            });
+          };
+        });
+      }
 
-  renderCal();
-  chatWin.appendChild(overlay);
-}
+      renderCal();
+      chatWin.appendChild(overlay);
+    }
 
 
-async function handleDateSelected(day, slotList) {
-  addUserBubble(`${day.dayName} ${day.dayNum} ${day.month}`);
-  state.selectedDate = day.iso;
-  state.step = "select_slot";
+    async function handleDateSelected(day, slotList) {
+      addUserBubble(`${day.dayName} ${day.dayNum} ${day.month}`);
+      state.selectedDate = day.iso;
+      state.step = "select_slot";
 
-  showTyping();
-  await new Promise(r => setTimeout(r, 600));
-  removeTyping();
+      showTyping();
+      // If slotList not passed, fetch from API
+      if (!slotList || slotList.length === 0) {
+        slotList = await fetchSlots(state.location.location_id, day.iso);
+      }
+      removeTyping();
 
-  await addBotBubble(`Here are the available times for <strong>${formatDateLong(day.iso)}</strong> at <strong>${state.location.name}</strong>:`);
-  setTimeout(() => {
-    const timeButtons = slotList.map(s => {
-      const label = formatTime(s);
-      return { label, action: () => handleSlotSelected(label) };
-    });
-    addButtons(timeButtons);
-    // "Choose another date" option below the slots
-    setTimeout(() => {
-      const backBtn = document.createElement('div');
-      backBtn.className = 'btn-group';
-      const b = document.createElement('button');
-      b.className = 'choice-btn';
-      b.style.borderColor = '#94a3b8';
-      b.style.color = '#64748b';
-      b.textContent = '← Choose Another Date';
-      b.onclick = () => {
-        b.disabled = true;
-        handleLocationSelected(state.location);
-      };
-      backBtn.appendChild(b);
-      document.getElementById('chat-messages').appendChild(backBtn);
-      const el = document.getElementById('chat-messages');
-      setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
-    }, 200);
-  }, 400);
-}
+      await addBotBubble(`Here are the available times for <strong>${formatDateLong(day.iso)}</strong> at <strong>${state.location.name}</strong>:`);
+      setTimeout(() => {
+        const timeButtons = slotList.map(s => {
+          const label = formatTime(s);
+          return { label, action: () => handleSlotSelected(label) };
+        });
+        addButtons(timeButtons);
+        // "Choose another date" option below the slots
+        setTimeout(() => {
+          const backBtn = document.createElement('div');
+          backBtn.className = 'btn-group';
+          const b = document.createElement('button');
+          b.className = 'choice-btn';
+          b.style.borderColor = '#94a3b8';
+          b.style.color = '#64748b';
+          b.textContent = '← Choose Another Date';
+          b.onclick = () => {
+            b.disabled = true;
+            handleLocationSelected(state.location);
+          };
+          backBtn.appendChild(b);
+          document.getElementById('chat-messages').appendChild(backBtn);
+          const el = document.getElementById('chat-messages');
+          setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
+        }, 200);
+      }, 400);
+    }
 
-async function handleSlotSelected(label) {
-  addUserBubble(label);
-  state.selectedSlot = label;
-  state.step = "ask_name";
-  await addBotBubble("Perfect! Just a few quick details to confirm your booking. 📝", 400);
-  setTimeout(() => {
-    addBotBubble("What's your <strong>full name</strong>?", 800).then(() => showInput("e.g. Jane Smith"));
-  }, 400);
-}
+    async function handleSlotSelected(label) {
+      addUserBubble(label);
+      state.selectedSlot = label;
+      state.step = "ask_name";
+      await addBotBubble("Perfect! Just a few quick details to confirm your booking. 📝", 400);
+      setTimeout(() => {
+        addBotBubble("What's your <strong>full name</strong>?", 800).then(() => showInput("e.g. Jane Smith"));
+      }, 400);
+    }
 
-function handleTextSend() {
-  const val = $('chat-input').value.trim();
-  if (!val) return;
-  $('chat-input').value = '';
+    function handleTextSend() {
+      const val = $('chat-input').value.trim();
+      if (!val) return;
+      $('chat-input').value = '';
 
-  if (state.step === "ask_name") {
-    addUserBubble(val);
-    state.name = val;
-    state.step = "ask_phone";
-    hideInput();
-    addBotBubble(`Thanks, <strong>${val}</strong>! What's your <strong>phone number</strong>?`, 400)
-      .then(() => showInput("e.g. 310-555-1234"));
+      if (state.step === "ask_name") {
+        addUserBubble(val);
+        state.name = val;
+        state.step = "ask_phone";
+        hideInput();
+        addBotBubble(`Thanks, <strong>${val}</strong>! What's your <strong>phone number</strong>?`, 400)
+          .then(() => showInput("e.g. 310-555-1234"));
 
-  } else if (state.step === "ask_phone") {
-    addUserBubble(val);
-    state.phone = val;
-    state.step = "ask_address";
-    hideInput();
-    addBotBubble("And your <strong>address</strong>?", 400)
-      .then(() => showInput("e.g. 123 Main St, Los Angeles, CA"));
+      } else if (state.step === "ask_phone") {
+        addUserBubble(val);
+        state.phone = val;
+        state.step = "ask_email";
+        hideInput();
+        addBotBubble("And your <strong>email address</strong>?", 400)
+          .then(() => showInput("e.g. jane@smith.com"));
 
-  } else if (state.step === "ask_address") {
-    addUserBubble(val);
-    state.address = val;
-    state.step = "confirm";
-    hideInput();
-    showConfirmation();
-  }
-}
+      } else if (state.step === "ask_email") {
+        addUserBubble(val);
+        state.email = val;
+        state.step = "confirm";
+        hideInput();
+        showConfirmation();
+      }
+    }
 
-function handleKey(e) { if (e.key === 'Enter') handleTextSend(); }
+    function handleKey(e) { if (e.key === 'Enter') handleTextSend(); }
 
-async function showConfirmation() {
-  await addBotBubble("Here's your booking summary — does everything look right?", 500);
-  const card = document.createElement('div');
-  card.className = 'confirm-card';
-  card.innerHTML = `
+    async function showConfirmation() {
+      await addBotBubble("Here's your booking summary — does everything look right?", 500);
+      const card = document.createElement('div');
+      card.className = 'confirm-card';
+      card.innerHTML = `
     📍 <strong>Location:</strong> ${state.location.name}<br>
     📅 <strong>Date:</strong> ${formatDateLong(state.selectedDate)}<br>
     🕐 <strong>Time:</strong> ${state.selectedSlot}<br>
     👤 <strong>Name:</strong> ${state.name}<br>
     📞 <strong>Phone:</strong> ${state.phone}<br>
-    🏠 <strong>Address:</strong> ${state.address}
+    🏠 <strong>Email:</strong> ${state.email}
   `;
-  setTimeout(() => {
-    addElement(card);
-    setTimeout(() => {
-      addButtons([
-        { label: "✅ Confirm Booking", action: confirmBooking },
-        { label: "✗ Start Over",       action: () => { resetState(); backToMenu(); } },
-      ]);
-    }, 400);
-  }, 800);
-}
+      setTimeout(() => {
+        addElement(card);
+        setTimeout(() => {
+          addButtons([
+            { label: "✅ Confirm Booking", action: confirmBooking },
+            { label: "✗ Start Over", action: () => { resetState(); backToMenu(); } },
+          ]);
+        }, 400);
+      }, 800);
+    }
 
-async function confirmBooking() {
-  state.step = "booking";
-  showTyping();
-  // Phase 2: POST to /api/book_appointment.php
-  await new Promise(r => setTimeout(r, 900));
-  removeTyping();
+    async function confirmBooking() {
+      state.step = "booking";
+      showTyping();
+      const bookingResult = await postBooking({
+        account: ACCOUNT_ID,
+        location: state.location.location_id,
+        date: state.selectedDate,
+        slot: state.selectedSlot,
+        name: state.name,
+        phone: state.phone,
+        email: state.email
+      });
+      removeTyping();
+      if (bookingResult.status !== 'success') {
+        addBotBubble(`Sorry, there was an issue confirming your booking: ${bookingResult.message || 'Please try again.'}`);
+        setTimeout(() => {
+          addButtons([{ label: "🔄 Try Again", action: () => confirmBooking() }]);
+        }, 400);
+        return;
+      }
 
-  const success = document.createElement('div');
-  success.className = 'success-msg';
-  success.innerHTML = `✅ <strong>You're booked!</strong><br>
+      const success = document.createElement('div');
+      success.className = 'success-msg';
+      success.innerHTML = `✅ <strong>You're booked!</strong><br>
     ${formatDateLong(state.selectedDate)} at ${state.selectedSlot}<br>
     📍 ${state.location.name}<br><br>
     We look forward to seeing you, <strong>${state.name}</strong>! 🎉`;
-  addElement(success);
+      addElement(success);
 
-  setTimeout(() => {
-    addBotBubble("Is there anything else I can help you with?", 1000).then(() => {
       setTimeout(() => {
-        addButtons([
-          { label: "📅 Book Another", action: () => { resetState(); startBooking(); } },
-          { label: "💬 More Info",    action: () => { resetState(); backToMenu(); } },
-        ]);
-      }, 400);
-    });
-  }, 800);
+        addBotBubble("Is there anything else I can help you with?", 1000).then(() => {
+          setTimeout(() => {
+            addButtons([
+              { label: "📅 Book Another", action: () => { resetState(); startBooking(); } },
+              { label: "💬 More Info", action: () => { resetState(); backToMenu(); } },
+              { label: "✅ I'm Done", action: () => handleDone() },
+            ]);
+          }, 400);
+        });
+      }, 800);
 
-  state.step = "done";
-}
+      state.step = "done";
+    }
 
-function resetState() {
-  state.step = "menu";
-  state.location = null;
-  state.period = null;
-  state.selectedDate = null;
-  state.selectedSlot = null;
-  state.name = null; state.phone = null; state.address = null;
-  hideInput();
-}
+    async function handleDone() {
+      await addBotBubble("Thank you for choosing us! We look forward to seeing you. Have a great day! 💃", 400);
+    }
 
-async function backToMenu() {
-  resetState();
-  await addBotBubble("How else can I help you?", 300);
-  setTimeout(() => {
-    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
-      label: opt.label,
-      action: () => handleMenu(opt.type)
-    })));
-  }, 700);
-}
+    function resetState() {
+      state.step = "menu";
+      state.location = null;
+      state.period = null;
+      state.selectedDate = null;
+      state.selectedSlot = null;
+      state.name = null; state.phone = null; state.email = null;
+      hideInput();
+    }
 
-// ── Toggle ────────────────────────────────────────────
-let chatOpen = false, started = false;
+    async function backToMenu() {
+      resetState();
+      await addBotBubble("How else can I help you?", 300);
+      setTimeout(() => {
+        addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
+          label: opt.label,
+          action: () => handleMenu(opt.type)
+        })));
+      }, 700);
+    }
 
-function toggleChat() {
-  chatOpen = !chatOpen;
-  $('doable-window').classList.toggle('open', chatOpen);
-  $('icon-chat').style.display  = chatOpen ? 'none'  : 'block';
-  $('icon-close').style.display = chatOpen ? 'block' : 'none';
-  if (chatOpen && !started) { started = true; startFlow(); }
-}
-</script>
+    // ── Toggle ────────────────────────────────────────────
+    let chatOpen = false, started = false;
+
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      $('doable-window').classList.toggle('open', chatOpen);
+      $('icon-chat').style.display = chatOpen ? 'none' : 'block';
+      $('icon-close').style.display = chatOpen ? 'block' : 'none';
+      if (chatOpen && !started) { started = true; startFlow(); }
+    }
+  </script>
 </body>
+
 </html>
