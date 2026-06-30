@@ -52,6 +52,7 @@ if (empty($_GET['id'])) {
     $PK_LOCATION = '';
     $PK_USER_MASTER = '';
     $TO = '';
+    $LAST_NAME = '';
     $FROM = '';
     $UNIQUE_ID = generateUniqueGiftCertificateId(); // Auto-generate unique ID
     $EMAIL_ID = '';
@@ -70,6 +71,7 @@ if (empty($_GET['id'])) {
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $PK_USER_MASTER = $res->fields['PK_USER_MASTER'];
     $TO = $res->fields['RECIPIENT'];
+    $LAST_NAME = $res->fields['LAST_NAME'];
     $FROM = $res->fields['SENDER'];
     $UNIQUE_ID = $res->fields['UNIQUE_ID'];
     $EMAIL_ID = $res->fields['EMAIL_ID'];
@@ -387,6 +389,7 @@ if (!empty($_POST)) {
     if (empty($_GET['id'])) {
         $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
         $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
+        $GIFT_CERTIFICATE_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
         $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
         $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
         $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
@@ -408,6 +411,7 @@ if (!empty($_POST)) {
     } else {
         $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
         $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
+        $GIFT_CERTIFICATE_DATA['LAST_NAME'] = $_POST['LAST_NAME'];
         $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
         $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
         $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
@@ -1105,7 +1109,12 @@ if (!empty($_POST)) {
 
                                         <div class="form-group-modern">
                                             <label class="form-label">To <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" name="TO" id="TO" value="<?= htmlspecialchars($TO) ?>" required>
+                                            <input type="text" class="form-control-modern" name="TO" id="TO" value="<?= htmlspecialchars($TO) ?>" placeholder="Enter First Name" required>
+                                        </div>
+
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Last Name </label>
+                                            <input type="text" class="form-control-modern" name="LAST_NAME" id="LAST_NAME" value="<?= htmlspecialchars($LAST_NAME) ?>" placeholder="Enter Last Name" required>
                                         </div>
 
                                         <div class="form-group-modern">
