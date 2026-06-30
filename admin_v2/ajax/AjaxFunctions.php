@@ -2056,9 +2056,11 @@ function viewGiftCertificatePdf($RESPONSE_DATA)
     }
 }
 
-function refundGiftCertificate($PK_GIFT_CERTIFICATE_MASTER)
+function refundGiftCertificate($RESPONSE_DATA)
 {
+    require_once("../../global/stripe-php-master/init.php");
     global $db_account;
+    $PK_GIFT_CERTIFICATE_MASTER = $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'];
 
     // Check if certificate exists and is not already refunded
     $check_query = "SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER 
@@ -2067,88 +2069,152 @@ function refundGiftCertificate($PK_GIFT_CERTIFICATE_MASTER)
     $check_result = $db_account->Execute($check_query);
 
     if ($check_result && $check_result->RecordCount() > 0) {
+        $PK_PAYMENT_TYPE = $check_result->fields['PK_PAYMENT_TYPE'];
+        $AMOUNT = $check_result->fields['AMOUNT'];
+        $PAYMENT_INFO = ($check_result->RecordCount() > 0) ? $check_result->fields['PAYMENT_INFO'] : $PK_PAYMENT_TYPE;
+
+        if ($PK_PAYMENT_TYPE == 1) {
+            $payment_gateway_data = getPaymentGatewayData();
+
+            $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+            $GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+            $SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+            $PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+            $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+            $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+            $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+            $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+            $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+            $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+            $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+            $API_KEY                = $payment_gateway_data->fields['API_KEY'];
+            $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+            $transaction_info = json_decode($check_result->fields['PAYMENT_INFO']);
+            if ($PAYMENT_GATEWAY == 'Stripe') {
+                if (isset($transaction_info->CHARGE_ID)) {
+                    Stripe::setApiKey($SECRET_KEY);
+
+                    $transaction_id = $transaction_info->CHARGE_ID;
+                    try {
+                        $refund = \Stripe\Refund::create([
+                            'charge' => $transaction_id,
+                            'amount' => $AMOUNT * 100
+                        ]);
+                    } catch (Exception $e) {
+                        echo $e->getMessage();
+                        die();
+                    }
+                    $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $refund->id, 'LAST4' => $transaction_info->LAST4];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                }
+            } elseif ($PAYMENT_GATEWAY = 'Authorized.net') {
+                $transaction_id = $transaction_info->CHARGE_ID;
+                $accountNumber = $transaction_info->LAST4;
+
+                // Merchant Authentication
+                $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+                $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+                $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
+
+                $originalTransactionId = $transaction_id;
+                $last4 = substr($accountNumber, -4);
+                $refundAmount = $AMOUNT;
+
+                // Refund Request
+                $transactionRequest = new AnetAPI\TransactionRequestType();
+                $transactionRequest->setTransactionType("refundTransaction");
+                $transactionRequest->setRefTransId($originalTransactionId);
+                $transactionRequest->setAmount($refundAmount);
+
+                // Payment object with last 4 digits + dummy expiry
+                $creditCard = new AnetAPI\CreditCardType();
+                $creditCard->setCardNumber($last4);      // only last 4 digits
+                $creditCard->setExpirationDate("1230");  // or "1225"
+                $payment = new AnetAPI\PaymentType();
+                $payment->setCreditCard($creditCard);
+
+                $transactionRequest->setPayment($payment);
+
+                // Build request
+                $request = new AnetAPI\CreateTransactionRequest();
+                $request->setMerchantAuthentication($merchantAuthentication);
+                $request->setTransactionRequest($transactionRequest);
+
+                $controller = new AnetController\CreateTransactionController($request);
+
+                if ($GATEWAY_MODE == 'test') {
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+                } else {
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                }
+
+                if ($response != null) {
+                    $tresponse = $response->getTransactionResponse();
+                    if ($tresponse != null && $tresponse->getResponseCode() == "1") {
+                        $PAYMENT_INFO_ARRAY = ['REFUND_ID' => $tresponse->getTransId(), 'LAST4' => $accountNumber];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    } else {
+                        echo "Refund ERROR: " . $tresponse->getErrors()[0]->getErrorText();
+                        die;
+                    }
+                } else {
+                    echo "No response returned.";
+                    die;
+                }
+            }
+        }
+
+
         $fields = $check_result->fields;
 
         // Check if already redeemed
         if ($fields['IS_REDEEMED'] == 1) {
-            return ['success' => false, 'message' => 'This gift certificate has already been redeemed and cannot be refunded.'];
+            echo json_encode(['success' => false, 'message' => 'This gift certificate has already been redeemed and cannot be refunded.']);
+            die;
         }
 
         // Update the gift certificate as refunded
         $update_query = "UPDATE DOA_GIFT_CERTIFICATE_MASTER 
                         SET IS_REFUNDED = 1, 
-                            REFUNDED_DATE = NOW(),
-                            ACTIVE = 0
+                            REFUNDED_DATE = NOW()
                         WHERE PK_GIFT_CERTIFICATE_MASTER = " . intval($PK_GIFT_CERTIFICATE_MASTER);
         $result = $db_account->Execute($update_query);
 
         if ($result) {
-            // Log the refund activity (optional)
-            $log_query = "INSERT INTO DOA_GIFT_CERTIFICATE_LOG 
-                         (PK_GIFT_CERTIFICATE_MASTER, ACTION, ACTION_DATE, NOTES) 
-                         VALUES (" . intval($PK_GIFT_CERTIFICATE_MASTER) . ", 
-                                 'REFUNDED', 
-                                 NOW(), 
-                                 'Gift certificate refunded by admin')";
-            $db_account->Execute($log_query);
-
-            return ['success' => true, 'message' => 'Gift certificate refunded successfully.'];
+            echo json_encode(['success' => true, 'message' => 'Gift certificate refunded successfully.']);
+            die;
         } else {
-            return ['success' => false, 'message' => 'Failed to update gift certificate status.'];
+            echo json_encode(['success' => false, 'message' => 'Failed to update gift certificate status.']);
+            die;
         }
     } else {
-        return ['success' => false, 'message' => 'Gift certificate not found or already refunded.'];
+        echo json_encode(['success' => false, 'message' => 'Gift certificate not found or already refunded.']);
+        die;
     }
 }
 
-function deleteGiftCertificate($PK_GIFT_CERTIFICATE_MASTER)
+function deleteGiftCertificate($RESPONSE_DATA)
 {
     global $db_account;
+    $PK_GIFT_CERTIFICATE_MASTER = $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'];
 
-    // Check if certificate is refunded (only refunded ones can be deleted)
-    $check_query = "SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER 
-                    WHERE PK_GIFT_CERTIFICATE_MASTER = " . intval($PK_GIFT_CERTIFICATE_MASTER) . "
-                    AND IS_REFUNDED = 1";
-    $check_result = $db_account->Execute($check_query);
-
-    if ($check_result && $check_result->RecordCount() > 0) {
-        // Log the deletion before deleting (optional)
-        $log_query = "INSERT INTO DOA_GIFT_CERTIFICATE_LOG 
-                     (PK_GIFT_CERTIFICATE_MASTER, ACTION, ACTION_DATE, NOTES) 
-                     VALUES (" . intval($PK_GIFT_CERTIFICATE_MASTER) . ", 
-                             'DELETED', 
-                             NOW(), 
-                             'Gift certificate permanently deleted')";
-        $db_account->Execute($log_query);
-
-        // Delete the gift certificate
-        $delete_query = "DELETE FROM DOA_GIFT_CERTIFICATE_MASTER 
+    // Delete the gift certificate
+    $delete_query = "DELETE FROM DOA_GIFT_CERTIFICATE_MASTER 
                         WHERE PK_GIFT_CERTIFICATE_MASTER = " . intval($PK_GIFT_CERTIFICATE_MASTER);
-        $result = $db_account->Execute($delete_query);
+    $result = $db_account->Execute($delete_query);
 
-        if ($result) {
-            return ['success' => true, 'message' => 'Gift certificate deleted successfully.'];
-        } else {
-            return ['success' => false, 'message' => 'Failed to delete gift certificate.'];
-        }
+    if ($result) {
+        echo json_encode(['success' => true, 'message' => 'Gift certificate deleted successfully.']);
+        die;
     } else {
-        return ['success' => false, 'message' => 'Only refunded gift certificates can be deleted.'];
+        echo json_encode(['success' => false, 'message' => 'Only refunded gift certificates can be deleted.']);
+        die;
     }
-}
-
-// Handle the AJAX request
-if ($_POST['FUNCTION_NAME'] == 'refundGiftCertificate') {
-    $PK_GIFT_CERTIFICATE_MASTER = isset($_POST['PK_GIFT_CERTIFICATE_MASTER']) ? $_POST['PK_GIFT_CERTIFICATE_MASTER'] : 0;
-    $response = refundGiftCertificate($PK_GIFT_CERTIFICATE_MASTER);
-    echo json_encode($response);
-    exit;
-}
-
-if ($_POST['FUNCTION_NAME'] == 'deleteGiftCertificate') {
-    $PK_GIFT_CERTIFICATE_MASTER = isset($_POST['PK_GIFT_CERTIFICATE_MASTER']) ? $_POST['PK_GIFT_CERTIFICATE_MASTER'] : 0;
-    $response = deleteGiftCertificate($PK_GIFT_CERTIFICATE_MASTER);
-    echo json_encode($response);
-    exit;
 }
 
 function saveMultiAppointmentData($RESPONSE_DATA)

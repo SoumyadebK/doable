@@ -69,22 +69,25 @@ $total_pages = ceil($total_records / $per_page);
 
 // Get gift certificates for current page
 $query = "SELECT DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER, 
-DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
-          DOA_GIFT_CERTIFICATE_MASTER.RECIPIENT,
+            DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
+            DOA_GIFT_CERTIFICATE_MASTER.RECIPIENT,
+            DOA_GIFT_CERTIFICATE_MASTER.LAST_NAME,
             DOA_GIFT_CERTIFICATE_MASTER.SENDER,
             DOA_GIFT_CERTIFICATE_MASTER.GIFT_NOTE,
             DOA_GIFT_CERTIFICATE_MASTER.UNIQUE_ID,
             DOA_GIFT_CERTIFICATE_MASTER.EMAIL_ID,
             DOA_GIFT_CERTIFICATE_MASTER.PHONE_NO,
-              DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
-                DOA_LOCATION.LOCATION_NAME,
-          DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED,
-          DOA_GIFT_CERTIFICATE_MASTER.REDEEMED_DATE,
-          DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, 
-          DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, 
-          DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, 
-          DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, 
-          DOA_GIFT_CERTIFICATE_MASTER.ACTIVE 
+            DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION,
+            DOA_GIFT_CERTIFICATE_MASTER.PK_PAYMENT_TYPE,
+            DOA_GIFT_CERTIFICATE_MASTER.IS_REFUNDED,
+            DOA_LOCATION.LOCATION_NAME,
+            DOA_GIFT_CERTIFICATE_MASTER.IS_REDEEMED,
+            DOA_GIFT_CERTIFICATE_MASTER.REDEEMED_DATE,
+            DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_CODE, 
+            DOA_GIFT_CERTIFICATE_SETUP.GIFT_CERTIFICATE_NAME, 
+            DOA_GIFT_CERTIFICATE_MASTER.DATE_OF_PURCHASE, 
+            DOA_GIFT_CERTIFICATE_MASTER.AMOUNT, 
+            DOA_GIFT_CERTIFICATE_MASTER.ACTIVE 
           FROM DOA_GIFT_CERTIFICATE_MASTER 
           INNER JOIN DOA_GIFT_CERTIFICATE_SETUP ON DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_SETUP = DOA_GIFT_CERTIFICATE_SETUP.PK_GIFT_CERTIFICATE_SETUP 
           LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_GIFT_CERTIFICATE_MASTER.PK_LOCATION = DOA_LOCATION.PK_LOCATION
@@ -375,12 +378,12 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                             <thead>
                                 <tr>
                                     <th style="width: 40px;">#</th>
-                                    <th>To</th>
-                                    <th>From</th>
-                                    <th>Location</th>
-                                    <th>Unique ID</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
+                                    <th style="text-align: center;">To</th>
+                                    <th style="text-align: center;">From</th>
+                                    <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Unique ID</th>
+                                    <th style="text-align: center;">Email</th>
+                                    <th style="text-align: center;">Phone</th>
                                     <th style="text-align: center;">Gift Certificate Name</th>
                                     <th style="text-align: center;">Gift Certificate Code</th>
                                     <th style="text-align: center;">Purchase Date</th>
@@ -405,11 +408,15 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                         $is_redeemed = $gift_certificates->fields['IS_REDEEMED'] == 1;
                                         $redeemed_date = $gift_certificates->fields['REDEEMED_DATE'];
                                         $to = $gift_certificates->fields['RECIPIENT'];
+                                        $last_name = $gift_certificates->fields['LAST_NAME'];
                                         $from = $gift_certificates->fields['SENDER'];
                                         $gift_note = $gift_certificates->fields['GIFT_NOTE'];
                                         $unique_id = $gift_certificates->fields['UNIQUE_ID'];
                                         $email_id = $gift_certificates->fields['EMAIL_ID'];
                                         $phone_no = $gift_certificates->fields['PHONE_NO'];
+
+                                        $PK_PAYMENT_TYPE = $gift_certificates->fields['PK_PAYMENT_TYPE'];
+                                        $IS_REFUNDED = $gift_certificates->fields['IS_REFUNDED'];
 
                                         // Format date
                                         $formatted_date = !empty($purchase_date) && $purchase_date != '0000-00-00' ? date('M d, Y', strtotime($purchase_date)) : '—';
@@ -419,7 +426,7 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
                                             <td style="text-align: center;">
                                                 <div>
-                                                    <span class="fw-medium"><?= htmlspecialchars($to) ?></span>
+                                                    <span class="fw-medium"><?= htmlspecialchars($to . ' ' . $last_name) ?></span>
                                                 </div>
                                             </td>
                                             <td style="text-align: center;">
@@ -484,7 +491,7 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                             </td>
                                             <td>
                                                 <div class="action-icons">
-                                                    <?php if (!$is_redeemed && $is_active): ?>
+                                                    <?php if (!$is_redeemed && $is_active && $IS_REFUNDED == 0): ?>
                                                         <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>', <?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Create Customer">
                                                             <i class="bi bi-person-add"></i>
                                                         </a>
@@ -497,6 +504,16 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                                     <a href="javascript:;" onclick="downloadGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Download PDF">
                                                         <i class="bi bi-download"></i>
                                                     </a>
+                                                    <?php if (!$is_redeemed && $is_active && $PK_PAYMENT_TYPE == 1 && $IS_REFUNDED == 0): ?>
+                                                        <a href="javascript:;" onclick="refundGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Refund">
+                                                            <i class="bi bi-arrow-repeat"></i>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <?php if (!$is_redeemed && (($PK_PAYMENT_TYPE == 1 && $IS_REFUNDED == 1) || ($PK_PAYMENT_TYPE != 1))): ?>
+                                                        <a href="javascript:;" onclick="deleteGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Delete">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -619,6 +636,100 @@ $redeemed_count = $redeemed_count_result->fields['total'];
         // Create new gift certificate
         function createNewGiftCertificate() {
             window.location.href = 'gift_certificate.php';
+        }
+
+        // Download gift certificate PDF
+        function refundGiftCertificate(PK_GIFT_CERTIFICATE_MASTER) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Refunding this gift certificate will void the payment and credit the refunded amount back to the customer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, refund it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Refunding...',
+                        text: 'Please wait while we process your refund.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'refundGiftCertificate',
+                            PK_GIFT_CERTIFICATE_MASTER: PK_GIFT_CERTIFICATE_MASTER
+                        },
+                        success: function(data) {
+                            Swal.close();
+                            window.location.reload();
+                        },
+                        error: function(error) {
+                            Swal.fire('Error!', 'Failed to generate PDF. Please try again.', 'error');
+                            console.log(JSON.stringify(error));
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Cancelled",
+                        text: "Amount not refunded.",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+
+        // Download gift certificate PDF
+        function deleteGiftCertificate(PK_GIFT_CERTIFICATE_MASTER) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Deleting this gift certificate will void the payment and credit the refunded amount back to the customer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait while we process your deletion.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteGiftCertificate',
+                            PK_GIFT_CERTIFICATE_MASTER: PK_GIFT_CERTIFICATE_MASTER
+                        },
+                        success: function(data) {
+                            Swal.close();
+                            window.location.reload();
+                        },
+                        error: function(error) {
+                            Swal.fire('Error!', 'Failed to generate PDF. Please try again.', 'error');
+                            console.log(JSON.stringify(error));
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Cancelled",
+                        text: "Certificate not deleted.",
+                        icon: "error"
+                    });
+                }
+            });
         }
 
         // Download gift certificate PDF
