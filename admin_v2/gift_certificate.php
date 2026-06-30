@@ -1,5 +1,22 @@
 <?php
+
+use Square\Environment;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
+use Stripe\Stripe;
+use Stripe\StripeClient;
+
+require_once('../global/authorizenet/autoload.php');
+
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+
+
 require_once('../global/config.php');
+require_once("../global/stripe-php-master/init.php");
+global $db;
+global $db_account;
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -81,345 +98,606 @@ if (empty($_GET['id'])) {
     $ACTIVE = $res->fields['ACTIVE'];
 }
 
-use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
+$payment_gateway_data = getPaymentGatewayData();
 
-use Square\SquareClient;
-use Square\Environment;
-use Stripe\Exception\ApiErrorException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
-use Stripe\StripeClient;
+$PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+$GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
 
-$user_payment_gateway = $db->Execute("SELECT DOA_USER_MASTER.PK_USER_MASTER, DOA_LOCATION.PAYMENT_GATEWAY_TYPE, DOA_LOCATION.SECRET_KEY, DOA_LOCATION.PUBLISHABLE_KEY, DOA_LOCATION.ACCESS_TOKEN, DOA_LOCATION.APP_ID, DOA_LOCATION.LOCATION_ID, DOA_LOCATION.LOGIN_ID, DOA_LOCATION.TRANSACTION_KEY, DOA_LOCATION.AUTHORIZE_CLIENT_KEY FROM DOA_LOCATION INNER JOIN DOA_USER_MASTER ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
-if ($user_payment_gateway->RecordCount() > 0) {
-    $PAYMENT_GATEWAY = $user_payment_gateway->fields['PAYMENT_GATEWAY_TYPE'];
-    $SQUARE_APP_ID = $user_payment_gateway->fields['APP_ID'];
-    $SQUARE_LOCATION_ID = $user_payment_gateway->fields['LOCATION_ID'];
-    $ACCESS_TOKEN = $user_payment_gateway->fields['ACCESS_TOKEN'];
-    $PUBLISHABLE_KEY = $user_payment_gateway->fields['PUBLISHABLE_KEY'];
-    $SECRET_KEY = $user_payment_gateway->fields['SECRET_KEY'];
-    $LOGIN_ID = $user_payment_gateway->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $user_payment_gateway->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $user_payment_gateway->fields['AUTHORIZE_CLIENT_KEY'];
-} else {
-    $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOUNT_MASTER` = '$_SESSION[PK_ACCOUNT_MASTER]'");
-    $PAYMENT_GATEWAY = $account_data->fields['PAYMENT_GATEWAY_TYPE'];
-    $SQUARE_APP_ID             = $account_data->fields['APP_ID'];
-    $SQUARE_LOCATION_ID     = $account_data->fields['LOCATION_ID'];
-    $ACCESS_TOKEN             = $account_data->fields['ACCESS_TOKEN'];
-    $PUBLISHABLE_KEY = $account_data->fields['PUBLISHABLE_KEY'];
-    $SECRET_KEY = $account_data->fields['SECRET_KEY'];
-    $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-    $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
-    $AUTHORIZE_CLIENT_KEY = $account_data->fields['AUTHORIZE_CLIENT_KEY'];
-}
+$SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+$PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
 
-$SQUARE_MODE             = 2;
-if ($SQUARE_MODE == 1)
-    $SQ_URL = "https://connect.squareup.com";
-else if ($SQUARE_MODE == 2)
-    $SQ_URL = "https://connect.squareupsandbox.com";
+$SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+$SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+$SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
 
-if ($SQUARE_MODE == 1)
-    $URL = "https://web.squarecdn.com/v1/square.js";
-else if ($SQUARE_MODE == 2)
-    $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+$AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+$AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+$AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+$MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+$API_KEY                = $payment_gateway_data->fields['API_KEY'];
+$PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 if (!empty($_POST)) {
-    // If UNIQUE_ID is not set in POST and it's a new record, generate one
-    if (empty($_GET['id']) && empty($_POST['UNIQUE_ID'])) {
-        $_POST['UNIQUE_ID'] = generateUniqueGiftCertificateId();
-    }
-
+    $PAYMENT_STATUS = 'Failed';
+    $PAYMENT_INFO = '';
     if ($_POST['PK_PAYMENT_TYPE'] == 1) {
         if ($_POST['PAYMENT_GATEWAY'] == 'Stripe') {
-            require_once("../global/stripe-php-master/init.php");
-            $stripe = new StripeClient($SECRET_KEY);
-            $STRIPE_TOKEN = $_POST['token'];
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
 
-            /*Check the user is already a stripe user or not*/
-            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            if ($user_payment_info_data->RecordCount() > 0) {
-                $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
-            } else {
-                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-                try {
+            $STRIPE_TOKEN = $_POST['token'];
+            $CUSTOMER_PAYMENT_ID = '';
+            try {
+                $stripe = new StripeClient($SECRET_KEY);
+                Stripe::setApiKey($SECRET_KEY);
+
+                if ($customer_payment_info->RecordCount() > 0) {
+                    $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+                } else {
                     $customer = $stripe->customers->create([
                         'email' => $user_master->fields['EMAIL_ID'],
                         'name' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                         'phone' => $user_master->fields['PHONE'],
-                        'description' => $user_master->fields['PK_USER'],
+                        'description' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
                     ]);
-                } catch (ApiErrorException $e) {
-                    pre_r($e->getMessage());
+                    $CUSTOMER_PAYMENT_ID = $customer->id;
+
+                    $STRIPE_DETAILS['PK_USER']  = $user_master->fields['PK_USER'];
+                    $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                    $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
+                    $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
                 }
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                // Invalid parameters
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
 
-                $CUSTOMER_PAYMENT_ID = $customer->id;
-                $STRIPE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
-                $STRIPE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
-                $STRIPE_DETAILS['PAYMENT_TYPE'] = 'Stripe';
-                $STRIPE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $STRIPE_DETAILS, 'insert');
-            }
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\AuthenticationException $e) {
+                // Authentication with Stripe's API failed
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
 
-            $PAYMENT_METHOD_ID = '';
-            if (isset($_POST['PAYMENT_METHOD_ID'])) {
-                $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
-            } else {
-                try {
-                    $payment_method = $stripe->paymentMethods->create([
-                        'type' => 'card',
-                        'card' => [
-                            'token' => $STRIPE_TOKEN
-                        ],
-                    ]);
-                    $stripe->paymentMethods->attach(
-                        $payment_method->id,
-                        ['customer' => $CUSTOMER_PAYMENT_ID]
-                    );
-                    $PAYMENT_METHOD_ID = $payment_method->id;
-                } catch (ApiErrorException $e) {
-                    pre_r($e->getMessage());
-                }
-            }
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Network communication with Stripe failed
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
 
-            $AMOUNT = $_POST['AMOUNT'] * 100;
-            try {
-                Stripe::setApiKey($SECRET_KEY);
-                $payment_intent = PaymentIntent::create([
-                    'amount' => $AMOUNT,
-                    'currency' => 'USD',
-                    'customer' => $CUSTOMER_PAYMENT_ID,
-                    'payment_method' => $PAYMENT_METHOD_ID,
-                ]);
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // General API error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
             } catch (Exception $e) {
-                pre_r($e->getMessage());
+                // Other non-Stripe exceptions
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
             }
 
-            $PAYMENT_INFO = $payment_intent->id;
-        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+            $IS_PAID = 0;
+            $CHARGE_ID = '';
+            $LAST4 = '';
+            try {
+                if (empty($_POST['PAYMENT_METHOD_ID'])) {
+                    $card = $stripe->customers->createSource($CUSTOMER_PAYMENT_ID, ['source' => $STRIPE_TOKEN]);
+                    $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $card->id]);
 
-            require_once("../global/vendor/autoload.php");
+                    $account = \Stripe\Customer::retrieve($CUSTOMER_PAYMENT_ID);
+                    $charge = \Stripe\Charge::create(array(
+                        "amount" => $AMOUNT * 100,
+                        "currency" => "usd",
+                        "description" => "Receipt# " . $RECEIPT_NUMBER,
+                        "customer" => $CUSTOMER_PAYMENT_ID,
+                        "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER,
+                    ));
 
-            $AMOUNT = $_POST['AMOUNT'];
+                    if (!isset($_POST['SAVE_FOR_FUTURE'])) {
+                        $stripe->customers->deleteSource($CUSTOMER_PAYMENT_ID, $charge->payment_method);
+                    }
 
-            $client = new SquareClient([
-                'accessToken' => $ACCESS_TOKEN,
-                'environment' => Environment::SANDBOX,
-            ]);
+                    if ($charge->paid == 1) {
+                        $CHARGE_ID = $charge->id;
+                        $LAST4 = $charge->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
+                } else {
+                    $PAYMENT_METHOD_ID = $_POST['PAYMENT_METHOD_ID'];
+                    $ch = curl_init('https://api.stripe.com/v1/payment_intents');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $PAYMENT_METHOD_ID,
+                        'amount' => $AMOUNT * 100,
+                        'currency' => 'usd',
+                        'confirm' => 'true', // Auto-confirm charge
+                        'off_session' => 'true', // Charge without user interaction
+                        'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER,
+                        'metadata[invoice_num]' => $RECEIPT_NUMBER,
+                        'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                    ]));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Authorization: Bearer ' . $SECRET_KEY,
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
 
-            $user_payment_info_data = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER=DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Square' AND PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-            if ($user_payment_info_data->RecordCount() > 0) {
-                $CUSTOMER_PAYMENT_ID = $user_payment_info_data->fields['CUSTOMER_PAYMENT_ID'];
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+                    $payment_res = json_decode($response);
+
+                    if ($payment_res->charges->data[0]->paid == 1) {
+                        $CHARGE_ID = $payment_res->charges->data[0]->id;
+                        $LAST4 = $payment_res->charges->data[0]->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
+                }
+            } catch (\Stripe\Exception\CardException $e) {
+                // Card declined or related issue
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\RateLimitException $e) {
+                // Too many requests
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                // Invalid parameters
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\AuthenticationException $e) {
+                // Authentication error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Network communication error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // General API error
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            } catch (Exception $e) {
+                // Non-Stripe exceptions
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            }
+
+            register_shutdown_function(function () {
+                $error = error_get_last();
+                if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+                    $error['error'] = "Fatal Error: " . $error['message'];
+                    $error['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+                    db_perform('error_info', $error, 'insert');
+                }
+            });
+
+            if ($IS_PAID == 1) {
+                $PAYMENT_STATUS = 'Success';
+                $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $CHARGE_ID, 'LAST4' => $LAST4];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
             } else {
-                $user_master = $db_account->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+                $PAYMENT_STATUS = 'Failed';
 
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            }
+        } elseif ($_POST['PAYMENT_GATEWAY'] == 'Square') {
+            require_once("../../global/vendor/autoload.php");
+
+            if ($GATEWAY_MODE == 'live') {
+                $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::PRODUCTION,
+                ]);
+            } else {
+                $client = new SquareClient([
+                    'accessToken' => $SQUARE_ACCESS_TOKEN,
+                    'environment' => Environment::SANDBOX,
+                ]);
+            }
+
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            // Get or create Square customer
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
+            if ($customer_payment_info->RecordCount() > 0) {
+                $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+            } else {
                 $address = new \Square\Models\Address();
-                $address->setAddressLine1('500 Electric Ave');
-                $address->setAddressLine2('Suite 600');
-                $address->setLocality('New York');
-                $address->setAdministrativeDistrictLevel1('NY');
-                $address->setPostalCode('10003');
+                $address->setAddressLine1($user_master->fields['ADDRESS']);
+                $address->setAddressLine2($user_master->fields['ADDRESS_1']);
+                $address->setLocality($user_master->fields['CITY']);
+                $address->setAdministrativeDistrictLevel1($user_master->fields['STATE_CODE']);
+                $address->setPostalCode($user_master->fields['ZIP']);
                 $address->setCountry('US');
 
                 $body = new \Square\Models\CreateCustomerRequest();
                 $body->setGivenName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-                $body->setFamilyName('Earhart');
+                $body->setFamilyName($user_master->fields['FIRST_NAME']);
                 $body->setEmailAddress($user_master->fields['EMAIL_ID']);
                 $body->setAddress($address);
                 $body->setPhoneNumber($user_master->fields['PHONE']);
-                $body->setReferenceId('YOUR_REFERENCE_ID');
-                $body->setNote('a customer');
+                $body->setReferenceId('N/A');
+                $body->setNote($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . " from Doable");
 
                 try {
                     $api_response = $client->getCustomersApi()->createCustomer($body);
                 } catch (\Square\Exceptions\ApiException $e) {
-                    pre_r($e->getMessage());
+                    $RETURN_DATA['STATUS'] = 'Failed';
+                    $RETURN_DATA['PAYMENT_INFO'] = $e->getMessage();
+                    echo json_encode($RETURN_DATA);
+                    die();
                 }
 
                 $CUSTOMER_PAYMENT_ID = json_decode($api_response->getBody())->customer->id;
+
                 $SQUARE_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
                 $SQUARE_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                 $SQUARE_DETAILS['PAYMENT_TYPE'] = 'Square';
                 $SQUARE_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
-                db_perform('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
+                db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $SQUARE_DETAILS, 'insert');
             }
 
-            $card = new \Square\Models\Card();
-            $card->setCardholderName($user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME']);
-            $card->setCustomerId($CUSTOMER_PAYMENT_ID);
+            $sourceId = $_POST['token'];
 
-            $body = new \Square\Models\CreateCardRequest(
-                uniqid(),
-                $_POST['sourceId'],
-                $card
-            );
-
-            $api_response = $client->getCardsApi()->createCard($body);
-
-            if ($api_response->isSuccess()) {
-                $result = $api_response->getResult();
+            // Determine which card source to use
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                $CUSTOMER_CARD_ID = $_POST['PAYMENT_METHOD_ID'];
             } else {
-                $errors = $api_response->getErrors();
+                $CUSTOMER_CARD_ID = $sourceId;
+            }
+
+            // Create money object
+            $money = new Money();
+            $money->setAmount($AMOUNT * 100);
+            $money->setCurrency('USD');
+
+            // Create payment request
+            $paymentRequest = new CreatePaymentRequest($CUSTOMER_CARD_ID, uniqid(), $money);
+            $paymentRequest->setCustomerId($CUSTOMER_PAYMENT_ID);
+
+            // Create payment using the Square API
+            $paymentsApi = $client->getPaymentsApi();
+            try {
+                $response = $paymentsApi->createPayment($paymentRequest);
+                if ($response->isSuccess()) {
+                    $paymentId = $response->getResult()->getPayment()->getId();
+                    $last4Digits = $response->getResult()->getPayment()->getCardDetails()->getCard()->getLast4();
+
+                    $PAYMENT_STATUS = 'Success';
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $paymentId, 'LAST4' => $last4Digits];
+                    $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = $response->getErrors()[0]->getDetail();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+            } catch (\Square\Exceptions\ApiException $e) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
             }
         } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
-
-            require_once('../global/authorizenet/vendor/autoload.php');
-
-            $LOGIN_ID = $account_data->fields['LOGIN_ID'];
-            $TRANSACTION_KEY = $account_data->fields['TRANSACTION_KEY'];
+            $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
+            $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
 
             // Product Details
-            $itemName = $_POST['PK_ENROLLMENT_MASTER'];
-            $itemNumber = $_POST['PK_ENROLLMENT_BILLING'];
-            $itemPrice = $_POST['AMOUNT'];
+            $itemName = 0;
+            $itemNumber = 0;
+            $itemPrice = $AMOUNT;
             $currency = "USD";
-
-            // Retrieve card and user info from the submitted form data
-            $name = $_POST['NAME'];
-            $email = $_POST['EMAIL'];
-            $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
-            $card_exp_month = $_POST['EXPIRATION_MONTH'];
-            $card_exp_year = $_POST['EXPIRATION_YEAR'];
-            $card_exp_year_month = $card_exp_year . '-' . $card_exp_month;
-            $card_cvc = $_POST['SECURITY_CODE'];
 
             $refID = 'ref' . time();
 
             $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-            $merchantAuthentication->setName($LOGIN_ID);
-            $merchantAuthentication->setTransactionKey($TRANSACTION_KEY);
+            $merchantAuthentication->setName($AUTHORIZE_LOGIN_ID);
+            $merchantAuthentication->setTransactionKey($AUTHORIZE_TRANSACTION_KEY);
 
-            // Create the payment data for a credit card
-            $creditCard = new AnetAPI\CreditCardType();
-            $creditCard->setCardNumber($card_number);
-            $creditCard->setExpirationDate($card_exp_year_month);
-            $creditCard->setCardCode($card_cvc);
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                // Set payment using saved profile
+                $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                $profileToCharge->setCustomerProfileId($customer_payment_info->fields['CUSTOMER_PAYMENT_ID']);
 
-            // Add the payment data to a paymentType object
-            $paymentOne = new AnetAPI\PaymentType();
-            $paymentOne->setCreditCard($creditCard);
+                $paymentProfile = new AnetAPI\PaymentProfileType();
+                $paymentProfile->setPaymentProfileId($_POST['PAYMENT_METHOD_ID']);
+                $profileToCharge->setPaymentProfile($paymentProfile);
+            } else {
+                // Retrieve card and user info from the submitted form data
+                $name = $_POST['NAME'];
+                $email = $_POST['EMAIL'];
+                $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
+                $card_exp_month = $_POST['EXPIRATION_MONTH'];
+                $card_exp_year = $_POST['EXPIRATION_YEAR'];
+                $card_exp_year_month = $card_exp_year . '-' . sprintf('%02d', $card_exp_month);
+                $card_cvc = $_POST['SECURITY_CODE'];
+
+                // Create the payment data for a credit card
+                $creditCard = new AnetAPI\CreditCardType();
+                $creditCard->setCardNumber($card_number);
+                $creditCard->setExpirationDate($card_exp_year_month);
+                $creditCard->setCardCode($card_cvc);
+
+                // Add the payment data to a paymentType object
+                $paymentOne = new AnetAPI\PaymentType();
+                $paymentOne->setCreditCard($creditCard);
+
+
+                if (isset($_POST['SAVE_FOR_FUTURE'])) {
+                    // Create Payment Profile
+                    $paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+                    $paymentProfile->setCustomerType('individual');
+                    $paymentProfile->setPayment($paymentOne);
+
+                    if ($customer_payment_info->RecordCount() > 0) {
+                        // Existing customer profile
+                        $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+
+                        $createPaymentProfileRequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+                        $createPaymentProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                        $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+                        $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $createPaymentProfileRequest->setValidationMode("liveMode");
+                        else
+                            $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+
+                        $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                        else
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                            $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileId();
+                            //echo "Payment profile created successfully: " . $PAYMENT_PROFILE_ID;
+                        } else {
+                            $PAYMENT_STATUS = 'Failed';
+                            $PAYMENT_INFO = "Error saving card: " . $response->getMessages()->getMessage()[0]->getText();
+
+                            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                            echo json_encode($RETURN_DATA);
+                            die();
+                        }
+                    } else {
+                        $customerProfile = new AnetAPI\CustomerProfileType();
+                        $customerProfile->setMerchantCustomerId("USER_ID_" . $user_master->fields['PK_USER']);
+                        $customerProfile->setEmail($user_master->fields['EMAIL_ID']);
+
+                        $billTo = new AnetAPI\CustomerAddressType();
+                        $billTo->setFirstName($user_master->fields['FIRST_NAME']);
+                        $billTo->setLastName($user_master->fields['LAST_NAME']);
+                        $billTo->setZip($user_master->fields['ZIP']);
+                        $billTo->setCountry("US");
+                        $paymentProfile->setBillTo($billTo);
+
+                        $customerProfile->setPaymentProfiles([$paymentProfile]);
+
+                        $createProfileRequest = new AnetAPI\CreateCustomerProfileRequest();
+                        $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
+                        $createProfileRequest->setProfile($customerProfile);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $createProfileRequest->setValidationMode("liveMode");
+                        else
+                            $createProfileRequest->setValidationMode("testMode");
+
+                        $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
+
+                        if ($GATEWAY_MODE == 'live')
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                        else
+                            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+
+                        if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                            $CUSTOMER_PAYMENT_ID = $response->getCustomerProfileId();
+                            $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
+
+                            // Save the customer profile ID in the database
+                            $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                            $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
+                            $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
+                            $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
+                            db_perform_account('DOA_CUSTOMER_PAYMENT_INFO', $CUSTOMER_PAYMENT_DETAILS, 'insert');
+                        } else {
+                            $PAYMENT_STATUS = 'Failed';
+                            $PAYMENT_INFO = "Error creating customer profile: " . $response->getMessages()->getMessage()[0]->getText();
+
+                            $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                            $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                            echo json_encode($RETURN_DATA);
+                            die();
+                        }
+                    }
+                    $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+                    $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+                }
+            }
 
             // Create order information
             $order = new AnetAPI\OrderType();
             $order->setDescription($itemName);
-
-            // Set the customer's identifying information
-            $customerData = new AnetAPI\CustomerDataType();
-            $customerData->setType("individual");
-            $customerData->setEmail($email);
-
-            $ANET_ENV = 'SANDBOX';
 
             // Create a transaction
             $transactionRequestType = new AnetAPI\TransactionRequestType();
             $transactionRequestType->setTransactionType("authCaptureTransaction");
             $transactionRequestType->setAmount($itemPrice);
             $transactionRequestType->setOrder($order);
-            $transactionRequestType->setPayment($paymentOne);
-            $transactionRequestType->setCustomer($customerData);
+
+            if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                $transactionRequestType->setProfile($profileToCharge);
+            } else {
+                $transactionRequestType->setPayment($paymentOne);
+            }
+
             $request = new AnetAPI\CreateTransactionRequest();
             $request->setMerchantAuthentication($merchantAuthentication);
             $request->setRefId($refID);
             $request->setTransactionRequest($transactionRequestType);
+
             $controller = new AnetController\CreateTransactionController($request);
-            $response = $controller->executeWithApiResponse(constant("\\net\authorize\api\constants\ANetEnvironment::$ANET_ENV"));
 
-            if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
-                $tresponse = $response->getTransactionResponse();
-                $PAYMENT_INFO = $tresponse->getTransId();
-            } else {
-                $PAYMENT_INFO = 'Payment Unsuccessful.';
-            }
-            pre_r($response);
-        }
-    } elseif ($_POST['PK_PAYMENT_TYPE'] == 7) {
-        $AMOUNT = $_POST['AMOUNT'];
-        $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
-        $WALLET_BALANCE = $_POST['WALLET_BALANCE'];
-
-        if ($_POST['PK_PAYMENT_TYPE_REMAINING'] == 1) {
-            require_once("../global/stripe-php-master/init.php");
-            Stripe::setApiKey($_POST['SECRET_KEY']);
-            $STRIPE_TOKEN = $_POST['token'];
-            $REMAINING_AMOUNT = $_POST['REMAINING_AMOUNT'];
             try {
-                $charge = \Stripe\Charge::create([
-                    'amount' => ($REMAINING_AMOUNT * 100),
-                    'currency' => 'usd',
-                    'description' => $_POST['NOTE'],
-                    'source' => $STRIPE_TOKEN
-                ]);
-            } catch (Exception $e) {
-            }
-            if ($charge->paid == 1) {
-                $PAYMENT_INFO = $charge->id;
-            } else {
-                $PAYMENT_INFO = 'Payment Unsuccessful.';
-            }
-        }
+                if ($GATEWAY_MODE == 'live')
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+                else
+                    $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
 
-        $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
-        $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_ID, MISC_ID FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` = " . $_POST['PK_ENROLLMENT_MASTER']);
-        if (empty($enrollment_data->fields['ENROLLMENT_ID'])) {
-            $enrollment_id = $enrollment_data->fields['MISC_ID'];
-        } else {
-            $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
+                if ($response != null && $response->getMessages()->getResultCode() == "Ok") {
+                    $tresponse = $response->getTransactionResponse();
+
+                    if ($tresponse != null && $tresponse->getMessages() != null) {
+                        $PAYMENT_STATUS = 'Success';
+                        $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $tresponse->getTransId(), 'LAST4' => $tresponse->getaccountNumber()];
+                        $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+                    } else {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
+
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        echo json_encode($RETURN_DATA);
+                        die();
+                    }
+                } else {
+                    $PAYMENT_STATUS = 'Failed';
+                    $PAYMENT_INFO = "Transaction Failed";
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    echo json_encode($RETURN_DATA);
+                    die();
+                }
+            } catch (\Square\Exceptions\ApiException $e) {
+                $PAYMENT_STATUS = 'Failed';
+                $PAYMENT_INFO = $e->getMessage();
+
+                $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                echo json_encode($RETURN_DATA);
+                die();
+            }
         }
-        $wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        $DEBIT_AMOUNT = ($WALLET_BALANCE > $AMOUNT) ? $AMOUNT : $WALLET_BALANCE;
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] - $DEBIT_AMOUNT;
-        }
-        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $INSERT_DATA['DEBIT'] = $DEBIT_AMOUNT;
-        $INSERT_DATA['DESCRIPTION'] = "Balance debited for payment of enrollment " . $enrollment_id;
-        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
     } else {
+        $PAYMENT_STATUS = 'Success';
         $PAYMENT_INFO = 'Payment Done.';
     }
 
-    $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    //$GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
-    if (empty($_GET['id'])) {
-        $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-        $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
-        $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
-        $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
-        $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
-        $GIFT_CERTIFICATE_DATA['UNIQUE_ID'] = $_POST['UNIQUE_ID'];
-        $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
-        $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
-        $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
-        $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
-        $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
-        $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
-        $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = (!empty($_POST['CHECK_DATE'])) ? date('Y-m-d', strtotime($_POST['CHECK_DATE'])) : '0000-00-00';
-        $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
-        $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
-        //pre_r($GIFT_CERTIFICATE_DATA);
-        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
-        //echo (db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert'));
-    } else {
-        $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
-        $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
-        $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
-        $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
-        $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
-        $GIFT_CERTIFICATE_DATA['UNIQUE_ID'] = $_POST['UNIQUE_ID'];
-        $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
-        $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
-        db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', "PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
-    }
+    if ($PAYMENT_STATUS == 'Success') {
+        // If UNIQUE_ID is not set in POST and it's a new record, generate one
+        if (empty($_GET['id']) && empty($_POST['UNIQUE_ID'])) {
+            $_POST['UNIQUE_ID'] = generateUniqueGiftCertificateId();
+        }
 
-    header('location:all_gift_certificates.php');
+        $GIFT_CERTIFICATE_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        //$GIFT_CERTIFICATE_DATA['PK_USER_MASTER'] = $_POST['PK_USER_MASTER'];
+        if (empty($_GET['id'])) {
+            $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+            $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
+            $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
+            $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+            $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
+            $GIFT_CERTIFICATE_DATA['UNIQUE_ID'] = $_POST['UNIQUE_ID'];
+            $GIFT_CERTIFICATE_DATA['PK_GIFT_CERTIFICATE_SETUP'] = $_POST['GIFT_CERTIFICATE'];
+            $GIFT_CERTIFICATE_DATA['DATE_OF_PURCHASE'] = date('Y-m-d', strtotime($_POST['DATE_OF_PURCHASE']));
+            $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
+            $GIFT_CERTIFICATE_DATA['AMOUNT'] = $_POST['AMOUNT'];
+            $GIFT_CERTIFICATE_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+            $GIFT_CERTIFICATE_DATA['CHECK_NUMBER'] = $_POST['CHECK_NUMBER'];
+            $GIFT_CERTIFICATE_DATA['CHECK_DATE'] = (!empty($_POST['CHECK_DATE'])) ? date('Y-m-d', strtotime($_POST['CHECK_DATE'])) : '0000-00-00';
+            $GIFT_CERTIFICATE_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+            $GIFT_CERTIFICATE_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $GIFT_CERTIFICATE_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
+            //pre_r($GIFT_CERTIFICATE_DATA);
+            db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+            //echo (db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert'));
+        } else {
+            $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+            $GIFT_CERTIFICATE_DATA['RECIPIENT'] = $_POST['TO'];
+            $GIFT_CERTIFICATE_DATA['SENDER'] = $_POST['FROM'];
+            $GIFT_CERTIFICATE_DATA['EMAIL_ID'] = $_POST['EMAIL_ID'];
+            $GIFT_CERTIFICATE_DATA['PHONE_NO'] = $_POST['PHONE_NO'];
+            $GIFT_CERTIFICATE_DATA['UNIQUE_ID'] = $_POST['UNIQUE_ID'];
+            $GIFT_CERTIFICATE_DATA['GIFT_NOTE'] = $_POST['GIFT_NOTE'];
+            $GIFT_CERTIFICATE_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $GIFT_CERTIFICATE_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            $GIFT_CERTIFICATE_DATA['ACTIVE'] = $_POST['ACTIVE'];
+            db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'update', " PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+        }
+
+        header('location:all_gift_certificates.php');
+    }
 }
 
 ?>
@@ -1071,6 +1349,12 @@ if (!empty($_POST)) {
                                 <?php endif; ?>
                             </div>
                             <div class="card-body">
+                                <?php if ($PAYMENT_STATUS == 'Failed'): ?>
+                                    <div class="alert alert-danger" role="alert">
+                                        <strong>Error!</strong> <?= $PAYMENT_INFO ?>
+                                    </div>
+                                <?php endif; ?>
+
                                 <form class="form-material form-horizontal" id="payment_confirmation_form" action="" method="post" enctype="multipart/form-data">
 
                                     <div class="form-grid">
@@ -1174,7 +1458,7 @@ if (!empty($_POST)) {
                                             <select class="form-control-modern" required name="PK_PAYMENT_TYPE" id="PK_PAYMENT_TYPE" onchange="selectPaymentType(this)" <?= !empty($_GET['id']) ? 'disabled' : '' ?>>
                                                 <option value="">Select Payment Type</option>
                                                 <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE ACTIVE = 1");
+                                                $row = $db->Execute("SELECT * FROM DOA_PAYMENT_TYPE WHERE PK_PAYMENT_TYPE NOT IN (4,5,7,14) AND ACTIVE = 1");
                                                 while (!$row->EOF) { ?>
                                                     <option value="<?php echo $row->fields['PK_PAYMENT_TYPE']; ?>"><?= htmlspecialchars($row->fields['PAYMENT_TYPE']) ?></option>
                                                 <?php $row->MoveNext();
@@ -1383,23 +1667,6 @@ if (!empty($_POST)) {
                     $('#CHECK_NUMBER').prop('required', true);
                     $('#CHECK_DATE').prop('required', true);
                     $('#check_payment').slideDown();
-                    break;
-
-                case 'Wallet':
-                    let PK_USER_MASTER = $('#PK_USER_MASTER').val();
-                    if (PK_USER_MASTER) {
-                        $.ajax({
-                            url: "ajax/wallet_balance.php",
-                            type: 'POST',
-                            data: {
-                                PK_USER_MASTER: PK_USER_MASTER
-                            },
-                            success: function(data) {
-                                $('#wallet_balance_div').html(data);
-                                $('#wallet_balance_div').slideDown();
-                            }
-                        });
-                    }
                     break;
 
                 default:

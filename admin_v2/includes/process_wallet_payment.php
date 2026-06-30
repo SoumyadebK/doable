@@ -1,6 +1,5 @@
 <?php
 
-use Mpdf\Mpdf;
 use Square\Environment;
 use Square\Models\CreatePaymentRequest;
 use Square\Models\Money;
