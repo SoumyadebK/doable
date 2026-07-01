@@ -114,7 +114,6 @@ function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot
 
     // Get all booked slots
     $sql_booked = "
-    SELECT START_TIME, END_TIME FROM (
         SELECT START_TIME, END_TIME
         FROM DOA_APPOINTMENT_MASTER a
         LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER sp
@@ -132,9 +131,7 @@ function getAvailableSlots($db_account, $provider_id, $location_id, $date, $slot
             AND sa.PK_APPOINTMENT_STATUS NOT IN (2,6)
             AND sau.PK_USER = $provider_id
             AND sa.DATE = '$date'
-    ) AS combined_slots
-    ORDER BY START_TIME ASC
-";
+    ";
 
     $booked_data = $db_account->Execute($sql_booked);
     $booked_slots = [];

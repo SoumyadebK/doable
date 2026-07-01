@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-session_start();
+//session_start(); // ← start session ourselves before config.php does
 require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
@@ -35,26 +35,25 @@ if (!$account_id) {
             die("Connection Error");
         }
 
-        $package_services = $db_account->Execute("SELECT DOA_PACKAGE_SERVICE.*, DOA_PACKAGE.* FROM DOA_PACKAGE_SERVICE LEFT JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 AND DOA_PACKAGE_SERVICE.CHATBOT_ENABLED = 1 AND DOA_PACKAGE.IS_DELETED = 0 ");
+        $package_services = $db_account->Execute("SELECT DOA_PACKAGE_SERVICE.*, DOA_PACKAGE.* FROM DOA_PACKAGE_SERVICE LEFT JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 AND DOA_PACKAGE_SERVICE.CHATBOT_ENABLED = 1 AND DOA_PACKAGE.IS_DELETED = 0 ORDER BY DOA_PACKAGE.SORT_ORDER ASC LIMIT 1");
 
         if ($package_services->RecordCount() == 0) {
             $pricing = [
                 [
                     "price_id" => "P001",
-                    "label"    => "3 Classes",
-                    "price"    => "$149",
-                    "note"     => "Great way to get started!"
+                    "label" => "3 Classes",
+                    "price" => "$149",
+                    "note" => "Great way to get started!"
                 ]
             ];
         } else {
             $pricing = [];
             while (!$package_services->EOF) {
-                $num = $package_services->fields['NUMBER_OF_SESSION'];
                 $pricing[] = [
                     'price_id' => $package_services->fields['PK_PACKAGE'],
-                    'label'    => $num . ($num == 1 ? ' Class' : ' Classes'),
-                    'price'    => '$' . number_format($package_services->fields['PRICE_PER_SESSION'], 2),
-                    'note'     => $package_services->fields['SERVICE_DETAILS']
+                    'label' => $package_services->fields['NUMBER_OF_SESSION'] . ' Classes',
+                    'price' => '$' . number_format($package_services->fields['PRICE_PER_SESSION'], 2),
+                    'note' => $package_services->fields['SERVICE_DETAILS']
                 ];
                 $package_services->MoveNext();
             }

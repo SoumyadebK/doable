@@ -6,8 +6,6 @@ require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
 
-
-
 if (!$account_id) {
     $return_data['status'] = 'error';
     $return_data['message'] = 'Account ID is required.';
@@ -25,24 +23,8 @@ if (!$account_id) {
         $locations = [];
         $menu_options = [
             [
-                'label'        => $account_data->fields['OFFERING_LABEL'],
-                'type'         => $account_data->fields['OFFERING_TYPE'],
-                'is_offerings' => true
-            ],
-            [
-                'label'        => 'Pricing',
-                'type'         => 'pricing',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Book Appointment',
-                'type'         => 'booking',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Contact Us',
-                'type'         => 'contact',
-                'is_offerings' => false
+                "label" => $account_data->fields['OFFERING_LABEL'],
+                "type" => $account_data->fields['OFFERING_TYPE']
             ]
         ];
         $location_result = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
