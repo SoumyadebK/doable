@@ -43,8 +43,22 @@ if (!$account_id) {
                 'label'        => 'Contact Us',
                 'type'         => 'contact',
                 'is_offerings' => false
+            ],
+            [
+                'label'        => 'FAQ',
+                'type'         => 'faq',
+                'is_offerings' => false
             ]
         ];
+        $faq = [];
+        $faq_result = $db->Execute("SELECT * FROM DOA_ACCOUNT_FAQ WHERE PK_ACCOUNT_MASTER = " . $account_id);
+        while (!$faq_result->EOF) {
+            $faq[] = [
+                'question' => $faq_result->fields['QUESTION'],
+                'answer' => $faq_result->fields['ANSWER']
+            ];
+            $faq_result->MoveNext();
+        }
         $location_result = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
         while (!$location_result->EOF) {
@@ -73,6 +87,7 @@ if (!$account_id) {
             "languages" => ['en', 'es'],  // ← hardcoded for now
             "locations" => $locations,
             "menu_options" => $menu_options,
+            "faq" => $faq
         ];
 
         $return_data['status'] = 'success';

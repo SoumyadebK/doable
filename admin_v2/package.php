@@ -18,6 +18,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 
 if (empty($_GET['id'])) {
     $PACKAGE_NAME = '';
+    $PACKAGE_DESCRIPTION = '';
     $PK_LOCATION = '';
     $SORT_ORDER = '';
     $EXPIRY_DATE = '';
@@ -32,6 +33,7 @@ if (empty($_GET['id'])) {
     }
 
     $PACKAGE_NAME = $res->fields['PACKAGE_NAME'];
+    $PACKAGE_DESCRIPTION = $res->fields['PACKAGE_DESCRIPTION'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SORT_ORDER = $res->fields['SORT_ORDER'];
     $EXPIRY_DATE = $res->fields['EXPIRY_DATE'];
@@ -812,6 +814,14 @@ if (empty($_GET['id'])) {
                                                     <label class="form-label">Sort Order</label>
                                                     <input type="text" id="SORT_ORDER" name="SORT_ORDER" class="form-control-modern" placeholder="Enter Sort Order" value="<?php echo htmlspecialchars($SORT_ORDER) ?>">
                                                     <div class="form-helper">Numerical order for sorting</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-grid-modern mt-3">
+                                                <div class="form-group-modern">
+                                                    <label class="form-label">Package Description</label>
+                                                    <textarea id="PACKAGE_DESCRIPTION" name="PACKAGE_DESCRIPTION" class="form-control-modern" placeholder="Enter Package Description"><?php echo htmlspecialchars($PACKAGE_DESCRIPTION) ?></textarea>
+                                                    <div class="form-helper">A brief description of this package</div>
                                                 </div>
                                             </div>
 

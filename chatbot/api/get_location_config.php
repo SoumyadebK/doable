@@ -21,7 +21,6 @@ if (!$account_id) {
         echo json_encode($return_data);
         exit;
     } else {
-        $locations = [];
         $menu_options = [
             [
                 'label'        => $account_data->fields['OFFERING_LABEL'],
@@ -42,10 +41,25 @@ if (!$account_id) {
                 'label'        => 'Contact Us',
                 'type'         => 'contact',
                 'is_offerings' => false
+            ],
+            [
+                'label'        => 'FAQ',
+                'type'         => 'faq',
+                'is_offerings' => false
             ]
         ];
+        $faq = [];
+        $faq_result = $db->Execute("SELECT * FROM DOA_ACCOUNT_FAQ WHERE PK_ACCOUNT_MASTER = " . $account_id);
+        while (!$faq_result->EOF) {
+            $faq[] = [
+                'question' => $faq_result->fields['QUESTION'],
+                'answer' => $faq_result->fields['ANSWER']
+            ];
+            $faq_result->MoveNext();
+        }
         $location_result = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.LOCATION_CODE = '$location_id' AND DOA_LOCATION.PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
+        $locations = [];
         while (!$location_result->EOF) {
             $booking_periods = [
                 ($location_result->fields['IS_MORNING'] == 1) ? 'M' : '',
@@ -72,6 +86,7 @@ if (!$account_id) {
             "languages" => ['en', 'es'],  // ← hardcoded for now
             "locations" => $locations,
             "menu_options" => $menu_options,
+            "faq" => $faq
         ];
 
         $return_data['status'] = 'success';
