@@ -34,9 +34,11 @@ if (!$account_id) {
         if ($db_account->error_number) {
             die("Connection Error");
         }
+        $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id . " AND LOCATION_CODE = '$location_id'");
+        $PK_LOCATION = $location_data->fields['PK_LOCATION'] ?? null;
 
         $package = [];
-        $package_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE ACTIVE = 1 AND CHATBOT_ENABLED = 1 AND IS_DELETED = 0 ORDER BY SORT_ORDER ASC");
+        $package_data = $db_account->Execute("SELECT * FROM DOA_PACKAGE WHERE PK_LOCATION = " . $PK_LOCATION . " AND ACTIVE = 1 AND CHATBOT_ENABLED = 1 AND IS_DELETED = 0 ORDER BY SORT_ORDER ASC");
         while (!$package_data->EOF) {
 
             $package_services = $db_account->Execute("SELECT DOA_PACKAGE_SERVICE.*, DOA_SERVICE_MASTER.* FROM DOA_PACKAGE_SERVICE LEFT JOIN DOA_SERVICE_MASTER ON DOA_PACKAGE_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_PACKAGE_SERVICE.ACTIVE = 1 AND DOA_PACKAGE_SERVICE.PK_PACKAGE = " . $package_data->fields['PK_PACKAGE']);
