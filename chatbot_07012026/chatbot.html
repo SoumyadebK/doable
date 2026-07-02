@@ -278,10 +278,7 @@ async function fetchPricing(locationId) {
 async function fetchSlots(locationId, date) {
   const res = await fetch(`${API_BASE}/get_available_slots.php?account=${ACCOUNT_ID}&location=${locationId}&date=${date}`);
   const json = await res.json();
-  if (json.status === 'success') {
-    const slots = json.data.map(s => s.slot_start_time);
-    return slots.sort(); // HH:MM:SS strings sort correctly alphabetically
-  }
+  if (json.status === 'success') return json.data.map(s => s.slot_start_time);
   return [];
 }
 async function postBooking(payload) {
@@ -460,25 +457,17 @@ async function showMenu() {
   await addBotBubble(ACCOUNT_CONFIG.welcome_message, 400);
   await addBotBubble(t('welcome_option'), 900);
   setTimeout(() => {
-    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => {
-      // For offerings menu item use 💃, for others use emojiMap
-      const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
-      return {
-        label: `${emoji} ${opt.label}`,
-        action: () => handleMenu(opt.type)
-      };
-    }));
+    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
+      label: `${emojiMap[opt.type] || ''} ${opt.label}`,
+      action: () => handleMenu(opt.type)
+    })));
   }, 1300);
 }
 
 // ── Menu Handlers ─────────────────────────────────────
 async function handleMenu(type) {
-  // Find if this type is the offerings menu item
-  const offeringsMenuItem = ACCOUNT_CONFIG.menu_options.find(o => o.is_offerings);
-  const isOfferings = offeringsMenuItem && offeringsMenuItem.type === type;
-
-  if (isOfferings) {
-    addUserBubble('💃 ' + (offeringsMenuItem.label || 'Offerings'));
+  if (type === 'dances') {
+    addUserBubble('💃 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'dances')?.label || 'Offerings'));
     await addBotBubble(t('dances_prompt'), 500);
     setTimeout(() => {
       const btns = OFFERINGS.map(o => ({
@@ -509,11 +498,11 @@ async function handleMenu(type) {
     }, 400);
 
   } else if (type === 'booking') {
-    addUserBubble('📅 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
+    addUserBubble('📅 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'booking')?.label || 'Book'));
     startBooking();
 
   } else if (type === 'contact') {
-    addUserBubble('📞 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
+    addUserBubble('📞 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'contact')?.label || 'Contact'));
     showTyping();
     await new Promise(r => setTimeout(r, 600));
     removeTyping();
@@ -537,12 +526,15 @@ async function showOfferingDetail(offering) {
   const card = document.createElement('div');
   card.className = 'info-card';
   card.innerHTML = `<div class="card-title">💃 ${offering.name}</div>
-    ${offering.description}`;
+    ${offering.description}<br>
+    <span style="font-size:12px;color:#64748b;margin-top:4px;display:block">
+      ${offering.number_of_session} ${t('sessions')} — $${parseFloat(offering.price_per_session).toFixed(2)} ${t('per_session')}
+    </span>`;
   await new Promise(r => setTimeout(r, 400));
   addElement(card);
   setTimeout(() => {
     addButtons([
-      { label: t('back_to_offerings'), action: () => { addUserBubble(t('back')); handleMenu(ACCOUNT_CONFIG.menu_options.find(o => o.is_offerings)?.type); } },
+      { label: t('back_to_offerings'), action: () => { addUserBubble(t('back')); handleMenu('dances'); } },
       { label: t('book_now'), action: () => startBooking() },
       { label: t('more_info'), action: () => backToMenu() },
       { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
@@ -789,14 +781,11 @@ async function backToMenu() {
   resetState();
   await addBotBubble(t('welcome_option'), 300);
   setTimeout(() => {
-    const emojiMap = { pricing: '💰', booking: '📅', contact: '📞' };
-    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => {
-      const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
-      return {
-        label: `${emoji} ${opt.label}`,
-        action: () => handleMenu(opt.type)
-      };
-    }));
+    const emojiMap = { dances: '💃', pricing: '💰', booking: '📅', contact: '📞' };
+    addButtons(ACCOUNT_CONFIG.menu_options.map(opt => ({
+      label: `${emojiMap[opt.type] || ''} ${opt.label}`,
+      action: () => handleMenu(opt.type)
+    })));
   }, 700);
 }
 

@@ -7,8 +7,8 @@ require_once("../../global/config.php");
 // Read JSON body
 $input = json_decode(file_get_contents('php://input'), true);
 
-$account_id  = $input['account']  ?? null;
-$location_id = $input['location'] ?? null;
+$account_id  = 1039; //$input['account']  ?? null;
+$location_id = 'Demo'; //$input['location'] ?? null;
 $date        = $input['date']     ?? null;
 $slot        = $input['slot']     ?? null;
 $name        = $input['name']     ?? null;
@@ -162,7 +162,7 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
 {
     global $db;
 
-    $locationData = $db->Execute("SELECT DOA_LOCATION.*, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
+    $locationData = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION . " LIMIT 1");
     $DB_NAME = $locationData->fields['DB_NAME'];
     $db_account = new queryFactory();
     if ($_SERVER['HTTP_HOST'] == 'localhost') {

@@ -5,8 +5,7 @@ header('Access-Control-Allow-Origin: *');
 require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
-
-
+$location_id = $_GET['location'] ?? null;
 
 if (!$account_id) {
     $return_data['status'] = 'error';
@@ -22,7 +21,6 @@ if (!$account_id) {
         echo json_encode($return_data);
         exit;
     } else {
-        $locations = [];
         $menu_options = [
             [
                 'label'        => $account_data->fields['OFFERING_LABEL'],
@@ -59,8 +57,9 @@ if (!$account_id) {
             ];
             $faq_result->MoveNext();
         }
-        $location_result = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
+        $location_result = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.LOCATION_CODE = '$location_id' AND DOA_LOCATION.PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
+        $locations = [];
         while (!$location_result->EOF) {
             $booking_periods = [
                 ($location_result->fields['IS_MORNING'] == 1) ? 'M' : '',
@@ -80,7 +79,7 @@ if (!$account_id) {
 
         $account_config = [
             "account_id" => $account_data->fields['PK_ACCOUNT_MASTER'],
-            "business_name" => $account_data->fields['BUSINESS_NAME'],
+            "business_name" => $location_result->fields['CORPORATION_NAME'],
             "avatar_emoji" => $account_data->fields['AVATAR_EMOJI'],
             "primary_color" => $account_data->fields['PRIMARY_COLOR'],
             "welcome_message" => $account_data->fields['WELCOME_MESSAGE'],

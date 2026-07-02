@@ -6,8 +6,6 @@ require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
 
-
-
 if (!$account_id) {
     $return_data['status'] = 'error';
     $return_data['message'] = 'Account ID is required.';
@@ -25,40 +23,10 @@ if (!$account_id) {
         $locations = [];
         $menu_options = [
             [
-                'label'        => $account_data->fields['OFFERING_LABEL'],
-                'type'         => $account_data->fields['OFFERING_TYPE'],
-                'is_offerings' => true
-            ],
-            [
-                'label'        => 'Pricing',
-                'type'         => 'pricing',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Book Appointment',
-                'type'         => 'booking',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Contact Us',
-                'type'         => 'contact',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'FAQ',
-                'type'         => 'faq',
-                'is_offerings' => false
+                "label" => $account_data->fields['OFFERING_LABEL'],
+                "type" => $account_data->fields['OFFERING_TYPE']
             ]
         ];
-        $faq = [];
-        $faq_result = $db->Execute("SELECT * FROM DOA_ACCOUNT_FAQ WHERE PK_ACCOUNT_MASTER = " . $account_id);
-        while (!$faq_result->EOF) {
-            $faq[] = [
-                'question' => $faq_result->fields['QUESTION'],
-                'answer' => $faq_result->fields['ANSWER']
-            ];
-            $faq_result->MoveNext();
-        }
         $location_result = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
         while (!$location_result->EOF) {
@@ -87,7 +55,6 @@ if (!$account_id) {
             "languages" => ['en', 'es'],  // ← hardcoded for now
             "locations" => $locations,
             "menu_options" => $menu_options,
-            "faq" => $faq
         ];
 
         $return_data['status'] = 'success';

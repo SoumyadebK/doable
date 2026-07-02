@@ -1,8 +1,9 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-session_start();
+//session_start(); // ← start session ourselves before config.php does
 require_once("../../global/config.php");
+
 
 $account_id = $_GET['account'] ?? null;
 
@@ -25,11 +26,12 @@ if (!$account_id) {
         $offerings = [];
         while (!$offerings_data->EOF) {
             $offerings[] = [
-                'name'        => $offerings_data->fields['OFFERING'],
+                'offerings' => $offerings_data->fields['OFFERING'],
                 'description' => $offerings_data->fields['DESCRIPTION'],
             ];
             $offerings_data->MoveNext();
         }
+
 
         $return_data['status'] = 'success';
         $return_data['data'] = $offerings;

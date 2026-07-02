@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOable Concierge</title>
 <style>
+  html, body { margin:0; padding:0; background:transparent; overflow:hidden; }
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  .demo-page { text-align: center; color: #64748b; font-size: 13px; padding: 20px; }
-  .demo-page h2 { font-family: 'Sora', sans-serif; font-size: 24px; color: #1e293b; margin-bottom: 6px; }
-
+    
   /* Launcher */
   #doable-launcher {
     position: fixed; bottom: 28px; right: 28px;
@@ -117,16 +116,15 @@
   .cal-past{color:#cbd5e1;cursor:not-allowed;}
   .cal-avail{color:#1e293b;cursor:pointer;}
   .cal-avail:hover{background:var(--brand,#c8102e);color:#fff;}
+  /* Inside iframe, launcher and window are positioned relative to iframe edges, not fixed to browser */
+  #doable-launcher { position: absolute !important; bottom: 0 !important; right: 0 !important; }
+  #doable-window { position: absolute !important; bottom: 78px !important; right: 0 !important; width: calc(100% - 0px) !important; max-width: 400px; }
+  @media (max-width: 480px) {
+    #doable-window { width: 100vw !important; height: 100vh !important; max-height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; }
+  }
 </style>
 </head>
 <body>
-
-<div class="demo-page">
-  <h2>DOable Concierge</h2>
-  <p>Phase 2 — Live API Build</p>
-  <p style="margin-top:8px;font-size:12px;color:#94a3b8;">Click the button in the bottom-right to open.</p>
-</div>
-
 <button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
   <svg id="icon-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
   <svg id="icon-close" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -148,10 +146,11 @@
     </button>
   </div>
 </div>
-
 <script>
 // ── API Config ────────────────────────────────────────
-const ACCOUNT_ID = '1010';
+// Read account ID from this iframe's own URL query string
+const urlParams = new URLSearchParams(window.location.search);
+const ACCOUNT_ID = urlParams.get('account') || '1010';
 const API_BASE = 'https://doable.net/chatbot/api';
 
 // ── Translations ──────────────────────────────────────
@@ -871,6 +870,8 @@ function toggleChat() {
   $('icon-chat').style.display  = chatOpen ? 'none'  : 'block';
   $('icon-close').style.display = chatOpen ? 'block' : 'none';
   if (chatOpen && !started) { started = true; startFlow(); }
+  // Tell the parent page to resize the iframe to show the full chat window
+  window.parent.postMessage({ type: 'doable-toggle', open: chatOpen }, '*');
 }
 
 // Auto-open: 4s desktop, 10s mobile, once per session

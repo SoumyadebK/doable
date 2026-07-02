@@ -15,6 +15,9 @@ $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOU
             <a class="nav-link sidebar-link <?= $current_page == 'concierge_settings.php' ? 'active' : '' ?>" href="concierge_settings.php">
                 <i class="bi bi-gear"></i> Concierge Settings
             </a>
+            <a class="nav-link sidebar-link <?= $current_page == 'faq_settings.php' ? 'active' : '' ?>" href="faq_settings.php">
+                <i class="bi bi-question-circle"></i> FAQ Settings
+            </a>
         <?php } ?>
         <a class="nav-link sidebar-link <?= $current_page == 'all_locations.php' || $current_page == 'location.php' ? 'active' : '' ?>" href="all_locations.php">
             <i class="bi bi-geo-alt"></i> Locations
