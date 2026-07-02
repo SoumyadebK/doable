@@ -129,6 +129,7 @@ if (empty($_GET['id'])) {
     $PK_USER_EVENING = '';
     $IS_NIGHT = 0;
     $PK_USER_NIGHT = '';
+    $CONCIERGE_SCRIPT = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -213,6 +214,7 @@ if (empty($_GET['id'])) {
     $PK_USER_EVENING = $res->fields['PK_USER_EVENING'];
     $IS_NIGHT = $res->fields['IS_NIGHT'];
     $PK_USER_NIGHT = $res->fields['PK_USER_NIGHT'];
+    $CONCIERGE_SCRIPT = $res->fields['CONCIERGE_SCRIPT'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -292,6 +294,7 @@ if (!empty($_POST)) {
             'PK_USER_EVENING' => $PK_USER_EVENING,
             'IS_NIGHT' => $IS_NIGHT,
             'PK_USER_NIGHT' => $PK_USER_NIGHT,
+            'CONCIERGE_SCRIPT' => $_POST['CONCIERGE_SCRIPT'],
             'EDITED_ON' => date('Y-m-d H:i:s'),
             'EDITED_BY' => $_SESSION['PK_USER']
         );
@@ -2280,7 +2283,6 @@ if (!empty($_POST)) {
 
                                                 <!-- Service Providers Grid -->
                                                 <div class="service-providers-grid">
-
                                                     <!-- Morning -->
                                                     <div class="provider-group">
                                                         <label class="provider-label">Morning</label>
@@ -2344,7 +2346,13 @@ if (!empty($_POST)) {
                                                             } ?>
                                                         </select>
                                                     </div>
+                                                </div>
 
+                                                <div class="form-grid-modern mt-3">
+                                                    <div class="form-group-modern">
+                                                        <label class="form-label">Concierge Script</label>
+                                                        <input type="text" class="form-control-modern" name="CONCIERGE_SCRIPT" value="<?= htmlspecialchars($CONCIERGE_SCRIPT) ?>">
+                                                    </div>
                                                 </div>
 
                                                 <div class="form-actions">
