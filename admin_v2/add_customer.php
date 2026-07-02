@@ -1022,6 +1022,13 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 
                                                     <div class="col-md-6">
                                                         <div class="form-group">
+                                                            <label class="form-label">Customer ID <span class="required-star">*</span></label>
+                                                            <input type="text" class="form-control" name="CUSTOMER_ID" placeholder="Enter User Name" required>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
                                                             <label class="form-label">Email <span class="required-star">*</span></label>
                                                             <input type="email" class="form-control" name="EMAIL_ID" placeholder="Enter Email Address" required>
                                                         </div>
@@ -1093,12 +1100,12 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-12">
+                                                    <!-- <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label class="form-label">Notes</label>
                                                             <textarea class="form-control" name="NOTES" rows="3" placeholder="Enter any notes about this customer"></textarea>
                                                         </div>
-                                                    </div>
+                                                    </div> -->
                                                 </div>
                                             </div>
 
