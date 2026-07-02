@@ -509,11 +509,6 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                                             <i class="bi bi-arrow-repeat"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <?php if (!$is_redeemed && (($PK_PAYMENT_TYPE == 1 && $IS_REFUNDED == 1) || ($PK_PAYMENT_TYPE != 1))): ?>
-                                                        <a href="javascript:;" onclick="deleteGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Delete">
-                                                            <i class="bi bi-trash"></i>
-                                                        </a>
-                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>

@@ -1235,13 +1235,13 @@ if (!empty($_POST)) {
                                         </div>
 
                                         <div class="form-group-modern">
-                                            <label class="form-label">To <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" name="TO" id="TO" value="<?= htmlspecialchars($TO) ?>" placeholder="Enter First Name" required>
+                                            <label class="form-label">To First Name <span class="required">*</span></label>
+                                            <input type="text" class="form-control-modern" name="TO" id="TO" value="<?= htmlspecialchars($TO) ?>" placeholder="Enter To First Name" required>
                                         </div>
 
                                         <div class="form-group-modern">
-                                            <label class="form-label">Last Name </label>
-                                            <input type="text" class="form-control-modern" name="LAST_NAME" id="LAST_NAME" value="<?= htmlspecialchars($LAST_NAME) ?>" placeholder="Enter Last Name" required>
+                                            <label class="form-label">To Last Name</label>
+                                            <input type="text" class="form-control-modern" name="LAST_NAME" id="LAST_NAME" value="<?= htmlspecialchars($LAST_NAME) ?>" placeholder="Enter To Last Name">
                                         </div>
 
                                         <div class="form-group-modern">
