@@ -73,6 +73,23 @@ $PARTNER_DOB = '';
 $INACTIVE_BY_ADMIN = '';
 $CREATED_ON = '';
 
+// If CREATE mode from gift certificate, pre-populate with GET parameters
+if ($IS_CREATE_MODE) {
+    $FIRST_NAME = isset($_GET['FIRST_NAME']) ? urldecode($_GET['FIRST_NAME']) : '';
+    $LAST_NAME = isset($_GET['LAST_NAME']) ? urldecode($_GET['LAST_NAME']) : '';
+    $EMAIL_ID = isset($_GET['EMAIL_ID']) ? urldecode($_GET['EMAIL_ID']) : '';
+    $PHONE = isset($_GET['PHONE']) ? urldecode($_GET['PHONE']) : '';
+    $NOTES = isset($_GET['NOTES']) ? urldecode($_GET['NOTES']) : 'Created from Gift Certificate';
+    $PK_LOCATION_FROM_GC = isset($_GET['PK_LOCATION']) ? intval($_GET['PK_LOCATION']) : 0;
+    $PK_GIFT_CERTIFICATE_MASTER = isset($_GET['PK_GIFT_CERTIFICATE_MASTER']) ? intval($_GET['PK_GIFT_CERTIFICATE_MASTER']) : 0;
+    $GC_AMOUNT = isset($_GET['AMOUNT']) ? floatval($_GET['AMOUNT']) : 0;
+
+    // If notes is empty, set a default
+    if (empty($NOTES)) {
+        $NOTES = "Created from Gift Certificate #" . $PK_GIFT_CERTIFICATE_MASTER . " (Amount: $" . number_format($GC_AMOUNT, 2) . ")";
+    }
+}
+
 // If NOT create mode, load existing data
 if (!$IS_CREATE_MODE && !empty($_GET['id'])) {
     $res = $db->Execute("SELECT * FROM DOA_USERS WHERE IS_DELETED = 0 AND DOA_USERS.PK_USER = '$_GET[id]'");
@@ -190,7 +207,8 @@ if ($PK_USER_MASTER > 0) {
 $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = '" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
 $location_options = '';
 while (!$location_data->EOF) {
-    $location_options .= '<option value="' . $location_data->fields['PK_LOCATION'] . '">' . $location_data->fields['LOCATION_NAME'] . '</option>';
+    $selected = ($IS_CREATE_MODE && $PK_LOCATION_FROM_GC > 0 && $PK_LOCATION_FROM_GC == $location_data->fields['PK_LOCATION']) ? 'selected' : '';
+    $location_options .= '<option value="' . $location_data->fields['PK_LOCATION'] . '" ' . $selected . '>' . $location_data->fields['LOCATION_NAME'] . '</option>';
     $location_data->MoveNext();
 }
 
@@ -935,6 +953,27 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
         background-color: #dc3545;
         border-color: #dc3545;
     }
+
+    .gc-info-banner {
+        background: #f0f9ff;
+        border: 1px solid #39b54a;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .gc-info-banner i {
+        color: #39b54a;
+        font-size: 1.2rem;
+    }
+
+    .gc-info-banner .gc-amount {
+        font-weight: 700;
+        color: #0d6efd;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -990,6 +1029,8 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                 <!-- CREATE MODE - Form for new customer -->
                                 <form id="add_customer_form" method="post" action="ajax/AjaxFunctions.php" enctype="multipart/form-data">
                                     <input type="hidden" name="FUNCTION_NAME" value="addNewCustomer">
+                                    <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
+                                    <input type="hidden" name="PK_GIFT_CERTIFICATE_MASTER" id="PK_GIFT_CERTIFICATE_MASTER" value="<?= isset($_GET['PK_GIFT_CERTIFICATE_MASTER']) ? intval($_GET['PK_GIFT_CERTIFICATE_MASTER']) : 0 ?>">
                                 <?php } ?>
 
                                 <!-- Tab 1: Profile -->
@@ -997,6 +1038,20 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                     <?php if ($IS_CREATE_MODE) { ?>
                                         <!-- CREATE MODE: Editable fields -->
                                         <div class="col-md-12 pt-4">
+                                            <!-- Gift Certificate Info Banner -->
+                                            <?php if ($PK_GIFT_CERTIFICATE_MASTER > 0): ?>
+                                                <div class="gc-info-banner">
+                                                    <i class="bi bi-gift-fill"></i>
+                                                    <div>
+                                                        <strong>Creating customer from Gift Certificate</strong>
+                                                        <!-- <span class="mx-2">|</span>
+                                                        Certificate #<?= $PK_GIFT_CERTIFICATE_MASTER ?>
+                                                        <span class="mx-2">|</span>
+                                                        Amount: <span class="gc-amount">$<?= number_format($GC_AMOUNT, 2) ?></span> -->
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+
                                             <!-- Personal Information -->
                                             <div class="profile-card">
                                                 <div class="d-flex justify-content-between border-bottom align-items-center">
@@ -1010,44 +1065,20 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">First Name <span class="required-star">*</span></label>
-                                                            <input type="text" class="form-control" name="FIRST_NAME" placeholder="Enter First Name" required>
+                                                            <input type="text" class="form-control" name="FIRST_NAME" placeholder="Enter First Name" value="<?= htmlspecialchars($FIRST_NAME) ?>" required>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label class="form-label">Last Name <span class="required-star">*</span></label>
-                                                            <input type="text" class="form-control" name="LAST_NAME" placeholder="Enter Last Name" required>
+                                                            <input type="text" class="form-control" name="LAST_NAME" placeholder="Enter Last Name" value="<?= htmlspecialchars($LAST_NAME) ?>" required>
                                                         </div>
                                                     </div>
 
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label class="form-label">Email <span class="required-star">*</span></label>
-                                                            <input type="email" class="form-control" name="EMAIL_ID" placeholder="Enter Email Address" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Phone <span class="required-star">*</span></label>
-                                                            <input type="text" class="form-control format_phone_number" name="PHONE" placeholder="(xxx) xxx-xxxx" required>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Gender</label>
-                                                            <select class="form-control" name="GENDER">
-                                                                <option value="">Select Gender</option>
-                                                                <option value="Male">Male</option>
-                                                                <option value="Female">Female</option>
-                                                                <option value="Other">Other</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Date of Birth</label>
-                                                            <input type="text" class="form-control datepicker-past" name="DOB" placeholder="mm/dd/yyyy" autocomplete="off">
+                                                            <label class="form-label">Customer ID <span class="required-star">*</span></label>
+                                                            <input type="text" class="form-control" name="CUSTOMER_ID" placeholder="Enter User Name" required>
                                                         </div>
                                                     </div>
 
@@ -1066,6 +1097,19 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                             <select class="form-control" name="PK_LOCATIONS[]" id="PK_LOCATIONS_MULTIPLE" multiple>
                                                                 <?= $location_options ?>
                                                             </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Phone <span class="required-star">*</span></label>
+                                                            <input type="text" class="form-control format_phone_number" name="PHONE" placeholder="(xxx) xxx-xxxx" value="<?= htmlspecialchars($PHONE) ?>" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Email <span class="required-star">*</span></label>
+                                                            <input type="email" class="form-control" name="EMAIL_ID" placeholder="Enter Email Address" value="<?= htmlspecialchars($EMAIL_ID) ?>" required>
                                                         </div>
                                                     </div>
 
@@ -1093,69 +1137,28 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-12">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Notes</label>
-                                                            <textarea class="form-control" name="NOTES" rows="3" placeholder="Enter any notes about this customer"></textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Address Information -->
-                                            <div class="profile-card">
-                                                <div class="d-flex justify-content-between border-bottom align-items-center">
-                                                    <div>
-                                                        <div class="section-title">Address Information</div>
-                                                        <div class="section-desc">Enter the customer's address details</div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row mt-3">
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label class="form-label">Address</label>
-                                                            <input type="text" class="form-control" name="ADDRESS" placeholder="Enter Street Address">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Apt/Ste</label>
-                                                            <input type="text" class="form-control" name="ADDRESS_1" placeholder="Enter Apartment or Suite">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Country</label>
-                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
-                                                                <option>Select Country</option>
-                                                                <?php
-                                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                                while (!$row->EOF) { ?>
-                                                                    <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
-                                                                <?php $row->MoveNext();
-                                                                } ?>
+                                                            <label class="form-label">Gender</label>
+                                                            <select class="form-control" name="GENDER">
+                                                                <option value="">Select Gender</option>
+                                                                <option value="Male">Male</option>
+                                                                <option value="Female">Female</option>
+                                                                <option value="Other">Other</option>
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label class="form-label">State</label>
-                                                            <div id="State_div"></div>
+                                                            <label class="form-label">Date of Birth</label>
+                                                            <input type="text" class="form-control datepicker-past" name="DOB" placeholder="mm/dd/yyyy" autocomplete="off">
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
-                                                            <label class="form-label">City</label>
-                                                            <input type="text" class="form-control" name="CITY" placeholder="Enter City">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="form-label">Postal / Zip Code</label>
-                                                            <input type="text" class="form-control" name="ZIP" placeholder="Enter Postal Code">
+                                                            <label class="form-label">Notes</label>
+                                                            <textarea class="form-control" name="NOTES" rows="3" placeholder="Enter any notes about this customer"><?= htmlspecialchars($NOTES) ?></textarea>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1215,6 +1218,65 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                                         <div class="form-group">
                                                             <label class="form-label">Partner's Date of Birth</label>
                                                             <input type="text" class="form-control datepicker-past" name="PARTNER_DOB" placeholder="mm/dd/yyyy" autocomplete="off">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Address Information -->
+                                            <div class="profile-card">
+                                                <div class="d-flex justify-content-between border-bottom align-items-center">
+                                                    <div>
+                                                        <div class="section-title">Address Information</div>
+                                                        <div class="section-desc">Enter the customer's address details</div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Address</label>
+                                                            <input type="text" class="form-control" name="ADDRESS" placeholder="Enter Street Address">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Apt/Ste</label>
+                                                            <input type="text" class="form-control" name="ADDRESS_1" placeholder="Enter Apartment or Suite">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Country <span class="required-star">*</span></label>
+                                                            <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                                <option>Select Country</option>
+                                                                <?php
+                                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                                while (!$row->EOF) { ?>
+                                                                    <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
+                                                                <?php $row->MoveNext();
+                                                                } ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">State<span class="required-star">*</span></label>
+                                                            <div id="State_div"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">City</label>
+                                                            <input type="text" class="form-control" name="CITY" placeholder="Enter City">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Postal / Zip Code</label>
+                                                            <input type="text" class="form-control" name="ZIP" placeholder="Enter Postal Code">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2769,52 +2831,183 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
     });
 
     // ============================================
-    // Form Submission
+    // Form Submission with Duplicate Validation
     // ============================================
     $(document).on('submit', '#add_customer_form', function(event) {
         event.preventDefault();
 
         var submitBtn = $(this).find('button[type="submit"]');
         var originalText = submitBtn.html();
-        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Creating...').prop(
-            'disabled', true);
 
-        var formData = new FormData(this);
+        // Get values to validate
+        var phone = $(this).find('input[name="PHONE"]').val().trim();
+        var email = $(this).find('input[name="EMAIL_ID"]').val().trim();
+        var customerId = $(this).find('input[name="CUSTOMER_ID"]').val().trim();
+        var firstName = $(this).find('input[name="FIRST_NAME"]').val().trim();
+        var lastName = $(this).find('input[name="LAST_NAME"]').val().trim();
+        var pkLocation = $(this).find('select[name="PK_LOCATION"]').val();
 
+        // Basic validation
+        if (!firstName) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "First Name is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        if (!lastName) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Last Name is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        if (!customerId) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Customer ID is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        if (!pkLocation) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Primary Location is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        if (!phone) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Phone number is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        if (!email) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Email address is required.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        // Validate email format
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Swal.fire({
+                title: "Validation Error!",
+                text: "Please enter a valid email address.",
+                icon: "warning",
+                timer: 3000,
+            });
+            return false;
+        }
+
+        // Show loading state
+        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Checking...').prop('disabled', true);
+
+        // First check for duplicates
         $.ajax({
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
+            data: {
+                FUNCTION_NAME: 'checkCustomerDuplicates',
+                PHONE: phone,
+                EMAIL: email,
+                CUSTOMER_ID: customerId
+            },
             dataType: 'json',
             success: function(response) {
-                submitBtn.html(originalText).prop('disabled', false);
+                if (response.status === 'error') {
+                    submitBtn.html(originalText).prop('disabled', false);
 
-                if (response.status === 'success') {
+                    var errorMessage = '';
+                    if (response.duplicate_phone) {
+                        errorMessage += 'Phone number <strong>"' + phone + '"</strong> is already registered. <br>';
+                    }
+                    if (response.duplicate_email) {
+                        errorMessage += 'Email <strong>"' + email + '"</strong> is already registered. <br>';
+                    }
+                    if (response.duplicate_customer_id) {
+                        errorMessage += 'Customer ID <strong>"' + customerId + '"</strong> is already in use.<br>';
+                    }
+
                     Swal.fire({
-                        title: "Success!",
-                        text: "Customer created successfully.",
-                        icon: "success",
-                        timer: 2000,
-                    }).then(() => {
-                        window.location.href = 'customer.php?id=' + response.PK_USER +
-                            '&master_id=' + response.PK_USER_MASTER;
-                    });
-                } else {
-                    Swal.fire({
-                        title: "Error!",
-                        text: response.message || "Something went wrong. Please try again.",
+                        title: "Duplicate Found!",
+                        html: errorMessage + '<br>Please use different values.',
                         icon: "error",
-                        timer: 3000,
+                        confirmButtonText: "OK"
                     });
+                    return false;
                 }
+
+                // No duplicates found, proceed with submission
+                submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Creating...').prop('disabled', true);
+
+                var formData = new FormData($('#add_customer_form')[0]);
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(submitResponse) {
+                        submitBtn.html(originalText).prop('disabled', false);
+
+                        if (submitResponse.status === 'success') {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Customer created successfully.",
+                                icon: "success",
+                                timer: 2000,
+                            }).then(() => {
+                                window.location.href = 'customer.php?id=' + submitResponse.PK_USER +
+                                    '&master_id=' + submitResponse.PK_USER_MASTER;
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: submitResponse.message || "Something went wrong. Please try again.",
+                                icon: "error",
+                                timer: 3000,
+                            });
+                        }
+                    },
+                    error: function() {
+                        submitBtn.html(originalText).prop('disabled', false);
+                        Swal.fire({
+                            title: "Error!",
+                            text: "An error occurred while creating the customer. Please try again.",
+                            icon: "error",
+                            timer: 3000,
+                        });
+                    }
+                });
             },
             error: function() {
                 submitBtn.html(originalText).prop('disabled', false);
                 Swal.fire({
                     title: "Error!",
-                    text: "An error occurred while creating the customer. Please try again.",
+                    text: "Could not validate duplicate entries. Please try again.",
                     icon: "error",
                     timer: 3000,
                 });

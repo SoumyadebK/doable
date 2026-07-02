@@ -1102,6 +1102,39 @@ function saveProfileData($RESPONSE_DATA)
         $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
     }
 
+    // Mark gift certificate as redeemed if provided
+    if (isset($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']) && $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] > 0) {
+        $pk_gift_certificate_master = intval($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+
+        // Check if the gift certificate exists and is not already redeemed
+        $check_query = "SELECT IS_REDEEMED FROM DOA_GIFT_CERTIFICATE_MASTER 
+                    WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master 
+                    AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'];
+        $check_result = $db_account->Execute($check_query);
+
+        if ($check_result->RecordCount() > 0 && $check_result->fields['IS_REDEEMED'] == 0) {
+            // Mark as redeemed
+            $update_query = "UPDATE DOA_GIFT_CERTIFICATE_MASTER 
+                         SET IS_REDEEMED = 1, 
+                             REDEEMED_DATE = NOW() 
+                         WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master";
+            $db_account->Execute($update_query);
+
+            // Add a comment to the customer about the gift certificate redemption
+            // $comment_data = [
+            //     'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
+            //     'COMMENT' => "Gift Certificate #" . $pk_gift_certificate_master . " redeemed and converted to customer profile.",
+            //     'COMMENT_DATE' => date("Y-m-d"),
+            //     'FOR_PK_USER' => $PK_USER,
+            //     'BY_PK_USER' => $_SESSION['PK_USER'],
+            //     'ACTIVE' => 1,
+            //     'CREATED_BY' => $_SESSION['PK_USER'],
+            //     'CREATED_ON' => date("Y-m-d H:i")
+            // ];
+            // db_perform_account('DOA_COMMENT', $comment_data, 'insert');
+        }
+    }
+
     //$db->Execute("UPDATE `DOA_ACCOUNT_MASTER` SET IS_NEW=0 WHERE `PK_ACCOUNT_MASTER` = " . $_SESSION['PK_ACCOUNT_MASTER']);
 
     $return_data['PK_USER'] = $PK_USER;
@@ -3613,6 +3646,68 @@ function getPaymentDueCount($RESPONSE_DATA)
     }
 }
 
+function checkCustomerDuplicates($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+
+    $phone = isset($RESPONSE_DATA['PHONE']) ? $RESPONSE_DATA['PHONE'] : '';
+    $email = isset($RESPONSE_DATA['EMAIL']) ? $RESPONSE_DATA['EMAIL'] : '';
+    $customerId = isset($RESPONSE_DATA['CUSTOMER_ID']) ? $RESPONSE_DATA['CUSTOMER_ID'] : '';
+
+    $response = ['status' => 'success'];
+
+    // Remove non-numeric characters from phone for comparison
+    $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+    // Check for duplicate phone
+    if (!empty($cleanPhone)) {
+        // Check in DOA_USERS table (master database)
+        $phoneCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME, PHONE, EMAIL_ID 
+                                    FROM DOA_USERS 
+                                    WHERE REPLACE(REPLACE(REPLACE(REPLACE(PHONE, '(', ''), ')', ''), '-', ''), ' ', '') LIKE '%$cleanPhone%' 
+                                    AND IS_DELETED = 0");
+
+        if ($phoneCheck->RecordCount() > 0) {
+            $response['status'] = 'error';
+            $response['duplicate_phone'] = true;
+            $response['phone_owner'] = trim($phoneCheck->fields['FIRST_NAME'] . ' ' . $phoneCheck->fields['LAST_NAME']);
+            $response['phone_owner_email'] = $phoneCheck->fields['EMAIL_ID'];
+        }
+    }
+
+    // Check for duplicate email
+    if (!empty($email)) {
+        $emailCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME, EMAIL_ID, PHONE 
+                                    FROM DOA_USERS 
+                                    WHERE EMAIL_ID = '$email' 
+                                    AND IS_DELETED = 0");
+
+        if ($emailCheck->RecordCount() > 0) {
+            $response['status'] = 'error';
+            $response['duplicate_email'] = true;
+            $response['email_owner'] = trim($emailCheck->fields['FIRST_NAME'] . ' ' . $emailCheck->fields['LAST_NAME']);
+            $response['email_owner_phone'] = $emailCheck->fields['PHONE'];
+        }
+    }
+
+    // Check for duplicate Customer ID
+    if (!empty($customerId)) {
+        $customerIdCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME 
+                                         FROM DOA_USERS 
+                                         WHERE USER_ID = '$customerId' 
+                                         AND IS_DELETED = 0");
+
+        if ($customerIdCheck->RecordCount() > 0) {
+            $response['status'] = 'error';
+            $response['duplicate_customer_id'] = true;
+            $response['customer_id_owner'] = trim($customerIdCheck->fields['FIRST_NAME'] . ' ' . $customerIdCheck->fields['LAST_NAME']);
+        }
+    }
+
+    echo json_encode($response);
+}
+
 function addNewCustomer($RESPONSE_DATA)
 {
     global $db;
@@ -3821,6 +3916,43 @@ function addNewCustomer($RESPONSE_DATA)
             $TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
             $TAG_DATA['PK_TAG'] = $RESPONSE_DATA['PK_TAGS'];
             db_perform_account('DOA_USER_TAG', $TAG_DATA, 'insert');
+        }
+
+        if (isset($RESPONSE_DATA['PK_LEADS']) && $RESPONSE_DATA['PK_LEADS'] > 0) {
+            $db->Execute("DELETE FROM `DOA_LEADS` WHERE `PK_LEADS` = " . $RESPONSE_DATA['PK_LEADS']);
+        }
+
+        // Mark gift certificate as redeemed if provided
+        if (isset($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']) && $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] > 0) {
+            $pk_gift_certificate_master = intval($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+
+            // Check if the gift certificate exists and is not already redeemed
+            $check_query = "SELECT IS_REDEEMED FROM DOA_GIFT_CERTIFICATE_MASTER 
+                    WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master 
+                    AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'];
+            $check_result = $db_account->Execute($check_query);
+
+            if ($check_result->RecordCount() > 0 && $check_result->fields['IS_REDEEMED'] == 0) {
+                // Mark as redeemed
+                $update_query = "UPDATE DOA_GIFT_CERTIFICATE_MASTER 
+                         SET IS_REDEEMED = 1, 
+                             REDEEMED_DATE = NOW() 
+                         WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master";
+                $db_account->Execute($update_query);
+
+                // Add a comment to the customer about the gift certificate redemption
+                // $comment_data = [
+                //     'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
+                //     'COMMENT' => "Gift Certificate #" . $pk_gift_certificate_master . " redeemed and converted to customer profile.",
+                //     'COMMENT_DATE' => date("Y-m-d"),
+                //     'FOR_PK_USER' => $PK_USER,
+                //     'BY_PK_USER' => $_SESSION['PK_USER'],
+                //     'ACTIVE' => 1,
+                //     'CREATED_BY' => $_SESSION['PK_USER'],
+                //     'CREATED_ON' => date("Y-m-d H:i")
+                // ];
+                // db_perform_account('DOA_COMMENT', $comment_data, 'insert');
+            }
         }
 
         $response = [
