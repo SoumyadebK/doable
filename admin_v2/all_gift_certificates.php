@@ -492,7 +492,7 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                             <td>
                                                 <div class="action-icons">
                                                     <?php if (!$is_redeemed && $is_active && $IS_REFUNDED == 0): ?>
-                                                        <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>', <?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Create Customer">
+                                                        <a href="javascript:;" onclick="createCustomer('<?= addslashes($pk_location) ?>', '<?= addslashes($to) ?>', '<?= addslashes($last_name) ?>', '<?= addslashes($email_id) ?>', '<?= addslashes($phone_no) ?>', '<?= addslashes($amount) ?>', '<?= addslashes($gift_note) ?>', <?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Create Customer">
                                                             <i class="bi bi-person-add"></i>
                                                         </a>
                                                     <?php endif; ?>
@@ -757,18 +757,18 @@ $redeemed_count = $redeemed_count_result->fields['total'];
         }
 
         // Create customer and mark gift certificate as redeemed
-        function createCustomer(pk_location, name, email, phone, amount, note, pk_gift_certificate_master) {
+        function createCustomer(pk_location, first_name, last_name, email, phone, amount, note, pk_gift_certificate_master) {
             const params = new URLSearchParams({
                 PK_LOCATION: pk_location || '',
-                FIRST_NAME: name || '',
-                LAST_NAME: '',
+                FIRST_NAME: first_name || '',
+                LAST_NAME: last_name || '',
                 EMAIL_ID: email || '',
                 PHONE: phone || '',
                 AMOUNT: amount || '',
                 NOTES: note || 'Created from Gift Certificate',
                 PK_GIFT_CERTIFICATE_MASTER: pk_gift_certificate_master || ''
             });
-            window.location.href = `../admin/customer.php?${params.toString()}`;
+            window.location.href = `../admin_v2/add_customer.php?action=create&${params.toString()}`;
         }
     </script>
 

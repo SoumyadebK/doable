@@ -75,7 +75,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                             </div>
                         </div>
 
-                        <a class="btn-new" href="../admin/customer.php">
+                        <a class="btn-new" href="../admin_v2/add_customer.php?action=create">
                             + Create New Customer
                         </a>
                     </div>
