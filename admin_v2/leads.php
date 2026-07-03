@@ -616,7 +616,7 @@ $lead_statuses = $db->Execute("SELECT * FROM `DOA_LEAD_STATUS` WHERE ACTIVE = 1 
                 return;
             }
 
-            window.location.href = `../admin_v2/add_customer.php?action=create&PK_LOCATION=${encodeURIComponent(PK_LOCATION)}&FIRST_NAME=${encodeURIComponent(FIRST_NAME)}&LAST_NAME=${encodeURIComponent(LAST_NAME)}&PHONE=${encodeURIComponent(PHONE)}&EMAIL_ID=${encodeURIComponent(EMAIL_ID)}&PK_LEADS=${PK_LEADS}&NOTES=${encodeURIComponent(NOTES)}`;
+            window.location.href = `../admin/customer.php?PK_LOCATION=${encodeURIComponent(PK_LOCATION)}&FIRST_NAME=${encodeURIComponent(FIRST_NAME)}&LAST_NAME=${encodeURIComponent(LAST_NAME)}&PHONE=${encodeURIComponent(PHONE)}&EMAIL_ID=${encodeURIComponent(EMAIL_ID)}&PK_LEADS=${PK_LEADS}&NOTES=${encodeURIComponent(NOTES)}`;
         }
 
         function loadStatusData() {
