@@ -2289,7 +2289,7 @@ if (!empty($_POST)) {
                                                         <select class="multi_sumo_select" name="PK_USER_MORNING[]" multiple>
                                                             <?php
                                                             $selected_morning = !empty($PK_USER_MORNING) ? explode(',', $PK_USER_MORNING) : array();
-                                                            $row = getServiceProvider();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                                             while (!$row->EOF) {
                                                                 $selected = (in_array($row->fields['PK_USER'], $selected_morning)) ? 'selected' : '';
                                                             ?>
@@ -2305,7 +2305,7 @@ if (!empty($_POST)) {
                                                         <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" multiple>
                                                             <?php
                                                             $selected_afternoon = !empty($PK_USER_AFTERNOON) ? explode(',', $PK_USER_AFTERNOON) : array();
-                                                            $row = getServiceProvider();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                                             while (!$row->EOF) {
                                                                 $selected = (in_array($row->fields['PK_USER'], $selected_afternoon)) ? 'selected' : '';
                                                             ?>
@@ -2321,7 +2321,7 @@ if (!empty($_POST)) {
                                                         <select class="multi_sumo_select" name="PK_USER_EVENING[]" multiple>
                                                             <?php
                                                             $selected_evening = !empty($PK_USER_EVENING) ? explode(',', $PK_USER_EVENING) : array();
-                                                            $row = getServiceProvider();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                                             while (!$row->EOF) {
                                                                 $selected = (in_array($row->fields['PK_USER'], $selected_evening)) ? 'selected' : '';
                                                             ?>
@@ -2337,7 +2337,7 @@ if (!empty($_POST)) {
                                                         <select class="multi_sumo_select" name="PK_USER_NIGHT[]" multiple>
                                                             <?php
                                                             $selected_night = !empty($PK_USER_NIGHT) ? explode(',', $PK_USER_NIGHT) : array();
-                                                            $row = getServiceProvider();
+                                                            $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
                                                             while (!$row->EOF) {
                                                                 $selected = (in_array($row->fields['PK_USER'], $selected_night)) ? 'selected' : '';
                                                             ?>
