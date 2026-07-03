@@ -504,7 +504,7 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                                     <a href="javascript:;" onclick="downloadGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Download PDF">
                                                         <i class="bi bi-download"></i>
                                                     </a>
-                                                    <?php if (!$is_redeemed && $is_active && $PK_PAYMENT_TYPE == 1 && $IS_REFUNDED == 0): ?>
+                                                    <?php if (!$is_redeemed && $is_active && $IS_REFUNDED == 0): ?>
                                                         <a href="javascript:;" onclick="refundGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Refund">
                                                             <i class="bi bi-arrow-repeat"></i>
                                                         </a>

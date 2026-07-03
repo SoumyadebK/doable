@@ -2103,15 +2103,17 @@ function refundGiftCertificate($RESPONSE_DATA)
     $check_result = $db_account->Execute($check_query);
 
     if ($check_result && $check_result->RecordCount() > 0) {
+        $fields = $check_result->fields;
+
         // Check if already redeemed
         if ($fields['IS_REDEEMED'] == 1) {
             echo json_encode(['success' => false, 'message' => 'This gift certificate has already been redeemed and cannot be refunded.']);
             die;
         }
 
-        $PK_PAYMENT_TYPE = $check_result->fields['PK_PAYMENT_TYPE'];
-        $AMOUNT = $check_result->fields['AMOUNT'];
-        $PAYMENT_INFO = ($check_result->RecordCount() > 0) ? $check_result->fields['PAYMENT_INFO'] : $PK_PAYMENT_TYPE;
+        $PK_PAYMENT_TYPE = $fields['PK_PAYMENT_TYPE'];
+        $AMOUNT = $fields['AMOUNT'];
+        $PAYMENT_INFO = $fields['PAYMENT_INFO'];
 
         if ($PK_PAYMENT_TYPE == 1) {
             $payment_gateway_data = getPaymentGatewayData();
@@ -2208,11 +2210,6 @@ function refundGiftCertificate($RESPONSE_DATA)
                 }
             }
         }
-
-
-        $fields = $check_result->fields;
-
-
 
         // Update the gift certificate as refunded
         $update_query = "UPDATE DOA_GIFT_CERTIFICATE_MASTER 
