@@ -79,15 +79,15 @@ if ($IS_CREATE_MODE) {
     $LAST_NAME = isset($_GET['LAST_NAME']) ? urldecode($_GET['LAST_NAME']) : '';
     $EMAIL_ID = isset($_GET['EMAIL_ID']) ? urldecode($_GET['EMAIL_ID']) : '';
     $PHONE = isset($_GET['PHONE']) ? urldecode($_GET['PHONE']) : '';
-    $NOTES = isset($_GET['NOTES']) ? urldecode($_GET['NOTES']) : 'Created from Gift Certificate';
+    $NOTES = isset($_GET['NOTES']) ? urldecode($_GET['NOTES']) : '';
     $PK_LOCATION_FROM_GC = isset($_GET['PK_LOCATION']) ? intval($_GET['PK_LOCATION']) : 0;
     $PK_GIFT_CERTIFICATE_MASTER = isset($_GET['PK_GIFT_CERTIFICATE_MASTER']) ? intval($_GET['PK_GIFT_CERTIFICATE_MASTER']) : 0;
     $GC_AMOUNT = isset($_GET['AMOUNT']) ? floatval($_GET['AMOUNT']) : 0;
 
     // If notes is empty, set a default
-    if (empty($NOTES)) {
-        $NOTES = "Created from Gift Certificate #" . $PK_GIFT_CERTIFICATE_MASTER . " (Amount: $" . number_format($GC_AMOUNT, 2) . ")";
-    }
+    // if (empty($NOTES)) {
+    //     $NOTES = "Created from Gift Certificate #" . $PK_GIFT_CERTIFICATE_MASTER . " (Amount: $" . number_format($GC_AMOUNT, 2) . ")";
+    // }
 }
 
 // If NOT create mode, load existing data

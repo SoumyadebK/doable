@@ -4037,9 +4037,9 @@ function updateCustomerProfileDetails($RESPONSE_DATA)
     $USER_DATA['PK_COUNTRY'] = ($RESPONSE_DATA['PK_COUNTRY']) ?? 0;
     $USER_DATA['PK_STATES'] = ($RESPONSE_DATA['PK_STATES']) ?? 0;
     $USER_DATA['CITY'] = $RESPONSE_DATA['CITY'];
-    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP'];
+    $USER_DATA['ZIP'] = $RESPONSE_DATA['ZIP']; */
     $USER_DATA['NOTES'] = $RESPONSE_DATA['NOTES'];
-    $USER_DATA['IS_DELETED'] = 0; */
+    /* $USER_DATA['IS_DELETED'] = 0; */
 
     if (empty($RESPONSE_DATA['UNIQUE_ID'])) {
         $row = $db->Execute("SELECT UNIQUE_ID FROM DOA_USERS ORDER BY UNIQUE_ID DESC LIMIT 1");

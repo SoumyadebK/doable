@@ -289,6 +289,13 @@ if ($selected_primary_location->RecordCount() > 0) {
                 </div>
             </div>
 
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" name="NOTES" rows="3" placeholder="Enter any notes about this customer"><?= htmlspecialchars($NOTES) ?></textarea>
+                </div>
+            </div>
+
             <div class="col-6">
                 <div class="label">Status</div>
                 <div class="value">

@@ -1019,6 +1019,13 @@ if ($PK_USER_MASTER > 0) {
                                                         <?= ($DOB == '' || $DOB == '0000-00-00' || $DOB == '1969-12-31') ? '' : date('m / d / Y', strtotime($DOB)) ?>
                                                     </div>
                                                 </div>
+
+                                                <div class="col-md-12">
+                                                    <div class="label">Notes</div>
+                                                    <div class="value">
+                                                        <?= $NOTES ?>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
