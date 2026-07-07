@@ -93,6 +93,15 @@ function createUser($PK_LOCATION, $name, $phone, $email)
         $USER_DATA_UPDATE['IS_DELETED'] = 0;
         db_perform('DOA_USERS', $USER_DATA_UPDATE, 'update', " PK_USER = " . $PK_USER);
 
+        $USER_MASTER_DATA['PK_USER'] = $PK_USER;
+        $USER_MASTER_DATA['PK_ACCOUNT_MASTER'] = $PK_ACCOUNT_MASTER;
+        $USER_MASTER_DATA['PRIMARY_LOCATION_ID'] = $PK_LOCATION;
+        db_perform('DOA_USER_MASTER', $USER_MASTER_DATA, 'update', " PK_USER = " . $PK_USER);
+
+        $CUSTOMER_LOCATION_DATA['PK_USER'] = $PK_USER;
+        $CUSTOMER_LOCATION_DATA['PK_LOCATION'] = $PK_LOCATION;
+        db_perform('DOA_USER_LOCATION', $CUSTOMER_LOCATION_DATA, 'update', " PK_USER = " . $PK_USER);
+
         $userMasterData = $db->Execute("SELECT PK_USER_MASTER FROM DOA_USER_MASTER WHERE PK_USER = " . $PK_USER . " LIMIT 1");
         return [$PK_USER, $userMasterData->fields['PK_USER_MASTER']];
     } else {

@@ -1,10 +1,11 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-session_start();
+//session_start();
 require_once("../../global/config.php");
 
 $account_id = $_GET['account'] ?? null;
+$location_id = $_GET['location'] ?? null;
 
 if (!$account_id) {
     $return_data['status'] = 'error';
@@ -13,6 +14,8 @@ if (!$account_id) {
     exit;
 } else {
     $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id);
+    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . $account_id . " AND LOCATION_CODE = '$location_id'");
+    $PK_LOCATION = $location_data->fields['PK_LOCATION'] ?? null;
 
     if ($account_data->RecordCount() == 0) {
         $return_data['status'] = 'error';
@@ -20,7 +23,7 @@ if (!$account_id) {
         echo json_encode($return_data);
         exit;
     } else {
-        $offerings_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_OFFERINGS WHERE PK_ACCOUNT_MASTER = " . $account_id);
+        $offerings_data = $db->Execute("SELECT * FROM DOA_LOCATION_OFFERINGS WHERE PK_LOCATION = " . $PK_LOCATION);
 
         $offerings = [];
         while (!$offerings_data->EOF) {
