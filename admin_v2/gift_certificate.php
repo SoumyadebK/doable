@@ -1236,7 +1236,7 @@ if (!empty($_POST)) {
                                                 <?php
                                                 $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                 while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
+                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= (($row->RecordCount() == 1) || ($PK_LOCATION == $row->fields['PK_LOCATION'])) ? 'selected' : '' ?>><?= $row->fields['LOCATION_NAME'] ?></option>
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>

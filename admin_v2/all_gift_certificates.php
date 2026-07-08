@@ -421,6 +421,8 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                         // Format date
                                         $formatted_date = !empty($purchase_date) && $purchase_date != '0000-00-00' ? date('M d, Y', strtotime($purchase_date)) : '—';
                                         $formatted_redeemed_date = !empty($redeemed_date) && $redeemed_date != '0000-00-00' ? date('M d, Y', strtotime($redeemed_date)) : '—';
+
+                                        $paymentData = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_GIFT_CERTIFICATE_MASTER = '$PK_GIFT_CERTIFICATE_MASTER'");
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
@@ -501,8 +503,11 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <a href="javascript:;" onclick="downloadGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Download PDF">
+                                                    <a href="gift_certificate_pdf.php?id=<?= $PK_GIFT_CERTIFICATE_MASTER ?>" target="_blank" title="Download PDF">
                                                         <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <a href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $paymentData->fields['RECEIPT_NUMBER'] ?>" target="_blank" title="View Receipt">
+                                                        <i class="bi bi-receipt"></i>
                                                     </a>
                                                     <?php if (!$is_redeemed && $is_active && $IS_REFUNDED == 0): ?>
                                                         <a href="javascript:;" onclick="refundGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>)" title="Refund">

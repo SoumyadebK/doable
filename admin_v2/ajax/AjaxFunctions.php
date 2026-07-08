@@ -2076,7 +2076,7 @@ function viewGiftCertificatePdf($RESPONSE_DATA)
         require_once('../../global/vendor/autoload.php');
         try {
             $mpdf = new Mpdf();
-            $html = file_get_contents($http_path . 'admin/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
+            $html = file_get_contents($http_path . 'admin_v2/gift_certificate_pdf.php?id=' . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
             $mpdf->SetFont('calibri');
             $mpdf->WriteHTML($html);
             $file_name = "gift_certificate_" . $RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER'] . ".pdf";
