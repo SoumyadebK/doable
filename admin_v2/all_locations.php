@@ -89,6 +89,27 @@ $locations = $db->Execute($query);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
     <style>
+        /* Fix for dropdown menus being cut off */
+        .table-responsive {
+            overflow: visible !important;
+        }
+
+        .custom-table tbody tr td:last-child {
+            overflow: visible !important;
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute !important;
+            z-index: 1050 !important;
+        }
+
+        /* Ensure dropdown shows above other content */
+        .custom-table .dropdown {
+            position: relative;
+        }
+
+
         .badge-status {
             padding: 4px 10px;
             border-radius: 30px;
