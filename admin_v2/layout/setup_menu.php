@@ -23,8 +23,8 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                                 <!-- <a class="dropdown-item" href="../admin/business_profile.php">Business Profile</a> -->
                                 <!-- <a class="dropdown-item" href="../admin/settings.php">Settings</a> -->
                                 <a class="dropdown-item" href="../admin_v2/all_corporations.php">Corporations</a>
-                                <a class="dropdown-item" href="../admin_v2/concierge_settings.php">Concierge Setting</a>
-                                <a class="dropdown-item" href="../admin_v2/faq_settings.php">FAQ Settings</a>
+                                <!-- <a class="dropdown-item" href="../admin_v2/concierge_settings.php">Concierge Setting</a>
+                                <a class="dropdown-item" href="../admin_v2/faq_settings.php">FAQ Settings</a> -->
                                 <a class="dropdown-item" href="../admin_v2/all_locations.php">Locations</a>
                                 <a class="dropdown-item" href="../admin_v2/all_users.php">Users / Employees / Service Providers</a>
                                 <a class="dropdown-item" href="../admin_v2/deleted_customer.php">Deleted Customer</a>

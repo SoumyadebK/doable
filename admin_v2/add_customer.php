@@ -1030,6 +1030,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                                 <form id="add_customer_form" method="post" action="ajax/AjaxFunctions.php" enctype="multipart/form-data">
                                     <input type="hidden" name="FUNCTION_NAME" value="addNewCustomer">
                                     <input type="hidden" name="PK_LEADS" id="PK_LEADS" value="<?= empty($_GET['PK_LEADS']) ? 0 : $_GET['PK_LEADS'] ?>">
+                                    <input type="hidden" name="AMOUNT" id="AMOUNT" value="<?= empty($_GET['AMOUNT']) ? 0 : $_GET['AMOUNT'] ?>">
                                     <input type="hidden" name="PK_GIFT_CERTIFICATE_MASTER" id="PK_GIFT_CERTIFICATE_MASTER" value="<?= isset($_GET['PK_GIFT_CERTIFICATE_MASTER']) ? intval($_GET['PK_GIFT_CERTIFICATE_MASTER']) : 0 ?>">
                                 <?php } ?>
 

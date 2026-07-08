@@ -21,42 +21,6 @@ if (!$account_id) {
         echo json_encode($return_data);
         exit;
     } else {
-        $menu_options = [
-            [
-                'label'        => $account_data->fields['OFFERING_LABEL'],
-                'type'         => $account_data->fields['OFFERING_TYPE'],
-                'is_offerings' => true
-            ],
-            [
-                'label'        => 'Pricing',
-                'type'         => 'pricing',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Book Appointment',
-                'type'         => 'booking',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'Contact Us',
-                'type'         => 'contact',
-                'is_offerings' => false
-            ],
-            [
-                'label'        => 'FAQ',
-                'type'         => 'faq',
-                'is_offerings' => false
-            ]
-        ];
-        $faq = [];
-        $faq_result = $db->Execute("SELECT * FROM DOA_ACCOUNT_FAQ WHERE PK_ACCOUNT_MASTER = " . $account_id);
-        while (!$faq_result->EOF) {
-            $faq[] = [
-                'question' => $faq_result->fields['QUESTION'],
-                'answer' => $faq_result->fields['ANSWER']
-            ];
-            $faq_result->MoveNext();
-        }
         $location_result = $db->Execute("SELECT DOA_LOCATION.*, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.ACTIVE = 1 AND DOA_LOCATION.LOCATION_CODE = '$location_id' AND DOA_LOCATION.PK_ACCOUNT_MASTER = " . $account_id);
         $booking_periods = [];
         $locations = [];
@@ -68,11 +32,54 @@ if (!$account_id) {
                 ($location_result->fields['IS_NIGHT'] == 1) ? 'N' : ''
             ];
 
+            $menu_options = [
+                [
+                    'label'        => $location_result->fields['OFFERING_LABEL'],
+                    'type'         => $location_result->fields['OFFERING_TYPE'],
+                    'is_offerings' => true
+                ],
+                [
+                    'label'        => 'Pricing',
+                    'type'         => 'pricing',
+                    'is_offerings' => false
+                ],
+                [
+                    'label'        => 'Book Appointment',
+                    'type'         => 'booking',
+                    'is_offerings' => false
+                ],
+                [
+                    'label'        => 'Contact Us',
+                    'type'         => 'contact',
+                    'is_offerings' => false
+                ],
+                [
+                    'label'        => 'FAQ',
+                    'type'         => 'faq',
+                    'is_offerings' => false
+                ]
+            ];
+
+            $faq = [];
+            $faq_result = $db->Execute("SELECT * FROM DOA_LOCATION_FAQ WHERE PK_LOCATION = " . $location_result->fields['PK_LOCATION']);
+            while (!$faq_result->EOF) {
+                $faq[] = [
+                    'question' => $faq_result->fields['QUESTION'],
+                    'answer' => $faq_result->fields['ANSWER']
+                ];
+                $faq_result->MoveNext();
+            }
+
             $locations[] = [
                 'location_id' => $location_result->fields['LOCATION_CODE'],
                 'name' => $location_result->fields['LOCATION_NAME'],
                 'phone' => $location_result->fields['PHONE'],
-                'booking_periods' => array_values(array_filter($booking_periods))
+                'booking_periods' => array_values(array_filter($booking_periods)),
+                "avatar_emoji" => $location_result->fields['AVATAR_EMOJI'],
+                "primary_color" => $location_result->fields['PRIMARY_COLOR'],
+                "welcome_message" => $location_result->fields['WELCOME_MESSAGE'],
+                "menu_options" => $menu_options,
+                "faq" => $faq
             ];
             $location_result->MoveNext();
         }
@@ -80,13 +87,8 @@ if (!$account_id) {
         $account_config = [
             "account_id" => $account_data->fields['PK_ACCOUNT_MASTER'],
             "business_name" => $location_result->fields['CORPORATION_NAME'],
-            "avatar_emoji" => $account_data->fields['AVATAR_EMOJI'],
-            "primary_color" => $account_data->fields['PRIMARY_COLOR'],
-            "welcome_message" => $account_data->fields['WELCOME_MESSAGE'],
             "languages" => ['en', 'es'],  // ← hardcoded for now
             "locations" => $locations,
-            "menu_options" => $menu_options,
-            "faq" => $faq
         ];
 
         $return_data['status'] = 'success';

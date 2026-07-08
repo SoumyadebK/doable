@@ -130,6 +130,12 @@ if (empty($_GET['id'])) {
     $IS_NIGHT = 0;
     $PK_USER_NIGHT = '';
     $CONCIERGE_SCRIPT = '';
+
+    $WELCOME_MESSAGE = '';
+    $AVATAR_EMOJI = '';
+    $PRIMARY_COLOR = '';
+    $OFFERING_LABEL = '';
+    $OFFERING_TYPE = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -215,6 +221,12 @@ if (empty($_GET['id'])) {
     $IS_NIGHT = $res->fields['IS_NIGHT'];
     $PK_USER_NIGHT = $res->fields['PK_USER_NIGHT'];
     $CONCIERGE_SCRIPT = $res->fields['CONCIERGE_SCRIPT'];
+
+    $WELCOME_MESSAGE = $res->fields['WELCOME_MESSAGE'];
+    $AVATAR_EMOJI = $res->fields['AVATAR_EMOJI'];
+    $PRIMARY_COLOR = $res->fields['PRIMARY_COLOR'];
+    $OFFERING_LABEL = $res->fields['OFFERING_LABEL'];
+    $OFFERING_TYPE = $res->fields['OFFERING_TYPE'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -295,12 +307,32 @@ if (!empty($_POST)) {
             'IS_NIGHT' => $IS_NIGHT,
             'PK_USER_NIGHT' => $PK_USER_NIGHT,
             'CONCIERGE_SCRIPT' => $_POST['CONCIERGE_SCRIPT'],
+            'WELCOME_MESSAGE' => $_POST['WELCOME_MESSAGE'],
+            'AVATAR_EMOJI' => $_POST['AVATAR_EMOJI'],
+            'PRIMARY_COLOR' => $_POST['PRIMARY_COLOR'],
+            'OFFERING_LABEL' => $_POST['OFFERING_LABEL'],
+            'OFFERING_TYPE' => $_POST['OFFERING_TYPE'],
             'EDITED_ON' => date('Y-m-d H:i:s'),
             'EDITED_BY' => $_SESSION['PK_USER']
         );
 
         $where = "PK_LOCATION = " . $PK_LOCATION;
         db_perform('DOA_LOCATION', $update_data, 'update', $where);
+
+        // Insert new offerings
+        if (isset($_POST['OFFERING'])) {
+            // Delete existing offerings
+            $db->Execute("DELETE FROM DOA_LOCATION_OFFERINGS WHERE PK_LOCATION = '$PK_LOCATION'");
+
+            $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
+            $offerings = $_POST['OFFERING'];
+            $description = $_POST['DESCRIPTION'];
+            for ($i = 0; $i < count($offerings); $i++) {
+                $INSERT_DATA['OFFERING'] = $offerings[$i];
+                $INSERT_DATA['DESCRIPTION'] = $description[$i];
+                db_perform('DOA_LOCATION_OFFERINGS', $INSERT_DATA, 'insert');
+            }
+        }
 
         // Set success message and redirect back
         $_SESSION['success_message'] = 'Concierge settings saved successfully!';
@@ -309,6 +341,27 @@ if (!empty($_POST)) {
     }
 
     header("location:all_locations.php");
+}
+
+if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting') {
+    $PK_LOCATION = (int)$_POST['PK_LOCATION'];
+    // Insert new questions
+    if (isset($_POST['QUESTION'])) {
+        // Delete existing questions
+        $db->Execute("DELETE FROM DOA_LOCATION_FAQ WHERE PK_LOCATION = '$PK_LOCATION'");
+
+        $INSERT_DATA['PK_LOCATION'] = $PK_LOCATION;
+        $questions = $_POST['QUESTION'];
+        $answers = $_POST['ANSWER'];
+        for ($i = 0; $i < count($questions); $i++) {
+            $INSERT_DATA['QUESTION'] = $questions[$i];
+            $INSERT_DATA['ANSWER'] = $answers[$i];
+            db_perform('DOA_LOCATION_FAQ', $INSERT_DATA, 'insert');
+        }
+    }
+
+    $_SESSION['success_message'] = 'Concierge settings saved successfully!';
+    header("Location: location.php?id=" . $PK_LOCATION);
 }
 
 ?>
@@ -1333,6 +1386,116 @@ if (!empty($_POST)) {
                 min-width: 100%;
             }
         }
+
+        /* Offering Card (keeps theme consistent with other cards) */
+        .offering-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            padding: 18px;
+            margin-top: 24px;
+        }
+
+        .offering-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .offering-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .offering-sub {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .offering-card .service-table-wrapper {
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        /* Adjust grid specifically for offering rows (two inputs + action) */
+        .offering-card .service-table-wrapper .table-header,
+        .offering-card .service-table-wrapper .service-row {
+            grid-template-columns: 2fr 3fr 0.5fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .offering-card .service-table-wrapper .service-row .form-control-modern {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .offering-card .service-table-wrapper .table-header {
+                display: none;
+            }
+
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 12px;
+                border: 1px solid var(--gray-200);
+                border-radius: var(--radius-sm);
+                background: #fff;
+                margin-bottom: 8px;
+            }
+        }
+
+        /* Offering-specific column widths for a simpler 3-column layout */
+        .offering-card .service-table-wrapper .table-header,
+        .offering-card .service-table-wrapper .service-row {
+            grid-template-columns: 2fr 3fr 60px !important;
+            gap: 12px;
+            padding: 8px 4px;
+        }
+
+        .offering-card .service-table-wrapper .service-row .form-control-modern {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 992px) {
+
+            .offering-card .service-table-wrapper .table-header,
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr 1fr 60px !important;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .offering-card .service-table-wrapper .table-header {
+                display: none;
+            }
+
+            .offering-card .service-table-wrapper .service-row {
+                grid-template-columns: 1fr !important;
+                gap: 8px;
+                padding: 12px;
+                background: #fff;
+                border: 1px solid var(--gray-200);
+                border-radius: var(--radius-sm);
+                margin-bottom: 8px;
+            }
+
+            .offering-card .service-table-wrapper .service-row .form-control-modern {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -1397,6 +1560,9 @@ if (!empty($_POST)) {
                                             <?php if ($account_data->fields['IS_CONCIERGE'] == 1) {  ?>
                                                 <button class="tab-item" data-tab="concierge" role="tab">
                                                     <i class="fas fa-gear"></i> Concierge
+                                                </button>
+                                                <button class="tab-item" data-tab="faq" role="tab">
+                                                    <i class="fas fa-question"></i> FAQ
                                                 </button>
                                             <?php } ?>
                                         <?php endif; ?>
@@ -2259,32 +2425,62 @@ if (!empty($_POST)) {
                                                 <input type="hidden" name="FUNCTION_NAME" value="saveConciergeSetting">
                                                 <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
 
+
+
+                                                <!-- Welcome Message -->
+                                                <div class="row">
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Welcome Message <span class="required">*</span></label>
+                                                        <input type="text" name="WELCOME_MESSAGE" class="form-control-modern" placeholder="Enter Welcome Message" required value="<?php echo htmlspecialchars($WELCOME_MESSAGE) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Avatar Emoji</label>
+                                                        <input type="text" name="AVATAR_EMOJI" class="form-control-modern" placeholder="Enter Avatar Emoji" value="<?php echo htmlspecialchars($AVATAR_EMOJI) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Primary Color</label>
+                                                        <input type="color" name="PRIMARY_COLOR" class="form-control-modern" placeholder="Enter Primary Color" value="<?php echo htmlspecialchars($PRIMARY_COLOR) ?>">
+                                                    </div>
+                                                </div>
+
+
+
                                                 <!-- Booking Periods Section -->
-                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 15px;">Booking Periods</div>
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px;">Booking Periods</div>
 
                                                 <!-- Booking Periods Grid -->
-                                                <div class="booking-grid">
-                                                    <label class="period-label">
-                                                        <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning
-                                                    </label>
-                                                    <label class="period-label">
-                                                        <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon
-                                                    </label>
-                                                    <label class="period-label">
-                                                        <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening
-                                                    </label>
-                                                    <label class="period-label">
-                                                        <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night
-                                                    </label>
+                                                <div class="row" style="padding: 10px 0">
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="period-label">
+                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night
+                                                        </label>
+                                                    </div>
                                                 </div>
 
                                                 <!-- Service Providers Section -->
-                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px; margin-bottom: 15px;">Service Providers</div>
+                                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-top: 30px;">Service Providers</div>
 
                                                 <!-- Service Providers Grid -->
-                                                <div class="service-providers-grid">
+                                                <div class="service-providers-grid row">
                                                     <!-- Morning -->
-                                                    <div class="provider-group">
+                                                    <div class="provider-group col-3">
                                                         <label class="provider-label">Morning</label>
                                                         <select class="multi_sumo_select" name="PK_USER_MORNING[]" multiple>
                                                             <?php
@@ -2300,7 +2496,7 @@ if (!empty($_POST)) {
                                                     </div>
 
                                                     <!-- Afternoon -->
-                                                    <div class="provider-group">
+                                                    <div class="provider-group col-3">
                                                         <label class="provider-label">Afternoon</label>
                                                         <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" multiple>
                                                             <?php
@@ -2316,7 +2512,7 @@ if (!empty($_POST)) {
                                                     </div>
 
                                                     <!-- Evening -->
-                                                    <div class="provider-group">
+                                                    <div class="provider-group col-3">
                                                         <label class="provider-label">Evening</label>
                                                         <select class="multi_sumo_select" name="PK_USER_EVENING[]" multiple>
                                                             <?php
@@ -2332,7 +2528,7 @@ if (!empty($_POST)) {
                                                     </div>
 
                                                     <!-- Night -->
-                                                    <div class="provider-group">
+                                                    <div class="provider-group col-3">
                                                         <label class="provider-label">Night</label>
                                                         <select class="multi_sumo_select" name="PK_USER_NIGHT[]" multiple>
                                                             <?php
@@ -2355,6 +2551,85 @@ if (!empty($_POST)) {
                                                     </div>
                                                 </div>
 
+
+
+
+                                                <!-- Offering Section -->
+                                                <div class="offering-card">
+                                                    <div class="offering-header">
+                                                        <div class="offering-title">
+                                                            <i class="bi bi-box-seam" style="color: var(--primary-color); font-size:18px;"></i>
+                                                            Offering
+                                                        </div>
+                                                        <div class="offering-sub">Configure the concierge offerings shown to customers</div>
+                                                    </div>
+
+                                                    <div class="offering-body">
+                                                        <div class="form-grid">
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Offering Label</label>
+                                                                <input type="text" name="OFFERING_LABEL" class="form-control-modern" placeholder="Enter Offering Name" required value="<?php echo htmlspecialchars($OFFERING_LABEL) ?>">
+                                                            </div>
+
+                                                            <div class="form-group-modern">
+                                                                <label class="form-label">Offering Type</label>
+                                                                <input type="text" name="OFFERING_TYPE" class="form-control-modern" placeholder="Enter Offering Type" value="<?php echo htmlspecialchars($OFFERING_TYPE) ?>">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="service-table-wrapper" style="margin-top:12px; padding:12px 16px;">
+                                                            <!-- Table Header -->
+                                                            <div class="table-header">
+                                                                <span>Offerings</span>
+                                                                <span>Description</span>
+                                                                <span></span>
+                                                            </div>
+
+                                                            <!-- Service Rows -->
+                                                            <div id="append_service_div">
+                                                                <?php
+                                                                $offering_data = $db->Execute("SELECT * FROM DOA_LOCATION_OFFERINGS WHERE PK_LOCATION = '$PK_LOCATION'");
+                                                                if ($offering_data->RecordCount() > 0) {
+                                                                    while (!$offering_data->EOF) { ?>
+                                                                        <div class="service-row row from-grid-modern">
+                                                                            <div class="col-3">
+                                                                                <input type="text" class="form-control-modern OFFERING" name="OFFERING[]" value="<?= htmlspecialchars($offering_data->fields['OFFERING']) ?>">
+                                                                            </div>
+                                                                            <div class="col-7">
+                                                                                <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]" value="<?= htmlspecialchars($offering_data->fields['DESCRIPTION']) ?>">
+                                                                            </div>
+                                                                            <div class="col-1">
+                                                                                <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php $offering_data->MoveNext();
+                                                                    }
+                                                                } else { ?>
+                                                                    <div class="service-row row from-grid-modern">
+                                                                        <div class="col-3">
+                                                                            <input type="text" class="form-control-modern OFFERING" name="OFFERING[]">
+                                                                        </div>
+                                                                        <div class="col-7">
+                                                                            <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]">
+                                                                        </div>
+                                                                        <div class="col-1">
+                                                                            <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Action Row -->
+                                                        <div class="action-row" style="margin-top:12px;">
+                                                            <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreOffering();">
+                                                                <i class="fas fa-plus"></i> Add More
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
                                                 <div class="form-actions">
                                                     <button type="submit" class="btn-modern btn-modern-primary">
                                                         <i class="fas fa-save"></i> Save
@@ -2365,6 +2640,78 @@ if (!empty($_POST)) {
                                                 </div>
                                             </form>
                                         </div>
+
+
+
+
+                                        <!-- FAQ Setting Tab -->
+                                        <div class="tab-pane-modern" id="faq" role="tabpanel">
+                                            <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                                <input type="hidden" name="FUNCTION_NAME" value="saveFAQSetting">
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $PK_LOCATION ?>">
+
+                                                <div class="card-body">
+                                                    <div class="offering-card">
+                                                        <div class="offering-body service-table-wrapper">
+                                                            <!-- FAQ Rows -->
+                                                            <div id="append_faq_div">
+                                                                <?php
+                                                                $faq_data = $db->Execute("SELECT * FROM DOA_LOCATION_FAQ WHERE PK_LOCATION = $PK_LOCATION");
+                                                                if ($faq_data->RecordCount() > 0) {
+                                                                    while (!$faq_data->EOF) { ?>
+                                                                        <div class="service-row row from-grid-modern">
+                                                                            <div class="form-group-modern col-4">
+                                                                                <label class="form-label">Question <span class="required">*</span></label>
+                                                                                <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required value="<?= $faq_data->fields['QUESTION'] ?>">
+                                                                            </div>
+                                                                            <div class="form-group-modern col-6">
+                                                                                <label class="form-label">Answer <span class="required">*</span></label>
+                                                                                <input type="text" class="form-control-modern ANSWER" name="ANSWER[]" required value="<?= $faq_data->fields['ANSWER'] ?>">
+                                                                            </div>
+                                                                            <div class="col-1">
+                                                                                <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php $faq_data->MoveNext();
+                                                                    }
+                                                                } else { ?>
+                                                                    <div class="service-row row from-grid-modern">
+                                                                        <div class="form-group-modern col-4">
+                                                                            <label class="form-label">Question <span class="required">*</span></label>
+                                                                            <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required>
+                                                                        </div>
+                                                                        <div class="form-group-modern col-6">
+                                                                            <label class="form-label">Answer <span class="required">*</span></label>
+                                                                            <input type="text" class="form-control-modern ANSWER" name="ANSWER[]">
+                                                                        </div>
+                                                                        <div class="col-1">
+                                                                            <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </div>
+                                                            <!-- Action Row -->
+                                                            <div class="action-row" style="margin-top:12px;">
+                                                                <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" onclick="addMoreFAQ();">
+                                                                    <i class="fas fa-plus"></i> Add More
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Form Actions -->
+                                                    <div class="form-actions">
+                                                        <button type="submit" class="btn-modern btn-modern-primary">
+                                                            <i class="fas fa-save"></i> Continue
+                                                        </button>
+                                                        <button type="button" id="cancel_button" class="btn-modern btn-modern-secondary">
+                                                            <i class="fas fa-times"></i> Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -2384,575 +2731,615 @@ if (!empty($_POST)) {
                 </div>
             </div>
         </div>
-    </div>
 
-    <?php require_once('../includes/footer.php'); ?>
+        <?php require_once('../includes/footer.php'); ?>
 
-    <script>
-        $('.multi_sumo_select').SumoSelect({
-            "okCancelInMulti": false,
-            "search": true,
-            "searchText": 'Search here.',
-            "placeholder": 'Select',
-            "selectAll": true,
-            "csvDispCount": 3,
-            "captionFormat": '{0} Selected',
-            "captionFormatAllSelected": 'All Selected.',
+        <script>
+            $('.multi_sumo_select').SumoSelect({
+                "okCancelInMulti": false,
+                "search": true,
+                "searchText": 'Search here.',
+                "placeholder": 'Select',
+                "selectAll": true,
+                "csvDispCount": 3,
+                "captionFormat": '{0} Selected',
+                "captionFormatAllSelected": 'All Selected.',
 
-        });
+            });
 
-        // Initialize DataTable with proper settings
-        $(document).ready(function() {
-            // Check if table has data before initializing
-            if ($('#payment_table tbody tr').length > 0) {
-                // Use retrieve: true to prevent re-initialization errors
-                $('#payment_table').DataTable({
-                    retrieve: true,
-                    order: [
-                        [0, 'desc']
-                    ],
-                    columnDefs: [{
-                        type: 'date',
-                        targets: 0
-                    }],
-                    pageLength: 10,
-                    responsive: true,
-                    autoWidth: false,
-                    scrollX: true,
-                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                        '<"row"<"col-sm-12"tr>>' +
-                        '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-                    language: {
-                        emptyTable: "No payment records found."
+            // Initialize DataTable with proper settings
+            $(document).ready(function() {
+                // Check if table has data before initializing
+                if ($('#payment_table tbody tr').length > 0) {
+                    // Use retrieve: true to prevent re-initialization errors
+                    $('#payment_table').DataTable({
+                        retrieve: true,
+                        order: [
+                            [0, 'desc']
+                        ],
+                        columnDefs: [{
+                            type: 'date',
+                            targets: 0
+                        }],
+                        pageLength: 10,
+                        responsive: true,
+                        autoWidth: false,
+                        scrollX: true,
+                        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                            '<"row"<"col-sm-12"tr>>' +
+                            '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+                        language: {
+                            emptyTable: "No payment records found."
+                        }
+                    });
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane-modern').forEach(p => p.classList.remove('active'));
+
+                    this.classList.add('active');
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                });
+            });
+
+            // Datepicker
+            $('.datepicker-normal').datepicker({
+                format: 'mm/dd/yyyy',
+            });
+
+            // Timepicker
+            $('.time-picker').timepicker({
+                timeFormat: 'hh:mm p',
+                interval: 30,
+                dynamic: false,
+                dropdown: true,
+                scrollbar: true
+            });
+
+            function closeThisDay(param) {
+                const row = param.closest('.hours-grid');
+                const inputs = row.querySelectorAll('.time-picker');
+                if (param.checked) {
+                    inputs.forEach(input => {
+                        input.value = '';
+                        input.style.pointerEvents = 'none';
+                    });
+                } else {
+                    inputs.forEach(input => {
+                        input.style.pointerEvents = '';
+                    });
+                }
+            }
+
+            function applyToAllDays(param) {
+                const openTimes = document.querySelectorAll('.OPEN_TIME');
+                const closeTimes = document.querySelectorAll('.CLOSE_TIME');
+                if (param.checked) {
+                    const firstOpen = openTimes[0]?.value || '';
+                    const firstClose = closeTimes[0]?.value || '';
+                    openTimes.forEach((el, i) => {
+                        if (i > 0) el.value = firstOpen;
+                    });
+                    closeTimes.forEach((el, i) => {
+                        if (i > 0) el.value = firstClose;
+                    });
+                } else {
+                    openTimes.forEach((el, i) => {
+                        if (i > 0) el.value = '';
+                    });
+                    closeTimes.forEach((el, i) => {
+                        if (i > 0) el.value = '';
+                    });
+                }
+            }
+
+            function fetch_state(PK_COUNTRY) {
+                const data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+                $.ajax({
+                    url: "ajax/state.php",
+                    type: "POST",
+                    data: data,
+                    success: function(result) {
+                        document.getElementById('State_div').innerHTML = result;
                     }
                 });
             }
-        });
 
-        // Tab switching
-        document.querySelectorAll('.tab-item').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-pane-modern').forEach(p => p.classList.remove('active'));
-
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-            });
-        });
-
-        // Datepicker
-        $('.datepicker-normal').datepicker({
-            format: 'mm/dd/yyyy',
-        });
-
-        // Timepicker
-        $('.time-picker').timepicker({
-            timeFormat: 'hh:mm p',
-            interval: 30,
-            dynamic: false,
-            dropdown: true,
-            scrollbar: true
-        });
-
-        function closeThisDay(param) {
-            const row = param.closest('.hours-grid');
-            const inputs = row.querySelectorAll('.time-picker');
-            if (param.checked) {
-                inputs.forEach(input => {
-                    input.value = '';
-                    input.style.pointerEvents = 'none';
+            function showPaymentGateway(radio) {
+                // Hide all payment gateway divs
+                const gatewayDivs = ['stripe', 'square', 'authorized', 'Clover'];
+                gatewayDivs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.display = 'none';
+                    }
                 });
-            } else {
-                inputs.forEach(input => {
-                    input.style.pointerEvents = '';
-                });
-            }
-        }
 
-        function applyToAllDays(param) {
-            const openTimes = document.querySelectorAll('.OPEN_TIME');
-            const closeTimes = document.querySelectorAll('.CLOSE_TIME');
-            if (param.checked) {
-                const firstOpen = openTimes[0]?.value || '';
-                const firstClose = closeTimes[0]?.value || '';
-                openTimes.forEach((el, i) => {
-                    if (i > 0) el.value = firstOpen;
-                });
-                closeTimes.forEach((el, i) => {
-                    if (i > 0) el.value = firstClose;
-                });
-            } else {
-                openTimes.forEach((el, i) => {
-                    if (i > 0) el.value = '';
-                });
-                closeTimes.forEach((el, i) => {
-                    if (i > 0) el.value = '';
-                });
-            }
-        }
+                // Show the selected one based on radio value
+                const value = radio.value;
+                let targetId = '';
 
-        function fetch_state(PK_COUNTRY) {
-            const data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-            $.ajax({
-                url: "ajax/state.php",
-                type: "POST",
-                data: data,
-                success: function(result) {
-                    document.getElementById('State_div').innerHTML = result;
+                if (value === 'Stripe') {
+                    targetId = 'stripe';
+                } else if (value === 'Square') {
+                    targetId = 'square';
+                } else if (value === 'Authorized.net') {
+                    targetId = 'authorized';
+                } else if (value === 'Clover') {
+                    targetId = 'Clover';
                 }
-            });
-        }
 
-        function showPaymentGateway(radio) {
-            // Hide all payment gateway divs
-            const gatewayDivs = ['stripe', 'square', 'authorized', 'Clover'];
-            gatewayDivs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.display = 'none';
-                }
-            });
-
-            // Show the selected one based on radio value
-            const value = radio.value;
-            let targetId = '';
-
-            if (value === 'Stripe') {
-                targetId = 'stripe';
-            } else if (value === 'Square') {
-                targetId = 'square';
-            } else if (value === 'Authorized.net') {
-                targetId = 'authorized';
-            } else if (value === 'Clover') {
-                targetId = 'Clover';
-            }
-
-            if (targetId) {
-                const target = document.getElementById(targetId);
-                if (target) {
-                    target.style.display = 'grid';
+                if (targetId) {
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.style.display = 'grid';
+                    }
                 }
             }
-        }
 
-        function showTwilioSetting(radio) {
-            const div = document.getElementById('twilio_setting_div');
-            if (radio.value == '1') {
-                div.style.display = 'grid';
-            } else {
-                div.style.display = 'none';
+            function showTwilioSetting(radio) {
+                const div = document.getElementById('twilio_setting_div');
+                if (radio.value == '1') {
+                    div.style.display = 'grid';
+                } else {
+                    div.style.display = 'none';
+                }
             }
-        }
 
-        function showArthurMurraySetup(radio) {
-            const div = document.getElementById('arthur_murray_setup');
-            if (radio.value == '1') {
-                div.style.display = 'block';
-            } else {
-                div.style.display = 'none';
+            function showArthurMurraySetup(radio) {
+                const div = document.getElementById('arthur_murray_setup');
+                if (radio.value == '1') {
+                    div.style.display = 'block';
+                } else {
+                    div.style.display = 'none';
+                }
             }
-        }
 
-        function showHourBox(radio) {
-            const box = document.getElementById('hour_box');
-            if (radio.value == '1') {
-                box.style.display = 'block';
-            } else {
-                box.style.display = 'none';
+            function showHourBox(radio) {
+                const box = document.getElementById('hour_box');
+                if (radio.value == '1') {
+                    box.style.display = 'block';
+                } else {
+                    box.style.display = 'none';
+                }
             }
-        }
 
-        function addMoreHoliday() {
-            const section = document.getElementById('holiday_list_section');
-            const row = document.createElement('div');
-            row.className = 'holiday-row';
-            row.innerHTML = `
+            function addMoreHoliday() {
+                const section = document.getElementById('holiday_list_section');
+                const row = document.createElement('div');
+                row.className = 'holiday-row';
+                row.innerHTML = `
                 <div><input type="text" class="form-control-modern datepicker-normal" name="HOLIDAY_DATE[]"></div>
                 <div><input type="text" class="form-control-modern" name="HOLIDAY_NAME[]"></div>
                 <button type="button" class="remove-btn" onclick="removeThis(this);"><i class="fas fa-trash"></i></button>
             `;
-            section.appendChild(row);
-            $('.datepicker-normal').datepicker({
-                format: 'mm/dd/yyyy',
+                section.appendChild(row);
+                $('.datepicker-normal').datepicker({
+                    format: 'mm/dd/yyyy',
+                });
+            }
+
+            function removeThis(el) {
+                el.closest('.holiday-row').remove();
+            }
+
+            function changePaymentFrom(param) {
+                const paymentDetails = document.getElementById('payment_details_div');
+                const corporationCard = document.getElementById('corporation_card_div');
+                if (param.value == 'corporation') {
+                    paymentDetails.style.display = 'none';
+                    corporationCard.style.display = 'block';
+                    getCorporationSavedCreditCardList();
+                } else {
+                    paymentDetails.style.display = 'block';
+                    corporationCard.style.display = 'none';
+                    getSavedCreditCardList('payment');
+                }
+            }
+
+            function getSavedCreditCardList(type) {
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+                if (gateway == 'Square') {
+                    squarePaymentFunction(type);
+                } else if (gateway == 'Stripe') {
+                    stripePaymentFunction(type);
+                }
+                $.ajax({
+                    url: "ajax/get_credit_card_list_from_master.php",
+                    type: 'POST',
+                    data: {
+                        PK_VALUE: '<?= $PK_LOCATION ?>',
+                        class: 'location'
+                    },
+                    success: function(data) {
+                        document.querySelectorAll('.card_list_div').forEach(el => {
+                            el.style.display = 'block';
+                            el.innerHTML = data;
+                        });
+                    }
+                });
+            }
+
+            function getCorporationSavedCreditCardList() {
+                $.ajax({
+                    url: "ajax/get_credit_card_list_from_master.php",
+                    type: 'POST',
+                    data: {
+                        PK_VALUE: '<?= $PK_CORPORATION ?>',
+                        class: 'corporation'
+                    },
+                    success: function(data) {
+                        const div = document.getElementById('corporation_card_list');
+                        div.style.display = 'block';
+                        div.innerHTML = data;
+                    }
+                });
+            }
+
+            // Init
+            $(document).ready(function() {
+                fetch_state(<?= $PK_COUNTRY; ?>);
+                const checkedPaymentFrom = document.querySelector('.PAYMENT_FROM:checked');
+                if (checkedPaymentFrom) {
+                    changePaymentFrom(checkedPaymentFrom);
+                }
             });
-        }
+        </script>
 
-        function removeThis(el) {
-            el.closest('.holiday-row').remove();
-        }
+        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
+            <script src="https://js.stripe.com/v3/"></script>
+            <script>
+                const stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
+                const elements = stripe.elements();
 
-        function changePaymentFrom(param) {
-            const paymentDetails = document.getElementById('payment_details_div');
-            const corporationCard = document.getElementById('corporation_card_div');
-            if (param.value == 'corporation') {
-                paymentDetails.style.display = 'none';
-                corporationCard.style.display = 'block';
-                getCorporationSavedCreditCardList();
-            } else {
-                paymentDetails.style.display = 'block';
-                corporationCard.style.display = 'none';
-                getSavedCreditCardList('payment');
-            }
-        }
+                const style = {
+                    base: {
+                        fontSize: '14px',
+                        color: '#1F2937',
+                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                        '::placeholder': {
+                            color: '#9CA3AF'
+                        }
+                    },
+                    invalid: {
+                        color: '#EF4444',
+                        iconColor: '#EF4444'
+                    }
+                };
 
-        function getSavedCreditCardList(type) {
-            const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
-            if (gateway == 'Square') {
-                squarePaymentFunction(type);
-            } else if (gateway == 'Stripe') {
-                stripePaymentFunction(type);
-            }
-            $.ajax({
-                url: "ajax/get_credit_card_list_from_master.php",
-                type: 'POST',
-                data: {
-                    PK_VALUE: '<?= $PK_LOCATION ?>',
-                    class: 'location'
-                },
-                success: function(data) {
-                    document.querySelectorAll('.card_list_div').forEach(el => {
-                        el.style.display = 'block';
-                        el.innerHTML = data;
+                const stripe_card = elements.create('card', {
+                    style: style
+                });
+
+                function stripePaymentFunction(type) {
+                    if (document.getElementById('card-element')) {
+                        stripe_card.mount('#card-element');
+                    }
+                    stripe_card.addEventListener('change', function(event) {
+                        const displayError = document.getElementById('card-errors');
+                        if (event.error) {
+                            displayError.textContent = event.error.message;
+                        } else {
+                            displayError.textContent = '';
+                            addStripeTokenOnForm();
+                        }
                     });
                 }
-            });
-        }
 
-        function getCorporationSavedCreditCardList() {
-            $.ajax({
-                url: "ajax/get_credit_card_list_from_master.php",
-                type: 'POST',
-                data: {
-                    PK_VALUE: '<?= $PK_CORPORATION ?>',
-                    class: 'corporation'
-                },
-                success: function(data) {
-                    const div = document.getElementById('corporation_card_list');
-                    div.style.display = 'block';
-                    div.innerHTML = data;
-                }
-            });
-        }
-
-        // Init
-        $(document).ready(function() {
-            fetch_state(<?= $PK_COUNTRY; ?>);
-            const checkedPaymentFrom = document.querySelector('.PAYMENT_FROM:checked');
-            if (checkedPaymentFrom) {
-                changePaymentFrom(checkedPaymentFrom);
-            }
-        });
-    </script>
-
-    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Stripe'): ?>
-        <script src="https://js.stripe.com/v3/"></script>
-        <script>
-            const stripe = Stripe('<?= $SA_PUBLISHABLE_KEY ?>');
-            const elements = stripe.elements();
-
-            const style = {
-                base: {
-                    fontSize: '14px',
-                    color: '#1F2937',
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-                    '::placeholder': {
-                        color: '#9CA3AF'
-                    }
-                },
-                invalid: {
-                    color: '#EF4444',
-                    iconColor: '#EF4444'
-                }
-            };
-
-            const stripe_card = elements.create('card', {
-                style: style
-            });
-
-            function stripePaymentFunction(type) {
-                if (document.getElementById('card-element')) {
-                    stripe_card.mount('#card-element');
-                }
-                stripe_card.addEventListener('change', function(event) {
-                    const displayError = document.getElementById('card-errors');
-                    if (event.error) {
-                        displayError.textContent = event.error.message;
-                    } else {
-                        displayError.textContent = '';
-                        addStripeTokenOnForm();
-                    }
-                });
-            }
-
-            function addStripeTokenOnForm() {
-                stripe.createToken(stripe_card).then(function(result) {
-                    if (result.error) {
-                        const errorElement = document.getElementById('card-errors');
-                        errorElement.textContent = result.error.message;
-                    } else {
-                        document.getElementById('stripe_token').value = result.token.id;
-                    }
-                });
-            }
-        </script>
-    <?php endif; ?>
-
-    <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Square'):
-        if ($SA_GATEWAY_MODE == 'live')
-            $URL = "https://web.squarecdn.com/v1/square.js";
-        else
-            $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
-    ?>
-        <script src="<?= $URL ?>"></script>
-        <script>
-            let square_card;
-
-            async function squarePaymentFunction(type) {
-                const square_appId = '<?= $SA_SQUARE_APP_ID ?>';
-                const square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
-                const payments = Square.payments(square_appId, square_locationId);
-                square_card = await payments.card();
-                const container = document.getElementById(type + '-card-container');
-                if (container) {
-                    container.innerHTML = '';
-                    await square_card.attach('#' + type + '-card-container');
-                }
-            }
-
-            async function addSquareTokenOnForm(type) {
-                const statusContainer = document.getElementById(type + '-status-container');
-                try {
-                    const result = await square_card.tokenize();
-                    if (result.status === 'OK') {
-                        document.querySelectorAll('.square_token').forEach(el => el.value = result.token);
-                    } else {
-                        let errorMessage = `Tokenization failed with status: ${result.status}`;
-                        if (result.errors) {
-                            errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                function addStripeTokenOnForm() {
+                    stripe.createToken(stripe_card).then(function(result) {
+                        if (result.error) {
+                            const errorElement = document.getElementById('card-errors');
+                            errorElement.textContent = result.error.message;
+                        } else {
+                            document.getElementById('stripe_token').value = result.token.id;
                         }
-                        throw new Error(errorMessage);
-                    }
-                } catch (e) {
-                    console.error(e);
-                    if (statusContainer) {
-                        statusContainer.innerHTML = `<p class="alert-modern error">Payment Failed: ${e.message}</p>`;
+                    });
+                }
+            </script>
+        <?php endif; ?>
+
+        <?php if ($SA_PAYMENT_GATEWAY_TYPE == 'Square'):
+            if ($SA_GATEWAY_MODE == 'live')
+                $URL = "https://web.squarecdn.com/v1/square.js";
+            else
+                $URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+        ?>
+            <script src="<?= $URL ?>"></script>
+            <script>
+                let square_card;
+
+                async function squarePaymentFunction(type) {
+                    const square_appId = '<?= $SA_SQUARE_APP_ID ?>';
+                    const square_locationId = '<?= $SA_SQUARE_LOCATION_ID ?>';
+                    const payments = Square.payments(square_appId, square_locationId);
+                    square_card = await payments.card();
+                    const container = document.getElementById(type + '-card-container');
+                    if (container) {
+                        container.innerHTML = '';
+                        await square_card.attach('#' + type + '-card-container');
                     }
                 }
+
+                async function addSquareTokenOnForm(type) {
+                    const statusContainer = document.getElementById(type + '-status-container');
+                    try {
+                        const result = await square_card.tokenize();
+                        if (result.status === 'OK') {
+                            document.querySelectorAll('.square_token').forEach(el => el.value = result.token);
+                        } else {
+                            let errorMessage = `Tokenization failed with status: ${result.status}`;
+                            if (result.errors) {
+                                errorMessage += ` and errors: ${JSON.stringify(result.errors)}`;
+                            }
+                            throw new Error(errorMessage);
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        if (statusContainer) {
+                            statusContainer.innerHTML = `<p class="alert-modern error">Payment Failed: ${e.message}</p>`;
+                        }
+                    }
+                }
+            </script>
+        <?php endif; ?>
+
+        <script>
+            function getPaymentMethodId(param) {
+                document.querySelectorAll('.credit-card-item').forEach(el => el.classList.remove('selected'));
+                param.closest('.credit-card-item')?.classList.add('selected');
+                document.getElementById('PAYMENT_METHOD_ID').value = param.getAttribute('id') || '';
             }
-        </script>
-    <?php endif; ?>
 
-    <script>
-        function getPaymentMethodId(param) {
-            document.querySelectorAll('.credit-card-item').forEach(el => el.classList.remove('selected'));
-            param.closest('.credit-card-item')?.classList.add('selected');
-            document.getElementById('PAYMENT_METHOD_ID').value = param.getAttribute('id') || '';
-        }
+            $(document).on('submit', '#location_payment_form', function(event) {
+                event.preventDefault();
+                const btn = document.getElementById('location-payment-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
 
-        $(document).on('submit', '#location_payment_form', function(event) {
-            event.preventDefault();
-            const btn = document.getElementById('location-payment-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Processing...';
-
-            const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
-            if (gateway == 'Square') {
-                const methodId = document.getElementById('PAYMENT_METHOD_ID').value;
-                if (!methodId) {
-                    addSquareTokenOnForm('payment');
-                    setTimeout(() => submitLocationPaymentForm(), 3000);
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+                if (gateway == 'Square') {
+                    const methodId = document.getElementById('PAYMENT_METHOD_ID').value;
+                    if (!methodId) {
+                        addSquareTokenOnForm('payment');
+                        setTimeout(() => submitLocationPaymentForm(), 3000);
+                    } else {
+                        submitLocationPaymentForm();
+                    }
                 } else {
                     submitLocationPaymentForm();
                 }
-            } else {
-                submitLocationPaymentForm();
-            }
-        });
-
-        function submitLocationPaymentForm() {
-            const form_data = $('#location_payment_form').serialize();
-            $.ajax({
-                url: "includes/process_location_payment.php",
-                type: 'POST',
-                data: form_data,
-                dataType: 'json',
-                success: function(data) {
-                    const statusDiv = document.getElementById('location_payment_status');
-                    const btn = document.getElementById('location-payment-btn');
-                    if (data.STATUS === 'Failed') {
-                        statusDiv.innerHTML = `<p class="alert-modern error">${data.PAYMENT_INFO}</p>`;
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-check"></i> Process Payment';
-                    } else {
-                        statusDiv.innerHTML = `<p class="alert-modern success">Payment Successful, page will refresh automatically.</p>`;
-                        setTimeout(() => location.reload(), 3000);
-                    }
-                }
             });
-        }
 
-        $(document).on('submit', '#credit_card_form', function(event) {
-            event.preventDefault();
-            const btn = document.getElementById('save_card-pay-button');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Processing...';
-
-            const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
-            if (gateway == 'Square') {
-                addSquareTokenOnForm('save_card');
-                setTimeout(() => submitCreditCardForm(), 3000);
-            } else {
-                submitCreditCardForm();
-            }
-        });
-
-        function submitCreditCardForm() {
-            const form_data = $('#credit_card_form').serialize();
-            $.ajax({
-                url: "includes/save_corporation_credit_card.php",
-                type: 'POST',
-                data: form_data,
-                dataType: 'json',
-                success: function(data) {
-                    const statusDiv = document.getElementById('save_card_payment_status');
-                    const btn = document.getElementById('save_card-pay-button');
-                    if (data.STATUS == false) {
-                        statusDiv.innerHTML = `<p class="alert-modern error">${data.MESSAGE}</p>`;
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-save"></i> Save Card';
-                    } else {
-                        statusDiv.innerHTML = `<p class="alert-modern success">Credit Card Successfully Saved.</p>`;
-                        setTimeout(() => location.reload(), 3000);
-                    }
-                }
-            });
-        }
-
-        $('#payment_table').DataTable({
-            order: [
-                [0, 'desc']
-            ],
-            columnDefs: [{
-                type: 'date',
-                targets: 0
-            }],
-            pageLength: 10,
-            responsive: true
-        });
-    </script>
-
-    <!-- Location Form AJAX -->
-    <script>
-        $(document).on('submit', '#location_form', function(event) {
-            event.preventDefault();
-
-            const btn = this.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Saving...';
-
-            const form_data = new FormData(this);
-
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        document.querySelectorAll('input[name="PK_LOCATION"]').forEach(el => el.value = response.PK_LOCATION);
-                        if (window.location.href.indexOf('id=') === -1 && response.PK_LOCATION) {
-                            document.querySelector('[data-tab="operational_hours"]')?.click();
+            function submitLocationPaymentForm() {
+                const form_data = $('#location_payment_form').serialize();
+                $.ajax({
+                    url: "includes/process_location_payment.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        const statusDiv = document.getElementById('location_payment_status');
+                        const btn = document.getElementById('location-payment-btn');
+                        if (data.STATUS === 'Failed') {
+                            statusDiv.innerHTML = `<p class="alert-modern error">${data.PAYMENT_INFO}</p>`;
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-check"></i> Process Payment';
                         } else {
-                            window.location.href = 'location.php?id=' + response.PK_LOCATION;
+                            statusDiv.innerHTML = `<p class="alert-modern success">Payment Successful, page will refresh automatically.</p>`;
+                            setTimeout(() => location.reload(), 3000);
                         }
-                    } else {
-                        alert('Error: ' + (response.message || 'Failed to save location'));
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
                     }
-                },
-                error: function() {
-                    alert('An error occurred while saving the location.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            });
-        });
-    </script>
-
-    <!-- Operational Hours AJAX -->
-    <script>
-        $(document).on('submit', '#operational_hours_form', function(event) {
-            event.preventDefault();
-
-            let isValid = true;
-            let errorMessage = '';
-
-            document.querySelectorAll('.hours-grid').forEach(row => {
-                const isClosed = row.querySelector('input[type="checkbox"]')?.checked;
-                const openTime = row.querySelector('.OPEN_TIME')?.value;
-                const closeTime = row.querySelector('.CLOSE_TIME')?.value;
-
-                if (!isClosed) {
-                    if (!openTime || openTime === '') {
-                        isValid = false;
-                        errorMessage = 'Please select open time for all days (or mark as closed)';
-                        row.querySelector('.OPEN_TIME')?.classList.add('is-invalid');
-                    } else {
-                        row.querySelector('.OPEN_TIME')?.classList.remove('is-invalid');
-                    }
-                    if (!closeTime || closeTime === '') {
-                        isValid = false;
-                        errorMessage = 'Please select close time for all days (or mark as closed)';
-                        row.querySelector('.CLOSE_TIME')?.classList.add('is-invalid');
-                    } else {
-                        row.querySelector('.CLOSE_TIME')?.classList.remove('is-invalid');
-                    }
-                }
-            });
-
-            if (!isValid) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Validation Error',
-                    text: errorMessage,
-                    confirmButtonColor: '#39B54A'
                 });
-                return;
             }
 
-            const btn = this.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Saving...';
+            $(document).on('submit', '#credit_card_form', function(event) {
+                event.preventDefault();
+                const btn = document.getElementById('save_card-pay-button');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
 
-            const form_data = $(this).serialize();
+                const gateway = '<?= $SA_PAYMENT_GATEWAY_TYPE ?>';
+                if (gateway == 'Square') {
+                    addSquareTokenOnForm('save_card');
+                    setTimeout(() => submitCreditCardForm(), 3000);
+                } else {
+                    submitCreditCardForm();
+                }
+            });
 
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: form_data,
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.success) {
-                        window.location.href = 'all_locations.php';
-                    } else {
-                        alert('Error: ' + (response.message || 'Failed to save operational hours'));
+            function submitCreditCardForm() {
+                const form_data = $('#credit_card_form').serialize();
+                $.ajax({
+                    url: "includes/save_corporation_credit_card.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(data) {
+                        const statusDiv = document.getElementById('save_card_payment_status');
+                        const btn = document.getElementById('save_card-pay-button');
+                        if (data.STATUS == false) {
+                            statusDiv.innerHTML = `<p class="alert-modern error">${data.MESSAGE}</p>`;
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-save"></i> Save Card';
+                        } else {
+                            statusDiv.innerHTML = `<p class="alert-modern success">Credit Card Successfully Saved.</p>`;
+                            setTimeout(() => location.reload(), 3000);
+                        }
+                    }
+                });
+            }
+
+            $('#payment_table').DataTable({
+                order: [
+                    [0, 'desc']
+                ],
+                columnDefs: [{
+                    type: 'date',
+                    targets: 0
+                }],
+                pageLength: 10,
+                responsive: true
+            });
+        </script>
+
+        <!-- Location Form AJAX -->
+        <script>
+            $(document).on('submit', '#location_form', function(event) {
+                event.preventDefault();
+
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const form_data = new FormData(this);
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            document.querySelectorAll('input[name="PK_LOCATION"]').forEach(el => el.value = response.PK_LOCATION);
+                            if (window.location.href.indexOf('id=') === -1 && response.PK_LOCATION) {
+                                document.querySelector('[data-tab="operational_hours"]')?.click();
+                            } else {
+                                window.location.href = 'location.php?id=' + response.PK_LOCATION;
+                            }
+                        } else {
+                            alert('Error: ' + (response.message || 'Failed to save location'));
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while saving the location.');
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                     }
-                },
-                error: function() {
-                    alert('An error occurred while saving operational hours.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
+                });
             });
-        });
-    </script>
+        </script>
+
+        <!-- Operational Hours AJAX -->
+        <script>
+            $(document).on('submit', '#operational_hours_form', function(event) {
+                event.preventDefault();
+
+                let isValid = true;
+                let errorMessage = '';
+
+                document.querySelectorAll('.hours-grid').forEach(row => {
+                    const isClosed = row.querySelector('input[type="checkbox"]')?.checked;
+                    const openTime = row.querySelector('.OPEN_TIME')?.value;
+                    const closeTime = row.querySelector('.CLOSE_TIME')?.value;
+
+                    if (!isClosed) {
+                        if (!openTime || openTime === '') {
+                            isValid = false;
+                            errorMessage = 'Please select open time for all days (or mark as closed)';
+                            row.querySelector('.OPEN_TIME')?.classList.add('is-invalid');
+                        } else {
+                            row.querySelector('.OPEN_TIME')?.classList.remove('is-invalid');
+                        }
+                        if (!closeTime || closeTime === '') {
+                            isValid = false;
+                            errorMessage = 'Please select close time for all days (or mark as closed)';
+                            row.querySelector('.CLOSE_TIME')?.classList.add('is-invalid');
+                        } else {
+                            row.querySelector('.CLOSE_TIME')?.classList.remove('is-invalid');
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validation Error',
+                        text: errorMessage,
+                        confirmButtonColor: '#39B54A'
+                    });
+                    return;
+                }
+
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const form_data = $(this).serialize();
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: form_data,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            window.location.href = 'all_locations.php';
+                        } else {
+                            alert('Error: ' + (response.message || 'Failed to save operational hours'));
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while saving operational hours.');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            function addMoreOffering() {
+                $('#append_service_div').append(`<div class="service-row row from-grid-modern">
+                                                <div class="col-3">
+                                                    <input type="text" class="form-control-modern OFFERING" name="OFFERING[]">
+                                                </div>
+                                                <div class="col-7">
+                                                    <input type="text" class="form-control-modern DESCRIPTION" name="DESCRIPTION[]">
+                                                </div>
+                                                <div class="col-1">
+                                                    <button type="button" class="btn remove-btn" onclick="removeThisServiceProvider(this);"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>`);
+            }
+
+            function removeThisServiceProvider(param) {
+                $(param).closest('.service-row').remove();
+            }
+
+            function addMoreFAQ() {
+                $('#append_faq_div').append(`<div class="service-row row from-grid-modern">
+                                                <div class="form-group-modern col-4">
+                                                    <label class="form-label">Question <span class="required">*</span></label>
+                                                    <input type="text" class="form-control-modern QUESTION" name="QUESTION[]" required>
+                                                </div>
+                                                <div class="form-group-modern col-6">
+                                                    <label class="form-label">Answer <span class="required">*</span></label>
+                                                    <input type="text" class="form-control-modern ANSWER" name="ANSWER[]">
+                                                </div>
+                                                <div class="col-1">
+                                                    <button type="button" class="btn remove-btn" onclick="removeThisFAQ(this);" style="margin-top:20px;"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>`);
+            }
+
+            function removeThisFAQ(param) {
+                $(param).closest('.service-row').remove();
+            }
+        </script>
+
 </body>
 
 </html>
