@@ -187,19 +187,9 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
 
     $timePeriod = getTimePeriod($START_TIME);
     if ($timePeriod === "Morning") {
-        $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_MORNING'] ?? null);
-        foreach ($PK_USER_ARRAY as $PK_USER) {
-            if (getAvailableServiceProviders($db_account, $PK_USER, $DATE, $START_TIME, $PK_LOCATION)) {
-                return $PK_USER;
-            }
-        }
+        $PK_USER = explode(',', $locationData->fields['PK_USER_MORNING'] ?? null)[0] ?? null;
     } elseif ($timePeriod === "Afternoon") {
-        $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_AFTERNOON'] ?? null);
-        foreach ($PK_USER_ARRAY as $PK_USER) {
-            if (getAvailableServiceProviders($db_account, $PK_USER, $DATE, $START_TIME, $PK_LOCATION)) {
-                return $PK_USER;
-            }
-        }
+        $PK_USER = explode(',', $locationData->fields['PK_USER_AFTERNOON'] ?? null)[0] ?? null;
     } elseif ($timePeriod === "Evening") {
         $PK_USER = explode(',', $locationData->fields['PK_USER_EVENING'] ?? null)[0] ?? null;
     } elseif ($timePeriod === "Night") {
@@ -243,26 +233,6 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
     db_perform_account_own($db_account, 'DOA_APPOINTMENT_CUSTOMER', $APPOINTMENT_CUSTOMER_DATA, 'insert');
 
     return $PK_APPOINTMENT_MASTER;
-}
-
-function getAvailableServiceProviders($db_account, $PK_USER, $date, $time, $PK_LOCATION)
-{
-    $sql = "SELECT DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER, DOA_APPOINTMENT_MASTER.DATE, DOA_APPOINTMENT_MASTER.START_TIME, DOA_APPOINTMENT_MASTER.END_TIME, DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER
-            FROM DOA_APPOINTMENT_MASTER
-            LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
-            WHERE DOA_APPOINTMENT_MASTER.DATE = '" . addslashes($date) . "'
-            AND ((DOA_APPOINTMENT_MASTER.START_TIME <= '" . addslashes($time) . "' AND DOA_APPOINTMENT_MASTER.END_TIME > '" . addslashes($time) . "')
-            OR (DOA_APPOINTMENT_MASTER.START_TIME < '" . addslashes($time) . "' AND DOA_APPOINTMENT_MASTER.END_TIME >= '" . addslashes($time) . "'))
-            AND DOA_APPOINTMENT_MASTER.PK_LOCATION = " . (int)$PK_LOCATION . " AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 1
-            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . (int)$PK_USER . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IS NOT NULL
-            ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
-
-    $result = $db_account->Execute($sql);
-    if ($result->RecordCount() > 0) {
-        return true; // Service provider is booked
-    } else {
-        return false; // Service provider is available
-    }
 }
 
 function getTimePeriod($time)

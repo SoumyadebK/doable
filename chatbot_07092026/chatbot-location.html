@@ -7,13 +7,45 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; font-family: 'Inter', sans-serif; }
+  body { font-family: 'Inter', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .demo-page { text-align: center; color: #64748b; font-size: 13px; padding: 20px; }
+  .demo-page h2 { font-family: 'Sora', sans-serif; font-size: 24px; color: #1e293b; margin-bottom: 6px; }
+
+  /* Launcher */
+  #doable-launcher {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--brand, #c8102e);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s; z-index: 9999;
+  }
+  #doable-launcher:hover { transform: scale(1.08); }
+  #doable-launcher svg { width: 28px; height: 28px; fill: #fff; }
+
+  /* Chat Window */
+  #doable-window {
+    position: fixed; bottom: 100px; right: 28px;
+    width: 380px; max-height: 600px;
+    background: #fff; border-radius: 20px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+    overflow: hidden; z-index: 9998;
+    transform: scale(0.92) translateY(16px);
+    opacity: 0; pointer-events: none;
+    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s ease;
+  }
+  #doable-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
 
   /* Header */
   .chat-header { background: var(--brand, #c8102e); padding: 16px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   .chat-avatar { width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .chat-header-info { flex: 1; }
   .chat-header-name { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2; }
+  .chat-header-sub { font-size: 11px; color: rgba(255,255,255,0.78); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .status-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
 
   /* Messages */
   .chat-messages { flex: 1; overflow-y: auto; padding: 16px 14px 16px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
@@ -66,37 +98,6 @@
   .send-btn:hover { opacity: 0.88; }
   .send-btn svg { width: 16px; height: 16px; fill: #fff; }
 
-  /* Launcher */
-  #doable-launcher {
-    position: absolute; bottom: 0; right: 0;
-    width: 60px; height: 60px; border-radius: 50%;
-    background: var(--brand, #c8102e);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s; z-index: 9999;
-  }
-  #doable-launcher:hover { transform: scale(1.08); }
-  #doable-launcher svg { width: 28px; height: 28px; fill: #fff; }
-
-  /* Chat Window — positioned inside iframe */
-  #doable-window {
-    position: absolute; bottom: 78px; right: 0;
-    width: 100%; max-width: 400px; max-height: 580px;
-    background: #fff; border-radius: 20px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column;
-    overflow: hidden; z-index: 9998;
-    transform: scale(0.92) translateY(16px);
-    opacity: 0; pointer-events: none;
-    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s ease;
-  }
-  #doable-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
-
-  @media (max-width: 480px) {
-    #doable-window { width: 100vw; height: 100vh; max-height: 100vh; bottom: 0; right: 0; border-radius: 0; }
-  }
-
   /* Calendar */
   .cal-day{text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;}
   .cal-past{color:#cbd5e1;cursor:not-allowed;}
@@ -105,6 +106,13 @@
 </style>
 </head>
 <body>
+
+<div class="demo-page">
+  <h2>DOable Concierge — By Location</h2>
+  <p>Location-Level Build</p>
+  <p style="margin-top:8px;font-size:12px;color:#94a3b8;">Click the button in the bottom-right to open.</p>
+</div>
+
 <button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
   <svg id="icon-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
   <svg id="icon-close" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -127,10 +135,9 @@
 </div>
 
 <script>
-// ── API Config (read from URL params) ────────────────
-const _params     = new URLSearchParams(window.location.search);
-const ACCOUNT_ID  = _params.get('account')  || '';
-const LOCATION_ID = _params.get('location') || '';
+// ── API Config ────────────────────────────────────────
+const ACCOUNT_ID  = '1010';
+const LOCATION_ID = 'AMWH'; // ← set per embed; e.g. AMWH or AMTO
 const API_BASE    = 'https://doable.net/chatbot/api';
 
 // ── Translations ──────────────────────────────────────
@@ -267,7 +274,7 @@ async function fetchLocationConfig() {
   throw new Error('Could not load location config');
 }
 async function fetchOfferings() {
-  const res  = await fetch(`${API_BASE}/get_offerings.php?account=${ACCOUNT_ID}&location=${LOCATION_ID}`);
+  const res  = await fetch(`${API_BASE}/get_offerings.php?account=${ACCOUNT_ID}`);
   const json = await res.json();
   if (json.status === 'success') return json.data;
   return [];
@@ -394,9 +401,9 @@ async function startFlow() {
   LOCATION       = LOCATION_CONFIG.locations[0];
   state.location = LOCATION;
 
-  // Apply branding immediately — all fields now live inside LOCATION
-  const color = LOCATION.primary_color || '#c8102e';
-  const emoji = LOCATION.avatar_emoji  || '💬';
+  // Apply branding immediately — title doesn't need language selection to be set
+  const color = LOCATION_CONFIG.primary_color || '#c8102e';
+  const emoji = LOCATION_CONFIG.avatar_emoji  || '💬';
   document.documentElement.style.setProperty('--brand', color);
   $('chat-avatar').textContent = emoji;
   $('chat-title').textContent  = `${LOCATION_CONFIG.business_name} Concierge`;
@@ -440,10 +447,10 @@ function applyBranding() {
 async function showMenu() {
   state.step = 'menu';
   const emojiMap = { pricing: '💰', booking: '📅', contact: '📞', faq: '❓' };
-  await addBotBubble(LOCATION.welcome_message, 400);
+  await addBotBubble(LOCATION_CONFIG.welcome_message, 400);
   await addBotBubble(t('welcome_option'), 900);
   setTimeout(() => {
-    addButtons(LOCATION.menu_options.map(opt => {
+    addButtons(LOCATION_CONFIG.menu_options.map(opt => {
       const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
       return { label: `${emoji} ${opt.label}`, action: () => handleMenu(opt.type) };
     }));
@@ -452,7 +459,7 @@ async function showMenu() {
 
 // ── Menu Handlers ─────────────────────────────────────
 async function handleMenu(type) {
-  const offeringsMenuItem = LOCATION.menu_options.find(o => o.is_offerings);
+  const offeringsMenuItem = LOCATION_CONFIG.menu_options.find(o => o.is_offerings);
   const isOfferings = offeringsMenuItem && offeringsMenuItem.type === type;
 
   if (isOfferings) {
@@ -465,9 +472,9 @@ async function handleMenu(type) {
     }, 900);
 
   } else if (type === 'pricing') {
-    addUserBubble('💰 ' + (LOCATION.menu_options.find(o => o.type === 'pricing')?.label || 'Pricing'));
+    addUserBubble('💰 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'pricing')?.label || 'Pricing'));
     showTyping();
-    const packages = await fetchPricing();
+    const packages = await fetchPricing(); // returns flat array of packages
     removeTyping();
 
     if (!packages || packages.length === 0) {
@@ -485,11 +492,11 @@ async function handleMenu(type) {
     }
 
   } else if (type === 'booking') {
-    addUserBubble('📅 ' + (LOCATION.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
+    addUserBubble('📅 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
     startBooking();
 
   } else if (type === 'contact') {
-    addUserBubble('📞 ' + (LOCATION.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
+    addUserBubble('📞 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
     showTyping();
     await new Promise(r => setTimeout(r, 600));
     removeTyping();
@@ -506,8 +513,8 @@ async function handleMenu(type) {
     }, 400);
 
   } else if (type === 'faq') {
-    addUserBubble('❓ ' + (LOCATION.menu_options.find(o => o.type === 'faq')?.label || 'FAQ'));
-    const faqs = LOCATION.faq || [];
+    addUserBubble('❓ ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'faq')?.label || 'FAQ'));
+    const faqs = LOCATION_CONFIG.faq || [];
     if (faqs.length === 0) {
       await addBotBubble(t('faq_title'), 400);
       await addBotBubble('No FAQs available at this time.', 600);
@@ -859,7 +866,7 @@ async function backToMenu() {
   await addBotBubble(t('welcome_option'), 300);
   setTimeout(() => {
     const emojiMap = { pricing: '💰', booking: '📅', contact: '📞', faq: '❓' };
-    addButtons(LOCATION.menu_options.map(opt => {
+    addButtons(LOCATION_CONFIG.menu_options.map(opt => {
       const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
       return { label: `${emoji} ${opt.label}`, action: () => handleMenu(opt.type) };
     }));
@@ -937,8 +944,6 @@ function toggleChat() {
   $('icon-chat').style.display  = chatOpen ? 'none'  : 'block';
   $('icon-close').style.display = chatOpen ? 'block' : 'none';
   if (chatOpen && !started) { started = true; startFlow(); }
-  // Tell parent loader to expand/shrink the iframe
-  window.parent.postMessage({ type: 'doable-toggle', open: chatOpen }, '*');
 }
 
 // Auto-open: 4s desktop, 10s mobile, once per session

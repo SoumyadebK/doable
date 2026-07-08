@@ -7,97 +7,11 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; font-family: 'Inter', sans-serif; }
+  body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .demo-page { text-align: center; color: #64748b; font-size: 13px; padding: 20px; }
+  .demo-page h2 { font-family: 'Sora', sans-serif; font-size: 24px; color: #1e293b; margin-bottom: 6px; }
 
-  /* Header */
-  .chat-header { background: var(--brand, #c8102e); padding: 16px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-  .chat-avatar { width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .chat-header-info { flex: 1; }
-  .chat-header-name { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2; }
-
-  /* Messages */
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px 14px 16px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
-  .chat-messages::-webkit-scrollbar { width: 4px; }
-  .chat-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-
-  .msg { display: flex; flex-direction: column; max-width: 88%; }
-  .msg.bot { align-self: flex-start; }
-  .msg.user { align-self: flex-end; }
-  .bubble { padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.55; }
-  .msg.bot .bubble { background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
-  .msg.user .bubble { background: var(--brand, #c8102e); color: #fff; border-bottom-right-radius: 4px; }
-  .msg-time { font-size: 10px; color: #94a3b8; margin-top: 3px; padding: 0 4px; }
-  .msg.user .msg-time { text-align: right; }
-
-  /* Typing */
-  .typing-bubble { background: #f1f5f9; border-radius: 16px; border-bottom-left-radius: 4px; padding: 12px 16px; display: flex; gap: 5px; align-items: center; align-self: flex-start; }
-  .typing-bubble span { width: 7px; height: 7px; background: #94a3b8; border-radius: 50%; animation: bounce 1.2s infinite; }
-  .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
-
-  /* Buttons */
-  .btn-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 0 4px; align-self: flex-start; }
-  .choice-btn { background: #fff; border: 1.5px solid var(--brand, #c8102e); color: var(--brand, #c8102e); border-radius: 20px; padding: 7px 14px; font-size: 12.5px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: background 0.15s, color 0.15s; font-family: 'Inter', sans-serif; }
-  .choice-btn:hover { background: var(--brand, #c8102e); color: #fff; }
-  .choice-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #fff; color: var(--brand,#c8102e); }
-  .choice-btn.secondary { border-color: #94a3b8; color: #64748b; }
-  .choice-btn.secondary:hover { background: #94a3b8; color: #fff; }
-
-  /* Cards */
-  .info-card { background: #fff8f8; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #1e293b; line-height: 1.8; align-self: flex-start; max-width: 92%; }
-  .info-card .card-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; color: var(--brand, #c8102e); margin-bottom: 6px; }
-  .confirm-card { background: #f8faff; border: 1.5px solid #c7d7fa; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #1e293b; line-height: 1.9; align-self: flex-start; max-width: 92%; }
-  .success-msg { text-align: center; background: #f0fdf4; border-radius: 12px; padding: 14px; font-size: 13px; color: #166534; line-height: 1.7; align-self: stretch; }
-  .contact-card { background: #fff8f8; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #1e293b; line-height: 2; align-self: flex-start; }
-  .contact-card .card-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; color: var(--brand, #c8102e); margin-bottom: 6px; }
-
-  /* Language selector */
-  .lang-selector { display: flex; gap: 10px; align-self: flex-start; padding: 2px 0 4px; }
-  .lang-btn { background: #fff; border: 1.5px solid var(--brand, #c8102e); color: var(--brand, #c8102e); border-radius: 12px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 8px; }
-  .lang-btn:hover { background: var(--brand, #c8102e); color: #fff; }
-
-  /* Input */
-  .input-row { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-  .chat-input { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 22px; padding: 9px 14px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; color: #1e293b; transition: border-color 0.15s; }
-  .chat-input:focus { border-color: var(--brand, #c8102e); }
-  .chat-input::placeholder { color: #94a3b8; }
-  .send-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--brand, #c8102e); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.15s; }
-  .send-btn:hover { opacity: 0.88; }
-  .send-btn svg { width: 16px; height: 16px; fill: #fff; }
-
-  /* Launcher */
-  #doable-launcher {
-    position: absolute; bottom: 0; right: 0;
-    width: 60px; height: 60px; border-radius: 50%;
-    background: var(--brand, #c8102e);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s; z-index: 9999;
-  }
-  #doable-launcher:hover { transform: scale(1.08); }
-  #doable-launcher svg { width: 28px; height: 28px; fill: #fff; }
-
-  /* Chat Window — positioned inside iframe */
-  #doable-window {
-    position: absolute; bottom: 78px; right: 0;
-    width: 100%; max-width: 400px; max-height: 580px;
-    background: #fff; border-radius: 20px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
-    display: flex; flex-direction: column;
-    overflow: hidden; z-index: 9998;
-    transform: scale(0.92) translateY(16px);
-    opacity: 0; pointer-events: none;
-    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s ease;
-  }
-  #doable-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
-
-  @media (max-width: 480px) {
-    #doable-window { width: 100vw; height: 100vh; max-height: 100vh; bottom: 0; right: 0; border-radius: 0; }
-  }
-
-  /* Calendar */
+    /* Calendar */
   .cal-day{text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;}
   .cal-past{color:#cbd5e1;cursor:not-allowed;}
   .cal-avail{color:#1e293b;cursor:pointer;}
@@ -105,12 +19,8 @@
 </style>
 </head>
 <body>
-<button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
-  <svg id="icon-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-  <svg id="icon-close" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-</button>
 
-<div id="doable-window">
+<div id="doable-window" style="display:flex;flex-direction:column;height:100vh;background:#fff;border-radius:0;box-shadow:none;transform:none;opacity:1;pointer-events:all;">
   <div class="chat-header">
     <div class="chat-avatar" id="chat-avatar">💬</div>
     <div class="chat-header-info">
@@ -267,7 +177,7 @@ async function fetchLocationConfig() {
   throw new Error('Could not load location config');
 }
 async function fetchOfferings() {
-  const res  = await fetch(`${API_BASE}/get_offerings.php?account=${ACCOUNT_ID}&location=${LOCATION_ID}`);
+  const res  = await fetch(`${API_BASE}/get_offerings.php?account=${ACCOUNT_ID}`);
   const json = await res.json();
   if (json.status === 'success') return json.data;
   return [];
@@ -394,9 +304,9 @@ async function startFlow() {
   LOCATION       = LOCATION_CONFIG.locations[0];
   state.location = LOCATION;
 
-  // Apply branding immediately — all fields now live inside LOCATION
-  const color = LOCATION.primary_color || '#c8102e';
-  const emoji = LOCATION.avatar_emoji  || '💬';
+  // Apply branding immediately — title doesn't need language selection to be set
+  const color = LOCATION_CONFIG.primary_color || '#c8102e';
+  const emoji = LOCATION_CONFIG.avatar_emoji  || '💬';
   document.documentElement.style.setProperty('--brand', color);
   $('chat-avatar').textContent = emoji;
   $('chat-title').textContent  = `${LOCATION_CONFIG.business_name} Concierge`;
@@ -440,10 +350,10 @@ function applyBranding() {
 async function showMenu() {
   state.step = 'menu';
   const emojiMap = { pricing: '💰', booking: '📅', contact: '📞', faq: '❓' };
-  await addBotBubble(LOCATION.welcome_message, 400);
+  await addBotBubble(LOCATION_CONFIG.welcome_message, 400);
   await addBotBubble(t('welcome_option'), 900);
   setTimeout(() => {
-    addButtons(LOCATION.menu_options.map(opt => {
+    addButtons(LOCATION_CONFIG.menu_options.map(opt => {
       const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
       return { label: `${emoji} ${opt.label}`, action: () => handleMenu(opt.type) };
     }));
@@ -452,7 +362,7 @@ async function showMenu() {
 
 // ── Menu Handlers ─────────────────────────────────────
 async function handleMenu(type) {
-  const offeringsMenuItem = LOCATION.menu_options.find(o => o.is_offerings);
+  const offeringsMenuItem = LOCATION_CONFIG.menu_options.find(o => o.is_offerings);
   const isOfferings = offeringsMenuItem && offeringsMenuItem.type === type;
 
   if (isOfferings) {
@@ -465,9 +375,9 @@ async function handleMenu(type) {
     }, 900);
 
   } else if (type === 'pricing') {
-    addUserBubble('💰 ' + (LOCATION.menu_options.find(o => o.type === 'pricing')?.label || 'Pricing'));
+    addUserBubble('💰 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'pricing')?.label || 'Pricing'));
     showTyping();
-    const packages = await fetchPricing();
+    const packages = await fetchPricing(); // returns flat array of packages
     removeTyping();
 
     if (!packages || packages.length === 0) {
@@ -485,11 +395,11 @@ async function handleMenu(type) {
     }
 
   } else if (type === 'booking') {
-    addUserBubble('📅 ' + (LOCATION.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
+    addUserBubble('📅 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
     startBooking();
 
   } else if (type === 'contact') {
-    addUserBubble('📞 ' + (LOCATION.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
+    addUserBubble('📞 ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
     showTyping();
     await new Promise(r => setTimeout(r, 600));
     removeTyping();
@@ -506,8 +416,8 @@ async function handleMenu(type) {
     }, 400);
 
   } else if (type === 'faq') {
-    addUserBubble('❓ ' + (LOCATION.menu_options.find(o => o.type === 'faq')?.label || 'FAQ'));
-    const faqs = LOCATION.faq || [];
+    addUserBubble('❓ ' + (LOCATION_CONFIG.menu_options.find(o => o.type === 'faq')?.label || 'FAQ'));
+    const faqs = LOCATION_CONFIG.faq || [];
     if (faqs.length === 0) {
       await addBotBubble(t('faq_title'), 400);
       await addBotBubble('No FAQs available at this time.', 600);
@@ -859,7 +769,7 @@ async function backToMenu() {
   await addBotBubble(t('welcome_option'), 300);
   setTimeout(() => {
     const emojiMap = { pricing: '💰', booking: '📅', contact: '📞', faq: '❓' };
-    addButtons(LOCATION.menu_options.map(opt => {
+    addButtons(LOCATION_CONFIG.menu_options.map(opt => {
       const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
       return { label: `${emoji} ${opt.label}`, action: () => handleMenu(opt.type) };
     }));
@@ -928,30 +838,20 @@ function showMiniCalendar(matchFn) {
   chatWin.appendChild(overlay);
 }
 
-// ── Auto-open & Toggle ────────────────────────────────
-let chatOpen = false, started = false;
-
-function toggleChat() {
-  chatOpen = !chatOpen;
-  $('doable-window').classList.toggle('open', chatOpen);
-  $('icon-chat').style.display  = chatOpen ? 'none'  : 'block';
-  $('icon-close').style.display = chatOpen ? 'block' : 'none';
-  if (chatOpen && !started) { started = true; startFlow(); }
-  // Tell parent loader to expand/shrink the iframe
-  window.parent.postMessage({ type: 'doable-toggle', open: chatOpen }, '*');
+// ── iframe mode — start immediately, notify parent of height changes ─────────
+function notifyHeight() {
+  const h = document.body.scrollHeight;
+  window.parent.postMessage({ type: 'doable-resize', height: h }, '*');
 }
 
-// Auto-open: 4s desktop, 10s mobile, once per session
+// Observe content changes and report height to parent loader
+const _resizeObserver = new ResizeObserver(() => notifyHeight());
+_resizeObserver.observe(document.getElementById('chat-messages'));
+
+// Start flow immediately — no launcher needed in iframe mode
 window.addEventListener('load', () => {
-  if (sessionStorage.getItem('doable_opened')) return;
-  const isMobile = window.innerWidth < 768;
-  const delay = isMobile ? 10000 : 4000;
-  setTimeout(() => {
-    if (!chatOpen) {
-      sessionStorage.setItem('doable_opened', '1');
-      toggleChat();
-    }
-  }, delay);
+  startFlow();
+  notifyHeight();
 });
 </script>
 </body>
