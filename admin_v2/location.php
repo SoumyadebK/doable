@@ -2454,22 +2454,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                 <div class="row" style="padding: 10px 0">
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning
+                                                            <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning (05:00 AM - 11:59 AM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon
+                                                            <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon (12:00 PM - 04:59 PM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening
+                                                            <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening (05:00 PM - 08:59 PM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night
+                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 PM)
                                                         </label>
                                                     </div>
                                                 </div>

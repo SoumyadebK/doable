@@ -821,6 +821,7 @@ if (!empty($_GET['id'])) {
                                         <option value="NO_FUTURE_APPOINTMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_FUTURE_APPOINTMENTS' ? 'selected' : '' ?>>No future appointments</option>
                                         <option value="NO_ACTIVE_ENROLLMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS' ? 'selected' : '' ?>>No active enrollments</option>
                                         <option value="NO_SPECIFIC_SERVICES" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES' ? 'selected' : '' ?>>No specific services</option>
+                                        <option value="A_LEAD_IS_GENERATED" <?= $AUTOMATION['TRIGGER_TYPE'] == 'A_LEAD_IS_GENERATED' ? 'selected' : '' ?>>A lead is generated</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6" id="triggerValueContainer">
