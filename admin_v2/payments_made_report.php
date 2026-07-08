@@ -285,37 +285,44 @@ if (!empty($_GET['START_DATE'])) {
                                                 // Get all payments first and separate regular payments from refunds
                                                 $all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
-                                                // Get gift certificate payments
+                                                // Get gift certificate payments (both active and refunded)
                                                 $gift_payments = $db_account->Execute("SELECT
-                                                                                            DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
-                                                                                            DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
-                                                                                            DOA_PAYMENT_TYPE.PAYMENT_TYPE,
-                                                                                            DOA_ENROLLMENT_PAYMENT.TYPE,
-                                                                                            DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
-                                                                                            DOA_ENROLLMENT_PAYMENT.AMOUNT,
-                                                                                            DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO,
-                                                                                            DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
-                                                                                            DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
-                                                                                            DOA_PAYMENT_TYPE.PAYMENT_TYPE AS PAYMENT_TYPE_NAME
-                                                                                        FROM
-                                                                                            DOA_ENROLLMENT_PAYMENT
-                                                                                        INNER JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
-                                                                                        ON
-                                                                                            DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
-                                                                                        LEFT JOIN DOA_GIFT_CERTIFICATE_MASTER AS DOA_GIFT_CERTIFICATE_MASTER
-                                                                                        ON
-                                                                                            DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER = DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER
-                                                                                        WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate' 
-                                                                                        AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 
-                                                                                        AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 
-                                                                                        AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                                                                                        " . $payment_date . " 
-                                                                                        ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+                                                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+                                                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                                                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                                                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                                                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                                                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                                                    DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO,
+                                                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                                                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                                                    
+                                                    DOA_ENROLLMENT_PAYMENT.IS_REFUNDED,
+                                                    DOA_PAYMENT_TYPE.PAYMENT_TYPE AS PAYMENT_TYPE_NAME,
+                                                    NULL AS ENROLLMENT_NAME,
+                                                    NULL AS ENROLLMENT_ID,
+                                                    NULL AS MISC_ID,
+                                                    NULL AS ENROLLMENT_DATE,
+                                                    NULL AS ENROLLMENT_TYPE,
+                                                    NULL AS TOTAL_AMOUNT,
+                                                    NULL AS ENROLLMENT_BY_ID,
+                                                    NULL AS PK_USER_MASTER,
+                                                    NULL AS CLIENT
+                                                FROM
+                                                    DOA_ENROLLMENT_PAYMENT
+                                                INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+                                                ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+                                                LEFT JOIN DOA_GIFT_CERTIFICATE_MASTER AS DOA_GIFT_CERTIFICATE_MASTER
+                                                ON DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER = DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER
+                                                WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate' 
+                                                AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 
+                                                AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                                                " . $payment_date . " 
+                                                ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
                                                 // Separate regular payments and refunds
                                                 $regular_payments = [];
                                                 $refund_payments = [];
-                                                $gift_certificate_payments = [];
 
                                                 // Process regular payments and refunds
                                                 while (!$all_payments->EOF) {
@@ -328,14 +335,20 @@ if (!empty($_GET['START_DATE'])) {
                                                     $all_payments->MoveNext();
                                                 }
 
-                                                // Process gift certificate payments
+                                                // Process gift certificate payments based on IS_REFUNDED flag
                                                 while (!$gift_payments->EOF) {
-                                                    $gift_certificate_payments[] = $gift_payments->fields;
+                                                    $gift_data = $gift_payments->fields;
+
+                                                    // Check if this gift certificate payment has been refunded
+                                                    if ($gift_data['IS_REFUNDED'] == '1') {
+                                                        // Add to refunds array
+                                                        $refund_payments[] = $gift_data;
+                                                    } else {
+                                                        // Add to regular payments array
+                                                        $regular_payments[] = $gift_data;
+                                                    }
                                                     $gift_payments->MoveNext();
                                                 }
-
-                                                // Merge regular payments and gift certificate payments
-                                                $regular_payments = array_merge($regular_payments, $gift_certificate_payments);
 
                                                 // Get wallet payments
                                                 $total_wallet = 0;
@@ -384,66 +397,90 @@ if (!empty($_GET['START_DATE'])) {
                                                         $enrollment_name = "$name" . " - ";
                                                     }
                                                     $PK_USER_MASTER = empty($payment['PK_USER_MASTER']) ? '' : $payment['PK_USER_MASTER'];
-                                                    $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
-                                                    $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
+
+                                                    // Check if this is a gift certificate payment
+                                                    $is_gift_certificate = ($payment['TYPE'] == 'Gift Certificate');
+
+                                                    if (!$is_gift_certificate && !empty($payment['ENROLLMENT_BY_ID'])) {
+                                                        $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
+                                                    } else {
+                                                        $enrollment_by = null;
+                                                    }
+
+                                                    if (!$is_gift_certificate && !empty($payment['PK_ENROLLMENT_MASTER'])) {
+                                                        $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
+                                                    } else {
+                                                        $service_provider = null;
+                                                    }
 
                                                     $teacher = [];
-                                                    if ($service_provider->RecordCount() > 0) {
+                                                    if ($service_provider && $service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
                                                             $teacher[] = $service_provider->fields['TEACHER'];
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
 
-                                                    $enrollment_balance = $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'];
-                                                    $total_amount += $payment['AMOUNT'];
+                                                    $enrollment_balance = !empty($payment['TOTAL_AMOUNT']) ? $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'] : 0;
 
-                                                    if ($payment['TYPE'] == 'gift_certificate') {
+                                                    // Payment type logic
+                                                    if ($is_gift_certificate) {
                                                         $payment_type = 'Gift Certificate';
-                                                        // For gift certificates, we might not have enrollment data, so set default values
-                                                        $enrollment_name = '-';
+                                                        $enrollment_name = '';
                                                         $ENROLLMENT_ID = '';
                                                         $MISC_ID = '';
-
-                                                        // Get client name from the payment data
-                                                        if (isset($payment['CLIENT'])) {
-                                                            $client_name = $payment['CLIENT'];
-                                                        } else {
-                                                            // Fallback to get client name from gift certificate
-                                                            $client_name = '-';
-                                                        }
+                                                        $client_name = '';
+                                                        $total_amount_display = '';
+                                                        $enrollment_date_display = '';
+                                                        $enrollment_type_display = '';
+                                                        $enrollment_balance_display = '';
+                                                        $total_amount += $payment['AMOUNT'];
                                                     } elseif ($payment['TYPE'] == 'Move') {
                                                         $payment_type = 'Wallet';
+                                                        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $payment['MISC_ID'] ?? '';
+                                                        $client_name = $payment['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $total_amount += $payment['AMOUNT'];
                                                     } elseif ($payment['PK_PAYMENT_TYPE'] == '2') {
                                                         $payment_info = json_decode($payment['PAYMENT_INFO']);
                                                         $payment_type = $payment['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $payment['MISC_ID'] ?? '';
+                                                        $client_name = $payment['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $total_amount += $payment['AMOUNT'];
                                                     } elseif (in_array($payment['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                                                         $payment_info = json_decode($payment['PAYMENT_INFO']);
                                                         $payment_type = $payment['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                                                    } /* elseif ($payment['PK_PAYMENT_TYPE'] == '7') {
-                                                        $receipt_number_array = explode(',', $payment['RECEIPT_NUMBER']);
-                                                        $payment_type_array = [];
-                                                        foreach ($receipt_number_array as $receipt_number) {
-                                                            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-                                                            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                                                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                                                            } else {
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
-                                                            }
-                                                        }
-                                                        $payment_type = implode(', ', $payment_type_array);
-                                                    } */ else {
+                                                        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $payment['MISC_ID'] ?? '';
+                                                        $client_name = $payment['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $total_amount += $payment['AMOUNT'];
+                                                    } else {
                                                         $payment_type = $payment['PAYMENT_TYPE'];
+                                                        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $payment['MISC_ID'] ?? '';
+                                                        $client_name = $payment['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+                                                        $total_amount += $payment['AMOUNT'];
                                                     }
 
-                                                    // For gift certificate payments, handle differently
-                                                    if ($payment['TYPE'] == 'gift_certificate') {
-                                                        $enrollment_name = 'Gift Certificate';
-                                                        $ENROLLMENT_ID = $payment['PK_GIFT_CERTIFICATE_MASTER'] ?? '';
-                                                        $MISC_ID = '';
-                                                        $client_name = $payment['CLIENT'] ?? 'Gift Certificate';
-                                                    } else {
+                                                    // For non-gift certificate payments, set enrollment name
+                                                    if (!$is_gift_certificate) {
                                                         $name = $payment['ENROLLMENT_NAME'] ?? '';
                                                         $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
                                                         $MISC_ID = $payment['MISC_ID'] ?? '';
@@ -469,10 +506,10 @@ if (!empty($_GET['START_DATE'])) {
                                                         <td style="text-align: left"><?= empty($payment['MEMO']) ? '' : $payment['MEMO'] ?></td>
                                                         <td style="text-align: left"><?= $client_name ?></td>
                                                         <td style="text-align: center"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID ?></td>
-                                                        <td style="text-align: center"><?= empty($payment['ENROLLMENT_DATE']) ? '' : date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) ?></td>
-                                                        <td style="text-align: center"><?= empty($payment['ENROLLMENT_TYPE']) ? '' : $payment['ENROLLMENT_TYPE'] ?></td>
-                                                        <td style="text-align: right"><?= empty($payment['TOTAL_AMOUNT']) ? '' : '$' . number_format($payment['TOTAL_AMOUNT'], 2) ?></td>
-                                                        <td style="text-align: right">$<?= number_format($enrollment_balance, 2) ?></td>
+                                                        <td style="text-align: center"><?= $enrollment_date_display ?></td>
+                                                        <td style="text-align: center"><?= $enrollment_type_display ?></td>
+                                                        <td style="text-align: right"><?= $total_amount_display ?></td>
+                                                        <td style="text-align: right"><?= $enrollment_balance_display ?></td>
                                                         <td style="text-align: center"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
                                                         <td style="text-align: center"><?= isset($teacher[0]) ? $teacher[0] : '' ?></td>
                                                         <td style="text-align: center"><?= isset($teacher[1]) ? $teacher[1] : '' ?></td>
@@ -485,54 +522,85 @@ if (!empty($_GET['START_DATE'])) {
 
                                                 <!-- Display all refunds at the bottom -->
                                                 <?php foreach ($refund_payments as $refund) {
-                                                    $name = $payment['ENROLLMENT_NAME'];
+                                                    // Check if this is a gift certificate refund
+                                                    $is_gift_refund = ($refund['TYPE'] == 'Gift Certificate' && $refund['IS_REFUNDED'] == '1');
+
+                                                    $name = $refund['ENROLLMENT_NAME'] ?? '';
                                                     if (empty($name)) {
                                                         $enrollment_name = '';
                                                     } else {
                                                         $enrollment_name = "$name" . " - ";
                                                     }
                                                     $total_refund += $refund['AMOUNT'];
-                                                    $PK_USER_MASTER = $refund['PK_USER_MASTER'];
-                                                    $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
-                                                    $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
+                                                    $PK_USER_MASTER = $refund['PK_USER_MASTER'] ?? '';
+
+                                                    if (!$is_gift_refund && !empty($refund['ENROLLMENT_BY_ID'])) {
+                                                        $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
+                                                    } else {
+                                                        $enrollment_by = null;
+                                                    }
+
+                                                    if (!$is_gift_refund && !empty($refund['PK_ENROLLMENT_MASTER'])) {
+                                                        $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
+                                                    } else {
+                                                        $service_provider = null;
+                                                    }
 
                                                     $teacher = [];
-                                                    if ($service_provider->RecordCount() > 0) {
+                                                    if ($service_provider && $service_provider->RecordCount() > 0) {
                                                         while (!$service_provider->EOF) {
                                                             $teacher[] = $service_provider->fields['TEACHER'];
                                                             $service_provider->MoveNext();
                                                         }
                                                     }
 
-                                                    $enrollment_balance = $refund['TOTAL_AMOUNT'] - $refund['AMOUNT'];
+                                                    $enrollment_balance = !empty($refund['TOTAL_AMOUNT']) ? $refund['TOTAL_AMOUNT'] - $refund['AMOUNT'] : 0;
 
                                                     // Payment type logic for refunds
-                                                    if ($refund['PK_PAYMENT_TYPE'] == '2') {
+                                                    if ($is_gift_refund) {
+                                                        $refund_payment_type = 'Gift Certificate Refund';
+                                                        $enrollment_name = '';
+                                                        $ENROLLMENT_ID = '';
+                                                        $MISC_ID = '';
+                                                        $client_name = '';
+                                                        $total_amount_display = '';
+                                                        $enrollment_date_display = '';
+                                                        $enrollment_type_display = '';
+                                                        $enrollment_balance_display = '';
+                                                    } elseif ($refund['PK_PAYMENT_TYPE'] == '2') {
                                                         $payment_info = json_decode($refund['PAYMENT_INFO']);
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+                                                        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $refund['MISC_ID'] ?? '';
+                                                        $client_name = $refund['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
                                                     } elseif (in_array($refund['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
                                                         $payment_info = json_decode($refund['PAYMENT_INFO']);
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-                                                    } /* elseif ($refund['PK_PAYMENT_TYPE'] == '7') {
-                                                        $receipt_number_array = explode(',', $refund['RECEIPT_NUMBER']);
-                                                        $payment_type_array = [];
-                                                        foreach ($receipt_number_array as $receipt_number) {
-                                                            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-                                                            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                                                                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-                                                            } else {
-                                                                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
-                                                            }
-                                                        }
-                                                        $refund_payment_type = implode(', ', $payment_type_array);
-                                                    } */ else {
+                                                        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $refund['MISC_ID'] ?? '';
+                                                        $client_name = $refund['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
+                                                    } else {
                                                         $refund_payment_type = $refund['PAYMENT_TYPE'];
+                                                        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+                                                        $MISC_ID = $refund['MISC_ID'] ?? '';
+                                                        $client_name = $refund['CLIENT'] ?? '';
+                                                        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+                                                        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
                                                     }
 
-                                                    $name = $refund['ENROLLMENT_NAME'];
-                                                    $ENROLLMENT_ID = $refund['ENROLLMENT_ID'];
-                                                    $MISC_ID = $refund['MISC_ID'];
+                                                    $name = $refund['ENROLLMENT_NAME'] ?? '';
+                                                    $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+                                                    $MISC_ID = $refund['MISC_ID'] ?? '';
                                                     if (empty($name)) {
                                                         $enrollment_name = '';
                                                     } else {
@@ -542,7 +610,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     <tr>
                                                         <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['AMOUNT'] ?></td>
-                                                        <?php if ($refund['PAYMENT_TYPE'] == 'Cash') { ?>
+                                                        <?php if ($refund['PAYMENT_TYPE'] == 'Cash' && !$is_gift_refund) { ?>
                                                             <td style="text-align: center; color: red"><?= $refund['TYPE'] ?></td>
                                                         <?php } else { ?>
                                                             <td style="text-align: center; color: red"><?= '(Refund) ' . $refund_payment_type ?></td>
@@ -554,17 +622,17 @@ if (!empty($_GET['START_DATE'])) {
                                                             <td style="text-align: center; color: red"></td>
                                                         <?php } ?>
                                                         <td style="text-align: center; color: red"><?= $refund['RECEIPT_NUMBER'] ?></td>
-                                                        <td style="text-align: center; color: red"><?= $refund['MEMO'] ?></td>
-                                                        <td style="text-align: center; color: red"><?= $refund['CLIENT'] ?></td>
+                                                        <td style="text-align: center; color: red"><?= $refund['MEMO'] ?? '' ?></td>
+                                                        <td style="text-align: center; color: red"><?= $client_name ?></td>
                                                         <td style="text-align: center; color: red"><?= ($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID ?></td>
-                                                        <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) ?></td>
-                                                        <td style="text-align: center; color: red"><?= $refund['ENROLLMENT_TYPE'] ?></td>
-                                                        <td style="text-align: right; color: red">$<?= $refund['TOTAL_AMOUNT'] ?></td>
-                                                        <td style="text-align: right; color: red">$<?= number_format($enrollment_balance + $refund['AMOUNT'], 2) ?></td>
+                                                        <td style="text-align: center; color: red"><?= $enrollment_date_display ?></td>
+                                                        <td style="text-align: center; color: red"><?= $enrollment_type_display ?></td>
+                                                        <td style="text-align: right; color: red"><?= $total_amount_display ?></td>
+                                                        <td style="text-align: right; color: red"><?= $enrollment_balance_display ?></td>
                                                         <td style="text-align: left; color: red"><?= !empty($enrollment_by->fields['CLOSER']) ? $enrollment_by->fields['CLOSER'] : '' ?></td>
-                                                        <td style="text-align: center"><?= isset($teacher[0]) ? $teacher[0] : '' ?></td>
-                                                        <td style="text-align: center"><?= isset($teacher[1]) ? $teacher[1] : '' ?></td>
-                                                        <td style="text-align: center"><?= isset($teacher[2]) ? $teacher[2] : '' ?></td>
+                                                        <td style="text-align: center; color: red"><?= isset($teacher[0]) ? $teacher[0] : '' ?></td>
+                                                        <td style="text-align: center; color: red"><?= isset($teacher[1]) ? $teacher[1] : '' ?></td>
+                                                        <td style="text-align: center; color: red"><?= isset($teacher[2]) ? $teacher[2] : '' ?></td>
                                                     </tr>
                                                 <?php } ?>
 
