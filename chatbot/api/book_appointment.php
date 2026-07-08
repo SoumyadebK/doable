@@ -186,24 +186,46 @@ function createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $DATE, $S
     }
 
     $timePeriod = getTimePeriod($START_TIME);
+    $PK_USER = 0;
     if ($timePeriod === "Morning") {
         $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_MORNING'] ?? null);
-        foreach ($PK_USER_ARRAY as $PK_USER) {
-            if (getAvailableServiceProviders($db_account, $PK_USER, $DATE, $START_TIME, $PK_LOCATION)) {
-                return $PK_USER;
+        foreach ($PK_USER_ARRAY as $PK_USER_VALUE) {
+            if (getAvailableServiceProviders($db_account, $PK_USER_VALUE, $DATE, $START_TIME, $PK_LOCATION) == false) {
+                $PK_USER = $PK_USER_VALUE;
+                break;
             }
         }
     } elseif ($timePeriod === "Afternoon") {
         $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_AFTERNOON'] ?? null);
-        foreach ($PK_USER_ARRAY as $PK_USER) {
-            if (getAvailableServiceProviders($db_account, $PK_USER, $DATE, $START_TIME, $PK_LOCATION)) {
-                return $PK_USER;
+        foreach ($PK_USER_ARRAY as $PK_USER_VALUE) {
+            if (getAvailableServiceProviders($db_account, $PK_USER_VALUE, $DATE, $START_TIME, $PK_LOCATION) == false) {
+                $PK_USER = $PK_USER_VALUE;
+                break;
             }
         }
     } elseif ($timePeriod === "Evening") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_EVENING'] ?? null)[0] ?? null;
+        $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_EVENING'] ?? null);
+        foreach ($PK_USER_ARRAY as $PK_USER_VALUE) {
+            if (getAvailableServiceProviders($db_account, $PK_USER_VALUE, $DATE, $START_TIME, $PK_LOCATION) == false) {
+                $PK_USER = $PK_USER_VALUE;
+                break;
+            }
+        }
     } elseif ($timePeriod === "Night") {
-        $PK_USER = explode(',', $locationData->fields['PK_USER_NIGHT'] ?? null)[0] ?? null;
+        $PK_USER_ARRAY = explode(',', $locationData->fields['PK_USER_NIGHT'] ?? null);
+        foreach ($PK_USER_ARRAY as $PK_USER_VALUE) {
+            if (getAvailableServiceProviders($db_account, $PK_USER_VALUE, $DATE, $START_TIME, $PK_LOCATION) == false) {
+                $PK_USER = $PK_USER_VALUE;
+                break;
+            }
+        }
+    }
+
+    if ($PK_USER == 0) {
+        $return_data['status'] = 'error';
+        $return_data['data'] = 'No available service provider found.';
+        echo json_encode($return_data);
+        die();
     }
 
     $package_services = $db_account->Execute("SELECT DOA_PACKAGE_SERVICE.*, DOA_PACKAGE.* FROM DOA_PACKAGE_SERVICE LEFT JOIN DOA_PACKAGE ON DOA_PACKAGE_SERVICE.PK_PACKAGE = DOA_PACKAGE.PK_PACKAGE WHERE DOA_PACKAGE.ACTIVE = 1 AND DOA_PACKAGE_SERVICE.CHATBOT_ENABLED = 1 AND DOA_PACKAGE.IS_DELETED = 0 ORDER BY DOA_PACKAGE.SORT_ORDER ASC LIMIT 1");
@@ -251,10 +273,9 @@ function getAvailableServiceProviders($db_account, $PK_USER, $date, $time, $PK_L
             FROM DOA_APPOINTMENT_MASTER
             LEFT JOIN DOA_APPOINTMENT_SERVICE_PROVIDER ON DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_MASTER = DOA_APPOINTMENT_SERVICE_PROVIDER.PK_APPOINTMENT_MASTER
             WHERE DOA_APPOINTMENT_MASTER.DATE = '" . addslashes($date) . "'
-            AND ((DOA_APPOINTMENT_MASTER.START_TIME <= '" . addslashes($time) . "' AND DOA_APPOINTMENT_MASTER.END_TIME > '" . addslashes($time) . "')
-            OR (DOA_APPOINTMENT_MASTER.START_TIME < '" . addslashes($time) . "' AND DOA_APPOINTMENT_MASTER.END_TIME >= '" . addslashes($time) . "'))
+            AND DOA_APPOINTMENT_MASTER.START_TIME = '" . date('H:i:s', strtotime($time)) . "'
             AND DOA_APPOINTMENT_MASTER.PK_LOCATION = " . (int)$PK_LOCATION . " AND DOA_APPOINTMENT_MASTER.STATUS = 'A' AND DOA_APPOINTMENT_MASTER.PK_APPOINTMENT_STATUS = 1
-            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . (int)$PK_USER . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID IS NOT NULL
+            AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER = " . (int)$PK_USER . " AND DOA_APPOINTMENT_SERVICE_PROVIDER.PK_USER IS NOT NULL
             ORDER BY DOA_APPOINTMENT_MASTER.DATE ASC, DOA_APPOINTMENT_MASTER.START_TIME ASC";
 
     $result = $db_account->Execute($sql);
