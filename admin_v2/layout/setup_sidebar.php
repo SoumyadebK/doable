@@ -64,7 +64,7 @@ $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOU
             <i class="bi bi-dot text-secondary"></i> Lead Status
         </a>
         <a class="nav-link sidebar-link <?= $current_page == 'all_tags.php' || $current_page == 'add_tag.php' ? 'active' : '' ?>" href="all_tags.php">
-            <i class="bi bi-dot text-secondary"></i> Tags
+            <i class="bi bi-tag text-secondary"></i> Tags
         </a>
     </nav>
 
