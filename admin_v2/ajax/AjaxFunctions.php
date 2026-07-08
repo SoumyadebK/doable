@@ -2218,6 +2218,9 @@ function refundGiftCertificate($RESPONSE_DATA)
                         WHERE PK_GIFT_CERTIFICATE_MASTER = " . intval($PK_GIFT_CERTIFICATE_MASTER);
         $result = $db_account->Execute($update_query);
 
+        $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_GIFT_CERTIFICATE_MASTER =  '$PK_GIFT_CERTIFICATE_MASTER'");
+
         if ($result) {
             echo json_encode(['success' => true, 'message' => 'Gift certificate refunded successfully.']);
             die;
@@ -3924,7 +3927,7 @@ function addNewCustomer($RESPONSE_DATA)
             $pk_gift_certificate_master = intval($RESPONSE_DATA['PK_GIFT_CERTIFICATE_MASTER']);
 
             // Check if the gift certificate exists and is not already redeemed
-            $check_query = "SELECT IS_REDEEMED FROM DOA_GIFT_CERTIFICATE_MASTER 
+            $check_query = "SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER 
                     WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master 
                     AND PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'];
             $check_result = $db_account->Execute($check_query);
@@ -3937,18 +3940,43 @@ function addNewCustomer($RESPONSE_DATA)
                          WHERE PK_GIFT_CERTIFICATE_MASTER = $pk_gift_certificate_master";
                 $db_account->Execute($update_query);
 
-                // Add a comment to the customer about the gift certificate redemption
-                // $comment_data = [
-                //     'PK_ACCOUNT_MASTER' => $_SESSION['PK_ACCOUNT_MASTER'],
-                //     'COMMENT' => "Gift Certificate #" . $pk_gift_certificate_master . " redeemed and converted to customer profile.",
-                //     'COMMENT_DATE' => date("Y-m-d"),
-                //     'FOR_PK_USER' => $PK_USER,
-                //     'BY_PK_USER' => $_SESSION['PK_USER'],
-                //     'ACTIVE' => 1,
-                //     'CREATED_BY' => $_SESSION['PK_USER'],
-                //     'CREATED_ON' => date("Y-m-d H:i")
-                // ];
-                // db_perform_account('DOA_COMMENT', $comment_data, 'insert');
+                if (isset($RESPONSE_DATA['AMOUNT']) && $RESPONSE_DATA['AMOUNT'] > 0) {
+                    $gift_payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_GIFT_CERTIFICATE_MASTER = '$pk_gift_certificate_master'");
+
+                    $RECEIPT_NUMBER = $gift_payment_data->fields['RECEIPT_NUMBER'];
+                    $AMOUNT = $RESPONSE_DATA['AMOUNT'];
+
+                    $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
+                    $INSERT_DATA['DEBIT'] = 0;
+                    $INSERT_DATA['CREDIT'] = $AMOUNT;
+                    $INSERT_DATA['BALANCE_LEFT'] = $AMOUNT;
+                    $INSERT_DATA['DESCRIPTION'] = "Amount Credited to Your Wallet using Gift Certificate";
+                    $INSERT_DATA['PK_PAYMENT_TYPE'] = 4;
+                    $INSERT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                    $INSERT_DATA['NOTE'] = "Amount Credited to Your Wallet using Gift Certificate";
+                    $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+                    $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+                    db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');
+                    $PK_CUSTOMER_WALLET = $db_account->Insert_ID();
+
+                    $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+                    $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+                    $PAYMENT_DATA['PK_PAYMENT_TYPE'] = 4;
+                    $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
+                    $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+                    $TYPE = 'Wallet';
+                    $PAYMENT_DATA['PK_CUSTOMER_WALLET'] = $PK_CUSTOMER_WALLET;
+                    $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+                    $PAYMENT_DATA['TYPE'] = $TYPE;
+                    $PAYMENT_DATA['NOTE'] = "Amount Credited to Your Wallet using Gift Certificate";
+                    $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+                    $PAYMENT_DATA['PAYMENT_INFO'] = 'Gift Certificate';
+                    $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+                    $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+                    $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+
+                    db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+                }
             }
         }
 

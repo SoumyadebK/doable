@@ -528,6 +528,30 @@ if (!empty($_POST)) {
             $GIFT_CERTIFICATE_DATA['ACTIVE'] = 1;
             //pre_r($GIFT_CERTIFICATE_DATA);
             db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert');
+            $PK_GIFT_CERTIFICATE_MASTER = $db_account->Insert_ID();
+
+            $RECEIPT_NUMBER = generateReceiptNumber(0);
+            $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+            $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+            $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $_POST['PK_PAYMENT_TYPE'];
+            $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
+            $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+            $TYPE = 'Gift Certificate';
+            if ($_POST['PK_PAYMENT_TYPE'] == 2) {
+                $PAYMENT_INFO_ARRAY = ['CHECK_NUMBER' => $_POST['CHECK_NUMBER'], 'CHECK_DATE' => date('Y-m-d', strtotime($_POST['CHECK_DATE']))];
+                $PAYMENT_INFO = json_encode($PAYMENT_INFO_ARRAY);
+            }
+            $PAYMENT_DATA['PK_GIFT_CERTIFICATE_MASTER'] = $PK_GIFT_CERTIFICATE_MASTER;
+            $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+            $PAYMENT_DATA['TYPE'] = $TYPE;
+            $PAYMENT_DATA['NOTE'] = $_POST['NOTE'];
+            $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+            $PAYMENT_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+            $PAYMENT_DATA['PAYMENT_STATUS'] = $PAYMENT_STATUS;
+            $PAYMENT_DATA['RECEIPT_NUMBER'] = $RECEIPT_NUMBER;
+            $PAYMENT_DATA['IS_ORIGINAL_RECEIPT'] = 1;
+            db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
+
             //echo (db_perform_account('DOA_GIFT_CERTIFICATE_MASTER', $GIFT_CERTIFICATE_DATA, 'insert'));
         } else {
             $GIFT_CERTIFICATE_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
@@ -1423,7 +1447,9 @@ if (!empty($_POST)) {
                                     </div>
 
                                     <!-- Active Status -->
-                                    <?php if (!empty($_GET['id'])): ?>
+                                    <?php if (!empty($_GET['id'])):
+                                        $paymentData = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_GIFT_CERTIFICATE_MASTER = '$_GET[id]'");
+                                    ?>
                                         <div class="form-group-modern" style="margin-top: 16px;">
                                             <label class="form-label">Status</label>
                                             <div class="radio-group-modern">
@@ -1435,6 +1461,12 @@ if (!empty($_POST)) {
                                                     <input type="radio" name="ACTIVE" id="ACTIVE2" value="0" <?php if ($ACTIVE == 0) echo 'checked="checked"'; ?>>
                                                     Inactive
                                                 </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group-modern">
+                                            <div class="form-actions">
+                                                <a href="generate_receipt_pdf.php?master_id=<?= $paymentData->fields['PK_ENROLLMENT_MASTER'] ?>&ledger_id=<?= $paymentData->fields['PK_ENROLLMENT_LEDGER'] ?>&receipt=<?= $paymentData->fields['RECEIPT_NUMBER'] ?>" target="_blank" class="btn btn-modern btn-modern-primary">Receipt</a>
                                             </div>
                                         </div>
                                     <?php endif; ?>

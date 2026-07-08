@@ -1172,6 +1172,8 @@ if ($location_operational_hour->RecordCount() > 0) {
             cache: false,
             success: function(result) {
                 $('#create_appointment_form #enrollment_div').html(result);
+                $(param).closest('form').find('#PK_SCHEDULING_CODE').html('<option value="">Select Scheduling Code</option>');
+                $('.selected_enrollment').trigger('click');
             }
         });
     }

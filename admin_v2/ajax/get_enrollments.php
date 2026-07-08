@@ -63,7 +63,7 @@ foreach ($enrollment_options as $index => $enrollment) {
     $is_checked = ($SELECTED_PK_ENROLLMENT_MASTER == $PK_ENROLLMENT_MASTER) || ($single_enrollment_visible && $index === 0); ?>
     <div class="form-check border rounded-2 p-2 mb-2">
         <label class="form-check-label">
-            <input class="form-check-input ms-0 me-1" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $row_fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $row_fields['PK_ENROLLMENT_MASTER'] . ',' . $row_fields['PK_ENROLLMENT_SERVICE'] . ',' . $row_fields['PK_SERVICE_MASTER'] . ',' . $row_fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)" <?= $is_checked ? 'checked' : '' ?> <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $row_fields['ENROLLMENT_ID'] . $PACKAGE ?>
+            <input class="form-check-input ms-0 me-1 <?= $is_checked ? 'selected_enrollment' : '' ?>" type="radio" name="PK_ENROLLMENT_MASTER" data-location_id="<?= $row_fields['PK_LOCATION'] ?>" data-no_of_session="<?= $NUMBER_OF_SESSION ?>" data-used_session="<?= $USED_SESSION_COUNT ?>" value="<?php echo $row_fields['PK_ENROLLMENT_MASTER'] . ',' . $row_fields['PK_ENROLLMENT_SERVICE'] . ',' . $row_fields['PK_SERVICE_MASTER'] . ',' . $row_fields['PK_SERVICE_CODE']; ?>" onclick="selectThisEnrollment(this)" <?= $is_checked ? 'checked' : '' ?> <?= (($NUMBER_OF_SESSION - $USED_SESSION_COUNT) <= 0) ? 'disabled' : '' ?>><?= $enrollment_name . $row_fields['ENROLLMENT_ID'] . $PACKAGE ?>
         </label>
         <?php if ($TOTAL_AMOUNT_PAID >= $row_fields['FINAL_AMOUNT']) { ?>
             <span class="checkicon float-end">
