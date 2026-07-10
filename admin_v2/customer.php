@@ -921,6 +921,12 @@ if ($PK_USER_MASTER > 0) {
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label" style="font-size: 16px"><strong>#<?= $UNIQUE_ID ?></strong></label>
+                                                        <input type="hidden" id="UNIQUE_ID" name="UNIQUE_ID" value="<?= $UNIQUE_ID ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
                                                     <div class="label">Created On</div>
                                                     <div class="value">
                                                         <?= date('m / d / Y', strtotime($CREATED_ON)) ?>

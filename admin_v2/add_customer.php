@@ -1078,8 +1078,8 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
 
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label class="form-label">Customer ID <span class="required-star">*</span></label>
-                                                            <input type="text" class="form-control" name="CUSTOMER_ID" placeholder="Enter User Name" required>
+                                                            <label class="form-label">Customer ID</label>
+                                                            <input type="text" class="form-control" name="CUSTOMER_ID" placeholder="Enter User Name">
                                                         </div>
                                                     </div>
 
@@ -2843,7 +2843,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
         // Get values to validate
         var phone = $(this).find('input[name="PHONE"]').val().trim();
         var email = $(this).find('input[name="EMAIL_ID"]').val().trim();
-        var customerId = $(this).find('input[name="CUSTOMER_ID"]').val().trim();
+        //var customerId = $(this).find('input[name="CUSTOMER_ID"]').val().trim();
         var firstName = $(this).find('input[name="FIRST_NAME"]').val().trim();
         var lastName = $(this).find('input[name="LAST_NAME"]').val().trim();
         var pkLocation = $(this).find('select[name="PK_LOCATION"]').val();
@@ -2869,15 +2869,15 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
             return false;
         }
 
-        if (!customerId) {
-            Swal.fire({
-                title: "Validation Error!",
-                text: "Customer ID is required.",
-                icon: "warning",
-                timer: 3000,
-            });
-            return false;
-        }
+        // if (!customerId) {
+        //     Swal.fire({
+        //         title: "Validation Error!",
+        //         text: "Customer ID is required.",
+        //         icon: "warning",
+        //         timer: 3000,
+        //     });
+        //     return false;
+        // }
 
         if (!pkLocation) {
             Swal.fire({
@@ -2932,7 +2932,7 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                 FUNCTION_NAME: 'checkCustomerDuplicates',
                 PHONE: phone,
                 EMAIL: email,
-                CUSTOMER_ID: customerId
+                //CUSTOMER_ID: customerId
             },
             dataType: 'json',
             success: function(response) {
@@ -2946,9 +2946,9 @@ $title = $IS_CREATE_MODE ? "Add New Customer" : ($FIRST_NAME . " " . $LAST_NAME)
                     if (response.duplicate_email) {
                         errorMessage += 'Email <strong>"' + email + '"</strong> is already registered. <br>';
                     }
-                    if (response.duplicate_customer_id) {
-                        errorMessage += 'Customer ID <strong>"' + customerId + '"</strong> is already in use.<br>';
-                    }
+                    // if (response.duplicate_customer_id) {
+                    //     errorMessage += 'Customer ID <strong>"' + customerId + '"</strong> is already in use.<br>';
+                    // }
 
                     Swal.fire({
                         title: "Duplicate Found!",
