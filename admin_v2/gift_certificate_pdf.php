@@ -258,7 +258,7 @@ if (empty($_GET['id'])) {
                     </div>
 
                     <div style="font-size:20px;">
-                        <?php echo $DATE_OF_PURCHASE ?>
+                        <?php echo date('m/d/Y', strtotime($DATE_OF_PURCHASE)) ?>
                     </div>
 
                 </td>
