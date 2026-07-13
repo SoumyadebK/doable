@@ -44,10 +44,7 @@ while (!$results->EOF) {
 $totalResults = count($resultsArray);
 $concatenatedResults = "";
 foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
     $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
     }
@@ -63,7 +60,6 @@ for ($i = 0; $i <= $total_fields; $i++) {
     else {
         $j = floor($i / 26) - 1;
         $k = ($i % 26);
-        //echo $j."--".$k."<br />";
         $cell[] = $cell1[$j] . $cell1[$k];
     }
 }
@@ -98,7 +94,7 @@ $objPHPExcel->getActiveSheet()->mergeCells('A1:Q1');
 
 $cell_no = "A1";
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($title);
-$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18); // Set font size to 16
+$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(18);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(36);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -131,119 +127,102 @@ $styleArray = [
 $objPHPExcel->getActiveSheet()->getStyle('A2:Q2')->applyFromArray($styleArray);
 
 $cell_no = "A3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Payment Date");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "B3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Payment Amount");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "C3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Payment Title");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "D3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Payment Method");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "E3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Card Type");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "F3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Receipt");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "G3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("MEMO");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "H3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Client");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "I3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Name");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "J3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Date");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "K3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Type");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "L3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Cost");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "M3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Enrollment Balance");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "N3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Closer");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "O3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Teacher1");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "P3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Teacher2");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
 $cell_no = "Q3";
-//$objPHPExcel->getActiveSheet()->mergeCells('A1:A1');
 $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue("Teacher3");
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getFont()->setBold(true);
 $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -251,34 +230,82 @@ $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizonta
 
 $objPHPExcel->getActiveSheet()->getStyle('A3:Q3')->applyFromArray($styleArray);
 
-
 $i = 4;
+
 // Get all payments first and separate regular payments from refunds
-$all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+$all_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.TYPE, PAYMENT_DATE, AMOUNT, PAYMENT_INFO, PAYMENT_TYPE, RECEIPT_NUMBER, MEMO, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_ID, ENROLLMENT_DATE, ENROLLMENT_TYPE, TOTAL_AMOUNT, ENROLLMENT_BY_ID FROM DOA_ENROLLMENT_PAYMENT INNER JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE=DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER INNER JOIN $master_database.DOA_ENROLLMENT_TYPE AS DOA_ENROLLMENT_TYPE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE=DOA_ENROLLMENT_TYPE.PK_ENROLLMENT_TYPE INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED =0 AND IS_REFUNDED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $payment_date . " ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+
+// Get gift certificate payments (both active and refunded)
+$gift_payments = $db_account->Execute("SELECT
+    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+    DOA_ENROLLMENT_PAYMENT.TYPE,
+    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+    DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO,
+    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+    DOA_ENROLLMENT_PAYMENT.IS_REFUNDED,
+    DOA_PAYMENT_TYPE.PAYMENT_TYPE AS PAYMENT_TYPE_NAME,
+    NULL AS ENROLLMENT_NAME,
+    NULL AS ENROLLMENT_ID,
+    NULL AS MISC_ID,
+    NULL AS ENROLLMENT_DATE,
+    NULL AS ENROLLMENT_TYPE,
+    NULL AS TOTAL_AMOUNT,
+    NULL AS ENROLLMENT_BY_ID,
+    NULL AS PK_USER_MASTER,
+    NULL AS CLIENT
+FROM
+    DOA_ENROLLMENT_PAYMENT
+INNER JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+LEFT JOIN DOA_GIFT_CERTIFICATE_MASTER AS DOA_GIFT_CERTIFICATE_MASTER
+ON DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER = DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER
+WHERE (DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate' OR DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund Gift Certificate')
+AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 
+AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+" . $payment_date . " 
+ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
 
 // Separate regular payments and refunds
 $regular_payments = [];
 $refund_payments = [];
 
+// Process regular payments and refunds
 while (!$all_payments->EOF) {
     if ($all_payments->fields['TYPE'] == 'Refund') {
         $refund_payments[] = $all_payments->fields;
     }
-    if ($all_payments->fields['TYPE'] == 'Payment' || $all_payments->fields['TYPE'] == 'Refund') {
+    if ($all_payments->fields['TYPE'] == 'Payment') {
         $regular_payments[] = $all_payments->fields;
     }
     $all_payments->MoveNext();
 }
 
+// Process gift certificate payments based on IS_REFUNDED flag
+while (!$gift_payments->EOF) {
+    $gift_data = $gift_payments->fields;
+    if ($gift_data['TYPE'] == 'Refund Gift Certificate') {
+        $refund_payments[] = $gift_data;
+    } else {
+        $regular_payments[] = $gift_data;
+    }
+    $gift_payments->MoveNext();
+}
+
 // Get wallet payments
 $total_wallet = 0;
-$wallet_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_CUSTOMER_WALLET.BALANCE_LEFT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_CUSTOMER_WALLET ON DOA_ENROLLMENT_PAYMENT.PK_CUSTOMER_WALLET = DOA_CUSTOMER_WALLET.PK_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_CUSTOMER_WALLET.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE = DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet' AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+$wallet_payments = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_CUSTOMER_WALLET.BALANCE_LEFT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN DOA_CUSTOMER_WALLET ON DOA_ENROLLMENT_PAYMENT.PK_CUSTOMER_WALLET = DOA_CUSTOMER_WALLET.PK_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_CUSTOMER_WALLET.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER LEFT JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE = DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Wallet' AND DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO != 'Gift Certificate' AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "' ORDER BY DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE ASC");
+
+// Display wallet payments first
 while (!$wallet_payments->EOF) {
     $total_wallet += $wallet_payments->fields['AMOUNT'];
     if ($wallet_payments->fields['BALANCE_LEFT'] > 0) {
 
         $cell_no = "A" . $i;
-        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($wallet_payments->fields['CREATED_ON'])));
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($wallet_payments->fields['PAYMENT_DATE'])));
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -288,7 +315,7 @@ while (!$wallet_payments->EOF) {
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
         $cell_no = "C" . $i;
-        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($wallet_payments->fields['CREDIT'] > 0 ? 'Wallet Deposit' : 'Wallet Withdrawal');
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('Wallet');
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -308,7 +335,7 @@ while (!$wallet_payments->EOF) {
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         $cell_no = "G" . $i;
-        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($wallet_payments->fields['MEMO']);
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($wallet_payments->fields['MEMO'] ?? '-');
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
         $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -370,61 +397,116 @@ while (!$wallet_payments->EOF) {
 }
 
 // Display regular payments
-
 $j = 1;
 $total_amount = 0;
 $total_refund = 0;
 
 foreach ($regular_payments as $payment) {
-    $name = $payment['ENROLLMENT_NAME'];
+    $name = $payment['ENROLLMENT_NAME'] ?? '';
     if (empty($name)) {
         $enrollment_name = '';
     } else {
         $enrollment_name = "$name" . " - ";
     }
 
-    $PK_USER_MASTER = $payment['PK_USER_MASTER'];
-    $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
-    $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
+    $PK_USER_MASTER = $payment['PK_USER_MASTER'] ?? '';
+
+    // Check if this is a gift certificate payment
+    $is_gift_certificate = ($payment['TYPE'] == 'Gift Certificate' || $payment['TYPE'] == 'Refund Gift Certificate');
+
+    if (!$is_gift_certificate && !empty($payment['ENROLLMENT_BY_ID'])) {
+        $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
+    } else {
+        $enrollment_by = null;
+    }
+
+    if (!$is_gift_certificate && !empty($payment['PK_ENROLLMENT_MASTER'])) {
+        $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $payment['PK_ENROLLMENT_MASTER']);
+    } else {
+        $service_provider = null;
+    }
 
     $teacher = [];
-    if ($service_provider->RecordCount() > 0) {
+    if ($service_provider && $service_provider->RecordCount() > 0) {
         while (!$service_provider->EOF) {
             $teacher[] = $service_provider->fields['TEACHER'];
             $service_provider->MoveNext();
         }
     }
 
-    $enrollment_balance = $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'];
-    $total_amount += $payment['AMOUNT'];
+    $enrollment_balance = !empty($payment['TOTAL_AMOUNT']) ? $payment['TOTAL_AMOUNT'] - $payment['AMOUNT'] : 0;
 
-    if ($payment['TYPE'] == 'Move') {
+    // Payment type logic
+    if ($is_gift_certificate) {
+        $payment_type = 'Gift Certificate';
+        $enrollment_name = '';
+        $ENROLLMENT_ID = '';
+        $MISC_ID = '';
+        $client_name = '';
+        $total_amount_display = '';
+        $enrollment_date_display = '';
+        $enrollment_type_display = '';
+        $enrollment_balance_display = '';
+        $total_amount += $payment['AMOUNT'];
+    } elseif ($payment['TYPE'] == 'Move') {
         $payment_type = 'Wallet';
+        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $payment['MISC_ID'] ?? '';
+        $client_name = $payment['CLIENT'] ?? '';
+        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+        $total_amount += $payment['AMOUNT'];
     } elseif ($payment['PK_PAYMENT_TYPE'] == '2') {
         $payment_info = json_decode($payment['PAYMENT_INFO']);
         $payment_type = $payment['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $payment['MISC_ID'] ?? '';
+        $client_name = $payment['CLIENT'] ?? '';
+        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+        $total_amount += $payment['AMOUNT'];
     } elseif (in_array($payment['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
         $payment_info = json_decode($payment['PAYMENT_INFO']);
         $payment_type = $payment['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-    } elseif ($payment['PK_PAYMENT_TYPE'] == '7') {
-        $receipt_number_array = explode(',', $payment['RECEIPT_NUMBER']);
-        $payment_type_array = [];
-        foreach ($receipt_number_array as $receipt_number) {
-            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-            } else {
-                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
-            }
-        }
-        $payment_type = implode(', ', $payment_type_array);
+        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $payment['MISC_ID'] ?? '';
+        $client_name = $payment['CLIENT'] ?? '';
+        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+        $total_amount += $payment['AMOUNT'];
     } else {
         $payment_type = $payment['PAYMENT_TYPE'];
+        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $payment['MISC_ID'] ?? '';
+        $client_name = $payment['CLIENT'] ?? '';
+        $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
+        $total_amount += $payment['AMOUNT'];
+    }
+
+    // For non-gift certificate payments, set enrollment name
+    if (!$is_gift_certificate) {
+        $name = $payment['ENROLLMENT_NAME'] ?? '';
+        $ENROLLMENT_ID = $payment['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $payment['MISC_ID'] ?? '';
+        if (empty($name)) {
+            $enrollment_name = '';
+        } else {
+            $enrollment_name = "$name" . " - ";
+        }
+        $client_name = $payment['CLIENT'] ?? '';
     }
 
     $cell_no = "A" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m-d-Y', strtotime($payment['PAYMENT_DATE'])));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($payment['PAYMENT_DATE'])));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -458,37 +540,37 @@ foreach ($regular_payments as $payment) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "G" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($payment['MEMO']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(empty($payment['MEMO']) ? '' : $payment['MEMO']);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "H" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($payment['CLIENT']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($client_name);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "I" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $payment['ENROLLMENT_ID'] == null) ? $enrollment_name . $payment['MISC_ID'] : $enrollment_name . $payment['ENROLLMENT_ID']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "J" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_date_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "K" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($payment['ENROLLMENT_TYPE']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_type_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "L" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . $payment['TOTAL_AMOUNT']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_amount_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "M" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($enrollment_balance, 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_balance_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -519,55 +601,94 @@ foreach ($regular_payments as $payment) {
 }
 
 // Display all refunds at the bottom
-
 foreach ($refund_payments as $refund) {
-    $name = $refund['ENROLLMENT_NAME'];
+    // Check if this is a gift certificate refund
+    $is_gift_refund = ($refund['TYPE'] == 'Refund Gift Certificate');
+
+    $name = $refund['ENROLLMENT_NAME'] ?? '';
     if (empty($name)) {
         $enrollment_name = '';
     } else {
         $enrollment_name = "$name" . " - ";
     }
     $total_refund += $refund['AMOUNT'];
-    $PK_USER_MASTER = $refund['PK_USER_MASTER'];
-    $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
-    $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
+    $PK_USER_MASTER = $refund['PK_USER_MASTER'] ?? '';
+
+    if (!$is_gift_refund && !empty($refund['ENROLLMENT_BY_ID'])) {
+        $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $refund['ENROLLMENT_BY_ID']);
+    } else {
+        $enrollment_by = null;
+    }
+
+    if (!$is_gift_refund && !empty($refund['PK_ENROLLMENT_MASTER'])) {
+        $service_provider = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS TEACHER FROM $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER LEFT JOIN $account_database.DOA_ENROLLMENT_SERVICE_PROVIDER AS DOA_ENROLLMENT_SERVICE_PROVIDER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER LEFT JOIN DOA_USERS ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID=DOA_USERS.PK_USER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $refund['PK_ENROLLMENT_MASTER']);
+    } else {
+        $service_provider = null;
+    }
 
     $teacher = [];
-    if ($service_provider->RecordCount() > 0) {
+    if ($service_provider && $service_provider->RecordCount() > 0) {
         while (!$service_provider->EOF) {
             $teacher[] = $service_provider->fields['TEACHER'];
             $service_provider->MoveNext();
         }
     }
 
-    $enrollment_balance = $refund['TOTAL_AMOUNT'] - $refund['AMOUNT'];
+    $enrollment_balance = !empty($refund['TOTAL_AMOUNT']) ? $refund['TOTAL_AMOUNT'] - $refund['AMOUNT'] : 0;
 
     // Payment type logic for refunds
-    if ($refund['PK_PAYMENT_TYPE'] == '2') {
+    if ($is_gift_refund) {
+        $refund_payment_type = 'Gift Certificate Refund';
+        $enrollment_name = '';
+        $ENROLLMENT_ID = '';
+        $MISC_ID = '';
+        $client_name = '';
+        $total_amount_display = '';
+        $enrollment_date_display = '';
+        $enrollment_type_display = '';
+        $enrollment_balance_display = '';
+    } elseif ($refund['PK_PAYMENT_TYPE'] == '2') {
         $payment_info = json_decode($refund['PAYMENT_INFO']);
         $refund_payment_type = $refund['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
+        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $refund['MISC_ID'] ?? '';
+        $client_name = $refund['CLIENT'] ?? '';
+        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
     } elseif (in_array($refund['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
         $payment_info = json_decode($refund['PAYMENT_INFO']);
         $refund_payment_type = $refund['PAYMENT_TYPE'] . " # " . ((isset($payment_info->LAST4)) ? $payment_info->LAST4 : '');
-    } elseif ($refund['PK_PAYMENT_TYPE'] == '7') {
-        $receipt_number_array = explode(',', $refund['RECEIPT_NUMBER']);
-        $payment_type_array = [];
-        foreach ($receipt_number_array as $receipt_number) {
-            $receipt_payment_details = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE, DOA_ENROLLMENT_PAYMENT.PAYMENT_INFO, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$receipt_number'");
-            if ($receipt_payment_details->fields['PK_PAYMENT_TYPE'] == '2') {
-                $payment_info = json_decode($receipt_payment_details->fields['PAYMENT_INFO']);
-                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'] . " : " . ((isset($payment_info->CHECK_NUMBER)) ? $payment_info->CHECK_NUMBER : '');
-            } else {
-                $payment_type_array[] = $receipt_payment_details->fields['PAYMENT_TYPE'];
-            }
-        }
-        $refund_payment_type = implode(', ', $payment_type_array);
+        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $refund['MISC_ID'] ?? '';
+        $client_name = $refund['CLIENT'] ?? '';
+        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
     } else {
         $refund_payment_type = $refund['PAYMENT_TYPE'];
+        $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+        $MISC_ID = $refund['MISC_ID'] ?? '';
+        $client_name = $refund['CLIENT'] ?? '';
+        $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
+        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+        $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
+        $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
+    }
+
+    $name = $refund['ENROLLMENT_NAME'] ?? '';
+    $ENROLLMENT_ID = $refund['ENROLLMENT_ID'] ?? '';
+    $MISC_ID = $refund['MISC_ID'] ?? '';
+    if (empty($name)) {
+        $enrollment_name = '';
+    } else {
+        $enrollment_name = "$name" . " - ";
     }
 
     $cell_no = "A" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m-d-Y', strtotime($refund['PAYMENT_DATE'])));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m/d/Y', strtotime($refund['PAYMENT_DATE'])));
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
@@ -577,10 +698,10 @@ foreach ($refund_payments as $refund) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "C" . $i;
-    if ($refund['PAYMENT_TYPE'] == 'Cash') {
+    if ($refund['PAYMENT_TYPE'] == 'Cash' && !$is_gift_refund) {
         $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund['TYPE']);
     } else {
-        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('(Refund) ' . $refund_payment_type);
+        $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund_payment_type);
     }
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -605,37 +726,37 @@ foreach ($refund_payments as $refund) {
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "G" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund['MEMO']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund['MEMO'] ?? '');
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "H" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund['CLIENT']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($client_name);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "I" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $refund['ENROLLMENT_ID'] == null) ? $enrollment_name . $refund['MISC_ID'] : $enrollment_name . $refund['ENROLLMENT_ID']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(($enrollment_name . $ENROLLMENT_ID == null) ? $enrollment_name . $MISC_ID : $enrollment_name . $ENROLLMENT_ID);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "J" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue(date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_date_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "K" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($refund['ENROLLMENT_TYPE']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_type_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
     $cell_no = "L" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . $refund['TOTAL_AMOUNT']);
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($total_amount_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
     $cell_no = "M" . $i;
-    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue('$' . number_format($enrollment_balance + $refund['AMOUNT'], 2));
+    $objPHPExcel->getActiveSheet()->getCell($cell_no)->setValue($enrollment_balance_display);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
     $objPHPExcel->getActiveSheet()->getStyle($cell_no)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -661,29 +782,22 @@ foreach ($refund_payments as $refund) {
 
     $redTextStyle = [
         'font' => [
-            'color' => ['rgb' => 'FF0000'] // Red color
+            'color' => ['rgb' => 'FF0000']
         ]
     ];
 
-    // Apply red text style to all cells in this refund row
     $objPHPExcel->getActiveSheet()->getStyle('A' . $i . ':Q' . $i)->applyFromArray($redTextStyle);
-
     $objPHPExcel->getActiveSheet()->getStyle('A' . $i . ':Q' . $i)->applyFromArray($styleArray);
 
     $i++;
 }
 
 // Add total row
-$objPHPExcel->getActiveSheet()
-    ->setCellValue('B' . $i, '$' . number_format(($total_amount - $total_refund), 2));
+$objPHPExcel->getActiveSheet()->setCellValue('B' . $i, '$' . number_format(($total_amount - $total_refund), 2));
 
-// Apply styling to the total portion cell
 $objPHPExcel->getActiveSheet()
-    ->getStyle('B' . $i)
+    ->getStyle('A' . $i . ':Q' . $i)
     ->applyFromArray([
-        'alignment' => [
-            'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT
-        ],
         'font' => [
             'bold' => true
         ],
@@ -692,6 +806,14 @@ $objPHPExcel->getActiveSheet()
                 'style' => PHPExcel_Style_Border::BORDER_THIN,
                 'color' => ['rgb' => '000000']
             ]
+        ]
+    ]);
+
+$objPHPExcel->getActiveSheet()
+    ->getStyle('B' . $i)
+    ->applyFromArray([
+        'alignment' => [
+            'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT
         ]
     ]);
 
