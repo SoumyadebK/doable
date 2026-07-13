@@ -21,7 +21,7 @@ $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 $week_number = $_GET['week_number'];
 $YEAR = date('Y', strtotime($from_date));
 
-$PAYMENT_QUERY = "SELECT 
+/* $PAYMENT_QUERY = "SELECT 
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, 
                     DOA_ENROLLMENT_PAYMENT.AMOUNT, 
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
@@ -37,29 +37,119 @@ $PAYMENT_QUERY = "SELECT
                     DOA_ENROLLMENT_MASTER.PK_LOCATION,
                     DOA_ENROLLMENT_MASTER.PK_PACKAGE
                 FROM DOA_ENROLLMENT_PAYMENT 
-                LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
                     ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
                 LEFT JOIN DOA_ENROLLMENT_MASTER 
                     ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                LEFT JOIN DOA_MASTER.DOA_USERS AS CLOSER 
+                LEFT JOIN $master_database.DOA_USERS AS CLOSER 
                     ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER 
                 LEFT JOIN DOA_ORDER 
                     ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER 
-                LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER 
+                LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER 
                     ON (CASE 
                             WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
                                 THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER 
                             ELSE DOA_ORDER.PK_USER_MASTER 
                         END) = DOA_USER_MASTER.PK_USER_MASTER 
-                LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
+                LEFT JOIN $master_database.DOA_USERS AS CUSTOMER 
                     ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
                 WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
                     AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) 
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                     AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) 
+                ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC"; */
+
+$PAYMENT_QUERY = "SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS STUDENT_NAME,
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION,
+                    DOA_ENROLLMENT_MASTER.PK_PACKAGE
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                LEFT JOIN DOA_ENROLLMENT_MASTER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CLOSER
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+
+                LEFT JOIN DOA_ORDER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER
+
+                LEFT JOIN $master_database.DOA_USER_MASTER
+                    ON (
+                        CASE
+                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL
+                                THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER
+                            ELSE DOA_ORDER.PK_USER_MASTER
+                        END
+                    ) = DOA_USER_MASTER.PK_USER_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CUSTOMER
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
+
+                WHERE CUSTOMER.IS_DELETED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
+                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment')
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    AND (
+                        DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL
+                        OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    )
+
+                UNION ALL
+
+                SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    '' AS STUDENT_NAME,
+                    '' AS CLOSER_FIRST_NAME,
+                    '' AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS CUSTOMER_ENROLLMENT_NUMBER,
+                    NULL AS PK_LOCATION,
+                    NULL AS PK_PACKAGE
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                WHERE DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
+                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+
                 ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
-$REFUND_QUERY = "SELECT
+
+/* $REFUND_QUERY = "SELECT
                         DOA_ENROLLMENT_PAYMENT.AMOUNT,
                         DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                         DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -83,7 +173,74 @@ $REFUND_QUERY = "SELECT
                     
                     WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
+                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC"; */
+
+$REFUND_QUERY = "SELECT
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS STUDENT_NAME,
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                LEFT JOIN DOA_ENROLLMENT_MASTER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CLOSER
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+
+                LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
+                    ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CUSTOMER
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
+
+                WHERE CUSTOMER.IS_DELETED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+
+                UNION ALL
+
+                SELECT
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    '' AS STUDENT_NAME,
+                    '' AS CLOSER_FIRST_NAME,
+                    '' AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS CUSTOMER_ENROLLMENT_NUMBER,
+                    NULL AS PK_LOCATION
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund Gift Certificate'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+
+                ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -173,17 +330,25 @@ if ($type === 'export') {
                 }
             }
 
-            $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
-            $staff_members = [];
-            while (!$teacher_data->EOF) {
-                $staff_members[] = getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
-                $teacher_data->MoveNext();
+            if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                $staff_members = [];
+                $executive = '';
+                $gift_certificate_data = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = " . $payment_data->fields['PK_GIFT_CERTIFICATE_MASTER']);
+                $STUDENT_NAME = $gift_certificate_data->fields['RECIPIENT'] . " " . $gift_certificate_data->fields['LAST_NAME'];
+            } else {
+                $STUDENT_NAME = $payment_data->fields['STUDENT_NAME'];
+                $staff_members = [];
+                $executive = getStaffCode($authorization, $payment_data->fields['CLOSER_FIRST_NAME'], $payment_data->fields['CLOSER_LAST_NAME']);
+                while (!$teacher_data->EOF) {
+                    $staff_members[] = getStaffCode($authorization, $teacher_data->fields['FIRST_NAME'], $teacher_data->fields['LAST_NAME']);
+                    $teacher_data->MoveNext();
+                }
             }
 
             $line_item[] = array(
                 "receipt_number" => $payment_data->fields['RECEIPT_NUMBER'],
                 "date_paid" => date('Y-m-d', strtotime($payment_data->fields['PAYMENT_DATE'])),
-                "students_full_name" => $payment_data->fields['STUDENT_NAME'],
+                "students_full_name" => $STUDENT_NAME,
                 "executive" => $executive,
                 "staff_members" => $staff_members,
                 "sale_code" => $sale_code,
@@ -203,13 +368,20 @@ if ($type === 'export') {
         $refunds = [];
         $refund_data = $db_account->Execute($REFUND_QUERY);
         while (!$refund_data->EOF) {
+            if ($refund_data->fields['TYPE'] == 'Refund Gift Certificate') {
+                $gift_certificate_data = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = " . $refund_data->fields['PK_GIFT_CERTIFICATE_MASTER']);
+                $STUDENT_NAME = $gift_certificate_data->fields['RECIPIENT'] . " " . $gift_certificate_data->fields['LAST_NAME'];
+            } else {
+                $STUDENT_NAME = $refund_data->fields['STUDENT_NAME'];
+            }
+
             $AMOUNT_REFUND = $refund_data->fields['AMOUNT'];
 
             $refunds[] = array(
                 "refund_type" => 'regular',
                 "date_reported" => date('Y-m-d', strtotime($refund_data->fields['PAYMENT_DATE'])),
                 "date_refunded" => date('Y-m-d', strtotime($refund_data->fields['PAYMENT_DATE'])),
-                "student_name" => $refund_data->fields['STUDENT_NAME'],
+                "student_name" => $STUDENT_NAME,
                 "amount" => $AMOUNT_REFUND,
             );
             $refund_data->MoveNext();
@@ -609,7 +781,9 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                         <td><?= $teacher_data->fields['TEACHER_NAME'] ?></td>
                                                         <td>
                                                             <?php
-                                                            if ($SERVICE_CLASS == 5) {
+                                                            if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                                                                echo 'Gift Certificate';
+                                                            } elseif ($SERVICE_CLASS == 5) {
                                                                 echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
                                                             } else {
                                                                 switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
@@ -630,7 +804,15 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                             }
                                                             ?>
                                                         </td>
-                                                        <td><?= $TOTAL_UNIT . ' / $' . $TOTAL_AMOUNT ?></td>
+                                                        <td>
+                                                            <?php
+                                                            if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                                                                echo '1/$' . $REGULAR_AMOUNT;
+                                                            } else {
+                                                                echo $TOTAL_UNIT . ' / $' . $TOTAL_AMOUNT;
+                                                            }
+                                                            ?>
+                                                        </td>
                                                         <td><?= $REGULAR_AMOUNT ?></td>
                                                         <td><?= $SUNDRY_AMOUNT ?></td>
                                                         <td><?= $MISC_AMOUNT ?></td>
@@ -724,10 +906,15 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                 $TOTAL_AMOUNT_REFUND = 0;
                                                 $refund_data = $db_account->Execute($REFUND_QUERY);
                                                 while (!$refund_data->EOF) {
-                                                    $REFUND_TOTAL_UNIT = 0;
-                                                    $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
-                                                    $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER'] . " GROUP BY PK_ENROLLMENT_MASTER");
-                                                    $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+                                                    if ($refund_data->fields['TYPE'] == 'Refund Gift Certificate') {
+                                                        $REFUND_TOTAL_UNIT = 1;
+                                                        $REFUND_TOTAL_AMOUNT = $refund_data->fields['AMOUNT'];
+                                                    } else {
+                                                        $REFUND_TOTAL_UNIT = 0;
+                                                        $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER'] . " GROUP BY PK_ENROLLMENT_MASTER");
+                                                        $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+                                                    }
 
                                                     $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
                                                     while (!$enrollment_service_code_data->EOF) {
