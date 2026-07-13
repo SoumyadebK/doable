@@ -314,7 +314,7 @@ if (!empty($_GET['START_DATE'])) {
                                                 ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
                                                 LEFT JOIN DOA_GIFT_CERTIFICATE_MASTER AS DOA_GIFT_CERTIFICATE_MASTER
                                                 ON DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER = DOA_GIFT_CERTIFICATE_MASTER.PK_GIFT_CERTIFICATE_MASTER
-                                                WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate' 
+                                                WHERE (DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate' OR DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund Gift Certificate')
                                                 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0 
                                                 AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
                                                 " . $payment_date . " 
@@ -399,7 +399,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     $PK_USER_MASTER = empty($payment['PK_USER_MASTER']) ? '' : $payment['PK_USER_MASTER'];
 
                                                     // Check if this is a gift certificate payment
-                                                    $is_gift_certificate = ($payment['TYPE'] == 'Gift Certificate');
+                                                    $is_gift_certificate = ($payment['TYPE'] == 'Gift Certificate' || $payment['TYPE'] == 'Refund Gift Certificate');
 
                                                     if (!$is_gift_certificate && !empty($payment['ENROLLMENT_BY_ID'])) {
                                                         $enrollment_by = $db->Execute("SELECT CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLOSER FROM DOA_USERS WHERE PK_USER = " . $payment['ENROLLMENT_BY_ID']);
@@ -441,7 +441,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $payment['MISC_ID'] ?? '';
                                                         $client_name = $payment['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
                                                         $total_amount += $payment['AMOUNT'];
@@ -452,7 +452,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $payment['MISC_ID'] ?? '';
                                                         $client_name = $payment['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
                                                         $total_amount += $payment['AMOUNT'];
@@ -463,7 +463,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $payment['MISC_ID'] ?? '';
                                                         $client_name = $payment['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
                                                         $total_amount += $payment['AMOUNT'];
@@ -473,7 +473,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $payment['MISC_ID'] ?? '';
                                                         $client_name = $payment['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($payment['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($payment['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($payment['ENROLLMENT_TYPE']) ? $payment['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($payment['TOTAL_AMOUNT']) ? '$' . number_format($payment['TOTAL_AMOUNT'] - $payment['AMOUNT'], 2) : '';
                                                         $total_amount += $payment['AMOUNT'];
@@ -493,7 +493,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     }
                                                 ?>
                                                     <tr>
-                                                        <td style="text-align: center"><?= date('m-d-Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
+                                                        <td style="text-align: center"><?= date('m/d/Y', strtotime($payment['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right">$<?= $payment['AMOUNT'] ?></td>
                                                         <td style="text-align: center"><?= $payment_type ?></td>
                                                         <td style="text-align: center"><?= $payment['PAYMENT_TYPE'] ?></td>
@@ -523,7 +523,7 @@ if (!empty($_GET['START_DATE'])) {
                                                 <!-- Display all refunds at the bottom -->
                                                 <?php foreach ($refund_payments as $refund) {
                                                     // Check if this is a gift certificate refund
-                                                    $is_gift_refund = ($refund['TYPE'] == 'Gift Certificate' && $refund['IS_REFUNDED'] == '1');
+                                                    $is_gift_refund = ($refund['TYPE'] == 'Refund Gift Certificate' && $refund['IS_REFUNDED'] == '1');
 
                                                     $name = $refund['ENROLLMENT_NAME'] ?? '';
                                                     if (empty($name)) {
@@ -574,7 +574,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $refund['MISC_ID'] ?? '';
                                                         $client_name = $refund['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
                                                     } elseif (in_array($refund['PK_PAYMENT_TYPE'], [1, 8, 9, 10, 11, 13, 14])) {
@@ -584,7 +584,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $refund['MISC_ID'] ?? '';
                                                         $client_name = $refund['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
                                                     } else {
@@ -593,7 +593,7 @@ if (!empty($_GET['START_DATE'])) {
                                                         $MISC_ID = $refund['MISC_ID'] ?? '';
                                                         $client_name = $refund['CLIENT'] ?? '';
                                                         $total_amount_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'], 2) : '';
-                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m-d-Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
+                                                        $enrollment_date_display = !empty($refund['ENROLLMENT_DATE']) ? date('m/d/Y', strtotime($refund['ENROLLMENT_DATE'])) : '';
                                                         $enrollment_type_display = !empty($refund['ENROLLMENT_TYPE']) ? $refund['ENROLLMENT_TYPE'] : '';
                                                         $enrollment_balance_display = !empty($refund['TOTAL_AMOUNT']) ? '$' . number_format($refund['TOTAL_AMOUNT'] - $refund['AMOUNT'], 2) : '';
                                                     }
@@ -608,12 +608,12 @@ if (!empty($_GET['START_DATE'])) {
                                                     }
                                                 ?>
                                                     <tr>
-                                                        <td style="text-align: center; color: red"><?= date('m-d-Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
+                                                        <td style="text-align: center; color: red"><?= date('m/d/Y', strtotime($refund['PAYMENT_DATE'])) ?></td>
                                                         <td style="text-align: right; color: red">$<?= $refund['AMOUNT'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Cash' && !$is_gift_refund) { ?>
                                                             <td style="text-align: center; color: red"><?= $refund['TYPE'] ?></td>
                                                         <?php } else { ?>
-                                                            <td style="text-align: center; color: red"><?= '(Refund) ' . $refund_payment_type ?></td>
+                                                            <td style="text-align: center; color: red"><?= $refund_payment_type ?></td>
                                                         <?php } ?>
                                                         <td style="text-align: center; color: red"><?= $refund['PAYMENT_TYPE'] ?></td>
                                                         <?php if ($refund['PAYMENT_TYPE'] == 'Credit Card' || $refund['PAYMENT_TYPE'] == 'Visa' || $refund['PAYMENT_TYPE'] == 'Master Card' || $refund['PAYMENT_TYPE'] == 'American Express' || $refund['PAYMENT_TYPE'] == 'Card' || $refund['PAYMENT_TYPE'] == 'Card On File') { ?>

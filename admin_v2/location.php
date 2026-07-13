@@ -2434,14 +2434,29 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                         <input type="text" name="WELCOME_MESSAGE" class="form-control-modern" placeholder="Enter Welcome Message" required value="<?php echo htmlspecialchars($WELCOME_MESSAGE) ?>">
                                                     </div>
 
-                                                    <div class="form-group-modern col-4">
+                                                    <div class="form-group-modern col-2">
                                                         <label class="form-label">Avatar Emoji</label>
                                                         <input type="text" name="AVATAR_EMOJI" class="form-control-modern" placeholder="Enter Avatar Emoji" value="<?php echo htmlspecialchars($AVATAR_EMOJI) ?>">
                                                     </div>
 
-                                                    <div class="form-group-modern col-4">
+                                                    <div class="form-group-modern col-2">
                                                         <label class="form-label">Primary Color</label>
                                                         <input type="color" name="PRIMARY_COLOR" class="form-control-modern" placeholder="Enter Primary Color" value="<?php echo htmlspecialchars($PRIMARY_COLOR) ?>">
+                                                    </div>
+
+                                                    <div class="form-group-modern col-4">
+                                                        <label class="form-label">Tags</label>
+                                                        <select name="PK_TAG" class="form-control-modern">
+                                                            <option value="">Select Tag</option>
+                                                            <?php $tag_data = $db_account->Execute("SELECT * FROM DOA_TAG WHERE ACTIVE = 1");
+                                                            $tag_options = '';
+                                                            while (!$tag_data->EOF) {
+                                                                $tag_options .= '<option value="' . $tag_data->fields['PK_TAG'] . '">' . $tag_data->fields['TAG_NAME'] . '</option>';
+                                                                $tag_data->MoveNext();
+                                                            }
+                                                            echo $tag_options;
+                                                            ?>
+                                                        </select>
                                                     </div>
                                                 </div>
 

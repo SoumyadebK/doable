@@ -2218,8 +2218,25 @@ function refundGiftCertificate($RESPONSE_DATA)
                         WHERE PK_GIFT_CERTIFICATE_MASTER = " . intval($PK_GIFT_CERTIFICATE_MASTER);
         $result = $db_account->Execute($update_query);
 
+        $payment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT WHERE PK_GIFT_CERTIFICATE_MASTER = " . $PK_GIFT_CERTIFICATE_MASTER);
+
         $UPDATE_PAYMENT_DATA['IS_REFUNDED'] = 1;
         db_perform_account('DOA_ENROLLMENT_PAYMENT', $UPDATE_PAYMENT_DATA, 'update', " PK_GIFT_CERTIFICATE_MASTER =  '$PK_GIFT_CERTIFICATE_MASTER'");
+
+        $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = 0;
+        $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = 0;
+        $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = 0;
+        $PAYMENT_DATA['PK_GIFT_CERTIFICATE_MASTER'] = $PK_GIFT_CERTIFICATE_MASTER;
+        $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $check_result->fields['PK_PAYMENT_TYPE'];
+        $PAYMENT_DATA['AMOUNT'] = $AMOUNT;
+        $PAYMENT_DATA['TYPE'] = 'Refund Gift Certificate';
+        $PAYMENT_DATA['PK_LOCATION'] = getPkLocation();
+        $PAYMENT_DATA['NOTE'] = "Balance refunded from Gift Certificate";
+        $PAYMENT_DATA['PAYMENT_DATE'] = date('Y-m-d');
+        $PAYMENT_DATA['PAYMENT_INFO'] = "Balance refunded from Gift Certificate";
+        $PAYMENT_DATA['PAYMENT_STATUS'] = 'Success';
+        $PAYMENT_DATA['RECEIPT_NUMBER'] = $payment_data->fields['RECEIPT_NUMBER'];
+        db_perform_account('DOA_ENROLLMENT_PAYMENT', $PAYMENT_DATA, 'insert');
 
         if ($result) {
             echo json_encode(['success' => true, 'message' => 'Gift certificate refunded successfully.']);

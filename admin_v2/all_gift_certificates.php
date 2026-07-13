@@ -498,7 +498,7 @@ $redeemed_count = $redeemed_count_result->fields['total'];
                                                             <i class="bi bi-person-add"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <?php if (!$is_redeemed): ?>
+                                                    <?php if (!$is_redeemed && $is_active): ?>
                                                         <a href="javascript:;" onclick="editGiftCertificate(<?= $PK_GIFT_CERTIFICATE_MASTER ?>);" title="Edit">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
