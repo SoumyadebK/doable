@@ -340,7 +340,7 @@ if (!empty($_GET['START_DATE'])) {
                                                     $gift_data = $gift_payments->fields;
 
                                                     // Check if this gift certificate payment has been refunded
-                                                    if ($gift_data['IS_REFUNDED'] == '1') {
+                                                    if ($gift_data['TYPE'] == 'Refund Gift Certificate') {
                                                         // Add to refunds array
                                                         $refund_payments[] = $gift_data;
                                                     } else {
@@ -523,7 +523,7 @@ if (!empty($_GET['START_DATE'])) {
                                                 <!-- Display all refunds at the bottom -->
                                                 <?php foreach ($refund_payments as $refund) {
                                                     // Check if this is a gift certificate refund
-                                                    $is_gift_refund = ($refund['TYPE'] == 'Refund Gift Certificate' && $refund['IS_REFUNDED'] == '1');
+                                                    $is_gift_refund = ($refund['TYPE'] == 'Refund Gift Certificate');
 
                                                     $name = $refund['ENROLLMENT_NAME'] ?? '';
                                                     if (empty($name)) {
