@@ -3064,6 +3064,43 @@ if ($PK_USER_MASTER > 0) {
             }
         });
     }
+
+    function markMiscComplete(PK_ENROLLMENT_MASTER) {
+        Swal.fire({
+            title: "Are you sure you want to mark this enrollment as complete?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, mark it complete!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'markMiscComplete',
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
+                    },
+                    success: function(data) {
+                        if (data == 1) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Enrollment marked as complete.",
+                                icon: "success",
+                                timer: 2000,
+                            }).then((result) => {
+                                window.location.reload();
+                            });
+                        } else {
+                            alert(data);
+                        }
+                    }
+                });
+            }
+        });
+
+    }
 </script>
 
 <!-- All function related to appointment -->
