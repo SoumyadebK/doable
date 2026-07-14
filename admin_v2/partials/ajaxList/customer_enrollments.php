@@ -111,7 +111,7 @@ if ($page == 1) {
 } ?>
 
 <?php
-$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
+$enrollment_data = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.AGREEMENT_PDF_LINK, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.CHARGE_TYPE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, DOA_ENROLLMENT_MASTER.PAYMENT_METHOD_ID, DOA_ENROLLMENT_BILLING.PAYMENT_METHOD, DOA_LOCATION.LOCATION_NAME FROM `DOA_ENROLLMENT_MASTER` INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE " . $enr_condition . " AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND DOA_ENROLLMENT_MASTER.PK_USER_MASTER = $PK_USER_MASTER ORDER BY DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC LIMIT $limit OFFSET $offset");
 
 $AGREEMENT_PDF_LINK = '';
 while (!$enrollment_data->EOF) {
@@ -162,8 +162,11 @@ while (!$enrollment_data->EOF) {
                 <div class="col-2">
                     <a href="javascript:void(0)" class="view-schedule text-primary show_enrollment_details_button" onclick="showEnrollmentDetails(this, <?= $PK_USER ?>, <?= $PK_USER_MASTER ?>, <?= $PK_ENROLLMENT_MASTER ?>, '<?= $enrollment_data->fields['ENROLLMENT_ID'] ?>', '<?= $type ?>', 'billing_details')">View Payment Schedule</a>
                 </div>
-                <div class="col-1">
+                <div class="col-auto">
                     <?php if (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) { ?>
+                        <?php if (($enrollment_data->fields['MISC_TYPE'] != null || $enrollment_data->fields['MISC_ID'] != null) && $enrollment_data->fields['STATUS'] == 'A') { ?>
+                            <button class="btn btn-secondary" onclick="markMiscComplete(<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>)" style="margin-top:-3px; margin-right:15px;">Mark Complete</button>
+                        <?php } ?>
                         <span class="checkicon f15 theme-text" style="background-color: #cffce4; color: #39b54a; padding: 4px 8px; border-radius: 50px; float: right;">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; padding-bottom: 2px;" xml:space="preserve" width="15px" height="15px" fill="#39b54a">
                                 <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M219.429,367.932 L108.606,257.108l38.789-38.789l72.033,72.035L355.463,154.32l38.789,38.789L219.429,367.932z"></path>
@@ -172,7 +175,7 @@ while (!$enrollment_data->EOF) {
                         </span>
                     <?php } ?>
                 </div>
-                <div class="col-2">
+                <div class="col-auto ms-auto">
                     <?php if (($enrollment_data->fields['PAYMENT_METHOD'] == 'Payment Plans' || $enrollment_data->fields['PAYMENT_METHOD'] == 'Flexible Payments') && $enrollment_data->fields['STATUS'] == 'A') { ?>
                         <div class="d-flex justify-content-end align-items-center">
                             <div class="form-check form-switch d-flex align-items-center">
@@ -187,7 +190,7 @@ while (!$enrollment_data->EOF) {
                         </div>
                     <?php } ?>
                 </div>
-                <div class="col-2 d-flex justify-content-end align-items-center text-end">
+                <div class="col-auto d-flex justify-content-end align-items-center text-end">
                     <?php
                     $payment_data = $db_account->Execute("SELECT PK_ENROLLMENT_PAYMENT FROM `DOA_ENROLLMENT_PAYMENT` WHERE PK_PAYMENT_TYPE != 12 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
                     $balance_owed = $db_account->Execute("SELECT SUM(BILLED_AMOUNT) AS TOTAL_BALANCE_OWED FROM DOA_ENROLLMENT_LEDGER WHERE (TRANSACTION_TYPE = 'Balance Owed' OR TRANSACTION_TYPE = 'Billing') AND STATUS = 'CA' AND IS_PAID = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);

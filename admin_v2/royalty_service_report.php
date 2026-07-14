@@ -105,7 +105,6 @@ $PAYMENT_QUERY = "SELECT
 
                 WHERE CUSTOMER.IS_DELETED = 0
                     AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
-                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
                     AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment')
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -140,7 +139,6 @@ $PAYMENT_QUERY = "SELECT
                     ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
 
                 WHERE DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
-                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
                     AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate'
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -176,6 +174,7 @@ $PAYMENT_QUERY = "SELECT
                     ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC"; */
 
 $REFUND_QUERY = "SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
                     DOA_ENROLLMENT_PAYMENT.AMOUNT,
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -208,6 +207,7 @@ $REFUND_QUERY = "SELECT
                     ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
 
                 WHERE CUSTOMER.IS_DELETED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
                     AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund'
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
@@ -216,6 +216,7 @@ $REFUND_QUERY = "SELECT
                 UNION ALL
 
                 SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
                     DOA_ENROLLMENT_PAYMENT.AMOUNT,
                     DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
@@ -236,6 +237,7 @@ $REFUND_QUERY = "SELECT
                     ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
 
                 WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund Gift Certificate'
+                    AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
                     AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -384,6 +386,9 @@ if ($type === 'export') {
                 "student_name" => $STUDENT_NAME,
                 "amount" => $AMOUNT_REFUND,
             );
+
+            $PK_ENROLLMENT_PAYMENT_ARRAY[] = $refund_data->fields['PK_ENROLLMENT_PAYMENT'];
+
             $refund_data->MoveNext();
         }
 

@@ -4371,3 +4371,31 @@ function deleteFamilyMemberData($RESPONSE_DATA)
     $PK_CUSTOMER_DETAILS = $RESPONSE_DATA['PK_CUSTOMER_DETAILS'];
     $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
 }
+
+function markMiscComplete($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_ENROLLMENT_MASTER = $RESPONSE_DATA['PK_ENROLLMENT_MASTER'];
+
+    $enr_total_amount = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS TOTAL_AMOUNT FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    $enr_paid_amount = $db_account->Execute("SELECT SUM(AMOUNT) AS TOTAL_PAID_AMOUNT FROM DOA_ENROLLMENT_PAYMENT WHERE TYPE = 'Payment' AND IS_REFUNDED = 0 AND PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+    $paid_count = (($enr_total_amount->fields['TOTAL_AMOUNT'] == 0) || ($enr_paid_amount->fields['TOTAL_PAID_AMOUNT'] >= $enr_total_amount->fields['TOTAL_AMOUNT'])) ? 0 : 1;
+
+    if ($paid_count === 0) {
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
+        $ENR_UPDATE_DATA['STATUS'] = 'CO';
+        $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'CO';
+    } else {
+        $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 0;
+        $ENR_UPDATE_DATA['STATUS'] = 'A';
+        $ENR_SERVICE_UPDATE_DATA['STATUS'] = 'A';
+    }
+
+    db_perform_account('DOA_ENROLLMENT_MASTER', $ENR_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+
+    db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    echo 1;
+}
