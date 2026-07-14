@@ -19,68 +19,161 @@ $to_date = date('Y-m-d', strtotime($from_date . ' +6 day'));
 $week_number = $_SESSION['week_number'];
 $YEAR = date('Y', strtotime($from_date));
 
-$PAYMENT_QUERY = "SELECT 
-                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT, 
-                    DOA_ENROLLMENT_PAYMENT.AMOUNT, 
-                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER, 
+$PAYMENT_QUERY = "SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
                     DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
                     DOA_ENROLLMENT_PAYMENT.PK_ORDER,
                     DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
-                    DOA_PAYMENT_TYPE.PAYMENT_TYPE, 
-                    CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME, 
-                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
-                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
-                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
-                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
-                    DOA_ENROLLMENT_MASTER.PK_LOCATION 
-                FROM DOA_ENROLLMENT_PAYMENT 
-                LEFT JOIN DOA_MASTER.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE 
-                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE 
-                LEFT JOIN DOA_ENROLLMENT_MASTER 
-                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                LEFT JOIN DOA_MASTER.DOA_USERS AS CLOSER 
-                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER 
-                LEFT JOIN DOA_ORDER 
-                    ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER 
-                LEFT JOIN DOA_MASTER.DOA_USER_MASTER AS DOA_USER_MASTER 
-                    ON (CASE 
-                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL 
-                                THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER 
-                            ELSE DOA_ORDER.PK_USER_MASTER 
-                        END) = DOA_USER_MASTER.PK_USER_MASTER 
-                LEFT JOIN DOA_MASTER.DOA_USERS AS CUSTOMER 
-                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER 
-                WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
-                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0 AND (DOA_ENROLLMENT_PAYMENT.TYPE = 'Payment' || DOA_ENROLLMENT_PAYMENT.TYPE = 'Adjustment') AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) 
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS STUDENT_NAME,
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION,
+                    DOA_ENROLLMENT_MASTER.PK_PACKAGE
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                LEFT JOIN DOA_ENROLLMENT_MASTER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CLOSER
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+
+                LEFT JOIN DOA_ORDER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ORDER = DOA_ORDER.PK_ORDER
+
+                LEFT JOIN $master_database.DOA_USER_MASTER
+                    ON (
+                        CASE
+                            WHEN DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NULL
+                                THEN DOA_ENROLLMENT_MASTER.PK_USER_MASTER
+                            ELSE DOA_ORDER.PK_USER_MASTER
+                        END
+                    ) = DOA_USER_MASTER.PK_USER_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CUSTOMER
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
+
+                WHERE CUSTOMER.IS_DELETED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
+                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE IN ('Payment', 'Adjustment')
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                    AND (DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")) 
+                    AND (
+                        DOA_ENROLLMENT_PAYMENT.PK_ORDER IS NOT NULL
+                        OR DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    )
+
+                UNION ALL
+
+                SELECT
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT,
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_ORDER,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    '' AS STUDENT_NAME,
+                    '' AS CLOSER_FIRST_NAME,
+                    '' AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS CUSTOMER_ENROLLMENT_NUMBER,
+                    NULL AS PK_LOCATION,
+                    NULL AS PK_PACKAGE
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                WHERE DOA_ENROLLMENT_PAYMENT.NOT_EXPORT_TO_AMI = 0
+                    AND DOA_ENROLLMENT_PAYMENT.IS_REFUNDED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Gift Certificate'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+
                 ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $REFUND_QUERY = "SELECT
-                        DOA_ENROLLMENT_PAYMENT.AMOUNT,
-                        DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
-                        DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
-                        DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
-                        DOA_PAYMENT_TYPE.PAYMENT_TYPE,
-                        CONCAT(CUSTOMER.FIRST_NAME, ' ' ,CUSTOMER.LAST_NAME) AS STUDENT_NAME,
-                        CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
-                        CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
-                        DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
-                        DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
-                        DOA_ENROLLMENT_MASTER.PK_LOCATION
-                    FROM
-                        DOA_ENROLLMENT_PAYMENT
-                    LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
-                            
-                    LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
-                    LEFT JOIN $master_database.DOA_USERS AS CLOSER ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
-                    
-                    LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
-                    LEFT JOIN $master_database.DOA_USERS AS CUSTOMER ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
-                    
-                    WHERE CUSTOMER.IS_DELETED = 0 AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund' AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5) AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    CONCAT(CUSTOMER.FIRST_NAME, ' ', CUSTOMER.LAST_NAME) AS STUDENT_NAME,
+                    CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
+                    CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
+                    DOA_ENROLLMENT_MASTER.PK_LOCATION
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                LEFT JOIN DOA_ENROLLMENT_MASTER
+                    ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CLOSER
+                    ON DOA_ENROLLMENT_MASTER.ENROLLMENT_BY_ID = CLOSER.PK_USER
+
+                LEFT JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER
+                    ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER
+
+                LEFT JOIN $master_database.DOA_USERS AS CUSTOMER
+                    ON CUSTOMER.PK_USER = DOA_USER_MASTER.PK_USER
+
+                WHERE CUSTOMER.IS_DELETED = 0
+                    AND DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
                     AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                    ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
+
+                UNION ALL
+
+                SELECT
+                    DOA_ENROLLMENT_PAYMENT.AMOUNT,
+                    DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER,
+                    DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE,
+                    DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE,
+                    DOA_ENROLLMENT_PAYMENT.TYPE,
+                    DOA_ENROLLMENT_PAYMENT.PK_GIFT_CERTIFICATE_MASTER,
+                    DOA_PAYMENT_TYPE.PAYMENT_TYPE,
+                    '' AS STUDENT_NAME,
+                    '' AS CLOSER_FIRST_NAME,
+                    '' AS CLOSER_LAST_NAME,
+                    DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS CUSTOMER_ENROLLMENT_NUMBER,
+                    NULL AS PK_LOCATION
+
+                FROM DOA_ENROLLMENT_PAYMENT
+
+                LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE
+                    ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE
+
+                WHERE DOA_ENROLLMENT_PAYMENT.TYPE = 'Refund Gift Certificate'
+                    AND DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE NOT IN (5)
+                    AND DOA_ENROLLMENT_PAYMENT.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ")
+                    AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+
+                ORDER BY PAYMENT_DATE ASC, RECEIPT_NUMBER ASC";
 
 $account_data = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
 $user_data = $db->Execute("SELECT * FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -96,10 +189,7 @@ while (!$results->EOF) {
 $totalResults = count($resultsArray);
 $concatenatedResults = "";
 foreach ($resultsArray as $key => $result) {
-    // Append the current result to the concatenated string
     $concatenatedResults .= $result;
-
-    // If it's not the last result, append a comma
     if ($key < $totalResults - 1) {
         $concatenatedResults .= ", ";
     }
@@ -131,7 +221,6 @@ foreach ($resultsArray as $key => $result) {
     <div class="row">
         <div class="col-12">
             <div class="card">
-
                 <div class="card-body">
                     <div class="table-responsive">
                         <h1 style="margin: 25px;"><?= $title ?></h1>
@@ -253,17 +342,28 @@ foreach ($resultsArray as $key => $result) {
                                         $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] + ($REGULAR_AMOUNT + $MISC_AMOUNT);
                                     } else {
                                         $LOCATION_TOTAL[$payment_data->fields['PK_LOCATION']] = ($REGULAR_AMOUNT + $MISC_AMOUNT);
-                                    } ?>
+                                    }
+
+                                    // Get student name - handle gift certificates
+                                    if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                                        $gift_certificate_data = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = " . $payment_data->fields['PK_GIFT_CERTIFICATE_MASTER']);
+                                        $student_name = $gift_certificate_data->fields['RECIPIENT'] . " " . $gift_certificate_data->fields['LAST_NAME'];
+                                    } else {
+                                        $student_name = $payment_data->fields['STUDENT_NAME'];
+                                    }
+                                ?>
                                     <tr style="text-align: center;">
                                         <td><?= $payment_data->fields['RECEIPT_NUMBER'] ?></td>
                                         <td><?= date('m/d/Y', strtotime($payment_data->fields['PAYMENT_DATE'])) ?></td>
-                                        <td><?= $payment_data->fields['STUDENT_NAME'] ?></td>
+                                        <td><?= $student_name ?></td>
                                         <td><?= $payment_type ?></td>
                                         <td><?= $payment_data->fields['CLOSER_FIRST_NAME'] . " " . $payment_data->fields['CLOSER_LAST_NAME'] ?></td>
                                         <td><?= $teacher_data->fields['TEACHER_NAME'] ?></td>
                                         <td>
                                             <?php
-                                            if ($SERVICE_CLASS == 5) {
+                                            if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                                                echo 'Gift Certificate';
+                                            } elseif ($SERVICE_CLASS == 5) {
                                                 echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
                                             } else {
                                                 switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
@@ -276,7 +376,6 @@ foreach ($resultsArray as $key => $result) {
                                                     case 3:
                                                         echo '3/EXT';
                                                         break;
-
                                                     default:
                                                         echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/REN';
                                                         break;
@@ -284,7 +383,15 @@ foreach ($resultsArray as $key => $result) {
                                             }
                                             ?>
                                         </td>
-                                        <td><?= $TOTAL_UNIT . ' / $' . $TOTAL_AMOUNT ?></td>
+                                        <td>
+                                            <?php
+                                            if ($payment_data->fields['TYPE'] == 'Gift Certificate') {
+                                                echo '1/$' . $REGULAR_AMOUNT;
+                                            } else {
+                                                echo $TOTAL_UNIT . ' / $' . $TOTAL_AMOUNT;
+                                            }
+                                            ?>
+                                        </td>
                                         <td><?= $REGULAR_AMOUNT ?></td>
                                         <td><?= $SUNDRY_AMOUNT ?></td>
                                         <td><?= $MISC_AMOUNT ?></td>
@@ -321,15 +428,6 @@ foreach ($resultsArray as $key => $result) {
                                     $last_date = $payment_data->fields['PAYMENT_DATE'];
                                 }
                                 ?>
-                                <!--<tr>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="7">Daily Totals</th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_AMOUNT_PAID, 2)*/ ?></th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($REGULAR_TOTAL, 2)*/ ?></th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($SUNDRY_TOTAL, 2)*/ ?></th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($MISC_TOTAL, 2)*/ ?></th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_RS_FEE, 2)*/ ?></th>
-                                <th style="width:10%; text-align: center; font-weight: bold" colspan="1"><?php /*='$'.number_format($TOTAL_AMOUNT_PAID, 2)*/ ?></th>
-                            </tr>-->
                             </tbody>
                         </table>
                     </div>
@@ -347,7 +445,7 @@ foreach ($resultsArray as $key => $result) {
                                 <tr>
                                     <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold" colspan="6">Franchisee: <?= $business_name ?></th>
                                     <th style="width:20%; text-align: center; font-weight: bold" colspan="2">Part 2</th>
-                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= $from_date ?> - <?= $to_date ?>)</th>
+                                    <th style="width:20%; text-align: center; font-weight: bold" colspan="5">Week # <?= $week_number ?> (<?= date('m/d/Y', strtotime($from_date)) ?> - <?= date('m/d/Y', strtotime($to_date)) ?>)</th>
                                 </tr>
                                 <tr>
                                     <th colspan="13">Refunds or credits below completed tuition refund report & photocopy of front & back of caceled cheks must be attached in order to receive credits.
@@ -375,16 +473,28 @@ foreach ($resultsArray as $key => $result) {
                                 $refund_data = $db_account->Execute($REFUND_QUERY);
                                 while (!$refund_data->EOF) {
                                     $REFUND_TOTAL_UNIT = 0;
-                                    $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
-                                    $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER'] . " GROUP BY PK_ENROLLMENT_MASTER");
-                                    $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
 
-                                    $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
-                                    while (!$enrollment_service_code_data->EOF) {
-                                        if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
-                                            $REFUND_TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                    if ($refund_data->fields['TYPE'] == 'Refund Gift Certificate') {
+                                        $REFUND_TOTAL_UNIT = 1;
+                                        $REFUND_TOTAL_AMOUNT = $refund_data->fields['AMOUNT'];
+                                        $teacher_data = null;
+
+                                        $gift_certificate_data = $db_account->Execute("SELECT * FROM DOA_GIFT_CERTIFICATE_MASTER WHERE PK_GIFT_CERTIFICATE_MASTER = " . $refund_data->fields['PK_GIFT_CERTIFICATE_MASTER']);
+                                        $student_name = $gift_certificate_data->fields['RECIPIENT'] . " " . $gift_certificate_data->fields['LAST_NAME'];
+                                    } else {
+                                        $REFUND_TOTAL_UNIT = 0;
+                                        $teacher_data = $db_account->Execute("SELECT GROUP_CONCAT(DISTINCT(CONCAT(TEACHER.FIRST_NAME, ' ', TEACHER.LAST_NAME)) SEPARATOR ', ') AS TEACHER_NAME FROM DOA_ENROLLMENT_SERVICE_PROVIDER LEFT JOIN $master_database.DOA_USERS AS TEACHER ON DOA_ENROLLMENT_SERVICE_PROVIDER.SERVICE_PROVIDER_ID = TEACHER.PK_USER WHERE DOA_ENROLLMENT_SERVICE_PROVIDER.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                        $enrollment_service_data = $db_account->Execute("SELECT SUM(`FINAL_AMOUNT`) AS TOTAL_AMOUNT, DOA_SERVICE_MASTER.PK_SERVICE_CLASS FROM `DOA_ENROLLMENT_SERVICE` LEFT JOIN DOA_SERVICE_MASTER ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_MASTER = DOA_SERVICE_MASTER.PK_SERVICE_MASTER WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER'] . " GROUP BY PK_ENROLLMENT_MASTER");
+                                        $REFUND_TOTAL_AMOUNT = $enrollment_service_data->fields['TOTAL_AMOUNT'];
+                                        $student_name = $refund_data->fields['STUDENT_NAME'];
+
+                                        $enrollment_service_code_data = $db_account->Execute("SELECT DOA_ENROLLMENT_SERVICE.NUMBER_OF_SESSION, DOA_ENROLLMENT_SERVICE.PRICE_PER_SESSION, DOA_ENROLLMENT_SERVICE.FINAL_AMOUNT, DOA_SERVICE_CODE.IS_SUNDRY, DOA_SERVICE_CODE.IS_GROUP FROM DOA_ENROLLMENT_SERVICE LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE WHERE DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = " . $refund_data->fields['PK_ENROLLMENT_MASTER']);
+                                        while (!$enrollment_service_code_data->EOF) {
+                                            if ($enrollment_service_code_data->fields['IS_GROUP'] == 0 && $enrollment_service_code_data->fields['PRICE_PER_SESSION'] > 0) {
+                                                $REFUND_TOTAL_UNIT += $enrollment_service_code_data->fields['NUMBER_OF_SESSION'];
+                                            }
+                                            $enrollment_service_code_data->MoveNext();
                                         }
-                                        $enrollment_service_code_data->MoveNext();
                                     }
 
                                     $AMOUNT_REFUND = $refund_data->fields['AMOUNT'];
@@ -392,9 +502,9 @@ foreach ($resultsArray as $key => $result) {
                                     <tr style="text-align: center;">
                                         <td><?= $refund_data->fields['RECEIPT_NUMBER'] ?></td>
                                         <td><?= date('m/d/Y', strtotime($refund_data->fields['PAYMENT_DATE'])) ?></td>
-                                        <td colspan="2"><?= $refund_data->fields['STUDENT_NAME'] ?></td>
+                                        <td colspan="2"><?= $student_name ?></td>
                                         <td><?= $refund_data->fields['CLOSER_FIRST_NAME'] . " " . $refund_data->fields['CLOSER_LAST_NAME'] ?></td>
-                                        <td><?= $teacher_data->fields['TEACHER_NAME'] ?></td>
+                                        <td><?= $teacher_data ? $teacher_data->fields['TEACHER_NAME'] : '' ?></td>
                                         <td><?= $refund_data->fields['PAYMENT_TYPE'] ?></td>
                                         <td><?= $REFUND_TOTAL_UNIT . ' / $' . $REFUND_TOTAL_AMOUNT ?></td>
                                         <td colspan="3"><?= '-$' . number_format($AMOUNT_REFUND, 2) ?></td>
