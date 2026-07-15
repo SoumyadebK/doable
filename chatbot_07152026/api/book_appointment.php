@@ -117,7 +117,7 @@ function createUser($PK_LOCATION, $name, $phone, $email)
         $LEADS_DATA['REMOTE_ADDRESS'] = $_SERVER['REMOTE_ADDR'];
         $LEADS_DATA['IP_ADDRESS'] = getUserIP();
         $LEADS_DATA['ACTIVE'] = 1;
-        $LEADS_DATA['CREATED_BY']  = 0;
+        $LEADS_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
         $LEADS_DATA['CREATED_ON']  = date("Y-m-d H:i");
         db_perform('DOA_LEADS', $LEADS_DATA, 'insert');
 
@@ -166,7 +166,7 @@ function createUser($PK_LOCATION, $name, $phone, $email)
 
         $TAG_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
         $TAG_DATA['PK_TAG'] = $PK_TAG;
-        db_perform_account_own($db_account, 'DOA_USER_TAG', $TAG_DATA, 'insert');
+        db_perform_account('DOA_USER_TAG', $TAG_DATA, 'insert');
 
         /* $CUSTOMER_PHONE['PK_CUSTOMER_DETAILS'] = $PK_CUSTOMER_DETAILS;
         $CUSTOMER_PHONE['PHONE'] = $PHONE;

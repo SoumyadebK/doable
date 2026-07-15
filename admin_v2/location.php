@@ -136,6 +136,7 @@ if (empty($_GET['id'])) {
     $PRIMARY_COLOR = '';
     $OFFERING_LABEL = '';
     $OFFERING_TYPE = '';
+    $PK_TAG = '';
 } else {
     $res = $db->Execute("SELECT * FROM `DOA_LOCATION` WHERE `PK_LOCATION` = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -227,6 +228,7 @@ if (empty($_GET['id'])) {
     $PRIMARY_COLOR = $res->fields['PRIMARY_COLOR'];
     $OFFERING_LABEL = $res->fields['OFFERING_LABEL'];
     $OFFERING_TYPE = $res->fields['OFFERING_TYPE'];
+    $PK_TAG = $res->fields['PK_TAG'];
 }
 
 $user_data = $db->Execute("SELECT DOA_USERS.ABLE_TO_EDIT_PAYMENT_GATEWAY FROM DOA_USERS WHERE PK_USER = '$_SESSION[PK_USER]'");
@@ -291,10 +293,10 @@ if (!empty($_POST)) {
         $IS_NIGHT = isset($_POST['IS_NIGHT']) ? 1 : 0;
 
         // Get selected users (implode arrays to comma-separated strings)
-        $PK_USER_MORNING = isset($_POST['PK_USER_MORNING']) ? implode(',', $_POST['PK_USER_MORNING']) : '';
-        $PK_USER_AFTERNOON = isset($_POST['PK_USER_AFTERNOON']) ? implode(',', $_POST['PK_USER_AFTERNOON']) : '';
-        $PK_USER_EVENING = isset($_POST['PK_USER_EVENING']) ? implode(',', $_POST['PK_USER_EVENING']) : '';
-        $PK_USER_NIGHT = isset($_POST['PK_USER_NIGHT']) ? implode(',', $_POST['PK_USER_NIGHT']) : '';
+        $PK_USER_MORNING = (isset($_POST['PK_USER_MORNING']) && $IS_MORNING == 1) ? implode(',', $_POST['PK_USER_MORNING']) : '';
+        $PK_USER_AFTERNOON = (isset($_POST['PK_USER_AFTERNOON']) && $IS_AFTERNOON == 1) ? implode(',', $_POST['PK_USER_AFTERNOON']) : '';
+        $PK_USER_EVENING = (isset($_POST['PK_USER_EVENING']) && $IS_EVENING == 1) ? implode(',', $_POST['PK_USER_EVENING']) : '';
+        $PK_USER_NIGHT = (isset($_POST['PK_USER_NIGHT']) && $IS_NIGHT == 1) ? implode(',', $_POST['PK_USER_NIGHT']) : '';
 
         // Update the location record
         $update_data = array(
@@ -312,6 +314,7 @@ if (!empty($_POST)) {
             'PRIMARY_COLOR' => $_POST['PRIMARY_COLOR'],
             'OFFERING_LABEL' => $_POST['OFFERING_LABEL'],
             'OFFERING_TYPE' => $_POST['OFFERING_TYPE'],
+            'PK_TAG' => $_POST['PK_TAG'],
             'EDITED_ON' => date('Y-m-d H:i:s'),
             'EDITED_BY' => $_SESSION['PK_USER']
         );
@@ -2451,7 +2454,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <?php $tag_data = $db_account->Execute("SELECT * FROM DOA_TAG WHERE ACTIVE = 1");
                                                             $tag_options = '';
                                                             while (!$tag_data->EOF) {
-                                                                $tag_options .= '<option value="' . $tag_data->fields['PK_TAG'] . '">' . $tag_data->fields['TAG_NAME'] . '</option>';
+                                                                $tag_options .= '<option value="' . $tag_data->fields['PK_TAG'] . '" ' . ($tag_data->fields['PK_TAG'] == $PK_TAG ? 'selected' : '') . '>' . $tag_data->fields['TAG_NAME'] . '</option>';
                                                                 $tag_data->MoveNext();
                                                             }
                                                             echo $tag_options;
@@ -2484,7 +2487,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 PM)
+                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 AM)
                                                         </label>
                                                     </div>
                                                 </div>

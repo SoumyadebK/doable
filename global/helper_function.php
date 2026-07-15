@@ -1521,3 +1521,14 @@ function getRefundReceipts($PK_ENROLLMENT_MASTER, $refund_amount)
 
     return $receipts;
 }
+
+function getLeadStatusId($status_name, $PK_ACCOUNT_MASTER = null)
+{
+    global $db;
+    $status_data = $db->Execute("SELECT PK_LEAD_STATUS FROM `DOA_LEAD_STATUS` WHERE LEAD_STATUS = '$status_name' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+    if ($status_data->RecordCount() > 0) {
+        return $status_data->fields['PK_LEAD_STATUS'];
+    } else {
+        return null;
+    }
+}
