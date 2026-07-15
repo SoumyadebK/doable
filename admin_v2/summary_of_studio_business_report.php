@@ -962,23 +962,23 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                             </thead>
                                         </table>
                                     </div>
-                                    <?php if ($_SESSION['PK_ACCOUNT_MASTER'] == 1038) { ?>
-                                        <!-- Add this after the miscellaneous table and before closing card-body -->
-                                        <div class="table-responsive mt-4">
-                                            <label style="width:100%; text-align: center; font-weight: bold">NON-UNIT SALES ENROLLMENT DETAILS</label>
-                                            <table id="myTable" class="table table-bordered" data-page-length='50'>
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Period</th>
-                                                        <th style="width:40%; text-align: center; font-weight: bold">Private/Coach Enrollments</th>
-                                                        <th style="width:40%; text-align: center; font-weight: bold">Class Enrollments</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    // Get non-unit private enrollment details for week with amounts
-                                                    $week_private_enrollments = $db_account->Execute("
-                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_DATE, 
+
+                                    <!-- Add this after the miscellaneous table and before closing card-body -->
+                                    <div class="table-responsive mt-4">
+                                        <label style="width:100%; text-align: center; font-weight: bold">NON-UNIT SALES ENROLLMENT DETAILS</label>
+                                        <table id="myTable" class="table table-bordered" data-page-length='50'>
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Period</th>
+                                                    <th style="width:40%; text-align: center; font-weight: bold">Private/Coach Enrollments</th>
+                                                    <th style="width:40%; text-align: center; font-weight: bold">Class Enrollments</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                // Get non-unit private enrollment details for week with amounts
+                                                $week_private_enrollments = $db_account->Execute("
+                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                     SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                 FROM DOA_ENROLLMENT_MASTER em
                                                 INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -990,9 +990,9 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                             ");
 
-                                                    // Get non-unit class enrollment details for week with amounts
-                                                    $week_class_enrollments = $db_account->Execute("
-                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_DATE, 
+                                                // Get non-unit class enrollment details for week with amounts
+                                                $week_class_enrollments = $db_account->Execute("
+                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                     SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                 FROM DOA_ENROLLMENT_MASTER em
                                                 INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -1004,54 +1004,54 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                             ");
 
-                                                    // Calculate week totals
-                                                    $week_private_total = 0;
-                                                    $week_class_total = 0;
-                                                    ?>
-                                                    <tr>
-                                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $private_count = $week_private_enrollments->RecordCount();
-                                                            $private_details = [];
-                                                            while (!$week_private_enrollments->EOF) {
-                                                                $amount = $week_private_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $week_private_total += $amount;
-                                                                $private_details[] = '#' . $week_private_enrollments->fields['ENROLLMENT_ID'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $week_private_enrollments->MoveNext();
-                                                            }
-                                                            echo $private_count . ' enrollment' . ($private_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($week_private_total, 2) . '</strong>';
-                                                            if ($private_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $private_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $class_count = $week_class_enrollments->RecordCount();
-                                                            $class_details = [];
-                                                            while (!$week_class_enrollments->EOF) {
-                                                                $amount = $week_class_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $week_class_total += $amount;
-                                                                $class_details[] = '#' . $week_class_enrollments->fields['ENROLLMENT_ID'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $week_class_enrollments->MoveNext();
-                                                            }
-                                                            echo $class_count . ' enrollment' . ($class_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($week_class_total, 2) . '</strong>';
-                                                            if ($class_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $class_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                    </tr>
+                                                // Calculate week totals
+                                                $week_private_total = 0;
+                                                $week_class_total = 0;
+                                                ?>
+                                                <tr>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $private_count = $week_private_enrollments->RecordCount();
+                                                        $private_details = [];
+                                                        while (!$week_private_enrollments->EOF) {
+                                                            $amount = $week_private_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $week_private_total += $amount;
+                                                            $private_details[] = '#' . $week_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $week_private_enrollments->MoveNext();
+                                                        }
+                                                        echo $private_count . ' enrollment' . ($private_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($week_private_total, 2) . '</strong>';
+                                                        if ($private_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $private_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $class_count = $week_class_enrollments->RecordCount();
+                                                        $class_details = [];
+                                                        while (!$week_class_enrollments->EOF) {
+                                                            $amount = $week_class_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $week_class_total += $amount;
+                                                            $class_details[] = '#' . $week_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $week_class_enrollments->MoveNext();
+                                                        }
+                                                        echo $class_count . ' enrollment' . ($class_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($week_class_total, 2) . '</strong>';
+                                                        if ($class_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $class_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
 
-                                                    <?php
-                                                    // Get non-unit private enrollment details for YTD with amounts
-                                                    $ytd_private_enrollments = $db_account->Execute("
-                                                    SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE, 
+                                                <?php
+                                                // Get non-unit private enrollment details for YTD with amounts
+                                                $ytd_private_enrollments = $db_account->Execute("
+                                                    SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                         SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                     FROM DOA_ENROLLMENT_MASTER em
                                                     INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -1063,9 +1063,9 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                                 ");
 
-                                                    // Get non-unit class enrollment details for YTD with amounts
-                                                    $ytd_class_enrollments = $db_account->Execute("
-                                                    SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE, 
+                                                // Get non-unit class enrollment details for YTD with amounts
+                                                $ytd_class_enrollments = $db_account->Execute("
+                                                    SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                         SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                     FROM DOA_ENROLLMENT_MASTER em
                                                     INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -1077,54 +1077,54 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                                 ");
 
-                                                    // Calculate YTD totals
-                                                    $ytd_private_total = 0;
-                                                    $ytd_class_total = 0;
-                                                    ?>
-                                                    <tr>
-                                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">YTD</th>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $ytd_private_count = $ytd_private_enrollments->RecordCount();
-                                                            $ytd_private_details = [];
-                                                            while (!$ytd_private_enrollments->EOF) {
-                                                                $amount = $ytd_private_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $ytd_private_total += $amount;
-                                                                $ytd_private_details[] = '#' . $ytd_private_enrollments->fields['PK_ENROLLMENT_MASTER'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $ytd_private_enrollments->MoveNext();
-                                                            }
-                                                            echo $ytd_private_count . ' enrollment' . ($ytd_private_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($ytd_private_total, 2) . '</strong>';
-                                                            if ($ytd_private_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $ytd_private_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $ytd_class_count = $ytd_class_enrollments->RecordCount();
-                                                            $ytd_class_details = [];
-                                                            while (!$ytd_class_enrollments->EOF) {
-                                                                $amount = $ytd_class_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $ytd_class_total += $amount;
-                                                                $ytd_class_details[] = '#' . $ytd_class_enrollments->fields['PK_ENROLLMENT_MASTER'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $ytd_class_enrollments->MoveNext();
-                                                            }
-                                                            echo $ytd_class_count . ' enrollment' . ($ytd_class_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($ytd_class_total, 2) . '</strong>';
-                                                            if ($ytd_class_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $ytd_class_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                    </tr>
+                                                // Calculate YTD totals
+                                                $ytd_private_total = 0;
+                                                $ytd_class_total = 0;
+                                                ?>
+                                                <tr>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">YTD</th>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $ytd_private_count = $ytd_private_enrollments->RecordCount();
+                                                        $ytd_private_details = [];
+                                                        while (!$ytd_private_enrollments->EOF) {
+                                                            $amount = $ytd_private_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $ytd_private_total += $amount;
+                                                            $ytd_private_details[] = '#' . $ytd_private_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $ytd_private_enrollments->MoveNext();
+                                                        }
+                                                        echo $ytd_private_count . ' enrollment' . ($ytd_private_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($ytd_private_total, 2) . '</strong>';
+                                                        if ($ytd_private_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $ytd_private_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $ytd_class_count = $ytd_class_enrollments->RecordCount();
+                                                        $ytd_class_details = [];
+                                                        while (!$ytd_class_enrollments->EOF) {
+                                                            $amount = $ytd_class_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $ytd_class_total += $amount;
+                                                            $ytd_class_details[] = '#' . $ytd_class_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $ytd_class_enrollments->MoveNext();
+                                                        }
+                                                        echo $ytd_class_count . ' enrollment' . ($ytd_class_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($ytd_class_total, 2) . '</strong>';
+                                                        if ($ytd_class_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $ytd_class_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
 
-                                                    <?php
-                                                    // Get non-unit private enrollment details for Previous Year with amounts
-                                                    $prev_private_enrollments = $db_account->Execute("
-                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_DATE, 
+                                                <?php
+                                                // Get non-unit private enrollment details for Previous Year with amounts
+                                                $prev_private_enrollments = $db_account->Execute("
+                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                     SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                 FROM DOA_ENROLLMENT_MASTER em
                                                 INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -1136,9 +1136,9 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                             ");
 
-                                                    // Get non-unit class enrollment details for Previous Year with amounts
-                                                    $prev_class_enrollments = $db_account->Execute("
-                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_DATE, 
+                                                // Get non-unit class enrollment details for Previous Year with amounts
+                                                $prev_class_enrollments = $db_account->Execute("
+                                                SELECT DISTINCT em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_ID, em.ENROLLMENT_NAME, em.ENROLLMENT_DATE, 
                                                     SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
                                                 FROM DOA_ENROLLMENT_MASTER em
                                                 INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
@@ -1150,53 +1150,53 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
                                             ");
 
-                                                    // Calculate Previous Year totals
-                                                    $prev_private_total = 0;
-                                                    $prev_class_total = 0;
-                                                    ?>
-                                                    <tr>
-                                                        <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Prev.</th>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $prev_private_count = $prev_private_enrollments->RecordCount();
-                                                            $prev_private_details = [];
-                                                            while (!$prev_private_enrollments->EOF) {
-                                                                $amount = $prev_private_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $prev_private_total += $amount;
-                                                                $prev_private_details[] = '#' . $prev_private_enrollments->fields['ENROLLMENT_ID'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $prev_private_enrollments->MoveNext();
-                                                            }
-                                                            echo $prev_private_count . ' enrollment' . ($prev_private_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($prev_private_total, 2) . '</strong>';
-                                                            if ($prev_private_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $prev_private_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                        <td style="text-align: center;">
-                                                            <?php
-                                                            $prev_class_count = $prev_class_enrollments->RecordCount();
-                                                            $prev_class_details = [];
-                                                            while (!$prev_class_enrollments->EOF) {
-                                                                $amount = $prev_class_enrollments->fields['TOTAL_AMOUNT'];
-                                                                $prev_class_total += $amount;
-                                                                $prev_class_details[] = '#' . $prev_class_enrollments->fields['ENROLLMENT_ID'] .
-                                                                    ' ($' . number_format($amount, 2) . ')';
-                                                                $prev_class_enrollments->MoveNext();
-                                                            }
-                                                            echo $prev_class_count . ' enrollment' . ($prev_class_count != 1 ? 's' : '');
-                                                            echo ' - Total: <strong>$' . number_format($prev_class_total, 2) . '</strong>';
-                                                            if ($prev_class_count > 0) {
-                                                                echo '<br><small style="font-weight:normal;">' . implode('<br>', $prev_class_details) . '</small>';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    <?php }  ?>
+                                                // Calculate Previous Year totals
+                                                $prev_private_total = 0;
+                                                $prev_class_total = 0;
+                                                ?>
+                                                <tr>
+                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Prev.</th>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $prev_private_count = $prev_private_enrollments->RecordCount();
+                                                        $prev_private_details = [];
+                                                        while (!$prev_private_enrollments->EOF) {
+                                                            $amount = $prev_private_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $prev_private_total += $amount;
+                                                            $prev_private_details[] = '#' . $prev_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $prev_private_enrollments->MoveNext();
+                                                        }
+                                                        echo $prev_private_count . ' enrollment' . ($prev_private_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($prev_private_total, 2) . '</strong>';
+                                                        if ($prev_private_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $prev_private_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        $prev_class_count = $prev_class_enrollments->RecordCount();
+                                                        $prev_class_details = [];
+                                                        while (!$prev_class_enrollments->EOF) {
+                                                            $amount = $prev_class_enrollments->fields['TOTAL_AMOUNT'];
+                                                            $prev_class_total += $amount;
+                                                            $prev_class_details[] = '#' . $prev_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                                ' ($' . number_format($amount, 2) . ')';
+                                                            $prev_class_enrollments->MoveNext();
+                                                        }
+                                                        echo $prev_class_count . ' enrollment' . ($prev_class_count != 1 ? 's' : '');
+                                                        echo ' - Total: <strong>$' . number_format($prev_class_total, 2) . '</strong>';
+                                                        if ($prev_class_count > 0) {
+                                                            echo '<br><small style="font-weight:normal;">' . implode('<br>', $prev_class_details) . '</small>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
