@@ -28,7 +28,7 @@ if ($header_data && $header_data->RecordCount() > 0) {
 }
 
 // Auto-create default lead statuses if not exist
-$lead_status_defaults = ['New' => '#fffbb9', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
+$lead_status_defaults = ['New' => '#fffbb9', 'Scheduled' => '#ffb74d', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
 $counter_default = 1;
 foreach ($lead_status_defaults as $key => $value) {
     $is_exist = $db->Execute("SELECT * FROM DOA_LEAD_STATUS WHERE LEAD_STATUS='" . addslashes($key) . "' AND PK_ACCOUNT_MASTER='" . intval($_SESSION['PK_ACCOUNT_MASTER']) . "'");
