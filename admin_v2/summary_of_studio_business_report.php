@@ -1009,7 +1009,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 $week_class_total = 0;
                                                 ?>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Week</th>
+                                                    <th style="width:20%; text-align: center; vertical-align:top; font-weight: bold">Week</th>
                                                     <td style="text-align: center;">
                                                         <?php
                                                         $private_count = $week_private_enrollments->RecordCount();
@@ -1017,7 +1017,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$week_private_enrollments->EOF) {
                                                             $amount = $week_private_enrollments->fields['TOTAL_AMOUNT'];
                                                             $week_private_total += $amount;
-                                                            $private_details[] = '#' . $week_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $private_details[] = '#' . $week_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_private_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($week_private_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $week_private_enrollments->MoveNext();
                                                         }
@@ -1035,7 +1035,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$week_class_enrollments->EOF) {
                                                             $amount = $week_class_enrollments->fields['TOTAL_AMOUNT'];
                                                             $week_class_total += $amount;
-                                                            $class_details[] = '#' . $week_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $class_details[] = '#' . $week_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $week_class_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($week_class_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $week_class_enrollments->MoveNext();
                                                         }
@@ -1082,7 +1082,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 $ytd_class_total = 0;
                                                 ?>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">YTD</th>
+                                                    <th style="width:20%; text-align: center; vertical-align:top; font-weight: bold">YTD</th>
                                                     <td style="text-align: center;">
                                                         <?php
                                                         $ytd_private_count = $ytd_private_enrollments->RecordCount();
@@ -1090,7 +1090,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$ytd_private_enrollments->EOF) {
                                                             $amount = $ytd_private_enrollments->fields['TOTAL_AMOUNT'];
                                                             $ytd_private_total += $amount;
-                                                            $ytd_private_details[] = '#' . $ytd_private_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $ytd_private_details[] = '#' . $ytd_private_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_private_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($ytd_private_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $ytd_private_enrollments->MoveNext();
                                                         }
@@ -1108,7 +1108,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$ytd_class_enrollments->EOF) {
                                                             $amount = $ytd_class_enrollments->fields['TOTAL_AMOUNT'];
                                                             $ytd_class_total += $amount;
-                                                            $ytd_class_details[] = '#' . $ytd_class_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $ytd_class_details[] = '#' . $ytd_class_enrollments->fields['PK_ENROLLMENT_MASTER'] . ' - ' . $ytd_class_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($ytd_class_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $ytd_class_enrollments->MoveNext();
                                                         }
@@ -1155,7 +1155,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                 $prev_class_total = 0;
                                                 ?>
                                                 <tr>
-                                                    <th style="width:20%; text-align: center; vertical-align:auto; font-weight: bold">Prev.</th>
+                                                    <th style="width:20%; text-align: center; vertical-align:top; font-weight: bold">Prev.</th>
                                                     <td style="text-align: center;">
                                                         <?php
                                                         $prev_private_count = $prev_private_enrollments->RecordCount();
@@ -1163,7 +1163,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$prev_private_enrollments->EOF) {
                                                             $amount = $prev_private_enrollments->fields['TOTAL_AMOUNT'];
                                                             $prev_private_total += $amount;
-                                                            $prev_private_details[] = '#' . $prev_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_private_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $prev_private_details[] = '#' . $prev_private_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_private_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($prev_private_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $prev_private_enrollments->MoveNext();
                                                         }
@@ -1181,7 +1181,7 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                         while (!$prev_class_enrollments->EOF) {
                                                             $amount = $prev_class_enrollments->fields['TOTAL_AMOUNT'];
                                                             $prev_class_total += $amount;
-                                                            $prev_class_details[] = '#' . $prev_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_class_enrollments->fields['ENROLLMENT_NAME'] .
+                                                            $prev_class_details[] = '#' . $prev_class_enrollments->fields['ENROLLMENT_ID'] . ' - ' . $prev_class_enrollments->fields['ENROLLMENT_NAME'] . ' - ' . date('m/d/Y', strtotime($prev_class_enrollments->fields['ENROLLMENT_DATE'])) .
                                                                 ' ($' . number_format($amount, 2) . ')';
                                                             $prev_class_enrollments->MoveNext();
                                                         }
