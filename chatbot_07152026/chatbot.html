@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOable Concierge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-page {
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      padding: 20px;
+    }
+
+    .demo-page h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 24px;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    /* Launcher */
+    #doable-launcher {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--brand, #c8102e);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+      z-index: 9999;
+    }
+
+    #doable-launcher:hover {
+      transform: scale(1.08);
+    }
+
+    #doable-launcher svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+
+    /* Chat Window */
+    #doable-window {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      width: 380px;
+      max-height: 600px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9998;
+      transform: scale(0.92) translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.22s cubic-bezier(.34, 1.56, .64, 1), opacity 0.18s ease;
+    }
+
+    #doable-window.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Header */
+    .chat-header {
+      background: var(--brand, #c8102e);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-avatar {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-name {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .chat-header-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.78);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    /* Messages */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 4px;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 88%;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    .msg.bot .bubble {
+      background: #f1f5f9;
+      color: #1e293b;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.user .bubble {
+      background: var(--brand, #c8102e);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 3px;
+      padding: 0 4px;
+    }
+
+    .msg.user .msg-time {
+      text-align: right;
+    }
+
+    /* Typing */
+    .typing-bubble {
+      background: #f1f5f9;
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      align-self: flex-start;
+    }
+
+    .typing-bubble span {
+      width: 7px;
+      height: 7px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing-bubble span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-bubble span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0)
+      }
+
+      30% {
+        transform: translateY(-6px)
+      }
+    }
+
+    /* Buttons */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 2px 0 4px;
+      align-self: flex-start;
+    }
+
+    .choice-btn {
+      background: #fff;
+      border: 1.5px solid var(--brand, #c8102e);
+      color: var(--brand, #c8102e);
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .choice-btn:hover {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+
+    .choice-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #fff;
+      color: var(--brand, #c8102e);
+    }
+
+    .choice-btn.secondary {
+      border-color: #94a3b8;
+      color: #64748b;
+    }
+
+    .choice-btn.secondary:hover {
+      background: #94a3b8;
+      color: #fff;
+    }
+
+    /* Date grid */
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      align-self: flex-start;
+      width: 100%;
+      padding: 2px 0 4px;
+    }
+
+    .date-box {
+      border: 1.5px solid var(--brand, #c8102e);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      background: #fff;
+    }
+
+    .date-box:hover:not(.no-slots) {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+
+    .date-box .day-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .date-box .day-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: inherit;
+      line-height: 1.2;
+      margin: 2px 0;
+    }
+
+    .date-box .day-month {
+      font-size: 10px;
+      color: inherit;
+    }
+
+    .date-box.no-slots {
+      border-color: #e2e8f0;
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .date-box.no-slots .day-name,
+    .date-box.no-slots .day-num,
+    .date-box.no-slots .day-month {
+      color: #94a3b8;
+    }
+
+    .slots-label {
+      font-size: 9px;
+      margin-top: 3px;
+      color: #64748b;
+    }
+
+    .date-box:not(.no-slots) .slots-label {
+      color: var(--brand, #c8102e);
+    }
+
+    .date-box:hover:not(.no-slots) .slots-label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .picker-box {
+      cursor: pointer;
+    }
+
+    /* Cards */
+    .info-card {
+      background: #fff8f8;
+      border: 1.5px solid #fecdd3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.8;
+      align-self: flex-start;
+      max-width: 92%;
+    }
+
+    .info-card .card-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--brand, #c8102e);
+      margin-bottom: 6px;
+    }
+
+    .confirm-card {
+      background: #f8faff;
+      border: 1.5px solid #c7d7fa;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.9;
+      align-self: flex-start;
+      max-width: 92%;
+    }
+
+    .success-msg {
+      text-align: center;
+      background: #f0fdf4;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 13px;
+      color: #166534;
+      line-height: 1.7;
+      align-self: stretch;
+    }
+
+    .contact-card {
+      background: #fff8f8;
+      border: 1.5px solid #fecdd3;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 2;
+      align-self: flex-start;
+    }
+
+    .contact-card .card-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--brand, #c8102e);
+      margin-bottom: 6px;
+    }
+
+    /* Language selector */
+    .lang-selector {
+      display: flex;
+      gap: 10px;
+      align-self: flex-start;
+      padding: 2px 0 4px;
+    }
+
+    .lang-btn {
+      background: #fff;
+      border: 1.5px solid var(--brand, #c8102e);
+      color: var(--brand, #c8102e);
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-btn:hover {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+
+    /* Input */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px 14px;
+      border-top: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      color: #1e293b;
+      transition: border-color 0.15s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--brand, #c8102e);
+    }
+
+    .chat-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--brand, #c8102e);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .send-btn:hover {
+      opacity: 0.88;
+    }
+
+    .send-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: #fff;
+    }
+
+    /* Calendar */
+    .cal-day {
+      text-align: center;
+      padding: 6px 2px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .cal-past {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .cal-avail {
+      color: #1e293b;
+      cursor: pointer;
+    }
+
+    .cal-avail:hover {
+      background: var(--brand, #c8102e);
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="demo-page">
+    <h2>DOable Concierge</h2>
+    <p>Phase 2 — Live API Build</p>
+    <p style="margin-top:8px;font-size:12px;color:#94a3b8;">Click the button in the bottom-right to open.</p>
+  </div>
+
+  <button id="doable-launcher" onclick="toggleChat()" aria-label="Open chat">
+    <svg id="icon-chat" viewBox="0 0 24 24">
+      <path
+        d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+    </svg>
+    <svg id="icon-close" viewBox="0 0 24 24" style="display:none">
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+    </svg>
+  </button>
+
+  <div id="doable-window">
+    <div class="chat-header">
+      <div class="chat-avatar" id="chat-avatar">💬</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chat-title">DOable Concierge</div>
+        <div class="chat-header-sub"><span class="status-dot"></span> <span id="chat-subtitle">Concierge</span></div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="input-row" id="input-row" style="display:none">
+      <input class="chat-input" id="chat-input" type="text" placeholder="Type here…" onkeydown="handleKey(event)">
+      <button class="send-btn" onclick="handleTextSend()">
+        <svg viewBox="0 0 24 24">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ── API Config ────────────────────────────────────────
+    const ACCOUNT_ID = '1010';
+    const API_BASE = 'https://doable.net/chatbot/api';
+
+    // ── Translations ──────────────────────────────────────
+    const T = {
+      en: {
+        select_lang: "Welcome! Please select your language:",
+        lang_en: "🇺🇸 English",
+        lang_es: "🇪🇸 Español",
+        welcome_option: "Please select an option below:",
+        dances_prompt: "Here are our offerings — tap one to learn more:",
+        back_to_offerings: "← Back to Offerings",
+        book_now: "📅 Book Now",
+        more_info: "💬 More Info",
+        start_over: "🔄 Start Over",
+        pricing_title: "💰 Our Pricing",
+        contact_title: "📞 Give us a call — we'd love to hear from you!",
+        which_location: "Which location works best for you?",
+        afternoon_evening: "Do you prefer afternoon or evening?",
+        afternoon: "🌤 Afternoon",
+        evening: "🌙 Evening",
+        which_day: "Which day works better for you?",
+        pick_date: "📅 Pick a Date",
+        available_times: "Here are the available times for",
+        at: "at",
+        choose_another: "← Choose Another Date",
+        booking_intro: "Exciting! Let's get you booked in. Just a few quick questions first 💃",
+        ask_name: "What's the name for the booking?",
+        ask_phone: "What's the best number to reach you,",
+        ask_email: "And your email address so we can send you a confirmation?",
+        summary_title: "Here's your booking summary — does everything look right?",
+        label_location: "📍 Location",
+        label_date: "📅 Date",
+        label_time: "🕐 Time",
+        label_name: "👤 Name",
+        label_phone: "📞 Phone",
+        label_email: "✉️ Email",
+        confirm_booking: "✅ Confirm Booking",
+        booked_title: "You're all set,",
+        booked_msg: "We look forward to seeing you on",
+        anything_else: "Is there anything else I can help you with today,",
+        book_another: "📅 Book Another",
+        im_done: "✅ I'm Done",
+        goodbye: "Thank you for choosing us,",
+        goodbye2: "See you soon! 👋",
+        no_slots: "Sorry, no",
+        no_slots2: "slots available in the next two weeks at",
+        try_other: "Try",
+        error_booking: "Sorry, there was an issue confirming your booking.",
+        try_again: "🔄 Try Again",
+        sessions: "session(s)",
+        per_session: "per session",
+        back: "← Back",
+      },
+      es: {
+        select_lang: "¡Bienvenido! Por favor seleccione su idioma:",
+        lang_en: "🇺🇸 English",
+        lang_es: "🇪🇸 Español",
+        welcome_option: "Por favor seleccione una opción:",
+        dances_prompt: "Aquí están nuestras ofertas — toque una para más información:",
+        back_to_offerings: "← Volver a Ofertas",
+        book_now: "📅 Reservar",
+        more_info: "💬 Más Información",
+        start_over: "🔄 Empezar de Nuevo",
+        pricing_title: "💰 Nuestros Precios",
+        contact_title: "📞 Llámenos — ¡nos encantaría saber de usted!",
+        which_location: "¿Qué ubicación le queda mejor?",
+        afternoon_evening: "¿Prefiere por la tarde o por la noche?",
+        afternoon: "🌤 Tarde",
+        evening: "🌙 Noche",
+        which_day: "¿Qué día le viene mejor?",
+        pick_date: "📅 Elegir Fecha",
+        available_times: "Aquí están los horarios disponibles para",
+        at: "en",
+        choose_another: "← Elegir Otra Fecha",
+        booking_intro: "¡Excelente! Vamos a reservar su cita. Solo unas preguntas rápidas 💃",
+        ask_name: "¿A nombre de quién es la reserva?",
+        ask_phone: "¿Cuál es el mejor número para contactarle,",
+        ask_email: "¿Y su correo electrónico para enviarle una confirmación?",
+        summary_title: "Aquí está el resumen de su reserva — ¿todo está correcto?",
+        label_location: "📍 Ubicación",
+        label_date: "📅 Fecha",
+        label_time: "🕐 Hora",
+        label_name: "👤 Nombre",
+        label_phone: "📞 Teléfono",
+        label_email: "✉️ Correo",
+        confirm_booking: "✅ Confirmar Reserva",
+        booked_title: "¡Todo listo,",
+        booked_msg: "Esperamos verle el",
+        anything_else: "¿Hay algo más en lo que pueda ayudarle hoy,",
+        book_another: "📅 Otra Reserva",
+        im_done: "✅ Listo",
+        goodbye: "¡Gracias por elegirnos,",
+        goodbye2: "¡Hasta pronto! 👋",
+        no_slots: "Lo sentimos, no hay horarios de",
+        no_slots2: "disponibles en las próximas dos semanas en",
+        try_other: "Intentar",
+        error_booking: "Lo sentimos, hubo un problema al confirmar su reserva.",
+        try_again: "🔄 Intentar de Nuevo",
+        sessions: "sesión(es)",
+        per_session: "por sesión",
+        back: "← Volver",
+      }
+    };
+
+    // ── API Calls ─────────────────────────────────────────
+    async function fetchAccountConfig() {
+      const res = await fetch(`${API_BASE}/get_account_config.php?account=${ACCOUNT_ID}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      throw new Error('Could not load account config');
+    }
+    async function fetchOfferings() {
+      const res = await fetch(`${API_BASE}/get_offerings.php?account=${ACCOUNT_ID}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      return [];
+    }
+    async function fetchPricing(locationId) {
+      const res = await fetch(`${API_BASE}/get_pricing.php?account=${ACCOUNT_ID}&location=${locationId}`);
+      const json = await res.json();
+      if (json.status === 'success') return json.data;
+      return [];
+    }
+    async function fetchSlots(locationId, date) {
+      const res = await fetch(`${API_BASE}/get_available_slots.php?account=${ACCOUNT_ID}&location=${locationId}&date=${date}`);
+      const json = await res.json();
+      if (json.status === 'success') {
+        const slots = json.data.map(s => s.slot_start_time);
+        return slots.sort(); // HH:MM:SS strings sort correctly alphabetically
+      }
+      return [];
+    }
+    async function postBooking(payload) {
+      const res = await fetch(`${API_BASE}/book_appointment.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    }
+
+    // ── State ─────────────────────────────────────────────
+    const state = {
+      step: 'idle', lang: 'en',
+      location: null, period: null,
+      selectedDate: null, selectedSlot: null,
+      name: null, phone: null, email: null,
+    };
+    let ACCOUNT_CONFIG = null;
+    let OFFERINGS = [];
+
+    // ── Helpers ───────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const msgs = () => $('chat-messages');
+    const t = key => T[state.lang][key] || T['en'][key] || key;
+
+    function capitalizeName(str) {
+      return str.replace(/\b\w/g, c => c.toUpperCase());
+    }
+    function now() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    function scrollBottom() {
+      const el = msgs();
+      setTimeout(() => { el.scrollTop = el.scrollHeight; }, 60);
+    }
+    function addBotBubble(html, delay = 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const wrap = document.createElement('div');
+          wrap.className = 'msg bot';
+          wrap.innerHTML = `<div class="bubble">${html}</div><div class="msg-time">${now()}</div>`;
+          msgs().appendChild(wrap);
+          scrollBottom();
+          resolve(wrap);
+        }, delay);
+      });
+    }
+    function addUserBubble(text) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg user';
+      wrap.innerHTML = `<div class="bubble">${text}</div><div class="msg-time">${now()}</div>`;
+      msgs().appendChild(wrap);
+      scrollBottom();
+    }
+    function addElement(el) { msgs().appendChild(el); scrollBottom(); }
+    function addButtons(buttons) {
+      const group = document.createElement('div');
+      group.className = 'btn-group';
+      group.id = 'active-btn-group';
+      buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = 'choice-btn' + (btn.secondary ? ' secondary' : '');
+        b.textContent = btn.label;
+        b.onclick = () => { disableButtons(); btn.action(); };
+        group.appendChild(b);
+      });
+      addElement(group);
+    }
+    function disableButtons() {
+      const g = $('active-btn-group');
+      if (g) g.querySelectorAll('button').forEach(b => b.disabled = true);
+    }
+    function showTyping() {
+      const t = document.createElement('div');
+      t.className = 'typing-bubble'; t.id = 'typing';
+      t.innerHTML = '<span></span><span></span><span></span>';
+      addElement(t);
+    }
+    function removeTyping() { const t = $('typing'); if (t) t.remove(); }
+    function showInput(placeholder) {
+      $('input-row').style.display = 'flex';
+      $('chat-input').placeholder = placeholder;
+      $('chat-input').value = '';
+      setTimeout(() => { $('chat-input').focus(); scrollBottom(); }, 120);
+    }
+    function hideInput() { $('input-row').style.display = 'none'; $('chat-input').value = ''; }
+    function formatTime(t) {
+      const [h, m] = t.split(':');
+      const hr = parseInt(h), ampm = hr >= 12 ? 'PM' : 'AM';
+      return `${hr % 12 || 12}:${m} ${ampm}`;
+    }
+    function formatDateLong(iso) {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString(state.lang === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+    function get7Days() {
+      const days = [], dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(); d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        days.push({ iso, dayName: dn[d.getDay()], dayNum: d.getDate(), month: mn[d.getMonth()] });
+      }
+      return days;
+    }
+    function addBackButton(action) {
+      const group = document.createElement('div');
+      group.className = 'btn-group';
+      const b = document.createElement('button');
+      b.className = 'choice-btn secondary';
+      b.textContent = t('start_over');
+      b.onclick = () => { b.disabled = true; resetState(); backToMenu(); };
+      group.appendChild(b);
+      addElement(group);
+    }
+
+    // ── Language Selection ────────────────────────────────
+    async function startFlow() {
+      showTyping();
+      try {
+        ACCOUNT_CONFIG = await fetchAccountConfig();
+        OFFERINGS = await fetchOfferings();
+      } catch (e) {
+        removeTyping();
+        addBotBubble("Sorry, I'm having trouble loading. Please try again shortly.");
+        return;
+      }
+      removeTyping();
+
+      const color = ACCOUNT_CONFIG.primary_color || '#c8102e';
+      const emoji = ACCOUNT_CONFIG.avatar_emoji || '💬';
+      document.documentElement.style.setProperty('--brand', color);
+      $('chat-avatar').textContent = emoji || '💬';
+
+      const langs = ACCOUNT_CONFIG.languages || ['en'];
+      if (langs.length > 1) {
+        await addBotBubble(T['en']['select_lang'] + '<br>' + T['es']['select_lang'], 400);
+        setTimeout(() => showLangSelector(langs), 800);
+      } else {
+        state.lang = langs[0] || 'en';
+        applyBranding();
+        showMenu();
+      }
+    }
+
+    function showLangSelector(langs) {
+      const group = document.createElement('div');
+      group.className = 'lang-selector';
+      const langMap = { en: { label: '🇺🇸 English', val: 'en' }, es: { label: '🇪🇸 Español', val: 'es' } };
+      langs.forEach(l => {
+        if (!langMap[l]) return;
+        const b = document.createElement('button');
+        b.className = 'lang-btn';
+        b.textContent = langMap[l].label;
+        b.onclick = () => {
+          group.querySelectorAll('button').forEach(x => x.disabled = true);
+          addUserBubble(langMap[l].label);
+          state.lang = l;
+          applyBranding();
+          showMenu();
+        };
+        group.appendChild(b);
+      });
+      addElement(group);
+    }
+
+    function applyBranding() {
+      $('chat-title').textContent = ACCOUNT_CONFIG.business_name;
+      $('chat-subtitle').textContent = `${ACCOUNT_CONFIG.business_name} Concierge`;
+    }
+
+    async function showMenu() {
+      state.step = 'menu';
+      const emojiMap = { dances: '💃', pricing: '💰', booking: '📅', contact: '📞' };
+      await addBotBubble(ACCOUNT_CONFIG.welcome_message, 400);
+      await addBotBubble(t('welcome_option'), 900);
+      setTimeout(() => {
+        addButtons(ACCOUNT_CONFIG.menu_options.map(opt => {
+          // For offerings menu item use 💃, for others use emojiMap
+          const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
+          return {
+            label: `${emoji} ${opt.label}`,
+            action: () => handleMenu(opt.type)
+          };
+        }));
+      }, 1300);
+    }
+
+    // ── Menu Handlers ─────────────────────────────────────
+    async function handleMenu(type) {
+      // Find if this type is the offerings menu item
+      const offeringsMenuItem = ACCOUNT_CONFIG.menu_options.find(o => o.is_offerings);
+      const isOfferings = offeringsMenuItem && offeringsMenuItem.type === type;
+
+      if (isOfferings) {
+        addUserBubble('💃 ' + (offeringsMenuItem.label || 'Offerings'));
+        await addBotBubble(t('dances_prompt'), 500);
+        setTimeout(() => {
+          const btns = OFFERINGS.map(o => ({
+            label: o.name,
+            action: () => showOfferingDetail(o)
+          }));
+          btns.push({ label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true });
+          addButtons(btns);
+        }, 900);
+
+      } else if (type === 'pricing') {
+        addUserBubble('💰 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'pricing')?.label || 'Pricing'));
+        showTyping();
+        const locationId = state.location ? state.location.location_id : ACCOUNT_CONFIG.locations[0].location_id;
+        const pricingData = await fetchPricing(locationId);
+        removeTyping();
+        const card = document.createElement('div');
+        card.className = 'info-card';
+        card.innerHTML = `<div class="card-title">${t('pricing_title')}</div>` +
+          pricingData.map(p => `<strong>${p.label}</strong> — ${p.price}<br><span style="font-size:12px;color:#64748b">${p.note || ''}</span>`).join('<br>');
+        addElement(card);
+        setTimeout(() => {
+          addButtons([
+            { label: t('book_now'), action: () => startBooking() },
+            { label: t('more_info'), action: () => backToMenu() },
+            { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+          ]);
+        }, 400);
+
+      } else if (type === 'booking') {
+        addUserBubble('📅 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'booking')?.label || 'Book Appointment'));
+        startBooking();
+
+      } else if (type === 'contact') {
+        addUserBubble('📞 ' + (ACCOUNT_CONFIG.menu_options.find(o => o.type === 'contact')?.label || 'Contact Us'));
+        showTyping();
+        await new Promise(r => setTimeout(r, 600));
+        removeTyping();
+        const card = document.createElement('div');
+        card.className = 'contact-card';
+        const locations = state.location ? [state.location] : ACCOUNT_CONFIG.locations;
+        card.innerHTML = `<div class="card-title">${t('contact_title')}</div>` +
+          locations.map(l => `<strong>${l.name}</strong><br>${l.phone}`).join('<br><br>');
+        addElement(card);
+        setTimeout(() => {
+          addButtons([
+            { label: t('more_info'), action: () => backToMenu() },
+            { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+          ]);
+        }, 400);
+      }
+    }
+
+    async function showOfferingDetail(offering) {
+      addUserBubble(offering.name);
+      const card = document.createElement('div');
+      card.className = 'info-card';
+      card.innerHTML = `<div class="card-title">💃 ${offering.name}</div>
+    ${offering.description}`;
+      await new Promise(r => setTimeout(r, 400));
+      addElement(card);
+      setTimeout(() => {
+        addButtons([
+          { label: t('back_to_offerings'), action: () => { addUserBubble(t('back')); handleMenu(ACCOUNT_CONFIG.menu_options.find(o => o.is_offerings)?.type); } },
+          { label: t('book_now'), action: () => startBooking() },
+          { label: t('more_info'), action: () => backToMenu() },
+          { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+        ]);
+      }, 400);
+    }
+
+    // ── Booking Flow ──────────────────────────────────────
+    async function startBooking() {
+      state.step = 'select_location';
+      await addBotBubble(t('which_location'), 400);
+      setTimeout(() => {
+        addButtons([
+          ...ACCOUNT_CONFIG.locations.map(loc => ({
+            label: `📍 ${loc.name}`,
+            action: () => handleLocationSelected(loc)
+          })),
+          { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+        ]);
+      }, 800);
+    }
+
+    async function handleLocationSelected(loc) {
+      addUserBubble(`📍 ${loc.name}`);
+      state.location = loc;
+      state.step = 'select_period';
+      showTyping();
+      await new Promise(r => setTimeout(r, 600));
+      removeTyping();
+      await addBotBubble(t('afternoon_evening'));
+      setTimeout(() => {
+        addButtons([
+          { label: t('afternoon'), action: () => handlePeriodSelected('afternoon') },
+          { label: t('evening'), action: () => handlePeriodSelected('evening') },
+          { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+        ]);
+      }, 400);
+    }
+
+    async function handlePeriodSelected(period) {
+      addUserBubble(period === 'afternoon' ? t('afternoon') : t('evening'));
+      state.period = period;
+      state.step = 'select_date';
+
+      const isAfternoon = t => { const h = parseInt(t.split(':')[0]); return h >= 12 && h < 17; };
+      const isEvening = t => { const h = parseInt(t.split(':')[0]); return h >= 17; };
+      const matchFn = period === 'afternoon' ? isAfternoon : isEvening;
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const matchingDays = [];
+
+      showTyping();
+      for (let i = 0; i < 14 && matchingDays.length < 2; i++) {
+        const d = new Date(); d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        const allSlots = await fetchSlots(state.location.location_id, iso);
+        const slots = allSlots.filter(matchFn);
+        if (slots.length > 0) {
+          matchingDays.push({ iso, dayName: dayNames[d.getDay()], dayNum: d.getDate(), month: monthNames[d.getMonth()], slots });
+        }
+      }
+      removeTyping();
+
+      if (matchingDays.length === 0) {
+        await addBotBubble(`${t('no_slots')} ${period === 'afternoon' ? t('afternoon') : t('evening')} ${t('no_slots2')} <strong>${state.location.name}</strong>.`);
+        setTimeout(() => {
+          addButtons([
+            { label: `${t('try_other')} ${period === 'afternoon' ? t('evening') : t('afternoon')}`, action: () => handlePeriodSelected(period === 'afternoon' ? 'evening' : 'afternoon') },
+            { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+          ]);
+        }, 400);
+        return;
+      }
+
+      await addBotBubble(t('which_day'));
+      setTimeout(() => {
+        const buttons = matchingDays.map(day => ({
+          label: `${day.dayName} ${day.dayNum} ${day.month}`,
+          action: () => handleDateSelected(day, day.slots)
+        }));
+        buttons.push({ label: t('pick_date'), action: () => showMiniCalendar(matchFn) });
+        buttons.push({ label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true });
+        addButtons(buttons);
+      }, 400);
+    }
+
+    async function handleDateSelected(day, slotList) {
+      addUserBubble(`${day.dayName} ${day.dayNum} ${day.month}`);
+      state.selectedDate = day.iso;
+      state.step = 'select_slot';
+      showTyping();
+      if (!slotList || slotList.length === 0) {
+        slotList = await fetchSlots(state.location.location_id, day.iso);
+      }
+      removeTyping();
+      await addBotBubble(`${t('available_times')} <strong>${formatDateLong(day.iso)}</strong> ${t('at')} <strong>${state.location.name}</strong>:`);
+      setTimeout(() => {
+        const timeButtons = slotList.map(s => ({
+          label: formatTime(s),
+          action: () => handleSlotSelected(formatTime(s))
+        }));
+        addButtons(timeButtons);
+        setTimeout(() => {
+          const backBtn = document.createElement('div');
+          backBtn.className = 'btn-group';
+          const b1 = document.createElement('button');
+          b1.className = 'choice-btn secondary';
+          b1.textContent = t('choose_another');
+          b1.onclick = () => { b1.disabled = true; handlePeriodSelected(state.period); };
+          const b2 = document.createElement('button');
+          b2.className = 'choice-btn secondary';
+          b2.textContent = t('start_over');
+          b2.onclick = () => { b2.disabled = true; resetState(); backToMenu(); };
+          backBtn.appendChild(b1);
+          backBtn.appendChild(b2);
+          addElement(backBtn);
+        }, 200);
+      }, 400);
+    }
+
+    async function handleSlotSelected(label) {
+      addUserBubble(label);
+      state.selectedSlot = label;
+      state.step = 'ask_name';
+      await addBotBubble(t('booking_intro'), 400);
+      setTimeout(() => {
+        addBotBubble(t('ask_name'), 800).then(() => showInput('e.g. Jane Smith'));
+      }, 400);
+    }
+
+    function handleTextSend() {
+      const val = $('chat-input').value.trim();
+      if (!val) return;
+      $('chat-input').value = '';
+
+      if (state.step === 'ask_name') {
+        state.name = capitalizeName(val);
+        addUserBubble(state.name);
+        state.step = 'ask_phone';
+        hideInput();
+        addBotBubble(`${t('ask_phone')} <strong>${state.name}?</strong>`, 400)
+          .then(() => showInput('e.g. 310-555-1234'));
+
+      } else if (state.step === 'ask_phone') {
+        state.phone = val;
+        addUserBubble(val);
+        state.step = 'ask_email';
+        hideInput();
+        addBotBubble(t('ask_email'), 400)
+          .then(() => showInput('e.g. jane@email.com'));
+
+      } else if (state.step === 'ask_email') {
+        state.email = val;
+        addUserBubble(val);
+        state.step = 'confirm';
+        hideInput();
+        showConfirmation();
+      }
+    }
+
+    function handleKey(e) { if (e.key === 'Enter') handleTextSend(); }
+
+    async function showConfirmation() {
+      await addBotBubble(t('summary_title'), 500);
+      const card = document.createElement('div');
+      card.className = 'confirm-card';
+      card.innerHTML = `
+    ${t('label_location')}: <strong>${state.location.name}</strong><br>
+    ${t('label_date')}: <strong>${formatDateLong(state.selectedDate)}</strong><br>
+    ${t('label_time')}: <strong>${state.selectedSlot}</strong><br>
+    ${t('label_name')}: <strong>${state.name}</strong><br>
+    ${t('label_phone')}: <strong>${state.phone}</strong><br>
+    ${t('label_email')}: <strong>${state.email}</strong>
+  `;
+      setTimeout(() => {
+        addElement(card);
+        setTimeout(() => {
+          addButtons([
+            { label: t('confirm_booking'), action: confirmBooking },
+            { label: t('start_over'), action: () => { resetState(); backToMenu(); }, secondary: true },
+          ]);
+        }, 400);
+      }, 800);
+    }
+
+    async function confirmBooking() {
+      state.step = 'booking';
+      showTyping();
+      const result = await postBooking({
+        account: ACCOUNT_ID,
+        location: state.location.location_id,
+        date: state.selectedDate,
+        slot: state.selectedSlot,
+        name: state.name,
+        phone: state.phone,
+        email: state.email,
+      });
+      removeTyping();
+
+      if (result.status !== 'success') {
+        addBotBubble(`${t('error_booking')} ${result.message || ''}`);
+        setTimeout(() => {
+          addButtons([{ label: t('try_again'), action: () => confirmBooking() }]);
+        }, 400);
+        return;
+      }
+
+      const success = document.createElement('div');
+      success.className = 'success-msg';
+      success.innerHTML = `✅ <strong>${t('booked_title')} ${state.name}!</strong><br>
+    ${t('booked_msg')} ${formatDateLong(state.selectedDate)} ${t('at')} ${state.selectedSlot}<br>
+    📍 ${state.location.name}<br>
+    ${result.booking_id ? `<span style="font-size:11px;color:#166534;opacity:0.8">Booking ref: ${result.booking_id}</span>` : ''}`;
+      addElement(success);
+
+      setTimeout(() => {
+        addBotBubble(`${t('anything_else')} <strong>${state.name}?</strong> 😊`, 1000).then(() => {
+          setTimeout(() => {
+            addButtons([
+              { label: t('book_another'), action: () => { resetState(); startBooking(); } },
+              { label: t('more_info'), action: () => { resetState(); backToMenu(); } },
+              { label: t('im_done'), action: () => handleDone() },
+            ]);
+          }, 400);
+        });
+      }, 800);
+
+      state.step = 'done';
+    }
+
+    async function handleDone() {
+      await addBotBubble(`${t('goodbye')} <strong>${state.name}!</strong> ${t('goodbye2')}`, 400);
+    }
+
+    function resetState() {
+      state.step = 'menu'; state.location = null; state.period = null;
+      state.selectedDate = null; state.selectedSlot = null;
+      state.name = null; state.phone = null; state.email = null;
+      hideInput();
+    }
+
+    async function backToMenu() {
+      resetState();
+      await addBotBubble(t('welcome_option'), 300);
+      setTimeout(() => {
+        const emojiMap = { pricing: '💰', booking: '📅', contact: '📞' };
+        addButtons(ACCOUNT_CONFIG.menu_options.map(opt => {
+          const emoji = opt.is_offerings ? '💃' : (emojiMap[opt.type] || '');
+          return {
+            label: `${emoji} ${opt.label}`,
+            action: () => handleMenu(opt.type)
+          };
+        }));
+      }, 700);
+    }
+
+    // ── Mini Calendar ─────────────────────────────────────
+    function showMiniCalendar(matchFn) {
+      const existing = document.getElementById('mini-cal');
+      if (existing) existing.remove();
+      const today = new Date();
+      let calYear = today.getFullYear(), calMonth = today.getMonth();
+      const chatWin = $('doable-window');
+      const overlay = document.createElement('div');
+      overlay.id = 'mini-cal';
+      overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:99999;border-radius:20px;';
+
+      function renderCal() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        let daysHtml = '';
+        for (let i = 0; i < firstDay; i++) daysHtml += '<div></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+          const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const isPast = new Date(iso + 'T00:00:00') < new Date(today.toISOString().split('T')[0] + 'T00:00:00');
+          daysHtml += `<div class="cal-day ${isPast ? 'cal-past' : 'cal-avail'}" data-iso="${iso}">${d}</div>`;
+        }
+        overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:18px;width:290px;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <button id="cal-prev" style="background:none;border:none;font-size:20px;cursor:pointer;color:#1e293b;padding:0 6px;">&#8249;</button>
+          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#1e293b;">${monthNames[calMonth]} ${calYear}</span>
+          <button id="cal-next" style="background:none;border:none;font-size:20px;cursor:pointer;color:#1e293b;padding:0 6px;">&#8250;</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;">
+          ${dayLabels.map(d => `<div style="text-align:center;font-size:10px;font-weight:600;color:#94a3b8;">${d}</div>`).join('')}
+        </div>
+        <div id="cal-days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">${daysHtml}</div>
+        <button id="cal-cancel" style="margin-top:14px;width:100%;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#64748b;font-family:'Inter',sans-serif;">${t('back')}</button>
+      </div>`;
+
+        overlay.querySelector('#cal-prev').onclick = e => { e.stopPropagation(); calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); };
+        overlay.querySelector('#cal-next').onclick = e => { e.stopPropagation(); calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+        overlay.querySelector('#cal-cancel').onclick = () => overlay.remove();
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        overlay.querySelectorAll('.cal-avail').forEach(el => {
+          el.onclick = async e => {
+            e.stopPropagation();
+            const iso = el.dataset.iso;
+            overlay.remove();
+            const d = new Date(iso + 'T00:00:00');
+            const dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const chosenDay = { iso, dayName: dn[d.getDay()], dayNum: d.getDate(), month: mn[d.getMonth()] };
+            const allSlots = await fetchSlots(state.location.location_id, iso);
+            const filtered = allSlots.filter(matchFn);
+            const slotList = filtered.length > 0 ? filtered : (allSlots.length > 0 ? allSlots : []);
+            handleDateSelected(chosenDay, slotList);
+          };
+        });
+      }
+      renderCal();
+      chatWin.style.position = 'relative';
+      chatWin.appendChild(overlay);
+    }
+
+    // ── Auto-open & Toggle ────────────────────────────────
+    let chatOpen = false, started = false;
+
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      $('doable-window').classList.toggle('open', chatOpen);
+      $('icon-chat').style.display = chatOpen ? 'none' : 'block';
+      $('icon-close').style.display = chatOpen ? 'block' : 'none';
+      if (chatOpen && !started) { started = true; startFlow(); }
+    }
+
+    // Auto-open: 4s desktop, 10s mobile, once per session
+    window.addEventListener('load', () => {
+      if (sessionStorage.getItem('doable_opened')) return;
+      const isMobile = window.innerWidth < 768;
+      const delay = isMobile ? 10000 : 4000;
+      setTimeout(() => {
+        if (!chatOpen) {
+          sessionStorage.setItem('doable_opened', '1');
+          toggleChat();
+        }
+      }, delay);
+    });
+  </script>
+</body>
+
+</html>

@@ -122,7 +122,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '') {
 }
 
 // Insert default statuses if not exist
-$lead_status = ['New' => '#fffbb9', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
+$lead_status = ['New' => '#fffbb9', 'Scheduled' => '#ffb74d', 'Enrolled' => '#96d35f', 'Not Enrolled' => '#ffa57d'];
 $i = 1;
 foreach ($lead_status as $key => $value) {
     $is_exist = $db->Execute("SELECT * FROM DOA_LEAD_STATUS WHERE LEAD_STATUS='" . $key . "' AND PK_ACCOUNT_MASTER='" . $_SESSION['PK_ACCOUNT_MASTER'] . "'");
