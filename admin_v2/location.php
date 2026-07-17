@@ -2472,22 +2472,22 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                 <div class="row" style="padding: 10px 0">
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning (05:00 AM - 11:59 AM)
+                                                            <input type="checkbox" name="IS_MORNING" id="IS_MORNING" value="1" <?= ($IS_MORNING == 1) ? 'checked' : '' ?>> Morning (05:00 AM - 09:59 AM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon (12:00 PM - 04:59 PM)
+                                                            <input type="checkbox" name="IS_AFTERNOON" id="IS_AFTERNOON" value="1" <?= ($IS_AFTERNOON == 1) ? 'checked' : '' ?>> Afternoon (12:00 PM - 04:59 PM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening (05:00 PM - 08:59 PM)
+                                                            <input type="checkbox" name="IS_EVENING" id="IS_EVENING" value="1" <?= ($IS_EVENING == 1) ? 'checked' : '' ?>> Evening (05:00 PM - 08:59 PM)
                                                         </label>
                                                     </div>
                                                     <div class="col-3">
                                                         <label class="period-label">
-                                                            <input type="checkbox" name="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 AM)
+                                                            <input type="checkbox" name="IS_NIGHT" id="IS_NIGHT" value="1" <?= ($IS_NIGHT == 1) ? 'checked' : '' ?>> Night (09:00 PM - 04:59 AM)
                                                         </label>
                                                     </div>
                                                 </div>
@@ -2500,7 +2500,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     <!-- Morning -->
                                                     <div class="provider-group col-3">
                                                         <label class="provider-label">Morning</label>
-                                                        <select class="multi_sumo_select" name="PK_USER_MORNING[]" multiple>
+                                                        <select class="multi_sumo_select" name="PK_USER_MORNING[]" id="PK_USER_MORNING" multiple>
                                                             <?php
                                                             $selected_morning = !empty($PK_USER_MORNING) ? explode(',', $PK_USER_MORNING) : array();
                                                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
@@ -2516,7 +2516,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     <!-- Afternoon -->
                                                     <div class="provider-group col-3">
                                                         <label class="provider-label">Afternoon</label>
-                                                        <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" multiple>
+                                                        <select class="multi_sumo_select" name="PK_USER_AFTERNOON[]" id="PK_USER_AFTERNOON" multiple>
                                                             <?php
                                                             $selected_afternoon = !empty($PK_USER_AFTERNOON) ? explode(',', $PK_USER_AFTERNOON) : array();
                                                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
@@ -2532,7 +2532,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     <!-- Evening -->
                                                     <div class="provider-group col-3">
                                                         <label class="provider-label">Evening</label>
-                                                        <select class="multi_sumo_select" name="PK_USER_EVENING[]" multiple>
+                                                        <select class="multi_sumo_select" name="PK_USER_EVENING[]" id="PK_USER_EVENING" multiple>
                                                             <?php
                                                             $selected_evening = !empty($PK_USER_EVENING) ? explode(',', $PK_USER_EVENING) : array();
                                                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
@@ -2548,7 +2548,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                     <!-- Night -->
                                                     <div class="provider-group col-3">
                                                         <label class="provider-label">Night</label>
-                                                        <select class="multi_sumo_select" name="PK_USER_NIGHT[]" multiple>
+                                                        <select class="multi_sumo_select" name="PK_USER_NIGHT[]" id="PK_USER_NIGHT" multiple>
                                                             <?php
                                                             $selected_night = !empty($PK_USER_NIGHT) ? explode(',', $PK_USER_NIGHT) : array();
                                                             $row = $db->Execute("SELECT DISTINCT (DOA_USERS.PK_USER), CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.ACTIVE FROM DOA_USERS LEFT JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_LOCATION.PK_LOCATION = '$PK_LOCATION' AND DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
@@ -3319,6 +3319,46 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
         </script>
 
         <script>
+            $(document).ready(function() {
+
+                function toggleProvider(checkboxId, selectId) {
+                    if ($(checkboxId).is(':checked')) {
+                        $(selectId).prop('disabled', false);
+                    } else {
+                        $(selectId).prop('disabled', true);
+                    }
+
+                    // Refresh SumoSelect
+                    if ($(selectId)[0].sumo) {
+                        $(selectId)[0].sumo.reload();
+                    }
+                }
+
+                // Initial state
+                toggleProvider('#IS_MORNING', '#PK_USER_MORNING');
+                toggleProvider('#IS_AFTERNOON', '#PK_USER_AFTERNOON');
+                toggleProvider('#IS_EVENING', '#PK_USER_EVENING');
+                toggleProvider('#IS_NIGHT', '#PK_USER_NIGHT');
+
+                // On checkbox change
+                $('#IS_MORNING').change(function() {
+                    toggleProvider('#IS_MORNING', '#PK_USER_MORNING');
+                });
+
+                $('#IS_AFTERNOON').change(function() {
+                    toggleProvider('#IS_AFTERNOON', '#PK_USER_AFTERNOON');
+                });
+
+                $('#IS_EVENING').change(function() {
+                    toggleProvider('#IS_EVENING', '#PK_USER_EVENING');
+                });
+
+                $('#IS_NIGHT').change(function() {
+                    toggleProvider('#IS_NIGHT', '#PK_USER_NIGHT');
+                });
+
+            });
+
             function addMoreOffering() {
                 $('#append_service_div').append(`<div class="service-row row from-grid-modern">
                                                 <div class="col-3">
