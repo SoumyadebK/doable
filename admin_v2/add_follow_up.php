@@ -109,7 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['update_status'])) {
 }
 
 // Handle form submission
-// Handle form submission
 if (!empty($_POST)) {
     // Get the JSON data BEFORE unsetting POST variables
     $custom_reminders_json = isset($_POST['CUSTOM_REMINDERS']) ? $_POST['CUSTOM_REMINDERS'] : '';
@@ -265,16 +264,18 @@ if (!empty($_POST)) {
                     $notify_enroll = !empty($message_notifications[$index]['notify_service_provider_enroll']) ? 1 : 0;
                     $notify_manager = !empty($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
                     $notify_customer = !empty($message_notifications[$index]['notify_customer']) ? 1 : 0;
+                    $channel = isset($message_notifications[$index]['channel']) ? $message_notifications[$index]['channel'] : 'email';
                 } else {
-                    // Default: send to customer only
+                    // Default: send to customer only via email
                     $notify_last = 0;
                     $notify_enroll = 0;
                     $notify_manager = 0;
                     $notify_customer = 1;
+                    $channel = 'email';
                     error_log("No notification settings for message $follow_up_num, using defaults");
                 }
 
-                error_log("Saving message $follow_up_num: Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager");
+                error_log("Saving message $follow_up_num: Channel=$channel, Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager");
                 error_log("Message content length: " . strlen($clean_content));
 
                 // Escape the content for database insertion
@@ -282,10 +283,10 @@ if (!empty($_POST)) {
 
                 $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, 
                     NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
-                    CREATED_ON, EDITED_ON) 
+                    CHANNEL, CREATED_ON, EDITED_ON) 
                     VALUES ('$automation_id', '$follow_up_num', '$escaped_content', 
                     '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
-                    '$created_on', '$created_on')";
+                    '$channel', '$created_on', '$created_on')";
 
                 error_log("SQL: " . $sql);
 
@@ -336,14 +337,16 @@ if (!empty($_GET['id'])) {
     $MESSAGE_NOTIFICATIONS = array();
     if ($messages_res && $messages_res->RecordCount() > 0) {
         while (!$messages_res->EOF) {
-            // Check if columns exist, if not, use defaults
+            // Check if columns exist
             $notify_last = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST'] : false;
             $notify_enroll = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL'] : false;
             $notify_manager = isset($messages_res->fields['NOTIFY_STUDIO_MANAGER']) ? (bool)$messages_res->fields['NOTIFY_STUDIO_MANAGER'] : false;
             $notify_customer = isset($messages_res->fields['NOTIFY_CUSTOMER']) ? (bool)$messages_res->fields['NOTIFY_CUSTOMER'] : true;
+            $channel = isset($messages_res->fields['CHANNEL']) ? $messages_res->fields['CHANNEL'] : 'email';
 
             $MESSAGES[] = $messages_res->fields['MESSAGE_CONTENT'];
             $MESSAGE_NOTIFICATIONS[] = array(
+                'channel' => $channel,
                 'notify_service_provider_last' => $notify_last,
                 'notify_service_provider_enroll' => $notify_enroll,
                 'notify_studio_manager' => $notify_manager,
@@ -764,6 +767,21 @@ if (!empty($_GET['id'])) {
         .notification-settings .form-check-label {
             font-size: 0.8rem;
         }
+
+        .channel-options .form-check-inline {
+            margin-right: 1rem;
+        }
+
+        .channel-options .form-check-input[type="radio"] {
+            width: 1em;
+            height: 1em;
+            margin-top: 0.2rem;
+        }
+
+        .channel-options .form-check-input[type="radio"]:checked {
+            background-color: #39b54a !important;
+            border-color: #39b54a !important;
+        }
     </style>
 </head>
 
@@ -777,7 +795,6 @@ if (!empty($_GET['id'])) {
             <div class="col-12 col-md-8 col-lg-10">
                 <div class="main-card p-4">
                     <div class="main-header border-bottom pb-3 mb-4 d-flex align-items-center gap-2">
-                        <!-- <a href="all_follow_ups.php" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a> -->
                         <h2 class="h5 mb-0 fw-semibold"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Create New Automation</h2>
                     </div>
 
@@ -920,7 +937,7 @@ if (!empty($_GET['id'])) {
                         <!-- Message Templates -->
                         <div class="form-section mb-3">
                             <label class="form-label-custom mb-1">Message templates</label>
-                            <p class="text-muted extra-small mb-2">Each follow-up message has its own notification recipients. Configure who receives each message below.</p>
+                            <p class="text-muted extra-small mb-2">Each follow-up message has its own notification recipients and delivery channel. Configure who receives each message and how it's sent below.</p>
                         </div>
                         <div class="accordion custom-accordion mb-4" id="messagesAccordion"></div>
 
@@ -935,8 +952,6 @@ if (!empty($_GET['id'])) {
             </div>
         </div>
     </div>
-
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1174,7 +1189,7 @@ if (!empty($_GET['id'])) {
         }
 
         function attachMessageNotificationEvents() {
-            document.querySelectorAll('.msg-notify-customer, .msg-notify-provider-last, .msg-notify-provider-enroll, .msg-notify-manager').forEach(checkbox => {
+            document.querySelectorAll('.msg-notify-customer, .msg-notify-provider-last, .msg-notify-provider-enroll, .msg-notify-manager, .msg-channel').forEach(checkbox => {
                 checkbox.removeEventListener('change', updateMessageNotifications);
                 checkbox.addEventListener('change', updateMessageNotifications);
             });
@@ -1185,7 +1200,17 @@ if (!empty($_GET['id'])) {
             const accordionItems = document.querySelectorAll('#messagesAccordion .accordion-item');
 
             accordionItems.forEach((item) => {
+                // Get channel selection
+                const channelRadios = item.querySelectorAll('.msg-channel');
+                let channel = 'email'; // default
+                channelRadios.forEach(radio => {
+                    if (radio.checked) {
+                        channel = radio.value;
+                    }
+                });
+
                 const notif = {
+                    channel: channel,
                     notify_customer: item.querySelector('.msg-notify-customer')?.checked || false,
                     notify_service_provider_last: item.querySelector('.msg-notify-provider-last')?.checked || false,
                     notify_service_provider_enroll: item.querySelector('.msg-notify-provider-enroll')?.checked || false,
@@ -1219,7 +1244,8 @@ if (!empty($_GET['id'])) {
 
                 // Get notification settings for this message
                 const notif = messageNotifications[i - 1] || {
-                    notify_customer: false,
+                    channel: 'email',
+                    notify_customer: true,
                     notify_service_provider_last: false,
                     notify_service_provider_enroll: false,
                     notify_studio_manager: false
@@ -1241,23 +1267,41 @@ if (!empty($_GET['id'])) {
                             
                             <!-- Notification Settings for this message -->
                             <div class="notification-settings mb-3 p-2 bg-light rounded-2">
-                                <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to:</span>
-                                <div class="d-flex flex-wrap gap-3">
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Customer</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up via:</span>
+                                        <div class="d-flex gap-3 channel-options">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input msg-channel" type="radio" name="channel_${i}" value="email" ${notif.channel === 'email' || !notif.channel ? 'checked' : ''}>
+                                                <label class="form-check-label small">Email</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input msg-channel" type="radio" name="channel_${i}" value="sms" ${notif.channel === 'sms' ? 'checked' : ''}>
+                                                <label class="form-check-label small">SMS</label>
+                                            </div>
+                                            
+                                        </div>
                                     </div>
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
-                                    </div>
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-provider-enroll" type="checkbox" role="switch" ${notif.notify_service_provider_enroll ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Service Provider (Enrollment)</label>
-                                    </div>
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Studio Manager</label>
+                                    <div class="col-md-6">
+                                        <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to:</span>
+                                        <div class="d-flex flex-wrap gap-3">
+                                            <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                                <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
+                                                <label class="form-check-label text-dark small">Customer</label>
+                                            </div>
+                                            <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                                <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
+                                                <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
+                                            </div>
+                                            <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                                <input class="form-check-input m-0 msg-notify-provider-enroll" type="checkbox" role="switch" ${notif.notify_service_provider_enroll ? 'checked' : ''}>
+                                                <label class="form-check-label text-dark small">Service Provider (Enrollment)</label>
+                                            </div>
+                                            <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                                <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
+                                                <label class="form-check-label text-dark small">Studio Manager</label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1283,6 +1327,12 @@ if (!empty($_GET['id'])) {
             document.querySelectorAll('.editable-content-area').forEach(el => {
                 el.removeEventListener('input', updateMessagesInput);
                 el.addEventListener('input', updateMessagesInput);
+            });
+
+            // Add event listeners for channel radio buttons
+            document.querySelectorAll('.msg-channel').forEach(radio => {
+                radio.removeEventListener('change', updateMessageNotifications);
+                radio.addEventListener('change', updateMessageNotifications);
             });
 
             updateMessagesInput();
