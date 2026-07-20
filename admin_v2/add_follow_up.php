@@ -115,6 +115,7 @@ if (!empty($_POST)) {
     $custom_reminders_json = isset($_POST['CUSTOM_REMINDERS']) ? $_POST['CUSTOM_REMINDERS'] : '';
     $messages_json = isset($_POST['MESSAGES']) ? $_POST['MESSAGES'] : '';
     $message_notifications_json = isset($_POST['MESSAGE_NOTIFICATIONS']) ? $_POST['MESSAGE_NOTIFICATIONS'] : '[]';
+    $message_types_json = isset($_POST['MESSAGE_TYPES']) ? $_POST['MESSAGE_TYPES'] : '[]'; // NEW
 
     // Debug: Log the received data
     error_log("=== FORM SUBMISSION DEBUG ===");
@@ -144,6 +145,7 @@ if (!empty($_POST)) {
     unset($_POST['CUSTOM_REMINDERS']);
     unset($_POST['MESSAGES']);
     unset($_POST['MESSAGE_NOTIFICATIONS']);
+    unset($_POST['MESSAGE_TYPES']); // NEW
 
     $AUTOMATION_DATA = $_POST;
     $AUTOMATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -248,6 +250,12 @@ if (!empty($_POST)) {
                 error_log("No notifications JSON found or empty");
             }
 
+            $message_types = array();
+            if (!empty($message_types_json) && $message_types_json != 'null' && $message_types_json != '[]') {
+                $message_types = json_decode($message_types_json, true);
+                if (!is_array($message_types)) $message_types = array();
+            }
+
             // Filter out empty messages
             $filtered_messages = array_filter($messages, function ($msg) {
                 return !empty(trim(strip_tags($msg)));
@@ -290,13 +298,18 @@ if (!empty($_POST)) {
                 // Escape the content for database insertion
                 $escaped_content = addslashes($clean_content);
 
+                $msg_type = isset($message_types[$index]) ? $message_types[$index] : 'SMS';
+                if (!in_array($msg_type, ['SMS', 'EMAIL'], true)) {
+                    $msg_type = 'SMS';
+                }
+
                 $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, IS_ENABLE, VALUE, UNIT,
-                    NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
-                    CREATED_ON, EDITED_ON) 
-                    VALUES ('$automation_id', '$follow_up_num', '$escaped_content', 
-                    '$is_enable', '$value', '$unit',
-                    '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
-                    '$created_on', '$created_on')";
+                        NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER, MESSAGE_TYPE,
+                        CREATED_ON, EDITED_ON) 
+                        VALUES ('$automation_id', '$follow_up_num', '$escaped_content', 
+                        '$is_enable', '$value', '$unit',
+                        '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer', '$msg_type',
+                        '$created_on', '$created_on')";
 
                 error_log("SQL: " . $sql);
 
@@ -347,6 +360,7 @@ if (!empty($_GET['id'])) {
     $MESSAGES = array();
     $CUSTOM_REMINDERS = array();
     $MESSAGE_NOTIFICATIONS = array();
+    $MESSAGE_TYPES = array(); // NEW
     if ($messages_res && $messages_res->RecordCount() > 0) {
         while (!$messages_res->EOF) {
             // Check if columns exist, if not, use defaults
@@ -354,6 +368,7 @@ if (!empty($_GET['id'])) {
             $notify_enroll = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL'] : false;
             $notify_manager = isset($messages_res->fields['NOTIFY_STUDIO_MANAGER']) ? (bool)$messages_res->fields['NOTIFY_STUDIO_MANAGER'] : false;
             $notify_customer = isset($messages_res->fields['NOTIFY_CUSTOMER']) ? (bool)$messages_res->fields['NOTIFY_CUSTOMER'] : true;
+            $message_type = isset($messages_res->fields['MESSAGE_TYPE']) ? $messages_res->fields['MESSAGE_TYPE'] : 'SMS'; // NEW
 
             $MESSAGES[] = $messages_res->fields['MESSAGE_CONTENT'];
             $MESSAGE_NOTIFICATIONS[] = array(
@@ -369,6 +384,7 @@ if (!empty($_GET['id'])) {
                 'unit' => $messages_res->fields['UNIT']
             );
 
+            $MESSAGE_TYPES[] = $message_type; // NEW
             $messages_res->MoveNext();
         }
     }
@@ -805,6 +821,7 @@ if (!empty($_GET['id'])) {
                         <input type="hidden" name="CUSTOM_REMINDERS" id="CUSTOM_REMINDERS" value='<?= htmlspecialchars(json_encode($CUSTOM_REMINDERS)) ?>'>
                         <input type="hidden" name="MESSAGES" id="MESSAGES" value='<?= htmlspecialchars(json_encode($MESSAGES)) ?>'>
                         <input type="hidden" name="MESSAGE_NOTIFICATIONS" id="MESSAGE_NOTIFICATIONS" value='<?= htmlspecialchars(json_encode($MESSAGE_NOTIFICATIONS)) ?>'>
+                        <input type="hidden" name="MESSAGE_TYPES" id="MESSAGE_TYPES" value='<?= htmlspecialchars(json_encode($MESSAGE_TYPES)) ?>'>
                         <!-- Title & toggle -->
                         <div class="form-section row align-items-end mb-4">
                             <div class="col-md-5">
@@ -1010,6 +1027,9 @@ if (!empty($_GET['id'])) {
         let reminders = <?= json_encode($CUSTOM_REMINDERS) ?>;
         let existingMessages = <?= json_encode($MESSAGES) ?>;
         let messageNotifications = <?= json_encode($MESSAGE_NOTIFICATIONS) ?>;
+        let messageTypes = <?= json_encode($MESSAGE_TYPES) ?>;
+
+        if (!Array.isArray(messageTypes)) messageTypes = [];
 
         // Ensure messageNotifications is an array
         if (!Array.isArray(messageNotifications)) {
@@ -1217,6 +1237,21 @@ if (!empty($_GET['id'])) {
             document.getElementById('MESSAGE_NOTIFICATIONS').value = JSON.stringify(notifications);
         }
 
+        function attachMessageTypeEvents() {
+            document.querySelectorAll('.msg-type-select').forEach(sel => {
+                sel.removeEventListener('change', updateMessageTypes);
+                sel.addEventListener('change', updateMessageTypes);
+            });
+        }
+
+        function updateMessageTypes() {
+            const types = [];
+            document.querySelectorAll('#messagesAccordion .accordion-item .msg-type-select').forEach(sel => {
+                types.push(sel.value);
+            });
+            document.getElementById('MESSAGE_TYPES').value = JSON.stringify(types);
+        }
+
         function buildAccordionItems(count) {
             const accordionContainer = document.getElementById('messagesAccordion');
             if (!accordionContainer) return;
@@ -1245,13 +1280,18 @@ if (!empty($_GET['id'])) {
                     notify_studio_manager: false
                 };
 
+                const msgType = messageTypes[i - 1] || 'SMS';
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item mb-2 border rounded-3 overflow-hidden';
                 accordionItem.innerHTML = `
-                    <h2 class="accordion-header">
-                        <button class="accordion-button ${i === 1 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
+                    <h2 class="accordion-header d-flex align-items-center gap-2 pe-2">
+                        <button class="accordion-button ${i === 1 ? '' : 'collapsed'} flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
                             Follow up ${i}
                         </button>
+                        <select class="form-select form-select-sm msg-type-select" style="width:100px;">
+                            <option value="SMS" ${msgType === 'SMS' ? 'selected' : ''}>SMS</option>
+                            <option value="EMAIL" ${msgType === 'EMAIL' ? 'selected' : ''}>Email</option>
+                        </select>
                     </h2>
                     <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
                         <div class="accordion-body p-3 pt-1">
@@ -1299,6 +1339,7 @@ if (!empty($_GET['id'])) {
 
             attachVariableButtons();
             attachMessageNotificationEvents();
+            attachMessageTypeEvents(); // NEW
 
             document.querySelectorAll('.editable-content-area').forEach(el => {
                 el.removeEventListener('input', updateMessagesInput);
@@ -1307,6 +1348,7 @@ if (!empty($_GET['id'])) {
 
             updateMessagesInput();
             updateMessageNotifications();
+            updateMessageTypes(); // NEW
         }
 
         // Handle trigger type change for services dropdown
@@ -1497,6 +1539,7 @@ if (!empty($_GET['id'])) {
             updateRemindersInput();
             updateMessagesInput();
             updateMessageNotifications();
+            updateMessageTypes(); // NEW
 
             // Log what's being submitted
             console.log('Submitting form...');
@@ -1558,6 +1601,8 @@ if (!empty($_GET['id'])) {
 
             // Update message notifications after building
             setTimeout(updateMessageNotifications, 100);
+
+            setTimeout(updateMessageTypes, 100); // NEW
         });
     </script>
 </body>
