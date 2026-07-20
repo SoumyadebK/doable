@@ -185,13 +185,13 @@ if (!empty($_POST)) {
         $automation_id = $_GET['id'];
         error_log("Updating automation with ID: $automation_id");
 
-        $db_account->Execute("DELETE FROM DOA_AUTOMATION_REMINDERS WHERE PK_AUTOMATION_ID = '$automation_id'");
+        //$db_account->Execute("DELETE FROM DOA_AUTOMATION_REMINDERS WHERE PK_AUTOMATION_ID = '$automation_id'");
         $db_account->Execute("DELETE FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$automation_id'");
         error_log("Deleted existing reminders and messages for automation ID: $automation_id");
     }
 
     // Save reminders
-    if (!empty($custom_reminders_json) && $custom_reminders_json != 'null' && $custom_reminders_json != '[]') {
+    /* if (!empty($custom_reminders_json) && $custom_reminders_json != 'null' && $custom_reminders_json != '[]') {
         $custom_reminders = json_decode($custom_reminders_json, true);
         if (is_array($custom_reminders) && !empty($custom_reminders)) {
             error_log("Saving " . count($custom_reminders) . " reminders");
@@ -201,9 +201,10 @@ if (!empty($_POST)) {
                     $value = intval($reminder['value']);
                     $unit = isset($reminder['unit']) ? $reminder['unit'] : 'Days';
                     $created_on = date("Y-m-d H:i:s");
+                    $REMINDER_ORDER = $order + 1;
 
                     $sql = "INSERT INTO DOA_AUTOMATION_REMINDERS (PK_AUTOMATION_ID, REMINDER_ORDER, IS_ENABLED, VALUE, UNIT, CREATED_ON, EDITED_ON) 
-                            VALUES ('$automation_id', '$order', '$is_enabled', '$value', '$unit', '$created_on', '$created_on')";
+                            VALUES ('$automation_id', '$REMINDER_ORDER', '$is_enabled', '$value', '$unit', '$created_on', '$created_on')";
                     $db_account->Execute($sql);
                     error_log("Saved reminder $order: enabled=$is_enabled, value=$value, unit=$unit");
                 }
@@ -211,7 +212,7 @@ if (!empty($_POST)) {
         }
     } else {
         error_log("No reminders to save");
-    }
+    } */
 
     // Save messages with their notification settings
     $messages_saved = 0;
@@ -221,6 +222,7 @@ if (!empty($_POST)) {
 
     if (!empty($messages_json) && $messages_json != 'null' && $messages_json != '[]' && $messages_json != '[""]') {
         $messages = json_decode($messages_json, true);
+        $custom_reminders = json_decode($custom_reminders_json, true);
 
         // Check if json decode worked
         if ($messages === null) {
@@ -265,12 +267,20 @@ if (!empty($_POST)) {
                     $notify_enroll = !empty($message_notifications[$index]['notify_service_provider_enroll']) ? 1 : 0;
                     $notify_manager = !empty($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
                     $notify_customer = !empty($message_notifications[$index]['notify_customer']) ? 1 : 0;
+
+                    $is_enable = $custom_reminders[$index]['enabled'] ?? 0;
+                    $value = $custom_reminders[$index]['value'] ?? 0;
+                    $unit = $custom_reminders[$index]['unit'] ?? 'Days';
                 } else {
                     // Default: send to customer only
                     $notify_last = 0;
                     $notify_enroll = 0;
                     $notify_manager = 0;
                     $notify_customer = 1;
+
+                    $is_enable = 0;
+                    $value = 0;
+                    $unit = 'Days';
                     error_log("No notification settings for message $follow_up_num, using defaults");
                 }
 
@@ -280,10 +290,11 @@ if (!empty($_POST)) {
                 // Escape the content for database insertion
                 $escaped_content = addslashes($clean_content);
 
-                $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, 
+                $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, IS_ENABLE, VALUE, UNIT,
                     NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER,
                     CREATED_ON, EDITED_ON) 
                     VALUES ('$automation_id', '$follow_up_num', '$escaped_content', 
+                    '$is_enable', '$value', '$unit',
                     '$notify_last', '$notify_enroll', '$notify_manager', '$notify_customer',
                     '$created_on', '$created_on')";
 
@@ -318,7 +329,8 @@ if (!empty($_GET['id'])) {
     }
     $AUTOMATION = $res->fields;
     $PK_LOCATION = $AUTOMATION['PK_LOCATION'];
-    $reminders_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_REMINDERS` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY REMINDER_ORDER");
+
+    /* $reminders_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_REMINDERS` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY REMINDER_ORDER");
     $CUSTOM_REMINDERS = array();
     if ($reminders_res && $reminders_res->RecordCount() > 0) {
         while (!$reminders_res->EOF) {
@@ -329,10 +341,11 @@ if (!empty($_GET['id'])) {
             );
             $reminders_res->MoveNext();
         }
-    }
+    } */
 
     $messages_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_MESSAGES` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY FOLLOW_UP_NUMBER");
     $MESSAGES = array();
+    $CUSTOM_REMINDERS = array();
     $MESSAGE_NOTIFICATIONS = array();
     if ($messages_res && $messages_res->RecordCount() > 0) {
         while (!$messages_res->EOF) {
@@ -349,6 +362,13 @@ if (!empty($_GET['id'])) {
                 'notify_studio_manager' => $notify_manager,
                 'notify_customer' => $notify_customer
             );
+
+            $CUSTOM_REMINDERS[] = array(
+                'enabled' => (bool)$messages_res->fields['IS_ENABLE'],
+                'value' => (int)$messages_res->fields['VALUE'],
+                'unit' => $messages_res->fields['UNIT']
+            );
+
             $messages_res->MoveNext();
         }
     }
@@ -821,7 +841,7 @@ if (!empty($_GET['id'])) {
                                         <option value="NO_FUTURE_APPOINTMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_FUTURE_APPOINTMENTS' ? 'selected' : '' ?>>No future appointments</option>
                                         <option value="NO_ACTIVE_ENROLLMENTS" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS' ? 'selected' : '' ?>>No active enrollments</option>
                                         <option value="NO_SPECIFIC_SERVICES" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES' ? 'selected' : '' ?>>No specific services</option>
-                                        <option value="A_LEAD_IS_GENERATED" <?= $AUTOMATION['TRIGGER_TYPE'] == 'A_LEAD_IS_GENERATED' ? 'selected' : '' ?>>A lead is generated</option>
+                                        <option value="NEW_LEAD_IS_GENERATED" <?= $AUTOMATION['TRIGGER_TYPE'] == 'NEW_LEAD_IS_GENERATED' ? 'selected' : '' ?>>A lead is generated</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6" id="triggerValueContainer">
@@ -853,7 +873,7 @@ if (!empty($_GET['id'])) {
                         <!-- Start first reminder & Send up to reminders -->
                         <div class="form-section mb-4">
                             <div class="row g-2 mb-2">
-                                <div class="col-12 col-sm-3">
+                                <div class="col-12 col-sm-4">
                                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                         <span class="text-dark small fw-semibold">Start first reminder</span>
                                         <input type="number" class="form-control form-control-inline bg-light text-center"
@@ -870,7 +890,7 @@ if (!empty($_GET['id'])) {
                                     <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
                                 </div>
 
-                                <div class="col-12 col-sm-3">
+                                <div class="col-12 col-sm-6">
                                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                         <span class="text-dark small fw-semibold">Send up to</span>
                                         <input type="number" class="form-control form-control-inline bg-light text-center"

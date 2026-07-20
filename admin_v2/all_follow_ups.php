@@ -294,7 +294,7 @@ function time_ago($datetime)
                                                 <i class="bi bi-lightning-charge-fill text-secondary"></i>
                                             </div>
                                             <div>
-                                                <h3 class="h6 mb-1 fw-semibold text-dark"><?= htmlspecialchars($automation['TITLE']) ?></h3>
+                                                <h3 class="h6 mb-1 fw-semibold text-dark edit-automation" data-id="<?= $automation['PK_AUTOMATION_ID'] ?>" style="cursor: pointer;"><?= htmlspecialchars($automation['TITLE']) ?></h3>
                                                 <p class="text-muted small mb-1"><?= $trigger_text ?> <?= $condition_text ?></p>
                                                 <span class="text-uppercase text-muted extra-small edited-time">EDITED <?= strtoupper(time_ago($edited_time)) ?></span>
                                             </div>
