@@ -901,7 +901,7 @@ if (!empty($_GET['id'])) {
                                             onchange="if(this.value < 1) this.value = 1;">
                                         <select class="form-select form-select-inline bg-light" id="START_REMINDER_UNIT" name="START_REMINDER_UNIT">
                                             <option value="DAY" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'DAY' ? 'selected' : '' ?>>Days</option>
-                                            <option value="HOUR" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'HOUR' ? 'selected' : '' ?>>Hours</option>
+                                            <option value="WEEK" <?= $AUTOMATION['START_REMINDER_UNIT'] == 'WEEK' ? 'selected' : '' ?>>Week</option>
                                         </select>
                                     </div>
                                     <span class="text-muted extra-small">If trigger and conditions are not met, nothing happens</span>
@@ -1074,7 +1074,6 @@ if (!empty($_GET['id'])) {
                         <input type="number" class="form-control form-control-inline bg-light text-center reminder-value" value="${rem.value}" style="width:75px" min="1">
                         <select class="form-select form-select-inline bg-light reminder-unit" style="width:80px">
                             <option value="Days" ${rem.unit === 'Days' ? 'selected' : ''}>Days</option>
-                            <option value="Hours" ${rem.unit === 'Hours' ? 'selected' : ''}>Hours</option>
                             <option value="Weeks" ${rem.unit === 'Weeks' ? 'selected' : ''}>Weeks</option>
                         </select>
                     </div>
