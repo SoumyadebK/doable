@@ -22,6 +22,7 @@ while (!$followup_data->EOF) {
     $PK_USER_MASTER = $followup_data->fields['PK_USER_MASTER'];
 
     $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
+    $PK_USER = $customer_data->fields['PK_USER'];
     $selected_customer = $customer_data->fields['NAME'];
     $customer_phone = $customer_data->fields['PHONE'];
     $customer_email = $customer_data->fields['EMAIL_ID'];
@@ -48,7 +49,7 @@ while (!$followup_data->EOF) {
         <ul class="list-inline mb-0 mt-1">
             <li class="list-inline-item">
                 <span class="namebadge badge sp_badge badge-pill" style="background-color: <?= $profile_color ?>"><?= $profile_initials ?></span>
-                <a href="javascript:;" class="name text-decoration-underline fw-semibold" onclick="loadViewCustomerModal(<?= $PK_USER_MASTER ?>, 0)"><?= $selected_customer ?></a>
+                <a href="javascript:;" class="name text-decoration-underline fw-semibold" onclick="loadViewCustomerModal(<?= $PK_USER ?>, 0)"><?= $selected_customer ?></a>
                 <div class="f10 ms-4"><?= $customer_phone ?></div>
                 <div class="f10 ms-4"><?= $customer_email ?></div>
             </li>
