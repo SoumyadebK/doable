@@ -155,10 +155,13 @@ if ($TYPE == 'appointment') {
                     <div class="theme-text-light f12 ms-2"><?= $customer_phone ?></div>
                 </div>
                 <div class="d-flex gap-2 ms-auto">
-                    <a href="javascript;" class="btn-icon">
+                    <a href="javascript:;" class="btn-icon" onclick="sendSmsReminder(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send SMS Reminder">
+                        <i class="fa fa-bell" aria-hidden="true"></i>
+                    </a>
+                    <a href="javascript:;" class="btn-icon" title="Send Email">
                         <i class="fa fa-envelope" aria-hidden="true"></i>
                     </a>
-                    <a href="javascript;" class="btn-icon">
+                    <a href="javascript:;" class="btn-icon" title="Chat">
                         <i class="fa fa-comment" aria-hidden="true"></i>
                     </a>
                 </div>

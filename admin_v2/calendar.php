@@ -2624,6 +2624,85 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         }
     </script>
 
+    <script>
+        // In your JS file
+        function sendSmsReminder(appointmentId, customerId) {
+            swal({
+                    title: "Send SMS Reminder?",
+                    text: "Send SMS reminder to this customer?",
+                    icon: "warning",
+                    buttons: ["Cancel", "Yes, Send"],
+                    dangerMode: true,
+                })
+                .then((willSend) => {
+                    if (willSend) {
+                        // Show loading state
+                        swal({
+                            title: "Sending...",
+                            text: "Please wait",
+                            icon: "info",
+                            buttons: false,
+                            closeOnClickOutside: false,
+                            closeOnEsc: false,
+                        });
+
+                        // Get the button that was clicked
+                        var btn = event ? event.currentTarget : null;
+                        var originalHtml = btn ? btn.innerHTML : '';
+                        if (btn) {
+                            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+                            btn.disabled = true;
+                        }
+
+                        $.ajax({
+                            url: 'send_sms_manual.php',
+                            type: 'POST',
+                            data: {
+                                manual: 1,
+                                appointment_id: appointmentId,
+                                customer_id: customerId
+                            },
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    swal({
+                                        title: "Success!",
+                                        text: response.message,
+                                        icon: "success",
+                                        timer: 2000,
+                                        buttons: false
+                                    });
+                                    // Optionally update the UI
+                                    $('.sms-status-' + appointmentId).html('<span class="badge bg-success">Reminder Sent</span>');
+                                } else {
+                                    swal({
+                                        title: "Failed!",
+                                        text: response.message,
+                                        icon: "error",
+                                        button: "OK"
+                                    });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                swal({
+                                    title: "Error!",
+                                    text: "Error sending SMS: " + error,
+                                    icon: "error",
+                                    button: "OK"
+                                });
+                            },
+                            complete: function() {
+                                if (btn) {
+                                    btn.innerHTML = originalHtml;
+                                    btn.disabled = false;
+                                }
+                            }
+                        });
+                    }
+                });
+        }
+    </script>
+
     <style>
         .page-wrapper {
             min-height: calc(100vh - 200px) !important;
