@@ -1772,12 +1772,16 @@ function getServiceProviderCount($RESPONSE_DATA)
 
     $all_service_provider_details = $db->Execute("SELECT PK_USER AS SERVICE_PROVIDER_ID, CONCAT(SERVICE_PROVIDER.FIRST_NAME, ' ', SERVICE_PROVIDER.LAST_NAME) AS SERVICE_PROVIDER_NAME FROM DOA_USERS AS SERVICE_PROVIDER WHERE PK_USER IN (" . $selected_service_provider . ")");
     while (!$all_service_provider_details->EOF) {
+        $SERVICE_PROVIDER_ID = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
         $profile = getProfileBadge($all_service_provider_details->fields['SERVICE_PROVIDER_NAME']);
 
-        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_ID'] = $all_service_provider_details->fields['SERVICE_PROVIDER_ID'];
-        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
-        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['INITIALS'] = $profile['initials'];
-        $service_provider_array[$all_service_provider_details->fields['SERVICE_PROVIDER_ID']]['COLOR'] = $profile['color'];
+        $service_provider_array[$SERVICE_PROVIDER_ID]['SERVICE_PROVIDER_ID'] = $SERVICE_PROVIDER_ID;
+        $service_provider_array[$SERVICE_PROVIDER_ID]['SERVICE_PROVIDER_NAME'] = $all_service_provider_details->fields['SERVICE_PROVIDER_NAME'];
+        $service_provider_array[$SERVICE_PROVIDER_ID]['INITIALS'] = $profile['initials'];
+        $service_provider_array[$SERVICE_PROVIDER_ID]['COLOR'] = $profile['color'];
+
+        $is_followup_exist = $db_account->Execute("SELECT EXISTS (SELECT 1 FROM DOA_AUTOMATION_LOG WHERE IS_ARCHIVE = 0 AND FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_CLASS_SP_ID) ) AS record_exists");
+        $service_provider_array[$SERVICE_PROVIDER_ID]['IS_FOLLOWUP_EXIST'] = $is_followup_exist->fields['record_exists'];
 
         $all_service_provider_details->MoveNext();
     }
