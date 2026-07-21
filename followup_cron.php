@@ -64,8 +64,7 @@ function noFutureAppointment($db_account, $PK_LOCATION, $follow_up_data)
                 saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data->fields, 'appointment', $appointment_data->fields);
                 $appointment_data->MoveNext();
             }
-
-            $START_REMINDER_VALUE += $START_REMINDER_VALUE;
+            $START_REMINDER_VALUE += $follow_up_data['START_REMINDER_VALUE'];
             $reminder_data->MoveNext();
         }
     } elseif ($follow_up_data['SCHEDULE_TYPE'] == 'custom') {
@@ -85,36 +84,37 @@ function noFutureAppointment($db_account, $PK_LOCATION, $follow_up_data)
 
 function getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $REMINDER_VALUE)
 {
-    $all_appointment = $db_account->Execute("SELECT
-                                                AM.PK_APPOINTMENT_MASTER,
-                                                AM.PK_ENROLLMENT_MASTER,
-                                                AC.PK_USER_MASTER,
-                                                MAX(AM.PK_APPOINTMENT_MASTER) AS LAST_APPOINTMENT_ID,
-                                                MAX(AM.DATE) AS LAST_APPOINTMENT_DATE
-                                            FROM DOA_APPOINTMENT_CUSTOMER AC
-                                            INNER JOIN DOA_APPOINTMENT_MASTER AM
-                                                ON AM.PK_APPOINTMENT_MASTER = AC.PK_APPOINTMENT_MASTER
-                                            WHERE AM.STATUS = 'A' AND AM.APPOINTMENT_TYPE = '$APPOINTMENT_TYPE'
-                                            AND AM.PK_LOCATION = '$PK_LOCATION'
-                                            GROUP BY AC.PK_USER_MASTER
-                                            HAVING DATEDIFF(CURDATE(), MAX(AM.DATE)) = " . $REMINDER_VALUE);
+    $query = "SELECT
+                AM.PK_ENROLLMENT_MASTER,
+                AC.PK_USER_MASTER,
+                MAX(AM.PK_APPOINTMENT_MASTER) AS PK_APPOINTMENT_MASTER,
+                MAX(AM.DATE) AS LAST_APPOINTMENT_DATE
+            FROM DOA_APPOINTMENT_CUSTOMER AC
+            INNER JOIN DOA_APPOINTMENT_MASTER AM
+                ON AM.PK_APPOINTMENT_MASTER = AC.PK_APPOINTMENT_MASTER
+            WHERE AM.STATUS = 'A' AND AM.APPOINTMENT_TYPE = '$APPOINTMENT_TYPE'
+            AND AM.PK_LOCATION = '$PK_LOCATION'
+            GROUP BY AC.PK_USER_MASTER
+            HAVING DATEDIFF(CURDATE(), MAX(AM.DATE)) = " . $REMINDER_VALUE;
+    $all_appointment = $db_account->Execute($query);
     return $all_appointment;
 }
 
 function saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data, $type, $data)
 {
+    error_reporting(E_ALL & ~E_DEPRECATED);
     if ($type == 'appointment') {
         $is_already_saved = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_MESSAGE_ID = '$reminder_data[PK_MESSAGE_ID]' AND TYPE = '$type' AND PK_VALUE = '$data[PK_APPOINTMENT_MASTER]'");
         if ($is_already_saved->RecordCount() == 0) {
-            $PK_AUTOMATION_ID = $PK_AUTOMATION_ID;
-            $PK_MESSAGE_ID = $reminder_data['PK_MESSAGE_ID'];
-            $TYPE = $type;
-            $PK_VALUE = $data['PK_APPOINTMENT_MASTER'];
-            $PK_USER_MASTER = '';
-            $PK_SERVICE_PROVIDER_LAST = '';
+            $insert_log_data['PK_AUTOMATION_ID'] = $PK_AUTOMATION_ID;
+            $insert_log_data['PK_MESSAGE_ID'] = $reminder_data['PK_MESSAGE_ID'];
+            $insert_log_data['TYPE'] = $type;
+            $insert_log_data['PK_VALUE'] = $data['PK_APPOINTMENT_MASTER'];
+            $insert_log_data['PK_USER_MASTER'] = '';
+            $insert_log_data['LAST_CLASS_SP_ID'] = '';
 
             if ($reminder_data['NOTIFY_CUSTOMER'] == 1) {
-                $PK_USER_MASTER = $data['PK_USER_MASTER'];
+                $insert_log_data['PK_USER_MASTER'] = $data['PK_USER_MASTER'];
             }
 
             if ($reminder_data['NOTIFY_SERVICE_PROVIDER_LAST'] == 1) {
@@ -124,12 +124,14 @@ function saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data, $type
                     $last_sp_array[] = $appointment_service_provider->fields['PK_USER'];
                     $appointment_service_provider->MoveNext();
                 }
-                $PK_SERVICE_PROVIDER_LAST = implode(',', $last_sp_array);
+                $insert_log_data['LAST_CLASS_SP_ID'] = implode(',', $last_sp_array);
             }
 
-            $MESSAGE = $reminder_data['MESSAGE_CONTENT'];
+            echo $reminder_data['MESSAGE_CONTENT'] . "<br>";
 
-            $db_account->Execute("INSERT INTO DOA_AUTOMATION_LOG (PK_AUTOMATION_ID, PK_MESSAGE_ID, TYPE, PK_VALUE, PK_USER_MASTER, LAST_CLASS_SP_ID, MESSAGE) VALUES ('$PK_AUTOMATION_ID', '$PK_MESSAGE_ID', '$TYPE', '$PK_VALUE', '$PK_USER_MASTER', '$PK_SERVICE_PROVIDER_LAST', '$MESSAGE')");
+            $insert_log_data['MESSAGE'] = $reminder_data['MESSAGE_CONTENT'];
+            $insert_log_data['CREATED_ON'] = date("Y-m-d H:i:s");
+            db_perform_account('DOA_AUTOMATION_LOG', $insert_log_data, 'insert');
         }
     }
 }

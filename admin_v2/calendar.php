@@ -631,6 +631,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             padding: 4px 8px !important;
         }
     }
+
+    .popover {
+        z-index: 999999 !important;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -2127,18 +2131,45 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     let service_providers = result_data.service_provider;
                     for (let i = 0; i < service_providers.length; i++) {
 
+                        let sp_id = service_providers[i].SERVICE_PROVIDER_ID;
                         let sp_name = service_providers[i].SERVICE_PROVIDER_NAME.trim();
                         let sp_initials = service_providers[i].INITIALS;
                         let sp_color = service_providers[i].COLOR;
                         let appointment_count = (service_providers[i].APPOINTMENT_COUNT > 0) ? service_providers[i].APPOINTMENT_COUNT : '0';
+                        let is_followup_exist = service_providers[i].IS_FOLLOWUP_EXIST;
 
-                        let avatarHTML = `<div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; width:100%; margin-top: 10px;">
-                                                <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:${sp_color};color:#fff;font-weight:600;font-size:14px;letter-spacing:1px;">
-                                                    ${sp_initials}
+                        let avatarHTML = `<div ${(is_followup_exist == 1) ? 'onclick="showFollowUpMessages(this)"' : ''} data-id="${sp_id}"
+                                                style="cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;width:100%;margin-top:10px;">
+
+                                                <div style="position:relative;display:inline-block;">
+
+                                                    <div style="
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:center;
+                                                        width:30px;
+                                                        height:30px;
+                                                        border-radius:50%;
+                                                        background-color:${sp_color};
+                                                        color:#fff;
+                                                        font-weight:600;
+                                                        font-size:14px;
+                                                        letter-spacing:1px;">
+                                                        ${sp_initials}
+                                                    </div>
+                                                    <!-- Red notification dot -->
+                                                    ${(is_followup_exist == 1) ? '<span style="position:absolute;top:-8px;right:-8px;width:12px;height:12px;background:red;border-radius:50%;border:2px solid #fff;"></span>' : ''}
                                                 </div>
-                                                <div style="max-width:100%;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+
+                                                <div style="
+                                                    max-width:100%;
+                                                    font-size:13px;
+                                                    white-space:nowrap;
+                                                    overflow:hidden;
+                                                    text-overflow:ellipsis;">
                                                     ${sp_name} - ${appointment_count}
                                                 </div>
+
                                             </div>`;
 
                         $('th[data-resource-id="' + service_providers[i].SERVICE_PROVIDER_ID + '"]').html(avatarHTML);
@@ -2156,6 +2187,53 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 }
             });
         }
+
+
+
+        let followUpPop = null;
+
+        function showFollowUpMessages(element) {
+            if (followUpPop) {
+                followUpPop.dispose();
+            }
+
+            let service_provider_id = element.getAttribute('data-id');
+
+            $.ajax({
+                url: "ajax/get_followup_messages.php",
+                type: "POST",
+                data: {
+                    SERVICE_PROVIDER_ID: service_provider_id
+                },
+                success: function(result) {
+                    let content = `<div class="p-2" style="position: relative;">
+                                        <div class="popover-close" style="top: 0px; left: 0px; width: 0px; height: 0px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #ff4d4f; font-weight: 700; cursor: pointer; z-index: 10; font-size: 25px; float: right;" onclick="closePopover()">×</div>
+                                        ${result}
+                                   </div>`;
+
+                    followUpPop = bootstrap.Popover.getOrCreateInstance(element, {
+                        trigger: 'manual',
+                        html: true,
+                        placement: 'bottom',
+                        container: 'body',
+                        sanitize: false,
+                        content: content
+                    });
+
+                    followUpPop.show();
+                }
+            });
+        }
+
+        function closePopover() {
+            if (followUpPop) {
+                followUpPop.dispose();
+                followUpPop = null;
+            }
+        }
+
+
+
 
         $(document).on('submit', '#search_form', function(event) {
             event.preventDefault();
