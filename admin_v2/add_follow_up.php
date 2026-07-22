@@ -420,6 +420,7 @@ if (!empty($_GET['id'])) {
     );
     $MESSAGES = array();
     $MESSAGE_NOTIFICATIONS = array();
+    $MESSAGE_TYPES = array();
 }
 ?>
 <!DOCTYPE html>

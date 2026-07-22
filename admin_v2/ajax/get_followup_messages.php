@@ -1,5 +1,6 @@
 <?php
 require_once('../../global/config.php');
+error_reporting(E_ALL);
 global $db;
 global $db_account;
 global $master_database;

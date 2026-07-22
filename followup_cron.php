@@ -4,14 +4,16 @@ use Twilio\Rest\Client;
 
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
     require_once("global/config.php");
+    require_once('global/common_functions_account.php');
     require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
 } else {
     require_once("/var/www/html/global/config.php");
+    require_once('/var/www/html/global/common_functions_account.php');
     require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
 }
 
 global $db;
-$all_location = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER  WHERE /* DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1 */ PK_LOCATION = 13");
+$all_location = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.PK_ACCOUNT_MASTER, DOA_LOCATION.HOUR, DOA_ACCOUNT_MASTER.DB_NAME, DOA_TIMEZONE.TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1 /* PK_LOCATION = 13 */");
 while (!$all_location->EOF) {
     date_default_timezone_set($all_location->fields['TIMEZONE']);
 
@@ -61,7 +63,7 @@ function noFutureAppointment($db_account, $PK_LOCATION, $follow_up_data)
         while (!$reminder_data->EOF) {
             $appointment_data = getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $START_REMINDER_VALUE);
             while (!$appointment_data->EOF) {
-                saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data->fields, 'appointment', $appointment_data->fields);
+                saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data->fields, 'appointment', $appointment_data->fields);
                 $appointment_data->MoveNext();
             }
             $START_REMINDER_VALUE += $follow_up_data['START_REMINDER_VALUE'];
@@ -74,7 +76,7 @@ function noFutureAppointment($db_account, $PK_LOCATION, $follow_up_data)
             $REMINDER_VALUE += $reminder_data->fields['VALUE'];
             $appointment_data = getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $REMINDER_VALUE);
             while (!$appointment_data->EOF) {
-                saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data->fields, 'appointment', $appointment_data->fields);
+                saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data->fields, 'appointment', $appointment_data->fields);
                 $appointment_data->MoveNext();
             }
             $reminder_data->MoveNext();
@@ -100,9 +102,9 @@ function getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $REMIN
     return $all_appointment;
 }
 
-function saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data, $type, $data)
+function saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data, $type, $data)
 {
-    error_reporting(E_ALL & ~E_DEPRECATED);
+    global $db;
     if ($type == 'appointment') {
         $is_already_saved = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_MESSAGE_ID = '$reminder_data[PK_MESSAGE_ID]' AND TYPE = '$type' AND PK_VALUE = '$data[PK_APPOINTMENT_MASTER]'");
         if ($is_already_saved->RecordCount() == 0) {
@@ -112,11 +114,13 @@ function saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data, $type
             $insert_log_data['PK_VALUE'] = $data['PK_APPOINTMENT_MASTER'];
             $insert_log_data['PK_USER_MASTER'] = '';
             $insert_log_data['LAST_CLASS_SP_ID'] = '';
+            $insert_log_data['PK_USER_MASTER'] = $data['PK_USER_MASTER'];
 
-            if ($reminder_data['NOTIFY_CUSTOMER'] == 1) {
-                $insert_log_data['PK_USER_MASTER'] = $data['PK_USER_MASTER'];
-            }
+            /* if ($reminder_data['NOTIFY_CUSTOMER'] == 1) {
+                //sms will send to customer
+            } */
 
+            $service_provider_name = '';
             if ($reminder_data['NOTIFY_SERVICE_PROVIDER_LAST'] == 1) {
                 $last_sp_array = [];
                 $appointment_service_provider = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = '$data[PK_APPOINTMENT_MASTER]'");
@@ -125,13 +129,60 @@ function saveAutomationLog($db_account, $PK_AUTOMATION_ID, $reminder_data, $type
                     $appointment_service_provider->MoveNext();
                 }
                 $insert_log_data['LAST_CLASS_SP_ID'] = implode(',', $last_sp_array);
+
+                $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE PK_USER = " . $last_sp_array[0]);
+                $service_provider_name = $service_provider_data->fields['NAME'];
             }
 
-            echo $reminder_data['MESSAGE_CONTENT'] . "<br>";
+            $location_corporation_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.CITY, DOA_LOCATION.PHONE, DOA_LOCATION.EMAIL, DOA_LOCATION.ACTIVE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION);
+            $location_name = $location_corporation_data->fields['LOCATION_NAME'];
+            $corporation_name = $location_corporation_data->fields['CORPORATION_NAME'];
 
-            $insert_log_data['MESSAGE'] = $reminder_data['MESSAGE_CONTENT'];
+            $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$data[PK_USER_MASTER]'");
+            $student_name = $customer_data->fields['NAME'];
+            $student_phone = $customer_data->fields['PHONE'];
+
+            $saved_message = $reminder_data['MESSAGE_CONTENT'];
+
+            $replacements = [
+                '<span class="variable-badge" contenteditable="false">Student Name</span>' => $student_name,
+                '<span class="variable-badge" contenteditable="false">Service Provider Name</span>' => $service_provider_name,
+                '<span class="variable-badge" contenteditable="false">Corporation Name</span>' => $corporation_name,
+                '<span class="variable-badge" contenteditable="false">Location</span>' => $location_name,
+            ];
+
+            $message = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
+
+            echo html_entity_decode($message) . "<br>";
+
+            $insert_log_data['MESSAGE'] = $message;
             $insert_log_data['CREATED_ON'] = date("Y-m-d H:i:s");
             db_perform_account('DOA_AUTOMATION_LOG', $insert_log_data, 'insert');
+
+            if ($reminder_data['MESSAGE_TYPE'] == 'SMS') {
+                sendTwilioSMS($PK_LOCATION, $message, $student_phone);
+            }
         }
+    }
+}
+
+function sendTwilioSMS($PK_LOCATION, $message, $to_phone_number)
+{
+    [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
+    try {
+        $client = new Client($SID, $TOKEN);
+        $response = $client->messages->create(
+            '+1' . $to_phone_number,
+            [
+                'from' => $TWILIO_PHONE_NO,
+                'body' => $message
+            ]
+        );
+        $IS_ERROR = 0;
+        $ERROR_MESSAGE = '';
+    } catch (\Twilio\Exceptions\TwilioException $e) {
+        echo 'Error : ' . $e->getMessage() . "<br>";
+        $IS_ERROR = 1;
+        $ERROR_MESSAGE = $e->getMessage();
     }
 }
