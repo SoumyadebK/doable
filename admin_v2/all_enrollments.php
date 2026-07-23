@@ -552,12 +552,12 @@ if (isset($_POST['SUBMIT'])) {
                                         <td class="d-flex align-items-center" style="height: 60px;">
                                             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
                                             <div>
-                                                <div><a href="../admin/customer.php?id=<?= $enrollment_data->fields['PK_USER'] ?>&master_id=<?= $enrollment_data->fields['PK_USER_MASTER'] ?>"><?= $CUSTOMER_NAME ?></a></div>
+                                                <div><a href="../admin_v2/customer.php?id=<?= $enrollment_data->fields['PK_USER'] ?>&master_id=<?= $enrollment_data->fields['PK_USER_MASTER'] ?>"><?= $CUSTOMER_NAME ?></a></div>
                                                 <small class="text-muted"><?= $enrollment_data->fields['EMAIL_ID'] ?></small>
                                             </div>
                                         </td>
                                         <td><?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?></td>
-                                        <td><a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a></td>
+                                        <td><a href="../admin_v2/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a></td>
                                         <td><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
                                         <td><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></td>
                                         <td><?= $enrollment_data->fields['PHONE'] ?></td>
@@ -601,7 +601,7 @@ if (isset($_POST['SUBMIT'])) {
                                             <?php }
                                             } ?>
 
-                                            <a href="../admin/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>" title="Edit" style="font-size:18px; color: #198754;">
+                                            <a href="../admin_v2/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>" title="Edit" style="font-size:18px; color: #198754;">
                                                 <i class="fa fa-pencil"></i>
                                             </a>
                                         </td>
