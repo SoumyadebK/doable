@@ -40,6 +40,8 @@ while (!$all_location->EOF) {
 
         if ($TRIGGER_TYPE == 'NO_FUTURE_APPOINTMENTS') {
             noFutureAppointment($db_account, $PK_LOCATION, $follow_up_data);
+        } elseif ($TRIGGER_TYPE == 'NO_ACTIVE_ENROLLMENTS') {
+            noActiveEnrollment($db_account, $PK_LOCATION, $follow_up_data);
         } elseif ($TRIGGER_TYPE == 'NO_SPECIFIC_SERVICES') {
             include("followup_cron_no_specific_services.php");
         } elseif ($TRIGGER_TYPE == 'NEW_LEAD_IS_GENERATED') {
@@ -102,66 +104,125 @@ function getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $REMIN
     return $all_appointment;
 }
 
+function noActiveEnrollment($db_account, $PK_LOCATION, $follow_up_data)
+{
+    $PK_AUTOMATION_ID = $follow_up_data['PK_AUTOMATION_ID'];
+
+    if ($follow_up_data['SCHEDULE_TYPE'] == 'simple') {
+        $START_REMINDER_VALUE = $follow_up_data['START_REMINDER_VALUE'];
+        $reminder_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID'");
+        while (!$reminder_data->EOF) {
+            $enrollment_data = getLastActiveEnrollment($db_account, $PK_LOCATION, $START_REMINDER_VALUE);
+            while (!$enrollment_data->EOF) {
+                saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data->fields, 'enrollment', $enrollment_data->fields);
+                $enrollment_data->MoveNext();
+            }
+            $START_REMINDER_VALUE += $follow_up_data['START_REMINDER_VALUE'];
+            $reminder_data->MoveNext();
+        }
+    } elseif ($follow_up_data['SCHEDULE_TYPE'] == 'custom') {
+        $REMINDER_VALUE = 0;
+        $reminder_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND IS_ENABLE = 1");
+        while (!$reminder_data->EOF) {
+            $REMINDER_VALUE += $reminder_data->fields['VALUE'];
+            $enrollment_data = getLastActiveEnrollment($db_account, $PK_LOCATION, $REMINDER_VALUE);
+            while (!$enrollment_data->EOF) {
+                saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data->fields, 'enrollment', $enrollment_data->fields);
+                $enrollment_data->MoveNext();
+            }
+            $reminder_data->MoveNext();
+        }
+    }
+}
+
+function getLastActiveEnrollment($db_account, $PK_LOCATION, $REMINDER_VALUE)
+{
+    $query = "SELECT
+                EM.PK_USER_MASTER,
+                EM.ENROLLMENT_BY_ID,
+                MAX(EM.PK_ENROLLMENT_MASTER) AS PK_ENROLLMENT_MASTER,
+                MAX(EM.ENROLLMENT_DATE) AS ENROLLMENT_DATE
+            FROM DOA_ENROLLMENT_MASTER EM
+            WHERE EM.ACTIVE = 1
+            AND (EM.STATUS = 'CO' || EM.STATUS = 'C')
+            AND EM.PK_LOCATION = '$PK_LOCATION'
+            GROUP BY EM.PK_USER_MASTER
+            HAVING DATEDIFF(CURDATE(), MAX(EM.ENROLLMENT_DATE)) = " . $REMINDER_VALUE;
+
+    echo $query . "<br>";
+
+    $all_enrollment = $db_account->Execute($query);
+    return $all_enrollment;
+}
+
 function saveAutomationLog($db_account, $PK_LOCATION, $PK_AUTOMATION_ID, $reminder_data, $type, $data)
 {
     global $db;
-    if ($type == 'appointment') {
-        $is_already_saved = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_MESSAGE_ID = '$reminder_data[PK_MESSAGE_ID]' AND TYPE = '$type' AND PK_VALUE = '$data[PK_APPOINTMENT_MASTER]'");
-        if ($is_already_saved->RecordCount() == 0) {
-            $insert_log_data['PK_AUTOMATION_ID'] = $PK_AUTOMATION_ID;
-            $insert_log_data['PK_MESSAGE_ID'] = $reminder_data['PK_MESSAGE_ID'];
-            $insert_log_data['TYPE'] = $type;
-            $insert_log_data['PK_VALUE'] = $data['PK_APPOINTMENT_MASTER'];
-            $insert_log_data['PK_USER_MASTER'] = '';
-            $insert_log_data['LAST_CLASS_SP_ID'] = '';
-            $insert_log_data['PK_USER_MASTER'] = $data['PK_USER_MASTER'];
+    $PK_VALUE = ($type == 'appointment') ? $data['PK_APPOINTMENT_MASTER'] : $data['PK_ENROLLMENT_MASTER'];
+    $is_already_saved = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_MESSAGE_ID = '$reminder_data[PK_MESSAGE_ID]' AND TYPE = '$type' AND PK_VALUE = '$PK_VALUE'");
+    if ($is_already_saved->RecordCount() == 0) {
+        $insert_log_data['PK_AUTOMATION_ID'] = $PK_AUTOMATION_ID;
+        $insert_log_data['PK_MESSAGE_ID'] = $reminder_data['PK_MESSAGE_ID'];
+        $insert_log_data['TYPE'] = $type;
+        $insert_log_data['PK_VALUE'] = $PK_VALUE;
+        $insert_log_data['PK_USER_MASTER'] = '';
+        $insert_log_data['LAST_CLASS_SP_ID'] = '';
+        $insert_log_data['PK_USER_MASTER'] = $data['PK_USER_MASTER'];
 
-            /* if ($reminder_data['NOTIFY_CUSTOMER'] == 1) {
-                //sms will send to customer
-            } */
-
-            $service_provider_name = '';
-            if ($reminder_data['NOTIFY_SERVICE_PROVIDER_LAST'] == 1) {
-                $last_sp_array = [];
-                $appointment_service_provider = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = '$data[PK_APPOINTMENT_MASTER]'");
-                while (!$appointment_service_provider->EOF) {
-                    $last_sp_array[] = $appointment_service_provider->fields['PK_USER'];
-                    $appointment_service_provider->MoveNext();
-                }
-                $insert_log_data['LAST_CLASS_SP_ID'] = implode(',', $last_sp_array);
-
-                $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE PK_USER = " . $last_sp_array[0]);
-                $service_provider_name = $service_provider_data->fields['NAME'];
+        $service_provider_name = '';
+        if ($type == 'appointment' && $reminder_data['NOTIFY_SERVICE_PROVIDER_LAST'] == 1) {
+            $last_sp_array = [];
+            $appointment_service_provider = $db_account->Execute("SELECT * FROM DOA_APPOINTMENT_SERVICE_PROVIDER WHERE PK_APPOINTMENT_MASTER = '$data[PK_APPOINTMENT_MASTER]'");
+            while (!$appointment_service_provider->EOF) {
+                $last_sp_array[] = $appointment_service_provider->fields['PK_USER'];
+                $appointment_service_provider->MoveNext();
             }
+            $insert_log_data['LAST_CLASS_SP_ID'] = implode(',', $last_sp_array);
 
-            $location_corporation_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.CITY, DOA_LOCATION.PHONE, DOA_LOCATION.EMAIL, DOA_LOCATION.ACTIVE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION);
-            $location_name = $location_corporation_data->fields['LOCATION_NAME'];
-            $corporation_name = $location_corporation_data->fields['CORPORATION_NAME'];
+            $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE PK_USER = " . $last_sp_array[0]);
+            $service_provider_name = $service_provider_data->fields['NAME'];
+        }
 
-            $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$data[PK_USER_MASTER]'");
-            $student_name = $customer_data->fields['NAME'];
-            $student_phone = $customer_data->fields['PHONE'];
-
-            $saved_message = $reminder_data['MESSAGE_CONTENT'];
-
-            $replacements = [
-                '<span class="variable-badge" contenteditable="false">Student Name</span>' => $student_name,
-                '<span class="variable-badge" contenteditable="false">Service Provider Name</span>' => $service_provider_name,
-                '<span class="variable-badge" contenteditable="false">Corporation Name</span>' => $corporation_name,
-                '<span class="variable-badge" contenteditable="false">Location</span>' => $location_name,
-            ];
-
-            $message = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
-
-            echo html_entity_decode($message) . "<br>";
-
-            $insert_log_data['MESSAGE'] = $message;
-            $insert_log_data['CREATED_ON'] = date("Y-m-d H:i:s");
-            db_perform_account('DOA_AUTOMATION_LOG', $insert_log_data, 'insert');
-
-            if ($reminder_data['MESSAGE_TYPE'] == 'SMS') {
-                sendTwilioSMS($PK_LOCATION, $message, $student_phone);
+        if ($type == 'enrollment' && $reminder_data['NOTIFY_SERVICE_PROVIDER_ENROLL'] == 1) {
+            $last_sp_array = [];
+            $enrollment_service_provider = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER = '$data[PK_ENROLLMENT_MASTER]'");
+            while (!$enrollment_service_provider->EOF) {
+                $last_sp_array[] = $enrollment_service_provider->fields['SERVICE_PROVIDER_ID'];
+                $enrollment_service_provider->MoveNext();
             }
+            $insert_log_data['LAST_ENROLLMENT_SP_ID'] = implode(',', $last_sp_array);
+
+            $service_provider_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE FROM DOA_USERS WHERE PK_USER = " . $data['ENROLLMENT_BY_ID']);
+            $service_provider_name = $service_provider_data->fields['NAME'];
+        }
+
+        $location_corporation_data = $db->Execute("SELECT DOA_LOCATION.PK_LOCATION, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.CITY, DOA_LOCATION.PHONE, DOA_LOCATION.EMAIL, DOA_LOCATION.ACTIVE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION = DOA_CORPORATION.PK_CORPORATION WHERE DOA_LOCATION.PK_LOCATION = " . $PK_LOCATION);
+        $location_name = $location_corporation_data->fields['LOCATION_NAME'];
+        $corporation_name = $location_corporation_data->fields['CORPORATION_NAME'];
+
+        $customer_data = $db->Execute("SELECT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME, DOA_USERS.USER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_USERS.ACTIVE, DOA_USER_MASTER.PK_USER_MASTER FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$data[PK_USER_MASTER]'");
+        $student_name = $customer_data->fields['NAME'];
+        $student_phone = $customer_data->fields['PHONE'];
+
+        $saved_message = $reminder_data['MESSAGE_CONTENT'];
+
+        $replacements = [
+            '<span class="variable-badge" contenteditable="false">Student Name</span>' => $student_name,
+            '<span class="variable-badge" contenteditable="false">Service Provider Name</span>' => $service_provider_name,
+            '<span class="variable-badge" contenteditable="false">Corporation Name</span>' => $corporation_name,
+            '<span class="variable-badge" contenteditable="false">Location</span>' => $location_name,
+        ];
+
+        $message = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
+
+        echo html_entity_decode($message) . "<br>";
+
+        $insert_log_data['MESSAGE'] = $message;
+        $insert_log_data['CREATED_ON'] = date("Y-m-d H:i:s");
+        db_perform_account('DOA_AUTOMATION_LOG', $insert_log_data, 'insert');
+
+        if ($reminder_data['NOTIFY_CUSTOMER'] == 1 && $reminder_data['MESSAGE_TYPE'] == 'SMS') {
+            sendTwilioSMS($PK_LOCATION, $message, $student_phone);
         }
     }
 }

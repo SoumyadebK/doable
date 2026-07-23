@@ -1,0 +1,1002 @@
+{
+  "product": "Doable.net",
+  "version": "1.0",
+  "last_updated": "2026-07-16",
+  "description": "Complete Knowledge Base & User Guide for Doable.net — a multi-location SaaS platform for service-based businesses.",
+  "sections": [
+    {
+      "id": "S1",
+      "title": "Introduction to Doable.net",
+      "slug": "introduction",
+      "articles": [
+        {
+          "id": "S1-A1",
+          "title": "What is Doable.net?",
+          "slug": "what-is-doable",
+          "content": "Doable.net is a comprehensive SaaS platform designed for multi-location service businesses (dance studios, fitness, wellness, etc.). It manages the full client lifecycle — from first inquiry as a Lead, through scheduling, enrollment, billing, and ongoing client relationship management."
+        },
+        {
+          "id": "S1-A2",
+          "title": "Navigation Overview",
+          "slug": "navigation-overview",
+          "content": "The top navigation bar contains: Calendar | Messages | Customers | Billing | Leads | Events | E-Commerce | Reports. On the right side: shopping cart, notifications bell, and Settings gear icon (⚙)."
+        },
+        {
+          "id": "S1-A3",
+          "title": "Key System Concepts",
+          "slug": "key-concepts",
+          "content": "Doable.net is organized in a hierarchy: Corporation (top-level) → Location (branch/studio) → User (staff) → Client. Settings flow downward — anything configured at the Corporation level automatically applies to all Locations beneath it.",
+          "rules": [
+            "A Corporation is the top-level entity. All settings inherit down to Locations.",
+            "A Location is a physical branch under a Corporation.",
+            "Users can be assigned to multiple Locations within one Corporation, but not across Corporations.",
+            "Clients have a Primary Location (home location) and optional Preferred Locations.",
+            "Deactivating a Corporation prevents all users from accessing its locations."
+          ]
+        },
+        {
+          "id": "S1-A4",
+          "title": "User Roles",
+          "slug": "user-roles",
+          "content": "Roles are global (not location-specific). A user's role applies the same way at every location they are assigned to.",
+          "roles": [
+            { "name": "Super Admin", "description": "Full access across all corporations and all locations." },
+            { "name": "Admin", "description": "Full access within assigned corporation/locations." },
+            { "name": "Manager", "description": "Location management, reporting, lead deletion, event management." },
+            { "name": "Supervisor", "description": "Elevated staff role — can create/edit events and leads." },
+            { "name": "Counselor", "description": "Client-facing role — can create/edit events and leads." },
+            { "name": "Service Provider", "description": "Frontline staff — can view calendar and manage clients but cannot drag-and-drop, delete leads, or create events." }
+          ],
+          "permissions_matrix": {
+            "headers": ["Function", "Super Admin", "Admin", "Manager", "Supervisor", "Counselor", "Service Provider"],
+            "rows": [
+              ["Access all locations", true, false, false, false, false, false],
+              ["Manage Corporations", true, true, false, false, false, false],
+              ["Manage Locations", true, true, true, false, false, false],
+              ["Manage Users", true, true, true, false, false, false],
+              ["Create/Edit Events", true, true, true, true, true, false],
+              ["Delete Events", true, true, true, false, false, false],
+              ["Delete Leads", true, true, true, false, false, false],
+              ["Create/Edit Leads", true, true, true, true, true, true],
+              ["Convert Lead to Customer", true, true, true, true, true, true],
+              ["Calendar Drag & Drop", true, true, true, true, true, false],
+              ["Access Reports", true, true, true, true, true, "restricted_by_role"],
+              ["Run Reports (all locations)", true, false, false, false, false, false]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Settings & Configuration — Operations",
+      "slug": "settings-operations",
+      "articles": [
+        {
+          "id": "S2-A1",
+          "title": "Settings Overview",
+          "slug": "settings-overview",
+          "content": "Settings are accessed via the gear icon (⚙) in the top navigation. The Settings area is divided into five tabs: Operations | Services | Other | Communications | Logs."
+        },
+        {
+          "id": "S2-A2",
+          "title": "Corporations",
+          "slug": "corporations",
+          "purpose": "Corporations are the top-level organizational unit. All configuration settings cascade down to Locations.",
+          "required_fields": ["Corporation Name", "Time Zone"],
+          "optional_fields": ["Address", "Phone", "Logo", "Tax ID", "Notes"],
+          "rules": [
+            "Corporation Name and Time Zone are required.",
+            "Deactivating a Corp immediately prevents all users from logging into any of its locations.",
+            "All settings configured at the Corp level inherit to all Locations.",
+            "A user cannot be assigned to more than one Corporation.",
+            "A user CAN be assigned to multiple Locations within the same Corporation."
+          ],
+          "how_to_create": [
+            "Navigate to Settings → Operations → Corporations",
+            "Click 'Add Corporation'",
+            "Enter Corporation Name (required) and Time Zone (required)",
+            "Complete optional fields: address, phone, logo",
+            "Click Save"
+          ],
+          "how_to_deactivate": [
+            "Navigate to the Corporation record",
+            "Toggle the Active/Inactive status",
+            "Confirm — all location access is immediately suspended"
+          ]
+        },
+        {
+          "id": "S2-A3",
+          "title": "Locations",
+          "slug": "locations",
+          "purpose": "Locations represent individual physical branches or studios under a Corporation.",
+          "profile_fields": {
+            "fields_1_to_3": ["Location Name", "Address", "City", "State", "Zip", "Phone", "Email", "Time Zone", "Website URL", "Active/Inactive toggle", "Primary Corp assignment"]
+          },
+          "subsections": [
+            {
+              "name": "Location Hours Setup",
+              "description": "Set open/close times for each day of the week. Mark days as Closed.",
+              "holiday_blocking": {
+                "description": "Block specific dates to prevent scheduling at that location.",
+                "types": ["One-time dated holidays (e.g., December 25)", "Recurring closures (e.g., every Sunday)"],
+                "effect": "When a holiday is blocked, no appointments can be scheduled on that date at this location."
+              }
+            },
+            {
+              "name": "Customer Permissions",
+              "description": "Controls what clients can see and do in the client portal. Configurable per location."
+            },
+            {
+              "name": "Payment & Register Setup",
+              "description": "Connect location to Doable.net payment processing. Configure accepted payment methods and POS settings."
+            },
+            {
+              "name": "Billing & Card on File",
+              "description": "Configure billing rules for the location and card-on-file settings for client autopay."
+            },
+            {
+              "name": "Concierge (AI Chatbot) Setup",
+              "description": "The Concierge is an AI chatbot embedded on the location's website.",
+              "features": [
+                "Answers FAQs using configured question/answer pairs",
+                "Presents package information pulled from Services → Packages",
+                "Schedules FIRST appointments only (controls data entry quality)",
+                "Does NOT write data directly — guides clients through a controlled flow"
+              ],
+              "how_to_configure": [
+                "Navigate to Settings → Operations → Locations → Concierge section",
+                "Add FAQ entries: enter question and answer",
+                "Enable package visibility in Services → Packages (Concierge toggle)",
+                "Save"
+              ]
+            },
+            {
+              "name": "Location FAQ Fields",
+              "description": "Add question/answer pairs for the Concierge to reference when clients ask questions on the website."
+            }
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Operations → Locations",
+            "Click 'Add Location'",
+            "Complete Location Profile (Fields 1, 2, 3)",
+            "Set Location Hours for each day",
+            "Configure Customer Permissions",
+            "Set up Payment/Register",
+            "Configure Billing & Card on File settings",
+            "Add Concierge FAQs if using the chatbot feature",
+            "Save"
+          ]
+        },
+        {
+          "id": "S2-A4",
+          "title": "Users (Staff)",
+          "slug": "users",
+          "purpose": "Users are staff members who access and operate the Doable.net system.",
+          "profile_fields": {
+            "fields_1_and_2": ["First Name", "Last Name", "Email Address", "Phone Number", "Address", "Role", "Active/Inactive status", "Profile photo", "Bio/Notes"]
+          },
+          "subsections": [
+            {
+              "name": "User Login Fields",
+              "fields": ["Username / Email", "Password setup", "Role assignment", "Location assignment(s)"]
+            },
+            {
+              "name": "User Pay Setup",
+              "description": "Configure pay rates — hourly, commission, or combination. Credit to staff CAN be edited after creation."
+            },
+            {
+              "name": "User Service Hours",
+              "description": "Set the days and times the user is available to provide services. Controls when they appear as available on the scheduling calendar."
+            }
+          ],
+          "rules": [
+            "A user's Role is global — it applies the same way at every location they are assigned to.",
+            "Users cannot be assigned to more than one Corporation.",
+            "Users CAN be assigned to multiple Locations within the same Corporation.",
+            "Service hours determine calendar availability — if not set, user won't appear as bookable."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Operations → Users",
+            "Click 'Add User'",
+            "Complete Profile Fields 1 & 2",
+            "Set Login credentials and Role",
+            "Assign to Location(s)",
+            "Configure Pay Setup",
+            "Set Service Hours (availability)",
+            "Save"
+          ]
+        },
+        {
+          "id": "S2-A5",
+          "title": "Automations & Follow-Ups",
+          "slug": "automations",
+          "purpose": "Automations send automated notifications to clients and/or staff based on specific trigger conditions.",
+          "triggers": [
+            "No Future Appointments Scheduled",
+            "No Current Enrollments",
+            "Payment Due"
+          ],
+          "notification_channels": {
+            "SMS": { "status": "active" },
+            "Email": { "status": "coming_soon" },
+            "In_App": { "status": "coming_soon", "note": "For clients" }
+          },
+          "recipients": [
+            "Client",
+            "Last Service Provider",
+            "Service Provider on Enrollment",
+            "Manager"
+          ],
+          "rules": [
+            "Each automation requires its own trigger — triggers are not shared.",
+            "Automations stop when the trigger condition is resolved OR when the selected number of alerts has been sent.",
+            "No escalation rules currently, except that a Manager can be included as a notification recipient.",
+            "Automations for Leads are currently being programmed (AI Chatbot, Concierge, and Automations will be integrated).",
+            "Multiple recipients can be selected per automation."
+          ],
+          "how_to_create": [
+            "Navigate to Settings → Operations → Automations",
+            "Click 'Add Automation'",
+            "Select the Trigger condition",
+            "Set the notification message",
+            "Select notification channel(s): SMS / Email / In-App",
+            "Select recipient(s): Client / Last Provider / Provider on Enrollment / Manager",
+            "Set the number of alerts to send",
+            "Save and activate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Settings — Services Configuration",
+      "slug": "settings-services",
+      "articles": [
+        {
+          "id": "S3-A1",
+          "title": "Scheduling Codes",
+          "slug": "scheduling-codes",
+          "purpose": "Color-coded labels used on the calendar to visually identify the type of service being performed. Internal use only — clients do not see them.",
+          "fields": ["Code Name", "Color", "Description", "Active/Inactive"],
+          "rules": [
+            "Scheduling Codes are for calendar display only.",
+            "They do not affect pricing or enrollment.",
+            "Each service can be associated with a scheduling code.",
+            "Codes help staff quickly identify appointment types at a glance."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Services → Scheduling Codes",
+            "Click 'Add Scheduling Code'",
+            "Enter Code Name",
+            "Select a Color",
+            "Add Description (optional)",
+            "Save"
+          ]
+        },
+        {
+          "id": "S3-A2",
+          "title": "Services",
+          "slug": "services",
+          "purpose": "Services are the items sold to clients. They represent the actual offerings of the business.",
+          "fields": ["Service Name (required)", "Service Code / Scheduling Code association", "Service Class", "Price", "Duration", "Description", "Active/Inactive"],
+          "service_classes": [
+            { "name": "Private", "description": "One-on-one appointment service." },
+            { "name": "Group", "description": "Group class or session." },
+            { "name": "Assessment", "description": "Evaluation or assessment session." },
+            { "name": "Sundry", "description": "Non-appointment items (merchandise, fees). Does NOT appear on the calendar." }
+          ],
+          "rules": [
+            "Services are the building blocks for Packages and Enrollments.",
+            "A service must be active to be available for scheduling or enrollment.",
+            "Services can be associated with Document Library contracts.",
+            "Sundry items do not create schedulable appointments."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Services → Services",
+            "Click 'Add Service'",
+            "Enter Service Name",
+            "Select Service Class",
+            "Set Price and Duration",
+            "Associate a Scheduling Code",
+            "Add Description",
+            "Save"
+          ]
+        },
+        {
+          "id": "S3-A3",
+          "title": "Packages",
+          "slug": "packages",
+          "purpose": "Packages bundle one or more services together for sale to clients.",
+          "fields": ["Package Name (required)", "Services included", "Total Price", "Discount options", "Expiration settings", "Concierge visibility toggle", "Description", "Active/Inactive"],
+          "expiration_types": ["Date-based (specific expiration date)", "Session-count-based (expires after N sessions)"],
+          "rules": [
+            "Packages can include multiple services.",
+            "Packages marked as visible to the Concierge will be presented to website visitors by the AI chatbot.",
+            "Packages are the primary enrollment vehicle — clients are enrolled into packages.",
+            "Pricing discounts can be applied at the package level.",
+            "Expiration can be set by date or by number of sessions."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Services → Packages",
+            "Click 'Add Package'",
+            "Enter Package Name",
+            "Add Services to the package",
+            "Set Total Price and any discounts",
+            "Configure expiration rules",
+            "Toggle Concierge visibility if applicable",
+            "Save"
+          ]
+        },
+        {
+          "id": "S3-A4",
+          "title": "Document Library",
+          "slug": "document-library",
+          "purpose": "Stores contracts, enrollment agreements, and terms & conditions documents. Different contracts can be created for different services or packages.",
+          "document_types": ["Enrollment Agreements", "Terms & Conditions", "Liability Waivers", "Custom contracts"],
+          "rules": [
+            "Documents can be associated with specific services or packages.",
+            "When a client enrolls, the associated document is presented for signature.",
+            "Documents support electronic signature.",
+            "Signed copies are retained on the client profile.",
+            "Documents can be previewed before sending.",
+            "Different services/packages can have different contracts.",
+            "Additional documents can be uploaded directly to a client profile."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Services → Document Library",
+            "Click 'Add Document'",
+            "Enter Document Name",
+            "Select Document Type",
+            "Upload or create the document content",
+            "Associate with Service(s) or Package(s) as needed",
+            "Save"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Settings — Other Configuration",
+      "slug": "settings-other",
+      "articles": [
+        {
+          "id": "S4-A1",
+          "title": "Gift Certificates",
+          "slug": "gift-certificates",
+          "purpose": "Allow clients or prospects to purchase a dollar-value credit applicable toward services or packages.",
+          "fields": ["Certificate Name", "Value Amount", "Expiration settings", "Terms"],
+          "rules": [
+            "Gift Certificates are dollar-value credits (not service-specific).",
+            "They can be applied toward any service or package purchase.",
+            "Expiration dates can be set.",
+            "Gift Certificates are tracked in the system."
+          ],
+          "how_to_create": [
+            "Navigate to Settings → Other → Gift Certificates",
+            "Click 'Add Gift Certificate'",
+            "Enter Certificate Name and Value",
+            "Set expiration if applicable",
+            "Save"
+          ]
+        },
+        {
+          "id": "S4-A2",
+          "title": "Event Types",
+          "slug": "event-types",
+          "purpose": "Categorize Events on the calendar to help staff and clients identify the nature of multi-day or special calendar entries.",
+          "fields": ["Event Type Name", "Description", "Color/Icon"],
+          "rules": [
+            "Event Types are used to classify Events.",
+            "An Event can be associated with multiple Event Types.",
+            "Event Types appear on the calendar to help staff and clients understand what is happening."
+          ]
+        },
+        {
+          "id": "S4-A3",
+          "title": "Inquiry Methods",
+          "slug": "inquiry-methods",
+          "purpose": "Track how a Lead or new client first heard about or contacted the business. Used for marketing analysis.",
+          "examples": ["Website", "Phone Call", "Walk-In", "Social Media", "Referral", "AI Chatbot/Concierge"],
+          "rules": [
+            "Inquiry Methods are selected when creating a Lead.",
+            "They help track marketing effectiveness.",
+            "Data can be used to understand which channels bring in the most leads."
+          ]
+        },
+        {
+          "id": "S4-A4",
+          "title": "Lead Status",
+          "slug": "lead-status",
+          "purpose": "Define the stages a prospective client moves through in the sales pipeline.",
+          "statuses": [
+            { "name": "New", "description": "Freshly entered lead.", "change_method": "Automatic on creation" },
+            { "name": "Contacted", "description": "Staff has reached out.", "change_method": "Manual" },
+            { "name": "Scheduled", "description": "Lead has scheduled a first appointment.", "change_method": "Manual (will be automatic soon)" },
+            { "name": "Enrolled", "description": "Lead has become a client.", "change_method": "Manual — staff selects Create Customer" },
+            { "name": "Timed Out", "description": "All contact attempts made with no response.", "change_method": "Manual" },
+            { "name": "Inactive", "description": "Manually discontinued contact; used for marketing specials.", "change_method": "Manual" }
+          ],
+          "rules": [
+            "Status changes are manual (staff-driven).",
+            "Multiple staff can work the same lead — leads are not assigned.",
+            "Lead deletion is permanent and can only be done by a Manager.",
+            "When 'Create Customer' is selected, all lead information transfers to the client profile.",
+            "The system alerts to duplicate entries."
+          ]
+        },
+        {
+          "id": "S4-A5",
+          "title": "Tags",
+          "slug": "tags",
+          "purpose": "Custom labels applied to client profiles for segmentation, filtering, and targeted communication.",
+          "examples": ["Chat Bot Lead", "Groups Only", "Wedding", "VIP"],
+          "rules": [
+            "Tags are created in Settings → Other → Tags.",
+            "Tags are applied to individual client profiles.",
+            "Tags can be used to filter the Student Mailing List for targeted outreach.",
+            "Multiple tags can be applied to one client.",
+            "Tags are used in the Concierge and Automation workflows (coming soon)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "Communications",
+      "slug": "communications",
+      "articles": [
+        {
+          "id": "S5-A1",
+          "title": "Email Templates",
+          "slug": "email-templates",
+          "purpose": "Pre-built email messages used for automated and manual communications with clients and leads.",
+          "fields": ["Template Name", "Subject Line", "Body (rich text / HTML)", "Associated trigger or use case"],
+          "rules": [
+            "Templates are created and managed in Settings → Communications → Email Templates.",
+            "Templates can be used for automated notifications, appointment reminders, and marketing.",
+            "The Email Template list shows all available templates with their names and status."
+          ],
+          "how_to_add": [
+            "Navigate to Settings → Communications → Email Templates",
+            "Click 'Add Email Template'",
+            "Enter Template Name and Subject",
+            "Compose the email body",
+            "Save"
+          ]
+        },
+        {
+          "id": "S5-A2",
+          "title": "SMS / Messages",
+          "slug": "sms-messages",
+          "purpose": "The Messages section (top navigation) shows SMS communication logs between staff and clients.",
+          "features": [
+            "All SMS messages sent through the system are logged.",
+            "Logs show sender, recipient, message content, and timestamp.",
+            "SMS is the primary current notification channel for Automations."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "Calendar",
+      "slug": "calendar",
+      "articles": [
+        {
+          "id": "S6-A1",
+          "title": "Calendar Overview",
+          "slug": "calendar-overview",
+          "purpose": "The central scheduling hub for all appointments and events.",
+          "views": ["Standard calendar view (day/week/month)", "List view — appointments in list format"],
+          "features": [
+            { "name": "Staff Selector", "description": "Filter the calendar by one or more staff members." },
+            { "name": "Status Selector", "description": "Filter appointments by status." },
+            { "name": "Appointment Type Selector", "description": "Filter by appointment/service type." },
+            { "name": "Hover over appointment", "description": "Shows quick summary: client name, service, time, provider." },
+            { "name": "Single click on appointment", "description": "Opens full appointment detail panel." },
+            { "name": "Drag and drop", "description": "Available for most roles. Service Providers cannot drag and drop." },
+            { "name": "Events on calendar", "description": "Appear as multi-day blocks on the right side below times at top of column." }
+          ]
+        },
+        {
+          "id": "S6-A2",
+          "title": "Creating an Appointment",
+          "slug": "create-appointment",
+          "steps": [
+            "Click on the desired time slot on the calendar",
+            "Select the client",
+            "Select the service/scheduling code",
+            "Select the staff member",
+            "Confirm time and date",
+            "Save"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "Customers (Client Management)",
+      "slug": "customers",
+      "articles": [
+        {
+          "id": "S7-A1",
+          "title": "Client Profile Overview",
+          "slug": "client-profile",
+          "required_fields": ["Name"],
+          "profile_section_1": ["First Name", "Last Name", "Email Address", "Phone Number", "Address", "Date of Birth", "Profile Photo", "Active/Inactive status"],
+          "profile_section_2": {
+            "fields": ["Primary Location", "Preferred Location(s)", "Reminder Preferences", "Special Dates", "Tags", "Notes/Comments"],
+            "notes": {
+              "primary_location": "Home location — required for scheduling and reporting.",
+              "preferred_location": "Additional locations allowed to see and schedule this client.",
+              "reminder_preferences": ["Text", "Email", "Phone Call"],
+              "special_dates": "Any type — birthdays, anniversaries, etc. Will be programmed into automations for reminders."
+            }
+          },
+          "partner_and_family": {
+            "description": "Partners and Family members can be linked to a client profile.",
+            "required_fields": ["Name only"],
+            "location": "Client Profile → Family tab"
+          }
+        },
+        {
+          "id": "S7-A2",
+          "title": "Client Appointments",
+          "slug": "client-appointments",
+          "description": "View and manage all appointments for a specific client.",
+          "columns": ["Date and Time", "Service", "Staff Member", "Status", "Location"],
+          "access": "Client Profile → Appointments tab"
+        },
+        {
+          "id": "S7-A3",
+          "title": "Client Enrollments",
+          "slug": "client-enrollments",
+          "purpose": "Enrollments represent a client's purchase and participation in a Package or Service agreement.",
+          "enrollment_details": ["Package/Service enrolled in", "Start Date", "Expiration Date", "Sessions used / remaining", "Payment status", "Associated document/contract"],
+          "statuses": [
+            { "name": "Active", "description": "Enrollment is current and in use.", "change_method": "System/staff" },
+            { "name": "Inactive", "description": "Enrollment has been cancelled. System balances credit/refund or amount due.", "change_method": "Manual cancellation" },
+            { "name": "Completed", "description": "All sessions used OR expiration date reached. System automatically balances and closes.", "change_method": "Automatic" }
+          ],
+          "rules": [
+            "When an enrollment is completed (all sessions used or expiration met), it automatically moves to Completed and the system balances itself.",
+            "Cancelling an enrollment (moving to Inactive) triggers the system to calculate any credit, refund, or remaining balance due.",
+            "Only credit to staff can be edited after an enrollment is created — the agreement terms to the client cannot be changed.",
+            "Enrollment agreements (contracts) are presented for signature at time of enrollment."
+          ]
+        },
+        {
+          "id": "S7-A4",
+          "title": "Client Payments",
+          "slug": "client-payments",
+          "description": "Track all payments made by a client.",
+          "columns": ["Date", "Amount", "Payment Method", "Service/Package", "Status"],
+          "access": "Client Profile → Payments tab"
+        },
+        {
+          "id": "S7-A5",
+          "title": "Client Wallet",
+          "slug": "client-wallet",
+          "purpose": "Holds credit balances for a client that can be applied to outstanding balances.",
+          "rules": [
+            "Applying wallet credit to an outstanding balance is a manual process.",
+            "Staff must manually select the credit from the wallet and apply it to the available outstanding balance.",
+            "Wallet credits can come from refunds, overpayments, or gift certificates."
+          ]
+        },
+        {
+          "id": "S7-A6",
+          "title": "Client Card on File",
+          "slug": "client-card-on-file",
+          "purpose": "Stores a client's payment card for future charges.",
+          "rules": [
+            "Card on file is managed from the Client Profile → Card on File tab.",
+            "Used for autopay and quick payment processing."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "Leads Management",
+      "slug": "leads",
+      "articles": [
+        {
+          "id": "S8-A1",
+          "title": "Leads Overview",
+          "slug": "leads-overview",
+          "purpose": "Tracks prospective clients from first inquiry through contact attempts, conversion to customer, or closure.",
+          "list_columns": ["Name", "Phone", "Email", "Status", "Inquiry Method", "Location", "Follow-Up Date"]
+        },
+        {
+          "id": "S8-A2",
+          "title": "Lead Statuses & Workflow",
+          "slug": "lead-statuses",
+          "pipeline": ["New", "Contacted", "Scheduled", "Enrolled"],
+          "alternative_endings": ["Timed Out", "Inactive"],
+          "statuses": [
+            { "name": "New", "description": "Freshly entered lead.", "change_method": "Automatic on creation" },
+            { "name": "Contacted", "description": "Staff has reached out.", "change_method": "Manual" },
+            { "name": "Scheduled", "description": "First appointment scheduled.", "change_method": "Manual (will be automatic soon)" },
+            { "name": "Enrolled", "description": "Converted to client.", "change_method": "Manual — staff selects Create Customer" },
+            { "name": "Timed Out", "description": "All contacts attempted, no response.", "change_method": "Manual" },
+            { "name": "Inactive", "description": "Discontinued contact; used for marketing.", "change_method": "Manual" }
+          ]
+        },
+        {
+          "id": "S8-A3",
+          "title": "Creating a Lead",
+          "slug": "create-lead",
+          "required_fields": ["Name"],
+          "optional_fields": ["Phone", "Email", "Address", "Inquiry Method", "Location", "Notes", "Follow-Up Date", "Lead Status"],
+          "steps": [
+            "Navigate to Leads",
+            "Click 'Add Lead'",
+            "Enter Name (required)",
+            "Add contact information",
+            "Select Inquiry Method",
+            "Assign to Location",
+            "Set initial status",
+            "Add notes",
+            "Set Follow-Up Date if applicable",
+            "Save"
+          ],
+          "notes": ["The system alerts to duplicate entries automatically."]
+        },
+        {
+          "id": "S8-A4",
+          "title": "Working a Lead",
+          "slug": "working-leads",
+          "rules": [
+            "Multiple staff can work the same lead — leads are not assigned to one person.",
+            "All roles can create and edit leads.",
+            "Contact attempts are logged manually on each lead after communication.",
+            "Each follow-up and connected notes are kept in a log on the client profile after conversion.",
+            "Most lead functions are available on mobile, absent calendar drag and drop."
+          ],
+          "follow_up_system": {
+            "description": "Follow-Up Date allows searching for leads by when staff planned to contact them.",
+            "future": "Plan to integrate follow-up dates to calendar alerts (coming soon)."
+          }
+        },
+        {
+          "id": "S8-A5",
+          "title": "AI Call Feature",
+          "slug": "ai-call",
+          "description": "Triggers an automated AI phone call to the prospect.",
+          "how_to_trigger": "Select the phone icon on the leads list",
+          "behavior": [
+            "AI calls the prospect and offers a special",
+            "Attempts to schedule a first appointment",
+            "If the client schedules, the lead automatically moves to Scheduled status"
+          ],
+          "note": "Currently connected to website options."
+        },
+        {
+          "id": "S8-A6",
+          "title": "Converting a Lead to a Customer",
+          "slug": "lead-conversion",
+          "steps": [
+            "Staff communicates with the lead and they decide to schedule their first appointment",
+            "Staff selects 'Create Customer' on the lead record",
+            "All information entered on the lead record transfers automatically to the new client profile",
+            "Staff then schedules the first appointment",
+            "The lead record closes"
+          ],
+          "rules": [
+            "All roles have the ability to convert a lead to a customer.",
+            "The system does NOT automatically convert — it is a manual staff action (will be automated soon).",
+            "All entered lead information moves to the client profile upon conversion.",
+            "The system alerts to duplicates before conversion."
+          ]
+        },
+        {
+          "id": "S8-A7",
+          "title": "Lead Deletion",
+          "slug": "lead-deletion",
+          "rules": [
+            "Lead deletion is permanent.",
+            "Only Managers can delete leads."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "Events",
+      "slug": "events",
+      "articles": [
+        {
+          "id": "S9-A1",
+          "title": "Events Overview",
+          "slug": "events-overview",
+          "purpose": "Specialized calendar entries used to promote and communicate services, activities, and offerings that span multiple days. Visible to both staff and clients.",
+          "characteristics": [
+            "Multi-day calendar entries",
+            "Visible to staff and clients",
+            "Can be associated with enrollments for attendance tracking",
+            "Appear on the calendar on the right side below the times at the top of the column"
+          ]
+        },
+        {
+          "id": "S9-A2",
+          "title": "Creating an Event",
+          "slug": "create-event",
+          "fields": ["Event Name (required)", "Event Type(s)", "Start Date", "End Date", "Description", "Location(s)", "Status", "Associated Package/Enrollment"],
+          "steps": [
+            "Navigate to Events",
+            "Click 'Add Event'",
+            "Enter Event Name",
+            "Select Event Type(s) — can select multiple",
+            "Set Start and End dates",
+            "Add Description",
+            "Assign to Location(s)",
+            "Save"
+          ]
+        },
+        {
+          "id": "S9-A3",
+          "title": "Event Rules & Permissions",
+          "slug": "event-permissions",
+          "permissions": [
+            { "action": "Create Events", "roles": ["Manager", "Admin", "Counselor", "Supervisor"] },
+            { "action": "Edit Events", "roles": ["Manager", "Admin", "Counselor", "Supervisor"] },
+            { "action": "View Events", "roles": ["All roles", "Clients"] },
+            { "action": "Delete Events", "roles": ["Manager only"] },
+            { "action": "Enroll Clients", "roles": ["All roles (manual)", "Clients (self-enroll coming soon)"] }
+          ],
+          "rules": [
+            "Events appear on the calendar as multi-day blocks.",
+            "Client enrollment to events creates an enrollment record to track attendance.",
+            "Clients will soon be able to enroll themselves from the client login portal.",
+            "Event status is automatic — based on end date.",
+            "Events are not currently integrated with calendar drag-and-drop (coming soon)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Reports",
+      "slug": "reports",
+      "articles": [
+        {
+          "id": "S10-A1",
+          "title": "Reports Overview",
+          "slug": "reports-overview",
+          "tabs": ["Weekly Reports", "Business Reports", "Service Provider Reports", "Student Mailing List", "Total Open Liability", "Customer Reports", "Sales Report"],
+          "output_options": [
+            { "name": "View", "description": "Display on screen." },
+            { "name": "Export", "description": "Send to parent company via API (manual, after accuracy check)." },
+            { "name": "Generate PDF", "description": "Create PDF for printing or emailing." },
+            { "name": "Generate Excel", "description": "Create Excel file." },
+            { "name": "Export to Excel", "description": "Creates a CSV file." }
+          ],
+          "access_rules": [
+            "Super Admin: access across all locations and all corporations.",
+            "All other roles: restricted to their assigned location.",
+            "Currently all users can access reports, but access can be restricted by Role."
+          ],
+          "important": "Reports are NOT retained in the system — they must be generated and saved each time."
+        },
+        {
+          "id": "S10-A2",
+          "title": "Weekly Reports",
+          "slug": "weekly-reports",
+          "reports": ["Royalty / Service Report", "Summary of Studio Business Report", "Staff Performance Report"],
+          "additional": {
+            "extra_reports": {
+              "name": "Extra Reports",
+              "contains": ["Semi Annual Student Inventory Report (for parent company — custom)"],
+              "output": ["View", "Generate PDF"]
+            },
+            "electronic_miscellaneous_report": {
+              "name": "Electronic Miscellaneous Report",
+              "description": "Aggregates all clients enrolled on an event. Shows total enrollment, amount paid, remaining balances. Parent company can apply deductions for transportation and package costs.",
+              "warning": "Deduction is automatically created upon submission.",
+              "output": ["View", "Export", "Generate Excel"]
+            }
+          },
+          "output_options": ["View", "Export", "Generate PDF", "Generate Excel"],
+          "notes": [
+            "Weekly Reports are reserved and custom based on Franchisor requirements or corporate requirements.",
+            "Export sends through API to parent entities manually after checking for accuracy."
+          ]
+        },
+        {
+          "id": "S10-A3",
+          "title": "Business Reports",
+          "slug": "business-reports",
+          "reports": ["Payments Made Report"],
+          "output_options": ["View", "Export", "Generate PDF", "Generate Excel"]
+        },
+        {
+          "id": "S10-A4",
+          "title": "Service Provider Reports",
+          "slug": "service-provider-reports",
+          "reports": [
+            "Summary of Staff Member Report",
+            "Lessons Taught by Department",
+            "Sales by Enrollment Report",
+            "Enrollment Type Detailed Report",
+            "Lessons Taught by Service Provider Report",
+            "Services of Lessons Taught by Service Provider Report",
+            "Provider Cash Report",
+            "Tips Report"
+          ],
+          "filters": ["Select one or multiple service providers", "Start Date", "End Date"],
+          "output_options": ["View"]
+        },
+        {
+          "id": "S10-A5",
+          "title": "Student Mailing List",
+          "slug": "student-mailing-list",
+          "purpose": "A filterable list of all clients for marketing and communication purposes.",
+          "columns": ["Last Name", "First Name", "Partner Name", "Created On", "Address", "City", "State", "Zip", "Email Address", "Status"],
+          "filters": {
+            "date_filter": ["All Dates", "Today", "This Week", "This Month", "This Year", "Date Range"],
+            "status_filter": ["All Status", "Active", "Inactive"],
+            "tag_filter": "Filter by any client tag"
+          },
+          "output": ["Export to Excel (CSV)"]
+        },
+        {
+          "id": "S10-A6",
+          "title": "Total Open Liability",
+          "slug": "total-open-liability",
+          "purpose": "Shows outstanding liability owed TO clients (credit balances the business owes to clients).",
+          "output_options": ["View", "Generate PDF", "Generate Excel"]
+        },
+        {
+          "id": "S10-A7",
+          "title": "Customer Reports",
+          "slug": "customer-reports",
+          "reports": ["Active Account Balance Report"],
+          "filters": ["Date range", "Location"],
+          "output_options": ["View", "Generate PDF", "Generate Excel"]
+        },
+        {
+          "id": "S10-A8",
+          "title": "Sales Report",
+          "slug": "sales-report",
+          "purpose": "Tracks sales activity and revenue.",
+          "filters": ["Date range", "Location"],
+          "output_options": ["View", "Generate PDF", "Generate Excel"]
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "Billing",
+      "slug": "billing",
+      "articles": [
+        {
+          "id": "S11-A1",
+          "title": "Billing Overview",
+          "slug": "billing-overview",
+          "purpose": "Manages financial transactions, payment processing, and account management.",
+          "key_functions": [
+            "Process payments",
+            "View transaction history",
+            "Manage client account balances",
+            "Apply wallet credits (manual process)",
+            "Process enrollment cancellations (system auto-balances credit/refund or amount due)"
+          ]
+        }
+      ]
+    }
+  ],
+  "appendices": [
+    {
+      "id": "APP-A",
+      "title": "Recommended Setup Sequence (New Location)",
+      "slug": "setup-sequence",
+      "steps": [
+        { "step": 1, "action": "Create Corporation", "path": "Settings → Operations → Corporations" },
+        { "step": 2, "action": "Create Location(s) under the Corporation", "path": "Settings → Operations → Locations" },
+        { "step": 3, "action": "Configure Location Hours (including holiday blocks)", "path": "Settings → Operations → Locations → Hours" },
+        { "step": 4, "action": "Set up Payment/Register for the Location", "path": "Settings → Operations → Locations → Payment" },
+        { "step": 5, "action": "Configure Customer Permissions for the client portal", "path": "Settings → Operations → Locations → Permissions" },
+        { "step": 6, "action": "Add Users (staff) and assign to Location(s)", "path": "Settings → Operations → Users" },
+        { "step": 7, "action": "Set User Service Hours for each staff member", "path": "Settings → Operations → Users → Service Hours" },
+        { "step": 8, "action": "Create Scheduling Codes", "path": "Settings → Services → Scheduling Codes" },
+        { "step": 9, "action": "Create Services", "path": "Settings → Services → Services" },
+        { "step": 10, "action": "Create Packages", "path": "Settings → Services → Packages" },
+        { "step": 11, "action": "Upload Documents to Document Library", "path": "Settings → Services → Document Library" },
+        { "step": 12, "action": "Configure Gift Certificates (if applicable)", "path": "Settings → Other → Gift Certificates" },
+        { "step": 13, "action": "Set up Event Types", "path": "Settings → Other → Event Types" },
+        { "step": 14, "action": "Configure Inquiry Methods", "path": "Settings → Other → Inquiry Methods" },
+        { "step": 15, "action": "Create Lead Statuses", "path": "Settings → Other → Lead Status" },
+        { "step": 16, "action": "Create Tags", "path": "Settings → Other → Tags" },
+        { "step": 17, "action": "Create Email Templates", "path": "Settings → Communications → Email Templates" },
+        { "step": 18, "action": "Set up Automations", "path": "Settings → Operations → Automations" },
+        { "step": 19, "action": "Configure Concierge FAQs", "path": "Settings → Operations → Locations → Concierge" },
+        { "step": 20, "action": "Test the system with a sample client and appointment", "path": "Calendar / Customers" }
+      ]
+    },
+    {
+      "id": "APP-B",
+      "title": "Common Workflows",
+      "slug": "common-workflows",
+      "workflows": [
+        {
+          "name": "New Client Enrollment",
+          "steps": [
+            "Create client profile (Customers → Add Customer)",
+            "Assign Primary Location",
+            "Select Package for enrollment",
+            "Present and obtain signature on enrollment agreement",
+            "Process payment",
+            "Schedule first appointment on Calendar"
+          ]
+        },
+        {
+          "name": "Lead to Client Conversion",
+          "steps": [
+            "Lead enters system (via website, walk-in, AI call, etc.)",
+            "Staff contacts lead and logs communication",
+            "Lead decides to schedule → Staff selects 'Create Customer'",
+            "All lead info transfers to client profile",
+            "Staff schedules first appointment",
+            "Enrollment created"
+          ]
+        },
+        {
+          "name": "Running a Report",
+          "steps": [
+            "Navigate to Reports",
+            "Select the report tab (Weekly, Business, Service Provider, etc.)",
+            "Select the specific report from the dropdown",
+            "Set date range and filters",
+            "Click View, Generate PDF, Generate Excel, or Export as needed",
+            "Save the output (reports are not retained in the system)"
+          ]
+        },
+        {
+          "name": "Processing an Enrollment Cancellation",
+          "steps": [
+            "Navigate to Client Profile → Enrollments",
+            "Select the enrollment to cancel",
+            "Change status to Inactive",
+            "System automatically calculates credit, refund, or remaining balance due",
+            "Apply any wallet credit manually if applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "APP-C",
+      "title": "Glossary",
+      "slug": "glossary",
+      "terms": [
+        { "term": "Automation", "definition": "A rule-based notification system that sends SMS/Email/In-App messages to clients or staff when specific trigger conditions are met." },
+        { "term": "Concierge", "definition": "The AI chatbot embedded on a location's website. It answers FAQs, presents package information, and schedules first appointments." },
+        { "term": "Corporation (Corp)", "definition": "The top-level organizational entity in Doable.net. All settings cascade down to Locations." },
+        { "term": "Enrollment", "definition": "A client's active agreement to participate in a Package or Service. Includes payment terms, session counts, and associated contracts." },
+        { "term": "Event", "definition": "A multi-day calendar entry used to promote and communicate special services or activities." },
+        { "term": "Lead", "definition": "A prospective client who has expressed interest but has not yet become an active customer." },
+        { "term": "Location", "definition": "A physical branch or studio operating under a Corporation." },
+        { "term": "Package", "definition": "A bundled offering of one or more services sold to clients, with pricing, expiration, and enrollment terms." },
+        { "term": "Primary Location", "definition": "A client's home location. Used for scheduling and reporting." },
+        { "term": "Preferred Location", "definition": "Additional locations that can see and schedule a client beyond their Primary Location." },
+        { "term": "Scheduling Code", "definition": "A color-coded calendar label used internally to identify service types on the calendar." },
+        { "term": "Service", "definition": "An individual offering (lesson, class, assessment, etc.) that can be scheduled and sold." },
+        { "term": "Sundry", "definition": "A non-appointment service item (merchandise, fees) that does not appear on the calendar." },
+        { "term": "Tag", "definition": "A custom label applied to client profiles for segmentation and filtering." },
+        { "term": "Wallet", "definition": "A client's credit balance within the system, applied manually to outstanding balances." }
+      ]
+    }
+  ],
+  "upcoming_features": [
+    "Email notifications for Automations",
+    "In-App notifications for clients",
+    "Lead Automations (AI Chatbot, Concierge, and Automations integration)",
+    "Client self-enrollment from client login portal",
+    "Calendar integration for Lead Follow-Up dates",
+    "Automatic Lead-to-Scheduled status change",
+    "Automatic Lead-to-Client conversion",
+    "Lead Tags",
+    "Calendar drag-and-drop for Events"
+  ]
+}

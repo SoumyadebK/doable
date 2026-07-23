@@ -1781,7 +1781,7 @@ function getServiceProviderCount($RESPONSE_DATA)
         $service_provider_array[$SERVICE_PROVIDER_ID]['INITIALS'] = $profile['initials'];
         $service_provider_array[$SERVICE_PROVIDER_ID]['COLOR'] = $profile['color'];
 
-        $is_followup_exist = $db_account->Execute("SELECT EXISTS (SELECT 1 FROM DOA_AUTOMATION_LOG WHERE IS_ARCHIVE = 0 AND FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_CLASS_SP_ID) ) AS record_exists");
+        $is_followup_exist = $db_account->Execute("SELECT EXISTS (SELECT 1 FROM DOA_AUTOMATION_LOG WHERE IS_ARCHIVE = 0 AND (FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_CLASS_SP_ID) OR FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_ENROLLMENT_SP_ID))) AS record_exists");
         $service_provider_array[$SERVICE_PROVIDER_ID]['IS_FOLLOWUP_EXIST'] = $is_followup_exist->fields['record_exists'];
 
         $all_service_provider_details->MoveNext();
