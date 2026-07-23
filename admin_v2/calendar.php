@@ -2138,7 +2138,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         let appointment_count = (service_providers[i].APPOINTMENT_COUNT > 0) ? service_providers[i].APPOINTMENT_COUNT : '0';
                         let is_followup_exist = service_providers[i].IS_FOLLOWUP_EXIST;
 
-                        let avatarHTML = `<div ${(is_followup_exist == 1) ? 'onclick="showFollowUpMessages(this)"' : ''} data-id="${sp_id}"
+                        let avatarHTML = `<div ${(is_followup_exist >= 1) ? 'onclick="showFollowUpMessages(this)"' : ''} data-id="${sp_id}"
                                                 style="cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;width:100%;margin-top:10px;">
 
                                                 <div style="position:relative;display:inline-block;">
@@ -2158,7 +2158,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                                         ${sp_initials}
                                                     </div>
                                                     <!-- Red notification dot -->
-                                                    ${(is_followup_exist == 1) ? '<span style="position:absolute;top:-8px;right:-8px;width:12px;height:12px;background:red;border-radius:50%;border:2px solid #fff;"></span>' : ''}
+                                                    ${(is_followup_exist >= 1) ? `<span style="position:absolute;top:-10px;right:-15px;min-width:18px;height:18px;padding:0px 0px;background:red;border-radius:15px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;line-height:1;">${is_followup_exist}</span>` : ''}
                                                 </div>
 
                                                 <div style="

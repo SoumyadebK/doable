@@ -40,7 +40,15 @@ if (!$account_id) {
     }
 
     [$PK_USER, $PK_USER_MASTER] = createUser($PK_LOCATION, $name, $phone, $email);
-    $PK_APPOINTMENT_MASTER = createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $date, $slot);
+
+    if ($PK_USER > 0 && $PK_USER_MASTER > 0) {
+        $PK_APPOINTMENT_MASTER = createAppointment($account_id, $PK_LOCATION, $PK_USER_MASTER, $date, $slot);
+    } else {
+        $return_data['status'] = 'error';
+        $return_data['message'] = 'Unable to create user.';
+        echo json_encode($return_data);
+        exit;
+    }
 
     if ($account_data->RecordCount() == 0) {
         $return_data['status'] = 'error';
