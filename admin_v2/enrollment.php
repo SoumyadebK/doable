@@ -179,11 +179,12 @@ $enrollment_type = 'Enrollment';
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <link href="../assets/sumoselect/sumoselect.min.css" rel="stylesheet" />
 
 <style>
@@ -229,6 +230,7 @@ $enrollment_type = 'Enrollment';
         background: var(--gray-50);
     }
 
+    /* Breadcrumb - exactly like customer page */
     .breadcrumb-wrapper {
         display: flex;
         justify-content: space-between;
@@ -279,22 +281,24 @@ $enrollment_type = 'Enrollment';
         font-weight: 500;
     }
 
-    .card-modern {
-        background: #ffffff;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--gray-200);
+    /* Card - matching customer page exactly */
+    .card-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background: #fff;
+        margin-bottom: 24px;
         overflow: hidden;
-        transition: box-shadow 0.2s ease;
+        box-shadow: var(--shadow-sm);
     }
 
-    .card-modern:hover {
-        box-shadow: var(--shadow-md);
+    .card-box .row {
+        display: flex;
+        margin: 0;
+        min-height: 100%;
     }
 
-    .card-modern .card-header {
+    .card-header-custom {
         padding: 16px 24px;
-        background: var(--gray-50);
         border-bottom: 1px solid var(--gray-200);
         display: flex;
         justify-content: space-between;
@@ -303,7 +307,7 @@ $enrollment_type = 'Enrollment';
         gap: 12px;
     }
 
-    .card-modern .card-header h5 {
+    .card-header-custom h5 {
         font-size: 16px;
         font-weight: 600;
         color: var(--gray-800);
@@ -313,11 +317,11 @@ $enrollment_type = 'Enrollment';
         gap: 8px;
     }
 
-    .card-modern .card-header h5 i {
+    .card-header-custom h5 i {
         color: var(--primary-color);
     }
 
-    .card-modern .card-header .status-indicator {
+    .card-header-custom .status-indicator {
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -327,151 +331,104 @@ $enrollment_type = 'Enrollment';
         font-weight: 500;
     }
 
-    .card-modern .card-header .status-indicator.active {
+    .card-header-custom .status-indicator.active {
         background: #D1FAE5;
         color: #065F46;
     }
 
-    .card-modern .card-header .status-indicator.inactive {
+    .card-header-custom .status-indicator.inactive {
         background: #FEE2E2;
         color: #991B1B;
     }
 
-    .card-modern .card-header .status-indicator i {
+    .card-header-custom .status-indicator i {
         font-size: 8px;
         margin-right: 0;
     }
 
-    .card-modern .card-body {
-        padding: 0;
-    }
-
-    @media (max-width: 768px) {
-        .card-modern .card-body {
-            padding: 0;
-        }
-
-        .container-fluid {
-            padding: 16px !important;
-        }
-    }
-
-    /* Sidebar Tabs - Matching demo customer page */
-    .tabs-sidebar {
+    /* Sidebar - EXACTLY matching customer page */
+    .left-tabs {
         min-width: 200px;
         border-right: 1px solid var(--gray-200);
-        padding: 16px 0;
-        background: var(--gray-50);
-        border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+        border-radius: 12px 0 0 12px;
+        min-height: 100%;
+        height: 100%;
     }
 
-    .tab-item-sidebar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 12px 20px;
-        border: none;
-        background: transparent;
-        color: var(--gray-600);
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
+    .sidebar-link {
+        color: #6c757d;
+        text-decoration: none;
+        padding: 10px 20px;
+        display: block;
         border-left: 3px solid transparent;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        background: transparent;
+        border-right: none;
+        width: 100%;
         text-align: left;
     }
 
-    .tab-item-sidebar:hover {
-        background: var(--gray-100);
-        color: var(--gray-800);
-    }
-
-    .tab-item-sidebar.active {
-        background: #fff;
-        color: var(--primary-color);
-        border-left-color: var(--primary-color);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .tab-item-sidebar i {
+    .sidebar-link i {
+        margin-right: 10px;
         width: 18px;
         text-align: center;
-        font-size: 15px;
     }
 
-    .tab-item-sidebar.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        pointer-events: none;
+    .sidebar-link.active {
+        background-color: #f0f4f8;
+        color: #39b54a;
+        border-left-color: #39b54a;
+        font-weight: 600;
     }
 
-    .tab-content-sidebar {
-        flex: 1;
-        padding: 24px 28px;
-        overflow: hidden;
+    .sidebar-link:hover {
+        background-color: #f8f9fa;
+        color: #39b54a;
+    }
+
+    .right-panel {
         background: #fff;
-        border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    }
-
-    .tab-pane-sidebar {
-        display: none;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .tab-pane-sidebar.active {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        border: 1px solid var(--gray-200);
+        border-radius: 12px 12px 12px 12px;
+        padding: 24px 28px;
+        flex: 1;
     }
 
     @media (max-width: 768px) {
-        .card-body[style*="display: flex"] {
-            flex-direction: column !important;
-        }
-
-        .tabs-sidebar {
+        .left-tabs {
             min-width: auto;
             border-right: none;
             border-bottom: 1px solid var(--gray-200);
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            border-radius: 12px 12px 0 0;
             display: flex;
             flex-wrap: wrap;
-            padding: 8px 12px;
-            gap: 4px;
+            padding: 0px 0px;
+            gap: 0px;
         }
 
-        .tab-item-sidebar {
+        .sidebar-link {
             width: auto;
             padding: 8px 16px;
             border-left: none;
-            border-bottom: 2px solid transparent;
+            border-bottom: 3px solid transparent;
             border-radius: var(--radius-sm);
             font-size: 13px;
         }
 
-        .tab-item-sidebar.active {
+        .sidebar-link.active {
             border-left: none;
-            border-bottom-color: var(--primary-color);
+            border-bottom-color: #39b54a;
         }
 
-        .tab-content-sidebar {
+        .right-panel {
             padding: 16px;
-            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            border-radius: 0 0 12px 12px;
         }
     }
 
-    /* Form Styles matching demo */
+    /* Form Styles - matching customer page */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -657,7 +614,7 @@ $enrollment_type = 'Enrollment';
         }
     }
 
-    /* Service Table */
+    /* Service Table - matching customer page style */
     .service-table-wrapper {
         overflow-x: auto;
         margin-top: 4px;
@@ -957,7 +914,43 @@ $enrollment_type = 'Enrollment';
         box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1) !important;
     }
 
-    /* Back link */
+    #signature-pad {
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        width: 100%;
+        height: 200px;
+        touch-action: none;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -977,31 +970,25 @@ $enrollment_type = 'Enrollment';
     .back-link i {
         font-size: 16px;
     }
-
-    #signature-pad {
-        border: 2px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        width: 100%;
-        height: 200px;
-        touch-action: none;
-    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/header.php'); ?>
 
         <div class="page-wrapper" style="padding-top: 0px !important;">
-            <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
+            <div class="container-fluid mt-4">
 
-                <!-- Main Card -->
-                <div class="card-modern">
-                    <div class="card-header">
-                        <h5>
-                            <i class="bi bi-file-earmark-text"></i>
-                            <?= !empty($_GET['id']) ? 'Edit Enrollment' : 'Add Enrollment' ?>
-                        </h5>
+                <!-- Main Card - using customer page structure -->
+                <div class="card-box" style="margin-top: 20px;">
+                    <a href="all_enrollments.php" class="d-flex mb-2 px-3">
+                        <i class="bi bi-chevron-left font-12"></i>
+                        <h6 style="margin-top: 2px; margin-left: 10px;">Enrollments</h6>
+                    </a>
+                    <div class="card-header-custom d-flex justify-content-between align-items-center mb-0 pb-2 border-bottom px-3">
+                        <div class="d-flex align-items-center">
+                            <h3><i class="bi bi-file-earmark-text me-3" style="color: var(--primary-color);"></i><?= $ENROLLMENT_NAME ?></h3>
+                        </div>
                         <?php if (!empty($_GET['id'])): ?>
                             <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
                                 <i class="bi bi-circle-fill"></i>
@@ -1010,35 +997,37 @@ $enrollment_type = 'Enrollment';
                         <?php endif; ?>
                     </div>
 
-                    <div class="card-body" style="display: flex; gap: 0; padding: 0;">
-                        <!-- Sidebar Navigation -->
-                        <div class="tabs-sidebar" role="tablist">
-                            <button class="tab-item-sidebar active" data-tab="enrollment" role="tab">
-                                <i class="bi bi-pencil"></i> Enrollment
-                            </button>
-                            <button class="tab-item-sidebar" data-tab="billing" role="tab" onclick="goToPaymentTab()">
-                                <i class="bi bi-receipt"></i> Billing
-                            </button>
-                            <button class="tab-item-sidebar" data-tab="ledger" role="tab" onclick="goToLedgerTab()">
-                                <i class="bi bi-book"></i> Ledger
-                            </button>
-                            <?php if (!empty($_GET['id'])): ?>
-                                <button class="tab-item-sidebar" data-tab="history" role="tab">
-                                    <i class="bi bi-clock-history"></i> History
-                                </button>
-                                <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null): ?>
-                                    <button class="tab-item-sidebar" data-tab="agreement" role="tab">
-                                        <i class="bi bi-file-pdf"></i> PDF Agreement
-                                    </button>
+                    <div class="row" style="margin: 0;">
+                        <!-- Left Sidebar - EXACTLY like customer page -->
+                        <div class="col-md-2 border-right-light pt-2" style="padding: 0;">
+                            <nav class="flex-column left-tabs">
+                                <a class="sidebar-link active" data-toggle-target=".tab-content-1" href="#">
+                                    <i class="bi bi-pencil"></i> Enrollment
+                                </a>
+                                <a class="sidebar-link" data-toggle-target=".tab-content-2" href="javascript:void(0);" onclick="goToPaymentTab()">
+                                    <i class="bi bi-receipt"></i> Billing
+                                </a>
+                                <a class="sidebar-link" data-toggle-target=".tab-content-3" href="javascript:void(0);" onclick="goToLedgerTab()">
+                                    <i class="bi bi-book"></i> Ledger
+                                </a>
+                                <?php if (!empty($_GET['id'])): ?>
+                                    <a class="sidebar-link" data-toggle-target=".tab-content-4" href="javascript:void(0);">
+                                        <i class="bi bi-clock-history"></i> History
+                                    </a>
+                                    <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null): ?>
+                                        <a class="sidebar-link" data-toggle-target=".tab-content-5" href="javascript:void(0);">
+                                            <i class="bi bi-file-pdf"></i> PDF Agreement
+                                        </a>
+                                    <?php endif; ?>
                                 <?php endif; ?>
-                            <?php endif; ?>
+                            </nav>
                         </div>
 
-                        <!-- Tab Content -->
-                        <div class="tab-content-sidebar">
+                        <!-- Right Panel - EXACTLY like customer page -->
+                        <div class="col-md-10 right-panel" style="margin: 24px 0px 0px 12px;">
 
                             <!-- ===== ENROLLMENT TAB ===== -->
-                            <div class="tab-pane-sidebar active" id="enrollment" role="tabpanel">
+                            <div class="tab-content tab-content-1 active">
                                 <form class="form-material form-horizontal" id="enrollment_form">
                                     <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentData">
                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER" value="<?= (empty($_GET['id'])) ? '' : $_GET['id'] ?>">
@@ -1496,7 +1485,7 @@ $enrollment_type = 'Enrollment';
                             </div>
 
                             <!-- ===== BILLING TAB ===== -->
-                            <div class="tab-pane-sidebar <?= ($PK_ENROLLMENT_BILLING > 0) ? 'disabled_div' : '' ?>" id="billing" role="tabpanel">
+                            <div class="tab-content tab-content-2 <?= ($PK_ENROLLMENT_BILLING > 0) ? 'disabled_div' : '' ?>">
                                 <div style="border: none; box-shadow: none; padding: 0;">
                                     <form class="form-material form-horizontal" id="billing_form">
                                         <input type="hidden" name="FUNCTION_NAME" value="saveEnrollmentBillingData">
@@ -1644,7 +1633,7 @@ $enrollment_type = 'Enrollment';
 
                                         <?php if ($PK_ENROLLMENT_BILLING == '') { ?>
                                             <div class="form-actions">
-                                                <button type="button" class="btn-modern btn-modern-secondary" onclick="$('#enrollment_link')[0].click();">
+                                                <button type="button" class="btn-modern btn-modern-secondary" onclick="switchTab('.tab-content-1')">
                                                     <i class="bi bi-arrow-left"></i> Back
                                                 </button>
                                                 <button type="submit" class="btn-modern btn-modern-primary">
@@ -1657,7 +1646,7 @@ $enrollment_type = 'Enrollment';
                             </div>
 
                             <!-- ===== LEDGER TAB ===== -->
-                            <div class="tab-pane-sidebar" id="ledger" role="tabpanel">
+                            <div class="tab-content tab-content-3">
                                 <div class="section-title">
                                     <i class="bi bi-book"></i> Billing Details
                                 </div>
@@ -1764,7 +1753,7 @@ $enrollment_type = 'Enrollment';
 
                             <!-- ===== HISTORY TAB ===== -->
                             <?php if (!empty($_GET['id'])) { ?>
-                                <div class="tab-pane-sidebar" id="history" role="tabpanel">
+                                <div class="tab-content tab-content-4">
                                     <div class="section-title">
                                         <i class="bi bi-clock-history"></i> Change History
                                     </div>
@@ -1800,7 +1789,7 @@ $enrollment_type = 'Enrollment';
 
                             <!-- ===== AGREEMENT TAB ===== -->
                             <?php if (!empty($_GET['id']) && $AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                                <div class="tab-pane-sidebar" id="agreement" role="tabpanel">
+                                <div class="tab-content tab-content-5">
                                     <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
                                         <button id="openSign" class="btn-modern btn-modern-primary" onclick="$('#signature_modal').modal('show');">
                                             <i class="bi bi-pencil"></i> Sign Agreement
@@ -1810,9 +1799,9 @@ $enrollment_type = 'Enrollment';
                                 </div>
                             <?php } ?>
 
-                        </div><!-- /tab-content-sidebar -->
-                    </div><!-- /card-body -->
-                </div><!-- /card-modern -->
+                        </div><!-- /right-panel -->
+                    </div><!-- /row -->
+                </div><!-- /card-box -->
 
             </div><!-- /container-fluid -->
         </div><!-- /page-wrapper -->
@@ -1889,17 +1878,24 @@ $enrollment_type = 'Enrollment';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
-        // Sidebar Tab switching
-        document.querySelectorAll('.tab-item-sidebar').forEach(tab => {
-            tab.addEventListener('click', function() {
-                if (this.classList.contains('disabled')) return;
-                document.querySelectorAll('.tab-item-sidebar').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-pane-sidebar').forEach(p => p.classList.remove('active'));
+        // Tab switching - EXACTLY like customer page
+        $('.sidebar-link').on('click', function(evt) {
+            evt.preventDefault();
 
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-            });
+            $('.sidebar-link').removeClass('active');
+            $(this).addClass('active');
+
+            var sel = $(this).data('toggle-target');
+            $('.tab-content').removeClass('active');
+            $(sel).addClass('active');
         });
+
+        function switchTab(selector) {
+            $('.sidebar-link').removeClass('active');
+            $('.sidebar-link[data-toggle-target="' + selector + '"]').addClass('active');
+            $('.tab-content').removeClass('active');
+            $(selector).addClass('active');
+        }
 
         let PK_ENROLLMENT_MASTER = parseInt(<?= empty($_GET['id']) ? 0 : $_GET['id'] ?>);
         let ENROLLMENT_BY_ID = parseInt(<?= $ENROLLMENT_BY_ID ?>);
@@ -2404,7 +2400,7 @@ $enrollment_type = 'Enrollment';
                             window.location.reload();
                         } else {
                             $('.PK_ENROLLMENT_MASTER').val(data.PK_ENROLLMENT_MASTER);
-                            $('#billing_link')[0].click();
+                            switchTab('.tab-content-2');
                         }
                     }
                 });
@@ -2414,6 +2410,7 @@ $enrollment_type = 'Enrollment';
         function goToPaymentTab() {
             let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
             if (PK_ENROLLMENT_MASTER) {
+                switchTab('.tab-content-2');
                 $.ajax({
                     url: "ajax/show_payment_tab.php",
                     type: 'POST',
@@ -2428,7 +2425,7 @@ $enrollment_type = 'Enrollment';
                 });
             } else {
                 alert('Please fill up the enrollment form first');
-                $('#enrollment_link')[0].click();
+                switchTab('.tab-content-1');
             }
         }
 
@@ -2436,7 +2433,9 @@ $enrollment_type = 'Enrollment';
             let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
             if (!PK_ENROLLMENT_MASTER) {
                 alert('Please fill up the enrollment form first');
-                $('#enrollment_link')[0].click();
+                switchTab('.tab-content-1');
+            } else {
+                switchTab('.tab-content-3');
             }
         }
 
@@ -2760,7 +2759,30 @@ $enrollment_type = 'Enrollment';
 
             let tab_link = <?= empty($_GET['tab']) ? 0 : json_encode($_GET['tab']) ?>;
             if (tab_link != 0) {
-                document.querySelector('[data-tab="' + tab_link + '"]')?.click();
+                let selector = '';
+                switch (tab_link) {
+                    case 'enrollment':
+                        selector = '.tab-content-1';
+                        break;
+                    case 'billing':
+                        selector = '.tab-content-2';
+                        break;
+                    case 'ledger':
+                        selector = '.tab-content-3';
+                        break;
+                    case 'history':
+                        selector = '.tab-content-4';
+                        break;
+                    case 'agreement':
+                        selector = '.tab-content-5';
+                        break;
+                }
+                if (selector) {
+                    $('.sidebar-link').removeClass('active');
+                    $('.sidebar-link[data-toggle-target="' + selector + '"]').addClass('active');
+                    $('.tab-content').removeClass('active');
+                    $(selector).addClass('active');
+                }
             }
 
             // Initialize engagement terms visibility
