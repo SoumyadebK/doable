@@ -152,7 +152,9 @@ while (!$enrollment_data->EOF) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row align-items-center flex-nowrap gx-2" style="width:100%;">
                 <div class="col-3">
-                    <h6 class="fw-bold mb-0"><?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
+                    <a href="../admin_v2/enrollment.php?id=<?= $PK_ENROLLMENT_MASTER ?>" target="_blank">
+                        <h6 class="fw-bold mb-0"><?= ($enrollment_data->fields['ENROLLMENT_ID'] == null) ? $enrollment_name . $enrollment_data->fields['MISC_ID'] : $enrollment_name . $enrollment_data->fields['ENROLLMENT_ID'] ?> <span class="text-muted fw-normal ms-2"><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></span></h6>
+                    </a>
                 </div>
                 <div class="col-2">
                     <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>

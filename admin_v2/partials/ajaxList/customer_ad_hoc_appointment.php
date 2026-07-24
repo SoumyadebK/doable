@@ -63,10 +63,10 @@ $orphan_appointment_data = $db_account->Execute($ORPHAN_APPOINTMENT_QUERY, $page
 if ($orphan_appointment_data->RecordCount() > 0) {
 ?>
     <div class="enrollment-container mb-4">
-        <h6 class="fw-bold mb-3">List of Orphan Appointments (<span style="color: red;"><?= $number_of_result ?></span>)</h6>
+        <h6 class="fw-bold mb-3" onclick="$('#orphan_appointment').trigger('click');" style="cursor:pointer;">List of Orphan Appointments (<span style="color: red;"><?= $number_of_result ?></span>)</h6>
         <div class="table-responsive mb-5">
             <table id="myTable" class="table border-0" data-page-length='50'>
-                <thead style="cursor:pointer;" onclick="$(this).next().slideToggle();">
+                <thead id="orphan_appointment" style="cursor:pointer;" onclick="$(this).next().slideToggle();">
                     <tr>
                         <th data-type="number" style="cursor: pointer; text-align: center;">No</i></th>
                         <th data-type="string" style="cursor: pointer; text-align: center;">Service</th>
