@@ -181,6 +181,7 @@ $enrollment_type = 'Enrollment';
 <?php include 'layout/header_script.php'; ?>
 <?php include 'layout/header.php'; ?>
 
+<link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -969,6 +970,17 @@ $enrollment_type = 'Enrollment';
 
     .back-link i {
         font-size: 16px;
+    }
+
+    /* Form helper */
+    .form-helper {
+        font-size: 12px;
+        color: var(--gray-400);
+        margin-top: 4px;
+    }
+
+    .form-helper.error {
+        color: var(--danger-color);
     }
 </style>
 
