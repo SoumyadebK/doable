@@ -1499,6 +1499,30 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                 width: 100%;
             }
         }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-modern.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
     </style>
 </head>
 
@@ -1999,20 +2023,23 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                         <div class="form-grid">
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">SMTP Host</label>
-                                                                <input type="text" class="form-control-modern" name="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
+                                                                <input type="text" class="form-control-modern" name="SMTP_HOST" id="SMTP_HOST" value="<?= htmlspecialchars($SMTP_HOST) ?>">
                                                             </div>
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">SMTP Port</label>
-                                                                <input type="text" class="form-control-modern" name="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
+                                                                <input type="text" class="form-control-modern" name="SMTP_PORT" id="SMTP_PORT" value="<?= htmlspecialchars($SMTP_PORT) ?>">
                                                             </div>
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">SMTP Username</label>
-                                                                <input type="text" class="form-control-modern" name="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
+                                                                <input type="text" class="form-control-modern" name="SMTP_USERNAME" id="SMTP_USERNAME" value="<?= htmlspecialchars($SMTP_USERNAME) ?>">
                                                             </div>
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">SMTP Password</label>
-                                                                <input type="text" class="form-control-modern" name="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
+                                                                <input type="text" class="form-control-modern" name="SMTP_PASSWORD" id="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
                                                             </div>
+                                                        </div>
+                                                        <div class="form-actions" style="border-top: none; padding-top: 0px; float: right;">
+                                                            <a href="javascript:void(0)" class="btn-modern btn-modern-primary" id="test-smtp-btn" onclick="testSmtpSetting()">Test SMTP Setting</a>
                                                         </div>
                                                     </div>
 
@@ -2568,8 +2595,6 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                         <input type="text" class="form-control-modern" name="CONCIERGE_SCRIPT" value="<?= htmlspecialchars($CONCIERGE_SCRIPT) ?>">
                                                     </div>
                                                 </div>
-
-
 
 
                                                 <!-- Offering Section -->
@@ -3395,6 +3420,74 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
 
             function removeThisFAQ(param) {
                 $(param).closest('.service-row').remove();
+            }
+
+            let smtpTestInProgress = false; // guard flag to prevent double clicks
+
+            function testSmtpSetting() {
+                if (smtpTestInProgress) return; // ignore clicks while already running
+
+                const host = $('#SMTP_HOST').val();
+                const port = $('#SMTP_PORT').val();
+                const username = $('#SMTP_USERNAME').val();
+                const password = $('#SMTP_PASSWORD').val();
+
+                if (!host || !port || !username || !password) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Validation Error',
+                        text: 'Please fill in all fields.',
+                        confirmButtonColor: '#39B54A'
+                    });
+                    return;
+                }
+
+                const data = {
+                    HOST: host,
+                    PORT: port,
+                    USERNAME: username,
+                    PASSWORD: password,
+                    FUNCTION_NAME: 'testSmtpSetting'
+                };
+
+                const $btn = $('#test-smtp-btn');
+                const originalHtml = $btn.html();
+
+                // Simulate disabled state for an <a> tag
+                smtpTestInProgress = true;
+                $btn.addClass('disabled')
+                    .css('pointer-events', 'none')
+                    .attr('aria-disabled', 'true')
+                    .html('<span class="btn-spinner"></span> Testing...');
+
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: data,
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Details',
+                            html: response,
+                            confirmButtonColor: '#39B54A'
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            html: '<p>An error occurred while testing SMTP settings.</p>',
+                            confirmButtonColor: '#39B54A'
+                        });
+                    },
+                    complete: function() {
+                        smtpTestInProgress = false;
+                        $btn.removeClass('disabled')
+                            .css('pointer-events', '')
+                            .removeAttr('aria-disabled')
+                            .html(originalHtml);
+                    }
+                });
             }
         </script>
 
