@@ -16,6 +16,7 @@ $followup_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE IS
 
 while (!$followup_data->EOF) {
     $automation_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATIONS WHERE PK_AUTOMATION_ID = '" . $followup_data->fields['PK_AUTOMATION_ID'] . "'");
+    $PK_AUTOMATION_LOG = $followup_data->fields['PK_AUTOMATION_LOG'];
     $title = $automation_data->fields['TITLE'];
     $trigger_type = ucwords(strtolower(str_replace('_', ' ', $automation_data->fields['TRIGGER_TYPE'])));
     $trigger_value = ucwords(strtolower(str_replace('_', ' ', $automation_data->fields['TRIGGER_VALUE'])));
@@ -37,7 +38,7 @@ while (!$followup_data->EOF) {
     <div class="appointment-profile d-flex">
         <div class="d-flex align-items-center gap-3 f12 theme-text-light">
             <div class="profilename-data">
-                <h6 class="mb-1"><?= $title ?></h6>
+                <h6 class="mb-1"><?= $title ?> <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue;"></i></a></h6>
                 <span class=""><?= date('l, M d', strtotime($date)) ?></span>
             </div>
         </div>

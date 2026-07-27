@@ -2781,6 +2781,30 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         }
     </script>
 
+    <script>
+        function addToInternalNote(PK_AUTOMATION_LOG) {
+            $.ajax({
+                url: "ajax/AjaxFunctions.php",
+                type: 'POST',
+                data: {
+                    FUNCTION_NAME: 'addToInternalNote',
+                    PK_AUTOMATION_LOG: PK_AUTOMATION_LOG
+                },
+                success: function(data) {
+                    closePopover();
+                    Swal.fire({
+                        title: "Added!",
+                        text: "Added to Internal Note.",
+                        icon: "success",
+                        timer: 3000,
+                    }).then((result) => {
+                        calendar.refetchEvents();
+                    });
+                }
+            });
+        }
+    </script>
+
     <style>
         .page-wrapper {
             min-height: calc(100vh - 200px) !important;
