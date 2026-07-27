@@ -1521,6 +1521,103 @@ function saveLocationData($RESPONSE_DATA)
     }
 }
 
+function testSmtpSetting($RESPONSE_DATA)
+{
+    //error_reporting(E_ALL);
+    $hostname = $RESPONSE_DATA['HOST'];
+    $port = $RESPONSE_DATA['PORT'];
+    $SendingEmail = $RESPONSE_DATA['USERNAME'];
+    $SendingPwd = $RESPONSE_DATA['PASSWORD'];
+
+    $To = "info@topcone.com";
+    $Subject = "Test SMTP Setting from Doable";
+
+    require_once('../../global/phpmailer/class.phpmailer.php');
+
+    //Create a new PHPMailer instance
+    $mail = new PHPMailer();
+    //Tell PHPMailer to use SMTP
+    $mail->IsSMTP();
+    //Enable SMTP debugging
+    // 0 = off (for production use)
+    // 1 = client messages
+    // 2 = client and server messages
+    $mail->SMTPDebug = 2;
+
+    //Ask for HTML-friendly debug output
+    $mail->Debugoutput = 'html';
+
+    //Set the hostname of the mail server
+    $mail->Host = $hostname;
+
+    //Set the SMTP port number - 587 for authenticated TLS, a.k.a. RFC4409 SMTP submission
+    $mail->Port = $port;
+
+    //Set the encryption system to use - ssl (deprecated) or tls
+    $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+
+    //Whether to use SMTP authentication
+    $mail->SMTPAuth = true;
+
+    //Username to use for SMTP authentication - use full email address for gmail
+    $mail->Username = $SendingEmail;
+
+    //Password to use for SMTP authentication
+    $mail->Password = $SendingPwd;
+
+    $mail->setFrom($SendingEmail, 'development');
+
+    $mail->addAddress('info@topcone.com', "development");  //Set who the message is to be sent to.
+    //Set the subject line
+    $mail->Subject = 'Test SMTP Setting from Doable';
+
+    //Read an HTML message body from an external file, convert referenced images to embedded,
+    //convert HTML into a basic plain-text alternative body
+    $mail->Body = 'This is just to test the SMTP setting on Doable. Please ignore this email.';
+
+    //Replace the plain text body with one created manually
+    $mail->AltBody = 'This is a plain-text message body';
+
+    //Attach an image file
+    //$mail->addAttachment('images/phpmailer_mini.gif');
+    //$mail->SMTPAuth = true;
+    //send the message, check for errors
+
+    echo $mail->send()
+        ? '<div style="color:#1e7e34;"><strong>✅ Success:</strong> Test email sent successfully!</div>'
+        : '<div style="color:#a5251e;"><strong>⚠️ Error:</strong> ' . htmlspecialchars(friendlyMailError($mail->ErrorInfo)) . '</div>';
+
+    /* try {
+        if (!$mail->send()) {
+            $message  = $mail->ErrorInfo;
+        } else {
+            echo 'Test email sent successfully!';
+            die;
+        }
+    } catch (phpmailerException $e) {
+        $message  = $e->getMessage();
+    }
+
+    echo friendlyMailError($message); */
+}
+
+function friendlyMailError($rawError)
+{
+    if (stripos($rawError, 'security defaults') !== false) {
+        return "Authentication was blocked by your email provider's security policy. Please contact your administrator to enable SMTP authentication for this account.";
+    }
+    if (stripos($rawError, 'Exchange') !== false) {
+        return "Your email account has been migrated to a new mail system. Please update the SMTP server settings.";
+    }
+    if (stripos($rawError, 'Could not authenticate') !== false) {
+        return "The username or password for this email account is incorrect, or authentication isn't allowed.";
+    }
+    if (stripos($rawError, 'Could not connect') !== false) {
+        return "We couldn't reach the mail server. Please check the server address and port.";
+    }
+    return "Something went wrong while sending the email. Please try again or contact support.";
+}
+
 function saveOperationalHours($RESPONSE_DATA)
 {
     global $db;
