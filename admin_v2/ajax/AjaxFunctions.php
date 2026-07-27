@@ -4507,3 +4507,32 @@ function markMiscComplete($RESPONSE_DATA)
     db_perform_account('DOA_ENROLLMENT_LEDGER', $ENR_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
     echo 1;
 }
+
+function addToInternalNote($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_AUTOMATION_LOG = $RESPONSE_DATA['PK_AUTOMATION_LOG'];
+    $log_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_LOG = '$PK_AUTOMATION_LOG'");
+    $automation_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATIONS WHERE PK_AUTOMATION_ID = '" . $log_data->fields['PK_AUTOMATION_ID'] . "'");
+    $TITLE = $automation_data->fields['TITLE'];
+    $MESSAGE = $log_data->fields['MESSAGE'];
+    $PK_USER_MASTER = $log_data->fields['PK_USER_MASTER'];
+    $user_master_data = $db->Execute("SELECT * FROM `DOA_USER_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
+    $PK_USER = $user_master_data->fields['PK_USER'];
+
+    $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $COMMENT_DATA['COMMENT'] = "<b>$TITLE</b><br>$MESSAGE";
+    $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
+    $COMMENT_DATA['FOR_PK_USER'] = $PK_USER;
+    $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];
+    $COMMENT_DATA['ACTIVE'] = 1;
+    $COMMENT_DATA['CREATED_ON']  = date("Y-m-d H:i");
+    $COMMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
+    db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
+
+    $update_data['IS_ARCHIVE'] = 1;
+    db_perform_account('DOA_AUTOMATION_LOG', $update_data, 'update', " PK_AUTOMATION_LOG = '$PK_AUTOMATION_LOG'");
+
+    echo 1;
+}

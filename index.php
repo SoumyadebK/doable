@@ -648,7 +648,6 @@ require_once('global/config.php');
                 <div class="col-md-6">
                     <div class="form-card">
                         <form>
-
                             <div class="form-group">
                                 <label>Full Name <span>*</span></label>
                                 <div class="input-wrapper">
@@ -724,7 +723,6 @@ require_once('global/config.php');
                                 By submitting this form, you agree to be contacted by our team.
                                 We respect your privacy and will never share your information.
                             </p>
-
                         </form>
                     </div>
 
