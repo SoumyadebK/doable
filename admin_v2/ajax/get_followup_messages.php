@@ -38,8 +38,8 @@ while (!$followup_data->EOF) {
     <div class="appointment-profile d-flex">
         <div class="d-flex align-items-center gap-3 f12 theme-text-light">
             <div class="profilename-data">
-                <h6 class="mb-1"><?= $title ?> <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue;"></i></a></h6>
-                <span class=""><?= date('l, M d', strtotime($date)) ?></span>
+                <h6 class="mb-1"><?= $title ?></h6>
+                <span class=""><?= date('l, M d', strtotime($date)) ?> <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue; margin-left: 20px; font-size: 14px;"></i></a></span>
             </div>
         </div>
     </div>

@@ -762,6 +762,7 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
+    markFollowupArchived($enrollment_service_data->fields['PK_USER_MASTER'], 'NO_ACTIVE_ENROLLMENTS');
 
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;

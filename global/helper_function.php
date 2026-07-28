@@ -1532,3 +1532,12 @@ function getLeadStatusId($status_name, $PK_ACCOUNT_MASTER = null)
         return null;
     }
 }
+
+function markFollowupArchived($PK_USER_MASTER, $TRIGGER_TYPE)
+{
+    global $db_account;
+    $automation_data = $db_account->Execute("SELECT PK_AUTOMATION_ID FROM DOA_AUTOMATIONS WHERE TRIGGER_TYPE = '$TRIGGER_TYPE'");
+    $PK_AUTOMATION_ID = $automation_data->fields['PK_AUTOMATION_ID'];
+    $update_data['IS_ARCHIVE'] = 1;
+    db_perform_account('DOA_AUTOMATION_LOG', $update_data, 'update', " PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_USER_MASTER = '$PK_USER_MASTER'");
+}
