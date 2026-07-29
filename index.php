@@ -1,6 +1,131 @@
 <?php
-global $db;
 require_once('global/config.php');
+
+$success = false;
+$message = '';
+if (isset($_POST['name'])) {
+    require_once('global/phpmailer/class.phpmailer.php');
+    $name = htmlspecialchars($_POST['name']);
+    $email = htmlspecialchars($_POST['email']);
+    $phone = htmlspecialchars($_POST['phone']);
+    $business_name = htmlspecialchars($_POST['business_name']);
+    $message = htmlspecialchars($_POST['message']);
+    $BUSINESS_TYPE = htmlspecialchars($_POST['BUSINESS_TYPE']);
+
+    $hostname = 'smtp.protonmail.ch';
+    $port = '587';
+    $userName = 'demo@doable.net';
+    $SendingPwd = '9B76V5Q2NPY7524W';
+
+    $To = "demo@doable.net";
+    $Subject = "Contact Us from Doable";
+
+    $mail = new PHPMailer();
+    $mail->IsSMTP();
+    $mail->SMTPDebug = 0;
+    $mail->Debugoutput = 'html';
+    $mail->IsHTML(true);
+    $mail->Host = $hostname;
+    $mail->Port = $port;
+    $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+    $mail->SMTPAuth = true;
+    $mail->Username = $userName;
+    $mail->Password = $SendingPwd;
+    $mail->setFrom($userName, "Doable");
+    $mail->addAddress($To, "Doable");  //Set who the message is to be sent to.
+    //Set the subject line
+    $mail->Subject = $Subject;
+
+    // Tell PHPMailer this is an HTML email
+    $mail->IsHTML(true);
+
+    $mail->Body = '
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                  <meta charset="UTF-8">
+                  </head>
+                  <body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7; padding:30px 0;">
+                      <tr>
+                        <td align="center">
+                          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+                            <!-- Header -->
+                            <tr>
+                              <td style="background-color:#39b54a; padding:24px 32px;">
+                                <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600;">New Contact Form Enquiry</h1>
+                                <p style="margin:4px 0 0; color:#c7d2fe; font-size:13px;">Doable Website</p>
+                              </td>
+                            </tr>
+
+                            <!-- Body -->
+                            <tr>
+                              <td style="padding:32px;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; width:140px; color:#6b7280; font-size:14px;">Name</td>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($name) . '</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#6b7280; font-size:14px;">Email</td>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">
+                                      <a href="mailto:' . htmlspecialchars($email) . '" style="color:#39b54a; text-decoration:none;">' . htmlspecialchars($email) . '</a>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#6b7280; font-size:14px;">Phone</td>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($phone) . '</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#6b7280; font-size:14px;">Business Name</td>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($business_name) . '</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding:10px 0; color:#6b7280; font-size:14px;">Business Type</td>
+                                    <td style="padding:10px 0; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($BUSINESS_TYPE) . '</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding:10px 0; color:#6b7280; font-size:14px;">Message</td>
+                                    <td style="padding:10px 0; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($message) . '</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                              <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
+                                <p style="margin:0; color:#9ca3af; font-size:12px;">This enquiry was submitted via the contact form on the Doable website.</p>
+                              </td>
+                            </tr>
+
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </body>
+                  </html>';
+
+    // Plain-text fallback for non-HTML email clients
+    $mail->AltBody = "New Contact Form Enquiry\n\n"
+        . "Name: $name\n"
+        . "Email: $email\n"
+        . "Phone: $phone\n"
+        . "Business Type: $BUSINESS_TYPE\n";
+
+    try {
+        if (!$mail->send()) {
+            $message  = $mail->ErrorInfo;
+        } else {
+            $success = true;
+            $message = 'Your Enquiry has been submitted to our team. We will get back to you soon.';
+        }
+    } catch (phpmailerException $e) {
+        $message  = $e->getMessage();
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -647,12 +772,12 @@ require_once('global/config.php');
                 </div>
                 <div class="col-md-6">
                     <div class="form-card">
-                        <form>
+                        <form method="POST" enctype="multipart/form-data">
                             <div class="form-group">
                                 <label>Full Name <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">👤</span>
-                                    <input type="text" placeholder="Full Name" />
+                                    <input type="text" name="name" placeholder="Full Name" required />
                                 </div>
                             </div>
 
@@ -660,7 +785,7 @@ require_once('global/config.php');
                                 <label>Email Address <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">✉️</span>
-                                    <input type="email" placeholder="Email Address" />
+                                    <input type="email" name="email" placeholder="Email Address" required />
                                 </div>
                             </div>
 
@@ -668,7 +793,7 @@ require_once('global/config.php');
                                 <label>Business Name <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">🏢</span>
-                                    <input type="text" placeholder="Business Name" />
+                                    <input type="text" name="business_name" placeholder="Business Name" required />
                                 </div>
                             </div>
 
@@ -676,12 +801,12 @@ require_once('global/config.php');
                                 <label>Business Type <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">🏬</span>
-                                    <select>
+                                    <select name="BUSINESS_TYPE" required>
                                         <option value="">Select Business Type</option>
                                         <?php
                                         $row = $db->Execute("SELECT PK_BUSINESS_TYPE, BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE = 1");
                                         while (!$row->EOF) { ?>
-                                            <option value="<?php echo $row->fields['PK_BUSINESS_TYPE']; ?>"><?= $row->fields['BUSINESS_TYPE'] ?></option>
+                                            <option value="<?php echo $row->fields['BUSINESS_TYPE']; ?>"><?= $row->fields['BUSINESS_TYPE'] ?></option>
                                         <?php
                                             $row->MoveNext();
                                         } ?>
@@ -693,7 +818,7 @@ require_once('global/config.php');
                                 <label>Phone Number <span>*</span></label>
                                 <div class="input-wrapper">
                                     <span class="input-icon">📞</span>
-                                    <input type="tel" placeholder="Phone Number" />
+                                    <input type="text" class="format_phone_number" name="phone" placeholder="Phone Number" required />
                                 </div>
                             </div>
 
@@ -701,13 +826,12 @@ require_once('global/config.php');
                                 <label>Message <span>*</span></label>
                                 <div class="input-wrapper textarea">
                                     <span class="input-icon">💬</span>
-                                    <textarea rows="4"
-                                        placeholder="Tell us about your business and what you're looking for..."></textarea>
+                                    <textarea rows="4" name="message" placeholder="Tell us about your business and what you're looking for..."></textarea>
                                 </div>
                             </div>
 
                             <div class="consent-box">
-                                <input type="checkbox" />
+                                <input type="checkbox" name="sms_consent" required />
                                 <p>
                                     I agree to receive text messages from Doable related to service updates and support communications.
                                     Message frequency may vary. Message & data rates may apply. Reply STOP to opt out or HELP for help.
@@ -715,9 +839,7 @@ require_once('global/config.php');
                                 </p>
                             </div>
 
-                            <button class="submit-btn">
-                                Send Message <span>➜</span>
-                            </button>
+                            <button type="submit" class="submit-btn">Send Message</button>
 
                             <p class="form-footer">
                                 By submitting this form, you agree to be contacted by our team.
@@ -757,5 +879,30 @@ require_once('global/config.php');
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.5.0/js/fontawesome.min.js"></script>
 </body>
+
+<!-- Scripts -->
+<script src="assets/homepage/js/jquery/jquery.js"></script>
+<script src="assets/homepage/js/bootstrap/bootstrap.min.js"></script>
+<script>
+    $(document).on('input', '.format_phone_number', function() {
+        formatPhoneNumber(this);
+    });
+
+    function formatPhoneNumber(input) {
+        let digits = input.value.replace(/\D/g, '');
+        if (digits.length > 10) {
+            digits = digits.slice(0, 10);
+        }
+        let formatted = digits;
+        if (digits.length <= 3) {
+            formatted = digits;
+        } else if (digits.length <= 6) {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        } else {
+            formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+        input.value = formatted;
+    }
+</script>
 
 </html>

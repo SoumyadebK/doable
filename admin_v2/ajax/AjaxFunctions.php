@@ -1543,7 +1543,7 @@ function testSmtpSetting($RESPONSE_DATA)
     // 0 = off (for production use)
     // 1 = client messages
     // 2 = client and server messages
-    $mail->SMTPDebug = 2;
+    $mail->SMTPDebug = 1;
 
     //Ask for HTML-friendly debug output
     $mail->Debugoutput = 'html';
@@ -1568,7 +1568,7 @@ function testSmtpSetting($RESPONSE_DATA)
 
     $mail->setFrom($SendingEmail, 'development');
 
-    $mail->addAddress('info@topcone.com', "development");  //Set who the message is to be sent to.
+    $mail->addAddress($To, "development");  //Set who the message is to be sent to.
     //Set the subject line
     $mail->Subject = 'Test SMTP Setting from Doable';
 
@@ -4517,13 +4517,13 @@ function addToInternalNote($RESPONSE_DATA)
     $log_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATION_LOG WHERE PK_AUTOMATION_LOG = '$PK_AUTOMATION_LOG'");
     $automation_data = $db_account->Execute("SELECT * FROM DOA_AUTOMATIONS WHERE PK_AUTOMATION_ID = '" . $log_data->fields['PK_AUTOMATION_ID'] . "'");
     $TITLE = $automation_data->fields['TITLE'];
-    $MESSAGE = $log_data->fields['MESSAGE'];
+    $MESSAGE = $RESPONSE_DATA['MESSAGE'];
     $PK_USER_MASTER = $log_data->fields['PK_USER_MASTER'];
     $user_master_data = $db->Execute("SELECT * FROM `DOA_USER_MASTER` WHERE `PK_USER_MASTER` = '$PK_USER_MASTER'");
     $PK_USER = $user_master_data->fields['PK_USER'];
 
     $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $COMMENT_DATA['COMMENT'] = "<b>$TITLE</b><br>$MESSAGE";
+    $COMMENT_DATA['COMMENT'] = $MESSAGE;
     $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
     $COMMENT_DATA['FOR_PK_USER'] = $PK_USER;
     $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];

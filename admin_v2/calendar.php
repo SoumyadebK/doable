@@ -860,6 +860,39 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         </div>
     </div>
 
+
+
+    <!--Follow Up Messages Model-->
+    <div class="modal fade" id="save_followup_message_model" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <form id="save_followup_message_form" method="post">
+                <input type="hidden" name="FUNCTION_NAME" value="addToInternalNote">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><b>Add Follow Up Message</b></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <input type="hidden" name="PK_AUTOMATION_LOG" id="PK_AUTOMATION_LOG">
+                                    <textarea class="form-control" rows="10" name="MESSAGE" id="MESSAGE" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary cancel" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="card-button" class="btn btn-secondary" style="float: right;">Process</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
     <?php require_once('../includes/footer.php'); ?>
 
     <?php include 'partials/create_appointment_modal.php'; ?>
@@ -2783,26 +2816,35 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     <script>
         function addToInternalNote(PK_AUTOMATION_LOG) {
+            closePopover();
+            $('#save_followup_message_model').modal('show');
+            $('#PK_AUTOMATION_LOG').val(PK_AUTOMATION_LOG);
+            $('#MESSAGE').val('');
+            $('#save_followup_message_form #MESSAGE').focus();
+        }
+
+        $(document).on('submit', '#save_followup_message_form', function(event) {
+            event.preventDefault();
+            let form_data = new FormData($('#save_followup_message_form')[0]);
             $.ajax({
                 url: "ajax/AjaxFunctions.php",
                 type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'addToInternalNote',
-                    PK_AUTOMATION_LOG: PK_AUTOMATION_LOG
-                },
+                data: form_data,
+                processData: false,
+                contentType: false,
                 success: function(data) {
-                    closePopover();
                     Swal.fire({
                         title: "Added!",
                         text: "Added to Internal Note.",
                         icon: "success",
                         timer: 3000,
                     }).then((result) => {
+                        $('#save_followup_message_model').modal('hide');
                         calendar.refetchEvents();
                     });
                 }
             });
-        }
+        });
     </script>
 
     <style>

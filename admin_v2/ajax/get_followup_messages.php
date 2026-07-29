@@ -39,7 +39,11 @@ while (!$followup_data->EOF) {
         <div class="d-flex align-items-center gap-3 f12 theme-text-light">
             <div class="profilename-data">
                 <h6 class="mb-1"><?= $title ?></h6>
-                <span class=""><?= date('l, M d', strtotime($date)) ?> <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue; margin-left: 20px; font-size: 14px;"></i></a></span>
+                <span class=""><?= date('l, M d', strtotime($date)) ?>
+                    <?php if (in_array($_SESSION['PK_ROLES'], [2, 3, 11]) || ($SERVICE_PROVIDER_ID == $_SESSION['PK_USER'])) { ?>
+                        <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue; margin-left: 20px; font-size: 14px;"></i></a>
+                    <?php } ?>
+                </span>
             </div>
         </div>
     </div>
