@@ -30,12 +30,12 @@ if ($page == 1) { ?>
     <div class="enrollment-container mb-4">
 
         <div class="d-flex justify-content-between align-items-start mb-1 row">
-            <div class="col-6">
+            <div class="col-5">
                 <h5 class="fw-bold mb-1"><?= $enr_title ?></h5>
                 <p class="text-muted mb-2 small">Optional settings section description</p>
             </div>
 
-            <div class="col-4 d-flex justify-content-end align-items-center">
+            <div class="col-3 d-flex justify-content-end align-items-center">
                 <div class="view-toggle m-r-15" style="height: 37px;">
                     <button class="view-btn-icon <?= ($type != 'completed') ? 'active' : '' ?>" onclick="loadEnrollment('normal')">
                         Active
@@ -44,6 +44,12 @@ if ($page == 1) { ?>
                         Complete
                     </button>
                 </div>
+            </div>
+
+            <div class="col-2 text-end">
+                <a class="btn btn-light rounded-pill btn-outline-edit btn-sm border-0 text-white px-3 py-2" style="background-color: #39b54a !important; width: max-content; height: 36px;" href="adjust_customer_enrollment_and_appointment.php?PK_USER=<?= $PK_USER ?>&PK_USER_MASTER=<?= $PK_USER_MASTER ?>" style="width: 120px; ">
+                    <i class="bi bi-repeat"></i> Adjust Everything
+                </a>
             </div>
 
             <div class="col-2 text-end">
