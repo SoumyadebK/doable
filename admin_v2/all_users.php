@@ -339,7 +339,7 @@ $users = $db->Execute($query);
             const isRecipient = $(this).prop('checked') ? 1 : 0;
 
             $.ajax({
-                url: '../ajax/AjaxFunctions.php',
+                url: 'ajax/AjaxFunctions.php',
                 type: 'POST',
                 data: {
                     FUNCTION_NAME: 'changeShowAsRecipient',
