@@ -165,6 +165,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME 
+            DOA_USERS.EMAIL_ID,
         FROM DOA_USERS 
         INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
         WHERE DOA_USERS.IS_DELETED = 0 
@@ -179,6 +180,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
 
     $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
     $customer_name = trim($customer->fields['FIRST_NAME'] . ' ' . $customer->fields['LAST_NAME']);
+    $email = trim($customer->fields['EMAIL_ID']);
 
     // Remove leading 1 if present
     if (strlen($phone) == 11 && substr($phone, 0, 1) == '1') {
@@ -192,7 +194,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
     $userName = 'demo@doable.net';
     $SendingPwd = '9B76V5Q2NPY7524W';
 
-    $To = "deb.soumya93@gmail.com";
+    $To = $email;
     $Subject = "Appointment Reminder from Doable";
 
     $mail = new PHPMailer();
