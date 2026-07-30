@@ -156,10 +156,10 @@ if ($TYPE == 'appointment') {
                 </div>
                 <div class="d-flex gap-2 ms-auto">
 
-                    <a href="javascript:;" class="btn-icon" title="Send Email">
+                    <a href="javascript:;" class="btn-icon" onclick="sendReminder('email', <?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send Email">
                         <i class="fa fa-envelope" aria-hidden="true"></i>
                     </a>
-                    <a href="javascript:;" class="btn-icon" onclick="sendSmsReminder(<?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send SMS Reminder">
+                    <a href="javascript:;" class="btn-icon" onclick="sendReminder('sms', <?= $PK_APPOINTMENT_MASTER ?>, <?= $selected_user_id ?>)" title="Send SMS">
                         <i class="fa fa-comment" aria-hidden="true"></i>
                     </a>
                 </div>

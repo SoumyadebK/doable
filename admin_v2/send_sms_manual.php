@@ -2,100 +2,105 @@
 
 use Twilio\Rest\Client;
 
-// Turn off HTML error display
-error_reporting(E_ALL);
-ini_set('display_errors', 0);  // Don't display errors in output
-ini_set('log_errors', 1);
-ini_set('error_log', '/var/log/php_errors.log');
+require_once("../global/config.php");
+global $db;
+global $db_account;
 
-// Ensure no HTML output before JSON
-ob_start();
-
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Set JSON header immediately
-header('Content-Type: application/json');
-
-// Function to send JSON response and exit
-function sendJsonResponse($success, $message, $data = null)
-{
-    // Clear any output buffers
-    while (ob_get_level()) {
-        ob_end_clean();
-    }
-
-    $response = ['success' => $success, 'message' => $message];
-    if ($data !== null) {
-        $response['data'] = $data;
-    }
-    echo json_encode($response);
-    exit;
-}
-
-// Auth check
-if (!isset($_SESSION['PK_USER']) || $_SESSION['PK_USER'] == 0 || in_array($_SESSION['PK_ROLES'], [1, 4])) {
-    sendJsonResponse(false, 'Unauthorized');
-}
+require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
+require_once('../global/phpmailer/class.phpmailer.php');
 
 $appointment_id = isset($_POST['appointment_id']) ? intval($_POST['appointment_id']) : 0;
 $customer_id = isset($_POST['customer_id']) ? intval($_POST['customer_id']) : 0;
 $send_to_all = isset($_POST['send_to_all']) ? intval($_POST['send_to_all']) : 0;
+$reminder_type = isset($_POST['reminder_type']) ? $_POST['reminder_type'] : '';
 
-if (!$appointment_id) {
-    sendJsonResponse(false, 'Missing appointment ID');
+
+// Get appointment details
+$appointment_query = "SELECT PK_LOCATION, DATE, START_TIME FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER = " . $appointment_id;
+$appointment = $db_account->Execute($appointment_query);
+
+if (!$appointment || $appointment->RecordCount() == 0) {
+    $return_data['success'] = false;
+    $return_data['message'] = 'Appointment not found';
+    echo json_encode($return_data);
 }
 
-try {
-    // Include config
-    if ($_SERVER['HTTP_HOST'] == 'localhost') {
-        require_once("global/config.php");
-        require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
+$PK_LOCATION = $appointment->fields['PK_LOCATION'];
+$date = date('l, F j, Y', strtotime($appointment->fields['DATE']));
+$time = date('g:i A', strtotime($appointment->fields['START_TIME']));
+
+// Get location name
+$location_query = "SELECT LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION = " . $PK_LOCATION;
+$location = $db->Execute($location_query);
+$location_name = $location->fields['LOCATION_NAME'];
+
+// Send to all students
+$students_query = "SELECT PK_USER_MASTER FROM DOA_APPOINTMENT_CUSTOMER 
+            WHERE PK_APPOINTMENT_MASTER = " . $appointment_id . " AND IS_PARTNER = 0";
+$students = $db_account->Execute($students_query);
+
+if (!$students || $students->RecordCount() == 0) {
+    $return_data['success'] = false;
+    $return_data['message'] = 'No students found';
+    echo json_encode($return_data);
+}
+
+if ($send_to_all == 1) {
+    $success_count = 0;
+    $fail_count = 0;
+    $errors = [];
+
+    while (!$students->EOF) {
+        if ($reminder_type == 'sms') {
+            $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
+
+            if ($result['success']) {
+                $success_count++;
+            } else {
+                $fail_count++;
+                $errors[] = $result['message'];
+            }
+        } else {
+            $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
+
+            if ($result['success']) {
+                $success_count++;
+            } else {
+                $fail_count++;
+                $errors[] = $result['message'];
+            }
+        }
+
+        $students->MoveNext();
+    }
+
+    $message = "Sent to $success_count students, failed: $fail_count";
+    if ($fail_count > 0) {
+        $message .= " - " . implode(", ", $errors);
+    }
+
+    $return_data['success'] = $fail_count == 0;
+    $return_data['message'] = $message;
+    echo json_encode($return_data);
+} else {
+    if ($reminder_type == 'sms') {
+        $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
     } else {
-        require_once("/var/www/html/global/config.php");
-        require_once("/var/www/html/global/vendor/twilio/sdk/src/Twilio/autoload.php");
+        $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
     }
 
-    global $db;
+    $return_data['success'] = $result['success'];
+    $return_data['message'] = $result['message'];
+    echo json_encode($return_data);
+}
 
-    // Get appointment details
-    $appointment_query = "SELECT PK_LOCATION, DATE, START_TIME FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER = " . $appointment_id;
-    $appointment = $db_account->Execute($appointment_query);
 
-    if (!$appointment || $appointment->RecordCount() == 0) {
-        sendJsonResponse(false, 'Appointment not found');
-    }
-
-    $PK_LOCATION = $appointment->fields['PK_LOCATION'];
-    $date = date('l, F j, Y', strtotime($appointment->fields['DATE']));
-    $time = date('g:i A', strtotime($appointment->fields['START_TIME']));
-
-    // Get location name
-    $location_query = "SELECT LOCATION_NAME FROM DOA_LOCATION WHERE PK_LOCATION = " . $PK_LOCATION;
-    $location = $db->Execute($location_query);
-
-    if (!$location || $location->RecordCount() == 0) {
-        sendJsonResponse(false, 'Location not found');
-    }
-    $location_name = $location->fields['LOCATION_NAME'];
-
-    // Get Twilio settings
+// Function to send SMS
+function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_LOCATION)
+{
     [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
-
-    echo "Twilio Settings: SID=$SID, TOKEN=$TOKEN, PHONE=$TWILIO_PHONE_NO\n"; // Debugging line
-
-    // Validate Twilio credentials
-    if (empty($SID) || empty($TOKEN) || empty($TWILIO_PHONE_NO)) {
-        sendJsonResponse(false, "Twilio Settings: SID=$SID, TOKEN=$TOKEN, PHONE=$TWILIO_PHONE_NO\n" . 'Twilio settings are incomplete. Please configure Twilio in the admin panel.');
-    }
-
-    // Function to send SMS
-    function sendSmsToCustomer($db, $customer_id, $appointment_id, $location_name, $date, $time, $SID, $TOKEN, $TWILIO_PHONE_NO, $PK_LOCATION)
-    {
-        // Get customer details
-        $customer_query = "SELECT 
+    // Get customer details
+    $customer_query = "SELECT 
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME 
@@ -105,118 +110,165 @@ try {
         AND DOA_USERS.ACTIVE = 1 
         AND DOA_USERS.PK_USER = " . intval($customer_id);
 
-        $customer = $db->Execute($customer_query);
+    $customer = $db->Execute($customer_query);
 
-        if (!$customer || $customer->RecordCount() == 0) {
-            return ['success' => false, 'message' => 'Customer not found'];
-        }
+    if (!$customer || $customer->RecordCount() == 0) {
+        return ['success' => false, 'message' => 'Customer not found'];
+    }
 
-        $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
-        $customer_name = trim($customer->fields['FIRST_NAME'] . ' ' . $customer->fields['LAST_NAME']);
+    $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
+    $customer_name = trim($customer->fields['FIRST_NAME'] . ' ' . $customer->fields['LAST_NAME']);
 
-        // Remove leading 1 if present
-        if (strlen($phone) == 11 && substr($phone, 0, 1) == '1') {
-            $phone = substr($phone, 1);
-        }
+    // Remove leading 1 if present
+    if (strlen($phone) == 11 && substr($phone, 0, 1) == '1') {
+        $phone = substr($phone, 1);
+    }
 
-        $message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+    $message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
 
-        try {
-            $client = new Client($SID, $TOKEN);
-            $response = $client->messages->create(
-                '+1' . $phone,
-                [
-                    'from' => $TWILIO_PHONE_NO,
-                    'body' => $message
-                ]
-            );
+    try {
+        $client = new Client($SID, $TOKEN);
+        $response = $client->messages->create(
+            '+1' . $phone,
+            [
+                'from' => $TWILIO_PHONE_NO,
+                'body' => $message
+            ]
+        );
 
-            // Log success
-            $log_query = "INSERT INTO DOA_SMS_LOG 
+        // Log success
+        $log_query = "INSERT INTO DOA_SMS_LOG 
                 (IS_ERROR, ERROR_MESSAGE, PK_LOCATION, PK_USER_MASTER, PHONE_NUMBER, MESSAGE, TRIGGER_TIME) 
                 VALUES (0, '', " . intval($PK_LOCATION) . ", " . intval($customer_id) . ", 
                 '$phone', '" . addslashes($message) . "', '" . date('Y-m-d H:i:s') . "')";
-            $db->Execute($log_query);
+        $db->Execute($log_query);
 
-            return ['success' => true, 'message' => 'SMS sent successfully'];
-        } catch (Exception $e) {
-            // Log error
-            $error_message = addslashes($e->getMessage());
-            $log_query = "INSERT INTO DOA_SMS_LOG 
+        return ['success' => true, 'message' => 'SMS sent successfully'];
+    } catch (Exception $e) {
+        // Log error
+        $error_message = addslashes($e->getMessage());
+        $log_query = "INSERT INTO DOA_SMS_LOG 
                 (IS_ERROR, ERROR_MESSAGE, PK_LOCATION, PK_USER_MASTER, PHONE_NUMBER, MESSAGE, TRIGGER_TIME) 
                 VALUES (1, '$error_message', " . intval($PK_LOCATION) . ", 
                 " . intval($customer_id) . ", '$phone', '" . addslashes($message) . "', '" . date('Y-m-d H:i:s') . "')";
-            $db->Execute($log_query);
+        $db->Execute($log_query);
 
-            return ['success' => false, 'message' => $e->getMessage()];
-        }
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
+
+function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
+{
+
+    // Get customer details
+    $customer_query = "SELECT 
+            DOA_USERS.PHONE, 
+            DOA_USERS.FIRST_NAME,
+            DOA_USERS.LAST_NAME 
+        FROM DOA_USERS 
+        INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
+        WHERE DOA_USERS.IS_DELETED = 0 
+        AND DOA_USERS.ACTIVE = 1 
+        AND DOA_USERS.PK_USER = " . intval($customer_id);
+
+    $customer = $db->Execute($customer_query);
+
+    if (!$customer || $customer->RecordCount() == 0) {
+        return ['success' => false, 'message' => 'Customer not found'];
     }
 
-    // Send SMS
-    if ($send_to_all == 1) {
-        // Send to all students
-        $students_query = "SELECT PK_USER_MASTER FROM DOA_APPOINTMENT_CUSTOMER 
-            WHERE PK_APPOINTMENT_MASTER = " . $appointment_id . " AND IS_PARTNER = 0";
-        $students = $db->Execute($students_query);
+    $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
+    $customer_name = trim($customer->fields['FIRST_NAME'] . ' ' . $customer->fields['LAST_NAME']);
 
-        if (!$students || $students->RecordCount() == 0) {
-            sendJsonResponse(false, 'No students found');
-        }
-
-        $success_count = 0;
-        $fail_count = 0;
-        $errors = [];
-
-        while (!$students->EOF) {
-            $result = sendSmsToCustomer(
-                $db,
-                $students->fields['PK_USER_MASTER'],
-                $appointment_id,
-                $location_name,
-                $date,
-                $time,
-                $SID,
-                $TOKEN,
-                $TWILIO_PHONE_NO,
-                $PK_LOCATION
-            );
-
-            if ($result['success']) {
-                $success_count++;
-            } else {
-                $fail_count++;
-                $errors[] = $result['message'];
-            }
-            $students->MoveNext();
-        }
-
-        $message = "Sent to $success_count students, failed: $fail_count";
-        if ($fail_count > 0) {
-            $message .= " - " . implode(", ", $errors);
-        }
-
-        sendJsonResponse($fail_count == 0, $message);
-    } else {
-        // Send to single customer
-        if (!$customer_id) {
-            sendJsonResponse(false, 'Missing customer ID');
-        }
-
-        $result = sendSmsToCustomer(
-            $db,
-            $customer_id,
-            $appointment_id,
-            $location_name,
-            $date,
-            $time,
-            $SID,
-            $TOKEN,
-            $TWILIO_PHONE_NO,
-            $PK_LOCATION
-        );
-
-        sendJsonResponse($result['success'], $result['message']);
+    // Remove leading 1 if present
+    if (strlen($phone) == 11 && substr($phone, 0, 1) == '1') {
+        $phone = substr($phone, 1);
     }
-} catch (Exception $e) {
-    sendJsonResponse(false, 'Error: ' . $e->getMessage());
+
+    $message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+
+    $hostname = 'smtp.protonmail.ch';
+    $port = '587';
+    $userName = 'demo@doable.net';
+    $SendingPwd = '9B76V5Q2NPY7524W';
+
+    $To = "deb.soumya93@gmail.com";
+    $Subject = "Appointment Reminder from Doable";
+
+    $mail = new PHPMailer();
+    $mail->IsSMTP();
+    $mail->SMTPDebug = 0;
+    $mail->Debugoutput = 'html';
+    $mail->IsHTML(true);
+    $mail->Host = $hostname;
+    $mail->Port = $port;
+    $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+    $mail->SMTPAuth = true;
+    $mail->Username = $userName;
+    $mail->Password = $SendingPwd;
+    $mail->setFrom($userName, "Doable");
+    $mail->addAddress($To, "Doable");  //Set who the message is to be sent to.
+    //Set the subject line
+    $mail->Subject = $Subject;
+
+    // Tell PHPMailer this is an HTML email
+    $mail->IsHTML(true);
+
+    $mail->Body = '
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                  <meta charset="UTF-8">
+                  </head>
+                  <body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7; padding:30px 0;">
+                      <tr>
+                        <td align="center">
+                          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+                            <!-- Header -->
+                            <tr>
+                              <td style="background-color:#39b54a; padding:24px 32px;">
+                                <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600;">Appointment Reminder</h1>
+                                <p style="margin:4px 0 0; color:#c7d2fe; font-size:13px;">Doable Website</p>
+                              </td>
+                            </tr>
+
+                            <!-- Body -->
+                            <tr>
+                              <td style="padding:32px;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                    <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($message) . '</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                              <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
+                                <p style="margin:0; color:#9ca3af; font-size:12px;">This reminder was sent from the Doable website.</p>
+                              </td>
+                            </tr>
+
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </body>
+                  </html>';
+
+    // Plain-text fallback for non-HTML email clients
+    $mail->AltBody = $message;
+
+    try {
+        if (!$mail->send()) {
+            return ['success' => false, 'message' => $mail->ErrorInfo];
+        } else {
+            return ['success' => true, 'message' => 'Email sent successfully'];
+        }
+    } catch (phpmailerException $e) {
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
 }

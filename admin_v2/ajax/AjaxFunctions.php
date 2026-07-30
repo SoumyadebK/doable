@@ -4523,7 +4523,7 @@ function addToInternalNote($RESPONSE_DATA)
     $PK_USER = $user_master_data->fields['PK_USER'];
 
     $COMMENT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    $COMMENT_DATA['COMMENT'] = $MESSAGE;
+    $COMMENT_DATA['COMMENT'] = "<b>$TITLE</b><br>" . $MESSAGE;
     $COMMENT_DATA['COMMENT_DATE'] = date("Y-m-d");
     $COMMENT_DATA['FOR_PK_USER'] = $PK_USER;
     $COMMENT_DATA['BY_PK_USER']  = $_SESSION['PK_USER'];

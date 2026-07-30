@@ -100,6 +100,9 @@ function getLastAppointment($db_account, $PK_LOCATION, $APPOINTMENT_TYPE, $REMIN
             AND AM.PK_LOCATION = '$PK_LOCATION'
             GROUP BY AC.PK_USER_MASTER
             HAVING DATEDIFF(CURDATE(), MAX(AM.DATE)) = " . $REMINDER_VALUE;
+
+    echo $query . "<br>";
+
     $all_appointment = $db_account->Execute($query);
     return $all_appointment;
 }

@@ -2737,10 +2737,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
     <script>
         // In your JS file
-        function sendSmsReminder(appointmentId, customerId) {
+        function sendReminder(reminder_type, appointmentId, customerId) {
+            closePopover();
             swal({
-                    title: "Send SMS Reminder?",
-                    text: "Send SMS reminder to this customer?",
+                    title: (reminder_type == 'sms') ? "Send SMS Reminder?" : "Send Email Reminder?",
+                    text: (reminder_type == 'sms') ? "Send SMS reminder to this customer?" : "Send Email reminder to this customer?",
                     icon: "warning",
                     buttons: ["Cancel", "Yes, Send"],
                     dangerMode: true,
@@ -2771,7 +2772,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             data: {
                                 manual: 1,
                                 appointment_id: appointmentId,
-                                customer_id: customerId
+                                customer_id: customerId,
+                                reminder_type: reminder_type
                             },
                             dataType: 'json',
                             success: function(response) {
@@ -2797,7 +2799,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                             error: function(xhr, status, error) {
                                 swal({
                                     title: "Error!",
-                                    text: "Error sending SMS: " + error,
+                                    text: (reminder_type == 'sms') ? "Error sending SMS: " + error : "Error sending Email: " + error,
                                     icon: "error",
                                     button: "OK"
                                 });
