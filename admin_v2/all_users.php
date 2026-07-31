@@ -74,6 +74,45 @@ $users = $db->Execute($query);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
 </head>
+<style>
+    /* Custom green recipient switch */
+    .recipient-switch:checked {
+        background-color: #39b54a !important;
+        border-color: #39b54a !important;
+    }
+
+    .recipient-switch:focus {
+        border-color: #39b54a !important;
+        box-shadow: 0 0 0 0.25rem rgba(57, 181, 74, 0.25) !important;
+    }
+
+    .recipient-switch.form-check-input {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280,0,0,0.25%29'/%3e%3c/svg%3e") !important;
+    }
+
+    .recipient-switch.form-check-input:checked {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e") !important;
+    }
+
+    /* Make the switch track green */
+    .recipient-switch.form-check-input {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+        width: 2.5em;
+        height: 1.5em;
+        margin-top: 0;
+    }
+
+    .recipient-switch.form-check-input:checked {
+        background-color: #39b54a !important;
+        border-color: #39b54a !important;
+    }
+
+    /* Optional: Add a subtle animation */
+    .recipient-switch.form-check-input {
+        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+</style>
 
 <body>
 
