@@ -52,7 +52,7 @@ if ($send_to_all == 1) {
 
     while (!$students->EOF) {
         if ($reminder_type == 'sms') {
-            $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
+            $result = sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_LOCATION);
 
             if ($result['success']) {
                 $success_count++;
@@ -61,7 +61,7 @@ if ($send_to_all == 1) {
                 $errors[] = $result['message'];
             }
         } else {
-            $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
+            $result = sendEmailToCustomer($db, $customer_id, $location_name, $date, $time);
 
             if ($result['success']) {
                 $success_count++;
@@ -84,9 +84,9 @@ if ($send_to_all == 1) {
     echo json_encode($return_data);
 } else {
     if ($reminder_type == 'sms') {
-        $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
+        $result = sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_LOCATION);
     } else {
-        $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
+        $result = sendEmailToCustomer($db, $customer_id, $location_name, $date, $time);
     }
 
     $return_data['success'] = $result['success'];
@@ -104,8 +104,7 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME 
-        FROM DOA_USERS 
-        INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
+        FROM DOA_USERS
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
         AND DOA_USERS.PK_USER = " . intval($customer_id);
@@ -159,15 +158,13 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_
 
 function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
 {
-
     // Get customer details
     $customer_query = "SELECT 
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
-            DOA_USERS.LAST_NAME 
-            DOA_USERS.EMAIL_ID,
+            DOA_USERS.LAST_NAME,
+            DOA_USERS.EMAIL_ID
         FROM DOA_USERS 
-        INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
         AND DOA_USERS.PK_USER = " . intval($customer_id);
