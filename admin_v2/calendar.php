@@ -2739,80 +2739,86 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         // In your JS file
         function sendReminder(reminder_type, appointmentId, customerId) {
             closePopover();
-            swal({
-                    title: (reminder_type == 'sms') ? "Send SMS Reminder?" : "Send Email Reminder?",
-                    text: (reminder_type == 'sms') ? "Send SMS reminder to this customer?" : "Send Email reminder to this customer?",
-                    icon: "warning",
-                    buttons: ["Cancel", "Yes, Send"],
-                    dangerMode: true,
-                })
-                .then((willSend) => {
-                    if (willSend) {
-                        // Show loading state
-                        swal({
-                            title: "Sending...",
-                            text: "Please wait",
-                            icon: "info",
-                            buttons: false,
-                            closeOnClickOutside: false,
-                            closeOnEsc: false,
-                        });
 
-                        // Get the button that was clicked
-                        var btn = event ? event.currentTarget : null;
-                        var originalHtml = btn ? btn.innerHTML : '';
-                        if (btn) {
-                            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-                            btn.disabled = true;
+            Swal.fire({
+                title: (reminder_type == 'sms') ? "Send SMS Reminder?" : "Send Email Reminder?",
+                text: "Enter your message below:",
+                icon: "warning",
+                input: "textarea",
+                inputPlaceholder: "Type your message here...",
+                inputAttributes: {
+                    id: "reminder_message"
+                },
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+                confirmButtonText: "Yes, Send",
+                preConfirm: (message) => {
+                    if (!message || !message.trim()) {
+                        Swal.showValidationMessage("Please enter a message.");
+                        return false;
+                    }
+                    return message;
+                }
+            }).then((result) => {
+
+                // Cancel button clicked or dismissed
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                const message = result.value;
+
+                // Loading popup
+                Swal.fire({
+                    title: "Sending...",
+                    text: "Please wait",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: 'send_sms_manual.php',
+                    type: 'POST',
+                    data: {
+                        manual: 1,
+                        appointment_id: appointmentId,
+                        customer_id: customerId,
+                        reminder_type: reminder_type,
+                        message: message
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: response.message,
+                                icon: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Failed!",
+                                text: response.message,
+                                icon: "error"
+                            });
                         }
-
-                        $.ajax({
-                            url: 'send_sms_manual.php',
-                            type: 'POST',
-                            data: {
-                                manual: 1,
-                                appointment_id: appointmentId,
-                                customer_id: customerId,
-                                reminder_type: reminder_type
-                            },
-                            dataType: 'json',
-                            success: function(response) {
-                                if (response.success) {
-                                    swal({
-                                        title: "Success!",
-                                        text: response.message,
-                                        icon: "success",
-                                        timer: 2000,
-                                        buttons: false
-                                    });
-                                    // Optionally update the UI
-                                    $('.sms-status-' + appointmentId).html('<span class="badge bg-success">Reminder Sent</span>');
-                                } else {
-                                    swal({
-                                        title: "Failed!",
-                                        text: response.message,
-                                        icon: "error",
-                                        button: "OK"
-                                    });
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                swal({
-                                    title: "Error!",
-                                    text: (reminder_type == 'sms') ? "Error sending SMS: " + error : "Error sending Email: " + error,
-                                    icon: "error",
-                                    button: "OK"
-                                });
-                            },
-                            complete: function() {
-                                if (btn) {
-                                    btn.innerHTML = originalHtml;
-                                    btn.disabled = false;
-                                }
-                            }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire({
+                            title: "Error!",
+                            text: error,
+                            icon: "error"
                         });
                     }
                 });
+
+            });
         }
     </script>
 

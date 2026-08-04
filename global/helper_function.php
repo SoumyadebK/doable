@@ -1541,3 +1541,15 @@ function markFollowupArchived($PK_USER_MASTER, $TRIGGER_TYPE)
     $update_data['IS_ARCHIVE'] = 1;
     db_perform_account('DOA_AUTOMATION_LOG', $update_data, 'update', " PK_AUTOMATION_ID = '$PK_AUTOMATION_ID' AND PK_USER_MASTER = '$PK_USER_MASTER'");
 }
+
+function getLocationSmtpSetting($PK_LOCATION)
+{
+    global $db;
+    $location_data = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION = $PK_LOCATION");
+    return [
+        'SMTP_HOST' => $location_data->fields['SMTP_HOST'],
+        'SMTP_PORT' => $location_data->fields['SMTP_PORT'],
+        'SMTP_USERNAME' => $location_data->fields['SMTP_USERNAME'],
+        'SMTP_PASSWORD' => $location_data->fields['SMTP_PASSWORD']
+    ];
+}
