@@ -2,9 +2,9 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Email Template";
+    $title = "Add SMS Template";
 else
-    $title = "Edit Email Template";
+    $title = "Edit SMS Template";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
@@ -12,22 +12,22 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 if (!empty($_POST)) {
-    $EMAIL_ACCOUNT_DATA = $_POST;
-    unset($EMAIL_ACCOUNT_DATA['TEMP_CONTENT']);
-    $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $SMS_ACCOUNT_DATA = $_POST;
+    unset($SMS_ACCOUNT_DATA['TEMP_CONTENT']);
+    $SMS_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if ($_GET['id'] == '') {
-        if (!isset($EMAIL_ACCOUNT_DATA['ACTIVE'])) {
-            $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
+        if (!isset($SMS_ACCOUNT_DATA['ACTIVE'])) {
+            $SMS_ACCOUNT_DATA['ACTIVE'] = 1; // or 0, depending on your preference
         }
-        $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
-        header("location:all_email_templates.php");
+        $SMS_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $SMS_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SMS_TEMPLATE', $SMS_ACCOUNT_DATA, 'insert');
+        header("location:all_sms_templates.php");
     } else {
-        $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
-        header("location:all_email_templates.php");
+        $SMS_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $SMS_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+        db_perform_account('DOA_SMS_TEMPLATE', $SMS_ACCOUNT_DATA, 'update', " PK_SMS_TEMPLATE = '$_GET[id]'");
+        header("location:all_sms_templates.php");
     }
 }
 
@@ -35,23 +35,18 @@ if (empty($_GET['id'])) {
     $TEMPLATE_NAME      = '';
     $PK_LOCATION        = '';
     $SUBJECT            = '';
-    $PK_TEMPLATE_CATEGORY = '';
-    $PK_EMAIL_TRIGGER     = '';
-    $PK_EMAIL_ACCOUNT   = '';
+    $PK_SMS_ACCOUNT   = '';
     $CONTENT            = '';
     $ACTIVE             = '';
 } else {
-    $res = $db_account->Execute("SELECT * FROM DOA_EMAIL_TEMPLATE WHERE PK_EMAIL_TEMPLATE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_SMS_TEMPLATE WHERE PK_SMS_TEMPLATE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
-        header("location:all_email_templates.php");
+        header("location:all_sms_templates.php");
         exit;
     }
     $TEMPLATE_NAME      = $res->fields['TEMPLATE_NAME'];
     $PK_LOCATION        = $res->fields['PK_LOCATION'];
     $SUBJECT            = $res->fields['SUBJECT'];
-    $PK_TEMPLATE_CATEGORY = $res->fields['PK_TEMPLATE_CATEGORY'];
-    $PK_EMAIL_TRIGGER     = $res->fields['PK_EMAIL_TRIGGER'];
-    $PK_EMAIL_ACCOUNT   = $res->fields['PK_EMAIL_ACCOUNT'];
     $CONTENT            = $res->fields['CONTENT'];
     $ACTIVE             = $res->fields['ACTIVE'];
 }
@@ -499,7 +494,6 @@ if (empty($_GET['id'])) {
         margin-top: 4px;
     }
 
-    /* Variable Badge Styles - Same as SMS template */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -509,8 +503,6 @@ if (empty($_GET['id'])) {
         display: inline-block;
         margin: 0 2px;
         color: #1e40af;
-        cursor: default;
-        border: 1px solid #c7d2fe;
     }
 
     .btn-variable-token {
@@ -519,29 +511,10 @@ if (empty($_GET['id'])) {
         border-radius: 40px;
         font-size: 0.7rem;
         padding: 0.25rem 0.9rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
     }
 
     .btn-variable-token:hover {
         background: #f1f5f9;
-        border-color: var(--primary-color);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .variables-section {
-        grid-column: 1 / -1;
-        padding: 8px 0 4px 0;
-    }
-
-    .variables-section .text-muted {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--gray-500) !important;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 8px;
     }
 </style>
 
@@ -605,12 +578,12 @@ if (empty($_GET['id'])) {
                                         <!-- Subject -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Subject <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter email subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
-                                            <div class="form-helper">The subject line that will appear in the email</div>
+                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter sms subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
+                                            <div class="form-helper">The subject line that will appear in the sms</div>
                                         </div>
 
                                         <!-- Template Category -->
-                                        <div class="form-group-modern">
+                                        <!-- <div class="form-group-modern">
                                             <label class="form-label">Template Category <span class="required">*</span></label>
                                             <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" onchange="selectTemplateCategory(this)" required>
                                                 <option value="">Select Category</option>
@@ -626,47 +599,47 @@ if (empty($_GET['id'])) {
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>
-                                        </div>
+                                        </div> -->
 
                                         <!-- Email Trigger -->
-                                        <div class="form-group-modern" id="email_event_div" style="display: <?= ($PK_TEMPLATE_CATEGORY == 1) ? 'flex' : 'none' ?>;">
+                                        <!-- <div class="form-group-modern" id="sms_event_div" style="display: <?= ($PK_TEMPLATE_CATEGORY == 1) ? 'flex' : 'none' ?>;">
                                             <label class="form-label">Email Trigger</label>
-                                            <select id="PK_EMAIL_TRIGGER" name="PK_EMAIL_TRIGGER" class="form-control-modern">
+                                            <select id="PK_SMS_TRIGGER" name="PK_SMS_TRIGGER" class="form-control-modern">
                                                 <option value="">Select Trigger Event</option>
                                                 <?php
-                                                $row = $db->Execute("SELECT PK_EMAIL_TRIGGER, EMAIL_TRIGGER FROM DOA_EMAIL_TRIGGER WHERE ACTIVE = 1");
+                                                $row = $db->Execute("SELECT PK_SMS_TRIGGER, SMS_TRIGGER FROM DOA_SMS_TRIGGER WHERE ACTIVE = 1");
                                                 while (!$row->EOF) {
                                                     $selected = '';
-                                                    if ($PK_EMAIL_TRIGGER != '' && $PK_EMAIL_TRIGGER == $row->fields['PK_EMAIL_TRIGGER']) {
+                                                    if ($PK_SMS_TRIGGER != '' && $PK_SMS_TRIGGER == $row->fields['PK_SMS_TRIGGER']) {
                                                         $selected = 'selected';
                                                     }
                                                 ?>
-                                                    <option value="<?php echo $row->fields['PK_EMAIL_TRIGGER']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['EMAIL_TRIGGER']); ?></option>
+                                                    <option value="<?php echo $row->fields['PK_SMS_TRIGGER']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['SMS_TRIGGER']); ?></option>
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>
-                                            <div class="form-helper">Select the event that will trigger this email</div>
-                                        </div>
+                                            <div class="form-helper">Select the event that will trigger this sms</div>
+                                        </div> -->
 
                                         <!-- Email Account -->
-                                        <div class="form-group-modern">
+                                        <!-- <div class="form-group-modern">
                                             <label class="form-label">Email Account <span class="required">*</span></label>
-                                            <select id="PK_EMAIL_ACCOUNT" name="PK_EMAIL_ACCOUNT" class="form-control-modern">
+                                            <select id="PK_SMS_ACCOUNT" name="PK_SMS_ACCOUNT" class="form-control-modern">
                                                 <option value="">Select Email Account</option>
                                                 <?php
-                                                $row = $db_account->Execute("SELECT PK_EMAIL_ACCOUNT, USER_NAME FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
+                                                $row = $db_account->Execute("SELECT PK_SMS_ACCOUNT, USER_NAME FROM DOA_SMS_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
                                                 while (!$row->EOF) {
                                                     $selected = '';
-                                                    if ($PK_EMAIL_ACCOUNT != '' && $PK_EMAIL_ACCOUNT == $row->fields['PK_EMAIL_ACCOUNT']) {
+                                                    if ($PK_SMS_ACCOUNT != '' && $PK_SMS_ACCOUNT == $row->fields['PK_SMS_ACCOUNT']) {
                                                         $selected = 'selected';
                                                     }
                                                 ?>
-                                                    <option value="<?php echo $row->fields['PK_EMAIL_ACCOUNT']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['USER_NAME']); ?></option>
+                                                    <option value="<?php echo $row->fields['PK_SMS_ACCOUNT']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['USER_NAME']); ?></option>
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>
-                                            <div class="form-helper">The email account used to send this template</div>
-                                        </div>
+                                            <div class="form-helper">The sms account used to send this template</div>
+                                        </div> -->
 
                                         <!-- Active Status -->
                                         <?php if (!empty($_GET['id'])): ?>
@@ -693,10 +666,8 @@ if (empty($_GET['id'])) {
                                             </div>
                                             <input type="hidden" name="CONTENT" id="CONTENT">
                                             <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper">Use the toolbar above to format your email content</div>
+                                            <div class="form-helper">Use the toolbar above to format your sms content</div>
                                         </div>
-
-                                        <!-- Variables Section - Same as SMS template -->
                                         <div class="variables-section">
                                             <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                             <div class="d-flex flex-wrap gap-1">
@@ -704,18 +675,12 @@ if (empty($_GET['id'])) {
                                                 <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
                                                 <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
                                                 <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID">Student ID</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name">Course Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Date">Date</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Time">Time</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
                                             </div>
                                         </div>
 
                                         <!-- Hidden fields -->
                                         <?php if (!empty($_GET['id'])): ?>
-                                            <input type="hidden" name="PK_EMAIL_TEMPLATE" value="<?php echo $_GET['id'] ?>">
+                                            <input type="hidden" name="PK_SMS_TEMPLATE" value="<?php echo $_GET['id'] ?>">
                                         <?php endif; ?>
                                     </div>
 
@@ -729,7 +694,7 @@ if (empty($_GET['id'])) {
                                                 Update Template
                                             <?php endif; ?>
                                         </button>
-                                        <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_email_templates.php'">
+                                        <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_sms_templates.php'">
                                             <i class="fas fa-times"></i> Cancel
                                         </button>
                                     </div>
@@ -792,7 +757,7 @@ if (empty($_GET['id'])) {
                 ],
             },
             theme: 'snow',
-            placeholder: 'Write your email content here...',
+            placeholder: 'Write your sms content here...',
         });
 
         // Load existing content
@@ -811,7 +776,7 @@ if (empty($_GET['id'])) {
             document.getElementById('CONTENT').value = quill.root.innerHTML;
         });
 
-        // --- VARIABLE INSERTION FUNCTION (Same as SMS template) ---
+        // --- FIXED: Variable insertion using HTML ---
         function insertVariable(varName) {
             // Focus the editor
             quill.focus();
@@ -845,11 +810,11 @@ if (empty($_GET['id'])) {
 
         // Template Category toggle
         function selectTemplateCategory(param) {
-            const emailEventDiv = document.getElementById('email_event_div');
+            const smsEventDiv = document.getElementById('sms_event_div');
             if ($(param).val() == 1) {
-                $(emailEventDiv).slideDown();
+                $(smsEventDiv).slideDown();
             } else {
-                $(emailEventDiv).slideUp();
+                $(smsEventDiv).slideUp();
             }
         }
 
@@ -883,10 +848,10 @@ if (empty($_GET['id'])) {
                 const helper = document.querySelector('.form-helper:last-of-type');
                 if (helper) {
                     helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please enter email content';
+                    helper.textContent = 'Please enter sms content';
                     setTimeout(() => {
                         helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Use the toolbar above to format your email content';
+                        helper.textContent = 'Use the toolbar above to format your sms content';
                     }, 3000);
                 }
             } else {

@@ -2,7 +2,7 @@
 <html lang="en">
 <?php
 require_once('../global/config.php');
-$title = "All Email Templates";
+$title = "All SMS Templates";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
@@ -12,7 +12,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $header_text = '';
-$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Email Templates Page'");
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'SMS Templates Page'");
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
@@ -33,38 +33,38 @@ $offset = ($page - 1) * $per_page;
 
 // Build active condition
 if ($status_check == 'active') {
-    $active_condition = "DOA_EMAIL_TEMPLATE.ACTIVE = 1";
+    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 1";
 } else {
-    $active_condition = "DOA_EMAIL_TEMPLATE.ACTIVE = 0";
+    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 0";
 }
 
 // Count total records
 $count_query = "SELECT COUNT(*) as total 
-                FROM DOA_EMAIL_TEMPLATE 
-                WHERE DOA_EMAIL_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                FROM DOA_SMS_TEMPLATE 
+                WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
                 AND $active_condition";
 
 if (!empty($search)) {
-    $count_query .= " AND (DOA_EMAIL_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                       OR DOA_EMAIL_TEMPLATE.SUBJECT LIKE '%" . addslashes($search) . "%')";
+    $count_query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
+                       OR DOA_SMS_TEMPLATE.SUBJECT LIKE '%" . addslashes($search) . "%')";
 }
 
 $total_result = $db_account->Execute($count_query);
 $total_records = $total_result->fields['total'];
 $total_pages = ceil($total_records / $per_page);
 
-// Get email templates for current page
-$query = "SELECT * FROM DOA_EMAIL_TEMPLATE LEFT JOIN $master_database.DOA_LOCATION ON DOA_EMAIL_TEMPLATE.PK_LOCATION = DOA_LOCATION.PK_LOCATION
-          WHERE DOA_EMAIL_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+// Get sms templates for current page
+$query = "SELECT * FROM DOA_SMS_TEMPLATE LEFT JOIN $master_database.DOA_LOCATION ON DOA_SMS_TEMPLATE.PK_LOCATION = DOA_LOCATION.PK_LOCATION
+          WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
           AND $active_condition";
 
 if (!empty($search)) {
-    $query .= " AND (DOA_EMAIL_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                 OR DOA_EMAIL_TEMPLATE.SUBJECT LIKE '%" . addslashes($search) . "%')";
+    $query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
+                 OR DOA_SMS_TEMPLATE.SUBJECT LIKE '%" . addslashes($search) . "%')";
 }
 
-$query .= " ORDER BY DOA_EMAIL_TEMPLATE.TEMPLATE_NAME ASC LIMIT $offset, $per_page";
-$email_templates = $db_account->Execute($query);
+$query .= " ORDER BY DOA_SMS_TEMPLATE.TEMPLATE_NAME ASC LIMIT $offset, $per_page";
+$sms_templates = $db_account->Execute($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -193,12 +193,12 @@ $email_templates = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <i class="bi bi-envelope me-2" style="color: #39b54a;"></i>Email Templates
+                                <i class="bi bi-envelope me-2" style="color: #39b54a;"></i>SMS Templates
                             </h2>
-                            <p class="text-muted small mb-0">Manage email templates and their configurations</p>
+                            <p class="text-muted small mb-0">Manage sms templates and their configurations</p>
                         </div>
-                        <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='email_template.php'">
-                            <i class="bi bi-plus-lg"></i> Create New Email Template
+                        <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='sms_template.php'">
+                            <i class="bi bi-plus-lg"></i> Create New SMS Template
                         </button>
                     </div>
 
@@ -216,10 +216,10 @@ $email_templates = $db_account->Execute($query);
 
                     <!-- Results count -->
                     <div class="text-muted small mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope"></i> <?= $total_records ?> <?= $total_records == 1 ? 'email template' : 'email templates' ?>
+                        <i class="bi bi-envelope"></i> <?= $total_records ?> <?= $total_records == 1 ? 'sms template' : 'sms templates' ?>
                     </div>
 
-                    <!-- Email Templates Table -->
+                    <!-- SMS Templates Table -->
                     <div class="table-responsive">
                         <table class="table custom-table align-middle mb-4">
                             <thead>
@@ -236,13 +236,13 @@ $email_templates = $db_account->Execute($query);
                                 <?php
                                 $counter = 0;
                                 $row_number = $offset + 1;
-                                if ($email_templates && !$email_templates->EOF):
-                                    while (!$email_templates->EOF):
-                                        $PK_EMAIL_TEMPLATE = $email_templates->fields['PK_EMAIL_TEMPLATE'];
-                                        $template_name = $email_templates->fields['TEMPLATE_NAME'];
-                                        $location_name = $email_templates->fields['LOCATION_NAME'];
-                                        $subject = $email_templates->fields['SUBJECT'];
-                                        $is_active = $email_templates->fields['ACTIVE'] == 1;
+                                if ($sms_templates && !$sms_templates->EOF):
+                                    while (!$sms_templates->EOF):
+                                        $PK_SMS_TEMPLATE = $sms_templates->fields['PK_SMS_TEMPLATE'];
+                                        $template_name = $sms_templates->fields['TEMPLATE_NAME'];
+                                        $location_name = $sms_templates->fields['LOCATION_NAME'];
+                                        $subject = $sms_templates->fields['SUBJECT'];
+                                        $is_active = $sms_templates->fields['ACTIVE'] == 1;
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
@@ -264,14 +264,14 @@ $email_templates = $db_account->Execute($query);
                                             </td>
                                             <td>
                                                 <div class="action-icons">
-                                                    <a href="email_template.php?id=<?= $PK_EMAIL_TEMPLATE ?>" title="Edit">
+                                                    <a href="sms_template.php?id=<?= $PK_SMS_TEMPLATE ?>" title="Edit">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
                                                 </div>
                                             </td>
                                         </tr>
                                     <?php
-                                        $email_templates->MoveNext();
+                                        $sms_templates->MoveNext();
                                         $counter++;
                                     endwhile;
                                 endif;
@@ -280,7 +280,7 @@ $email_templates = $db_account->Execute($query);
                                     <tr>
                                         <td colspan="5" class="text-center py-5">
                                             <i class="bi bi-envelope display-1 text-muted"></i>
-                                            <p class="mt-3 text-muted">No email templates found for the selected filters</p>
+                                            <p class="mt-3 text-muted">No sms templates found for the selected filters</p>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -374,7 +374,7 @@ $email_templates = $db_account->Execute($query);
         });
 
         function editpage(id) {
-            window.location.href = "email_template.php?id=" + id;
+            window.location.href = "sms_template.php?id=" + id;
         }
     </script>
 </body>
