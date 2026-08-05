@@ -109,13 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['update_status'])) {
 }
 
 // Handle form submission
-// Handle form submission
 if (!empty($_POST)) {
     // Get the JSON data BEFORE unsetting POST variables
     $custom_reminders_json = isset($_POST['CUSTOM_REMINDERS']) ? $_POST['CUSTOM_REMINDERS'] : '';
     $messages_json = isset($_POST['MESSAGES']) ? $_POST['MESSAGES'] : '';
     $message_notifications_json = isset($_POST['MESSAGE_NOTIFICATIONS']) ? $_POST['MESSAGE_NOTIFICATIONS'] : '[]';
-    $message_types_json = isset($_POST['MESSAGE_TYPES']) ? $_POST['MESSAGE_TYPES'] : '[]'; // NEW
+    $message_types_json = isset($_POST['MESSAGE_TYPES']) ? $_POST['MESSAGE_TYPES'] : '[]';
 
     // Debug: Log the received data
     error_log("=== FORM SUBMISSION DEBUG ===");
@@ -145,7 +144,7 @@ if (!empty($_POST)) {
     unset($_POST['CUSTOM_REMINDERS']);
     unset($_POST['MESSAGES']);
     unset($_POST['MESSAGE_NOTIFICATIONS']);
-    unset($_POST['MESSAGE_TYPES']); // NEW
+    unset($_POST['MESSAGE_TYPES']);
 
     $AUTOMATION_DATA = $_POST;
     $AUTOMATION_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -187,46 +186,19 @@ if (!empty($_POST)) {
         $automation_id = $_GET['id'];
         error_log("Updating automation with ID: $automation_id");
 
-        //$db_account->Execute("DELETE FROM DOA_AUTOMATION_REMINDERS WHERE PK_AUTOMATION_ID = '$automation_id'");
         $db_account->Execute("DELETE FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$automation_id'");
-        error_log("Deleted existing reminders and messages for automation ID: $automation_id");
+        error_log("Deleted existing messages for automation ID: $automation_id");
     }
-
-    // Save reminders
-    /* if (!empty($custom_reminders_json) && $custom_reminders_json != 'null' && $custom_reminders_json != '[]') {
-        $custom_reminders = json_decode($custom_reminders_json, true);
-        if (is_array($custom_reminders) && !empty($custom_reminders)) {
-            error_log("Saving " . count($custom_reminders) . " reminders");
-            foreach ($custom_reminders as $order => $reminder) {
-                if (is_array($reminder) && isset($reminder['value'])) {
-                    $is_enabled = isset($reminder['enabled']) && $reminder['enabled'] ? 1 : 0;
-                    $value = intval($reminder['value']);
-                    $unit = isset($reminder['unit']) ? $reminder['unit'] : 'Days';
-                    $created_on = date("Y-m-d H:i:s");
-                    $REMINDER_ORDER = $order + 1;
-
-                    $sql = "INSERT INTO DOA_AUTOMATION_REMINDERS (PK_AUTOMATION_ID, REMINDER_ORDER, IS_ENABLED, VALUE, UNIT, CREATED_ON, EDITED_ON) 
-                            VALUES ('$automation_id', '$REMINDER_ORDER', '$is_enabled', '$value', '$unit', '$created_on', '$created_on')";
-                    $db_account->Execute($sql);
-                    error_log("Saved reminder $order: enabled=$is_enabled, value=$value, unit=$unit");
-                }
-            }
-        }
-    } else {
-        error_log("No reminders to save");
-    } */
 
     // Save messages with their notification settings
     $messages_saved = 0;
 
-    // Check if we have messages to save
     error_log("Checking messages JSON: " . $messages_json);
 
     if (!empty($messages_json) && $messages_json != 'null' && $messages_json != '[]' && $messages_json != '[""]') {
         $messages = json_decode($messages_json, true);
         $custom_reminders = json_decode($custom_reminders_json, true);
 
-        // Check if json decode worked
         if ($messages === null) {
             error_log("ERROR: Failed to decode messages JSON: " . json_last_error_msg());
         } elseif (!is_array($messages)) {
@@ -264,7 +236,6 @@ if (!empty($_POST)) {
             error_log("Filtered messages count: " . count($filtered_messages));
 
             foreach ($filtered_messages as $index => $message_content) {
-                // Clean the content
                 $clean_content = trim($message_content);
                 $created_on = date("Y-m-d H:i:s");
                 $follow_up_num = $index + 1;
@@ -276,9 +247,9 @@ if (!empty($_POST)) {
                     $notify_manager = !empty($message_notifications[$index]['notify_studio_manager']) ? 1 : 0;
                     $notify_customer = !empty($message_notifications[$index]['notify_customer']) ? 1 : 0;
 
-                    $is_enable = $custom_reminders[$index]['enabled'] ?? 0;
-                    $value = $custom_reminders[$index]['value'] ?? 0;
-                    $unit = $custom_reminders[$index]['unit'] ?? 'Days';
+                    $is_enable = isset($custom_reminders[$index]['enabled']) ? ($custom_reminders[$index]['enabled'] ? 1 : 0) : 0;
+                    $value = isset($custom_reminders[$index]['value']) ? intval($custom_reminders[$index]['value']) : 0;
+                    $unit = isset($custom_reminders[$index]['unit']) ? $custom_reminders[$index]['unit'] : 'Days';
                 } else {
                     // Default: send to customer only
                     $notify_last = 0;
@@ -292,16 +263,30 @@ if (!empty($_POST)) {
                     error_log("No notification settings for message $follow_up_num, using defaults");
                 }
 
-                error_log("Saving message $follow_up_num: Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager");
+                // Get message type (can be 'SMS', 'EMAIL', 'SMS,EMAIL', or 'INTERNAL')
+                $msg_type = isset($message_types[$index]) ? $message_types[$index] : 'SMS';
+
+                // Validate message type
+                if ($notify_customer == 1) {
+                    // If customer is checked, ensure we have a valid channel
+                    $valid_types = ['SMS', 'EMAIL', 'SMS,EMAIL', 'EMAIL,SMS'];
+                    if (!in_array($msg_type, $valid_types, true)) {
+                        // If it's a single valid type
+                        if (in_array($msg_type, ['SMS', 'EMAIL'], true)) {
+                            // Keep it as is
+                        } else {
+                            $msg_type = 'SMS'; // Default to SMS
+                        }
+                    }
+                } else {
+                    // If customer is not checked, use INTERNAL
+                    $msg_type = 'INTERNAL';
+                }
+
+                error_log("Saving message $follow_up_num: Customer=$notify_customer, Last=$notify_last, Enroll=$notify_enroll, Manager=$notify_manager, Type=$msg_type");
                 error_log("Message content length: " . strlen($clean_content));
 
-                // Escape the content for database insertion
                 $escaped_content = addslashes($clean_content);
-
-                $msg_type = isset($message_types[$index]) ? $message_types[$index] : 'SMS';
-                if (!in_array($msg_type, ['SMS', 'EMAIL'], true)) {
-                    $msg_type = 'SMS';
-                }
 
                 $sql = "INSERT INTO DOA_AUTOMATION_MESSAGES (PK_AUTOMATION_ID, FOLLOW_UP_NUMBER, MESSAGE_CONTENT, IS_ENABLE, VALUE, UNIT,
                         NOTIFY_SERVICE_PROVIDER_LAST, NOTIFY_SERVICE_PROVIDER_ENROLL, NOTIFY_STUDIO_MANAGER, NOTIFY_CUSTOMER, MESSAGE_TYPE,
@@ -343,32 +328,18 @@ if (!empty($_GET['id'])) {
     $AUTOMATION = $res->fields;
     $PK_LOCATION = $AUTOMATION['PK_LOCATION'];
 
-    /* $reminders_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_REMINDERS` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY REMINDER_ORDER");
-    $CUSTOM_REMINDERS = array();
-    if ($reminders_res && $reminders_res->RecordCount() > 0) {
-        while (!$reminders_res->EOF) {
-            $CUSTOM_REMINDERS[] = array(
-                'enabled' => (bool)$reminders_res->fields['IS_ENABLED'],
-                'value' => (int)$reminders_res->fields['VALUE'],
-                'unit' => $reminders_res->fields['UNIT']
-            );
-            $reminders_res->MoveNext();
-        }
-    } */
-
     $messages_res = $db_account->Execute("SELECT * FROM `DOA_AUTOMATION_MESSAGES` WHERE PK_AUTOMATION_ID = '$_GET[id]' ORDER BY FOLLOW_UP_NUMBER");
     $MESSAGES = array();
     $CUSTOM_REMINDERS = array();
     $MESSAGE_NOTIFICATIONS = array();
-    $MESSAGE_TYPES = array(); // NEW
+    $MESSAGE_TYPES = array();
     if ($messages_res && $messages_res->RecordCount() > 0) {
         while (!$messages_res->EOF) {
-            // Check if columns exist, if not, use defaults
             $notify_last = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_LAST'] : false;
             $notify_enroll = isset($messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL']) ? (bool)$messages_res->fields['NOTIFY_SERVICE_PROVIDER_ENROLL'] : false;
             $notify_manager = isset($messages_res->fields['NOTIFY_STUDIO_MANAGER']) ? (bool)$messages_res->fields['NOTIFY_STUDIO_MANAGER'] : false;
             $notify_customer = isset($messages_res->fields['NOTIFY_CUSTOMER']) ? (bool)$messages_res->fields['NOTIFY_CUSTOMER'] : true;
-            $message_type = isset($messages_res->fields['MESSAGE_TYPE']) ? $messages_res->fields['MESSAGE_TYPE'] : 'SMS'; // NEW
+            $message_type = isset($messages_res->fields['MESSAGE_TYPE']) ? $messages_res->fields['MESSAGE_TYPE'] : 'SMS';
 
             $MESSAGES[] = $messages_res->fields['MESSAGE_CONTENT'];
             $MESSAGE_NOTIFICATIONS[] = array(
@@ -384,7 +355,7 @@ if (!empty($_GET['id'])) {
                 'unit' => $messages_res->fields['UNIT']
             );
 
-            $MESSAGE_TYPES[] = $message_type; // NEW
+            $MESSAGE_TYPES[] = $message_type;
             $messages_res->MoveNext();
         }
     }
@@ -700,7 +671,6 @@ if (!empty($_GET['id'])) {
             background-color: #f8fafc;
         }
 
-
         .services-checkbox-item label {
             margin-left: 8px;
             cursor: pointer;
@@ -802,6 +772,68 @@ if (!empty($_GET['id'])) {
         .notification-settings .form-check-label {
             font-size: 0.8rem;
         }
+
+        /* New styles for message type checkboxes */
+        .msg-type-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 10px;
+            background: #f8fafc;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            margin-right: 4px;
+        }
+
+        .msg-type-container .form-check-inline {
+            margin-right: 0 !important;
+        }
+
+        .msg-type-container .form-check-input[type="checkbox"] {
+            width: 0.9em;
+            height: 0.9em;
+            margin-top: 7px;
+            cursor: pointer;
+        }
+
+        .msg-type-container .form-check-input[type="checkbox"]:checked {
+            background-color: #39b54a !important;
+            border-color: #39b54a !important;
+        }
+
+        .msg-type-container .form-check-label {
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #334155;
+            margin-bottom: 0;
+            padding-left: 0px;
+            margin-top: 6px;
+        }
+
+        .msg-type-container:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .msg-type-container+.text-muted {
+            margin-left: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .msg-type-container {
+                padding: 2px 6px;
+                gap: 4px;
+            }
+
+            .msg-type-container .form-check-inline {
+                padding-left: 4px;
+            }
+
+            .msg-type-container .form-check-input[type="checkbox"] {
+                width: 0.8em;
+                height: 0.8em;
+            }
+        }
     </style>
 </head>
 
@@ -815,7 +847,6 @@ if (!empty($_GET['id'])) {
             <div class="col-12 col-md-8 col-lg-10">
                 <div class="main-card p-4">
                     <div class="main-header border-bottom pb-3 mb-4 d-flex align-items-center gap-2">
-                        <!-- <a href="all_follow_ups.php" class="text-dark text-decoration-none"><i class="bi bi-arrow-left fs-5 me-1"></i></a> -->
                         <h2 class="h5 mb-0 fw-semibold"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Create New Automation</h2>
                     </div>
 
@@ -824,6 +855,7 @@ if (!empty($_GET['id'])) {
                         <input type="hidden" name="MESSAGES" id="MESSAGES" value='<?= htmlspecialchars(json_encode($MESSAGES)) ?>'>
                         <input type="hidden" name="MESSAGE_NOTIFICATIONS" id="MESSAGE_NOTIFICATIONS" value='<?= htmlspecialchars(json_encode($MESSAGE_NOTIFICATIONS)) ?>'>
                         <input type="hidden" name="MESSAGE_TYPES" id="MESSAGE_TYPES" value='<?= htmlspecialchars(json_encode($MESSAGE_TYPES)) ?>'>
+
                         <!-- Title & toggle -->
                         <div class="form-section row align-items-end mb-4">
                             <div class="col-md-5">
@@ -975,8 +1007,6 @@ if (!empty($_GET['id'])) {
         </div>
     </div>
 
-
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -1001,7 +1031,6 @@ if (!empty($_GET['id'])) {
                 async: false,
                 cache: false,
                 success: function(result) {
-                    // Sync form's PK_LOCATION select to first checked location
                     const locationSelect = document.getElementById('PK_LOCATION');
                     if (locationSelect && DEFAULT_LOCATION_ID.length > 0) {
                         const match = Array.from(locationSelect.options).find(opt =>
@@ -1010,13 +1039,11 @@ if (!empty($_GET['id'])) {
                         if (match) locationSelect.value = match.value;
                     }
 
-                    // Reload services if trigger type needs it
                     if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
-                        window.location.reload(); // Simple way to ensure everything reloads correctly with new location context
+                        window.location.reload();
                         loadTriggerValueField();
                     }
 
-                    // Close the dropdown
                     const dropdownBtn = document.querySelector('[data-bs-toggle="dropdown"][href="location"]');
                     if (dropdownBtn) {
                         const instance = bootstrap.Dropdown.getInstance(dropdownBtn);
@@ -1025,6 +1052,7 @@ if (!empty($_GET['id'])) {
                 }
             });
         };
+
         // Parse existing data
         let reminders = <?= json_encode($CUSTOM_REMINDERS) ?>;
         let existingMessages = <?= json_encode($MESSAGES) ?>;
@@ -1033,12 +1061,10 @@ if (!empty($_GET['id'])) {
 
         if (!Array.isArray(messageTypes)) messageTypes = [];
 
-        // Ensure messageNotifications is an array
         if (!Array.isArray(messageNotifications)) {
             messageNotifications = [];
         }
 
-        // If reminders is empty or not an array, initialize with defaults
         if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
             const maxReminders = parseInt(document.getElementById('MAX_REMINDERS')?.value) || 5;
             reminders = [];
@@ -1214,10 +1240,38 @@ if (!empty($_GET['id'])) {
             document.getElementById('MESSAGES').value = JSON.stringify(messages);
         }
 
+        function handleNotificationChange(e) {
+            const accordionItem = this.closest('.accordion-item');
+            if (!accordionItem) return;
+
+            const customerCheckbox = accordionItem.querySelector('.msg-notify-customer');
+            const msgTypeContainer = accordionItem.querySelector('.msg-type-container');
+            const infoIcon = accordionItem.querySelector('.text-muted');
+            const checkboxes = accordionItem.querySelectorAll('.msg-type-checkbox');
+
+            if (customerCheckbox) {
+                const isCustomerChecked = customerCheckbox.checked;
+
+                if (msgTypeContainer) {
+                    msgTypeContainer.style.display = isCustomerChecked ? 'flex' : 'none';
+                }
+                if (infoIcon) {
+                    infoIcon.style.display = !isCustomerChecked ? 'inline' : 'none';
+                }
+
+                if (!isCustomerChecked) {
+                    checkboxes.forEach(cb => cb.checked = false);
+                }
+            }
+
+            updateMessageNotifications();
+            updateMessageTypes();
+        }
+
         function attachMessageNotificationEvents() {
             document.querySelectorAll('.msg-notify-customer, .msg-notify-provider-last, .msg-notify-provider-enroll, .msg-notify-manager').forEach(checkbox => {
-                checkbox.removeEventListener('change', updateMessageNotifications);
-                checkbox.addEventListener('change', updateMessageNotifications);
+                checkbox.removeEventListener('change', handleNotificationChange);
+                checkbox.addEventListener('change', handleNotificationChange);
             });
         }
 
@@ -1239,16 +1293,26 @@ if (!empty($_GET['id'])) {
         }
 
         function attachMessageTypeEvents() {
-            document.querySelectorAll('.msg-type-select').forEach(sel => {
-                sel.removeEventListener('change', updateMessageTypes);
-                sel.addEventListener('change', updateMessageTypes);
+            document.querySelectorAll('.msg-type-checkbox').forEach(checkbox => {
+                checkbox.removeEventListener('change', updateMessageTypes);
+                checkbox.addEventListener('change', updateMessageTypes);
             });
         }
 
         function updateMessageTypes() {
             const types = [];
-            document.querySelectorAll('#messagesAccordion .accordion-item .msg-type-select').forEach(sel => {
-                types.push(sel.value);
+            document.querySelectorAll('#messagesAccordion .accordion-item').forEach(item => {
+                const checkboxes = item.querySelectorAll('.msg-type-checkbox:checked');
+                const customerCheckbox = item.querySelector('.msg-notify-customer');
+
+                if (customerCheckbox && customerCheckbox.checked && checkboxes.length > 0) {
+                    const selectedValues = Array.from(checkboxes).map(cb => cb.value);
+                    types.push(selectedValues.join(','));
+                } else if (customerCheckbox && customerCheckbox.checked) {
+                    types.push('SMS');
+                } else {
+                    types.push('INTERNAL');
+                }
             });
             document.getElementById('MESSAGE_TYPES').value = JSON.stringify(types);
         }
@@ -1273,7 +1337,6 @@ if (!empty($_GET['id'])) {
             for (let i = 1; i <= count; i++) {
                 const messageContent = (existingMessages[i - 1] && existingMessages[i - 1] !== '') ? existingMessages[i - 1] : sampleTexts[(i - 1) % sampleTexts.length];
 
-                // Get notification settings for this message
                 const notif = messageNotifications[i - 1] || {
                     notify_customer: false,
                     notify_service_provider_last: false,
@@ -1281,7 +1344,14 @@ if (!empty($_GET['id'])) {
                     notify_studio_manager: false
                 };
 
-                const msgType = messageTypes[i - 1] || 'SMS';
+                let msgType = messageTypes[i - 1] || 'SMS';
+                // If msgType is INTERNAL or empty, default to SMS for display
+                if (msgType === 'INTERNAL' || !msgType) {
+                    msgType = 'SMS';
+                }
+                // Split for checkbox checking
+                const msgTypesArray = msgType.split(',');
+
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item mb-2 border rounded-3 overflow-hidden';
                 accordionItem.innerHTML = `
@@ -1289,10 +1359,18 @@ if (!empty($_GET['id'])) {
                         <button class="accordion-button ${i === 1 ? '' : 'collapsed'} flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
                             Follow up ${i}
                         </button>
-                        <select class="form-select form-select-sm msg-type-select" style="width:100px;">
-                            <option value="SMS" ${msgType === 'SMS' ? 'selected' : ''}>SMS</option>
-                            <option value="EMAIL" ${msgType === 'EMAIL' ? 'selected' : ''}>Email</option>
-                        </select>
+                        <div class="msg-type-container" style="display: ${notif.notify_customer ? 'flex' : 'none'}; align-items: center; gap: 8px;">
+                            <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                                <div class="form-check form-check-inline m-0">
+                                    <input class="form-check-input msg-type-checkbox" type="checkbox" value="SMS" id="msg_sms_${i}" ${msgTypesArray.includes('SMS') ? 'checked' : ''}>
+                                    <label class="form-check-label small" for="msg_sms_${i}">SMS</label>
+                                </div>
+                                <div class="form-check form-check-inline m-0">
+                                    <input class="form-check-input msg-type-checkbox" type="checkbox" value="EMAIL" id="msg_email_${i}" ${msgTypesArray.includes('EMAIL') ? 'checked' : ''}>
+                                    <label class="form-check-label small" for="msg_email_${i}">Email</label>
+                                </div>
+                            </div>
+                        </div>                        
                     </h2>
                     <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
                         <div class="accordion-body p-3 pt-1">
@@ -1308,6 +1386,10 @@ if (!empty($_GET['id'])) {
                                         <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
                                         <label class="form-check-label text-dark small">Customer</label>
                                     </div>
+                                    <span class="text-muted" style="font-size: 0.7rem;">
+                                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                        title="Service Providers and Studio Managers receive notifications through the internal message system only. SMS/Email options are available when Customer is selected."></i>
+                                    </span>
                                     <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                         <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
                                         <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
@@ -1320,7 +1402,7 @@ if (!empty($_GET['id'])) {
                                         <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
                                         <label class="form-check-label text-dark small">Studio Manager</label>
                                     </div>
-                                </div>
+                                </div>                                
                             </div>
                             
                             <div class="variables-section">
@@ -1340,7 +1422,7 @@ if (!empty($_GET['id'])) {
 
             attachVariableButtons();
             attachMessageNotificationEvents();
-            attachMessageTypeEvents(); // NEW
+            attachMessageTypeEvents();
 
             document.querySelectorAll('.editable-content-area').forEach(el => {
                 el.removeEventListener('input', updateMessagesInput);
@@ -1349,7 +1431,20 @@ if (!empty($_GET['id'])) {
 
             updateMessagesInput();
             updateMessageNotifications();
-            updateMessageTypes(); // NEW
+            updateMessageTypes();
+
+            // Re-initialize tooltips for the new elements
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    animation: true,
+                    delay: {
+                        "show": 300,
+                        "hide": 100
+                    }
+                });
+            });
         }
 
         // Handle trigger type change for services dropdown
@@ -1499,7 +1594,6 @@ if (!empty($_GET['id'])) {
                 });
             }
 
-            // Initialize Bootstrap tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl, {
@@ -1536,21 +1630,19 @@ if (!empty($_GET['id'])) {
         }
 
         document.getElementById('automationForm').addEventListener('submit', function(e) {
-            // Ensure all data is updated before submit
             updateRemindersInput();
             updateMessagesInput();
             updateMessageNotifications();
-            updateMessageTypes(); // NEW
+            updateMessageTypes();
 
-            // Log what's being submitted
             console.log('Submitting form...');
             console.log('Messages:', document.getElementById('MESSAGES').value);
             console.log('Notifications:', document.getElementById('MESSAGE_NOTIFICATIONS').value);
+            console.log('Message Types:', document.getElementById('MESSAGE_TYPES').value);
         });
 
         renderReminders();
 
-        // Update the window load event handler
         window.addEventListener('load', function() {
             const maxReminders = parseInt(document.getElementById('MAX_REMINDERS').value) || 5;
 
@@ -1580,7 +1672,6 @@ if (!empty($_GET['id'])) {
             renderReminders();
             toggleScheduleDisplay();
 
-            // Load services on page load if NO_SPECIFIC_SERVICES is selected
             setTimeout(function() {
                 if (document.getElementById('TRIGGER_TYPE').value === 'NO_SPECIFIC_SERVICES') {
                     loadTriggerValueField();
@@ -1600,10 +1691,8 @@ if (!empty($_GET['id'])) {
             const messageCount = existingMessages.length > 0 ? existingMessages.length : reminders.length;
             buildAccordionItems(messageCount);
 
-            // Update message notifications after building
             setTimeout(updateMessageNotifications, 100);
-
-            setTimeout(updateMessageTypes, 100); // NEW
+            setTimeout(updateMessageTypes, 100);
         });
     </script>
 </body>
