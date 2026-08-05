@@ -194,7 +194,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
     $SendingPwd = $locationSmtpSetting['SMTP_PASSWORD'];
 
     $To = $email;
-    $Subject = "Appointment Reminder from Doable";
+    $Subject = "Appointment Reminder from " . $location_name;
 
     $mail = new PHPMailer();
     $mail->IsSMTP();
@@ -207,8 +207,8 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
     $mail->SMTPAuth = true;
     $mail->Username = $userName;
     $mail->Password = $SendingPwd;
-    $mail->setFrom($userName, "Doable");
-    $mail->addAddress($To, "Doable");  //Set who the message is to be sent to.
+    $mail->setFrom($userName, $location_name);
+    $mail->addAddress($To, $location_name);  //Set who the message is to be sent to.
     //Set the subject line
     $mail->Subject = $Subject;
 
@@ -231,7 +231,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
                             <tr>
                               <td style="background-color:#39b54a; padding:24px 32px;">
                                 <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600;">Appointment Reminder</h1>
-                                <p style="margin:4px 0 0; color:#c7d2fe; font-size:13px;">Doable Website</p>
+                                <p style="margin:4px 0 0; color:#c7d2fe; font-size:13px;">' . htmlspecialchars($location_name) . '</p>
                               </td>
                             </tr>
 
@@ -249,7 +249,7 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
                             <!-- Footer -->
                             <tr>
                               <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
-                                <p style="margin:0; color:#9ca3af; font-size:12px;">This reminder was sent from the Doable website.</p>
+                                <p style="margin:0; color:#9ca3af; font-size:12px;">This reminder was sent from the ' . htmlspecialchars($location_name) . '.</p>
                               </td>
                             </tr>
 
