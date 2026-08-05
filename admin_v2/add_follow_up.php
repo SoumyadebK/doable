@@ -700,6 +700,7 @@ if (!empty($_GET['id'])) {
             background-color: #f8fafc;
         }
 
+
         .services-checkbox-item label {
             margin-left: 8px;
             cursor: pointer;
