@@ -13,7 +13,7 @@ $appointment_id = isset($_POST['appointment_id']) ? intval($_POST['appointment_i
 $customer_id = isset($_POST['customer_id']) ? intval($_POST['customer_id']) : 0;
 $send_to_all = isset($_POST['send_to_all']) ? intval($_POST['send_to_all']) : 0;
 $reminder_type = isset($_POST['reminder_type']) ? $_POST['reminder_type'] : '';
-
+$message = isset($_POST['message']) ? $_POST['message'] : '';
 
 // Get appointment details
 $appointment_query = "SELECT PK_LOCATION, DATE, START_TIME FROM DOA_APPOINTMENT_MASTER WHERE PK_APPOINTMENT_MASTER = " . $appointment_id;
@@ -52,7 +52,7 @@ if ($send_to_all == 1) {
 
     while (!$students->EOF) {
         if ($reminder_type == 'sms') {
-            $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
+            $result = sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION);
 
             if ($result['success']) {
                 $success_count++;
@@ -61,7 +61,7 @@ if ($send_to_all == 1) {
                 $errors[] = $result['message'];
             }
         } else {
-            $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
+            $result = sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION);
 
             if ($result['success']) {
                 $success_count++;
@@ -84,9 +84,9 @@ if ($send_to_all == 1) {
     echo json_encode($return_data);
 } else {
     if ($reminder_type == 'sms') {
-        $result = sendSmsToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time, $PK_LOCATION);
+        $result = sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION);
     } else {
-        $result = sendEmailToCustomer($db, $students->fields['PK_USER_MASTER'], $location_name, $date, $time);
+        $result = sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION);
     }
 
     $return_data['success'] = $result['success'];
@@ -96,7 +96,7 @@ if ($send_to_all == 1) {
 
 
 // Function to send SMS
-function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_LOCATION)
+function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION)
 {
     [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
     // Get customer details
@@ -104,8 +104,7 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME 
-        FROM DOA_USERS 
-        INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
+        FROM DOA_USERS
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
         AND DOA_USERS.PK_USER = " . intval($customer_id);
@@ -124,7 +123,7 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_
         $phone = substr($phone, 1);
     }
 
-    $message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+    //$message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
 
     try {
         $client = new Client($SID, $TOKEN);
@@ -157,17 +156,15 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $PK_
     }
 }
 
-function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
+function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION)
 {
-
     // Get customer details
     $customer_query = "SELECT 
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
-            DOA_USERS.LAST_NAME 
-            DOA_USERS.EMAIL_ID,
+            DOA_USERS.LAST_NAME,
+            DOA_USERS.EMAIL_ID
         FROM DOA_USERS 
-        INNER JOIN DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_USERS.PK_USER 
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
         AND DOA_USERS.PK_USER = " . intval($customer_id);
@@ -187,12 +184,14 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time)
         $phone = substr($phone, 1);
     }
 
-    $message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+    $locationSmtpSetting = getLocationSmtpSetting($PK_LOCATION);
 
-    $hostname = 'smtp.protonmail.ch';
-    $port = '587';
-    $userName = 'demo@doable.net';
-    $SendingPwd = '9B76V5Q2NPY7524W';
+    //$message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+
+    $hostname = $locationSmtpSetting['SMTP_HOST'];
+    $port = $locationSmtpSetting['SMTP_PORT'];
+    $userName = $locationSmtpSetting['SMTP_USERNAME'];
+    $SendingPwd = $locationSmtpSetting['SMTP_PASSWORD'];
 
     $To = $email;
     $Subject = "Appointment Reminder from Doable";
