@@ -807,7 +807,7 @@ if (!empty($_GET['id'])) {
             color: #334155;
             margin-bottom: 0;
             padding-left: 0px;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .msg-type-container:hover {
@@ -1359,18 +1359,7 @@ if (!empty($_GET['id'])) {
                         <button class="accordion-button ${i === 1 ? '' : 'collapsed'} flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
                             Follow up ${i}
                         </button>
-                        <div class="msg-type-container" style="display: ${notif.notify_customer ? 'flex' : 'none'}; align-items: center; gap: 8px;">
-                            <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem;">
-                                <div class="form-check form-check-inline m-0">
-                                    <input class="form-check-input msg-type-checkbox" type="checkbox" value="SMS" id="msg_sms_${i}" ${msgTypesArray.includes('SMS') ? 'checked' : ''}>
-                                    <label class="form-check-label small" for="msg_sms_${i}">SMS</label>
-                                </div>
-                                <div class="form-check form-check-inline m-0">
-                                    <input class="form-check-input msg-type-checkbox" type="checkbox" value="EMAIL" id="msg_email_${i}" ${msgTypesArray.includes('EMAIL') ? 'checked' : ''}>
-                                    <label class="form-check-label small" for="msg_email_${i}">Email</label>
-                                </div>
-                            </div>
-                        </div>                        
+                                               
                     </h2>
                     <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
                         <div class="accordion-body p-3 pt-1">
@@ -1380,16 +1369,29 @@ if (!empty($_GET['id'])) {
                             
                             <!-- Notification Settings for this message -->
                             <div class="notification-settings mb-3 p-2 bg-light rounded-2">
-                                <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to:</span>
+                                <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to: 
+                                    <span class="text-muted" style="font-size: 0.7rem;">
+                                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                        title="Service Providers and Studio Managers receive notifications through the internal message system only. SMS/Email options are available when Customer is selected."></i>
+                                    </span>
+                                </span>
                                 <div class="d-flex flex-wrap gap-3">
                                     <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                         <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
                                         <label class="form-check-label text-dark small">Customer</label>
                                     </div>
-                                    <span class="text-muted" style="font-size: 0.7rem;">
-                                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                        title="Service Providers and Studio Managers receive notifications through the internal message system only. SMS/Email options are available when Customer is selected."></i>
-                                    </span>
+                                    <div class="msg-type-container" style="display: ${notif.notify_customer ? 'flex' : 'none'}; align-items: center; gap: 8px;">
+                                        <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                                            <div class="form-check form-check-inline m-0">
+                                                <input class="form-check-input msg-type-checkbox" type="checkbox" value="SMS" id="msg_sms_${i}" ${msgTypesArray.includes('SMS') ? 'checked' : ''}>
+                                                <label class="form-check-label small" for="msg_sms_${i}">SMS</label>
+                                            </div>
+                                            <div class="form-check form-check-inline m-0">
+                                                <input class="form-check-input msg-type-checkbox" type="checkbox" value="EMAIL" id="msg_email_${i}" ${msgTypesArray.includes('EMAIL') ? 'checked' : ''}>
+                                                <label class="form-check-label small" for="msg_email_${i}">Email</label>
+                                            </div>
+                                        </div>
+                                    </div> 
                                     <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                         <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
                                         <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
