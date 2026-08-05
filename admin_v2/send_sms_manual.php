@@ -164,7 +164,8 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME,
-            DOA_USERS.EMAIL_ID
+            DOA_USERS.EMAIL_ID,
+            DOA_USERS.IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL
         FROM DOA_USERS 
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
@@ -174,6 +175,10 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
 
     if (!$customer || $customer->RecordCount() == 0) {
         return ['success' => false, 'message' => 'Customer not found'];
+    }
+
+    if ($customer->fields['IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL'] == 1) {
+        return ['success' => false, 'message' => 'You have unsubscribed from appointment reminders'];
     }
 
     $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
