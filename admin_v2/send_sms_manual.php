@@ -158,12 +158,14 @@ function sendSmsToCustomer($db, $customer_id, $location_name, $date, $time, $mes
 
 function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $message, $PK_LOCATION)
 {
+    global $http_path;
     // Get customer details
     $customer_query = "SELECT 
             DOA_USERS.PHONE, 
             DOA_USERS.FIRST_NAME,
             DOA_USERS.LAST_NAME,
-            DOA_USERS.EMAIL_ID
+            DOA_USERS.EMAIL_ID,
+            DOA_USERS.IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL
         FROM DOA_USERS 
         WHERE DOA_USERS.IS_DELETED = 0 
         AND DOA_USERS.ACTIVE = 1 
@@ -173,6 +175,10 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
 
     if (!$customer || $customer->RecordCount() == 0) {
         return ['success' => false, 'message' => 'Customer not found'];
+    }
+
+    if ($customer->fields['IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL'] == 1) {
+        return ['success' => false, 'message' => 'You have unsubscribed from appointment reminders'];
     }
 
     $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
@@ -187,6 +193,9 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
     $locationSmtpSetting = getLocationSmtpSetting($PK_LOCATION);
 
     //$message = "Hi $customer_name, this is a reminder for your appointment at $location_name on $date at $time. Thank you!";
+
+    $time = base64_encode($customer_id . '_' . time());
+    $link = $http_path . 'unsubscribe-from-appointment-reminder.php?cmVzZXQ=' . $time;
 
     $hostname = $locationSmtpSetting['SMTP_HOST'];
     $port = $locationSmtpSetting['SMTP_PORT'];
@@ -250,6 +259,12 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
                             <tr>
                               <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
                                 <p style="margin:0; color:#9ca3af; font-size:12px;">This reminder was sent from the ' . htmlspecialchars($location_name) . '.</p>
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
+                                <p style="margin:0; color:#9ca3af; font-size:11px;">You can unsubscribe from this reminder by clicking <a href="' . htmlspecialchars($link) . '" target="_blank">here</a>.</p>
                               </td>
                             </tr>
 
