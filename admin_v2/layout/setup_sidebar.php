@@ -76,6 +76,9 @@ $account_data = $db->Execute("SELECT * FROM `DOA_ACCOUNT_MASTER` WHERE `PK_ACCOU
         <a class="nav-link sidebar-link <?= $current_page == 'all_sms_templates.php' || $current_page == 'sms_template.php' ? 'active' : '' ?>" href="all_sms_templates.php">
             <i class="bi bi-chat-left-text"></i> SMS Templates
         </a>
+        <a class="nav-link sidebar-link <?= $current_page == 'all_marketings.php' || $current_page == 'marketing.php' ? 'active' : '' ?>" href="all_marketings.php">
+            <i class="bi bi-megaphone"></i> Marketing
+        </a>
     </nav>
 
     <div class="sidebar-section-title">Logs</div>
