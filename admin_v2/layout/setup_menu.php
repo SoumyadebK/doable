@@ -148,9 +148,10 @@ $account_data = $db->Execute("SELECT ENABLE_AI_VOICE_AGENT FROM DOA_ACCOUNT_MAST
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_products.php') ? 'active' : '' ?>" href="../admin_v2/all_products.php">Products</a></li>
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'all_orders.php') ? 'active' : '' ?>" href="../admin_v2/all_orders.php">Orders</a></li>
                             </ul>
-                        <?php } elseif ($address == "sms_logs.php") { ?>
+                        <?php } elseif ($address == "sms_logs.php" || $address == "unsubscribed_customers.php") { ?>
                             <ul class="nav nav-pills justify-content-center">
                                 <li class="nav-item"><a class="nav-link <?= ($address == 'sms_logs.php') ? 'active' : '' ?>" href="../admin_v2/sms_logs.php">SMS Logs</a></li>
+                                <li class="nav-item"><a class="nav-link <?= ($address == 'unsubscribed_customers.php') ? 'active' : '' ?>" href="../admin_v2/unsubscribed_customers.php">Unsubscribed Customers</a></li>
                             </ul>
                         <?php } ?>
                     </div>

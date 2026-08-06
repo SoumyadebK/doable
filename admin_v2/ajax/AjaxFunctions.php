@@ -4537,3 +4537,13 @@ function addToInternalNote($RESPONSE_DATA)
 
     echo 1;
 }
+
+function subscribeToEmailReminder($RESPONSE_DATA)
+{
+    global $db;
+    $PK_USER = $RESPONSE_DATA['PK_USER'];
+    $IS_SUBSCRIBED = $RESPONSE_DATA['IS_SUBSCRIBED'];
+
+    $USER_DATA['IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL'] = $IS_SUBSCRIBED ? 0 : 1;
+    db_perform('DOA_USERS', $USER_DATA, 'update', "PK_USER =  '$PK_USER'");
+}
