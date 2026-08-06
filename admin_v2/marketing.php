@@ -36,7 +36,7 @@ while (!$tag_res->EOF) {
 
 // Get all lead statuses for display
 $all_lead_statuses = array();
-$status_res = $db->Execute("SELECT PK_LEAD_STATUS, LEAD_STATUS FROM DOA_LEAD_STATUS WHERE ACTIVE = 1 ORDER BY LEAD_STATUS");
+$status_res = $db->Execute("SELECT PK_LEAD_STATUS, LEAD_STATUS FROM DOA_LEAD_STATUS WHERE PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]' AND ACTIVE = 1 ORDER BY LEAD_STATUS");
 while (!$status_res->EOF) {
     $all_lead_statuses[] = array(
         'id' => $status_res->fields['PK_LEAD_STATUS'],
