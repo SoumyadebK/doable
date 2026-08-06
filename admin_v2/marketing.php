@@ -2,58 +2,126 @@
 require_once('../global/config.php');
 
 if (empty($_GET['id']))
-    $title = "Add Email Template";
+    $title = "Add Campaign";
 else
-    $title = "Edit Email Template";
+    $title = "Edit Campaign";
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
 }
 
-if (!empty($_POST)) {
-    $EMAIL_ACCOUNT_DATA = $_POST;
-    unset($EMAIL_ACCOUNT_DATA['TEMP_CONTENT']);
-    $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    if ($_GET['id'] == '') {
-        if (!isset($EMAIL_ACCOUNT_DATA['ACTIVE'])) {
-            $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
+// Get selected tag values for edit mode
+$selected_tag = array();
+if (!empty($_GET['id'])) {
+    $tag_res = $db_account->Execute("SELECT TAGS FROM DOA_MARKET_CAMPAIGN WHERE PK_CAMPAIGN_ID = '$_GET[id]'");
+    if ($tag_res->RecordCount() > 0) {
+        $tags_str = $tag_res->fields['TAGS'];
+        if (!empty($tags_str)) {
+            $selected_tag = explode(',', $tags_str);
         }
-        $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
-        header("location:all_email_templates.php");
+    }
+}
+
+// Get all tags for display
+$all_tags = array();
+$tag_res = $db_account->Execute("SELECT PK_TAG, TAG_NAME FROM DOA_TAG WHERE ACTIVE = 1 ORDER BY TAG_NAME");
+while (!$tag_res->EOF) {
+    $all_tags[] = array(
+        'id' => $tag_res->fields['PK_TAG'],
+        'name' => $tag_res->fields['TAG_NAME']
+    );
+    $tag_res->MoveNext();
+}
+
+// Get all lead statuses for display
+$all_lead_statuses = array();
+$status_res = $db->Execute("SELECT PK_LEAD_STATUS, LEAD_STATUS FROM DOA_LEAD_STATUS WHERE ACTIVE = 1 ORDER BY LEAD_STATUS");
+while (!$status_res->EOF) {
+    $all_lead_statuses[] = array(
+        'id' => $status_res->fields['PK_LEAD_STATUS'],
+        'name' => $status_res->fields['LEAD_STATUS']
+    );
+    $status_res->MoveNext();
+}
+
+if (!empty($_POST)) {
+    $CAMPAIGN_DATA = array();
+    $CAMPAIGN_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+    $CAMPAIGN_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
+    $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
+    $CAMPAIGN_DATA['SUBJECT'] = $_POST['SUBJECT'];
+    $CAMPAIGN_DATA['OPERATION'] = $_POST['PK_TEMPLATE_CATEGORY'];
+    $CAMPAIGN_DATA['CONTENT'] = $_POST['CONTENT'];
+
+    // Handle TAGS - store as comma-separated values
+    if (!empty($_POST['PK_USER_TAG']) && is_array($_POST['PK_USER_TAG'])) {
+        $CAMPAIGN_DATA['TAGS'] = implode(',', $_POST['PK_USER_TAG']);
     } else {
-        $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
-        header("location:all_email_templates.php");
+        $CAMPAIGN_DATA['TAGS'] = '';
+    }
+
+    // Handle LEADS - store as comma-separated values
+    if (!empty($_POST['PK_LEAD_STATUS']) && is_array($_POST['PK_LEAD_STATUS'])) {
+        $CAMPAIGN_DATA['LEADS'] = implode(',', $_POST['PK_LEAD_STATUS']);
+    } else {
+        $CAMPAIGN_DATA['LEADS'] = '';
+    }
+
+    // Handle ACTIVE status
+    if (isset($_POST['ACTIVE'])) {
+        $CAMPAIGN_DATA['ACTIVE'] = $_POST['ACTIVE'];
+    } else {
+        $CAMPAIGN_DATA['ACTIVE'] = 1;
+    }
+
+    if ($_GET['id'] == '') {
+        // Insert new campaign
+        $CAMPAIGN_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+        $CAMPAIGN_DATA['CREATED_ON'] = date("Y-m-d H:i:s");
+        $CAMPAIGN_DATA['EDITED_BY'] = 0;
+        $CAMPAIGN_DATA['EDITED_ON'] = '0000-00-00 00:00:00';
+
+        db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'insert');
+        header("location:all_marketings.php");
+        exit;
+    } else {
+        // Update existing campaign
+        $CAMPAIGN_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+        $CAMPAIGN_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
+
+        db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'update', " PK_MARKET_CAMPAIGN = '$_GET[id]'");
+        header("location:all_marketings.php");
+        exit;
     }
 }
 
 if (empty($_GET['id'])) {
-    $TEMPLATE_NAME      = '';
-    $PK_LOCATION        = '';
-    $SUBJECT            = '';
+    $TEMPLATE_NAME = '';
+    $PK_LOCATION = '';
+    $SUBJECT = '';
     $PK_TEMPLATE_CATEGORY = '';
-    $PK_EMAIL_TRIGGER     = '';
-    $PK_EMAIL_ACCOUNT   = '';
-    $CONTENT            = '';
-    $ACTIVE             = '';
+    $CONTENT = '';
+    $ACTIVE = '';
+    $selected_lead_statuses = array();
 } else {
-    $res = $db_account->Execute("SELECT * FROM DOA_EMAIL_TEMPLATE WHERE PK_EMAIL_TEMPLATE = '$_GET[id]'");
+    $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
-        header("location:all_email_templates.php");
+        header("location:all_marketings.php");
         exit;
     }
-    $TEMPLATE_NAME      = $res->fields['TEMPLATE_NAME'];
-    $PK_LOCATION        = $res->fields['PK_LOCATION'];
-    $SUBJECT            = $res->fields['SUBJECT'];
-    $PK_TEMPLATE_CATEGORY = $res->fields['PK_TEMPLATE_CATEGORY'];
-    $PK_EMAIL_TRIGGER     = $res->fields['PK_EMAIL_TRIGGER'];
-    $PK_EMAIL_ACCOUNT   = $res->fields['PK_EMAIL_ACCOUNT'];
-    $CONTENT            = $res->fields['CONTENT'];
-    $ACTIVE             = $res->fields['ACTIVE'];
+    $TEMPLATE_NAME = $res->fields['CAMPAIGN_NAME'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
+    $SUBJECT = $res->fields['SUBJECT'];
+    $PK_TEMPLATE_CATEGORY = $res->fields['OPERATION'];
+    $CONTENT = $res->fields['CONTENT'];
+    $ACTIVE = $res->fields['ACTIVE'];
+
+    // Convert comma-separated tags to array
+    $selected_tag = !empty($res->fields['TAGS']) ? explode(',', $res->fields['TAGS']) : array();
+
+    // Convert comma-separated lead statuses to array
+    $selected_lead_statuses = !empty($res->fields['LEADS']) ? explode(',', $res->fields['LEADS']) : array();
 }
 ?>
 
@@ -110,7 +178,6 @@ if (empty($_GET['id'])) {
         background: var(--gray-50);
     }
 
-    /* Breadcrumb */
     .breadcrumb-wrapper {
         display: flex;
         justify-content: space-between;
@@ -161,7 +228,6 @@ if (empty($_GET['id'])) {
         font-weight: 500;
     }
 
-    /* Card */
     .card-modern {
         background: #ffffff;
         border-radius: var(--radius-lg);
@@ -210,7 +276,6 @@ if (empty($_GET['id'])) {
         }
     }
 
-    /* Form */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -290,7 +355,6 @@ if (empty($_GET['id'])) {
         padding-right: 36px;
     }
 
-    /* Radio Group */
     .radio-group-modern {
         display: flex;
         gap: 24px;
@@ -314,7 +378,6 @@ if (empty($_GET['id'])) {
         flex-shrink: 0;
     }
 
-    /* Buttons - Rounded Pill */
     .btn-modern {
         display: inline-flex;
         align-items: center;
@@ -406,7 +469,6 @@ if (empty($_GET['id'])) {
         }
     }
 
-    /* Quill Editor */
     .quill-wrapper {
         border: 1.5px solid var(--gray-200);
         border-radius: var(--radius-sm);
@@ -462,12 +524,10 @@ if (empty($_GET['id'])) {
         color: #fff;
     }
 
-    /* Full width for editor */
     .full-width {
         grid-column: 1 / -1;
     }
 
-    /* Status indicator */
     .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -492,14 +552,12 @@ if (empty($_GET['id'])) {
         font-size: 8px;
     }
 
-    /* Help text */
     .form-helper {
         font-size: 12px;
         color: var(--gray-400);
         margin-top: 4px;
     }
 
-    /* Variable Badge Styles - Same as SMS template */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -543,6 +601,105 @@ if (empty($_GET['id'])) {
         letter-spacing: 0.05em;
         margin-bottom: 8px;
     }
+
+    .conditional-field {
+        display: none;
+    }
+
+    .conditional-field.visible {
+        display: block;
+    }
+
+    .checkbox-container {
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #fff;
+        transition: border-color 0.2s ease;
+    }
+
+    .checkbox-container:hover {
+        border-color: var(--gray-300);
+    }
+
+    .checkbox-container:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .checkbox-container .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 4px;
+        border-radius: 4px;
+        transition: background 0.15s ease;
+        cursor: pointer;
+    }
+
+    .checkbox-container .checkbox-item:hover {
+        background: var(--gray-50);
+    }
+
+    .checkbox-container .checkbox-item .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin: 0;
+        accent-color: var(--primary-color);
+    }
+
+    .checkbox-container .checkbox-item label {
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+        margin: 0;
+        user-select: none;
+    }
+
+    .checkbox-container .checkbox-item.select-all-item {
+        border-bottom: 1px solid var(--gray-200);
+        padding-bottom: 10px;
+        margin-bottom: 6px;
+    }
+
+    .checkbox-container .checkbox-item.select-all-item label {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .selected-count {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .selected-count span {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .checkbox-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .checkbox-container::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 3px;
+    }
+
+    .checkbox-container::-webkit-scrollbar-thumb {
+        background: var(--gray-300);
+        border-radius: 3px;
+    }
+
+    .checkbox-container::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-400);
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -553,20 +710,17 @@ if (empty($_GET['id'])) {
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid py-4 px-4 m-auto mx-auto dashboard-container">
 
-                <!-- Main Content -->
                 <div class="row g-4">
-                    <!-- Sidebar -->
                     <div class="col-12 col-md-4 col-xl-2">
                         <?php include 'layout/setup_sidebar.php'; ?>
                     </div>
 
-                    <!-- Main Form -->
                     <div class="col-12 col-md-8 col-xl-10">
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="bi bi-envelope"></i>
-                                    <?= !empty($_GET['id']) ? 'Edit Template' : 'Create New Template' ?>
+                                    <i class="bi bi-megaphone"></i>
+                                    <?= !empty($_GET['id']) ? 'Edit Campaign' : 'Create New Campaign' ?>
                                 </h5>
                                 <?php if (!empty($_GET['id'])): ?>
                                     <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
@@ -579,29 +733,18 @@ if (empty($_GET['id'])) {
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
 
                                     <div class="form-grid">
-                                        <!-- Template Name -->
+                                        <!-- Campaign Name -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">Template Name <span class="required">*</span></label>
-
-                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required>
-                                                <option value="">Select template type</option>
-                                                <option value="APPOINTMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') ? 'selected' : ''; ?>>
-                                                    Appointment Creation
-                                                </option>
-                                                <option value="ENROLLMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'ENROLLMENT_CREATION') ? 'selected' : ''; ?>>
-                                                    Enrollment Creation
-                                                </option>
-                                            </select>
-
-                                            <div class="form-helper">Select whether this template is for an appointment or enrollment</div>
+                                            <label class="form-label">Campaign Name <span class="required">*</span></label>
+                                            <input type="text" class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" placeholder="Enter campaign name" value="<?php echo htmlspecialchars($TEMPLATE_NAME) ?>" required>
+                                            <div class="form-helper">A unique name to identify this campaign</div>
                                         </div>
 
                                         <!-- Location -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">
-                                                Location
-                                            </label>
-                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
+                                            <label class="form-label">Location <span class="required">*</span></label>
+                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" required>
+                                                <option value="">Select Location</option>
                                                 <?php
                                                 $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
                                                 while (!$row->EOF) { ?>
@@ -609,7 +752,7 @@ if (empty($_GET['id'])) {
                                                 <?php $row->MoveNext();
                                                 } ?>
                                             </select>
-                                            <div class="form-helper">Location for this Template to be Active</div>
+                                            <div class="form-helper">Location for this Campaign to be Active</div>
                                         </div>
 
                                         <!-- Subject -->
@@ -619,63 +762,54 @@ if (empty($_GET['id'])) {
                                             <div class="form-helper">The subject line that will appear in the email</div>
                                         </div>
 
-                                        <!-- Template Category -->
+                                        <!-- Operation / Category -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">Template Category <span class="required">*</span></label>
-                                            <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" onchange="selectTemplateCategory(this)" required>
-                                                <option value="">Select Category</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_TEMPLATE_CATEGORY, TEMPLATE_CATEGORY FROM DOA_TEMPLATE_CATEGORY WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_TEMPLATE_CATEGORY != '' && $PK_TEMPLATE_CATEGORY == $row->fields['PK_TEMPLATE_CATEGORY']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_TEMPLATE_CATEGORY']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['TEMPLATE_CATEGORY']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
+                                            <label class="form-label">Target Audience <span class="required">*</span></label>
+                                            <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" required>
+                                                <option value="inactive_customers" <?= ($PK_TEMPLATE_CATEGORY == 'inactive_customers') ? 'selected' : '' ?>>All Inactive Customers</option>
+                                                <option value="active_customers" <?= ($PK_TEMPLATE_CATEGORY == 'active_customers') ? 'selected' : '' ?>>All Active Customers</option>
+                                                <option value="tags" <?= ($PK_TEMPLATE_CATEGORY == 'tags') ? 'selected' : '' ?>>By Tags</option>
+                                                <option value="leads" <?= ($PK_TEMPLATE_CATEGORY == 'leads') ? 'selected' : '' ?>>Leads</option>
                                             </select>
+                                            <div class="form-helper">Select the target audience for this campaign</div>
                                         </div>
 
-                                        <!-- Email Trigger -->
-                                        <div class="form-group-modern" id="email_event_div" style="display: <?= ($PK_TEMPLATE_CATEGORY == 1) ? 'flex' : 'none' ?>;">
-                                            <label class="form-label">Email Trigger</label>
-                                            <select id="PK_EMAIL_TRIGGER" name="PK_EMAIL_TRIGGER" class="form-control-modern">
-                                                <option value="">Select Trigger Event</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_EMAIL_TRIGGER, EMAIL_TRIGGER FROM DOA_EMAIL_TRIGGER WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_EMAIL_TRIGGER != '' && $PK_EMAIL_TRIGGER == $row->fields['PK_EMAIL_TRIGGER']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_EMAIL_TRIGGER']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['EMAIL_TRIGGER']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                            <div class="form-helper">Select the event that will trigger this email</div>
+                                        <!-- Tags - Conditional Field with Checkboxes -->
+                                        <div class="form-group-modern conditional-field <?= ($PK_TEMPLATE_CATEGORY == 'tags') ? 'visible' : '' ?>" id="tags_field">
+                                            <label class="form-label">Select Tags <span class="required">*</span></label>
+                                            <div class="checkbox-container" id="tagsCheckboxContainer">
+                                                <div class="checkbox-item select-all-item">
+                                                    <input type="checkbox" id="selectAllTags" class="form-check-input">
+                                                    <label for="selectAllTags" class="fw-semibold">Select All Tags</label>
+                                                </div>
+                                                <?php foreach ($all_tags as $tag): ?>
+                                                    <div class="checkbox-item">
+                                                        <input type="checkbox" class="form-check-input tag-checkbox" name="PK_USER_TAG[]" value="<?= $tag['id'] ?>" id="tag_<?= $tag['id'] ?>" <?= in_array($tag['id'], $selected_tag) ? 'checked' : '' ?>>
+                                                        <label for="tag_<?= $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></label>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <div class="selected-count" id="tagsSelectedCount">Selected: <span id="tagsCount">0</span></div>
+                                            <small class="text-muted">Check the boxes to select multiple tags</small>
                                         </div>
 
-                                        <!-- Email Account -->
-                                        <div class="form-group-modern">
-                                            <label class="form-label">Email Account <span class="required">*</span></label>
-                                            <select id="PK_EMAIL_ACCOUNT" name="PK_EMAIL_ACCOUNT" class="form-control-modern">
-                                                <option value="">Select Email Account</option>
-                                                <?php
-                                                $row = $db_account->Execute("SELECT PK_EMAIL_ACCOUNT, USER_NAME FROM DOA_EMAIL_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_EMAIL_ACCOUNT != '' && $PK_EMAIL_ACCOUNT == $row->fields['PK_EMAIL_ACCOUNT']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_EMAIL_ACCOUNT']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['USER_NAME']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                            <div class="form-helper">The email account used to send this template</div>
+                                        <!-- Lead Status - Conditional Field with Checkboxes -->
+                                        <div class="form-group-modern conditional-field <?= ($PK_TEMPLATE_CATEGORY == 'leads') ? 'visible' : '' ?>" id="lead_status_field">
+                                            <label class="form-label">Select Lead Statuses <span class="required">*</span></label>
+                                            <div class="checkbox-container" id="leadStatusCheckboxContainer">
+                                                <div class="checkbox-item select-all-item">
+                                                    <input type="checkbox" id="selectAllLeadStatuses" class="form-check-input">
+                                                    <label for="selectAllLeadStatuses" class="fw-semibold">Select All Lead Statuses</label>
+                                                </div>
+                                                <?php foreach ($all_lead_statuses as $status): ?>
+                                                    <div class="checkbox-item">
+                                                        <input type="checkbox" class="form-check-input lead-status-checkbox" name="PK_LEAD_STATUS[]" value="<?= $status['id'] ?>" id="lead_status_<?= $status['id'] ?>" <?= in_array($status['id'], $selected_lead_statuses) ? 'checked' : '' ?>>
+                                                        <label for="lead_status_<?= $status['id'] ?>"><?= htmlspecialchars($status['name']) ?></label>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <div class="selected-count" id="leadStatusSelectedCount">Selected: <span id="leadStatusCount">0</span></div>
+                                            <small class="text-muted">Check the boxes to select multiple lead statuses</small>
                                         </div>
 
                                         <!-- Active Status -->
@@ -706,7 +840,7 @@ if (empty($_GET['id'])) {
                                             <div class="form-helper">Use the toolbar above to format your email content</div>
                                         </div>
 
-                                        <!-- Variables Section - Same as SMS template -->
+                                        <!-- Variables Section -->
                                         <div class="variables-section">
                                             <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                             <div class="d-flex flex-wrap gap-1">
@@ -725,7 +859,7 @@ if (empty($_GET['id'])) {
 
                                         <!-- Hidden fields -->
                                         <?php if (!empty($_GET['id'])): ?>
-                                            <input type="hidden" name="PK_EMAIL_TEMPLATE" value="<?php echo $_GET['id'] ?>">
+                                            <input type="hidden" name="PK_CAMPAIGN_ID" value="<?php echo $_GET['id'] ?>">
                                         <?php endif; ?>
                                     </div>
 
@@ -734,9 +868,9 @@ if (empty($_GET['id'])) {
                                         <button type="submit" class="btn-modern btn-modern-primary">
                                             <i class="fas fa-save"></i>
                                             <?php if (empty($_GET['id'])): ?>
-                                                Create Template
+                                                Create Campaign
                                             <?php else: ?>
-                                                Update Template
+                                                Update Campaign
                                             <?php endif; ?>
                                         </button>
                                         <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_email_templates.php'">
@@ -821,22 +955,13 @@ if (empty($_GET['id'])) {
             document.getElementById('CONTENT').value = quill.root.innerHTML;
         });
 
-        // --- VARIABLE INSERTION FUNCTION (Same as SMS template) ---
+        // --- VARIABLE INSERTION FUNCTION ---
         function insertVariable(varName) {
-            // Focus the editor
             quill.focus();
-
-            // Get the current cursor position
             const range = quill.getSelection();
             const cursorPosition = range ? range.index : quill.getLength();
-
-            // Create the HTML for the variable badge
             const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
-
-            // Insert HTML at cursor position
             quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
-
-            // Update the hidden input
             setTimeout(() => {
                 document.getElementById('CONTENT').value = quill.root.innerHTML;
             }, 100);
@@ -853,21 +978,85 @@ if (empty($_GET['id'])) {
             });
         });
 
-        // Template Category toggle
-        function selectTemplateCategory(param) {
-            const emailEventDiv = document.getElementById('email_event_div');
-            if ($(param).val() == 1) {
-                $(emailEventDiv).slideDown();
-            } else {
-                $(emailEventDiv).slideUp();
+        // --- TOGGLE CONDITIONAL FIELDS ---
+        function toggleConditionalFields() {
+            const selectedValue = document.getElementById('PK_TEMPLATE_CATEGORY').value;
+            const tagsField = document.getElementById('tags_field');
+            const leadStatusField = document.getElementById('lead_status_field');
+
+            tagsField.classList.remove('visible');
+            leadStatusField.classList.remove('visible');
+
+            if (selectedValue === 'tags') {
+                tagsField.classList.add('visible');
+                updateTagsCount();
+            } else if (selectedValue === 'leads') {
+                leadStatusField.classList.add('visible');
+                updateLeadStatusCount();
             }
         }
 
-        // Form validation
+        // --- UPDATE SELECTED COUNT FOR TAGS ---
+        function updateTagsCount() {
+            const checked = document.querySelectorAll('.tag-checkbox:checked').length;
+            document.getElementById('tagsCount').textContent = checked;
+        }
+
+        // --- UPDATE SELECTED COUNT FOR LEAD STATUSES ---
+        function updateLeadStatusCount() {
+            const checked = document.querySelectorAll('.lead-status-checkbox:checked').length;
+            document.getElementById('leadStatusCount').textContent = checked;
+        }
+
+        // --- SELECT ALL TAGS ---
+        document.getElementById('selectAllTags').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.tag-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateTagsCount();
+        });
+
+        // --- SELECT ALL LEAD STATUSES ---
+        document.getElementById('selectAllLeadStatuses').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.lead-status-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateLeadStatusCount();
+        });
+
+        // --- INDIVIDUAL CHECKBOX EVENTS ---
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('tag-checkbox')) {
+                updateTagsCount();
+                const allTags = document.querySelectorAll('.tag-checkbox');
+                const checkedTags = document.querySelectorAll('.tag-checkbox:checked');
+                document.getElementById('selectAllTags').checked = allTags.length === checkedTags.length;
+            }
+            if (e.target.classList.contains('lead-status-checkbox')) {
+                updateLeadStatusCount();
+                const allStatuses = document.querySelectorAll('.lead-status-checkbox');
+                const checkedStatuses = document.querySelectorAll('.lead-status-checkbox:checked');
+                document.getElementById('selectAllLeadStatuses').checked = allStatuses.length === checkedStatuses.length;
+            }
+        });
+
+        // Attach change event to category dropdown
+        document.getElementById('PK_TEMPLATE_CATEGORY').addEventListener('change', toggleConditionalFields);
+
+        // Run on load to set initial state
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleConditionalFields();
+            updateTagsCount();
+            updateLeadStatusCount();
+        });
+
+        // --- FORM VALIDATION ---
         document.querySelector('form').addEventListener('submit', function(e) {
             const templateName = document.getElementById('TEMPLATE_NAME');
             const subject = document.getElementById('SUBJECT');
+            const location = document.querySelector('.PK_LOCATION');
             const content = quill.root.innerHTML.trim();
+            const category = document.getElementById('PK_TEMPLATE_CATEGORY').value;
+            const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
+            const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
 
             let isValid = true;
 
@@ -885,11 +1074,16 @@ if (empty($_GET['id'])) {
                 subject.classList.remove('is-invalid');
             }
 
+            if (!location.value) {
+                location.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                location.classList.remove('is-invalid');
+            }
+
             if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
-                // Show error for empty content
                 document.querySelector('.quill-wrapper').style.borderColor = 'var(--danger-color)';
                 isValid = false;
-                // Add a visual indicator
                 const helper = document.querySelector('.form-helper:last-of-type');
                 if (helper) {
                     helper.style.color = 'var(--danger-color)';
@@ -903,9 +1097,36 @@ if (empty($_GET['id'])) {
                 document.querySelector('.quill-wrapper').style.borderColor = 'var(--gray-200)';
             }
 
+            if (category === 'tags' && tagsChecked.length === 0) {
+                document.getElementById('tagsCheckboxContainer').style.borderColor = 'var(--danger-color)';
+                isValid = false;
+                const helper = document.querySelector('#tags_field .form-helper');
+                if (helper) {
+                    helper.style.color = 'var(--danger-color)';
+                    helper.textContent = 'Please select at least one tag';
+                    setTimeout(() => {
+                        helper.style.color = 'var(--gray-400)';
+                        helper.textContent = 'Check the boxes to select multiple tags';
+                    }, 3000);
+                }
+            }
+
+            if (category === 'leads' && leadStatusesChecked.length === 0) {
+                document.getElementById('leadStatusCheckboxContainer').style.borderColor = 'var(--danger-color)';
+                isValid = false;
+                const helper = document.querySelector('#lead_status_field .form-helper');
+                if (helper) {
+                    helper.style.color = 'var(--danger-color)';
+                    helper.textContent = 'Please select at least one lead status';
+                    setTimeout(() => {
+                        helper.style.color = 'var(--gray-400)';
+                        helper.textContent = 'Check the boxes to select multiple lead statuses';
+                    }, 3000);
+                }
+            }
+
             if (!isValid) {
                 e.preventDefault();
-                // Scroll to first error
                 const firstError = document.querySelector('.is-invalid');
                 if (firstError) {
                     firstError.focus();
@@ -918,6 +1139,13 @@ if (empty($_GET['id'])) {
             input.addEventListener('input', function() {
                 if (this.value.trim()) {
                     this.classList.remove('is-invalid');
+                    this.style.borderColor = 'var(--gray-200)';
+                }
+            });
+            input.addEventListener('change', function() {
+                if (this.value) {
+                    this.classList.remove('is-invalid');
+                    this.style.borderColor = 'var(--gray-200)';
                 }
             });
         });

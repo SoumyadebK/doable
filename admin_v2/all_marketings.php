@@ -2,7 +2,7 @@
 <html lang="en">
 <?php
 require_once('../global/config.php');
-$title = "All SMS Templates";
+$title = "All Email Templates";
 
 $DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
 
@@ -12,7 +12,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 }
 
 $header_text = '';
-$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'SMS Templates Page'");
+$header_data = $db->Execute("SELECT * FROM `DOA_HEADER_TEXT` WHERE ACTIVE = 1 AND HEADER_TITLE = 'Email Templates Page'");
 if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
@@ -33,38 +33,38 @@ $offset = ($page - 1) * $per_page;
 
 // Build active condition
 if ($status_check == 'active') {
-    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 1";
+    $active_condition = "DOA_MARKET_CAMPAIGN.ACTIVE = 1";
 } else {
-    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 0";
+    $active_condition = "DOA_MARKET_CAMPAIGN.ACTIVE = 0";
 }
 
 // Count total records
 $count_query = "SELECT COUNT(*) as total 
-                FROM DOA_SMS_TEMPLATE 
-                WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                FROM DOA_MARKET_CAMPAIGN 
+                WHERE DOA_MARKET_CAMPAIGN.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
                 AND $active_condition";
 
 if (!empty($search)) {
-    $count_query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                       OR DOA_SMS_TEMPLATE.CONTENT LIKE '%" . addslashes($search) . "%')";
+    $count_query .= " AND (DOA_MARKET_CAMPAIGN.CAMPAIGN_NAME LIKE '%" . addslashes($search) . "%' 
+                       OR DOA_MARKET_CAMPAIGN.SUBJECT LIKE '%" . addslashes($search) . "%')";
 }
 
 $total_result = $db_account->Execute($count_query);
 $total_records = $total_result->fields['total'];
 $total_pages = ceil($total_records / $per_page);
 
-// Get sms templates for current page
-$query = "SELECT * FROM DOA_SMS_TEMPLATE LEFT JOIN $master_database.DOA_LOCATION ON DOA_SMS_TEMPLATE.PK_LOCATION = DOA_LOCATION.PK_LOCATION
-          WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+// Get email templates for current page
+$query = "SELECT * FROM DOA_MARKET_CAMPAIGN LEFT JOIN $master_database.DOA_LOCATION ON DOA_MARKET_CAMPAIGN.PK_LOCATION = DOA_LOCATION.PK_LOCATION
+          WHERE DOA_MARKET_CAMPAIGN.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
           AND $active_condition";
 
 if (!empty($search)) {
-    $query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                 OR DOA_SMS_TEMPLATE.CONTENT LIKE '%" . addslashes($search) . "%')";
+    $query .= " AND (DOA_MARKET_CAMPAIGN.CAMPAIGN_NAME LIKE '%" . addslashes($search) . "%' 
+                 OR DOA_MARKET_CAMPAIGN.SUBJECT LIKE '%" . addslashes($search) . "%')";
 }
 
-$query .= " ORDER BY DOA_SMS_TEMPLATE.TEMPLATE_NAME ASC LIMIT $offset, $per_page";
-$sms_templates = $db_account->Execute($query);
+$query .= " ORDER BY DOA_MARKET_CAMPAIGN.CAMPAIGN_NAME ASC LIMIT $offset, $per_page";
+$marketing_campaigns = $db_account->Execute($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -193,12 +193,12 @@ $sms_templates = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <i class="bi bi-envelope me-2" style="color: #39b54a;"></i>SMS Templates
+                                <i class="bi bi-megaphone me-2" style="color: #39b54a;"></i>Marketing Campaigns
                             </h2>
-                            <p class="text-muted small mb-0">Manage sms templates and their configurations</p>
+                            <p class="text-muted small mb-0">Manage marketing campaigns and their configurations</p>
                         </div>
-                        <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='sms_template.php'">
-                            <i class="bi bi-plus-lg"></i> Create New SMS Template
+                        <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='marketing.php'">
+                            <i class="bi bi-plus-lg"></i> Create New Marketing Campaign
                         </button>
                     </div>
 
@@ -206,7 +206,7 @@ $sms_templates = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div class="search-container">
                             <i class="bi bi-search"></i>
-                            <input type="text" class="form-control search-input" placeholder="Search by template name or content..." id="searchInput" value="<?= htmlspecialchars($search) ?>">
+                            <input type="text" class="form-control search-input" placeholder="Search by campaign name or subject..." id="searchInput" value="<?= htmlspecialchars($search) ?>">
                         </div>
                         <div class="status-toggle-group">
                             <button class="status-btn <?= $status_check == 'active' ? 'active' : '' ?>" data-status="active">Active</button>
@@ -216,17 +216,18 @@ $sms_templates = $db_account->Execute($query);
 
                     <!-- Results count -->
                     <div class="text-muted small mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope"></i> <?= $total_records ?> <?= $total_records == 1 ? 'sms template' : 'sms templates' ?>
+                        <i class="bi bi-megaphone"></i> <?= $total_records ?> <?= $total_records == 1 ? 'marketing campaign' : 'marketing campaigns' ?>
                     </div>
 
-                    <!-- SMS Templates Table -->
+                    <!-- Marketing Campaigns Table -->
                     <div class="table-responsive">
                         <table class="table custom-table align-middle mb-4">
                             <thead>
                                 <tr>
                                     <th style="width: 40px;">#</th>
-                                    <th>Template Name</th>
+                                    <th>Campaign Name</th>
                                     <th style="text-align: center;">Location</th>
+                                    <th style="text-align: center;">Subject</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;">Actions</th>
                                 </tr>
@@ -235,23 +236,25 @@ $sms_templates = $db_account->Execute($query);
                                 <?php
                                 $counter = 0;
                                 $row_number = $offset + 1;
-                                if ($sms_templates && !$sms_templates->EOF):
-                                    while (!$sms_templates->EOF):
-                                        $PK_SMS_TEMPLATE = $sms_templates->fields['PK_SMS_TEMPLATE'];
-                                        $template_name = $sms_templates->fields['TEMPLATE_NAME'];
-                                        $location_name = $sms_templates->fields['LOCATION_NAME'];
-                                        $is_active = $sms_templates->fields['ACTIVE'] == 1;
+                                if ($marketing_campaigns && !$marketing_campaigns->EOF):
+                                    while (!$marketing_campaigns->EOF):
+                                        $PK_MARKET_CAMPAIGN = $marketing_campaigns->fields['PK_MARKET_CAMPAIGN'];
+                                        $campaign_name = $marketing_campaigns->fields['CAMPAIGN_NAME'];
+                                        $location_name = $marketing_campaigns->fields['LOCATION_NAME'];
+                                        $subject = $marketing_campaigns->fields['SUBJECT'];
+                                        $is_active = $marketing_campaigns->fields['ACTIVE'] == 1;
                                 ?>
                                         <tr>
                                             <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-3">
                                                     <div class="fw-semibold">
-                                                        <?= htmlspecialchars($template_name) ?>
+                                                        <?= htmlspecialchars($campaign_name) ?>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-center"><?= htmlspecialchars($location_name) ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($subject) ?></td>
                                             <td class="text-center">
                                                 <?php if ($is_active): ?>
                                                     <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
@@ -261,14 +264,14 @@ $sms_templates = $db_account->Execute($query);
                                             </td>
                                             <td>
                                                 <div class="action-icons">
-                                                    <a href="sms_template.php?id=<?= $PK_SMS_TEMPLATE ?>" title="Edit">
+                                                    <a href="marketing.php?id=<?= $PK_MARKET_CAMPAIGN ?>" title="Edit">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
                                                 </div>
                                             </td>
                                         </tr>
                                     <?php
-                                        $sms_templates->MoveNext();
+                                        $marketing_campaigns->MoveNext();
                                         $counter++;
                                     endwhile;
                                 endif;
@@ -276,8 +279,8 @@ $sms_templates = $db_account->Execute($query);
                                     ?>
                                     <tr>
                                         <td colspan="5" class="text-center py-5">
-                                            <i class="bi bi-envelope display-1 text-muted"></i>
-                                            <p class="mt-3 text-muted">No sms templates found for the selected filters</p>
+                                            <i class="bi bi-megaphone display-1 text-muted"></i>
+                                            <p class="mt-3 text-muted">No marketing campaigns found for the selected filters</p>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -371,7 +374,7 @@ $sms_templates = $db_account->Execute($query);
         });
 
         function editpage(id) {
-            window.location.href = "sms_template.php?id=" + id;
+            window.location.href = "marketing.php?id=" + id;
         }
     </script>
 </body>

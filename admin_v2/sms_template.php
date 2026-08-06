@@ -34,7 +34,6 @@ if (!empty($_POST)) {
 if (empty($_GET['id'])) {
     $TEMPLATE_NAME      = '';
     $PK_LOCATION        = '';
-    $SUBJECT            = '';
     $PK_SMS_ACCOUNT   = '';
     $CONTENT            = '';
     $ACTIVE             = '';
@@ -46,7 +45,6 @@ if (empty($_GET['id'])) {
     }
     $TEMPLATE_NAME      = $res->fields['TEMPLATE_NAME'];
     $PK_LOCATION        = $res->fields['PK_LOCATION'];
-    $SUBJECT            = $res->fields['SUBJECT'];
     $CONTENT            = $res->fields['CONTENT'];
     $ACTIVE             = $res->fields['ACTIVE'];
 }
@@ -555,8 +553,18 @@ if (empty($_GET['id'])) {
                                         <!-- Template Name -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Template Name <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" placeholder="Enter template name" value="<?php echo htmlspecialchars($TEMPLATE_NAME) ?>" required>
-                                            <div class="form-helper">A unique name to identify this template</div>
+
+                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required>
+                                                <option value="">Select template type</option>
+                                                <option value="APPOINTMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') ? 'selected' : ''; ?>>
+                                                    Appointment Creation
+                                                </option>
+                                                <option value="ENROLLMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'ENROLLMENT_CREATION') ? 'selected' : ''; ?>>
+                                                    Enrollment Creation
+                                                </option>
+                                            </select>
+
+                                            <div class="form-helper">Select whether this template is for an appointment or enrollment</div>
                                         </div>
 
                                         <!-- Location -->
@@ -574,72 +582,6 @@ if (empty($_GET['id'])) {
                                             </select>
                                             <div class="form-helper">Location for this Template to be Active</div>
                                         </div>
-
-                                        <!-- Subject -->
-                                        <div class="form-group-modern">
-                                            <label class="form-label">Subject <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter sms subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
-                                            <div class="form-helper">The subject line that will appear in the sms</div>
-                                        </div>
-
-                                        <!-- Template Category -->
-                                        <!-- <div class="form-group-modern">
-                                            <label class="form-label">Template Category <span class="required">*</span></label>
-                                            <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" onchange="selectTemplateCategory(this)" required>
-                                                <option value="">Select Category</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_TEMPLATE_CATEGORY, TEMPLATE_CATEGORY FROM DOA_TEMPLATE_CATEGORY WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_TEMPLATE_CATEGORY != '' && $PK_TEMPLATE_CATEGORY == $row->fields['PK_TEMPLATE_CATEGORY']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_TEMPLATE_CATEGORY']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['TEMPLATE_CATEGORY']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                        </div> -->
-
-                                        <!-- Email Trigger -->
-                                        <!-- <div class="form-group-modern" id="sms_event_div" style="display: <?= ($PK_TEMPLATE_CATEGORY == 1) ? 'flex' : 'none' ?>;">
-                                            <label class="form-label">Email Trigger</label>
-                                            <select id="PK_SMS_TRIGGER" name="PK_SMS_TRIGGER" class="form-control-modern">
-                                                <option value="">Select Trigger Event</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_SMS_TRIGGER, SMS_TRIGGER FROM DOA_SMS_TRIGGER WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_SMS_TRIGGER != '' && $PK_SMS_TRIGGER == $row->fields['PK_SMS_TRIGGER']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_SMS_TRIGGER']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['SMS_TRIGGER']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                            <div class="form-helper">Select the event that will trigger this sms</div>
-                                        </div> -->
-
-                                        <!-- Email Account -->
-                                        <!-- <div class="form-group-modern">
-                                            <label class="form-label">Email Account <span class="required">*</span></label>
-                                            <select id="PK_SMS_ACCOUNT" name="PK_SMS_ACCOUNT" class="form-control-modern">
-                                                <option value="">Select Email Account</option>
-                                                <?php
-                                                $row = $db_account->Execute("SELECT PK_SMS_ACCOUNT, USER_NAME FROM DOA_SMS_ACCOUNT WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_SMS_ACCOUNT != '' && $PK_SMS_ACCOUNT == $row->fields['PK_SMS_ACCOUNT']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_SMS_ACCOUNT']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['USER_NAME']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                            <div class="form-helper">The sms account used to send this template</div>
-                                        </div> -->
 
                                         <!-- Active Status -->
                                         <?php if (!empty($_GET['id'])): ?>
@@ -660,7 +602,7 @@ if (empty($_GET['id'])) {
 
                                         <!-- Email Content - Full Width -->
                                         <div class="form-group-modern full-width">
-                                            <label class="form-label">Email Content <span class="required">*</span></label>
+                                            <label class="form-label">Text Message <span class="required">*</span></label>
                                             <div class="quill-wrapper">
                                                 <div id="editor" style="min-height: 300px;"></div>
                                             </div>
@@ -821,7 +763,6 @@ if (empty($_GET['id'])) {
         // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const templateName = document.getElementById('TEMPLATE_NAME');
-            const subject = document.getElementById('SUBJECT');
             const content = quill.root.innerHTML.trim();
 
             let isValid = true;
@@ -831,13 +772,6 @@ if (empty($_GET['id'])) {
                 isValid = false;
             } else {
                 templateName.classList.remove('is-invalid');
-            }
-
-            if (!subject.value.trim()) {
-                subject.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                subject.classList.remove('is-invalid');
             }
 
             if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
