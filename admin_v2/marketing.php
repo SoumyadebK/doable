@@ -51,7 +51,9 @@ if (!empty($_POST)) {
     $CAMPAIGN_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
     $CAMPAIGN_DATA['SUBJECT'] = $_POST['SUBJECT'];
-    $CAMPAIGN_DATA['OPERATION'] = $_POST['PK_TEMPLATE_CATEGORY'];
+    $CAMPAIGN_DATA['OPERATION'] = $_POST['OPERATION'];
+    $CAMPAIGN_DATA['REMINDER_TYPE'] = $_POST['REMINDER_TYPE'];
+    // Always save content in CONTENT field
     $CAMPAIGN_DATA['CONTENT'] = $_POST['CONTENT'];
 
     // Handle TAGS - store as comma-separated values
@@ -100,9 +102,10 @@ if (empty($_GET['id'])) {
     $TEMPLATE_NAME = '';
     $PK_LOCATION = '';
     $SUBJECT = '';
-    $PK_TEMPLATE_CATEGORY = '';
+    $OPERATION = '';
     $CONTENT = '';
     $ACTIVE = '';
+    $REMINDER_TYPE = 'email';
     $selected_lead_statuses = array();
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = '$_GET[id]'");
@@ -113,8 +116,9 @@ if (empty($_GET['id'])) {
     $TEMPLATE_NAME = $res->fields['CAMPAIGN_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SUBJECT = $res->fields['SUBJECT'];
-    $PK_TEMPLATE_CATEGORY = $res->fields['OPERATION'];
-    $CONTENT = $res->fields['CONTENT'];
+    $OPERATION = $res->fields['OPERATION'];
+    $REMINDER_TYPE = $res->fields['REMINDER_TYPE'];
+    $CONTENT = $res->fields['CONTENT']; // Always get content from CONTENT field
     $ACTIVE = $res->fields['ACTIVE'];
 
     // Convert comma-separated tags to array
@@ -603,11 +607,11 @@ if (empty($_GET['id'])) {
     }
 
     .conditional-field {
-        display: none;
+        display: none !important;
     }
 
     .conditional-field.visible {
-        display: block;
+        display: block !important;
     }
 
     .checkbox-container {
@@ -755,27 +759,37 @@ if (empty($_GET['id'])) {
                                             <div class="form-helper">Location for this Campaign to be Active</div>
                                         </div>
 
+                                        <!-- Reminder Type -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Reminder Type <span class="required">*</span></label>
+                                            <select id="REMINDER_TYPE" name="REMINDER_TYPE" class="form-control-modern" required>
+                                                <option value="email" <?= ($REMINDER_TYPE == 'email') ? 'selected' : '' ?>>Email</option>
+                                                <option value="text" <?= ($REMINDER_TYPE == 'text') ? 'selected' : '' ?>>Text Message</option>
+                                            </select>
+                                            <div class="form-helper">Select the type of reminder</div>
+                                        </div>
+
                                         <!-- Subject -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Subject <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter email subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
-                                            <div class="form-helper">The subject line that will appear in the email</div>
+                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
+                                            <div class="form-helper" id="subjectHelper">The subject line that will appear in the <?= ($REMINDER_TYPE == 'email') ? 'email' : 'text message' ?></div>
                                         </div>
 
                                         <!-- Operation / Category -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Target Audience <span class="required">*</span></label>
-                                            <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" required>
-                                                <option value="inactive_customers" <?= ($PK_TEMPLATE_CATEGORY == 'inactive_customers') ? 'selected' : '' ?>>All Inactive Customers</option>
-                                                <option value="active_customers" <?= ($PK_TEMPLATE_CATEGORY == 'active_customers') ? 'selected' : '' ?>>All Active Customers</option>
-                                                <option value="tags" <?= ($PK_TEMPLATE_CATEGORY == 'tags') ? 'selected' : '' ?>>By Tags</option>
-                                                <option value="leads" <?= ($PK_TEMPLATE_CATEGORY == 'leads') ? 'selected' : '' ?>>Leads</option>
+                                            <select id="OPERATION" name="OPERATION" class="form-control-modern" required>
+                                                <option value="inactive_customers" <?= ($OPERATION == 'inactive_customers') ? 'selected' : '' ?>>All Inactive Customers</option>
+                                                <option value="active_customers" <?= ($OPERATION == 'active_customers') ? 'selected' : '' ?>>All Active Customers</option>
+                                                <option value="tags" <?= ($OPERATION == 'tags') ? 'selected' : '' ?>>By Tags</option>
+                                                <option value="leads" <?= ($OPERATION == 'leads') ? 'selected' : '' ?>>Leads</option>
                                             </select>
                                             <div class="form-helper">Select the target audience for this campaign</div>
                                         </div>
 
                                         <!-- Tags - Conditional Field with Checkboxes -->
-                                        <div class="form-group-modern conditional-field <?= ($PK_TEMPLATE_CATEGORY == 'tags') ? 'visible' : '' ?>" id="tags_field">
+                                        <div class="form-group-modern conditional-field <?= ($OPERATION == 'tags') ? 'visible' : '' ?>" id="tags_field">
                                             <label class="form-label">Select Tags <span class="required">*</span></label>
                                             <div class="checkbox-container" id="tagsCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
@@ -789,12 +803,12 @@ if (empty($_GET['id'])) {
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
-                                            <div class="selected-count" id="tagsSelectedCount">Selected: <span id="tagsCount">0</span></div>
+                                            <div class="selected-count" id="tagsSelectedCount">Selected: <span id="tagsCount"><?= count($selected_tag) ?></span></div>
                                             <small class="text-muted">Check the boxes to select multiple tags</small>
                                         </div>
 
                                         <!-- Lead Status - Conditional Field with Checkboxes -->
-                                        <div class="form-group-modern conditional-field <?= ($PK_TEMPLATE_CATEGORY == 'leads') ? 'visible' : '' ?>" id="lead_status_field">
+                                        <div class="form-group-modern conditional-field <?= ($OPERATION == 'leads') ? 'visible' : '' ?>" id="lead_status_field">
                                             <label class="form-label">Select Lead Statuses <span class="required">*</span></label>
                                             <div class="checkbox-container" id="leadStatusCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
@@ -808,8 +822,36 @@ if (empty($_GET['id'])) {
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
-                                            <div class="selected-count" id="leadStatusSelectedCount">Selected: <span id="leadStatusCount">0</span></div>
+                                            <div class="selected-count" id="leadStatusSelectedCount">Selected: <span id="leadStatusCount"><?= count($selected_lead_statuses) ?></span></div>
                                             <small class="text-muted">Check the boxes to select multiple lead statuses</small>
+                                        </div>
+
+                                        <!-- Content Section - Single Editor for Both -->
+                                        <div class="form-group-modern full-width">
+                                            <label class="form-label" id="contentLabel"><?= ($REMINDER_TYPE == 'email') ? 'Email' : 'Text Message' ?> Content <span class="required">*</span></label>
+                                            <div class="quill-wrapper" id="quillWrapper">
+                                                <div id="editor" style="min-height: 300px;"></div>
+                                            </div>
+                                            <input type="hidden" name="CONTENT" id="CONTENT">
+                                            <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
+                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your <?= ($REMINDER_TYPE == 'email') ? 'email' : 'text message' ?> content</div>
+
+                                            <!-- Variables Section -->
+                                            <div class="variables-section">
+                                                <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID">Student ID</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name">Course Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Date">Date</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Time">Time</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- Active Status -->
@@ -829,34 +871,6 @@ if (empty($_GET['id'])) {
                                             </div>
                                         <?php endif; ?>
 
-                                        <!-- Email Content - Full Width -->
-                                        <div class="form-group-modern full-width">
-                                            <label class="form-label">Email Content <span class="required">*</span></label>
-                                            <div class="quill-wrapper">
-                                                <div id="editor" style="min-height: 300px;"></div>
-                                            </div>
-                                            <input type="hidden" name="CONTENT" id="CONTENT">
-                                            <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper">Use the toolbar above to format your email content</div>
-                                        </div>
-
-                                        <!-- Variables Section -->
-                                        <div class="variables-section">
-                                            <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID">Student ID</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name">Course Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Date">Date</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Time">Time</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
-                                                <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
-                                            </div>
-                                        </div>
-
                                         <!-- Hidden fields -->
                                         <?php if (!empty($_GET['id'])): ?>
                                             <input type="hidden" name="PK_CAMPAIGN_ID" value="<?php echo $_GET['id'] ?>">
@@ -873,7 +887,7 @@ if (empty($_GET['id'])) {
                                                 Update Campaign
                                             <?php endif; ?>
                                         </button>
-                                        <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_email_templates.php'">
+                                        <button type="button" class="btn-modern btn-modern-secondary" onclick="window.location.href='all_marketings.php'">
                                             <i class="fas fa-times"></i> Cancel
                                         </button>
                                     </div>
@@ -936,7 +950,7 @@ if (empty($_GET['id'])) {
                 ],
             },
             theme: 'snow',
-            placeholder: 'Write your email content here...',
+            placeholder: 'Write your content here...',
         });
 
         // Load existing content
@@ -955,32 +969,27 @@ if (empty($_GET['id'])) {
             document.getElementById('CONTENT').value = quill.root.innerHTML;
         });
 
-        // --- VARIABLE INSERTION FUNCTION ---
-        function insertVariable(varName) {
-            quill.focus();
-            const range = quill.getSelection();
-            const cursorPosition = range ? range.index : quill.getLength();
-            const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
-            quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
-            setTimeout(() => {
-                document.getElementById('CONTENT').value = quill.root.innerHTML;
-            }, 100);
+        // --- UPDATE LABELS BASED ON REMINDER TYPE ---
+        function updateContentLabels() {
+            const reminderType = document.getElementById('REMINDER_TYPE').value;
+            const contentLabel = document.getElementById('contentLabel');
+            const contentHelper = document.getElementById('contentHelper');
+            const subjectHelper = document.getElementById('subjectHelper');
+
+            if (reminderType === 'email') {
+                contentLabel.innerHTML = 'Email Content <span class="required">*</span>';
+                contentHelper.textContent = 'Use the toolbar above to format your email content';
+                subjectHelper.textContent = 'The subject line that will appear in the email';
+            } else {
+                contentLabel.innerHTML = 'Text Message Content <span class="required">*</span>';
+                contentHelper.textContent = 'Use the toolbar above to format your text message content';
+                subjectHelper.textContent = 'The subject line that will appear in the text message';
+            }
         }
 
-        // Attach click handlers to variable buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.var-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const varName = this.getAttribute('data-var');
-                    insertVariable(varName);
-                });
-            });
-        });
-
-        // --- TOGGLE CONDITIONAL FIELDS ---
+        // --- TOGGLE CONDITIONAL FIELDS (Tags/Leads) ---
         function toggleConditionalFields() {
-            const selectedValue = document.getElementById('PK_TEMPLATE_CATEGORY').value;
+            const selectedValue = document.getElementById('OPERATION').value;
             const tagsField = document.getElementById('tags_field');
             const leadStatusField = document.getElementById('lead_status_field');
 
@@ -994,6 +1003,18 @@ if (empty($_GET['id'])) {
                 leadStatusField.classList.add('visible');
                 updateLeadStatusCount();
             }
+        }
+
+        // --- VARIABLE INSERTION FUNCTION ---
+        function insertVariable(varName) {
+            quill.focus();
+            const range = quill.getSelection();
+            const cursorPosition = range ? range.index : quill.getLength();
+            const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
+            quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
+            setTimeout(() => {
+                document.getElementById('CONTENT').value = quill.root.innerHTML;
+            }, 100);
         }
 
         // --- UPDATE SELECTED COUNT FOR TAGS ---
@@ -1022,7 +1043,29 @@ if (empty($_GET['id'])) {
             updateLeadStatusCount();
         });
 
-        // --- INDIVIDUAL CHECKBOX EVENTS ---
+        // --- EVENT LISTENERS ---
+        // Attach change event to target audience dropdown
+        document.getElementById('OPERATION').addEventListener('change', function() {
+            toggleConditionalFields();
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        });
+
+        // Attach change event to reminder type dropdown
+        document.getElementById('REMINDER_TYPE').addEventListener('change', function() {
+            updateContentLabels();
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        });
+
+        // Attach click handlers to variable buttons
+        document.querySelectorAll('.var-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const varName = this.getAttribute('data-var');
+                insertVariable(varName);
+            });
+        });
+
+        // Individual checkbox events
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('tag-checkbox')) {
                 updateTagsCount();
@@ -1038,11 +1081,9 @@ if (empty($_GET['id'])) {
             }
         });
 
-        // Attach change event to category dropdown
-        document.getElementById('PK_TEMPLATE_CATEGORY').addEventListener('change', toggleConditionalFields);
-
-        // Run on load to set initial state
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', function() {
+            updateContentLabels();
             toggleConditionalFields();
             updateTagsCount();
             updateLeadStatusCount();
@@ -1053,10 +1094,10 @@ if (empty($_GET['id'])) {
             const templateName = document.getElementById('TEMPLATE_NAME');
             const subject = document.getElementById('SUBJECT');
             const location = document.querySelector('.PK_LOCATION');
-            const content = quill.root.innerHTML.trim();
-            const category = document.getElementById('PK_TEMPLATE_CATEGORY').value;
+            const category = document.getElementById('OPERATION').value;
             const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
             const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
+            const content = quill.root.innerHTML.trim();
 
             let isValid = true;
 
@@ -1082,19 +1123,22 @@ if (empty($_GET['id'])) {
             }
 
             if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
-                document.querySelector('.quill-wrapper').style.borderColor = 'var(--danger-color)';
+                document.getElementById('quillWrapper').style.borderColor = 'var(--danger-color)';
                 isValid = false;
-                const helper = document.querySelector('.form-helper:last-of-type');
+                const helper = document.getElementById('contentHelper');
                 if (helper) {
                     helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please enter email content';
+                    helper.textContent = 'Please enter content';
                     setTimeout(() => {
                         helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Use the toolbar above to format your email content';
+                        const reminderType = document.getElementById('REMINDER_TYPE').value;
+                        helper.textContent = reminderType === 'email' ?
+                            'Use the toolbar above to format your email content' :
+                            'Use the toolbar above to format your text message content';
                     }, 3000);
                 }
             } else {
-                document.querySelector('.quill-wrapper').style.borderColor = 'var(--gray-200)';
+                document.getElementById('quillWrapper').style.borderColor = 'var(--gray-200)';
             }
 
             if (category === 'tags' && tagsChecked.length === 0) {
