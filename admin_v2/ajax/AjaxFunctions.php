@@ -1885,6 +1885,7 @@ function getServiceProviderCount($RESPONSE_DATA)
                                                     AND (
                                                         FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_CLASS_SP_ID)
                                                         OR FIND_IN_SET('$SERVICE_PROVIDER_ID', LAST_ENROLLMENT_SP_ID)
+                                                        OR FIND_IN_SET('$SERVICE_PROVIDER_ID', STUDIO_MANAGER_ID)
                                                     )");
         $service_provider_array[$SERVICE_PROVIDER_ID]['IS_FOLLOWUP_EXIST'] = $is_followup_exist->fields['record_count'];
 
