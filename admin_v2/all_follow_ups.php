@@ -284,8 +284,17 @@ function time_ago($datetime)
                             <?php if ($automations && $automations->RecordCount() > 0): ?>
                                 <?php while (!$automations->EOF):
                                     $automation = $automations->fields;
-                                    $trigger_text = "When a customer completes a class";
-                                    $condition_text = !empty($automation['CONDITION_TYPE']) ? "and has not purchased a contract" : "";
+                                    if ($automation['TRIGGER_TYPE'] == 'NO_FUTURE_APPOINTMENTS') {
+                                        $trigger_text = "No Future Appointments";
+                                    } elseif ($automation['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS') {
+                                        $trigger_text = "No Active Enrollments";
+                                    } elseif ($automation['TRIGGER_TYPE'] == 'NO_SPECIFIC_SERVICES') {
+                                        $trigger_text = "No Specific Services";
+                                    } elseif ($automation['TRIGGER_TYPE'] == 'NEW_LEAD_IS_GENERATED') {
+                                        $trigger_text = "New Lead is Generated";
+                                    }
+                                    //$trigger_text = $automation['TRIGGER_TYPE'];
+                                    $condition_text =  "";
                                     $edited_time = !empty($automation['EDITED_ON']) ? $automation['EDITED_ON'] : $automation['CREATED_ON'];
                                 ?>
                                     <div class="automation-card p-3 mb-3 d-flex align-items-start justify-content-between" data-automation-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
