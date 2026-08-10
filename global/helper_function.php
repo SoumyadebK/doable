@@ -769,7 +769,7 @@ function checkCountAdded($PK_APPOINTMENT_MASTER, $PK_USER_MASTER, $PK_ENROLLMENT
 function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
 {
     global $db_account;
-    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_DATE FROM DOA_ENROLLMENT_MASTER WHERE STATUS != 'CO' AND PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
+    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_DATE, COMPLETED_DATE FROM DOA_ENROLLMENT_MASTER WHERE STATUS != 'CO' AND PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
     if ($enrollment_data->RecordCount() > 0 && $enrollment_data->fields['ENROLLMENT_DATE'] > '2021-12-31') {
         $enrollment_total_count = $db_account->Execute("SELECT SUM(`NUMBER_OF_SESSION`) AS TOTAL_SESSION FROM `DOA_ENROLLMENT_SERVICE` WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
 
@@ -793,6 +793,9 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
                 $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
                 $ENR_UPDATE_DATA['STATUS'] = 'C';
                 $ENR_UPDATE_DATA['IS_SALE'] = NULL;
+                if ($enrollment_data->fields['COMPLETED_DATE'] == null) {
+                    $ENR_UPDATE_DATA['COMPLETED_DATE'] = date('Y-m-d');
+                }
             } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
                 $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
                 $ENR_UPDATE_DATA['STATUS'] = 'CA';
@@ -808,6 +811,9 @@ function markEnrollmentComplete($PK_ENROLLMENT_MASTER): void
                 $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
                 $ENR_UPDATE_DATA['STATUS'] = 'CO';
                 $ENR_UPDATE_DATA['IS_SALE'] = 'N';
+                if ($enrollment_data->fields['COMPLETED_DATE'] == null) {
+                    $ENR_UPDATE_DATA['COMPLETED_DATE'] = date('Y-m-d');
+                }
             } elseif ($enrollment_total_count->fields['TOTAL_SESSION'] <= $TOTAL_COMPLETED_SESSION) {
                 $ENR_UPDATE_DATA['ALL_APPOINTMENT_DONE'] = 1;
                 $ENR_UPDATE_DATA['STATUS'] = 'A';
