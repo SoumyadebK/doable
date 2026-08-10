@@ -52,7 +52,7 @@ if (!empty($_POST)) {
     $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
     $CAMPAIGN_DATA['SUBJECT'] = $_POST['SUBJECT'];
     $CAMPAIGN_DATA['OPERATION'] = $_POST['OPERATION'];
-    $CAMPAIGN_DATA['REMINDER_TYPE'] = $_POST['REMINDER_TYPE'];
+    $CAMPAIGN_DATA['REMINDER_TYPE'] = implode(',', $_POST['REMINDER_TYPE']); // Store as comma-separated
     // Always save content in CONTENT field
     $CAMPAIGN_DATA['CONTENT'] = $_POST['CONTENT'];
 
@@ -105,7 +105,7 @@ if (empty($_GET['id'])) {
     $OPERATION = '';
     $CONTENT = '';
     $ACTIVE = '';
-    $REMINDER_TYPE = 'email';
+    $REMINDER_TYPE = array('email'); // Default to email
     $selected_lead_statuses = array();
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = '$_GET[id]'");
@@ -117,7 +117,7 @@ if (empty($_GET['id'])) {
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SUBJECT = $res->fields['SUBJECT'];
     $OPERATION = $res->fields['OPERATION'];
-    $REMINDER_TYPE = $res->fields['REMINDER_TYPE'];
+    $REMINDER_TYPE = !empty($res->fields['REMINDER_TYPE']) ? explode(',', $res->fields['REMINDER_TYPE']) : array('email');
     $CONTENT = $res->fields['CONTENT']; // Always get content from CONTENT field
     $ACTIVE = $res->fields['ACTIVE'];
 
@@ -380,6 +380,30 @@ if (empty($_GET['id'])) {
         height: 18px;
         cursor: pointer;
         flex-shrink: 0;
+    }
+
+    .checkbox-group-modern {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-top: 4px;
+    }
+
+    .checkbox-group-modern .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .checkbox-group-modern .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+        accent-color: var(--primary-color);
     }
 
     .btn-modern {
@@ -704,6 +728,16 @@ if (empty($_GET['id'])) {
     .checkbox-container::-webkit-scrollbar-thumb:hover {
         background: var(--gray-400);
     }
+
+    .subject-optional {
+        font-size: 12px;
+        color: var(--gray-400);
+        font-weight: 400;
+    }
+
+    .subject-optional.required-text {
+        color: var(--danger-color);
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -759,21 +793,30 @@ if (empty($_GET['id'])) {
                                             <div class="form-helper">Location for this Campaign to be Active</div>
                                         </div>
 
-                                        <!-- Reminder Type -->
-                                        <div class="form-group-modern">
+                                        <!-- Reminder Type - Checkboxes for multiple selection -->
+                                        <div class="form-group-modern full-width">
                                             <label class="form-label">Reminder Type <span class="required">*</span></label>
-                                            <select id="REMINDER_TYPE" name="REMINDER_TYPE" class="form-control-modern" required>
-                                                <option value="email" <?= ($REMINDER_TYPE == 'email') ? 'selected' : '' ?>>Email</option>
-                                                <option value="text" <?= ($REMINDER_TYPE == 'text') ? 'selected' : '' ?>>Text Message</option>
-                                            </select>
-                                            <div class="form-helper">Select the type of reminder</div>
+                                            <div class="checkbox-group-modern">
+                                                <label class="checkbox-item">
+                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="email" <?= in_array('email', $REMINDER_TYPE) ? 'checked' : '' ?>>
+                                                    Email
+                                                </label>
+                                                <label class="checkbox-item">
+                                                    <input type="checkbox" name="REMINDER_TYPE[]" value="text" <?= in_array('text', $REMINDER_TYPE) ? 'checked' : '' ?>>
+                                                    Text Message
+                                                </label>
+                                            </div>
+                                            <div class="form-helper">Select one or both reminder types</div>
                                         </div>
 
-                                        <!-- Subject -->
+                                        <!-- Subject - Made optional with conditional requirement -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">Subject <span class="required">*</span></label>
-                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
-                                            <div class="form-helper" id="subjectHelper">The subject line that will appear in the <?= ($REMINDER_TYPE == 'email') ? 'email' : 'text message' ?></div>
+                                            <label class="form-label">
+                                                Subject
+                                                <span class="subject-optional" id="subjectRequiredLabel">(Required for Email)</span>
+                                            </label>
+                                            <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter subject" value="<?php echo htmlspecialchars($SUBJECT) ?>">
+                                            <div class="form-helper" id="subjectHelper">The subject line that will appear in the <?= in_array('email', $REMINDER_TYPE) ? 'email' : 'text message' ?></div>
                                         </div>
 
                                         <!-- Operation / Category -->
@@ -828,13 +871,13 @@ if (empty($_GET['id'])) {
 
                                         <!-- Content Section - Single Editor for Both -->
                                         <div class="form-group-modern full-width">
-                                            <label class="form-label" id="contentLabel"><?= ($REMINDER_TYPE == 'email') ? 'Email' : 'Text Message' ?> Content <span class="required">*</span></label>
+                                            <label class="form-label" id="contentLabel">Content <span class="required">*</span></label>
                                             <div class="quill-wrapper" id="quillWrapper">
                                                 <div id="editor" style="min-height: 300px;"></div>
                                             </div>
                                             <input type="hidden" name="CONTENT" id="CONTENT">
                                             <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your <?= ($REMINDER_TYPE == 'email') ? 'email' : 'text message' ?> content</div>
+                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your content</div>
 
                                             <!-- Variables Section -->
                                             <div class="variables-section">
@@ -969,21 +1012,44 @@ if (empty($_GET['id'])) {
             document.getElementById('CONTENT').value = quill.root.innerHTML;
         });
 
-        // --- UPDATE LABELS BASED ON REMINDER TYPE ---
+        // --- UPDATE LABELS AND VALIDATION BASED ON REMINDER TYPE ---
         function updateContentLabels() {
-            const reminderType = document.getElementById('REMINDER_TYPE').value;
+            const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
+            const textChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="text"]').checked;
             const contentLabel = document.getElementById('contentLabel');
             const contentHelper = document.getElementById('contentHelper');
             const subjectHelper = document.getElementById('subjectHelper');
+            const subjectRequiredLabel = document.getElementById('subjectRequiredLabel');
+            const subjectInput = document.getElementById('SUBJECT');
 
-            if (reminderType === 'email') {
-                contentLabel.innerHTML = 'Email Content <span class="required">*</span>';
+            // Update content label
+            let labelText = 'Content';
+            if (emailChecked && textChecked) {
+                labelText = 'Content (Email & Text Message)';
+                contentHelper.textContent = 'Use the toolbar above to format your content for both email and text message';
+                subjectHelper.textContent = 'Subject is required for email (optional for text message)';
+                subjectRequiredLabel.textContent = '(Required for Email, Optional for Text)';
+            } else if (emailChecked) {
+                labelText = 'Email Content';
                 contentHelper.textContent = 'Use the toolbar above to format your email content';
                 subjectHelper.textContent = 'The subject line that will appear in the email';
-            } else {
-                contentLabel.innerHTML = 'Text Message Content <span class="required">*</span>';
+                subjectRequiredLabel.textContent = '(Required for Email)';
+            } else if (textChecked) {
+                labelText = 'Text Message Content';
                 contentHelper.textContent = 'Use the toolbar above to format your text message content';
-                subjectHelper.textContent = 'The subject line that will appear in the text message';
+                subjectHelper.textContent = 'Subject is optional for text message';
+                subjectRequiredLabel.textContent = '(Optional for Text Message)';
+            }
+
+            contentLabel.innerHTML = labelText + ' <span class="required">*</span>';
+
+            // Update subject required status
+            if (emailChecked) {
+                subjectInput.setAttribute('required', 'required');
+                subjectInput.classList.remove('optional');
+            } else {
+                subjectInput.removeAttribute('required');
+                subjectInput.classList.add('optional');
             }
         }
 
@@ -1050,10 +1116,18 @@ if (empty($_GET['id'])) {
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
 
-        // Attach change event to reminder type dropdown
-        document.getElementById('REMINDER_TYPE').addEventListener('change', function() {
-            updateContentLabels();
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        // Attach change event to reminder type checkboxes
+        document.querySelectorAll('input[name="REMINDER_TYPE[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateContentLabels();
+                // At least one must be checked
+                const checked = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
+                if (checked.length === 0) {
+                    this.checked = true; // Prevent unchecking the last one
+                    alert('Please select at least one reminder type');
+                }
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
         });
 
         // Attach click handlers to variable buttons
@@ -1098,8 +1172,31 @@ if (empty($_GET['id'])) {
             const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
             const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
             const content = quill.root.innerHTML.trim();
+            const reminderTypes = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
+            const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
 
             let isValid = true;
+
+            // Validate at least one reminder type is selected
+            if (reminderTypes.length === 0) {
+                document.querySelector('.checkbox-group-modern').style.borderColor = 'var(--danger-color)';
+                document.querySelector('.checkbox-group-modern').style.border = '1.5px solid var(--danger-color)';
+                document.querySelector('.checkbox-group-modern').style.borderRadius = 'var(--radius-sm)';
+                document.querySelector('.checkbox-group-modern').style.padding = '8px';
+                isValid = false;
+                const helper = document.querySelector('.checkbox-group-modern').closest('.form-group-modern').querySelector('.form-helper');
+                if (helper) {
+                    helper.style.color = 'var(--danger-color)';
+                    helper.textContent = 'Please select at least one reminder type';
+                    setTimeout(() => {
+                        helper.style.color = 'var(--gray-400)';
+                        helper.textContent = 'Select one or both reminder types';
+                    }, 3000);
+                }
+            } else {
+                document.querySelector('.checkbox-group-modern').style.border = 'none';
+                document.querySelector('.checkbox-group-modern').style.padding = '0';
+            }
 
             if (!templateName.value.trim()) {
                 templateName.classList.add('is-invalid');
@@ -1108,7 +1205,8 @@ if (empty($_GET['id'])) {
                 templateName.classList.remove('is-invalid');
             }
 
-            if (!subject.value.trim()) {
+            // Subject is required only if email is selected
+            if (emailChecked && !subject.value.trim()) {
                 subject.classList.add('is-invalid');
                 isValid = false;
             } else {
@@ -1131,10 +1229,7 @@ if (empty($_GET['id'])) {
                     helper.textContent = 'Please enter content';
                     setTimeout(() => {
                         helper.style.color = 'var(--gray-400)';
-                        const reminderType = document.getElementById('REMINDER_TYPE').value;
-                        helper.textContent = reminderType === 'email' ?
-                            'Use the toolbar above to format your email content' :
-                            'Use the toolbar above to format your text message content';
+                        helper.textContent = 'Use the toolbar above to format your content';
                     }, 3000);
                 }
             } else {

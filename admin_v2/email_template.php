@@ -11,23 +11,61 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+// Function to check for existing templates - NOW CHECKS ALL TEMPLATES, NOT JUST ACTIVE
+function checkExistingTemplate($templateName, $accountMaster, $excludeId = null)
+{
+    global $db_account;
+
+    $sql = "SELECT COUNT(*) as count FROM DOA_EMAIL_TEMPLATE 
+            WHERE TEMPLATE_NAME = '$templateName' 
+            AND PK_ACCOUNT_MASTER = '$accountMaster'";
+    // Removed "AND ACTIVE = 1" - now checks all templates
+
+    if ($excludeId) {
+        $sql .= " AND PK_EMAIL_TEMPLATE != '$excludeId'";
+    }
+
+    $result = $db_account->Execute($sql);
+    return $result->fields['count'] > 0;
+}
+
+$error_message = '';
+$success_message = '';
+
 if (!empty($_POST)) {
-    $EMAIL_ACCOUNT_DATA = $_POST;
-    unset($EMAIL_ACCOUNT_DATA['TEMP_CONTENT']);
-    $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
-    if ($_GET['id'] == '') {
-        if (!isset($EMAIL_ACCOUNT_DATA['ACTIVE'])) {
-            $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
+    $templateName = $_POST['TEMPLATE_NAME'];
+    $editId = !empty($_GET['id']) ? $_GET['id'] : null;
+
+    // Check for duplicates - now checks all templates
+    if (in_array($templateName, ['APPOINTMENT_CREATION', 'ENROLLMENT_CREATION'])) {
+        if (checkExistingTemplate($templateName, $_SESSION['PK_ACCOUNT_MASTER'], $editId)) {
+            $error_message = "A template for " . str_replace('_', ' ', $templateName) . " already exists. You can only have one template per type.";
         }
-        $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
-        header("location:all_email_templates.php");
-    } else {
-        $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
-        $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
-        header("location:all_email_templates.php");
+    }
+
+    // If no error, proceed with save
+    if (empty($error_message)) {
+        $EMAIL_ACCOUNT_DATA = $_POST;
+        unset($EMAIL_ACCOUNT_DATA['TEMP_CONTENT']);
+        $EMAIL_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
+        if ($_GET['id'] == '') {
+            if (!isset($EMAIL_ACCOUNT_DATA['ACTIVE'])) {
+                $EMAIL_ACCOUNT_DATA['ACTIVE'] = 1;
+            }
+            $EMAIL_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
+            $EMAIL_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'insert');
+            $success_message = "Template created successfully!";
+            header("location:all_email_templates.php?success=1");
+            exit;
+        } else {
+            $EMAIL_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+            $EMAIL_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
+            db_perform_account('DOA_EMAIL_TEMPLATE', $EMAIL_ACCOUNT_DATA, 'update', " PK_EMAIL_TEMPLATE = '$_GET[id]'");
+            $success_message = "Template updated successfully!";
+            header("location:all_email_templates.php?success=1");
+            exit;
+        }
     }
 }
 
@@ -497,9 +535,62 @@ if (empty($_GET['id'])) {
         font-size: 12px;
         color: var(--gray-400);
         margin-top: 4px;
+        transition: all 0.3s ease;
     }
 
-    /* Variable Badge Styles - Same as SMS template */
+    .form-helper.error {
+        color: var(--danger-color) !important;
+        font-weight: 500;
+    }
+
+    .form-helper.success {
+        color: var(--success-color) !important;
+        font-weight: 500;
+    }
+
+    .form-helper.warning {
+        color: var(--warning-color) !important;
+        font-weight: 500;
+    }
+
+    /* Alert message styles */
+    .alert-duplicate {
+        background-color: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #991B1B;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .alert-duplicate i {
+        font-size: 18px;
+        color: #DC2626;
+    }
+
+    .alert-success-custom {
+        background-color: #D1FAE5;
+        border: 1px solid #A7F3D0;
+        color: #065F46;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .alert-success-custom i {
+        font-size: 18px;
+        color: #059669;
+    }
+
+    /* Variable Badge Styles */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -543,6 +634,29 @@ if (empty($_GET['id'])) {
         letter-spacing: 0.05em;
         margin-bottom: 8px;
     }
+
+    /* Existing templates info */
+    .existing-templates-info {
+        grid-column: 1 / -1;
+        padding: 8px 0;
+    }
+
+    .existing-templates-info .info-box {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        border-radius: var(--radius-sm);
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .existing-templates-info .info-box i {
+        font-size: 16px;
+        color: #22C55E;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -576,12 +690,28 @@ if (empty($_GET['id'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="card-body">
-                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data">
+                                <!-- Display error message if any -->
+                                <?php if (!empty($error_message)): ?>
+                                    <div class="alert-duplicate">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <?= htmlspecialchars($error_message) ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Display success message -->
+                                <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+                                    <div class="alert-success-custom">
+                                        <i class="fas fa-check-circle"></i>
+                                        Template saved successfully!
+                                    </div>
+                                <?php endif; ?>
+
+                                <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data" id="templateForm">
 
                                     <div class="form-grid">
                                         <!-- Template Name -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">Template Name <span class="required">*</span></label>
+                                            <label class="form-label">Template Type <span class="required">*</span></label>
 
                                             <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required>
                                                 <option value="">Select template type</option>
@@ -593,7 +723,7 @@ if (empty($_GET['id'])) {
                                                 </option>
                                             </select>
 
-                                            <div class="form-helper">Select whether this template is for an appointment or enrollment</div>
+                                            <div class="form-helper" id="templateTypeHelper">Select whether this template is for an appointment or enrollment</div>
                                         </div>
 
                                         <!-- Location -->
@@ -695,6 +825,18 @@ if (empty($_GET['id'])) {
                                             </div>
                                         <?php endif; ?>
 
+                                        <!-- Existing Templates Info -->
+                                        <div class="existing-templates-info">
+                                            <div class="info-box">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span>
+                                                    <strong>Note:</strong> You can only have <strong>one</strong> template for
+                                                    <strong>Appointment Creation</strong> and <strong>one</strong> for
+                                                    <strong>Enrollment Creation</strong> at a time (including inactive templates).
+                                                </span>
+                                            </div>
+                                        </div>
+
                                         <!-- Email Content - Full Width -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label">Email Content <span class="required">*</span></label>
@@ -703,10 +845,10 @@ if (empty($_GET['id'])) {
                                             </div>
                                             <input type="hidden" name="CONTENT" id="CONTENT">
                                             <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper">Use the toolbar above to format your email content</div>
+                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your email content</div>
                                         </div>
 
-                                        <!-- Variables Section - Same as SMS template -->
+                                        <!-- Variables Section -->
                                         <div class="variables-section">
                                             <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                             <div class="d-flex flex-wrap gap-1">
@@ -731,7 +873,7 @@ if (empty($_GET['id'])) {
 
                                     <!-- Form Actions -->
                                     <div class="form-actions">
-                                        <button type="submit" class="btn-modern btn-modern-primary">
+                                        <button type="submit" class="btn-modern btn-modern-primary" id="submitBtn">
                                             <i class="fas fa-save"></i>
                                             <?php if (empty($_GET['id'])): ?>
                                                 Create Template
@@ -821,22 +963,13 @@ if (empty($_GET['id'])) {
             document.getElementById('CONTENT').value = quill.root.innerHTML;
         });
 
-        // --- VARIABLE INSERTION FUNCTION (Same as SMS template) ---
+        // --- VARIABLE INSERTION FUNCTION ---
         function insertVariable(varName) {
-            // Focus the editor
             quill.focus();
-
-            // Get the current cursor position
             const range = quill.getSelection();
             const cursorPosition = range ? range.index : quill.getLength();
-
-            // Create the HTML for the variable badge
             const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
-
-            // Insert HTML at cursor position
             quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
-
-            // Update the hidden input
             setTimeout(() => {
                 document.getElementById('CONTENT').value = quill.root.innerHTML;
             }, 100);
@@ -863,21 +996,92 @@ if (empty($_GET['id'])) {
             }
         }
 
+        // --- CLIENT-SIDE DUPLICATE CHECK ---
+        function checkTemplateExists(templateName, callback) {
+            const isEdit = <?= !empty($_GET['id']) ? 'true' : 'false' ?>;
+            const currentId = <?= !empty($_GET['id']) ? $_GET['id'] : 'null' ?>;
+
+            const formData = new FormData();
+            formData.append('action', 'check_template');
+            formData.append('template_name', templateName);
+            formData.append('current_id', currentId);
+            formData.append('is_edit', isEdit);
+
+            fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    try {
+                        const jsonData = JSON.parse(data);
+                        callback(jsonData.exists);
+                    } catch (e) {
+                        callback(false);
+                    }
+                })
+                .catch(() => callback(false));
+        }
+
+        // Real-time check when template type changes
+        document.getElementById('TEMPLATE_NAME').addEventListener('change', function() {
+            const selectedValue = this.value;
+            const helper = document.getElementById('templateTypeHelper');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (selectedValue === 'APPOINTMENT_CREATION' || selectedValue === 'ENROLLMENT_CREATION') {
+                // Show loading state
+                helper.textContent = '⏳ Checking if template exists...';
+                helper.className = 'form-helper warning';
+
+                checkTemplateExists(selectedValue, function(exists) {
+                    if (exists) {
+                        const typeName = selectedValue.replace('_', ' ');
+                        helper.textContent = '❌ A template for ' + typeName + ' already exists. You can only have one per type.';
+                        helper.className = 'form-helper error';
+                        document.getElementById('TEMPLATE_NAME').classList.add('is-invalid');
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.6';
+                        submitBtn.style.cursor = 'not-allowed';
+                    } else {
+                        helper.textContent = '✅ Available - You can create this template type';
+                        helper.className = 'form-helper success';
+                        document.getElementById('TEMPLATE_NAME').classList.remove('is-invalid');
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                });
+            } else {
+                helper.textContent = 'Select whether this template is for an appointment or enrollment';
+                helper.className = 'form-helper';
+                document.getElementById('TEMPLATE_NAME').classList.remove('is-invalid');
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+        });
+
         // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const templateName = document.getElementById('TEMPLATE_NAME');
             const subject = document.getElementById('SUBJECT');
             const content = quill.root.innerHTML.trim();
+            const helper = document.getElementById('templateTypeHelper');
 
             let isValid = true;
 
+            // Check if template type is selected
             if (!templateName.value.trim()) {
                 templateName.classList.add('is-invalid');
+                helper.textContent = 'Please select a template type';
+                helper.className = 'form-helper error';
                 isValid = false;
             } else {
                 templateName.classList.remove('is-invalid');
             }
 
+            // Check if subject is filled
             if (!subject.value.trim()) {
                 subject.classList.add('is-invalid');
                 isValid = false;
@@ -885,27 +1089,30 @@ if (empty($_GET['id'])) {
                 subject.classList.remove('is-invalid');
             }
 
+            // Check if content is filled
             if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
-                // Show error for empty content
                 document.querySelector('.quill-wrapper').style.borderColor = 'var(--danger-color)';
+                const contentHelper = document.getElementById('contentHelper');
+                contentHelper.textContent = '⚠️ Please enter email content';
+                contentHelper.className = 'form-helper error';
                 isValid = false;
-                // Add a visual indicator
-                const helper = document.querySelector('.form-helper:last-of-type');
-                if (helper) {
-                    helper.style.color = 'var(--danger-color)';
-                    helper.textContent = 'Please enter email content';
-                    setTimeout(() => {
-                        helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Use the toolbar above to format your email content';
-                    }, 3000);
-                }
             } else {
                 document.querySelector('.quill-wrapper').style.borderColor = 'var(--gray-200)';
+                const contentHelper = document.getElementById('contentHelper');
+                contentHelper.textContent = 'Use the toolbar above to format your email content';
+                contentHelper.className = 'form-helper';
+            }
+
+            // Check if submit button is disabled (duplicate template)
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn.disabled) {
+                isValid = false;
+                helper.textContent = '⚠️ Please select a different template type';
+                helper.className = 'form-helper error';
             }
 
             if (!isValid) {
                 e.preventDefault();
-                // Scroll to first error
                 const firstError = document.querySelector('.is-invalid');
                 if (firstError) {
                     firstError.focus();
@@ -921,6 +1128,44 @@ if (empty($_GET['id'])) {
                 }
             });
         });
+
+        // Trigger change event on page load to check existing template
+        document.addEventListener('DOMContentLoaded', function() {
+            const templateSelect = document.getElementById('TEMPLATE_NAME');
+            if (templateSelect.value) {
+                // Trigger the change event to check if template exists
+                const event = new Event('change');
+                templateSelect.dispatchEvent(event);
+            }
+        });
+
+        <?php
+        // Handle AJAX request for template check within the same page
+        if (isset($_POST['action']) && $_POST['action'] == 'check_template') {
+            $templateName = isset($_POST['template_name']) ? $_POST['template_name'] : '';
+            $currentId = isset($_POST['current_id']) ? $_POST['current_id'] : null;
+            $isEdit = isset($_POST['is_edit']) ? $_POST['is_edit'] : false;
+
+            $exists = false;
+            if (in_array($templateName, ['APPOINTMENT_CREATION', 'ENROLLMENT_CREATION'])) {
+                $sql = "SELECT COUNT(*) as count FROM DOA_EMAIL_TEMPLATE 
+                        WHERE TEMPLATE_NAME = '$templateName' 
+                        AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'";
+                // Removed "AND ACTIVE = 1" - now checks all templates
+
+                if ($isEdit && $currentId) {
+                    $sql .= " AND PK_EMAIL_TEMPLATE != '$currentId'";
+                }
+
+                $result = $db_account->Execute($sql);
+                $exists = $result->fields['count'] > 0;
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode(['exists' => $exists]);
+            exit;
+        }
+        ?>
     </script>
 
 </body>
