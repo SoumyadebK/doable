@@ -177,13 +177,13 @@ function sendEmailToCustomer($db, $customer_id, $location_name, $date, $time, $m
         return ['success' => false, 'message' => 'Customer not found'];
     }
 
-    if ($customer->fields['IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL'] == 1) {
-        return ['success' => false, 'message' => 'You have unsubscribed from appointment reminders'];
-    }
-
     $phone = preg_replace('/[^0-9]/', '', $customer->fields['PHONE']);
     $customer_name = trim($customer->fields['FIRST_NAME'] . ' ' . $customer->fields['LAST_NAME']);
     $email = trim($customer->fields['EMAIL_ID']);
+
+    if ($customer->fields['IS_UNSUBSCRIBE_FROM_APPOINTMENT_REMINDER_EMAIL'] == 1) {
+        return ['success' => false, 'message' => 'Customer ' . $customer_name . ' has unsubscribed from email appointment reminders'];
+    }
 
     // Remove leading 1 if present
     if (strlen($phone) == 11 && substr($phone, 0, 1) == '1') {
