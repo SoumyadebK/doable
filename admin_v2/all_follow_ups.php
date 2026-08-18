@@ -11,7 +11,29 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
 
-    // Get the raw POST data
+    // Check if it's a delete request
+    if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+        $automation_id = isset($_POST['automation_id']) ? intval($_POST['automation_id']) : 0;
+        $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+
+        if ($automation_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid automation ID']);
+            exit;
+        }
+
+        // Delete the automation
+        $query = "DELETE FROM DOA_AUTOMATIONS WHERE PK_AUTOMATION_ID = '$automation_id' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'";
+        $result = $db_account->Execute($query);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Follow up deleted successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to delete follow up']);
+        }
+        exit;
+    }
+
+    // Handle status update
     $automation_id = isset($_POST['automation_id']) ? intval($_POST['automation_id']) : 0;
     $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
     $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
@@ -252,9 +274,47 @@ function time_ago($datetime)
         pointer-events: none;
     }
 
+    .btn-delete-automation {
+        color: #dc3545;
+        padding: 0.25rem 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-delete-automation:hover {
+        color: #b02a37;
+        background-color: #f8d7da;
+        border-radius: 6px;
+    }
+
+    .automation-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
     /* Toast notifications */
     .toast-container {
         z-index: 9999;
+    }
+
+    /* Delete confirmation modal */
+    .modal-confirm-delete .modal-header {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .modal-confirm-delete .modal-footer {
+        border-top: none;
+    }
+
+    .modal-confirm-delete .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .modal-confirm-delete .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
     }
 </style>
 
@@ -271,14 +331,13 @@ function time_ago($datetime)
                     <div class="main-card">
                         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                             <div>
-                                <h2 class="fw-semibold h4 mb-1"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Automations</h2>
+                                <h2 class="fw-semibold h4 mb-1"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Follow Ups</h2>
                                 <p class="text-muted small mb-0">Enable automatic to-do's</p>
                             </div>
                             <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='add_follow_up.php'">
                                 <i class="bi bi-plus-lg"></i> Add Follow Up
                             </button>
                         </div>
-
 
                         <div id="automationsList">
                             <?php if ($automations && $automations->RecordCount() > 0): ?>
@@ -309,7 +368,7 @@ function time_ago($datetime)
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-3 pt-1">
+                                        <div class="automation-actions">
                                             <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                                 <input class="form-check-input m-0 toggle-automation" type="checkbox" role="switch"
                                                     data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
@@ -321,6 +380,13 @@ function time_ago($datetime)
                                             <button class="btn btn-link text-muted p-0 border-0 edit-automation"
                                                 data-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
                                                 <i class="bi bi-chevron-right fs-5"></i>
+                                            </button>
+                                            <button class="btn btn-link btn-delete-automation p-0 border-0"
+                                                data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
+                                                data-title="<?= htmlspecialchars($automation['TITLE']) ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal">
+                                                <i class="bi bi-trash3 fs-5"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -347,11 +413,123 @@ function time_ago($datetime)
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade modal-confirm-delete" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-semibold" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                        Delete Follow Up
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Are you sure you want to delete "<span id="deleteAutomationTitle" class="fw-semibold"></span>"?</p>
+                    <p class="text-muted small mt-2">This action cannot be undone. All associated data will be permanently removed.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash3 me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            let deleteAutomationId = null;
+            let deleteModalInstance = null;
+
+            // Initialize modal
+            const deleteModalEl = document.getElementById('deleteModal');
+            if (deleteModalEl) {
+                deleteModalInstance = new bootstrap.Modal(deleteModalEl);
+            }
+
+            // Handle delete button click - set the automation ID and title
+            $(document).on('click', '.btn-delete-automation', function() {
+                deleteAutomationId = $(this).data('id');
+                const title = $(this).data('title');
+                $('#deleteAutomationTitle').text(title);
+            });
+
+            // Handle confirm delete
+            $('#confirmDeleteBtn').on('click', function() {
+                if (!deleteAutomationId) {
+                    showToast('Invalid automation ID', 'error');
+                    return;
+                }
+
+                const $btn = $(this);
+                const $automationCard = $('.automation-card[data-automation-id="' + deleteAutomationId + '"]');
+
+                // Show loading state
+                $btn.prop('disabled', true);
+                $btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Deleting...');
+
+                // Send delete request
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    data: {
+                        action: 'delete',
+                        automation_id: deleteAutomationId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Close modal
+                            if (deleteModalInstance) {
+                                deleteModalInstance.hide();
+                            }
+
+                            // Remove the automation card with animation
+                            $automationCard.fadeOut(300, function() {
+                                $(this).remove();
+
+                                // Check if no automations left
+                                if ($('.automation-card').length === 0) {
+                                    $('#automationsList').html(`
+                                        <div class="empty-state">
+                                            <i class="bi bi-envelope-paper"></i>
+                                            <h4>No automations yet</h4>
+                                            <p>Create your first automation to get started</p>
+                                        </div>
+                                    `);
+                                }
+                            });
+
+                            showToast('Follow up deleted successfully', 'success');
+                        } else {
+                            showToast('Error: ' + response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        showToast('Error deleting follow up. Please try again.', 'error');
+                    },
+                    complete: function() {
+                        // Reset button
+                        $btn.prop('disabled', false);
+                        $btn.html('<i class="bi bi-trash3 me-1"></i> Delete');
+                        deleteAutomationId = null;
+                    }
+                });
+            });
+
+            // Reset modal state when closed
+            deleteModalEl.addEventListener('hidden.bs.modal', function() {
+                deleteAutomationId = null;
+                $('#confirmDeleteBtn').prop('disabled', false);
+                $('#confirmDeleteBtn').html('<i class="bi bi-trash3 me-1"></i> Delete');
+            });
+
             // Handle toggle switch change
             $('.toggle-automation').on('change', function() {
                 const $toggle = $(this);
