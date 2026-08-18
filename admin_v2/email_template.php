@@ -444,62 +444,6 @@ if (empty($_GET['id'])) {
         }
     }
 
-    /* Quill Editor */
-    .quill-wrapper {
-        border: 1.5px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-        transition: all 0.2s ease;
-    }
-
-    .quill-wrapper:focus-within {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
-    }
-
-    .quill-wrapper .ql-toolbar {
-        border: none;
-        border-bottom: 1px solid var(--gray-200);
-        background: var(--gray-50);
-        padding: 8px 12px;
-    }
-
-    .quill-wrapper .ql-container {
-        border: none;
-        font-size: 14px;
-        font-family: inherit;
-        min-height: 300px;
-    }
-
-    .quill-wrapper .ql-editor {
-        min-height: 300px;
-        padding: 16px;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .quill-wrapper .ql-editor p {
-        margin-bottom: 8px;
-    }
-
-    .quill-wrapper .ql-toolbar .ql-formats {
-        margin-right: 8px;
-    }
-
-    .quill-wrapper .ql-toolbar button {
-        border-radius: 4px;
-        transition: background 0.2s;
-    }
-
-    .quill-wrapper .ql-toolbar button:hover {
-        background: var(--gray-200);
-    }
-
-    .quill-wrapper .ql-toolbar .ql-active {
-        background: var(--primary-color);
-        color: #fff;
-    }
-
     /* Full width for editor */
     .full-width {
         grid-column: 1 / -1;
@@ -590,7 +534,7 @@ if (empty($_GET['id'])) {
         color: #059669;
     }
 
-    /* Variable Badge Styles */
+    /* Variable Badge Styles - matching follow-up page exactly */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -602,6 +546,11 @@ if (empty($_GET['id'])) {
         color: #1e40af;
         cursor: default;
         border: 1px solid #c7d2fe;
+        user-select: none;
+    }
+
+    .variable-badge:hover {
+        background-color: #e0e7ff;
     }
 
     .btn-variable-token {
@@ -612,6 +561,8 @@ if (empty($_GET['id'])) {
         padding: 0.25rem 0.9rem;
         transition: all 0.2s ease;
         cursor: pointer;
+        font-weight: 500;
+        color: var(--gray-700);
     }
 
     .btn-variable-token:hover {
@@ -619,11 +570,17 @@ if (empty($_GET['id'])) {
         border-color: var(--primary-color);
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
+        color: var(--gray-800);
+    }
+
+    .btn-variable-token:active {
+        transform: translateY(0px);
     }
 
     .variables-section {
         grid-column: 1 / -1;
         padding: 8px 0 4px 0;
+        margin-top: 8px;
     }
 
     .variables-section .text-muted {
@@ -633,6 +590,11 @@ if (empty($_GET['id'])) {
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 8px;
+    }
+
+    .variables-section .d-flex {
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
     /* Existing templates info */
@@ -656,6 +618,98 @@ if (empty($_GET['id'])) {
     .existing-templates-info .info-box i {
         font-size: 16px;
         color: #22C55E;
+    }
+
+    /* Content editable area - matching follow-up page */
+    .content-editable {
+        width: 100%;
+        min-height: 300px;
+        padding: 16px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+        line-height: 1.8;
+        overflow-y: auto;
+    }
+
+    .content-editable:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .content-editable:hover {
+        border-color: var(--gray-300);
+    }
+
+    .content-editable.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .content-editable.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .content-editable .variable-badge {
+        background-color: #eef2ff;
+        border-radius: 20px;
+        padding: 0.15rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        margin: 0 2px;
+        color: #1e40af;
+        border: 1px solid #c7d2fe;
+        cursor: default;
+        user-select: none;
+    }
+
+    .content-editable .variable-badge:hover {
+        background-color: #e0e7ff;
+    }
+
+    /* Toolbar for content editable */
+    .content-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px 12px;
+        background: var(--gray-50);
+        border: 1.5px solid var(--gray-200);
+        border-bottom: none;
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .content-toolbar .btn-toolbar {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 14px;
+        cursor: pointer;
+        color: var(--gray-600);
+        transition: all 0.2s;
+    }
+
+    .content-toolbar .btn-toolbar:hover {
+        background: var(--gray-200);
+        border-color: var(--gray-300);
+    }
+
+    .content-toolbar .btn-toolbar.active {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+
+    .content-toolbar .separator {
+        width: 1px;
+        background: var(--gray-300);
+        margin: 0 4px;
     }
 </style>
 
@@ -837,18 +891,29 @@ if (empty($_GET['id'])) {
                                             </div>
                                         </div>
 
-                                        <!-- Email Content - Full Width -->
+                                        <!-- Email Content - Full Width with contenteditable -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label">Email Content <span class="required">*</span></label>
-                                            <div class="quill-wrapper">
-                                                <div id="editor" style="min-height: 300px;"></div>
-                                            </div>
-                                            <input type="hidden" name="CONTENT" id="CONTENT">
-                                            <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your email content</div>
+
+                                            <!-- Simple toolbar for basic formatting -->
+                                            <!-- <div class="content-toolbar">
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('bold', false, null)" title="Bold"><b>B</b></button>
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('italic', false, null)" title="Italic"><i>I</i></button>
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('underline', false, null)" title="Underline"><u>U</u></button>
+                                                <span class="separator"></span>
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List">•</button>
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List">1.</button>
+                                                <span class="separator"></span>
+                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('createLink', false, prompt('Enter URL:'))" title="Insert Link">🔗</button>
+                                            </div> -->
+
+                                            <!-- Content editable div -->
+                                            <div class="content-editable" contenteditable="true" id="contentEditable"><?= htmlspecialchars_decode($CONTENT) ?></div>
+                                            <input type="hidden" name="CONTENT" id="CONTENT" value="<?= htmlspecialchars($CONTENT) ?>">
+                                            <div class="form-helper" id="contentHelper">Click variable buttons below to insert dynamic fields into your email content.</div>
                                         </div>
 
-                                        <!-- Variables Section -->
+                                        <!-- Variables Section - Same style as follow-up page -->
                                         <div class="variables-section">
                                             <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                             <div class="d-flex flex-wrap gap-1">
@@ -898,92 +963,71 @@ if (empty($_GET['id'])) {
 
     <?php require_once('../includes/footer.php'); ?>
 
-    <!-- Quill Editor -->
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-
-    <script type="text/javascript">
-        // Initialize Quill Editor
-        const quill = new Quill('#editor', {
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['link', 'image'],
-                    [{
-                        'header': 1
-                    }, {
-                        'header': 2
-                    }],
-                    [{
-                        'list': 'ordered'
-                    }, {
-                        'list': 'bullet'
-                    }],
-                    [{
-                        'script': 'sub'
-                    }, {
-                        'script': 'super'
-                    }],
-                    [{
-                        'indent': '-1'
-                    }, {
-                        'indent': '+1'
-                    }],
-                    [{
-                        'header': [1, 2, 3, 4, 5, 6, false]
-                    }],
-                    [{
-                        'color': []
-                    }, {
-                        'background': []
-                    }],
-                    [{
-                        'align': []
-                    }],
-                    ['clean']
-                ],
-            },
-            theme: 'snow',
-            placeholder: 'Write your email content here...',
-        });
-
-        // Load existing content
-        const resetForm = () => {
-            const content = document.getElementById('TEMP_CONTENT').value;
-            if (content) {
-                quill.root.innerHTML = content;
-                document.getElementById('CONTENT').value = content;
-            }
-        };
-
-        resetForm();
-
-        // Update hidden input on content change
-        quill.on('text-change', function() {
-            document.getElementById('CONTENT').value = quill.root.innerHTML;
-        });
-
-        // --- VARIABLE INSERTION FUNCTION ---
+    <script>
+        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV (same as follow-up page) ---
         function insertVariable(varName) {
-            quill.focus();
-            const range = quill.getSelection();
-            const cursorPosition = range ? range.index : quill.getLength();
-            const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
-            quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
-            setTimeout(() => {
-                document.getElementById('CONTENT').value = quill.root.innerHTML;
-            }, 100);
+            const editable = document.getElementById('contentEditable');
+            if (!editable) return;
+
+            // Focus on the editable div
+            editable.focus();
+
+            // Get the current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+
+            if (selection.rangeCount > 0) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.setStart(editable, editable.childNodes.length);
+                range.collapse(true);
+                selection.addRange(range);
+            }
+
+            // Create the variable badge span (matching follow-up page exactly)
+            const variableSpan = document.createElement('span');
+            variableSpan.className = 'variable-badge';
+            variableSpan.setAttribute('contenteditable', 'false');
+            variableSpan.textContent = varName;
+
+            // Insert at cursor position
+            range.deleteContents();
+            range.insertNode(variableSpan);
+
+            // Add a space after the variable
+            const spaceNode = document.createTextNode('\u00A0');
+            range.setStartAfter(variableSpan);
+            range.insertNode(spaceNode);
+
+            // Move cursor after the space
+            range.setStartAfter(spaceNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Update hidden input
+            updateContentInput();
         }
 
-        // Attach click handlers to variable buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.var-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const varName = this.getAttribute('data-var');
-                    insertVariable(varName);
-                });
-            });
+        // --- UPDATE HIDDEN INPUT WITH CONTENT ---
+        function updateContentInput() {
+            const editable = document.getElementById('contentEditable');
+            const hiddenInput = document.getElementById('CONTENT');
+            if (editable && hiddenInput) {
+                hiddenInput.value = editable.innerHTML;
+            }
+        }
+
+        // --- VARIABLE BUTTON HANDLERS (same as follow-up page) ---
+        // Use event delegation for variable buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.var-btn');
+            if (btn) {
+                e.preventDefault();
+                const varName = btn.getAttribute('data-var');
+                insertVariable(varName);
+            }
         });
 
         // Template Category toggle
@@ -1062,14 +1106,21 @@ if (empty($_GET['id'])) {
             }
         });
 
+        // Update hidden input when content changes
+        document.getElementById('contentEditable').addEventListener('input', updateContentInput);
+
         // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const templateName = document.getElementById('TEMPLATE_NAME');
             const subject = document.getElementById('SUBJECT');
-            const content = quill.root.innerHTML.trim();
+            const editable = document.getElementById('contentEditable');
+            const content = editable ? editable.innerHTML.trim() : '';
             const helper = document.getElementById('templateTypeHelper');
 
             let isValid = true;
+
+            // Update hidden input before validation
+            updateContentInput();
 
             // Check if template type is selected
             if (!templateName.value.trim()) {
@@ -1090,16 +1141,17 @@ if (empty($_GET['id'])) {
             }
 
             // Check if content is filled
-            if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
-                document.querySelector('.quill-wrapper').style.borderColor = 'var(--danger-color)';
+            const isEmpty = !content || content === '<p><br></p>' || content === '<br>' || content === '<div><br></div>';
+            if (isEmpty) {
+                editable.classList.add('is-invalid');
+                isValid = false;
                 const contentHelper = document.getElementById('contentHelper');
                 contentHelper.textContent = '⚠️ Please enter email content';
                 contentHelper.className = 'form-helper error';
-                isValid = false;
             } else {
-                document.querySelector('.quill-wrapper').style.borderColor = 'var(--gray-200)';
+                editable.classList.remove('is-invalid');
                 const contentHelper = document.getElementById('contentHelper');
-                contentHelper.textContent = 'Use the toolbar above to format your email content';
+                contentHelper.textContent = 'Click variable buttons below to insert dynamic fields into your email content.';
                 contentHelper.className = 'form-helper';
             }
 
@@ -1136,6 +1188,16 @@ if (empty($_GET['id'])) {
                 // Trigger the change event to check if template exists
                 const event = new Event('change');
                 templateSelect.dispatchEvent(event);
+            }
+
+            // Initialize content from hidden input
+            const editable = document.getElementById('contentEditable');
+            const hiddenInput = document.getElementById('CONTENT');
+            if (editable && hiddenInput && !editable.innerHTML.trim()) {
+                const content = hiddenInput.value;
+                if (content) {
+                    editable.innerHTML = content;
+                }
             }
         });
 
