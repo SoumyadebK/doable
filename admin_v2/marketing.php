@@ -45,13 +45,31 @@ while (!$status_res->EOF) {
     $status_res->MoveNext();
 }
 
+// Get location timezone
+function getLocationTimezone($location_id)
+{
+    global $db;
+    $tz_res = $db->Execute("SELECT TIMEZONE FROM DOA_LOCATION LEFT JOIN DOA_TIMEZONE ON DOA_LOCATION.PK_TIMEZONE = DOA_TIMEZONE.PK_TIMEZONE WHERE DOA_LOCATION.PK_LOCATION = '$location_id'");
+    if ($tz_res && $tz_res->RecordCount() > 0) {
+        return $tz_res->fields['TIMEZONE'];
+    }
+    return 'America/New_York'; // Default timezone
+}
+
 if (!empty($_POST)) {
     $CAMPAIGN_DATA = array();
     $CAMPAIGN_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     $CAMPAIGN_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     $CAMPAIGN_DATA['CAMPAIGN_NAME'] = $_POST['TEMPLATE_NAME'];
     $CAMPAIGN_DATA['SUBJECT'] = $_POST['SUBJECT'];
-    $CAMPAIGN_DATA['OPERATION'] = $_POST['OPERATION'];
+
+    // Handle OPERATION - store as comma-separated values
+    if (!empty($_POST['OPERATION']) && is_array($_POST['OPERATION'])) {
+        $CAMPAIGN_DATA['OPERATION'] = implode(',', $_POST['OPERATION']);
+    } else {
+        $CAMPAIGN_DATA['OPERATION'] = '';
+    }
+
     $CAMPAIGN_DATA['REMINDER_TYPE'] = implode(',', $_POST['REMINDER_TYPE']); // Store as comma-separated
     // Always save content in CONTENT field
     $CAMPAIGN_DATA['CONTENT'] = $_POST['CONTENT'];
@@ -68,6 +86,20 @@ if (!empty($_POST)) {
         $CAMPAIGN_DATA['LEADS'] = implode(',', $_POST['PK_LEAD_STATUS']);
     } else {
         $CAMPAIGN_DATA['LEADS'] = '';
+    }
+
+    // Handle schedule date and time
+    if (!empty($_POST['SCHEDULE_DATE']) && !empty($_POST['SCHEDULE_TIME'])) {
+        $schedule_datetime = $_POST['SCHEDULE_DATE'] . ' ' . $_POST['SCHEDULE_TIME'];
+        $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = $schedule_datetime;
+
+        // Store timezone from location
+        if (!empty($_POST['PK_LOCATION'])) {
+            $CAMPAIGN_DATA['TIMEZONE'] = getLocationTimezone($_POST['PK_LOCATION']);
+        }
+    } else {
+        $CAMPAIGN_DATA['SCHEDULE_DATETIME'] = null;
+        $CAMPAIGN_DATA['TIMEZONE'] = null;
     }
 
     // Handle ACTIVE status
@@ -102,11 +134,15 @@ if (empty($_GET['id'])) {
     $TEMPLATE_NAME = '';
     $PK_LOCATION = '';
     $SUBJECT = '';
-    $OPERATION = '';
+    $OPERATION = array(); // Now an array for multi-select
     $CONTENT = '';
     $ACTIVE = '';
     $REMINDER_TYPE = array('email'); // Default to email
     $selected_lead_statuses = array();
+    $SCHEDULE_DATETIME = '';
+    $SCHEDULE_DATE = '';
+    $SCHEDULE_TIME = '';
+    $TIMEZONE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -116,10 +152,22 @@ if (empty($_GET['id'])) {
     $TEMPLATE_NAME = $res->fields['CAMPAIGN_NAME'];
     $PK_LOCATION = $res->fields['PK_LOCATION'];
     $SUBJECT = $res->fields['SUBJECT'];
-    $OPERATION = $res->fields['OPERATION'];
+    $OPERATION = !empty($res->fields['OPERATION']) ? explode(',', $res->fields['OPERATION']) : array(); // Convert to array
     $REMINDER_TYPE = !empty($res->fields['REMINDER_TYPE']) ? explode(',', $res->fields['REMINDER_TYPE']) : array('email');
     $CONTENT = $res->fields['CONTENT']; // Always get content from CONTENT field
     $ACTIVE = $res->fields['ACTIVE'];
+    $SCHEDULE_DATETIME = $res->fields['SCHEDULE_DATETIME'];
+    $TIMEZONE = $res->fields['TIMEZONE'];
+
+    // Split datetime for display
+    if (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') {
+        $datetime_parts = explode(' ', $SCHEDULE_DATETIME);
+        $SCHEDULE_DATE = $datetime_parts[0];
+        $SCHEDULE_TIME = $datetime_parts[1];
+    } else {
+        $SCHEDULE_DATE = '';
+        $SCHEDULE_TIME = '';
+    }
 
     // Convert comma-separated tags to array
     $selected_tag = !empty($res->fields['TAGS']) ? explode(',', $res->fields['TAGS']) : array();
@@ -738,6 +786,142 @@ if (empty($_GET['id'])) {
     .subject-optional.required-text {
         color: var(--danger-color);
     }
+
+    /* Schedule styling */
+    .schedule-info {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        border: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .schedule-info i {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+
+    .schedule-info .timezone-badge {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 20px;
+        padding: 2px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gray-600);
+    }
+
+    .datetime-helper {
+        font-size: 12px;
+        color: var(--gray-400);
+        margin-top: 4px;
+    }
+
+    .schedule-toggle {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .schedule-toggle .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .schedule-toggle .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+    }
+
+    .schedule-toggle .form-check-label {
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .schedule-fields {
+        display: none;
+        padding: 16px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .schedule-fields.visible {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .schedule-fields.visible {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .schedule-fields .form-control-modern[type="date"],
+    .schedule-fields .form-control-modern[type="time"] {
+        padding: 10px 14px;
+    }
+
+    .schedule-fields .form-control-modern[type="time"] {
+        min-width: 140px;
+    }
+
+    /* Target Audience checkbox container */
+    .audience-checkbox-container {
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        background: #fff;
+        transition: border-color 0.2s ease;
+    }
+
+    .audience-checkbox-container:hover {
+        border-color: var(--gray-300);
+    }
+
+    .audience-checkbox-container:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .audience-checkbox-container .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 4px;
+        border-radius: 4px;
+        transition: background 0.15s ease;
+        cursor: pointer;
+    }
+
+    .audience-checkbox-container .checkbox-item:hover {
+        background: var(--gray-50);
+    }
+
+    .audience-checkbox-container .checkbox-item .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin: 0;
+        accent-color: var(--primary-color);
+    }
+
+    .audience-checkbox-container .checkbox-item label {
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+        margin: 0;
+        user-select: none;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -781,7 +965,7 @@ if (empty($_GET['id'])) {
                                         <!-- Location -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Location <span class="required">*</span></label>
-                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" required>
+                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" id="PK_LOCATION" required>
                                                 <option value="">Select Location</option>
                                                 <?php
                                                 $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
@@ -794,7 +978,7 @@ if (empty($_GET['id'])) {
                                         </div>
 
                                         <!-- Reminder Type - Checkboxes for multiple selection -->
-                                        <div class="form-group-modern full-width">
+                                        <div class="form-group-modern">
                                             <label class="form-label">Reminder Type <span class="required">*</span></label>
                                             <div class="checkbox-group-modern">
                                                 <label class="checkbox-item">
@@ -819,20 +1003,32 @@ if (empty($_GET['id'])) {
                                             <div class="form-helper" id="subjectHelper">The subject line that will appear in the <?= in_array('email', $REMINDER_TYPE) ? 'email' : 'text message' ?></div>
                                         </div>
 
-                                        <!-- Operation / Category -->
+                                        <!-- Target Audience - Multi-select Checkboxes -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Target Audience <span class="required">*</span></label>
-                                            <select id="OPERATION" name="OPERATION" class="form-control-modern" required>
-                                                <option value="inactive_customers" <?= ($OPERATION == 'inactive_customers') ? 'selected' : '' ?>>All Inactive Customers</option>
-                                                <option value="active_customers" <?= ($OPERATION == 'active_customers') ? 'selected' : '' ?>>All Active Customers</option>
-                                                <option value="tags" <?= ($OPERATION == 'tags') ? 'selected' : '' ?>>By Tags</option>
-                                                <option value="leads" <?= ($OPERATION == 'leads') ? 'selected' : '' ?>>Leads</option>
-                                            </select>
-                                            <div class="form-helper">Select the target audience for this campaign</div>
+                                            <div class="audience-checkbox-container" id="audienceContainer">
+                                                <div class="checkbox-item">
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="inactive_customers" id="audience_inactive" <?= in_array('inactive_customers', $OPERATION) ? 'checked' : '' ?>>
+                                                    <label for="audience_inactive">All Inactive Customers</label>
+                                                </div>
+                                                <div class="checkbox-item">
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="active_customers" id="audience_active" <?= in_array('active_customers', $OPERATION) ? 'checked' : '' ?>>
+                                                    <label for="audience_active">All Active Customers</label>
+                                                </div>
+                                                <div class="checkbox-item">
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="tags" id="audience_tags" <?= in_array('tags', $OPERATION) ? 'checked' : '' ?>>
+                                                    <label for="audience_tags">By Tags</label>
+                                                </div>
+                                                <div class="checkbox-item">
+                                                    <input type="checkbox" class="form-check-input audience-checkbox" name="OPERATION[]" value="leads" id="audience_leads" <?= in_array('leads', $OPERATION) ? 'checked' : '' ?>>
+                                                    <label for="audience_leads">Leads</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-helper" id="audienceHelper">Select one or more target audience options. Additional configuration will appear based on your selection.</div>
                                         </div>
 
                                         <!-- Tags - Conditional Field with Checkboxes -->
-                                        <div class="form-group-modern conditional-field <?= ($OPERATION == 'tags') ? 'visible' : '' ?>" id="tags_field">
+                                        <div class="form-group-modern conditional-field <?= in_array('tags', $OPERATION) ? 'visible' : '' ?>" id="tags_field">
                                             <label class="form-label">Select Tags <span class="required">*</span></label>
                                             <div class="checkbox-container" id="tagsCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
@@ -851,7 +1047,7 @@ if (empty($_GET['id'])) {
                                         </div>
 
                                         <!-- Lead Status - Conditional Field with Checkboxes -->
-                                        <div class="form-group-modern conditional-field <?= ($OPERATION == 'leads') ? 'visible' : '' ?>" id="lead_status_field">
+                                        <div class="form-group-modern conditional-field <?= in_array('leads', $OPERATION) ? 'visible' : '' ?>" id="lead_status_field">
                                             <label class="form-label">Select Lead Statuses <span class="required">*</span></label>
                                             <div class="checkbox-container" id="leadStatusCheckboxContainer">
                                                 <div class="checkbox-item select-all-item">
@@ -894,6 +1090,48 @@ if (empty($_GET['id'])) {
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Schedule Section -->
+                                        <div class="form-group-modern full-width">
+                                            <label class="form-label">Schedule Campaign</label>
+                                            <div class="schedule-toggle">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" id="scheduleCheckbox" <?= (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="scheduleCheckbox">
+                                                        Schedule for later
+                                                    </label>
+                                                </div>
+                                                <?php if (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00'): ?>
+                                                    <div class="schedule-info">
+                                                        <i class="bi bi-clock-history"></i>
+                                                        <span>Scheduled for <strong><?= date('M j, Y g:i A', strtotime($SCHEDULE_DATETIME)) ?></strong></span>
+                                                        <?php if (!empty($TIMEZONE)): ?>
+                                                            <span class="timezone-badge"><i class="bi bi-globe2"></i> <?= htmlspecialchars($TIMEZONE) ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <div class="schedule-fields <?= (!empty($SCHEDULE_DATETIME) && $SCHEDULE_DATETIME != '0000-00-00 00:00:00') ? 'visible' : '' ?>" id="scheduleFields">
+                                                <div class="form-group-modern">
+                                                    <label class="form-label">Date <span class="required" id="scheduleDateRequired" style="display:none;">*</span></label>
+                                                    <input type="date" class="form-control-modern" id="SCHEDULE_DATE" name="SCHEDULE_DATE" value="<?= htmlspecialchars($SCHEDULE_DATE) ?>" min="<?= date('Y-m-d') ?>">
+                                                    <div class="datetime-helper">Select the date when campaign should be sent</div>
+                                                </div>
+                                                <div class="form-group-modern">
+                                                    <label class="form-label">Time <span class="required" id="scheduleTimeRequired" style="display:none;">*</span></label>
+                                                    <input type="time" class="form-control-modern" id="SCHEDULE_TIME" name="SCHEDULE_TIME" value="<?= htmlspecialchars($SCHEDULE_TIME) ?>" step="60">
+                                                    <div class="datetime-helper">Select the time when campaign should be sent</div>
+                                                </div>
+                                            </div>
+                                            <div class="form-helper" id="scheduleHelper">
+                                                <?php if (!empty($TIMEZONE)): ?>
+                                                    Timezone: <strong><?= htmlspecialchars($TIMEZONE) ?></strong> (based on location)
+                                                <?php else: ?>
+                                                    The timezone will be automatically set based on the selected location
+                                                <?php endif; ?>
                                             </div>
                                         </div>
 
@@ -1053,21 +1291,34 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- TOGGLE CONDITIONAL FIELDS (Tags/Leads) ---
+        // --- TOGGLE CONDITIONAL FIELDS (Tags/Leads) based on audience selections ---
         function toggleConditionalFields() {
-            const selectedValue = document.getElementById('OPERATION').value;
+            const tagsChecked = document.getElementById('audience_tags').checked;
+            const leadsChecked = document.getElementById('audience_leads').checked;
             const tagsField = document.getElementById('tags_field');
             const leadStatusField = document.getElementById('lead_status_field');
 
             tagsField.classList.remove('visible');
             leadStatusField.classList.remove('visible');
 
-            if (selectedValue === 'tags') {
+            if (tagsChecked) {
                 tagsField.classList.add('visible');
                 updateTagsCount();
-            } else if (selectedValue === 'leads') {
+            }
+            if (leadsChecked) {
                 leadStatusField.classList.add('visible');
                 updateLeadStatusCount();
+            }
+
+            // Update helper text
+            const audienceHelper = document.getElementById('audienceHelper');
+            const selected = document.querySelectorAll('.audience-checkbox:checked');
+            if (selected.length === 0) {
+                audienceHelper.style.color = 'var(--danger-color)';
+                audienceHelper.textContent = 'Please select at least one target audience option';
+            } else {
+                audienceHelper.style.color = 'var(--gray-400)';
+                audienceHelper.textContent = 'Select one or more target audience options. Additional configuration will appear based on your selection.';
             }
         }
 
@@ -1109,11 +1360,67 @@ if (empty($_GET['id'])) {
             updateLeadStatusCount();
         });
 
+        // --- SCHEDULE TOGGLE ---
+        document.getElementById('scheduleCheckbox').addEventListener('change', function() {
+            const scheduleFields = document.getElementById('scheduleFields');
+            const dateInput = document.getElementById('SCHEDULE_DATE');
+            const timeInput = document.getElementById('SCHEDULE_TIME');
+            const dateRequired = document.getElementById('scheduleDateRequired');
+            const timeRequired = document.getElementById('scheduleTimeRequired');
+
+            if (this.checked) {
+                scheduleFields.classList.add('visible');
+                dateInput.setAttribute('required', 'required');
+                timeInput.setAttribute('required', 'required');
+                dateRequired.style.display = 'inline';
+                timeRequired.style.display = 'inline';
+
+                // Set default date to tomorrow if empty
+                if (!dateInput.value) {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    dateInput.value = tomorrow.toISOString().split('T')[0];
+                }
+                // Set default time to 9:00 AM if empty
+                if (!timeInput.value) {
+                    timeInput.value = '09:00';
+                }
+            } else {
+                scheduleFields.classList.remove('visible');
+                dateInput.removeAttribute('required');
+                timeInput.removeAttribute('required');
+                dateRequired.style.display = 'none';
+                timeRequired.style.display = 'none';
+                dateInput.value = '';
+                timeInput.value = '';
+            }
+        });
+
+        // --- UPDATE TIMEZONE ON LOCATION CHANGE ---
+        function updateTimezoneInfo() {
+            const locationSelect = document.getElementById('PK_LOCATION');
+            const scheduleHelper = document.getElementById('scheduleHelper');
+
+            if (locationSelect && locationSelect.value) {
+                scheduleHelper.innerHTML = 'Timezone will be determined by the selected location';
+            }
+        }
+
+        // Attach location change event
+        document.getElementById('PK_LOCATION').addEventListener('change', updateTimezoneInfo);
+
         // --- EVENT LISTENERS ---
-        // Attach change event to target audience dropdown
-        document.getElementById('OPERATION').addEventListener('change', function() {
-            toggleConditionalFields();
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        // Attach change event to audience checkboxes
+        document.querySelectorAll('.audience-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                toggleConditionalFields();
+                // Ensure at least one is checked
+                const checked = document.querySelectorAll('.audience-checkbox:checked');
+                if (checked.length === 0) {
+                    this.checked = true; // Prevent unchecking the last one
+                }
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
         });
 
         // Attach change event to reminder type checkboxes
@@ -1139,7 +1446,7 @@ if (empty($_GET['id'])) {
             });
         });
 
-        // Individual checkbox events
+        // Individual checkbox events for tags and lead statuses
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('tag-checkbox')) {
                 updateTagsCount();
@@ -1161,6 +1468,12 @@ if (empty($_GET['id'])) {
             toggleConditionalFields();
             updateTagsCount();
             updateLeadStatusCount();
+
+            // Trigger schedule toggle if there's a schedule
+            const scheduleCheckbox = document.getElementById('scheduleCheckbox');
+            if (scheduleCheckbox.checked) {
+                scheduleCheckbox.dispatchEvent(new Event('change'));
+            }
         });
 
         // --- FORM VALIDATION ---
@@ -1168,12 +1481,15 @@ if (empty($_GET['id'])) {
             const templateName = document.getElementById('TEMPLATE_NAME');
             const subject = document.getElementById('SUBJECT');
             const location = document.querySelector('.PK_LOCATION');
-            const category = document.getElementById('OPERATION').value;
+            const audienceChecked = document.querySelectorAll('.audience-checkbox:checked');
             const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
             const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
             const content = quill.root.innerHTML.trim();
             const reminderTypes = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
             const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
+            const scheduleChecked = document.getElementById('scheduleCheckbox').checked;
+            const scheduleDate = document.getElementById('SCHEDULE_DATE').value;
+            const scheduleTime = document.getElementById('SCHEDULE_TIME').value;
 
             let isValid = true;
 
@@ -1196,6 +1512,21 @@ if (empty($_GET['id'])) {
             } else {
                 document.querySelector('.checkbox-group-modern').style.border = 'none';
                 document.querySelector('.checkbox-group-modern').style.padding = '0';
+            }
+
+            // Validate at least one audience is selected
+            if (audienceChecked.length === 0) {
+                document.getElementById('audienceContainer').style.borderColor = 'var(--danger-color)';
+                isValid = false;
+                const helper = document.getElementById('audienceHelper');
+                helper.style.color = 'var(--danger-color)';
+                helper.textContent = 'Please select at least one target audience';
+                setTimeout(() => {
+                    helper.style.color = 'var(--gray-400)';
+                    helper.textContent = 'Select one or more target audience options';
+                }, 3000);
+            } else {
+                document.getElementById('audienceContainer').style.borderColor = 'var(--gray-200)';
             }
 
             if (!templateName.value.trim()) {
@@ -1236,7 +1567,9 @@ if (empty($_GET['id'])) {
                 document.getElementById('quillWrapper').style.borderColor = 'var(--gray-200)';
             }
 
-            if (category === 'tags' && tagsChecked.length === 0) {
+            // Validate tags if audience includes "tags"
+            const tagsAudienceChecked = document.getElementById('audience_tags').checked;
+            if (tagsAudienceChecked && tagsChecked.length === 0) {
                 document.getElementById('tagsCheckboxContainer').style.borderColor = 'var(--danger-color)';
                 isValid = false;
                 const helper = document.querySelector('#tags_field .form-helper');
@@ -1250,7 +1583,9 @@ if (empty($_GET['id'])) {
                 }
             }
 
-            if (category === 'leads' && leadStatusesChecked.length === 0) {
+            // Validate lead statuses if audience includes "leads"
+            const leadsAudienceChecked = document.getElementById('audience_leads').checked;
+            if (leadsAudienceChecked && leadStatusesChecked.length === 0) {
                 document.getElementById('leadStatusCheckboxContainer').style.borderColor = 'var(--danger-color)';
                 isValid = false;
                 const helper = document.querySelector('#lead_status_field .form-helper');
@@ -1261,6 +1596,34 @@ if (empty($_GET['id'])) {
                         helper.style.color = 'var(--gray-400)';
                         helper.textContent = 'Check the boxes to select multiple lead statuses';
                     }, 3000);
+                }
+            }
+
+            // Validate schedule if enabled
+            if (scheduleChecked) {
+                if (!scheduleDate) {
+                    document.getElementById('SCHEDULE_DATE').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('SCHEDULE_DATE').classList.remove('is-invalid');
+                }
+                if (!scheduleTime) {
+                    document.getElementById('SCHEDULE_TIME').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('SCHEDULE_TIME').classList.remove('is-invalid');
+                }
+
+                // Validate that schedule date is not in the past
+                if (scheduleDate) {
+                    const selectedDate = new Date(scheduleDate + ' ' + (scheduleTime || '00:00'));
+                    const now = new Date();
+                    if (selectedDate < now) {
+                        document.getElementById('SCHEDULE_DATE').classList.add('is-invalid');
+                        document.getElementById('SCHEDULE_TIME').classList.add('is-invalid');
+                        isValid = false;
+                        alert('Scheduled date and time cannot be in the past. Please select a future date and time.');
+                    }
                 }
             }
 
