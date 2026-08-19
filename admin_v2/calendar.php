@@ -1190,7 +1190,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     calendar.setOption('contentHeight', getCalendarHeight());
                 },
                 droppable: true,
-                allDaySlot: false,
+                allDaySlot: true,
                 drop: function(info) {
                     if (checkbox.checked) {
                         info.draggedEl.parentNode.removeChild(info.draggedEl);
