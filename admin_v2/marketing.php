@@ -230,56 +230,6 @@ if (empty($_GET['id'])) {
         background: var(--gray-50);
     }
 
-    .breadcrumb-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .breadcrumb-wrapper h4 {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--gray-900);
-        margin: 0;
-        letter-spacing: -0.025em;
-    }
-
-    .breadcrumb-wrapper h4 i {
-        color: var(--primary-color);
-        margin-right: 10px;
-    }
-
-    .breadcrumb-nav {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        color: var(--gray-500);
-    }
-
-    .breadcrumb-nav a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .breadcrumb-nav a:hover {
-        color: var(--primary-dark);
-    }
-
-    .breadcrumb-nav .separator {
-        color: var(--gray-300);
-    }
-
-    .breadcrumb-nav .current {
-        color: var(--gray-700);
-        font-weight: 500;
-    }
-
     .card-modern {
         background: #ffffff;
         border-radius: var(--radius-lg);
@@ -538,66 +488,6 @@ if (empty($_GET['id'])) {
             width: 100%;
             justify-content: center;
         }
-
-        .breadcrumb-wrapper {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-
-    .quill-wrapper {
-        border: 1.5px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-        transition: all 0.2s ease;
-    }
-
-    .quill-wrapper:focus-within {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
-    }
-
-    .quill-wrapper .ql-toolbar {
-        border: none;
-        border-bottom: 1px solid var(--gray-200);
-        background: var(--gray-50);
-        padding: 8px 12px;
-    }
-
-    .quill-wrapper .ql-container {
-        border: none;
-        font-size: 14px;
-        font-family: inherit;
-        min-height: 300px;
-    }
-
-    .quill-wrapper .ql-editor {
-        min-height: 300px;
-        padding: 16px;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .quill-wrapper .ql-editor p {
-        margin-bottom: 8px;
-    }
-
-    .quill-wrapper .ql-toolbar .ql-formats {
-        margin-right: 8px;
-    }
-
-    .quill-wrapper .ql-toolbar button {
-        border-radius: 4px;
-        transition: background 0.2s;
-    }
-
-    .quill-wrapper .ql-toolbar button:hover {
-        background: var(--gray-200);
-    }
-
-    .quill-wrapper .ql-toolbar .ql-active {
-        background: var(--primary-color);
-        color: #fff;
     }
 
     .full-width {
@@ -634,6 +524,7 @@ if (empty($_GET['id'])) {
         margin-top: 4px;
     }
 
+    /* Variable badge styles - matching automation page exactly */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -645,6 +536,11 @@ if (empty($_GET['id'])) {
         color: #1e40af;
         cursor: default;
         border: 1px solid #c7d2fe;
+        user-select: none;
+    }
+
+    .variable-badge:hover {
+        background-color: #e0e7ff;
     }
 
     .btn-variable-token {
@@ -655,6 +551,8 @@ if (empty($_GET['id'])) {
         padding: 0.25rem 0.9rem;
         transition: all 0.2s ease;
         cursor: pointer;
+        font-weight: 500;
+        color: var(--gray-700);
     }
 
     .btn-variable-token:hover {
@@ -662,11 +560,17 @@ if (empty($_GET['id'])) {
         border-color: var(--primary-color);
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
+        color: var(--gray-800);
+    }
+
+    .btn-variable-token:active {
+        transform: translateY(0px);
     }
 
     .variables-section {
         grid-column: 1 / -1;
         padding: 8px 0 4px 0;
+        margin-top: 8px;
     }
 
     .variables-section .text-muted {
@@ -676,6 +580,11 @@ if (empty($_GET['id'])) {
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 8px;
+    }
+
+    .variables-section .d-flex {
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
     .conditional-field {
@@ -824,6 +733,7 @@ if (empty($_GET['id'])) {
         align-items: center;
         gap: 12px;
         margin-bottom: 12px;
+        flex-wrap: wrap;
     }
 
     .schedule-toggle .form-check {
@@ -921,6 +831,58 @@ if (empty($_GET['id'])) {
         cursor: pointer;
         margin: 0;
         user-select: none;
+    }
+
+    /* Content editable area - matching follow-up page */
+    .content-editable {
+        width: 100%;
+        min-height: 250px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+        line-height: 1.8;
+        overflow-y: auto;
+    }
+
+    .content-editable:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .content-editable:hover {
+        border-color: var(--gray-300);
+    }
+
+    .content-editable.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .content-editable.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .content-editable .variable-badge {
+        background-color: #eef2ff;
+        border-radius: 20px;
+        padding: 0.15rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        margin: 0 2px;
+        color: #1e40af;
+        border: 1px solid #c7d2fe;
+        cursor: default;
+        user-select: none;
+    }
+
+    .content-editable .variable-badge:hover {
+        background-color: #e0e7ff;
     }
 </style>
 
@@ -1065,17 +1027,14 @@ if (empty($_GET['id'])) {
                                             <small class="text-muted">Check the boxes to select multiple lead statuses</small>
                                         </div>
 
-                                        <!-- Content Section - Single Editor for Both -->
+                                        <!-- Content Section - Contenteditable div like follow-up page -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label" id="contentLabel">Content <span class="required">*</span></label>
-                                            <div class="quill-wrapper" id="quillWrapper">
-                                                <div id="editor" style="min-height: 300px;"></div>
-                                            </div>
-                                            <input type="hidden" name="CONTENT" id="CONTENT">
-                                            <textarea name="TEMP_CONTENT" id="TEMP_CONTENT" style="display:none;"><?= htmlspecialchars($CONTENT) ?></textarea>
-                                            <div class="form-helper" id="contentHelper">Use the toolbar above to format your content</div>
+                                            <div class="content-editable" contenteditable="true" id="contentEditable"><?= htmlspecialchars_decode($CONTENT) ?></div>
+                                            <input type="hidden" name="CONTENT" id="CONTENT" value="<?= htmlspecialchars($CONTENT) ?>">
+                                            <div class="form-helper" id="contentHelper">Click variable buttons below to insert dynamic fields into your content.</div>
 
-                                            <!-- Variables Section -->
+                                            <!-- Variables Section - Same style as automation page -->
                                             <div class="variables-section">
                                                 <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                                 <div class="d-flex flex-wrap gap-1">
@@ -1089,6 +1048,7 @@ if (empty($_GET['id'])) {
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Time">Time</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name">Instructor Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name">Class Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Campaign Name">Campaign Name</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1185,70 +1145,61 @@ if (empty($_GET['id'])) {
 
     <?php require_once('../includes/footer.php'); ?>
 
-    <!-- Quill Editor -->
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <script>
+        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV (same as follow-up page) ---
+        function insertVariable(varName) {
+            const editable = document.getElementById('contentEditable');
+            if (!editable) return;
 
-    <script type="text/javascript">
-        // Initialize Quill Editor
-        const quill = new Quill('#editor', {
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['link', 'image'],
-                    [{
-                        'header': 1
-                    }, {
-                        'header': 2
-                    }],
-                    [{
-                        'list': 'ordered'
-                    }, {
-                        'list': 'bullet'
-                    }],
-                    [{
-                        'script': 'sub'
-                    }, {
-                        'script': 'super'
-                    }],
-                    [{
-                        'indent': '-1'
-                    }, {
-                        'indent': '+1'
-                    }],
-                    [{
-                        'header': [1, 2, 3, 4, 5, 6, false]
-                    }],
-                    [{
-                        'color': []
-                    }, {
-                        'background': []
-                    }],
-                    [{
-                        'align': []
-                    }],
-                    ['clean']
-                ],
-            },
-            theme: 'snow',
-            placeholder: 'Write your content here...',
-        });
+            // Focus on the editable div
+            editable.focus();
 
-        // Load existing content
-        const resetForm = () => {
-            const content = document.getElementById('TEMP_CONTENT').value;
-            if (content) {
-                quill.root.innerHTML = content;
-                document.getElementById('CONTENT').value = content;
+            // Get the current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+
+            if (selection.rangeCount > 0) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.setStart(editable, editable.childNodes.length);
+                range.collapse(true);
+                selection.addRange(range);
             }
-        };
 
-        resetForm();
+            // Create the variable badge span (matching follow-up page exactly)
+            const variableSpan = document.createElement('span');
+            variableSpan.className = 'variable-badge';
+            variableSpan.setAttribute('contenteditable', 'false');
+            variableSpan.textContent = varName;
 
-        // Update hidden input on content change
-        quill.on('text-change', function() {
-            document.getElementById('CONTENT').value = quill.root.innerHTML;
-        });
+            // Insert at cursor position
+            range.deleteContents();
+            range.insertNode(variableSpan);
+
+            // Add a space after the variable
+            const spaceNode = document.createTextNode('\u00A0');
+            range.setStartAfter(variableSpan);
+            range.insertNode(spaceNode);
+
+            // Move cursor after the space
+            range.setStartAfter(spaceNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Update hidden input
+            updateContentInput();
+        }
+
+        // --- UPDATE HIDDEN INPUT WITH CONTENT ---
+        function updateContentInput() {
+            const editable = document.getElementById('contentEditable');
+            const hiddenInput = document.getElementById('CONTENT');
+            if (editable && hiddenInput) {
+                hiddenInput.value = editable.innerHTML;
+            }
+        }
 
         // --- UPDATE LABELS AND VALIDATION BASED ON REMINDER TYPE ---
         function updateContentLabels() {
@@ -1264,17 +1215,17 @@ if (empty($_GET['id'])) {
             let labelText = 'Content';
             if (emailChecked && textChecked) {
                 labelText = 'Content (Email & Text Message)';
-                contentHelper.textContent = 'Use the toolbar above to format your content for both email and text message';
+                contentHelper.textContent = 'Enter your content for both email and text message. Click variable buttons below to insert dynamic fields.';
                 subjectHelper.textContent = 'Subject is required for email (optional for text message)';
                 subjectRequiredLabel.textContent = '(Required for Email, Optional for Text)';
             } else if (emailChecked) {
                 labelText = 'Email Content';
-                contentHelper.textContent = 'Use the toolbar above to format your email content';
+                contentHelper.textContent = 'Enter your email content. Click variable buttons below to insert dynamic fields.';
                 subjectHelper.textContent = 'The subject line that will appear in the email';
                 subjectRequiredLabel.textContent = '(Required for Email)';
             } else if (textChecked) {
                 labelText = 'Text Message Content';
-                contentHelper.textContent = 'Use the toolbar above to format your text message content';
+                contentHelper.textContent = 'Enter your text message content. Click variable buttons below to insert dynamic fields.';
                 subjectHelper.textContent = 'Subject is optional for text message';
                 subjectRequiredLabel.textContent = '(Optional for Text Message)';
             }
@@ -1320,18 +1271,6 @@ if (empty($_GET['id'])) {
                 audienceHelper.style.color = 'var(--gray-400)';
                 audienceHelper.textContent = 'Select one or more target audience options. Additional configuration will appear based on your selection.';
             }
-        }
-
-        // --- VARIABLE INSERTION FUNCTION ---
-        function insertVariable(varName) {
-            quill.focus();
-            const range = quill.getSelection();
-            const cursorPosition = range ? range.index : quill.getLength();
-            const html = `<span class="variable-badge" contenteditable="false">${varName}</span>&nbsp;`;
-            quill.clipboard.dangerouslyPasteHTML(cursorPosition, html);
-            setTimeout(() => {
-                document.getElementById('CONTENT').value = quill.root.innerHTML;
-            }, 100);
         }
 
         // --- UPDATE SELECTED COUNT FOR TAGS ---
@@ -1437,13 +1376,15 @@ if (empty($_GET['id'])) {
             });
         });
 
-        // Attach click handlers to variable buttons
-        document.querySelectorAll('.var-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+        // --- VARIABLE BUTTON HANDLERS (same as follow-up page) ---
+        // Use event delegation for variable buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.var-btn');
+            if (btn) {
                 e.preventDefault();
-                const varName = this.getAttribute('data-var');
+                const varName = btn.getAttribute('data-var');
                 insertVariable(varName);
-            });
+            }
         });
 
         // Individual checkbox events for tags and lead statuses
@@ -1462,6 +1403,9 @@ if (empty($_GET['id'])) {
             }
         });
 
+        // Update hidden input when content changes
+        document.getElementById('contentEditable').addEventListener('input', updateContentInput);
+
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', function() {
             updateContentLabels();
@@ -1474,6 +1418,16 @@ if (empty($_GET['id'])) {
             if (scheduleCheckbox.checked) {
                 scheduleCheckbox.dispatchEvent(new Event('change'));
             }
+
+            // Initialize content from hidden input
+            const editable = document.getElementById('contentEditable');
+            const hiddenInput = document.getElementById('CONTENT');
+            if (editable && hiddenInput && !editable.innerHTML.trim()) {
+                const content = hiddenInput.value;
+                if (content) {
+                    editable.innerHTML = content;
+                }
+            }
         });
 
         // --- FORM VALIDATION ---
@@ -1484,7 +1438,8 @@ if (empty($_GET['id'])) {
             const audienceChecked = document.querySelectorAll('.audience-checkbox:checked');
             const tagsChecked = document.querySelectorAll('.tag-checkbox:checked');
             const leadStatusesChecked = document.querySelectorAll('.lead-status-checkbox:checked');
-            const content = quill.root.innerHTML.trim();
+            const editable = document.getElementById('contentEditable');
+            const content = editable ? editable.innerHTML.trim() : '';
             const reminderTypes = document.querySelectorAll('input[name="REMINDER_TYPE[]"]:checked');
             const emailChecked = document.querySelector('input[name="REMINDER_TYPE[]"][value="email"]').checked;
             const scheduleChecked = document.getElementById('scheduleCheckbox').checked;
@@ -1492,6 +1447,9 @@ if (empty($_GET['id'])) {
             const scheduleTime = document.getElementById('SCHEDULE_TIME').value;
 
             let isValid = true;
+
+            // Update hidden input before validation
+            updateContentInput();
 
             // Validate at least one reminder type is selected
             if (reminderTypes.length === 0) {
@@ -1551,8 +1509,10 @@ if (empty($_GET['id'])) {
                 location.classList.remove('is-invalid');
             }
 
-            if (!content || content === '<p><br></p>' || content === '<p><br class="ql-cursor"></p>') {
-                document.getElementById('quillWrapper').style.borderColor = 'var(--danger-color)';
+            // Check content (allow <p><br></p> as empty)
+            const isEmpty = !content || content === '<p><br></p>' || content === '<br>' || content === '<div><br></div>';
+            if (isEmpty) {
+                editable.classList.add('is-invalid');
                 isValid = false;
                 const helper = document.getElementById('contentHelper');
                 if (helper) {
@@ -1560,11 +1520,11 @@ if (empty($_GET['id'])) {
                     helper.textContent = 'Please enter content';
                     setTimeout(() => {
                         helper.style.color = 'var(--gray-400)';
-                        helper.textContent = 'Use the toolbar above to format your content';
+                        helper.textContent = 'Click variable buttons below to insert dynamic fields into your content.';
                     }, 3000);
                 }
             } else {
-                document.getElementById('quillWrapper').style.borderColor = 'var(--gray-200)';
+                editable.classList.remove('is-invalid');
             }
 
             // Validate tags if audience includes "tags"
@@ -1651,6 +1611,8 @@ if (empty($_GET['id'])) {
                 }
             });
         });
+
+        console.log('Variable insertion ready. Click any variable button to insert a styled badge into the content editor.');
     </script>
 
 </body>

@@ -288,6 +288,13 @@ function time_ago($datetime)
 
     .automation-actions {
         display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .automation-actions .top-row {
+        display: flex;
         align-items: center;
         gap: 0.5rem;
     }
@@ -316,6 +323,19 @@ function time_ago($datetime)
         background-color: #c82333;
         border-color: #bd2130;
     }
+
+    @media (max-width: 768px) {
+        .automation-actions {
+            align-items: flex-start;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .automation-actions .top-row {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
 </style>
 
 <body>
@@ -332,7 +352,7 @@ function time_ago($datetime)
                         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                             <div>
                                 <h2 class="fw-semibold h4 mb-1"><i class="bi bi-journal-text me-2" style="color: #39b54a;"></i>Follow Ups</h2>
-                                <p class="text-muted small mb-0">Enable automatic to-do's</p>
+                                <p class="text-muted small mb-0">Enable automatic reminders</p>
                             </div>
                             <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='add_follow_up.php'">
                                 <i class="bi bi-plus-lg"></i> Add Follow Up
@@ -369,6 +389,19 @@ function time_ago($datetime)
                                         </div>
 
                                         <div class="automation-actions">
+                                            <div class="top-row">
+                                                <button class="btn btn-link text-muted p-0 border-0 edit-automation"
+                                                    data-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
+                                                    <i class="bi bi-chevron-right fs-5"></i>
+                                                </button>
+                                                <button class="btn btn-link btn-delete-automation p-0 border-0"
+                                                    data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
+                                                    data-title="<?= htmlspecialchars($automation['TITLE']) ?>"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal">
+                                                    <i class="bi bi-trash3 fs-5"></i>
+                                                </button>
+                                            </div>
                                             <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
                                                 <input class="form-check-input m-0 toggle-automation" type="checkbox" role="switch"
                                                     data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
@@ -377,17 +410,6 @@ function time_ago($datetime)
                                                     <?= $automation['IS_ACTIVE'] ? 'On' : 'Off' ?>
                                                 </label>
                                             </div>
-                                            <button class="btn btn-link text-muted p-0 border-0 edit-automation"
-                                                data-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
-                                                <i class="bi bi-chevron-right fs-5"></i>
-                                            </button>
-                                            <button class="btn btn-link btn-delete-automation p-0 border-0"
-                                                data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
-                                                data-title="<?= htmlspecialchars($automation['TITLE']) ?>"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#deleteModal">
-                                                <i class="bi bi-trash3 fs-5"></i>
-                                            </button>
                                         </div>
                                     </div>
                                 <?php
