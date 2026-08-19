@@ -11,15 +11,18 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
-// Function to check for existing templates - NOW CHECKS ALL TEMPLATES, NOT JUST ACTIVE
-function checkExistingTemplate($templateName, $accountMaster, $excludeId = null)
+// Function to check for existing templates - checks all templates
+function checkExistingTemplate($templateName, $accountMaster, $locationId = null, $excludeId = null)
 {
     global $db_account;
 
     $sql = "SELECT COUNT(*) as count FROM DOA_EMAIL_TEMPLATE 
             WHERE TEMPLATE_NAME = '$templateName' 
             AND PK_ACCOUNT_MASTER = '$accountMaster'";
-    // Removed "AND ACTIVE = 1" - now checks all templates
+
+    if ($locationId) {
+        $sql .= " AND PK_LOCATION = '$locationId'";
+    }
 
     if ($excludeId) {
         $sql .= " AND PK_EMAIL_TEMPLATE != '$excludeId'";
@@ -32,14 +35,19 @@ function checkExistingTemplate($templateName, $accountMaster, $excludeId = null)
 $error_message = '';
 $success_message = '';
 
+// Get parameters from URL (for "Set up" button)
+$preset_location = isset($_GET['location']) ? $_GET['location'] : '';
+$preset_type = isset($_GET['type']) ? $_GET['type'] : '';
+
 if (!empty($_POST)) {
     $templateName = $_POST['TEMPLATE_NAME'];
     $editId = !empty($_GET['id']) ? $_GET['id'] : null;
+    $locationId = !empty($_POST['PK_LOCATION']) ? $_POST['PK_LOCATION'] : null;
 
-    // Check for duplicates - now checks all templates
+    // Check for duplicates - now checks by location and template type
     if (in_array($templateName, ['APPOINTMENT_CREATION', 'ENROLLMENT_CREATION'])) {
-        if (checkExistingTemplate($templateName, $_SESSION['PK_ACCOUNT_MASTER'], $editId)) {
-            $error_message = "A template for " . str_replace('_', ' ', $templateName) . " already exists. You can only have one template per type.";
+        if (checkExistingTemplate($templateName, $_SESSION['PK_ACCOUNT_MASTER'], $locationId, $editId)) {
+            $error_message = "A template for " . str_replace('_', ' ', $templateName) . " already exists for this location. You can only have one template per type per location.";
         }
     }
 
@@ -69,15 +77,22 @@ if (!empty($_POST)) {
     }
 }
 
+// Get template data for editing
 if (empty($_GET['id'])) {
-    $TEMPLATE_NAME      = '';
-    $PK_LOCATION        = '';
+    $TEMPLATE_NAME      = $preset_type ? strtoupper(str_replace(' ', '_', $preset_type)) : '';
+    $PK_LOCATION        = $preset_location;
     $SUBJECT            = '';
     $PK_TEMPLATE_CATEGORY = '';
     $PK_EMAIL_TRIGGER     = '';
     $PK_EMAIL_ACCOUNT   = '';
     $CONTENT            = '';
     $ACTIVE             = '';
+    $template_display_name = '';
+
+    // If preset_type is provided, set display name
+    if ($preset_type) {
+        $template_display_name = ucwords(str_replace('_', ' ', $preset_type));
+    }
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_EMAIL_TEMPLATE WHERE PK_EMAIL_TEMPLATE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
@@ -92,6 +107,26 @@ if (empty($_GET['id'])) {
     $PK_EMAIL_ACCOUNT   = $res->fields['PK_EMAIL_ACCOUNT'];
     $CONTENT            = $res->fields['CONTENT'];
     $ACTIVE             = $res->fields['ACTIVE'];
+
+    // Get display name for the template type
+    if ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') {
+        $template_display_name = 'Appointment Creation';
+    } elseif ($TEMPLATE_NAME == 'ENROLLMENT_CREATION') {
+        $template_display_name = 'Enrollment Creation';
+    } else {
+        $template_display_name = $TEMPLATE_NAME;
+    }
+}
+
+// Get available locations for the dropdown
+$locations = [];
+$row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+while (!$row->EOF) {
+    $locations[] = [
+        'PK_LOCATION' => $row->fields['PK_LOCATION'],
+        'LOCATION_NAME' => $row->fields['LOCATION_NAME']
+    ];
+    $row->MoveNext();
 }
 ?>
 
@@ -148,7 +183,6 @@ if (empty($_GET['id'])) {
         background: var(--gray-50);
     }
 
-    /* Breadcrumb */
     .breadcrumb-wrapper {
         display: flex;
         justify-content: space-between;
@@ -199,7 +233,6 @@ if (empty($_GET['id'])) {
         font-weight: 500;
     }
 
-    /* Card */
     .card-modern {
         background: #ffffff;
         border-radius: var(--radius-lg);
@@ -220,6 +253,8 @@ if (empty($_GET['id'])) {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .card-modern .card-header h5 {
@@ -234,6 +269,24 @@ if (empty($_GET['id'])) {
         margin-right: 8px;
     }
 
+    .card-modern .card-header .template-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #eef2ff;
+        color: #1e40af;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #c7d2fe;
+    }
+
+    .card-modern .card-header .template-badge i {
+        font-size: 14px;
+        color: #1e40af;
+    }
+
     .card-modern .card-body {
         padding: 28px 32px;
     }
@@ -246,9 +299,13 @@ if (empty($_GET['id'])) {
         .container-fluid {
             padding: 16px !important;
         }
+
+        .card-modern .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 
-    /* Form */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -320,6 +377,12 @@ if (empty($_GET['id'])) {
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
 
+    .form-control-modern:disabled,
+    .form-control-modern[readonly] {
+        background: var(--gray-100);
+        cursor: not-allowed;
+    }
+
     select.form-control-modern {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -328,7 +391,6 @@ if (empty($_GET['id'])) {
         padding-right: 36px;
     }
 
-    /* Radio Group */
     .radio-group-modern {
         display: flex;
         gap: 24px;
@@ -352,7 +414,6 @@ if (empty($_GET['id'])) {
         flex-shrink: 0;
     }
 
-    /* Buttons - Rounded Pill */
     .btn-modern {
         display: inline-flex;
         align-items: center;
@@ -444,12 +505,10 @@ if (empty($_GET['id'])) {
         }
     }
 
-    /* Full width for editor */
     .full-width {
         grid-column: 1 / -1;
     }
 
-    /* Status indicator */
     .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -474,7 +533,6 @@ if (empty($_GET['id'])) {
         font-size: 8px;
     }
 
-    /* Help text */
     .form-helper {
         font-size: 12px;
         color: var(--gray-400);
@@ -497,7 +555,6 @@ if (empty($_GET['id'])) {
         font-weight: 500;
     }
 
-    /* Alert message styles */
     .alert-duplicate {
         background-color: #FEF2F2;
         border: 1px solid #FECACA;
@@ -534,7 +591,6 @@ if (empty($_GET['id'])) {
         color: #059669;
     }
 
-    /* Variable Badge Styles - matching follow-up page exactly */
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -597,7 +653,6 @@ if (empty($_GET['id'])) {
         flex-wrap: wrap;
     }
 
-    /* Existing templates info */
     .existing-templates-info {
         grid-column: 1 / -1;
         padding: 8px 0;
@@ -620,7 +675,6 @@ if (empty($_GET['id'])) {
         color: #22C55E;
     }
 
-    /* Content editable area - matching follow-up page */
     .content-editable {
         width: 100%;
         min-height: 300px;
@@ -672,44 +726,21 @@ if (empty($_GET['id'])) {
         background-color: #e0e7ff;
     }
 
-    /* Toolbar for content editable */
-    .content-toolbar {
+    .breadcrumb-info {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+        border-radius: var(--radius-sm);
+        padding: 8px 16px;
+        font-size: 13px;
+        color: #1E40AF;
         display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        padding: 8px 12px;
-        background: var(--gray-50);
-        border: 1.5px solid var(--gray-200);
-        border-bottom: none;
-        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
     }
 
-    .content-toolbar .btn-toolbar {
-        background: transparent;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        padding: 4px 8px;
-        font-size: 14px;
-        cursor: pointer;
-        color: var(--gray-600);
-        transition: all 0.2s;
-    }
-
-    .content-toolbar .btn-toolbar:hover {
-        background: var(--gray-200);
-        border-color: var(--gray-300);
-    }
-
-    .content-toolbar .btn-toolbar.active {
-        background: var(--primary-color);
-        color: #fff;
-        border-color: var(--primary-color);
-    }
-
-    .content-toolbar .separator {
-        width: 1px;
-        background: var(--gray-300);
-        margin: 0 4px;
+    .breadcrumb-info i {
+        font-size: 16px;
     }
 </style>
 
@@ -736,14 +767,45 @@ if (empty($_GET['id'])) {
                                     <i class="bi bi-envelope"></i>
                                     <?= !empty($_GET['id']) ? 'Edit Template' : 'Create New Template' ?>
                                 </h5>
-                                <?php if (!empty($_GET['id'])): ?>
-                                    <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
-                                        <i class="fas fa-circle"></i>
-                                        <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
-                                    </span>
-                                <?php endif; ?>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <?php if (!empty($_GET['id']) && !empty($template_display_name)): ?>
+                                        <span class="template-badge">
+                                            <i class="bi bi-tag"></i>
+                                            <?= htmlspecialchars($template_display_name) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($preset_type) && empty($_GET['id'])): ?>
+                                        <span class="template-badge">
+                                            <i class="bi bi-tag"></i>
+                                            <?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($_GET['id'])): ?>
+                                        <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
+                                            <i class="fas fa-circle"></i>
+                                            <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <div class="card-body">
+                                <!-- Show breadcrumb info when coming from "Set up" button -->
+                                <?php if (!empty($preset_type) && !empty($preset_location) && empty($_GET['id'])): ?>
+                                    <div class="breadcrumb-info">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                        Creating a new <strong><?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?></strong> template for <strong><?php
+                                                                                                                                                                    $loc_name = '';
+                                                                                                                                                                    foreach ($locations as $loc) {
+                                                                                                                                                                        if ($loc['PK_LOCATION'] == $preset_location) {
+                                                                                                                                                                            $loc_name = $loc['LOCATION_NAME'];
+                                                                                                                                                                            break;
+                                                                                                                                                                        }
+                                                                                                                                                                    }
+                                                                                                                                                                    echo htmlspecialchars($loc_name);
+                                                                                                                                                                    ?></strong>
+                                    </div>
+                                <?php endif; ?>
+
                                 <!-- Display error message if any -->
                                 <?php if (!empty($error_message)): ?>
                                     <div class="alert-duplicate">
@@ -767,7 +829,7 @@ if (empty($_GET['id'])) {
                                         <div class="form-group-modern">
                                             <label class="form-label">Template Type <span class="required">*</span></label>
 
-                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required>
+                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required <?= (!empty($preset_type) && empty($_GET['id'])) ? 'disabled' : '' ?>>
                                                 <option value="">Select template type</option>
                                                 <option value="APPOINTMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') ? 'selected' : ''; ?>>
                                                     Appointment Creation
@@ -776,8 +838,17 @@ if (empty($_GET['id'])) {
                                                     Enrollment Creation
                                                 </option>
                                             </select>
+                                            <?php if (!empty($preset_type) && empty($_GET['id'])): ?>
+                                                <input type="hidden" name="TEMPLATE_NAME" value="<?= strtoupper($preset_type) ?>">
+                                            <?php endif; ?>
 
-                                            <div class="form-helper" id="templateTypeHelper">Select whether this template is for an appointment or enrollment</div>
+                                            <div class="form-helper" id="templateTypeHelper">
+                                                <?php if (!empty($preset_type) && empty($_GET['id'])): ?>
+                                                    Template type is preset for this location.
+                                                <?php else: ?>
+                                                    Select whether this template is for an appointment or enrollment
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
 
                                         <!-- Location -->
@@ -785,14 +856,16 @@ if (empty($_GET['id'])) {
                                             <label class="form-label">
                                                 Location
                                             </label>
-                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
-                                                <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= htmlspecialchars($row->fields['LOCATION_NAME']) ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
+                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" <?= (!empty($preset_location) && empty($_GET['id'])) ? 'disabled' : '' ?>>
+                                                <?php foreach ($locations as $loc): ?>
+                                                    <option value="<?php echo $loc['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $loc['PK_LOCATION']) ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($loc['LOCATION_NAME']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
+                                            <?php if (!empty($preset_location) && empty($_GET['id'])): ?>
+                                                <input type="hidden" name="PK_LOCATION" value="<?= $preset_location ?>">
+                                            <?php endif; ?>
                                             <div class="form-helper">Location for this Template to be Active</div>
                                         </div>
 
@@ -801,45 +874,6 @@ if (empty($_GET['id'])) {
                                             <label class="form-label">Subject <span class="required">*</span></label>
                                             <input type="text" class="form-control-modern" id="SUBJECT" name="SUBJECT" placeholder="Enter email subject" value="<?php echo htmlspecialchars($SUBJECT) ?>" required>
                                             <div class="form-helper">The subject line that will appear in the email</div>
-                                        </div>
-
-                                        <!-- Template Category -->
-                                        <div class="form-group-modern">
-                                            <label class="form-label">Template Category <span class="required">*</span></label>
-                                            <select id="PK_TEMPLATE_CATEGORY" name="PK_TEMPLATE_CATEGORY" class="form-control-modern" onchange="selectTemplateCategory(this)" required>
-                                                <option value="">Select Category</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_TEMPLATE_CATEGORY, TEMPLATE_CATEGORY FROM DOA_TEMPLATE_CATEGORY WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_TEMPLATE_CATEGORY != '' && $PK_TEMPLATE_CATEGORY == $row->fields['PK_TEMPLATE_CATEGORY']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_TEMPLATE_CATEGORY']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['TEMPLATE_CATEGORY']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                        </div>
-
-                                        <!-- Email Trigger -->
-                                        <div class="form-group-modern" id="email_event_div" style="display: <?= ($PK_TEMPLATE_CATEGORY == 1) ? 'flex' : 'none' ?>;">
-                                            <label class="form-label">Email Trigger</label>
-                                            <select id="PK_EMAIL_TRIGGER" name="PK_EMAIL_TRIGGER" class="form-control-modern">
-                                                <option value="">Select Trigger Event</option>
-                                                <?php
-                                                $row = $db->Execute("SELECT PK_EMAIL_TRIGGER, EMAIL_TRIGGER FROM DOA_EMAIL_TRIGGER WHERE ACTIVE = 1");
-                                                while (!$row->EOF) {
-                                                    $selected = '';
-                                                    if ($PK_EMAIL_TRIGGER != '' && $PK_EMAIL_TRIGGER == $row->fields['PK_EMAIL_TRIGGER']) {
-                                                        $selected = 'selected';
-                                                    }
-                                                ?>
-                                                    <option value="<?php echo $row->fields['PK_EMAIL_TRIGGER']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($row->fields['EMAIL_TRIGGER']); ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
-                                            </select>
-                                            <div class="form-helper">Select the event that will trigger this email</div>
                                         </div>
 
                                         <!-- Email Account -->
@@ -886,7 +920,7 @@ if (empty($_GET['id'])) {
                                                 <span>
                                                     <strong>Note:</strong> You can only have <strong>one</strong> template for
                                                     <strong>Appointment Creation</strong> and <strong>one</strong> for
-                                                    <strong>Enrollment Creation</strong> at a time (including inactive templates).
+                                                    <strong>Enrollment Creation</strong> per location (including inactive templates).
                                                 </span>
                                             </div>
                                         </div>
@@ -895,25 +929,13 @@ if (empty($_GET['id'])) {
                                         <div class="form-group-modern full-width">
                                             <label class="form-label">Email Content <span class="required">*</span></label>
 
-                                            <!-- Simple toolbar for basic formatting -->
-                                            <!-- <div class="content-toolbar">
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('bold', false, null)" title="Bold"><b>B</b></button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('italic', false, null)" title="Italic"><i>I</i></button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('underline', false, null)" title="Underline"><u>U</u></button>
-                                                <span class="separator"></span>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List">•</button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List">1.</button>
-                                                <span class="separator"></span>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('createLink', false, prompt('Enter URL:'))" title="Insert Link">🔗</button>
-                                            </div> -->
-
                                             <!-- Content editable div -->
                                             <div class="content-editable" contenteditable="true" id="contentEditable"><?= htmlspecialchars_decode($CONTENT) ?></div>
                                             <input type="hidden" name="CONTENT" id="CONTENT" value="<?= htmlspecialchars($CONTENT) ?>">
                                             <div class="form-helper" id="contentHelper">Click variable buttons below to insert dynamic fields into your email content.</div>
                                         </div>
 
-                                        <!-- Variables Section - Same style as follow-up page -->
+                                        <!-- Variables Section -->
                                         <div class="variables-section">
                                             <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
                                             <div class="d-flex flex-wrap gap-1">
@@ -964,15 +986,13 @@ if (empty($_GET['id'])) {
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
-        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV (same as follow-up page) ---
+        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV ---
         function insertVariable(varName) {
             const editable = document.getElementById('contentEditable');
             if (!editable) return;
 
-            // Focus on the editable div
             editable.focus();
 
-            // Get the current selection or create one at the end
             const selection = window.getSelection();
             let range;
 
@@ -985,28 +1005,23 @@ if (empty($_GET['id'])) {
                 selection.addRange(range);
             }
 
-            // Create the variable badge span (matching follow-up page exactly)
             const variableSpan = document.createElement('span');
             variableSpan.className = 'variable-badge';
             variableSpan.setAttribute('contenteditable', 'false');
             variableSpan.textContent = varName;
 
-            // Insert at cursor position
             range.deleteContents();
             range.insertNode(variableSpan);
 
-            // Add a space after the variable
             const spaceNode = document.createTextNode('\u00A0');
             range.setStartAfter(variableSpan);
             range.insertNode(spaceNode);
 
-            // Move cursor after the space
             range.setStartAfter(spaceNode);
             range.collapse(true);
             selection.removeAllRanges();
             selection.addRange(range);
 
-            // Update hidden input
             updateContentInput();
         }
 
@@ -1019,8 +1034,7 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- VARIABLE BUTTON HANDLERS (same as follow-up page) ---
-        // Use event delegation for variable buttons
+        // --- VARIABLE BUTTON HANDLERS ---
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.var-btn');
             if (btn) {
@@ -1030,24 +1044,15 @@ if (empty($_GET['id'])) {
             }
         });
 
-        // Template Category toggle
-        function selectTemplateCategory(param) {
-            const emailEventDiv = document.getElementById('email_event_div');
-            if ($(param).val() == 1) {
-                $(emailEventDiv).slideDown();
-            } else {
-                $(emailEventDiv).slideUp();
-            }
-        }
-
         // --- CLIENT-SIDE DUPLICATE CHECK ---
-        function checkTemplateExists(templateName, callback) {
+        function checkTemplateExists(templateName, locationId, callback) {
             const isEdit = <?= !empty($_GET['id']) ? 'true' : 'false' ?>;
             const currentId = <?= !empty($_GET['id']) ? $_GET['id'] : 'null' ?>;
 
             const formData = new FormData();
             formData.append('action', 'check_template');
             formData.append('template_name', templateName);
+            formData.append('location_id', locationId);
             formData.append('current_id', currentId);
             formData.append('is_edit', isEdit);
 
@@ -1068,27 +1073,30 @@ if (empty($_GET['id'])) {
         }
 
         // Real-time check when template type changes
-        document.getElementById('TEMPLATE_NAME').addEventListener('change', function() {
-            const selectedValue = this.value;
+        function checkDuplicate() {
+            const templateSelect = document.getElementById('TEMPLATE_NAME');
+            const locationSelect = document.querySelector('.PK_LOCATION');
             const helper = document.getElementById('templateTypeHelper');
             const submitBtn = document.getElementById('submitBtn');
 
-            if (selectedValue === 'APPOINTMENT_CREATION' || selectedValue === 'ENROLLMENT_CREATION') {
-                // Show loading state
-                helper.textContent = '⏳ Checking if template exists...';
+            const selectedValue = templateSelect.value;
+            const locationValue = locationSelect ? locationSelect.value : '';
+
+            if ((selectedValue === 'APPOINTMENT_CREATION' || selectedValue === 'ENROLLMENT_CREATION') && locationValue) {
+                helper.textContent = '⏳ Checking if template exists for this location...';
                 helper.className = 'form-helper warning';
 
-                checkTemplateExists(selectedValue, function(exists) {
+                checkTemplateExists(selectedValue, locationValue, function(exists) {
                     if (exists) {
                         const typeName = selectedValue.replace('_', ' ');
-                        helper.textContent = '❌ A template for ' + typeName + ' already exists. You can only have one per type.';
+                        helper.textContent = '❌ A template for ' + typeName + ' already exists for this location. You can only have one per type per location.';
                         helper.className = 'form-helper error';
                         document.getElementById('TEMPLATE_NAME').classList.add('is-invalid');
                         submitBtn.disabled = true;
                         submitBtn.style.opacity = '0.6';
                         submitBtn.style.cursor = 'not-allowed';
                     } else {
-                        helper.textContent = '✅ Available - You can create this template type';
+                        helper.textContent = '✅ Available - You can create this template type for this location';
                         helper.className = 'form-helper success';
                         document.getElementById('TEMPLATE_NAME').classList.remove('is-invalid');
                         submitBtn.disabled = false;
@@ -1096,6 +1104,9 @@ if (empty($_GET['id'])) {
                         submitBtn.style.cursor = 'pointer';
                     }
                 });
+            } else if (!locationValue) {
+                helper.textContent = 'Please select a location first';
+                helper.className = 'form-helper warning';
             } else {
                 helper.textContent = 'Select whether this template is for an appointment or enrollment';
                 helper.className = 'form-helper';
@@ -1104,7 +1115,19 @@ if (empty($_GET['id'])) {
                 submitBtn.style.opacity = '1';
                 submitBtn.style.cursor = 'pointer';
             }
-        });
+        }
+
+        // Add event listeners for real-time duplicate check
+        const templateSelect = document.getElementById('TEMPLATE_NAME');
+        const locationSelect = document.querySelector('.PK_LOCATION');
+
+        if (templateSelect) {
+            templateSelect.addEventListener('change', checkDuplicate);
+        }
+
+        if (locationSelect) {
+            locationSelect.addEventListener('change', checkDuplicate);
+        }
 
         // Update hidden input when content changes
         document.getElementById('contentEditable').addEventListener('input', updateContentInput);
@@ -1159,7 +1182,7 @@ if (empty($_GET['id'])) {
             const submitBtn = document.getElementById('submitBtn');
             if (submitBtn.disabled) {
                 isValid = false;
-                helper.textContent = '⚠️ Please select a different template type';
+                helper.textContent = '⚠️ Please select a different template type or location';
                 helper.className = 'form-helper error';
             }
 
@@ -1184,10 +1207,11 @@ if (empty($_GET['id'])) {
         // Trigger change event on page load to check existing template
         document.addEventListener('DOMContentLoaded', function() {
             const templateSelect = document.getElementById('TEMPLATE_NAME');
-            if (templateSelect.value) {
-                // Trigger the change event to check if template exists
-                const event = new Event('change');
-                templateSelect.dispatchEvent(event);
+            if (templateSelect && templateSelect.value) {
+                // Wait a bit for location to load
+                setTimeout(function() {
+                    checkDuplicate();
+                }, 300);
             }
 
             // Initialize content from hidden input
@@ -1199,21 +1223,30 @@ if (empty($_GET['id'])) {
                     editable.innerHTML = content;
                 }
             }
+
+            // If location is disabled (preset), still trigger check
+            const locationSelect = document.querySelector('.PK_LOCATION');
+            if (locationSelect && locationSelect.disabled && templateSelect && templateSelect.value) {
+                setTimeout(function() {
+                    checkDuplicate();
+                }, 400);
+            }
         });
 
         <?php
         // Handle AJAX request for template check within the same page
         if (isset($_POST['action']) && $_POST['action'] == 'check_template') {
             $templateName = isset($_POST['template_name']) ? $_POST['template_name'] : '';
+            $locationId = isset($_POST['location_id']) ? $_POST['location_id'] : '';
             $currentId = isset($_POST['current_id']) ? $_POST['current_id'] : null;
             $isEdit = isset($_POST['is_edit']) ? $_POST['is_edit'] : false;
 
             $exists = false;
-            if (in_array($templateName, ['APPOINTMENT_CREATION', 'ENROLLMENT_CREATION'])) {
+            if (in_array($templateName, ['APPOINTMENT_CREATION', 'ENROLLMENT_CREATION']) && $locationId) {
                 $sql = "SELECT COUNT(*) as count FROM DOA_EMAIL_TEMPLATE 
                         WHERE TEMPLATE_NAME = '$templateName' 
-                        AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'";
-                // Removed "AND ACTIVE = 1" - now checks all templates
+                        AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'
+                        AND PK_LOCATION = '$locationId'";
 
                 if ($isEdit && $currentId) {
                     $sql .= " AND PK_EMAIL_TEMPLATE != '$currentId'";
