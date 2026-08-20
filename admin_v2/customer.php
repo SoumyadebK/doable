@@ -3835,4 +3835,123 @@ if ($PK_USER_MASTER > 0) {
     });
 </script>
 
+
+<script>
+    function mailAgreementToCustomer(enrollment_id) {
+        Swal.fire({
+            title: "Mail to Customer",
+            text: "Are you sure you want to mail the agreement to the customer?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, mail it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Sending...",
+                    text: "Please wait",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'mailAgreementToCustomer',
+                        enrollment_id: enrollment_id
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "The agreement has been mailed to the customer.",
+                                icon: "success",
+                                timer: 3000,
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "Something went wrong, please try again.",
+                                icon: "error",
+                                timer: 3000,
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+    function mailReceiptToCustomer(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
+        Swal.fire({
+            title: "Mail to Customer",
+            text: "Are you sure you want to mail the receipt to the customer?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, mail it!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Sending...",
+                    text: "Please wait",
+                    icon: "info",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                $.ajax({
+                    url: "ajax/AjaxFunctions.php",
+                    type: 'POST',
+                    data: {
+                        FUNCTION_NAME: 'mailReceiptToCustomer',
+                        PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER,
+                        RECEIPT_NUMBER: RECEIPT_NUMBER
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "The receipt has been mailed to the customer.",
+                                icon: "success",
+                                timer: 3000,
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "Something went wrong, please try again.",
+                                icon: "error",
+                                timer: 3000,
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+</script>
+
 </html>

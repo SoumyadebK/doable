@@ -164,7 +164,7 @@ while (!$enrollment_data->EOF) {
                 </div>
                 <div class="col-2">
                     <?php if ($AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
-                        <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><br>
+                        <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" class="view-schedule text-primary" target="_blank">View Agreement</a><i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailAgreementToCustomer(<?= $PK_ENROLLMENT_MASTER ?>)"></i>
                     <?php } ?>
                 </div>
                 <div class="col-2">

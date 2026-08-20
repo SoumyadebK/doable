@@ -199,7 +199,7 @@ while (!$serviceCodeData->EOF) {
                                 <a class="btn btn-secondary <?= ($payment_details->fields['IS_EXPORTED_TO_AMI'] == 1) ? 'disabled' : '' ?>" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Move', <?= $p ?>)">Move</a>
                                 <a class="btn btn-secondary" href="javascript:" onclick="moveToWallet(this, <?= $payment_details->fields['PK_ENROLLMENT_PAYMENT'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_MASTER'] ?>, <?= $payment_details->fields['PK_ENROLLMENT_LEDGER'] ?>, <?= $PK_USER_MASTER ?>, <?= ($billed_amount - $billing_details->fields['AMOUNT_REMAIN']) ?>, 'active', 'Refund', <?= $p ?>)">Refund</a>
                             <?php } */ ?>
-                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $payment_details->fields['RECEIPT_NUMBER'] ?>')"></i>
                             <?php if ($payment_details->fields['IS_EXPORTED_TO_AMI'] == 1) { ?>
                                 <p style="color: #fb8138; font-size: 10px; margin: auto;">Exported to AMI</p>
                             <?php } ?>
@@ -270,7 +270,7 @@ while (!$serviceCodeData->EOF) {
                         <td style="text-align: center;"><?= $payment_type ?></td>
                         <td style="text-align: right; padding-right: 45px;"></td>
                         <td style="text-align: right; padding-right: 45px;">
-                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                            <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $cancelled_enrollment_payment_details->fields['RECEIPT_NUMBER'] ?>')"></i>
                         </td>
                     </tr>
         <?php $cancelled_enrollment_payment_details->MoveNext();
@@ -318,7 +318,7 @@ while (!$serviceCodeData->EOF) {
                     <td style="text-align: center;"><?= $payment_type ?></td>
                     <td style="text-align: right; padding-right: 45px;"></td>
                     <td style="text-align: right; padding-right: 45px;">
-                        <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $adjusted_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>
+                        <a class="btn btn-secondary" onclick="openReceipt(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $adjusted_payment_details->fields['RECEIPT_NUMBER'] ?>')" href="javascript:">Receipt</a>&nbsp;<i class="bi bi-envelope-fill" title="Mail to Customer" style="font-size: 18px; color: #39b54a; margin-left: 10px; cursor: pointer;" onclick="mailReceiptToCustomer(<?= $PK_ENROLLMENT_MASTER ?>, '<?= $adjusted_payment_details->fields['RECEIPT_NUMBER'] ?>')"></i>
                     </td>
                 </tr>
         <?php $adjusted_payment_details->MoveNext();
