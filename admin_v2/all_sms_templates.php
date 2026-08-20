@@ -17,54 +17,61 @@ if ($header_data->RecordCount() > 0) {
     $header_text = $header_data->fields['HEADER_TEXT'];
 }
 
-// Get filter parameters
-$status_check = isset($_GET['status']) ? $_GET['status'] : 'active';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 8;
-
-if ($status_check == 'active') {
-    $status = 1;
-} elseif ($status_check == 'inactive') {
-    $status = 0;
+// Get all locations - store in array
+$locations_data = [];
+$locations_query = "SELECT PK_LOCATION, LOCATION_NAME FROM $master_database.DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']);
+$locations = $db->Execute($locations_query);
+if ($locations && !$locations->EOF) {
+    while (!$locations->EOF) {
+        $locations_data[] = [
+            'PK_LOCATION' => $locations->fields['PK_LOCATION'],
+            'LOCATION_NAME' => $locations->fields['LOCATION_NAME']
+        ];
+        $locations->MoveNext();
+    }
 }
 
-$offset = ($page - 1) * $per_page;
+// Get all SMS templates for these locations
+$templates_query = "SELECT * FROM DOA_SMS_TEMPLATE 
+                    WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")";
+$all_templates = $db_account->Execute($templates_query);
 
-// Build active condition
-if ($status_check == 'active') {
-    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 1";
-} else {
-    $active_condition = "DOA_SMS_TEMPLATE.ACTIVE = 0";
+// Build a map of templates by location and type
+$template_map = [];
+if ($all_templates && !$all_templates->EOF) {
+    while (!$all_templates->EOF) {
+        $loc_id = $all_templates->fields['PK_LOCATION'];
+        $template_type = $all_templates->fields['TEMPLATE_NAME']; // Use TEMPLATE_NAME field
+        $template_map[$loc_id][$template_type] = [
+            'PK_SMS_TEMPLATE' => $all_templates->fields['PK_SMS_TEMPLATE'],
+            'TEMPLATE_NAME' => $all_templates->fields['TEMPLATE_NAME'],
+            'CONTENT' => $all_templates->fields['CONTENT'],
+            'ACTIVE' => $all_templates->fields['ACTIVE'],
+            'UPDATED_BY' => $all_templates->fields['EDITED_BY'],
+            'UPDATED_DATE' => $all_templates->fields['EDITED_ON']
+        ];
+        $all_templates->MoveNext();
+    }
 }
 
-// Count total records
-$count_query = "SELECT COUNT(*) as total 
-                FROM DOA_SMS_TEMPLATE 
-                WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
-                AND $active_condition";
+// Define template types - using the actual TEMPLATE_NAME values from your database
+$template_types = [
+    'Enrollment Creation' => 'ENROLLMENT_CREATION',
+    'Appointment Creation' => 'APPOINTMENT_CREATION'
+];
 
-if (!empty($search)) {
-    $count_query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                       OR DOA_SMS_TEMPLATE.CONTENT LIKE '%" . addslashes($search) . "%')";
+// Count total set up
+$total_setup = 0;
+$total_possible = 0;
+foreach ($locations_data as $location) {
+    $loc_id = $location['PK_LOCATION'];
+    foreach ($template_types as $display_name => $type_key) {
+        $total_possible++;
+        if (isset($template_map[$loc_id][$type_key]) && $template_map[$loc_id][$type_key]['ACTIVE'] == 1) {
+            $total_setup++;
+        }
+    }
 }
-
-$total_result = $db_account->Execute($count_query);
-$total_records = $total_result->fields['total'];
-$total_pages = ceil($total_records / $per_page);
-
-// Get sms templates for current page
-$query = "SELECT * FROM DOA_SMS_TEMPLATE LEFT JOIN $master_database.DOA_LOCATION ON DOA_SMS_TEMPLATE.PK_LOCATION = DOA_LOCATION.PK_LOCATION
-          WHERE DOA_SMS_TEMPLATE.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
-          AND $active_condition";
-
-if (!empty($search)) {
-    $query .= " AND (DOA_SMS_TEMPLATE.TEMPLATE_NAME LIKE '%" . addslashes($search) . "%' 
-                 OR DOA_SMS_TEMPLATE.CONTENT LIKE '%" . addslashes($search) . "%')";
-}
-
-$query .= " ORDER BY DOA_SMS_TEMPLATE.TEMPLATE_NAME ASC LIMIT $offset, $per_page";
-$sms_templates = $db_account->Execute($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,6 +83,7 @@ $sms_templates = $db_account->Execute($query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> - Setup Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
@@ -83,13 +91,13 @@ $sms_templates = $db_account->Execute($query);
 
     <style>
         .badge-status {
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 30px;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 500;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
         .badge-active {
@@ -98,25 +106,17 @@ $sms_templates = $db_account->Execute($query);
         }
 
         .badge-inactive {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .badge-not-setup {
             background: #fee2e2;
             color: #b91c1c;
         }
 
         .cursor-pointer {
             cursor: pointer;
-        }
-
-        .pagination .page-link {
-            border-radius: 30px !important;
-            margin: 0 2px;
-            color: #334155;
-            border: none;
-            background: transparent;
-        }
-
-        .pagination .page-item.active .page-link {
-            background-color: #0d6efd;
-            color: white;
         }
 
         .action-icons {
@@ -136,20 +136,112 @@ $sms_templates = $db_account->Execute($query);
             color: #0d6efd;
         }
 
+        .template-group {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .template-group-header {
+            background: #f8fafc;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+
+        .template-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .template-item:last-child {
+            border-bottom: none;
+        }
+
+        .template-label {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .template-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-setup {
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-setup:hover {
+            background: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .btn-setup.setup {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #86efac;
+        }
+
+        .btn-setup.setup:hover {
+            background: #15803d;
+            color: white;
+            border-color: #15803d;
+        }
+
+        .status-icon {
+            font-size: 1.1rem;
+        }
+
+        .location-section {
+            margin-bottom: 24px;
+        }
+
+        .location-title {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .template-edited {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-left: 8px;
+        }
+
+        .setup-count {
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 400;
+        }
+
         @media (max-width: 768px) {
-            .search-container {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-
-            .d-flex.justify-content-between {
+            .template-item {
                 flex-direction: column;
-                align-items: stretch !important;
-                gap: 0.75rem;
+                align-items: flex-start;
+                gap: 8px;
             }
 
-            .status-toggle-group {
-                align-self: flex-start;
+            .template-status {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
             }
         }
 
@@ -163,16 +255,96 @@ $sms_templates = $db_account->Execute($query);
             color: #cbd5e1;
         }
 
-        .status-icon {
-            font-size: 1.2rem;
-            margin-right: 8px;
+        .main-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            border: 1px solid #e2e8f0;
         }
 
-        .template-preview {
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .btn-success-custom {
+            background: #39b54a;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-success-custom:hover {
+            background: #2d8f3b;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(57, 181, 74, 0.2);
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .search-input {
+            padding-left: 38px;
+            border-radius: 30px;
+            border: 1.5px solid #e2e8f0;
+            padding: 8px 16px 8px 38px;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #39b54a;
+            box-shadow: 0 0 0 3px rgba(57, 181, 74, 0.1);
+            outline: none;
+        }
+
+        .status-toggle-group {
+            display: flex;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 30px;
+        }
+
+        .status-btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            background: transparent;
+            color: #64748b;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .status-btn.active {
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-btn:hover:not(.active) {
+            color: #0f172a;
+        }
+
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        .fw-semibold {
+            font-weight: 600;
         }
     </style>
 </head>
@@ -193,148 +365,59 @@ $sms_templates = $db_account->Execute($query);
                     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
                         <div>
                             <h2 class="fw-semibold h4 mb-1">
-                                <i class="bi bi-envelope me-2" style="color: #39b54a;"></i>SMS Templates
+                                <i class="bi bi-chat-dots me-2" style="color: #39b54a;"></i>SMS Templates
                             </h2>
-                            <p class="text-muted small mb-0">Manage sms templates and their configurations</p>
-                        </div>
-                        <button class="btn btn-success-custom rounded-pill d-flex align-items-center gap-2" onclick="window.location.href='sms_template.php'">
-                            <i class="bi bi-plus-lg"></i> Create New SMS Template
-                        </button>
-                    </div>
-
-                    <!-- Filters -->
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <div class="search-container">
-                            <i class="bi bi-search"></i>
-                            <input type="text" class="form-control search-input" placeholder="Search by template name or content..." id="searchInput" value="<?= htmlspecialchars($search) ?>">
-                        </div>
-                        <div class="status-toggle-group">
-                            <button class="status-btn <?= $status_check == 'active' ? 'active' : '' ?>" data-status="active">Active</button>
-                            <button class="status-btn <?= $status_check == 'inactive' ? 'active' : '' ?>" data-status="inactive">Not Active</button>
+                            <p class="text-muted small mb-0">Manage SMS templates and their configurations</p>
                         </div>
                     </div>
 
                     <!-- Results count -->
                     <div class="text-muted small mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope"></i> <?= $total_records ?> <?= $total_records == 1 ? 'sms template' : 'sms templates' ?>
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <?= $total_setup ?> of <?= $total_possible ?> set up
                     </div>
 
-                    <!-- SMS Templates Table -->
-                    <div class="table-responsive">
-                        <table class="table custom-table align-middle mb-4">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px;">#</th>
-                                    <th>Template Name</th>
-                                    <th style="text-align: center;">Location</th>
-                                    <th style="text-align: center;">Status</th>
-                                    <th style="width: 60px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $counter = 0;
-                                $row_number = $offset + 1;
-                                if ($sms_templates && !$sms_templates->EOF):
-                                    while (!$sms_templates->EOF):
-                                        $PK_SMS_TEMPLATE = $sms_templates->fields['PK_SMS_TEMPLATE'];
-                                        $template_name = $sms_templates->fields['TEMPLATE_NAME'];
-                                        $location_name = $sms_templates->fields['LOCATION_NAME'];
-                                        $is_active = $sms_templates->fields['ACTIVE'] == 1;
-                                ?>
-                                        <tr>
-                                            <td class="text-muted small fw-medium"><?= $row_number++ ?></td>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="fw-semibold">
-                                                        <?= htmlspecialchars($template_name) ?>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-center"><?= htmlspecialchars($location_name) ?></td>
-                                            <td class="text-center">
-                                                <?php if ($is_active): ?>
-                                                    <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span>
-                                                <?php else: ?>
-                                                    <span class="badge-status badge-inactive"><i class="bi bi-x-circle-fill"></i> Inactive</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <div class="action-icons">
-                                                    <a href="sms_template.php?id=<?= $PK_SMS_TEMPLATE ?>" title="Edit">
-                                                        <i class="bi bi-pencil-square"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php
-                                        $sms_templates->MoveNext();
-                                        $counter++;
-                                    endwhile;
-                                endif;
-                                if ($total_records == 0):
+                    <!-- SMS Templates List -->
+                    <?php if (!empty($locations_data)): ?>
+                        <?php foreach ($locations_data as $location):
+                            $loc_id = $location['PK_LOCATION'];
+                            $loc_name = $location['LOCATION_NAME'];
+                        ?>
+                            <div class="location-section">
+                                <div class="location-title"><?= htmlspecialchars($loc_name) ?></div>
+                                <div class="template-group">
+                                    <?php foreach ($template_types as $display_name => $type_key):
+                                        $is_setup = isset($template_map[$loc_id][$type_key]) && $template_map[$loc_id][$type_key]['ACTIVE'] == 1;
+                                        $template_data = isset($template_map[$loc_id][$type_key]) ? $template_map[$loc_id][$type_key] : null;
+                                        $edited_by = $template_data ? $template_data['UPDATED_BY'] : 'Demo';
+                                        $edited_date = $template_data ? date('j M', strtotime($template_data['UPDATED_DATE'])) : date('j M');
                                     ?>
-                                    <tr>
-                                        <td colspan="5" class="text-center py-5">
-                                            <i class="bi bi-envelope display-1 text-muted"></i>
-                                            <p class="mt-3 text-muted">No sms templates found for the selected filters</p>
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <?php if ($total_pages > 1): ?>
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-2">
-                            <div class="text-muted small">
-                                Page <?= $page ?> of <?= $total_pages ?>
+                                        <div class="template-item">
+                                            <div>
+                                                <span class="template-label"><?= htmlspecialchars($display_name) ?></span>
+                                                <?php if ($is_setup): ?>
+                                                    <span class="template-edited">edited <?= $edited_date ?> by <?= htmlspecialchars($edited_by) ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="template-status">
+                                                <?php if ($is_setup): ?>
+                                                    <span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Set up</span>
+                                                    <a href="sms_template.php?id=<?= $template_data['PK_SMS_TEMPLATE'] ?>" class="btn btn-setup setup">Edit</a>
+                                                <?php else: ?>
+                                                    <span class="badge-status badge-not-setup"><i class="bi bi-x-circle-fill"></i> Not set up</span>
+                                                    <span class="text-muted small">no SMS will be sent</span>
+                                                    <a href="sms_template.php?location=<?= $loc_id ?>&type=<?= $type_key ?>" class="btn btn-setup">Set up</a>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0 align-items-center">
-                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link border-0" href="?page=1&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
-                                    </li>
-                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link border-0" href="?page=<?= $page - 1 ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
-                                    </li>
-                                    <?php
-                                    $start_page = max(1, $page - 2);
-                                    $end_page = min($total_pages, $page + 2);
-                                    if ($start_page > 1): ?>
-                                        <li class="page-item"><a class="page-link" href="?page=1&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>">1</a></li>
-                                        <?php if ($start_page > 2): ?>
-                                            <li class="page-item disabled"><span class="page-link border-0 bg-transparent">...</span></li>
-                                        <?php endif; ?>
-                                    <?php endif;
-                                    for ($i = $start_page; $i <= $end_page; $i++): ?>
-                                        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                                            <a class="page-link" href="?page=<?= $i ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>"><?= $i ?></a>
-                                        </li>
-                                    <?php endfor;
-                                    if ($end_page < $total_pages): ?>
-                                        <?php if ($end_page < $total_pages - 1): ?>
-                                            <li class="page-item disabled"><span class="page-link border-0 bg-transparent">...</span></li>
-                                        <?php endif; ?>
-                                        <li class="page-item"><a class="page-link" href="?page=<?= $total_pages ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>"><?= $total_pages ?></a></li>
-                                    <?php endif; ?>
-                                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
-                                        <a class="page-link border-0" href="?page=<?= $page + 1 ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
-                                    </li>
-                                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
-                                        <a class="page-link border-0" href="?page=<?= $total_pages ?>&status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
-                                    </li>
-                                </ul>
-                            </nav>
-                            <div>
-                                <select class="form-select form-select-sm page-select rounded-pill py-1 px-3" id="perPageSelect">
-                                    <option value="8" <?= $per_page == 8 ? 'selected' : '' ?>>8 / page</option>
-                                    <option value="10" <?= $per_page == 10 ? 'selected' : '' ?>>10 / page</option>
-                                    <option value="25" <?= $per_page == 25 ? 'selected' : '' ?>>25 / page</option>
-                                    <option value="50" <?= $per_page == 50 ? 'selected' : '' ?>>50 / page</option>
-                                </select>
-                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="bi bi-building"></i>
+                            <p class="mt-3 text-muted">No locations found. Please add locations first.</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -347,31 +430,12 @@ $sms_templates = $db_account->Execute($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        // Search with debounce
-        let searchTimeout;
-        $('#searchInput').on('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                let searchVal = encodeURIComponent($(this).val());
-                window.location.href = '?status=<?= $status_check ?>&search=' + searchVal + '&per_page=<?= $per_page ?>';
-            }, 500);
-        });
-
-        // Per page change
-        $('#perPageSelect').on('change', function() {
-            window.location.href = '?status=<?= $status_check ?>&search=<?= urlencode($search) ?>&per_page=' + $(this).val();
-        });
-
-        // Status toggle buttons
-        $('.status-btn').on('click', function() {
-            let newStatus = $(this).data('status');
-            if (newStatus) {
-                window.location.href = '?status=' + newStatus + '&search=<?= urlencode($search) ?>&per_page=<?= $per_page ?>';
-            }
-        });
-
-        function editpage(id) {
+        function editTemplate(id) {
             window.location.href = "sms_template.php?id=" + id;
+        }
+
+        function setupTemplate(locationId, type) {
+            window.location.href = "sms_template.php?location=" + locationId + "&type=" + type;
         }
     </script>
 </body>

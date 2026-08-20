@@ -390,10 +390,6 @@ function time_ago($datetime)
 
                                         <div class="automation-actions">
                                             <div class="top-row">
-                                                <button class="btn btn-link text-muted p-0 border-0 edit-automation"
-                                                    data-id="<?= $automation['PK_AUTOMATION_ID'] ?>">
-                                                    <i class="bi bi-chevron-right fs-5"></i>
-                                                </button>
                                                 <button class="btn btn-link btn-delete-automation p-0 border-0"
                                                     data-id="<?= $automation['PK_AUTOMATION_ID'] ?>"
                                                     data-title="<?= htmlspecialchars($automation['TITLE']) ?>"

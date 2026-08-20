@@ -11,42 +11,80 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
     exit;
 }
 
+$error_message = '';
+$success_message = '';
+
+// Get parameters from URL (for "Set up" button)
+$preset_location = isset($_GET['location']) ? $_GET['location'] : '';
+$preset_type = isset($_GET['type']) ? $_GET['type'] : '';
+
 if (!empty($_POST)) {
     $SMS_ACCOUNT_DATA = $_POST;
     unset($SMS_ACCOUNT_DATA['TEMP_CONTENT']);
     $SMS_ACCOUNT_DATA['PK_ACCOUNT_MASTER'] = $_SESSION['PK_ACCOUNT_MASTER'];
     if ($_GET['id'] == '') {
         if (!isset($SMS_ACCOUNT_DATA['ACTIVE'])) {
-            $SMS_ACCOUNT_DATA['ACTIVE'] = 1; // or 0, depending on your preference
+            $SMS_ACCOUNT_DATA['ACTIVE'] = 1;
         }
         $SMS_ACCOUNT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SMS_ACCOUNT_DATA['CREATED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_SMS_TEMPLATE', $SMS_ACCOUNT_DATA, 'insert');
-        header("location:all_sms_templates.php");
+        $success_message = "Template created successfully!";
+        header("location:all_sms_templates.php?success=1");
+        exit;
     } else {
         $SMS_ACCOUNT_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
         $SMS_ACCOUNT_DATA['EDITED_ON'] = date("Y-m-d H:i");
         db_perform_account('DOA_SMS_TEMPLATE', $SMS_ACCOUNT_DATA, 'update', " PK_SMS_TEMPLATE = '$_GET[id]'");
-        header("location:all_sms_templates.php");
+        $success_message = "Template updated successfully!";
+        header("location:all_sms_templates.php?success=1");
+        exit;
     }
 }
 
+// Get template data for editing
 if (empty($_GET['id'])) {
-    $TEMPLATE_NAME      = '';
-    $PK_LOCATION        = '';
-    $PK_SMS_ACCOUNT   = '';
-    $CONTENT            = '';
-    $ACTIVE             = '';
+    // Map the type parameter to the correct template name format
+    if ($preset_type) {
+        $TEMPLATE_NAME = $preset_type;
+        $template_display_name = ucwords(str_replace('_', ' ', $preset_type));
+    } else {
+        $TEMPLATE_NAME = '';
+        $template_display_name = '';
+    }
+    $PK_LOCATION = $preset_location;
+    $CONTENT = '';
+    $ACTIVE = '';
 } else {
     $res = $db_account->Execute("SELECT * FROM DOA_SMS_TEMPLATE WHERE PK_SMS_TEMPLATE = '$_GET[id]'");
     if ($res->RecordCount() == 0) {
         header("location:all_sms_templates.php");
         exit;
     }
-    $TEMPLATE_NAME      = $res->fields['TEMPLATE_NAME'];
-    $PK_LOCATION        = $res->fields['PK_LOCATION'];
-    $CONTENT            = $res->fields['CONTENT'];
-    $ACTIVE             = $res->fields['ACTIVE'];
+    $TEMPLATE_NAME = $res->fields['TEMPLATE_NAME'];
+    $PK_LOCATION = $res->fields['PK_LOCATION'];
+    $CONTENT = $res->fields['CONTENT'];
+    $ACTIVE = $res->fields['ACTIVE'];
+
+    // Get display name for the template type
+    if ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') {
+        $template_display_name = 'Appointment Creation';
+    } elseif ($TEMPLATE_NAME == 'ENROLLMENT_CREATION') {
+        $template_display_name = 'Enrollment Creation';
+    } else {
+        $template_display_name = $TEMPLATE_NAME;
+    }
+}
+
+// Get available locations for the dropdown
+$locations = [];
+$row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
+while (!$row->EOF) {
+    $locations[] = [
+        'PK_LOCATION' => $row->fields['PK_LOCATION'],
+        'LOCATION_NAME' => $row->fields['LOCATION_NAME']
+    ];
+    $row->MoveNext();
 }
 ?>
 
@@ -103,58 +141,6 @@ if (empty($_GET['id'])) {
         background: var(--gray-50);
     }
 
-    /* Breadcrumb */
-    .breadcrumb-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .breadcrumb-wrapper h4 {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--gray-900);
-        margin: 0;
-        letter-spacing: -0.025em;
-    }
-
-    .breadcrumb-wrapper h4 i {
-        color: var(--primary-color);
-        margin-right: 10px;
-    }
-
-    .breadcrumb-nav {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        color: var(--gray-500);
-    }
-
-    .breadcrumb-nav a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-
-    .breadcrumb-nav a:hover {
-        color: var(--primary-dark);
-    }
-
-    .breadcrumb-nav .separator {
-        color: var(--gray-300);
-    }
-
-    .breadcrumb-nav .current {
-        color: var(--gray-700);
-        font-weight: 500;
-    }
-
-    /* Card */
     .card-modern {
         background: #ffffff;
         border-radius: var(--radius-lg);
@@ -175,6 +161,8 @@ if (empty($_GET['id'])) {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .card-modern .card-header h5 {
@@ -189,6 +177,24 @@ if (empty($_GET['id'])) {
         margin-right: 8px;
     }
 
+    .card-modern .card-header .template-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #eef2ff;
+        color: #1e40af;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #c7d2fe;
+    }
+
+    .card-modern .card-header .template-badge i {
+        font-size: 14px;
+        color: #1e40af;
+    }
+
     .card-modern .card-body {
         padding: 28px 32px;
     }
@@ -201,9 +207,13 @@ if (empty($_GET['id'])) {
         .container-fluid {
             padding: 16px !important;
         }
+
+        .card-modern .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 
-    /* Form */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -275,6 +285,12 @@ if (empty($_GET['id'])) {
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
 
+    .form-control-modern:disabled,
+    .form-control-modern[readonly] {
+        background: var(--gray-100);
+        cursor: not-allowed;
+    }
+
     select.form-control-modern {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -283,7 +299,6 @@ if (empty($_GET['id'])) {
         padding-right: 36px;
     }
 
-    /* Radio Group */
     .radio-group-modern {
         display: flex;
         gap: 24px;
@@ -307,7 +322,6 @@ if (empty($_GET['id'])) {
         flex-shrink: 0;
     }
 
-    /* Buttons - Rounded Pill */
     .btn-modern {
         display: inline-flex;
         align-items: center;
@@ -352,28 +366,6 @@ if (empty($_GET['id'])) {
         color: var(--gray-800);
     }
 
-    .btn-modern-success {
-        background: var(--success-color);
-        color: #fff;
-    }
-
-    .btn-modern-success:hover {
-        background: var(--primary-dark);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-1px);
-        color: #fff;
-    }
-
-    .btn-modern-danger {
-        background: var(--danger-color);
-        color: #fff;
-    }
-
-    .btn-modern-danger:hover {
-        background: #DC2626;
-        color: #fff;
-    }
-
     .form-actions {
         display: flex;
         gap: 12px;
@@ -392,19 +384,12 @@ if (empty($_GET['id'])) {
             width: 100%;
             justify-content: center;
         }
-
-        .breadcrumb-wrapper {
-            flex-direction: column;
-            align-items: flex-start;
-        }
     }
 
-    /* Full width for editor */
     .full-width {
         grid-column: 1 / -1;
     }
 
-    /* Status indicator */
     .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -429,7 +414,6 @@ if (empty($_GET['id'])) {
         font-size: 8px;
     }
 
-    /* Help text */
     .form-helper {
         font-size: 12px;
         color: var(--gray-400);
@@ -447,7 +431,42 @@ if (empty($_GET['id'])) {
         font-weight: 500;
     }
 
-    /* Variable Badge Styles - matching follow-up page exactly */
+    .alert-duplicate {
+        background-color: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #991B1B;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .alert-duplicate i {
+        font-size: 18px;
+        color: #DC2626;
+    }
+
+    .alert-success-custom {
+        background-color: #D1FAE5;
+        border: 1px solid #A7F3D0;
+        color: #065F46;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .alert-success-custom i {
+        font-size: 18px;
+        color: #059669;
+    }
+
     .variable-badge {
         background-color: #eef2ff;
         border-radius: 20px;
@@ -510,7 +529,6 @@ if (empty($_GET['id'])) {
         flex-wrap: wrap;
     }
 
-    /* Content editable area - matching follow-up page */
     .content-editable {
         width: 100%;
         min-height: 200px;
@@ -562,7 +580,6 @@ if (empty($_GET['id'])) {
         background-color: #e0e7ff;
     }
 
-    /* Character counter */
     .char-counter {
         font-size: 12px;
         color: var(--gray-400);
@@ -579,45 +596,39 @@ if (empty($_GET['id'])) {
         color: var(--danger-color);
     }
 
-    /* Simple toolbar */
-    .content-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        padding: 8px 12px;
-        background: var(--gray-50);
-        border: 1.5px solid var(--gray-200);
-        border-bottom: none;
-        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    }
-
-    .content-toolbar .btn-toolbar {
-        background: transparent;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        padding: 4px 10px;
+    .breadcrumb-info {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+        border-radius: var(--radius-sm);
+        padding: 8px 16px;
         font-size: 13px;
-        cursor: pointer;
-        color: var(--gray-600);
-        transition: all 0.2s;
-        font-weight: 500;
+        color: #1E40AF;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
     }
 
-    .content-toolbar .btn-toolbar:hover {
-        background: var(--gray-200);
-        border-color: var(--gray-300);
+    .breadcrumb-info i {
+        font-size: 16px;
     }
 
-    .content-toolbar .btn-toolbar.active {
-        background: var(--primary-color);
-        color: #fff;
-        border-color: var(--primary-color);
+    .template-info-box {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        border-radius: var(--radius-sm);
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        grid-column: 1 / -1;
     }
 
-    .content-toolbar .separator {
-        width: 1px;
-        background: var(--gray-300);
-        margin: 0 4px;
+    .template-info-box i {
+        font-size: 16px;
+        color: #22C55E;
     }
 </style>
 
@@ -641,25 +652,72 @@ if (empty($_GET['id'])) {
                         <div class="card-modern">
                             <div class="card-header">
                                 <h5>
-                                    <i class="bi bi-envelope"></i>
-                                    <?= !empty($_GET['id']) ? 'Edit SMS Template' : 'Create New SMS Template' ?>
+                                    <i class="bi bi-chat-dots"></i>
+                                    <?= !empty($_GET['id']) ? 'Edit ' . htmlspecialchars($template_display_name) . ' SMS Template' : 'Create New ' . htmlspecialchars($template_display_name) . ' SMS Template' ?>
                                 </h5>
-                                <?php if (!empty($_GET['id'])): ?>
-                                    <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
-                                        <i class="fas fa-circle"></i>
-                                        <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
-                                    </span>
-                                <?php endif; ?>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <!-- <?php if (!empty($_GET['id']) && !empty($template_display_name)): ?>
+                                        <span class="template-badge">
+                                            <i class="bi bi-tag"></i>
+                                            <?= htmlspecialchars($template_display_name) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($preset_type) && empty($_GET['id'])): ?>
+                                        <span class="template-badge">
+                                            <i class="bi bi-tag"></i>
+                                            <?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?>
+                                        </span>
+                                    <?php endif; ?> -->
+                                    <?php if (!empty($_GET['id'])): ?>
+                                        <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
+                                            <i class="fas fa-circle"></i>
+                                            <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <div class="card-body">
+                                <!-- Show breadcrumb info when coming from "Set up" button -->
+                                <?php if (!empty($preset_type) && !empty($preset_location) && empty($_GET['id'])): ?>
+                                    <div class="breadcrumb-info">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                        Creating a new <strong><?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?></strong> SMS template for <strong><?php
+                                                                                                                                                                        $loc_name = '';
+                                                                                                                                                                        foreach ($locations as $loc) {
+                                                                                                                                                                            if ($loc['PK_LOCATION'] == $preset_location) {
+                                                                                                                                                                                $loc_name = $loc['LOCATION_NAME'];
+                                                                                                                                                                                break;
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                        echo htmlspecialchars($loc_name);
+                                                                                                                                                                        ?></strong>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Display error message if any -->
+                                <?php if (!empty($error_message)): ?>
+                                    <div class="alert-duplicate">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <?= htmlspecialchars($error_message) ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Display success message -->
+                                <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+                                    <div class="alert-success-custom">
+                                        <i class="fas fa-check-circle"></i>
+                                        Template saved successfully!
+                                    </div>
+                                <?php endif; ?>
+
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data" id="templateForm">
 
                                     <div class="form-grid">
-                                        <!-- Template Name -->
+                                        <!-- Template Name - Always disabled -->
                                         <div class="form-group-modern">
                                             <label class="form-label">Template Type <span class="required">*</span></label>
 
-                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required>
+                                            <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required disabled>
                                                 <option value="">Select template type</option>
                                                 <option value="APPOINTMENT_CREATION" <?php echo ($TEMPLATE_NAME == 'APPOINTMENT_CREATION') ? 'selected' : ''; ?>>
                                                     Appointment Creation
@@ -668,23 +726,26 @@ if (empty($_GET['id'])) {
                                                     Enrollment Creation
                                                 </option>
                                             </select>
+                                            <input type="hidden" name="TEMPLATE_NAME" value="<?= htmlspecialchars($TEMPLATE_NAME) ?>">
 
-                                            <div class="form-helper" id="templateTypeHelper">Select whether this template is for an appointment or enrollment</div>
+                                            <div class="form-helper" id="templateTypeHelper">
+                                                Template type is fixed and cannot be changed.
+                                            </div>
                                         </div>
 
-                                        <!-- Location -->
+                                        <!-- Location - Always disabled -->
                                         <div class="form-group-modern">
                                             <label class="form-label">
                                                 Location
                                             </label>
-                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" onchange="selectServiceClass(this)">
-                                                <?php
-                                                $row = $db->Execute("SELECT * FROM DOA_LOCATION WHERE PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND ACTIVE = 1 AND PK_ACCOUNT_MASTER = '$_SESSION[PK_ACCOUNT_MASTER]'");
-                                                while (!$row->EOF) { ?>
-                                                    <option value="<?php echo $row->fields['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $row->fields['PK_LOCATION']) ? 'selected' : '' ?>><?= htmlspecialchars($row->fields['LOCATION_NAME']) ?></option>
-                                                <?php $row->MoveNext();
-                                                } ?>
+                                            <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" disabled>
+                                                <?php foreach ($locations as $loc): ?>
+                                                    <option value="<?php echo $loc['PK_LOCATION']; ?>" <?= ($PK_LOCATION == $loc['PK_LOCATION']) ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($loc['LOCATION_NAME']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
+                                            <input type="hidden" name="PK_LOCATION" value="<?= htmlspecialchars($PK_LOCATION) ?>">
                                             <div class="form-helper">Location for this Template to be Active</div>
                                         </div>
 
@@ -705,21 +766,19 @@ if (empty($_GET['id'])) {
                                             </div>
                                         <?php endif; ?>
 
+                                        <!-- Info Box -->
+                                        <div class="template-info-box">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>
+                                                <strong>Note:</strong> Template type and location are fixed. You can only have <strong>one</strong> SMS template for
+                                                <strong>Appointment Creation</strong> and <strong>one</strong> for
+                                                <strong>Enrollment Creation</strong> per location.
+                                            </span>
+                                        </div>
+
                                         <!-- SMS Content - Full Width with contenteditable -->
                                         <div class="form-group-modern full-width">
                                             <label class="form-label">Text Message <span class="required">*</span></label>
-
-                                            <!-- Simple toolbar for basic formatting -->
-                                            <!-- <div class="content-toolbar">
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('bold', false, null)" title="Bold"><b>B</b></button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('italic', false, null)" title="Italic"><i>I</i></button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('underline', false, null)" title="Underline"><u>U</u></button>
-                                                <span class="separator"></span>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List">•</button>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List">1.</button>
-                                                <span class="separator"></span>
-                                                <button type="button" class="btn-toolbar" onclick="document.execCommand('createLink', false, prompt('Enter URL:'))" title="Insert Link">🔗</button>
-                                            </div> -->
 
                                             <!-- Content editable div -->
                                             <div class="content-editable" contenteditable="true" id="contentEditable"><?= htmlspecialchars_decode($CONTENT) ?></div>
@@ -780,15 +839,13 @@ if (empty($_GET['id'])) {
     <?php require_once('../includes/footer.php'); ?>
 
     <script>
-        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV (same as follow-up page) ---
+        // --- INSERT VARIABLE INTO CONTENTEDITABLE DIV ---
         function insertVariable(varName) {
             const editable = document.getElementById('contentEditable');
             if (!editable) return;
 
-            // Focus on the editable div
             editable.focus();
 
-            // Get the current selection or create one at the end
             const selection = window.getSelection();
             let range;
 
@@ -801,28 +858,23 @@ if (empty($_GET['id'])) {
                 selection.addRange(range);
             }
 
-            // Create the variable badge span (matching follow-up page exactly)
             const variableSpan = document.createElement('span');
             variableSpan.className = 'variable-badge';
             variableSpan.setAttribute('contenteditable', 'false');
             variableSpan.textContent = varName;
 
-            // Insert at cursor position
             range.deleteContents();
             range.insertNode(variableSpan);
 
-            // Add a space after the variable
             const spaceNode = document.createTextNode('\u00A0');
             range.setStartAfter(variableSpan);
             range.insertNode(spaceNode);
 
-            // Move cursor after the space
             range.setStartAfter(spaceNode);
             range.collapse(true);
             selection.removeAllRanges();
             selection.addRange(range);
 
-            // Update hidden input and character counter
             updateContentInput();
             updateCharCounter();
         }
@@ -842,13 +894,11 @@ if (empty($_GET['id'])) {
             const counter = document.getElementById('charCounter');
             if (!editable || !counter) return;
 
-            // Get text content (excluding HTML tags)
             const text = editable.innerText || '';
             const charCount = text.length;
 
             counter.textContent = charCount + ' characters';
 
-            // Add warning/ danger classes based on count
             counter.classList.remove('warning', 'danger');
             if (charCount > 140) {
                 counter.classList.add('warning');
@@ -858,8 +908,7 @@ if (empty($_GET['id'])) {
             }
         }
 
-        // --- VARIABLE BUTTON HANDLERS (same as follow-up page) ---
-        // Use event delegation for variable buttons
+        // --- VARIABLE BUTTON HANDLERS ---
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.var-btn');
             if (btn) {
@@ -875,27 +924,15 @@ if (empty($_GET['id'])) {
             updateCharCounter();
         });
 
-        // --- FORM VALIDATION ---
+        // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
-            const templateName = document.getElementById('TEMPLATE_NAME');
             const editable = document.getElementById('contentEditable');
             const content = editable ? editable.innerHTML.trim() : '';
-            const helper = document.getElementById('templateTypeHelper');
 
             let isValid = true;
 
             // Update hidden input before validation
             updateContentInput();
-
-            // Check if template type is selected
-            if (!templateName.value.trim()) {
-                templateName.classList.add('is-invalid');
-                helper.textContent = 'Please select a template type';
-                helper.className = 'form-helper error';
-                isValid = false;
-            } else {
-                templateName.classList.remove('is-invalid');
-            }
 
             // Check if content is filled
             const isEmpty = !content || content === '<p><br></p>' || content === '<br>' || content === '<div><br></div>';
@@ -926,16 +963,12 @@ if (empty($_GET['id'])) {
             input.addEventListener('input', function() {
                 if (this.value.trim()) {
                     this.classList.remove('is-invalid');
-                    const helper = document.getElementById('templateTypeHelper');
-                    helper.textContent = 'Select whether this template is for an appointment or enrollment';
-                    helper.className = 'form-helper';
                 }
             });
         });
 
-        // Initialize character counter on page load
+        // Initialize content from hidden input
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize content from hidden input
             const editable = document.getElementById('contentEditable');
             const hiddenInput = document.getElementById('CONTENT');
             if (editable && hiddenInput && !editable.innerHTML.trim()) {

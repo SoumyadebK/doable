@@ -19,7 +19,7 @@ if ($header_data->RecordCount() > 0) {
 
 // Get all locations - store in array
 $locations_data = [];
-$locations_query = "SELECT PK_LOCATION, LOCATION_NAME FROM $master_database.DOA_LOCATION WHERE ACTIVE = 1 AND PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']);
+$locations_query = "SELECT PK_LOCATION, LOCATION_NAME FROM $master_database.DOA_LOCATION WHERE ACTIVE = 1 AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']);
 $locations = $db->Execute($locations_query);
 if ($locations && !$locations->EOF) {
     while (!$locations->EOF) {
@@ -33,7 +33,7 @@ if ($locations && !$locations->EOF) {
 
 // Get all email templates for these locations
 $templates_query = "SELECT * FROM DOA_EMAIL_TEMPLATE 
-                    WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']);
+                    WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")";
 $all_templates = $db_account->Execute($templates_query);
 
 // Build a map of templates by location and type
@@ -83,6 +83,7 @@ foreach ($locations_data as $location) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> - Setup Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="assets/css/setup-styles.css" rel="stylesheet">
