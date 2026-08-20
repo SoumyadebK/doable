@@ -300,7 +300,20 @@ if ($appointment_type == 'TO-DO' || $appointment_type == '') {
 }
 
 if ($appointment_type == 'EVENT' || $appointment_type == '') {
-    $service_provider_data = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS NAME FROM DOA_USERS INNER JOIN DOA_USER_ROLES ON DOA_USERS.PK_USER = DOA_USER_ROLES.PK_USER INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER WHERE DOA_USER_ROLES.PK_ROLES = 5 AND ACTIVE = 1 AND DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $SERVICE_PROVIDER_ID . " AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . " ORDER BY DISPLAY_ORDER");
+    $service_provider_data = $db->Execute("SELECT DISTINCT
+                                                DOA_USERS.PK_USER,
+                                                CONCAT(
+                                                    DOA_USERS.FIRST_NAME,
+                                                    ' ',
+                                                    DOA_USERS.LAST_NAME
+                                                ) AS NAME,
+                                                DOA_USERS.DISPLAY_ORDER
+                                            FROM
+                                                DOA_USERS
+                                            INNER JOIN DOA_USER_LOCATION ON DOA_USERS.PK_USER = DOA_USER_LOCATION.PK_USER
+                                            WHERE DOA_USERS.APPEAR_IN_CALENDAR = 1 AND DOA_USERS.ACTIVE = 1 AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_LOCATION.PK_LOCATION IN( " . $DEFAULT_LOCATION_ID . " )
+                                            AND DOA_USERS.PK_ACCOUNT_MASTER = " . $_SESSION['PK_ACCOUNT_MASTER'] . "
+                                            ORDER BY DOA_USERS.DISPLAY_ORDER ASC");
     $resourceIdArray = [];
     while (!$service_provider_data->EOF) {
         $resourceIdArray[] = $service_provider_data->fields['PK_USER'];
@@ -319,14 +332,14 @@ if ($appointment_type == 'EVENT' || $appointment_type == '') {
         $start_end_time_diff = strtotime($END_DATE . ' ' . $END_TIME) - strtotime($event_data->fields['START_DATE'] . ' ' . $event_data->fields['START_TIME']);
 
         $appointment_array[] = [
-            'id' => $event_data->fields['PK_EVENT'],
+            'id' => (int) $event_data->fields['PK_EVENT'],
             'resourceIds' => $resourceIdArray,
             'title' => $event_data->fields['HEADER'],
-            'start' => date("Y-m-d", strtotime($event_data->fields['START_DATE'])) . 'T' . date("H:i:s", strtotime($event_data->fields['START_TIME'])),
-            'end' => date("Y-m-d", strtotime($event_data->fields['END_DATE'])) . 'T' . date("H:i:s", strtotime($event_data->fields['END_TIME'])),
+            'start' => date("Y-m-d", strtotime($event_data->fields['START_DATE'])),
+            'end' => date("Y-m-d", strtotime($event_data->fields['END_DATE'])),
             'color' => $event_data->fields['COLOR_CODE'],
             'type' => 'event',
-            'allDay' => (($event_data->fields['ALL_DAY'] == 1) ? 1 : (($start_end_time_diff >= $open_close_time_diff) ? 1 : 0)),
+            'allDay' => (($event_data->fields['ALL_DAY'] == 1) ? true : (($start_end_time_diff >= $open_close_time_diff) ? true : false)),
             'status' => '',
             'statusColor' => '',
             'comment' => '',
