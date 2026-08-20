@@ -196,7 +196,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                             </svg>
                                         </button>
                                     </th>
-                                    <th></th>
+                                    <!-- <th></th> -->
                                 </tr>
                             </thead>
 
@@ -274,7 +274,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                             <?php } ?>
                                         </td>
 
-                                        <td class="text-center" style="vertical-align: middle;">
+                                        <!-- <td class="text-center" style="vertical-align: middle;">
                                             <a href="customer.php?id=<?= $customer_data->fields['PK_USER'] ?>&master_id=<?= $PK_USER_MASTER ?>">
                                                 <button type="button" class="bg-transparent p-0 border-0">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1rem" height="1rem" fill="CurrentColor">
@@ -284,7 +284,7 @@ $USER_INACTIVE_DAYS = ($location_data->fields['USER_INACTIVE_DAYS'] > 0) ? $loca
                                                     </svg>
                                                 </button>
                                             </a>
-                                        </td>
+                                        </td> -->
                                     </tr>
                                 <?php $customer_data->MoveNext();
                                     $i++;
