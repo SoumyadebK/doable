@@ -61,18 +61,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 <script src='../assets/full_calendar_new/moment.min.js'></script>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.4.0/main.min.css">
+<link href='../assets/fullcalendar4/fullcalendar.min.css' rel='stylesheet' />
+<link href='../assets/fullcalendar4/scheduler.min.css' rel='stylesheet' />
 
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-common@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-daygrid@4.4.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/resource-timegrid@4.4.0/main.min.js"></script>
-
+<script src='../assets/fullcalendar4/fullcalendar.min.js'></script>
+<script src='../assets/fullcalendar4/scheduler.min.js'></script>
 
 <style>
     .fc-basic-view .fc-day-number {
@@ -663,8 +656,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
 
 
             <button class="chip m-r-15" onclick="todayDate = new Date(); renderCalendar(todayDate);">Today</button>
-            <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'resourceTimeGridDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
-            <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'resourceTimeGridDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+            <button class="chip chip-icon" id="prevDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() - 1); renderCalendar(todayDate); } else { calendar.prev(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+            <button class="chip chip-icon m-r-20" id="nextDay" onclick="if(calendar.view.type === 'agendaDay') { todayDate.setDate(todayDate.getDate() + 1); renderCalendar(todayDate); } else { calendar.next(); setTimeout(function() { updateChooseDateInput(); }, 100); }"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
 
             <form id="search_form">
                 <input type="hidden" id="IS_SELECTED" value="0">
@@ -714,9 +707,9 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             </form>
 
             <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto;">
-                <button class="view-btn active" data-view="day" onclick="changeView('resourceTimeGridDay')">Day</button>
-                <button class="view-btn" data-view="week" onclick="changeView('timeGridWeek')">Week</button>
-                <button class="view-btn" data-view="month" onclick="changeView('dayGridMonth')">Month</button>
+                <button class="view-btn active" data-view="day" onclick="changeView('agendaDay')">Day</button>
+                <button class="view-btn" data-view="week" onclick="changeView('agendaWeek')">Week</button>
+                <button class="view-btn" data-view="month" onclick="changeView('month')">Month</button>
             </div>
 
             <div class="view-toggle m-r-15" style="height: 37px;">
@@ -1027,7 +1020,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });
 
         let calendar;
-        let externalEventsDraggable = null;
         let redirect_date = '<?= $redirect_date ?>';
         let todayDate = redirect_date ? (parseYMDDate(redirect_date) || new Date()) : new Date();
         const dayConfigs = <?= json_encode($dayConfig) ?>;
@@ -1061,52 +1053,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             return available > 400 ? available : 400; // ensure a minimum usable height
         }
 
-        function getExternalEventTitle(eventEl) {
-            // The close button is nested inside the draggable element. Reading
-            // innerText would include its multiplication sign in the event title.
-            const textNodes = Array.from(eventEl.childNodes)
-                .filter(node => node.nodeType === Node.TEXT_NODE)
-                .map(node => node.textContent.trim())
-                .filter(Boolean);
-
-            return textNodes.join(' ') || eventEl.innerText.trim();
-        }
-
-        function parseExternalEventDuration(value) {
-            if (!value) {
-                return null;
-            }
-
-            const duration = String(value).trim();
-
-            // Existing API data commonly supplies minutes as either "30" or
-            // "30:00". Duration objects avoid invalid strings such as "00:60".
-            if (/^\d+$/.test(duration)) {
-                return {
-                    minutes: Number(duration)
-                };
-            }
-
-            const parts = duration.split(':');
-            if (parts.length === 2 && parts.every(part => /^\d+$/.test(part))) {
-                return {
-                    minutes: Number(parts[0]),
-                    seconds: Number(parts[1])
-                };
-            }
-
-            if (parts.length === 3 && parts.every(part => /^\d+$/.test(part))) {
-                return {
-                    hours: Number(parts[0]),
-                    minutes: Number(parts[1]),
-                    seconds: Number(parts[2])
-                };
-            }
-
-            console.warn('Ignoring invalid external event duration:', value);
-            return null;
-        }
-
         function renderCalendar(date) {
             const day = date.getDay();
             const config = dayConfigs[day] || {
@@ -1127,40 +1073,44 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             }
 
             let clickCount = 0;
+            var Draggable = FullCalendar.Draggable;
 
             var containerEl = document.getElementById('external-events');
             var calendarEl = document.getElementById('calendar');
             var checkbox = document.getElementById('drop-remove');
 
-            // Stable FullCalendar v4 exposes external dragging through the
-            // separately loaded interaction plugin. The external-events DOM node
-            // survives calendar.destroy(), so initialize its Draggable only once.
-            if (!externalEventsDraggable) {
-                if (typeof FullCalendarInteraction === 'undefined' ||
-                    typeof FullCalendarInteraction.Draggable !== 'function') {
-                    throw new Error('FullCalendar v4 interaction plugin is not loaded.');
-                }
+            // new Draggable(containerEl, {
+            //     itemSelector: '.fc-event',
+            //     eventData: function(eventEl) {
+            //         let color = eventEl.attributes["data-color"].value;
+            //         let type = eventEl.attributes["data-type"].value;
+            //         let duration = eventEl.attributes["data-duration"].value;
+            //         return {
+            //             title: eventEl.innerText,
+            //             backgroundColor: color,
+            //             type: type,
+            //             duration: '00:'+duration
+            //         };
+            //     }
+            // });
 
-                externalEventsDraggable = new FullCalendarInteraction.Draggable(containerEl, {
-                    itemSelector: '.fc-event[data-id]',
+            // Initialize Draggable only once
+            if (!containerEl.dataset.draggableInitialized) {
+                new FullCalendar.Draggable(containerEl, {
+                    itemSelector: '.fc-event',
                     eventData: function(eventEl) {
-                        const durationValue = eventEl.getAttribute('data-duration');
-                        const eventData = {
-                            title: getExternalEventTitle(eventEl),
-                            backgroundColor: eventEl.getAttribute('data-color') || undefined,
-                            extendedProps: {
-                                type: eventEl.getAttribute('data-type') || ''
-                            }
+                        let color = eventEl.attributes["data-color"].value;
+                        let type = eventEl.attributes["data-type"].value;
+                        let duration = eventEl.attributes["data-duration"].value;
+                        return {
+                            title: eventEl.innerText,
+                            backgroundColor: color,
+                            type: type,
+                            duration: '00:' + duration
                         };
-
-                        const parsedDuration = parseExternalEventDuration(durationValue);
-                        if (parsedDuration) {
-                            eventData.duration = parsedDuration;
-                        }
-
-                        return eventData;
                     }
                 });
+                containerEl.dataset.draggableInitialized = true; // Mark as initialized
             }
 
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
@@ -1172,21 +1122,14 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 /* header: {
                     left: 'customToday,customPrev,customNext',
                     center: 'title',
-                    right: 'resourceTimeGridDay,timeGridWeek,month,'
+                    right: 'agendaDay,agendaWeek,month,'
                 }, */
                 header: false,
-                plugins: [
-                    'interaction',
-                    'dayGrid',
-                    'timeGrid',
-                    'resourceDayGrid',
-                    'resourceTimeGrid'
-                ],
                 customButtons: {
                     customPrev: {
                         text: '<',
                         click: function() {
-                            if (calendar.view.type == 'resourceTimeGridDay') {
+                            if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() - 1);
                                 renderCalendar(todayDate);
                                 //calendar.gotoDate(todayDate);
@@ -1198,7 +1141,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     customNext: {
                         text: '>',
                         click: function() {
-                            if (calendar.view.type == 'resourceTimeGridDay') {
+                            if (calendar.view.type == 'agendaDay') {
                                 todayDate.setDate(todayDate.getDate() + 1);
                                 renderCalendar(todayDate);
                                 //calendar.gotoDate(todayDate);
@@ -1220,10 +1163,10 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 /*header: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'resourceTimeGridDay,timeGridWeek,month,'
+                    right: 'agendaDay,agendaWeek,month,'
                 },*/
                 views: {
-                    resourceTimeGridDay: {
+                    agendaDay: {
                         titleFormat: {
                             year: 'numeric',
                             month: 'long',
@@ -1233,7 +1176,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
                 },
                 defaultDate: date,
-                defaultView: 'resourceTimeGridDay',
+                defaultView: 'agendaDay',
                 slotDuration: '<?= $INTERVAL ?>',
                 slotLabelInterval: {
                     minutes: 60
@@ -1249,7 +1192,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                 droppable: true,
                 allDaySlot: true,
                 drop: function(info) {
-                    if (checkbox && checkbox.checked) {
+                    if (checkbox.checked) {
                         info.draggedEl.parentNode.removeChild(info.draggedEl);
                         copyAppointment(info, 'move');
                     } else {
@@ -1279,7 +1222,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         success: function(result) {
                             console.log(result);
                             successCallback(result);
-                            if ((selected_service_provider.length > 1) && (calendar.view.type === 'timeGridWeek')) {
+                            if ((selected_service_provider.length > 1) && (calendar.view.type === 'agendaWeek')) {
                                 calendar.setOption('editable', false);
                             } else {
                                 if (selected_service_provider.length === 1) {
@@ -1287,8 +1230,8 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                                 }
                             }
                             //getServiceProviderCount();
-                            if (calendar.view.type === 'dayGridMonth') {
-                                calendar.changeView('dayGridMonth');
+                            if (calendar.view.type === 'month') {
+                                calendar.changeView('month');
                             }
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
@@ -1462,23 +1405,23 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         });
                         let appointment_type = info.event.extendedProps.type;
                         if (appointment_type !== 'not_available') {
-                            if (calendar.view.type === 'timeGridWeek' && move_copy) {
+                            if (calendar.view.type === 'agendaWeek' && move_copy) {
                                 if (selected_service_provider.length === 1) {
                                     $('#calendar-container').removeClass('col-12').addClass('col-10');
                                     let event_data = info.event;
                                     let event_data_ext_prop = info.event.extendedProps;
                                     let TYPE = event_data_ext_prop.type;
 
-                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='cursor: pointer; background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
                                 }
                             } else {
-                                if (calendar.view.type === 'resourceTimeGridDay') {
+                                if (calendar.view.type === 'agendaDay') {
                                     $('#calendar-container').removeClass('col-12').addClass('col-10');
                                     let event_data = info.event;
                                     let event_data_ext_prop = info.event.extendedProps;
                                     let TYPE = event_data_ext_prop.type;
 
-                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='cursor: pointer; background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
+                                    $('#external-events').show().addClass('col-2').append("<div class='fc-event fc-h-event' data-id='" + event_data.id + "' data-duration='" + event_data_ext_prop.duration + "' data-color='" + event_data.backgroundColor + "' data-type='" + TYPE + "' style='background-color: " + event_data.backgroundColor + ";'>" + event_data.title + "<span><a href='javascript:;' onclick='removeFromHere(this)' style='float: right; font-size: 25px; margin-top: -6px;'>&times;</a></span></div>");
                                 }
                             }
                         }
@@ -1628,7 +1571,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         // Function to update and position the current time indicator line
         function updateCurrentTimeIndicator() {
             // Show indicator for day view on any date
-            if (calendar.view.type !== 'resourceTimeGridDay') {
+            if (calendar.view.type !== 'agendaDay') {
                 // Remove indicator if not in day view
                 const existingIndicator = document.querySelector('.fc-current-time-indicator');
                 if (existingIndicator) {
@@ -1924,17 +1867,17 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         });*/
 
 
-        $(document).on('click', '.fc-resourceTimeGridDay-button', function() {
+        $(document).on('click', '.fc-agendaDay-button', function() {
             window.location.reload();
             /*calendar.setOption('editable', true);
             getServiceProviderCount();*/
         });
 
-        $(document).on('click', '.fc-timeGridWeek-button', function() {
+        $(document).on('click', '.fc-agendaWeek-button', function() {
             calendar.setOption('editable', false);
         });
 
-        $(document).on('click', '.fc-dayGridMonth-button', function() {
+        $(document).on('click', '.fc-month-button', function() {
             calendar.setOption('editable', false);
         });
 
@@ -1963,12 +1906,11 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         function changeView(view) {
             // Update active button styling
             $('.view-btn').removeClass('active');
-
+            $('[data-view="' + view.replace('agenda', '').toLowerCase() + '"]').addClass('active');
 
             // Change calendar view
-            if (view === 'resourceTimeGridDay') {
-                $('[data-view="day"]').addClass('active');
-                calendar.changeView('resourceTimeGridDay');
+            if (view === 'agendaDay') {
+                calendar.changeView('agendaDay');
                 updateChooseDateInput(todayDate);
                 // Update current time indicator for day view
                 setTimeout(() => {
@@ -2012,15 +1954,13 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         scrollToCurrentTimeIndicator(position);
                     }
                 }, 300);
-            } else if (view === 'timeGridWeek') {
-                $('[data-view="week"]').addClass('active');
-                calendar.changeView('timeGridWeek');
+            } else if (view === 'agendaWeek') {
+                calendar.changeView('agendaWeek');
                 setTimeout(function() {
                     updateChooseDateInput(todayDate);
                 }, 100);
-            } else if (view === 'dayGridMonth') {
-                $('[data-view="month"]').addClass('active');
-                calendar.changeView('dayGridMonth');
+            } else if (view === 'month') {
+                calendar.changeView('month');
                 setTimeout(function() {
                     updateChooseDateInput(todayDate);
                 }, 100);
@@ -2269,7 +2209,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                     }
 
 
-                    if (calendar_view === 'dayGridMonth') {
+                    if (calendar_view === 'month') {
                         $('#week_count_btn').text('M');
                     } else {
                         $('#week_count_btn').text('W');

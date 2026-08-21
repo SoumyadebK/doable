@@ -279,15 +279,25 @@ if ($DAYS === 1 && count($LOCATION_ARRAY) === 1) {
 if ($appointment_type == 'TO-DO' || $appointment_type == '') {
     $special_appointment_data = $db_account->Execute($SPECIAL_APPOINTMENT_QUERY);
     while (!$special_appointment_data->EOF) {
+        if ($special_appointment_data->fields['ALL_DAY'] == 1) {
+            $allDay = true;
+            $start = date("Y-m-d", strtotime($special_appointment_data->fields['DATE']));
+            $end = date("Y-m-d", strtotime($special_appointment_data->fields['DATE']));
+        } else {
+            $allDay = false;
+            $start = date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME']));
+            $end = date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME']));
+        }
         preg_match_all("/\\((.*?)\\)/", $special_appointment_data->fields['TITLE'], $statusCode);
         $appointment_array[] = [
             'id' => $special_appointment_data->fields['PK_SPECIAL_APPOINTMENT'],
             'resourceIds' => explode(',', $special_appointment_data->fields['SERVICE_PROVIDER_ID']),
             'title' => ($special_appointment_data->fields['TITLE']) ? preg_replace("/\([^)]+\)/", "", $special_appointment_data->fields['TITLE']) : $special_appointment_data->fields['SCHEDULING_NAME'],
-            'start' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['START_TIME'])),
-            'end' => date("Y-m-d", strtotime($special_appointment_data->fields['DATE'])) . 'T' . date("H:i:s", strtotime($special_appointment_data->fields['END_TIME'])),
+            'start' => $start,
+            'end' => $end,
             'color' => $special_appointment_data->fields['COLOR_CODE'],
             'type' => 'special_appointment',
+            'allDay' => $allDay,
             /*'status' => $special_appointment_data->fields['STATUS_CODE'],
             'statusColor' => $special_appointment_data->fields['APPOINTMENT_COLOR'],*/
             'comment' => $special_appointment_data->fields['DESCRIPTION'],
