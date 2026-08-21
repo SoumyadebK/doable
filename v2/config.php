@@ -25,7 +25,7 @@
 define('DB_HOST', 'localhost');          // e.g. 'your-db.abcdefg.us-east-1.rds.amazonaws.com'
 define('DB_NAME', 'DOA_MASTER');             // the database name you created
 define('DB_USER', 'root');        // database username
-define('DB_PASS', 'b54eawxj5h8ev');          // database password
+define('DB_PASS', '');          // database password
 define('DB_PORT', '3306');               // MySQL port (usually 3306)
 define('DB_CHARSET', 'utf8mb4');
 
