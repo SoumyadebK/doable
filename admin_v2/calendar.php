@@ -1269,17 +1269,6 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
                         success: function(result) {
                             console.log(result);
                             successCallback(result);
-
-                            setTimeout(function() {
-                                const event = calendar.getEventById('22');
-
-                                console.log({
-                                    start: event?.start,
-                                    end: event?.end,
-                                    allDay: event?.allDay,
-                                    resources: event?.getResources().map(resource => resource.id)
-                                });
-                            }, 100);
                         },
                         error: function(xhr, ajaxOptions, thrownError) {
                             console.log(xhr.status);
