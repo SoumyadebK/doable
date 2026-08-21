@@ -845,9 +845,16 @@ if ($PK_USER_MASTER > 0) {
 
             <div class="container-fluid mt-4">
                 <div class="card-box" style="margin-top: 20px;">
-                    <a href="all_customers.php" class="d-flex mb-2 px-3">
+                    <a href="all_customers.php"
+                        class="d-inline-flex align-items-center mb-2 px-3"
+                        style="width: fit-content;">
+
                         <i class="bi bi-chevron-left font-12"></i>
-                        <h6 style="margin-top: 2px; margin-left: 10px;">Customers</h6>
+
+                        <h6 style="margin-top: 2px; margin-left: 10px; margin-bottom: 0;">
+                            Customers
+                        </h6>
+
                     </a>
                     <div class="d-flex justify-content-between align-items-center mb-0 pb-2 border-bottom px-3">
                         <div class="d-flex align-items-center">

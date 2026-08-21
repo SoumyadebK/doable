@@ -1037,7 +1037,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                             <div id="stripe" class="gateway-section <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'active' : '' ?>">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Secret Key</label>
-                                                                    <input type="text" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>" autocomplete="off">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Publishable Key</label>

@@ -393,6 +393,21 @@ if (!empty($_GET['id'])) {
     $MESSAGE_NOTIFICATIONS = array();
     $MESSAGE_TYPES = array();
 }
+
+// Handle delete request
+if (isset($_GET['delete']) && isset($_GET['id'])) {
+    $automation_id = intval($_GET['id']);
+    $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
+
+    // Delete associated messages first
+    $db_account->Execute("DELETE FROM DOA_AUTOMATION_MESSAGES WHERE PK_AUTOMATION_ID = '$automation_id'");
+
+    // Delete the automation
+    $db_account->Execute("DELETE FROM DOA_AUTOMATIONS WHERE PK_AUTOMATION_ID = '$automation_id' AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
+
+    header("location:all_follow_ups.php?deleted=1");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -911,6 +926,8 @@ if (!empty($_GET['id'])) {
                                         </div>
                                         <div class="selected-count" id="selectedCount"></div>
                                         <small class="text-muted">Check the boxes to select multiple services</small>
+                                    <?php elseif ($AUTOMATION['TRIGGER_TYPE'] == 'NO_ACTIVE_ENROLLMENTS' || $AUTOMATION['TRIGGER_TYPE'] == 'NEW_LEAD_IS_GENERATED'): ?>
+                                        <!-- No dropdown - empty container -->
                                     <?php else: ?>
                                         <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
                                             <option value="PRIVATE_CLASS" <?= $AUTOMATION['TRIGGER_VALUE'] == 'PRIVATE_CLASS' ? 'selected' : '' ?>>Private class</option>
@@ -998,7 +1015,7 @@ if (!empty($_GET['id'])) {
                         <div class="mt-4 text-center">
                             <button type="submit" class="btn btn-save-automation w-100 py-2 fw-semibold mb-3">Save Automation</button>
                             <?php if (!empty($_GET['id'])): ?>
-                                <button type="button" id="deleteAutomationBtn" class="btn btn-link text-danger text-decoration-none small d-block mx-auto" onclick="if(confirm('Are you sure you want to delete this automation?')) window.location.href='delete_automation.php?id=<?= $_GET['id'] ?>'">Delete Automation</button>
+                                <button type="button" id="deleteAutomationBtn" class="btn btn-link text-danger text-decoration-none small d-block mx-auto" onclick="if(confirm('Are you sure you want to delete this automation? This action cannot be undone.')) window.location.href='?delete=1&id=<?= $_GET['id'] ?>'">Delete Automation</button>
                             <?php endif; ?>
                         </div>
                     </form>
@@ -1092,23 +1109,23 @@ if (!empty($_GET['id'])) {
                 rowDiv.className = 'row align-items-center g-2 mb-3 reminder-row';
                 rowDiv.setAttribute('data-id', rem.id);
                 rowDiv.innerHTML = `
-                    <div class="col-1 text-dark small fw-medium ps-2">${idx+1}</div>
-                    <div class="col-1 d-flex justify-content-center">
-                        <div class="m-0 p-0">
-                            <input class="reminder-enabled form-check-input" type="checkbox" ${rem.enabled ? 'checked' : ''}>
-                        </div>
+                <div class="col-1 text-dark small fw-medium ps-2">${idx+1}</div>
+                <div class="col-1 d-flex justify-content-center">
+                    <div class="m-0 p-0">
+                        <input class="reminder-enabled form-check-input" type="checkbox" ${rem.enabled ? 'checked' : ''}>
                     </div>
-                    <div class="col-2 d-flex align-items-center gap-2 flex-wrap">
-                        <input type="number" class="form-control form-control-inline bg-light text-center reminder-value" value="${rem.value}" style="width:75px" min="1">
-                        <select class="form-select form-select-inline bg-light reminder-unit" style="width:80px">
-                            <option value="Days" ${rem.unit === 'Days' ? 'selected' : ''}>Days</option>
-                            <option value="Weeks" ${rem.unit === 'Weeks' ? 'selected' : ''}>Weeks</option>
-                        </select>
-                    </div>
-                    <div class="col-1 text-center">
-                        <button type="button" class="btn btn-link p-0 text-muted delete-reminder-btn"><i class="bi bi-trash3"></i></button>
-                    </div>
-                `;
+                </div>
+                <div class="col-2 d-flex align-items-center gap-2 flex-wrap">
+                    <input type="number" class="form-control form-control-inline bg-light text-center reminder-value" value="${rem.value}" style="width:75px" min="1">
+                    <select class="form-select form-select-inline bg-light reminder-unit" style="width:80px">
+                        <option value="Days" ${rem.unit === 'Days' ? 'selected' : ''}>Days</option>
+                        <option value="Weeks" ${rem.unit === 'Weeks' ? 'selected' : ''}>Weeks</option>
+                    </select>
+                </div>
+                <div class="col-1 text-center">
+                    <button type="button" class="btn btn-link p-0 text-muted delete-reminder-btn"><i class="bi bi-trash3"></i></button>
+                </div>
+            `;
 
                 const delBtn = rowDiv.querySelector('.delete-reminder-btn');
                 delBtn.addEventListener('click', (e) => {
@@ -1345,80 +1362,76 @@ if (!empty($_GET['id'])) {
                 };
 
                 let msgType = messageTypes[i - 1] || 'SMS';
-                // If msgType is INTERNAL or empty, default to SMS for display
                 if (msgType === 'INTERNAL' || !msgType) {
                     msgType = 'SMS';
                 }
-                // Split for checkbox checking
                 const msgTypesArray = msgType.split(',');
 
                 const accordionItem = document.createElement('div');
                 accordionItem.className = 'accordion-item mb-2 border rounded-3 overflow-hidden';
                 accordionItem.innerHTML = `
-                    <h2 class="accordion-header d-flex align-items-center gap-2 pe-2">
-                        <button class="accordion-button ${i === 1 ? '' : 'collapsed'} flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
-                            Follow up ${i}
-                        </button>
-                                               
-                    </h2>
-                    <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
-                        <div class="accordion-body p-3 pt-1">
-                            <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
-                                <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">${messageContent}</div>
-                            </div>
-                            
-                            <!-- Notification Settings for this message -->
-                            <div class="notification-settings mb-3 p-2 bg-light rounded-2">
-                                <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to: 
-                                    <span class="text-muted" style="font-size: 0.7rem;">
-                                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                        title="Service Providers and Studio Managers receive notifications through the internal message system only. SMS/Email options are available when Customer is selected."></i>
-                                    </span>
+                <h2 class="accordion-header d-flex align-items-center gap-2 pe-2">
+                    <button class="accordion-button ${i === 1 ? '' : 'collapsed'} flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${i}">
+                        Follow up ${i}
+                    </button>
+                </h2>
+                <div id="collapse${i}" class="accordion-collapse collapse ${i === 1 ? 'show' : ''}" data-bs-parent="#messagesAccordion">
+                    <div class="accordion-body p-3 pt-1">
+                        <div class="textarea-container p-2 border rounded-2 mb-2 bg-white">
+                            <div class="editable-content-area" contenteditable="true" data-msg-index="${i}">${messageContent}</div>
+                        </div>
+                        
+                        <div class="notification-settings mb-3 p-2 bg-light rounded-2">
+                            <span class="text-muted extra-small d-block mb-2 fw-semibold">Send this follow-up to: 
+                                <span class="text-muted" style="font-size: 0.7rem;">
+                                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Service Providers and Studio Managers receive notifications through the internal message system only. SMS/Email options are available when Customer is selected."></i>
                                 </span>
-                                <div class="d-flex flex-wrap gap-3">
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Customer</label>
-                                    </div>
-                                    <div class="msg-type-container" style="display: ${notif.notify_customer ? 'flex' : 'none'}; align-items: center; gap: 8px;">
-                                        <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem;">
-                                            <div class="form-check form-check-inline m-0">
-                                                <input class="form-check-input msg-type-checkbox" type="checkbox" value="SMS" id="msg_sms_${i}" ${msgTypesArray.includes('SMS') ? 'checked' : ''}>
-                                                <label class="form-check-label small" for="msg_sms_${i}">SMS</label>
-                                            </div>
-                                            <div class="form-check form-check-inline m-0">
-                                                <input class="form-check-input msg-type-checkbox" type="checkbox" value="EMAIL" id="msg_email_${i}" ${msgTypesArray.includes('EMAIL') ? 'checked' : ''}>
-                                                <label class="form-check-label small" for="msg_email_${i}">Email</label>
-                                            </div>
-                                        </div>
-                                    </div> 
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
-                                    </div>
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-provider-enroll" type="checkbox" role="switch" ${notif.notify_service_provider_enroll ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Service Provider (Enrollment)</label>
-                                    </div>
-                                    <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
-                                        <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
-                                        <label class="form-check-label text-dark small">Studio Manager</label>
-                                    </div>
-                                </div>                                
-                            </div>
-                            
-                            <div class="variables-section">
-                                <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
-                                <div class="d-flex flex-wrap gap-1">
-                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
-                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
-                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
-                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
+                            </span>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                    <input class="form-check-input m-0 msg-notify-customer" type="checkbox" role="switch" ${notif.notify_customer ? 'checked' : ''}>
+                                    <label class="form-check-label text-dark small">Customer</label>
                                 </div>
+                                <div class="msg-type-container" style="display: ${notif.notify_customer ? 'flex' : 'none'}; align-items: center; gap: 8px;">
+                                    <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input msg-type-checkbox" type="checkbox" value="SMS" id="msg_sms_${i}" ${msgTypesArray.includes('SMS') ? 'checked' : ''}>
+                                            <label class="form-check-label small" for="msg_sms_${i}">SMS</label>
+                                        </div>
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input msg-type-checkbox" type="checkbox" value="EMAIL" id="msg_email_${i}" ${msgTypesArray.includes('EMAIL') ? 'checked' : ''}>
+                                            <label class="form-check-label small" for="msg_email_${i}">Email</label>
+                                        </div>
+                                    </div>
+                                </div> 
+                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                    <input class="form-check-input m-0 msg-notify-provider-last" type="checkbox" role="switch" ${notif.notify_service_provider_last ? 'checked' : ''}>
+                                    <label class="form-check-label text-dark small">Service Provider (Last Class)</label>
+                                </div>
+                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                    <input class="form-check-input m-0 msg-notify-provider-enroll" type="checkbox" role="switch" ${notif.notify_service_provider_enroll ? 'checked' : ''}>
+                                    <label class="form-check-label text-dark small">Service Provider (Enrollment)</label>
+                                </div>
+                                <div class="form-check form-switch custom-switch d-flex align-items-center gap-2 m-0 p-0">
+                                    <input class="form-check-input m-0 msg-notify-manager" type="checkbox" role="switch" ${notif.notify_studio_manager ? 'checked' : ''}>
+                                    <label class="form-check-label text-dark small">Studio Manager</label>
+                                </div>
+                            </div>                                
+                        </div>
+                        
+                        <div class="variables-section">
+                            <span class="text-muted extra-small d-block mb-1">Insert Variables</span>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name">Student Name</button>
+                                <button type="button" class="btn btn-variable-token var-btn" data-var="Location">Location</button>
+                                <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name">Service Provider Name</button>
+                                <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name">Corporation Name</button>
                             </div>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
                 accordionContainer.appendChild(accordionItem);
             }
 
@@ -1435,7 +1448,6 @@ if (!empty($_GET['id'])) {
             updateMessageNotifications();
             updateMessageTypes();
 
-            // Re-initialize tooltips for the new elements
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl, {
@@ -1449,9 +1461,11 @@ if (!empty($_GET['id'])) {
             });
         }
 
-        // Handle trigger type change for services dropdown
-        const triggerTypeSelect = document.getElementById('TRIGGER_TYPE');
-        const triggerValueContainer = document.getElementById('triggerValueContainer');
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         function updateSelectedCount() {
             const checkedBoxes = document.querySelectorAll('.service-checkbox:checked');
@@ -1468,6 +1482,35 @@ if (!empty($_GET['id'])) {
                 selectAll.indeterminate = checkedBoxes.length > 0 && !allChecked;
             }
         }
+
+        function attachCheckboxEvents() {
+            const selectAllCheckbox = document.getElementById('selectAllServices');
+            if (selectAllCheckbox) {
+                const newSelectAll = selectAllCheckbox.cloneNode(true);
+                selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
+
+                newSelectAll.addEventListener('change', function(e) {
+                    const allCheckboxes = document.querySelectorAll('.service-checkbox');
+                    allCheckboxes.forEach(checkbox => {
+                        checkbox.checked = e.target.checked;
+                    });
+                    updateSelectedCount();
+                });
+            }
+
+            document.querySelectorAll('.service-checkbox').forEach(checkbox => {
+                const newCheckbox = checkbox.cloneNode(true);
+                checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+
+                newCheckbox.addEventListener('change', function() {
+                    updateSelectedCount();
+                });
+            });
+        }
+
+        // Handle trigger type change for services dropdown
+        const triggerTypeSelect = document.getElementById('TRIGGER_TYPE');
+        const triggerValueContainer = document.getElementById('triggerValueContainer');
 
         function loadTriggerValueField() {
             const selectedType = triggerTypeSelect.value;
@@ -1508,20 +1551,20 @@ if (!empty($_GET['id'])) {
                             data.services.forEach(service => {
                                 const isSelected = data.selected_services && data.selected_services.includes(service.id.toString());
                                 checkboxesHtml += `
-                                    <div class="services-checkbox-item">
-                                        <input type="checkbox" class="form-check-input service-checkbox" name="TRIGGER_VALUE_SERVICES[]" value="${service.id}" id="service_${service.id}" ${isSelected ? 'checked' : ''}>
-                                        <label for="service_${service.id}">${escapeHtml(service.name)}</label>
-                                    </div>
-                                `;
+                                <div class="services-checkbox-item">
+                                    <input type="checkbox" class="form-check-input service-checkbox" name="TRIGGER_VALUE_SERVICES[]" value="${service.id}" id="service_${service.id}" ${isSelected ? 'checked' : ''}>
+                                    <label for="service_${service.id}">${escapeHtml(service.name)}</label>
+                                </div>
+                            `;
                             });
 
                             triggerValueContainer.innerHTML = `
-                                <div class="services-checkbox-container" id="servicesCheckboxContainer">
-                                    ${checkboxesHtml}
-                                </div>
-                                <div class="selected-count" id="selectedCount"></div>
-                                <small class="text-muted">Check the boxes to select multiple services</small>
-                            `;
+                            <div class="services-checkbox-container" id="servicesCheckboxContainer">
+                                ${checkboxesHtml}
+                            </div>
+                            <div class="selected-count" id="selectedCount"></div>
+                            <small class="text-muted">Check the boxes to select multiple services</small>
+                        `;
 
                             attachCheckboxEvents();
                             updateSelectedCount();
@@ -1537,52 +1580,28 @@ if (!empty($_GET['id'])) {
                 const currentValue = '<?= addslashes($AUTOMATION['TRIGGER_VALUE']) ?>';
                 let optionsHtml = '';
 
-                if (selectedType === 'CUSTOMER_COMPLETE_CLASS') {
+                if (selectedType === 'CUSTOMER_COMPLETE_CLASS' || selectedType === 'NO_FUTURE_APPOINTMENTS') {
                     optionsHtml = `
-                        <option value="PRIVATE_CLASS" ${currentValue === 'PRIVATE_CLASS' ? 'selected' : ''}>Private class</option>
-                        <option value="GROUP_CLASS" ${currentValue === 'GROUP_CLASS' ? 'selected' : ''}>Group class</option>
-                    `;
-                } else {
-                    optionsHtml = `<option value="yes" selected>Yes</option>`;
-                }
-
-                triggerValueContainer.innerHTML = `
+                    <option value="PRIVATE_CLASS" ${currentValue === 'PRIVATE_CLASS' ? 'selected' : ''}>Private class</option>
+                    <option value="GROUP_CLASS" ${currentValue === 'GROUP_CLASS' ? 'selected' : ''}>Group class</option>
+                `;
+                    triggerValueContainer.innerHTML = `
                     <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
                         ${optionsHtml}
                     </select>
                 `;
+                } else if (selectedType === 'NO_ACTIVE_ENROLLMENTS' || selectedType === 'NEW_LEAD_IS_GENERATED') {
+                    // Show nothing - no dropdown
+                    triggerValueContainer.innerHTML = '';
+                } else {
+                    optionsHtml = `<option value="yes" selected>Yes</option>`;
+                    triggerValueContainer.innerHTML = `
+                    <select class="form-select form-select-custom bg-light" name="TRIGGER_VALUE" id="TRIGGER_VALUE">
+                        ${optionsHtml}
+                    </select>
+                `;
+                }
             }
-        }
-
-        function attachCheckboxEvents() {
-            const selectAllCheckbox = document.getElementById('selectAllServices');
-            if (selectAllCheckbox) {
-                const newSelectAll = selectAllCheckbox.cloneNode(true);
-                selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
-
-                newSelectAll.addEventListener('change', function(e) {
-                    const allCheckboxes = document.querySelectorAll('.service-checkbox');
-                    allCheckboxes.forEach(checkbox => {
-                        checkbox.checked = e.target.checked;
-                    });
-                    updateSelectedCount();
-                });
-            }
-
-            document.querySelectorAll('.service-checkbox').forEach(checkbox => {
-                const newCheckbox = checkbox.cloneNode(true);
-                checkbox.parentNode.replaceChild(newCheckbox, checkbox);
-
-                newCheckbox.addEventListener('change', function() {
-                    updateSelectedCount();
-                });
-            });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
 
         // Add event listener for location change
