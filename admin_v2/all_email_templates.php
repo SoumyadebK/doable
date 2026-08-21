@@ -31,9 +31,17 @@ if ($locations && !$locations->EOF) {
     }
 }
 
-// Get all email templates for these locations
-$templates_query = "SELECT * FROM DOA_EMAIL_TEMPLATE 
-                    WHERE PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " AND PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")";
+// Get all email templates for these locations with user names
+$templates_query = "SELECT t.*, 
+                           u.FIRST_NAME as edited_first_name, 
+                           u.LAST_NAME as edited_last_name,
+                           u2.FIRST_NAME as created_first_name,
+                           u2.LAST_NAME as created_last_name
+                    FROM DOA_EMAIL_TEMPLATE t
+                    LEFT JOIN $master_database.DOA_USERS u ON t.EDITED_BY = u.PK_USER
+                    LEFT JOIN $master_database.DOA_USERS u2 ON t.CREATED_BY = u2.PK_USER
+                    WHERE t.PK_ACCOUNT_MASTER = " . intval($_SESSION['PK_ACCOUNT_MASTER']) . " 
+                    AND t.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")";
 $all_templates = $db_account->Execute($templates_query);
 
 // Build a map of templates by location and type
@@ -41,14 +49,43 @@ $template_map = [];
 if ($all_templates && !$all_templates->EOF) {
     while (!$all_templates->EOF) {
         $loc_id = $all_templates->fields['PK_LOCATION'];
-        $template_type = $all_templates->fields['TEMPLATE_NAME']; // Use TEMPLATE_NAME field
+        $template_type = $all_templates->fields['TEMPLATE_NAME'];
+
+        // Get user name for created_by
+        $created_by_name = 'System';
+        if (!empty($all_templates->fields['CREATED_BY']) && $all_templates->fields['CREATED_BY'] > 0) {
+            $first_name = $all_templates->fields['created_first_name'] ?? '';
+            $last_name = $all_templates->fields['created_last_name'] ?? '';
+            if (!empty($first_name) || !empty($last_name)) {
+                $created_by_name = trim($first_name . ' ' . $last_name);
+            } else {
+                $created_by_name = 'User #' . $all_templates->fields['CREATED_BY'];
+            }
+        }
+
+        // Get user name for edited_by
+        $edited_by_name = 'System';
+        if (!empty($all_templates->fields['EDITED_BY']) && $all_templates->fields['EDITED_BY'] > 0) {
+            $first_name = $all_templates->fields['edited_first_name'] ?? '';
+            $last_name = $all_templates->fields['edited_last_name'] ?? '';
+            if (!empty($first_name) || !empty($last_name)) {
+                $edited_by_name = trim($first_name . ' ' . $last_name);
+            } else {
+                $edited_by_name = 'User #' . $all_templates->fields['EDITED_BY'];
+            }
+        }
+
         $template_map[$loc_id][$template_type] = [
             'PK_EMAIL_TEMPLATE' => $all_templates->fields['PK_EMAIL_TEMPLATE'],
             'TEMPLATE_NAME' => $all_templates->fields['TEMPLATE_NAME'],
             'SUBJECT' => $all_templates->fields['SUBJECT'],
             'ACTIVE' => $all_templates->fields['ACTIVE'],
-            'UPDATED_BY' => $all_templates->fields['EDITED_BY'],
-            'UPDATED_DATE' => $all_templates->fields['EDITED_ON']
+            'CREATED_BY' => $all_templates->fields['CREATED_BY'],
+            'CREATED_BY_NAME' => $created_by_name,
+            'CREATED_ON' => $all_templates->fields['CREATED_ON'],
+            'EDITED_BY' => $all_templates->fields['EDITED_BY'],
+            'EDITED_BY_NAME' => $edited_by_name,
+            'EDITED_ON' => $all_templates->fields['EDITED_ON']
         ];
         $all_templates->MoveNext();
     }
@@ -297,14 +334,33 @@ foreach ($locations_data as $location) {
                                     <?php foreach ($template_types as $display_name => $type_key):
                                         $is_setup = isset($template_map[$loc_id][$type_key]) && $template_map[$loc_id][$type_key]['ACTIVE'] == 1;
                                         $template_data = isset($template_map[$loc_id][$type_key]) ? $template_map[$loc_id][$type_key] : null;
-                                        $edited_by = $template_data ? $template_data['UPDATED_BY'] : 'Demo';
-                                        $edited_date = $template_data ? date('j M', strtotime($template_data['UPDATED_DATE'])) : date('j M');
+
+                                        if ($template_data) {
+                                            // Check if it's been edited (created_on and edited_on are different)
+                                            $created_on = strtotime($template_data['CREATED_ON']);
+                                            $edited_on = strtotime($template_data['EDITED_ON']);
+                                            $is_edited = ($edited_on > $created_on);
+
+                                            if ($is_edited) {
+                                                $action_text = 'edited on';
+                                                $action_date = date('j M', $edited_on);
+                                                $action_by = $template_data['EDITED_BY_NAME'];
+                                            } else {
+                                                $action_text = 'created on';
+                                                $action_date = date('j M', $created_on);
+                                                $action_by = $template_data['CREATED_BY_NAME'];
+                                            }
+                                        } else {
+                                            $action_text = '';
+                                            $action_date = '';
+                                            $action_by = '';
+                                        }
                                     ?>
                                         <div class="template-item">
                                             <div>
                                                 <span class="template-label"><?= htmlspecialchars($display_name) ?></span>
-                                                <?php if ($is_setup): ?>
-                                                    <span class="template-edited">edited <?= $edited_date ?> by <?= htmlspecialchars($edited_by) ?></span>
+                                                <?php if ($is_setup && $template_data): ?>
+                                                    <span class="template-edited"><?= $action_text ?> <?= $action_date ?> by <?= htmlspecialchars($action_by) ?></span>
                                                 <?php endif; ?>
                                             </div>
                                             <div class="template-status">

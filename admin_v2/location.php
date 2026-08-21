@@ -1956,7 +1956,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             <div id="stripe" class="form-grid" style="display: <?= ($PAYMENT_GATEWAY_TYPE == 'Stripe') ? 'grid' : 'none' ?>; margin-top: 12px;">
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Secret Key</label>
-                                                                    <input type="text" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="SECRET_KEY" value="<?= htmlspecialchars($SECRET_KEY) ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Publishable Key</label>
@@ -2035,7 +2035,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                             </div>
                                                             <div class="form-group-modern">
                                                                 <label class="form-label">SMTP Password</label>
-                                                                <input type="text" class="form-control-modern" name="SMTP_PASSWORD" id="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
+                                                                <input type="password" class="form-control-modern" name="SMTP_PASSWORD" id="SMTP_PASSWORD" value="<?= htmlspecialchars($SMTP_PASSWORD) ?>">
                                                             </div>
                                                         </div>
                                                         <div class="form-actions" style="border-top: none; padding-top: 0px; float: right;">
@@ -2057,7 +2057,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Password</label>
-                                                                    <input type="text" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
+                                                                    <input type="password" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
                                                                 </div>
                                                             </div>
                                                         </div>

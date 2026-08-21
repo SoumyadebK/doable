@@ -653,21 +653,19 @@ while (!$row->EOF) {
                             <div class="card-header">
                                 <h5>
                                     <i class="bi bi-chat-dots"></i>
-                                    <?= !empty($_GET['id']) ? 'Edit ' . htmlspecialchars($template_display_name) . ' SMS Template' : 'Create New ' . htmlspecialchars($template_display_name) . ' SMS Template' ?>
+                                    <?php
+                                    // Get the display name properly formatted
+                                    if (!empty($_GET['id'])) {
+                                        $display_name = $template_display_name;
+                                    } elseif (!empty($preset_type)) {
+                                        $display_name = ucwords(strtolower(str_replace('_', ' ', $preset_type)));
+                                    } else {
+                                        $display_name = '';
+                                    }
+                                    ?>
+                                    <?= !empty($_GET['id']) ? 'Edit ' . htmlspecialchars($display_name) . ' Template' : 'Create New ' . htmlspecialchars($display_name) . ' Template' ?>
                                 </h5>
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <!-- <?php if (!empty($_GET['id']) && !empty($template_display_name)): ?>
-                                        <span class="template-badge">
-                                            <i class="bi bi-tag"></i>
-                                            <?= htmlspecialchars($template_display_name) ?>
-                                        </span>
-                                    <?php endif; ?>
-                                    <?php if (!empty($preset_type) && empty($_GET['id'])): ?>
-                                        <span class="template-badge">
-                                            <i class="bi bi-tag"></i>
-                                            <?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?>
-                                        </span>
-                                    <?php endif; ?> -->
                                     <?php if (!empty($_GET['id'])): ?>
                                         <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
                                             <i class="fas fa-circle"></i>
@@ -681,16 +679,16 @@ while (!$row->EOF) {
                                 <?php if (!empty($preset_type) && !empty($preset_location) && empty($_GET['id'])): ?>
                                     <div class="breadcrumb-info">
                                         <i class="bi bi-info-circle-fill"></i>
-                                        Creating a new <strong><?= htmlspecialchars(ucwords(str_replace('_', ' ', $preset_type))) ?></strong> SMS template for <strong><?php
-                                                                                                                                                                        $loc_name = '';
-                                                                                                                                                                        foreach ($locations as $loc) {
-                                                                                                                                                                            if ($loc['PK_LOCATION'] == $preset_location) {
-                                                                                                                                                                                $loc_name = $loc['LOCATION_NAME'];
-                                                                                                                                                                                break;
-                                                                                                                                                                            }
-                                                                                                                                                                        }
-                                                                                                                                                                        echo htmlspecialchars($loc_name);
-                                                                                                                                                                        ?></strong>
+                                        Creating a new <strong><?= htmlspecialchars(ucwords(strtolower(str_replace('_', ' ', $preset_type)))) ?></strong> SMS template for <strong><?php
+                                                                                                                                                                                    $loc_name = '';
+                                                                                                                                                                                    foreach ($locations as $loc) {
+                                                                                                                                                                                        if ($loc['PK_LOCATION'] == $preset_location) {
+                                                                                                                                                                                            $loc_name = $loc['LOCATION_NAME'];
+                                                                                                                                                                                            break;
+                                                                                                                                                                                        }
+                                                                                                                                                                                    }
+                                                                                                                                                                                    echo htmlspecialchars($loc_name);
+                                                                                                                                                                                    ?></strong>
                                     </div>
                                 <?php endif; ?>
 
@@ -715,7 +713,7 @@ while (!$row->EOF) {
                                     <div class="form-grid">
                                         <!-- Template Name - Always disabled -->
                                         <div class="form-group-modern">
-                                            <label class="form-label">Template Type <span class="required">*</span></label>
+                                            <label class="form-label">Template Type</label>
 
                                             <select class="form-control-modern" id="TEMPLATE_NAME" name="TEMPLATE_NAME" required disabled>
                                                 <option value="">Select template type</option>
