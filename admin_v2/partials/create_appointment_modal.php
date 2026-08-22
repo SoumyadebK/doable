@@ -779,7 +779,7 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
                             </div>
                             <label class="custom-checkbox float-start mt-2 mb-2">
-                                <input type="checkbox">
+                                <input type="checkbox" id="TO_DO_ALL_DAY" name="ALL_DAY" value="1">
                                 <span class="checkmark"></span>
                                 All Day
                             </label>
