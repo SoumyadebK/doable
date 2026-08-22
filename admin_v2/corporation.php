@@ -904,6 +904,26 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
         color: #991B1B;
         border: 1px solid #FCA5A5;
     }
+
+    /* Password field enhancements */
+    input[type="password"] {
+        padding-right: 40px !important;
+    }
+
+    input[type="password"]+button {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+    }
+
+    input[type="password"]:focus+button {
+        color: var(--primary-color) !important;
+    }
+
+    /* Ensure the password toggle button doesn't interfere with form submission */
+    input[type="password"]+button[type="button"] {
+        pointer-events: auto;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -1275,6 +1295,13 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
         </div>
     </div>
     <?php require_once('../includes/footer.php'); ?>
+
+    <script>
+        // Enhanced password fields with last character reveal
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEnhancedPasswordField();
+        });
+    </script>
 </body>
 
 <script>
@@ -1554,6 +1581,112 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
             }
         });
     }
+
+    function setupEnhancedPasswordField() {
+        document.querySelectorAll('input[type="password"]').forEach(input => {
+            // Wrap the input
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.width = '100%';
+
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            // Store original padding
+            input.style.paddingRight = '40px';
+
+            // Create toggle button
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.innerHTML = '<i class="bi bi-eye"></i>';
+            toggle.style.cssText = `
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 16px;
+            z-index: 5;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+            wrapper.appendChild(toggle);
+
+            let isVisible = false;
+            let timeoutId;
+            let lastChar = '';
+
+            // Handle typing - show last character
+            input.addEventListener('input', function(e) {
+                const value = this.value;
+                if (value.length > 0 && !isVisible) {
+                    lastChar = value[value.length - 1];
+
+                    // Temporarily show the last character
+                    this.type = 'text';
+                    const cursorPos = this.selectionStart;
+
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        if (!isVisible) {
+                            this.type = 'password';
+                            this.setSelectionRange(cursorPos, cursorPos);
+                        }
+                    }, 400);
+                }
+            });
+
+            // Toggle visibility
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                isVisible = !isVisible;
+                clearTimeout(timeoutId);
+
+                if (isVisible) {
+                    input.type = 'text';
+                    this.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                    this.style.color = '#39B54A';
+                } else {
+                    input.type = 'password';
+                    this.innerHTML = '<i class="bi bi-eye"></i>';
+                    this.style.color = '#9CA3AF';
+                }
+            });
+
+            // Hide on blur
+            input.addEventListener('blur', function() {
+                if (isVisible) {
+                    isVisible = false;
+                    this.type = 'password';
+                    toggle.innerHTML = '<i class="bi bi-eye"></i>';
+                    toggle.style.color = '#9CA3AF';
+                }
+                clearTimeout(timeoutId);
+            });
+
+            // Hover effects
+            toggle.addEventListener('mouseenter', () => {
+                if (!isVisible) {
+                    toggle.style.color = '#6B7280';
+                }
+            });
+            toggle.addEventListener('mouseleave', () => {
+                if (!isVisible) {
+                    toggle.style.color = '#9CA3AF';
+                }
+            });
+        });
+    }
+
+    // Initialize after DOM is ready
+    document.addEventListener('DOMContentLoaded', setupEnhancedPasswordField);
 </script>
 
 </html>

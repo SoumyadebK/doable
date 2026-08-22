@@ -416,7 +416,7 @@ if (count($LOCATIONS) == 1) {
                         </div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <a href="../admin/my_profile.php" class="dropdown-item">
+                        <a href="../admin_v2/my_profile.php" class="dropdown-item">
                             <span class="align-middle">Profile</span>
                         </a>
                         <!-- <a href="javascript:void(0);" class="dropdown-item">

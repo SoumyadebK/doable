@@ -22,7 +22,7 @@ if (!empty($_POST)) {
                 if (password_verify($_POST['OLD_PASSWORD'], $result->fields['PASSWORD'])) {
                     $USER_DATA['PASSWORD'] = password_hash($_POST['NEW_PASSWORD'], PASSWORD_DEFAULT);
                     db_perform('DOA_USERS', $USER_DATA, 'update', " PK_USER =  '$_SESSION[PK_USER]'");
-                    $success_msg = "Password Changed Successfilly.";
+                    $success_msg = "Password Changed Successfully.";
                 } else {
                     $err_msg = 'Old Password is Wrong.';
                 }
@@ -75,6 +75,7 @@ if ($res->RecordCount() == 0) {
 }
 
 $selected_roles_row = $db->Execute("SELECT DOA_ROLES.ROLES FROM `DOA_USER_ROLES` LEFT JOIN DOA_ROLES ON DOA_USER_ROLES.PK_ROLES = DOA_ROLES.PK_ROLES WHERE `PK_USER` = '$PK_USER'");
+$selected_roles = [];
 while (!$selected_roles_row->EOF) {
     $selected_roles[] = $selected_roles_row->fields['ROLES'];
     $selected_roles_row->MoveNext();
@@ -100,371 +101,864 @@ $ACTIVE = $res->fields['ACTIVE'];
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'layout/header_script.php'; ?>
 <?php require_once('../includes/header.php'); ?>
+<?php include 'layout/header.php'; ?>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #39B54A;
+        --primary-light: #5DCB6E;
+        --primary-dark: #2D8F3B;
+        --primary-rgb: 57, 181, 74;
+        --success-color: #39B54A;
+        --warning-color: #F59E0B;
+        --danger-color: #EF4444;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-400: #9CA3AF;
+        --gray-500: #6B7280;
+        --gray-600: #4B5563;
+        --gray-700: #374151;
+        --gray-800: #1F2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+        --radius-pill: 50px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--gray-50);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .page-wrapper {
+        padding-top: 0px !important;
+        background: var(--gray-50);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .breadcrumb-wrapper h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+
+    .breadcrumb-wrapper h4 i {
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--gray-500);
+    }
+
+    .breadcrumb-nav a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--primary-dark);
+    }
+
+    .breadcrumb-nav .separator {
+        color: var(--gray-300);
+    }
+
+    .breadcrumb-nav .current {
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    /* Card */
+    .card-modern {
+        background: #ffffff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-modern .card-header {
+        padding: 20px 24px;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .card-modern .card-header h5 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-modern .card-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .card-modern .card-body {
+        padding: 28px 32px;
+    }
+
+    @media (max-width: 768px) {
+        .card-modern .card-body {
+            padding: 20px;
+        }
+
+        .container-fluid {
+            padding: 16px !important;
+        }
+    }
+
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .status-indicator.active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-indicator.inactive {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .status-indicator i {
+        font-size: 8px;
+    }
+
+    /* Profile Header */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 16px 20px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .profile-header .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--primary-color);
+        flex-shrink: 0;
+        background: var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-header .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-header .profile-avatar .avatar-placeholder {
+        font-size: 32px;
+        color: var(--gray-400);
+    }
+
+    .profile-header .profile-info {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+    }
+
+    .profile-header .profile-info .info-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: var(--gray-600);
+    }
+
+    .profile-header .profile-info .info-item i {
+        color: var(--primary-color);
+        width: 18px;
+        text-align: center;
+    }
+
+    .profile-header .profile-info .info-item .label {
+        font-weight: 500;
+        color: var(--gray-500);
+    }
+
+    .profile-header .profile-info .info-item .value {
+        color: var(--gray-800);
+        font-weight: 500;
+    }
+
+    .profile-header .profile-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-header .profile-info {
+            justify-content: center;
+        }
+
+        .profile-header .profile-actions {
+            justify-content: center;
+        }
+    }
+
+    /* Form */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 24px;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group-modern .form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-700);
+        letter-spacing: 0.01em;
+    }
+
+    .form-group-modern .form-label .required {
+        color: var(--danger-color);
+        margin-left: 2px;
+    }
+
+    .form-control-modern {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: var(--gray-800);
+        background: #fff;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-control-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .form-control-modern:hover {
+        border-color: var(--gray-300);
+    }
+
+    .form-control-modern::placeholder {
+        color: var(--gray-400);
+        font-size: 13px;
+    }
+
+    .form-control-modern.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .form-control-modern.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    textarea.form-control-modern {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    select.form-control-modern {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 28px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+
+    .btn-modern-primary {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-modern-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-modern-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-modern-secondary {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
+
+    .btn-modern-secondary:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+
+    .btn-modern-outline {
+        background: transparent;
+        color: var(--primary-color);
+        border: 1.5px solid var(--primary-color);
+    }
+
+    .btn-modern-outline:hover {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-modern-sm {
+        padding: 6px 16px;
+        font-size: 13px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-actions .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .breadcrumb-wrapper {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    /* Password Change Section */
+    .password-section {
+        margin-top: 16px;
+        padding: 20px 24px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .password-section .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .password-section .section-title i {
+        color: var(--primary-color);
+    }
+
+    /* Image Preview */
+    .image-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 2px solid var(--gray-200);
+        margin-top: 8px;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview .placeholder-icon {
+        font-size: 40px;
+        color: var(--gray-400);
+    }
+
+    .image-preview a {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Alert */
+    .alert-modern {
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        margin: 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-modern.success {
+        background: #D1FAE5;
+        color: #065F46;
+        border: 1px solid #A7F3D0;
+    }
+
+    .alert-modern.error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+    }
+
+    .alert-modern i {
+        font-size: 18px;
+    }
+
+    .form-helper {
+        font-size: 12px;
+        color: var(--gray-400);
+        margin-top: 4px;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        .full-width {
+            grid-column: 1;
+        }
+    }
+
+    .mt-10 {
+        margin-top: 10px;
+    }
+</style>
 
 <body class="skin-default-dark fixed-layout">
     <?php require_once('../includes/loader.php'); ?>
     <div id="main-wrapper">
-        <?php require_once('../includes/top_menu.php'); ?>
-        <div class="page-wrapper">
-            <?php require_once('../includes/top_menu_bar.php') ?>
-            <div class="container-fluid body_content">
-                <div class="row page-titles">
-                    <div class="col-md-5 align-self-center">
-                        <h4 class="text-themecolor"><?= $title ?></h4>
-                    </div>
-                </div>
+        <?php require_once('../includes/header.php'); ?>
 
+        <div class="page-wrapper" style="padding-top: 0px !important;">
+            <div class="container-fluid" style="margin-top: 22px !important;">
+                <!-- Main Content -->
                 <div class="row">
-
                     <div class="col-lg-12">
-                        <div class="card">
+                        <div class="card-modern">
+                            <div class="card-header">
+                                <h5>
+                                    <i class="fas fa-user-cog"></i>
+                                    My Profile
+                                </h5>
+                                <span class="status-indicator <?= ($ACTIVE == 1) ? 'active' : 'inactive' ?>">
+                                    <i class="fas fa-circle" style="color: <?= ($ACTIVE == 1) ? '#39B54A' : '#EF4444' ?>; font-size: 10px; margin-right: 6px;"></i>
+                                    <?= ($ACTIVE == 1) ? 'Active' : 'Inactive' ?>
+                                </span>
+                            </div>
                             <div class="card-body">
-
-                                <div class="row">
-                                    <div class="col-2">
-                                        <label class="col-md-12" for="example-text">First Name : </label>
+                                <!-- Profile Header -->
+                                <div class="profile-header">
+                                    <div class="profile-avatar">
+                                        <?php if ($USER_IMAGE != ''): ?>
+                                            <img id="profile-img" src="<?= htmlspecialchars($USER_IMAGE) ?>" alt="Profile Image">
+                                        <?php else: ?>
+                                            <div class="avatar-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $FIRST_NAME ?></label>
+                                    <div class="profile-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-user"></i>
+                                            <span class="label">Name:</span>
+                                            <span class="value"><?= htmlspecialchars($FIRST_NAME . ' ' . $LAST_NAME) ?></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <span class="label">Email:</span>
+                                            <span class="value"><?= htmlspecialchars($EMAIL_ID) ?></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-user-tag"></i>
+                                            <span class="label">Role:</span>
+                                            <span class="value"><?= htmlspecialchars(implode(', ', $selected_roles)) ?></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-user-circle"></i>
+                                            <span class="label">Username:</span>
+                                            <span class="value"><?= htmlspecialchars($USER_NAME) ?></span>
+                                        </div>
                                     </div>
-
-                                    <div class="col-2">
-                                        <label class="col-md-12" for="example-text">Last Name : </label>
-                                    </div>
-                                    <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $LAST_NAME ?></label>
-                                    </div>
-
-                                    <div class="col-2">
-                                        <a class="btn btn-info waves-effect waves-light m-r-10 text-white" onclick="$('#change_password_div').slideToggle();">Change Password</a>
+                                    <div class="profile-actions">
+                                        <button class="btn-modern btn-modern-primary btn-modern-sm" onclick="$('#change_password_div').slideToggle();">
+                                            <i class="fas fa-key"></i> Change Password
+                                        </button>
                                     </div>
                                 </div>
-                                </br>
-                                <div class="row">
-                                    <div class="col-1">
-                                        <label class="col-md-12" for="example-text">Role : </label>
-                                    </div>
-                                    <div class="col-3">
-                                        <label style="color: #ff9800; "><?= implode(', ', $selected_roles) ?></label>
-                                    </div>
 
-                                    <div class="col-1">
-                                        <label class="col-md-12" for="example-text">Email Id : </label>
+                                <!-- Success/Error Messages -->
+                                <?php if ($success_msg): ?>
+                                    <div class="alert-modern success">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span><?= htmlspecialchars($success_msg); ?></span>
                                     </div>
-                                    <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $EMAIL_ID ?></label>
-                                    </div>
+                                <?php endif; ?>
 
-                                    <div class="col-1">
-                                        <label class="col-md-12" for="example-text">User Name : </label>
+                                <?php if ($err_msg): ?>
+                                    <div class="alert-modern error">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <span><?= htmlspecialchars($err_msg); ?></span>
                                     </div>
-                                    <div class="col-3">
-                                        <label style="color: #ff9800; "><?php echo $USER_NAME ?></label>
+                                <?php endif; ?>
+
+                                <!-- Change Password Section -->
+                                <div id="change_password_div" class="password-section" style="display: <?= ($err_msg) ? 'block' : 'none' ?>;">
+                                    <div class="section-title">
+                                        <i class="fas fa-lock"></i> Change Password
                                     </div>
+                                    <form class="form-material" action="" method="post">
+                                        <input type="hidden" name="FORM_TYPE" value="change_password_form">
+                                        <div class="form-grid">
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Old Password <span class="required">*</span></label>
+                                                <input type="password" name="OLD_PASSWORD" class="form-control-modern" required>
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">New Password <span class="required">*</span></label>
+                                                <input type="password" name="NEW_PASSWORD" class="form-control-modern" required>
+                                            </div>
+                                            <div class="form-group-modern">
+                                                <label class="form-label">Confirm New Password <span class="required">*</span></label>
+                                                <input type="password" name="CONFIRM_NEW_PASSWORD" class="form-control-modern" required>
+                                            </div>
+                                            <div class="form-group-modern" style="justify-content: flex-end;">
+                                                <button type="submit" class="btn-modern btn-modern-primary">
+                                                    <i class="fas fa-save"></i> Change Password
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
-                                </br>
-                                <?php if ($success_msg) { ?>
-                                    <div class="alert alert-success">
-                                        <strong><?= $success_msg; ?></strong>
-                                    </div>
-                                <?php } ?>
-                                <form class="form-material" action="" method="post">
-                                    <input type="hidden" name="FORM_TYPE" value="change_password_form">
-                                    <div class="row" id="change_password_div" style="padding: 20px 20px 0px 20px; display: <?= ($err_msg) ? '' : 'none' ?>; margin-top: 10px;">
-                                        <?php if ($err_msg) { ?>
-                                            <div class="alert alert-danger">
-                                                <strong><?= $err_msg; ?></strong>
-                                            </div>
-                                        <?php } ?>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Old Password</label>
-                                                <input type="password" name="OLD_PASSWORD" class="form-control" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">New Password</label>
-                                                <input type="password" name="NEW_PASSWORD" class="form-control" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group">
-                                                <label class="form-label">Confirm New Password</label>
-                                                <input type="password" name="CONFIRM_NEW_PASSWORD" class="form-control" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-3">
-                                            <div class="form-group" style="padding-top: 30px;">
-                                                <button type="submit" class="btn btn-info waves-effect waves-light text-white">Change</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
 
+                                <!-- Profile Form -->
                                 <form class="form-material form-horizontal" action="" method="post" enctype="multipart/form-data" style="margin-top: 20px;">
                                     <input type="hidden" name="FORM_TYPE" value="profile_form">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Gender</label>
-                                                <select class="form-control" id="GENDER" name="GENDER">
-                                                    <option>Select Gender</option>
-                                                    <option value="Male" <?php if ($GENDER == "Male") echo 'selected = "selected"'; ?>>Male</option>
-                                                    <option value="Female" <?php if ($GENDER == "Female") echo 'selected = "selected"'; ?>>Female</option>
-                                                    <option value="Other" <?php if ($GENDER == "Other") echo 'selected = "selected"'; ?>>Other</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Date of Birth</label>
-                                                <input type="text" class="form-control datepicker-past" id="DOB" name="DOB" value="<?= ($DOB) ? date('m/d/Y', strtotime($DOB)) : '' ?>">
-                                            </div>
-                                        </div>
-                                    </div>
 
+                                    <div class="form-grid">
+                                        <!-- Gender -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Gender</label>
+                                            <select class="form-control-modern" id="GENDER" name="GENDER">
+                                                <option value="">Select Gender</option>
+                                                <option value="Male" <?php if ($GENDER == "Male") echo 'selected = "selected"'; ?>>Male</option>
+                                                <option value="Female" <?php if ($GENDER == "Female") echo 'selected = "selected"'; ?>>Female</option>
+                                                <option value="Other" <?php if ($GENDER == "Other") echo 'selected = "selected"'; ?>>Other</option>
+                                            </select>
+                                            <div class="form-helper">Select your gender</div>
+                                        </div>
 
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Address
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS ?>">
+                                        <!-- Date of Birth -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Date of Birth</label>
+                                            <input type="text" class="form-control-modern datepicker-past" id="DOB" name="DOB" placeholder="mm/dd/yyyy" value="<?= ($DOB) ? date('m/d/Y', strtotime($DOB)) : '' ?>">
+                                            <div class="form-helper">Your date of birth</div>
+                                        </div>
+
+                                        <!-- Address -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Address</label>
+                                            <input type="text" id="ADDRESS" name="ADDRESS" class="form-control-modern" placeholder="Enter Address" value="<?php echo htmlspecialchars($ADDRESS) ?>">
+                                            <div class="form-helper">Street address</div>
+                                        </div>
+
+                                        <!-- Apt/Ste -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Apt/Ste</label>
+                                            <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control-modern" placeholder="Enter Apartment or Suite" value="<?php echo htmlspecialchars($ADDRESS_1) ?>">
+                                            <div class="form-helper">Apartment, suite, unit, etc.</div>
+                                        </div>
+
+                                        <!-- Country -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Country <span class="required">*</span></label>
+                                            <select class="form-control-modern" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)" required>
+                                                <option value="">Select Country</option>
+                                                <?php
+                                                $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
+                                                while (!$row->EOF) { ?>
+                                                    <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= htmlspecialchars($row->fields['COUNTRY_NAME']) ?></option>
+                                                <?php $row->MoveNext();
+                                                } ?>
+                                            </select>
+                                            <div class="form-helper">Select your country</div>
+                                        </div>
+
+                                        <!-- State -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">State <span class="required">*</span></label>
+                                            <div id="State_div"></div>
+                                            <div class="form-helper">Select your state</div>
+                                        </div>
+
+                                        <!-- City -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">City</label>
+                                            <input type="text" id="CITY" name="CITY" class="form-control-modern" placeholder="Enter your city" value="<?php echo htmlspecialchars($CITY) ?>">
+                                            <div class="form-helper">Your city</div>
+                                        </div>
+
+                                        <!-- Zip -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Postal / Zip Code</label>
+                                            <input type="text" id="ZIP" name="ZIP" class="form-control-modern" placeholder="Enter Postal / Zip Code" value="<?php echo htmlspecialchars($ZIP) ?>">
+                                            <div class="form-helper">Postal or zip code</div>
+                                        </div>
+
+                                        <!-- Phone -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Phone</label>
+                                            <input type="text" id="PHONE" name="PHONE" class="form-control-modern" placeholder="Enter Phone No." value="<?php echo htmlspecialchars($PHONE) ?>">
+                                            <div class="form-helper">Contact phone number</div>
+                                        </div>
+
+                                        <!-- Image Upload -->
+                                        <div class="form-group-modern">
+                                            <label class="form-label">Profile Image</label>
+                                            <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control-modern" onchange="previewFile(this)" accept="image/*">
+                                            <div class="form-helper">Upload a profile image (JPG, PNG, GIF)</div>
+                                        </div>
+
+                                        <!-- Image Preview -->
+                                        <div class="form-group-modern" style="grid-column: 1 / -1;">
+                                            <?php if ($USER_IMAGE != ''): ?>
+                                                <div class="image-preview">
+                                                    <a class="fancybox" href="<?php echo htmlspecialchars($USER_IMAGE); ?>" data-fancybox-group="gallery">
+                                                        <img id="profile-img-preview" src="<?php echo htmlspecialchars($USER_IMAGE); ?>" alt="Profile Image">
+                                                    </a>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Apt/Ste
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="ADDRESS_1" name="ADDRESS_1" class="form-control" placeholder="Enter Address" value="<?php echo $ADDRESS_1 ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Country<span class="text-danger">*</span></label>
-                                                <div class="col-md-12">
-                                                    <select class="form-control" name="PK_COUNTRY" id="PK_COUNTRY" onChange="fetch_state(this.value)">
-                                                        <option>Select Country</option>
-                                                        <?php
-                                                        $row = $db->Execute("SELECT PK_COUNTRY,COUNTRY_NAME FROM DOA_COUNTRY WHERE ACTIVE = 1 ORDER BY PK_COUNTRY");
-                                                        while (!$row->EOF) { ?>
-                                                            <option value="<?php echo $row->fields['PK_COUNTRY']; ?>" <?= ($row->fields['PK_COUNTRY'] == $PK_COUNTRY) ? "selected" : "" ?>><?= $row->fields['COUNTRY_NAME'] ?></option>
-                                                        <?php $row->MoveNext();
-                                                        } ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">State<span class="text-danger">*</span>
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <div class="col-sm-12">
-                                                        <div id="State_div"></div>
+                                            <?php else: ?>
+                                                <div class="image-preview">
+                                                    <div class="placeholder-icon">
+                                                        <i class="fas fa-user"></i>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            <?php endif; ?>
+                                        </div>
 
+                                        <!-- Remarks -->
+                                        <div class="form-group-modern full-width">
+                                            <label class="form-label">Remarks</label>
+                                            <textarea class="form-control-modern" rows="3" id="NOTES" name="NOTES" placeholder="Add any remarks"><?php echo htmlspecialchars($NOTES) ?></textarea>
+                                            <div class="form-helper">Additional notes or remarks</div>
                                         </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">City</span>
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="CITY" name="CITY" class="form-control" placeholder="Enter your city" value="<?php echo $CITY ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Postal / Zip Code</span>
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="ZIP" name="ZIP" class="form-control" placeholder="Enter Postal / Zip Code" value="<?php echo $ZIP ?>">
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <!-- Form Actions -->
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn-modern btn-modern-primary">
+                                            <i class="fas fa-save"></i> Update Profile
+                                        </button>
                                     </div>
-
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Phone
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="PHONE" name="PHONE" class="form-control" placeholder="Enter Phone No." value="<?php echo $PHONE ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!--<div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Fax
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="FAX" name="FAX" class="form-control" placeholder="Enter Fax" value="<?php /*echo $FAX;*/ ?>">
-                                                </div>
-                                            </div>
-
-                                        </div>-->
-                                    </div>
-
-
-                                    <div class="row">
-                                        <!--<div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Website
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="text" id="WEBSITE" name="WEBSITE" class="form-control" placeholder="Enter Website" value="<?php /*echo $WEBSITE*/ ?>">
-                                                </div>
-                                            </div>
-                                        </div>-->
-
-                                        <div class="col-6">
-                                            <div class="form-group">
-                                                <label class="col-md-12" for="example-text">Image Upload
-                                                </label>
-                                                <div class="col-md-12">
-                                                    <input type="file" name="USER_IMAGE" id="USER_IMAGE" class="form-control" onchange="previewFile(this)">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <?php if ($USER_IMAGE != '') { ?>
-                                            <div style="width: 120px;height: 120px;margin-top: 25px;">
-                                                <a class="fancybox" href="<?php echo $USER_IMAGE; ?>" data-fancybox-group="gallery">
-                                                    <img id="profile-img" src="<?php echo $USER_IMAGE; ?>" style="width:120px; height:120px" /></a>
-                                            </div><?php } ?>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="col-md-12">Remarks</label>
-                                        <div class="col-md-12">
-                                            <textarea class="form-control" rows="3" id="NOTES" name="NOTES"><?php echo $NOTES ?></textarea>
-                                        </div>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white">Submit</button>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
-        <style>
-            .progress-bar {
-                border-radius: 5px;
-                height: 18px !important;
-            }
-        </style>
-        <?php require_once('../includes/footer.php'); ?>
-        <script>
-            $('.datepicker-past').datepicker({
-                format: 'mm/dd/yyyy',
-                maxDate: 0,
-                changeMonth: true,
-                changeYear: true,
-                yearRange: '1900:' + new Date().getFullYear(),
-            });
+    </div>
 
-            $(document).ready(function() {
-                fetch_state(<?php echo $PK_COUNTRY; ?>);
-            });
+    <?php require_once('../includes/footer.php'); ?>
 
-            function fetch_state(PK_COUNTRY) {
-                jQuery(document).ready(function($) {
-                    var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
-                    var value = $.ajax({
-                        url: "ajax/state.php",
-                        type: "POST",
-                        data: data,
-                        async: false,
-                        cache: false,
-                        success: function(result) {
-                            document.getElementById('State_div').innerHTML = result;
+    <script>
+        // Date picker
+        $('.datepicker-past').datepicker({
+            format: 'mm/dd/yyyy',
+            maxDate: 0,
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1900:' + new Date().getFullYear(),
+        });
 
-                        }
-                    }).responseText;
-                });
-            }
+        $(document).ready(function() {
+            fetch_state(<?php echo $PK_COUNTRY; ?>);
+        });
 
-            function previewFile(input) {
-                let file = $("#USER_IMAGE").get(0).files[0];
-                if (file) {
-                    let reader = new FileReader();
-                    reader.onload = function() {
-                        $("#profile-img").attr("src", reader.result);
+        function fetch_state(PK_COUNTRY) {
+            jQuery(document).ready(function($) {
+                var data = "PK_COUNTRY=" + PK_COUNTRY + "&PK_STATES=<?= $PK_STATES; ?>";
+                var value = $.ajax({
+                    url: "ajax/state.php",
+                    type: "POST",
+                    data: data,
+                    async: false,
+                    cache: false,
+                    success: function(result) {
+                        document.getElementById('State_div').innerHTML = result;
                     }
-                    reader.readAsDataURL(file);
+                }).responseText;
+            });
+        }
+
+        // Image preview
+        function previewFile(input) {
+            let file = $("#USER_IMAGE").get(0).files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function() {
+                    $("#profile-img-preview").attr("src", reader.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Password strength indicator
+        function isGood(password) {
+            var password_strength = document.getElementById("password-text");
+
+            if (password.length == 0) {
+                password_strength.innerHTML = "";
+                return;
+            }
+
+            var regex = new Array();
+            regex.push("[A-Z]");
+            regex.push("[a-z]");
+            regex.push("[0-9]");
+            regex.push("[$@$!%*#?&]");
+
+            var passed = 0;
+
+            for (var i = 0; i < regex.length; i++) {
+                if (new RegExp(regex[i]).test(password)) {
+                    passed++;
                 }
             }
-        </script>
-        <script>
-            function isGood(password) {
-                //alert(password);
-                var password_strength = document.getElementById("password-text");
 
-                //TextBox left blank.
-                if (password.length == 0) {
-                    password_strength.innerHTML = "";
-                    return;
-                }
-
-                //Regular Expressions.
-                var regex = new Array();
-                regex.push("[A-Z]"); //Uppercase Alphabet.
-                regex.push("[a-z]"); //Lowercase Alphabet.
-                regex.push("[0-9]"); //Digit.
-                regex.push("[$@$!%*#?&]"); //Special Character.
-
-                var passed = 0;
-
-                //Validate for each Regular Expression.
-                for (var i = 0; i < regex.length; i++) {
-                    if (new RegExp(regex[i]).test(password)) {
-                        passed++;
-                    }
-                }
-
-                //Display status.
-                var strength = "";
-                switch (passed) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
-                        break;
-                    case 3:
-                        strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
-                        break;
-                    case 4:
-                        strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
-                        break;
-
-                }
-                // alert(strength);
-                password_strength.innerHTML = strength;
-
+            var strength = "";
+            switch (passed) {
+                case 0:
+                case 1:
+                case 2:
+                    strength = "<small class='progress-bar bg-danger' style='width: 50%'>Weak</small>";
+                    break;
+                case 3:
+                    strength = "<small class='progress-bar bg-warning' style='width: 60%'>Medium</small>";
+                    break;
+                case 4:
+                    strength = "<small class='progress-bar bg-success' style='width: 100%'>Strong</small>";
+                    break;
             }
-        </script>
+            password_strength.innerHTML = strength;
+        }
+
+        // Toggle password section
+        $('#change_password_div').on('click', function() {
+            $(this).slideToggle();
+        });
+    </script>
 </body>
 
 </html>
