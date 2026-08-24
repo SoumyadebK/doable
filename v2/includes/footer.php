@@ -1,4 +1,5 @@
 <?php
+
 /** Shared site footer + closing tags. Expects $content/$base from header.php. */
 $content = $content ?? get_content();
 $base    = $base ?? base_path();
@@ -11,7 +12,7 @@ $year = date('Y');
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
       <div class="max-w-md">
-        <img src="<?= $base ?>/assets/images/doable-logo-white.png" alt="<?= e(SITE_NAME) ?> logo" class="h-10 w-auto mb-4">
+        <img src="v2/assets/images/doable-logo-white.png" alt="<?= e(SITE_NAME) ?> logo" class="h-10 w-auto mb-4">
         <p class="text-gray-400 leading-relaxed"><?= e($content['general']['footerTagline']) ?></p>
       </div>
       <div class="md:justify-self-end">
@@ -21,7 +22,7 @@ $year = date('Y');
           <li><a href="<?= $base ?>/index.php#industries" class="hover:text-emerald-400 transition-colors">Industries</a></li>
           <li><a href="<?= $base ?>/index.php#pricing" class="hover:text-emerald-400 transition-colors">Pricing</a></li>
           <li><a href="<?= $base ?>/blog.php" class="hover:text-emerald-400 transition-colors">Blog</a></li>
-          <li><a href="<?= e($enrollUrl) ?>"<?= $enrollExternal ? ' target="_blank" rel="noopener"' : '' ?> class="hover:text-emerald-400 transition-colors">Enroll</a></li>
+          <li><a href="<?= e($enrollUrl) ?>" <?= $enrollExternal ? ' target="_blank" rel="noopener"' : '' ?> class="hover:text-emerald-400 transition-colors">Enroll</a></li>
           <li><a href="<?= $base ?>/privacy.php" class="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
           <li><a href="<?= $base ?>/terms.php" class="hover:text-emerald-400 transition-colors">Terms of Use</a></li>
         </ul>
@@ -34,6 +35,7 @@ $year = date('Y');
   </div>
 </footer>
 
-<script src="<?= $base ?>/assets/js/main.js"></script>
+<script src="v2/assets/js/main.js"></script>
 </body>
+
 </html>

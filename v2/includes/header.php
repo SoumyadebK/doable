@@ -32,7 +32,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($page_title) ?></title>
   <meta name="description" content="<?= e($content['general']['footerTagline']) ?>">
-  <link rel="icon" href="assets/images/doable-logo.png">
+  <link rel="icon" href="v2/assets/images/doable-logo.png">
 
   <!-- Tailwind (Play CDN). For production your programmer can compile Tailwind
          to a static CSS file and remove this line — see README.md. -->
@@ -64,7 +64,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="v2/assets/css/styles.css">
 </head>
 
 <body class="antialiased text-gray-900 bg-white">
@@ -73,7 +73,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 md:h-20">
         <a href="index.php" class="flex items-center gap-2">
-          <img src="assets/images/doable-logo.png" alt="<?= e(SITE_NAME) ?> logo" class="h-9 md:h-10 w-auto">
+          <img src="v2/assets/images/doable-logo.png" alt="<?= e(SITE_NAME) ?> logo" class="h-9 md:h-10 w-auto">
         </a>
 
         <div class="hidden md:flex items-center gap-8">
@@ -83,6 +83,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
           <a href="blog.php" class="text-sm font-medium <?= $page === 'blog' ? 'text-emerald-600' : 'text-gray-700' ?> hover:text-emerald-600 transition-colors">Blog</a>
           <a href="<?= e($enrollUrl) ?>" <?= $enrollExternal ? ' target="_blank" rel="noopener"' : '' ?> class="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">Enroll</a>
           <a href="<?= nav_anchor($on_home, $base, 'contact') ?>" class="btn-premium text-sm">Start Free Trial</a>
+          <a href="login.php" class="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">Login</a>
         </div>
 
         <button id="menu-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-700 hover:bg-gray-100" aria-label="Open menu">

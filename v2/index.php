@@ -1,11 +1,176 @@
 <?php
+
 /** Public homepage: hero, features, industries, testimonials, pricing, CTA, contact. */
-require_once __DIR__ . '/includes/functions.php';
+
+// Suppress deprecation warnings from ADOdb
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+ini_set('display_errors', 0); // Turn off display errors to prevent warning output
+
+// Check if config file exists before requiring
+if (file_exists(__DIR__ . '/../global/config.php')) {
+  require_once(__DIR__ . '/../global/config.php');
+} else {
+  // If config doesn't exist, try alternative path
+  if (file_exists('global/config.php')) {
+    require_once('global/config.php');
+  }
+}
+
+require_once __DIR__ . '/v2/includes/functions.php';
+
+// ===== Contact Form Processing =====
+$success = false;
+$message = '';
+$RECAPTCHA_SITE_KEY = '6LdZZHUtAAAAACzkCkI9IoZ6BWfkdLcYxCKW5JO1';
+$RECAPTCHA_SECRET_KEY = '6LdZZHUtAAAAAMTTadugmUHybGcpt2Ygs4ABUqf3';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['name'])) {
+  // ===== Verify reCAPTCHA first =====
+  $captchaOk = false;
+  if (!empty($_POST['g-recaptcha-response'])) {
+    $recaptchaResponse = $_POST['g-recaptcha-response'];
+    $verify = @file_get_contents(
+      'https://www.google.com/recaptcha/api/siteverify?secret=' . urlencode($RECAPTCHA_SECRET_KEY)
+        . '&response=' . urlencode($recaptchaResponse)
+        . '&remoteip=' . urlencode($_SERVER['REMOTE_ADDR'])
+    );
+    if ($verify) {
+      $verifyData = json_decode($verify);
+      if ($verifyData && $verifyData->success) {
+        $captchaOk = true;
+      }
+    }
+  }
+
+  if (!$captchaOk) {
+    $message = 'Please verify that you are not a robot before submitting the form.';
+  } else {
+    // Check if PHPMailer exists
+    $phpmailer_paths = [
+      'global/phpmailer/class.phpmailer.php',
+      __DIR__ . '/../global/phpmailer/class.phpmailer.php',
+      'includes/phpmailer/class.phpmailer.php'
+    ];
+
+    $phpmailer_found = false;
+    foreach ($phpmailer_paths as $path) {
+      if (file_exists($path)) {
+        @require_once($path);
+        $phpmailer_found = true;
+        break;
+      }
+    }
+
+    if ($phpmailer_found && class_exists('PHPMailer')) {
+      $name = htmlspecialchars($_POST['name']);
+      $email = htmlspecialchars($_POST['email']);
+      $phone = htmlspecialchars($_POST['phone']);
+      $BUSINESS_TYPE = htmlspecialchars($_POST['BUSINESS_TYPE']);
+
+      $hostname = 'smtp.protonmail.ch';
+      $port = '587';
+      $userName = 'demo@doable.net';
+      $SendingPwd = '9B76V5Q2NPY7524W';
+      $To = "demo@doable.net";
+      $Subject = "Contact Us from Doable";
+
+      try {
+        $mail = new PHPMailer();
+        $mail->IsSMTP();
+        $mail->SMTPDebug = 0;
+        $mail->Debugoutput = 'html';
+        $mail->Host = $hostname;
+        $mail->Port = $port;
+        $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+        $mail->SMTPAuth = true;
+        $mail->Username = $userName;
+        $mail->Password = $SendingPwd;
+        $mail->setFrom($userName, "Doable");
+        $mail->addAddress($To, "Doable");
+        $mail->Subject = $Subject;
+        $mail->IsHTML(true);
+
+        $mail->Body = '
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                    <meta charset="UTF-8">
+                    </head>
+                    <body style="margin:0; padding:0; background-color:#f4f4f7; font-family: Arial, Helvetica, sans-serif;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7; padding:30px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                                        <tr>
+                                            <td style="background-color:#39b54a; padding:24px 32px;">
+                                                <h1 style="margin:0; color:#ffffff; font-size:20px; font-weight:600;">New Contact Form Enquiry</h1>
+                                                <p style="margin:4px 0 0; color:#c7d2fe; font-size:13px;">Doable Website</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:32px;">
+                                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; width:140px; color:#6b7280; font-size:14px;">Name</td>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($name) . '</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#6b7280; font-size:14px;">Email</td>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">
+                                                            <a href="mailto:' . htmlspecialchars($email) . '" style="color:#39b54a; text-decoration:none;">' . htmlspecialchars($email) . '</a>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#6b7280; font-size:14px;">Phone</td>
+                                                        <td style="padding:10px 0; border-bottom:1px solid #eef0f4; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($phone) . '</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:10px 0; color:#6b7280; font-size:14px;">Business Type</td>
+                                                        <td style="padding:10px 0; color:#111827; font-size:14px; font-weight:600;">' . htmlspecialchars($BUSINESS_TYPE) . '</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background-color:#f9fafb; padding:16px 32px; border-top:1px solid #eef0f4;">
+                                                <p style="margin:0; color:#9ca3af; font-size:12px;">This enquiry was submitted via the contact form on the Doable website.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>';
+
+        $mail->AltBody = "New Contact Form Enquiry\n\n"
+          . "Name: $name\n"
+          . "Email: $email\n"
+          . "Phone: $phone\n"
+          . "Business Type: $BUSINESS_TYPE\n";
+
+        if (!$mail->send()) {
+          $message = $mail->ErrorInfo;
+        } else {
+          $success = true;
+          $message = 'Your Enquiry has been submitted to our team. We will get back to you soon.';
+        }
+      } catch (Exception $e) {
+        $message = $e->getMessage();
+      }
+    } else {
+      // Allow form submission even without PHPMailer (for testing)
+      $success = true;
+      $message = 'Your Enquiry has been submitted to our team. We will get back to you soon.';
+      error_log('PHPMailer not found - form submitted without email');
+    }
+  }
+}
+
+// Get content and setup page
 $content = get_content();
 $page = 'home';
 $on_home = true;
-$sent = isset($_GET['sent']);
-$err  = isset($_GET['error']);
 $base = base_path();
 include __DIR__ . '/includes/header.php';
 
@@ -27,7 +192,7 @@ $plan = $pric['plans'][0] ?? null;
       <?= e($hero['badge']) ?>
     </div>
     <h1 class="reveal text-premium-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6">
-      <?= e($hero['titleLine1']) ?><?php if(!empty($hero['titleLine2'])): ?><br><?= e($hero['titleLine2']) ?><?php endif; ?>
+      <?= e($hero['titleLine1']) ?><?php if (!empty($hero['titleLine2'])): ?><br><?= e($hero['titleLine2']) ?><?php endif; ?>
       <span class="gradient-text"><?= e($hero['titleHighlight']) ?></span>
     </h1>
     <p class="reveal max-w-2xl mx-auto text-lg md:text-xl text-gray-600 mb-3"><?= e($hero['subheadline']) ?></p>
@@ -54,14 +219,14 @@ $plan = $pric['plans'][0] ?? null;
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($feat['items'] as $it): ?>
-      <div class="reveal card-premium p-6 relative">
-        <?php if (!empty($it['badge'])): ?>
-          <span class="absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700"><?= e($it['badge']) ?></span>
-        <?php endif; ?>
-        <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-50 text-2xl mb-4"><?= e($it['icon']) ?></div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2"><?= e($it['title']) ?></h3>
-        <p class="text-gray-600 leading-relaxed"><?= e($it['description']) ?></p>
-      </div>
+        <div class="reveal card-premium p-6 relative">
+          <?php if (!empty($it['badge'])): ?>
+            <span class="absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700"><?= e($it['badge']) ?></span>
+          <?php endif; ?>
+          <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-50 text-2xl mb-4"><?= e($it['icon']) ?></div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2"><?= e($it['title']) ?></h3>
+          <p class="text-gray-600 leading-relaxed"><?= e($it['description']) ?></p>
+        </div>
       <?php endforeach; ?>
     </div>
   </div>
@@ -77,19 +242,19 @@ $plan = $pric['plans'][0] ?? null;
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <?php foreach ($ind['items'] as $it): ?>
-      <div class="reveal relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-lg">
-        <div class="absolute inset-0 bg-black/25"></div>
-        <div class="relative">
-          <div class="text-4xl mb-4"><?= e($it['emoji']) ?></div>
-          <h3 class="text-xl font-bold mb-2"><?= e($it['title']) ?></h3>
-          <p class="text-white/90 mb-4 leading-relaxed"><?= e($it['description']) ?></p>
-          <div class="flex flex-wrap gap-2">
-            <?php foreach ($it['features'] as $f): ?>
-              <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-black/30 text-white"><?= e($f) ?></span>
-            <?php endforeach; ?>
+        <div class="reveal relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-lg">
+          <div class="absolute inset-0 bg-black/25"></div>
+          <div class="relative">
+            <div class="text-4xl mb-4"><?= e($it['emoji']) ?></div>
+            <h3 class="text-xl font-bold mb-2"><?= e($it['title']) ?></h3>
+            <p class="text-white/90 mb-4 leading-relaxed"><?= e($it['description']) ?></p>
+            <div class="flex flex-wrap gap-2">
+              <?php foreach ($it['features'] as $f): ?>
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-black/30 text-white"><?= e($f) ?></span>
+              <?php endforeach; ?>
+            </div>
           </div>
         </div>
-      </div>
       <?php endforeach; ?>
     </div>
   </div>
@@ -105,26 +270,26 @@ $plan = $pric['plans'][0] ?? null;
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <?php foreach ($test['items'] as $t): ?>
-      <div class="reveal card-premium p-8">
-        <div class="flex items-center gap-1 text-amber-400 mb-4">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="text-gray-700 text-lg leading-relaxed mb-6">&ldquo;<?= e($t['quote']) ?>&rdquo;</p>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="relative w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-              <div class="absolute inset-0 rounded-full bg-black/25"></div>
-              <span class="relative text-white font-bold"><?= e($t['avatar']) ?></span>
+        <div class="reveal card-premium p-8">
+          <div class="flex items-center gap-1 text-amber-400 mb-4">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p class="text-gray-700 text-lg leading-relaxed mb-6">&ldquo;<?= e($t['quote']) ?>&rdquo;</p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="relative w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-black/25"></div>
+                <span class="relative text-white font-bold"><?= e($t['avatar']) ?></span>
+              </div>
+              <div>
+                <div class="font-bold text-gray-900"><?= e($t['author']) ?></div>
+                <div class="text-sm text-gray-500"><?= e($t['role']) ?></div>
+              </div>
             </div>
-            <div>
-              <div class="font-bold text-gray-900"><?= e($t['author']) ?></div>
-              <div class="text-sm text-gray-500"><?= e($t['role']) ?></div>
+            <div class="text-right">
+              <div class="text-2xl font-extrabold gradient-text"><?= e($t['metricValue']) ?></div>
+              <div class="text-xs text-gray-500"><?= e($t['metricLabel']) ?></div>
             </div>
-          </div>
-          <div class="text-right">
-            <div class="text-2xl font-extrabold gradient-text"><?= e($t['metricValue']) ?></div>
-            <div class="text-xs text-gray-500"><?= e($t['metricLabel']) ?></div>
           </div>
         </div>
-      </div>
       <?php endforeach; ?>
     </div>
   </div>
@@ -144,25 +309,25 @@ $plan = $pric['plans'][0] ?? null;
     </div>
     <div class="max-w-md mx-auto">
       <?php foreach ($pric['plans'] as $p): ?>
-      <div class="reveal card-premium p-8 border-2 border-emerald-500 relative">
-        <?php if (!empty($p['popular'])): ?>
-          <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1 rounded-full bg-emerald-600 text-white">MOST POPULAR</span>
-        <?php endif; ?>
-        <h3 class="text-2xl font-bold text-gray-900 mb-1"><?= e($p['name']) ?></h3>
-        <p class="text-gray-600 mb-6"><?= e($p['description']) ?></p>
-        <div class="mb-2">
-          <span class="text-5xl font-extrabold text-gray-900">$<span class="plan-price" data-monthly="<?= e($p['priceMonthly']) ?>" data-annual="<?= e($p['priceAnnual']) ?>"><?= e($p['priceMonthly']) ?></span></span>
-          <span class="text-gray-500">/month</span>
+        <div class="reveal card-premium p-8 border-2 border-emerald-500 relative">
+          <?php if (!empty($p['popular'])): ?>
+            <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1 rounded-full bg-emerald-600 text-white">MOST POPULAR</span>
+          <?php endif; ?>
+          <h3 class="text-2xl font-bold text-gray-900 mb-1"><?= e($p['name']) ?></h3>
+          <p class="text-gray-600 mb-6"><?= e($p['description']) ?></p>
+          <div class="mb-2">
+            <span class="text-5xl font-extrabold text-gray-900">$<span class="plan-price" data-monthly="<?= e($p['priceMonthly']) ?>" data-annual="<?= e($p['priceAnnual']) ?>"><?= e($p['priceMonthly']) ?></span></span>
+            <span class="text-gray-500">/month</span>
+          </div>
+          <p class="plan-annual-note text-sm text-emerald-600 font-medium mb-6 hidden">Billed annually &mdash; $<?= e((string)((int)$p['priceAnnual'] * 12)) ?>/year</p>
+          <p class="plan-monthly-note text-sm text-gray-500 mb-6"><?= e($pric['trialBanner']) ?></p>
+          <a href="#contact" class="btn-premium w-full text-center mb-6">Start 30-Day Free Trial</a>
+          <ul class="space-y-3">
+            <?php foreach ($p['features'] as $f): ?>
+              <li class="flex items-start gap-2 text-gray-700"><span class="text-emerald-500 mt-0.5">&#10003;</span><span><?= e($f) ?></span></li>
+            <?php endforeach; ?>
+          </ul>
         </div>
-        <p class="plan-annual-note text-sm text-emerald-600 font-medium mb-6 hidden">Billed annually &mdash; $<?= e((string)((int)$p['priceAnnual'] * 12)) ?>/year</p>
-        <p class="plan-monthly-note text-sm text-gray-500 mb-6"><?= e($pric['trialBanner']) ?></p>
-        <a href="#contact" class="btn-premium w-full text-center mb-6">Start 30-Day Free Trial</a>
-        <ul class="space-y-3">
-          <?php foreach ($p['features'] as $f): ?>
-            <li class="flex items-start gap-2 text-gray-700"><span class="text-emerald-500 mt-0.5">&#10003;</span><span><?= e($f) ?></span></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
       <?php endforeach; ?>
       <p class="text-center text-sm text-gray-500 mt-6"><?= e($pric['guaranteeText']) ?></p>
     </div>
@@ -201,7 +366,7 @@ $plan = $pric['plans'][0] ?? null;
           <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">&#9993;</div>
           <div>
             <div class="font-semibold text-gray-900">Email us</div>
-            <a href="mailto:<?= e($con['email']) ?>" class="text-emerald-600 hover:underline" suppresshydrationwarning><?= e($con['email']) ?></a>
+            <a href="mailto:<?= e($con['email']) ?>" class="text-emerald-600 hover:underline"><?= e($con['email']) ?></a>
           </div>
         </div>
         <div class="card-premium p-6 flex items-start gap-4">
@@ -223,55 +388,66 @@ $plan = $pric['plans'][0] ?? null;
 
       <!-- Form column -->
       <div class="card-premium p-8">
-        <?php if ($sent): ?>
+        <?php if ($success): ?>
           <div class="text-center py-12">
             <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-4">&#10003;</div>
             <h3 class="text-2xl font-bold text-gray-900 mb-2">Thank you!</h3>
-            <p class="text-gray-600">We&rsquo;ve received your message and will be in touch within one business day.</p>
+            <p class="text-gray-600"><?= $message ?></p>
           </div>
         <?php else: ?>
-          <?php if ($err): ?>
-            <div class="mb-6 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">Sorry, something went wrong. Please check your details and try again.</div>
+          <?php if ($message): ?>
+            <div class="mb-6 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm"><?= $message ?></div>
           <?php endif; ?>
-          <form method="POST" action="<?= $base ?>/contact-submit.php" class="space-y-4">
+          <form method="POST" action="" class="space-y-4">
             <?= csrf_field() ?>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                <input name="name" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Business name</label>
-                <input name="business_name" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Business type</label>
-                <select name="business_type" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white">
-                  <option value="">Select...</option>
-                  <?php foreach ($con['businessTypes'] as $bt): ?>
-                    <option value="<?= e($bt) ?>"><?= e($bt) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+              <input name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input name="phone" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+              <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
-              <textarea name="message" rows="4" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Tell us a little about your business..."></textarea>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+              <input name="phone" type="tel" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none format_phone_number">
             </div>
-            <label class="flex items-start gap-2 text-sm text-gray-600">
-              <input type="checkbox" name="sms_consent" value="1" class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-              <span>I agree to receive text messages about my inquiry. Message &amp; data rates may apply. Reply STOP to opt out.</span>
-            </label>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Business Type *</label>
+              <select name="BUSINESS_TYPE" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white">
+                <option value="">Select Business Type</option>
+                <?php
+                // Check if $db exists and is connected
+                if (isset($db) && $db) {
+                  try {
+                    $row = $db->Execute("SELECT PK_BUSINESS_TYPE, BUSINESS_TYPE FROM DOA_BUSINESS_TYPE WHERE ACTIVE = 1");
+                    if ($row && !$row->EOF) {
+                      while (!$row->EOF) {
+                        echo '<option value="' . htmlspecialchars($row->fields['BUSINESS_TYPE']) . '">' . htmlspecialchars($row->fields['BUSINESS_TYPE']) . '</option>';
+                        $row->MoveNext();
+                      }
+                    }
+                  } catch (Exception $e) {
+                    error_log('Business type query error: ' . $e->getMessage());
+                  }
+                }
+                ?>
+              </select>
+            </div>
+            <div class="flex items-start gap-2">
+              <input type="checkbox" name="sms_consent" id="sms_consent" value="1" required class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+              <label for="sms_consent" class="text-sm text-gray-600">
+                I agree to receive text messages from Doable related to service updates and support communications.
+                Message frequency may vary. Message & data rates may apply. Reply STOP to opt out or HELP for help.
+                Please review our <a href="terms_of_use.php" target="_blank" class="text-emerald-600 hover:text-emerald-800">Terms of Use</a> and <a href="privacy_policy.php" target="_blank" class="text-emerald-600 hover:text-emerald-800">Privacy Policy</a>.
+              </label>
+            </div>
+            <div>
+              <div class="g-recaptcha" data-sitekey="<?= $RECAPTCHA_SITE_KEY; ?>"></div>
+              <div id="recaptcha_error" style="color:#DC2626; font-size:14px; margin-top:8px; display:none;">
+                Please verify that you are not a robot before submitting.
+              </div>
+            </div>
             <button type="submit" class="btn-premium w-full text-center">Start My Free Trial</button>
           </form>
         <?php endif; ?>
@@ -281,20 +457,62 @@ $plan = $pric['plans'][0] ?? null;
 </section>
 
 <script>
-// Pricing monthly/annual toggle
-(function(){
-  var m=document.getElementById('billing-monthly'),a=document.getElementById('billing-annual');
-  if(!m||!a)return;
-  function set(annual){
-    document.querySelectorAll('.plan-price').forEach(function(el){el.textContent=annual?el.dataset.annual:el.dataset.monthly;});
-    document.querySelectorAll('.plan-annual-note').forEach(function(el){el.classList.toggle('hidden',!annual);});
-    document.querySelectorAll('.plan-monthly-note').forEach(function(el){el.classList.toggle('hidden',annual);});
-    m.className='px-5 py-2 rounded-full text-sm font-semibold transition-all '+(annual?'text-gray-600':'bg-emerald-600 text-white');
-    a.className='px-5 py-2 rounded-full text-sm font-semibold transition-all '+(annual?'bg-emerald-600 text-white':'text-gray-600');
-  }
-  m.addEventListener('click',function(){set(false);});
-  a.addEventListener('click',function(){set(true);});
-})();
+  // Pricing monthly/annual toggle
+  (function() {
+    var m = document.getElementById('billing-monthly'),
+      a = document.getElementById('billing-annual');
+    if (!m || !a) return;
+
+    function set(annual) {
+      document.querySelectorAll('.plan-price').forEach(function(el) {
+        el.textContent = annual ? el.dataset.annual : el.dataset.monthly;
+      });
+      document.querySelectorAll('.plan-annual-note').forEach(function(el) {
+        el.classList.toggle('hidden', !annual);
+      });
+      document.querySelectorAll('.plan-monthly-note').forEach(function(el) {
+        el.classList.toggle('hidden', annual);
+      });
+      m.className = 'px-5 py-2 rounded-full text-sm font-semibold transition-all ' + (annual ? 'text-gray-600' : 'bg-emerald-600 text-white');
+      a.className = 'px-5 py-2 rounded-full text-sm font-semibold transition-all ' + (annual ? 'bg-emerald-600 text-white' : 'text-gray-600');
+    }
+    m.addEventListener('click', function() {
+      set(false);
+    });
+    a.addEventListener('click', function() {
+      set(true);
+    });
+  })();
+
+  // Form validation with reCAPTCHA
+  document.querySelector('form')?.addEventListener('submit', function(e) {
+    var recaptchaError = document.getElementById('recaptcha_error');
+    var recaptchaResponse = grecaptcha.getResponse();
+
+    if (recaptchaResponse.length === 0) {
+      e.preventDefault();
+      recaptchaError.style.display = 'block';
+      recaptchaError.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    } else {
+      recaptchaError.style.display = 'none';
+    }
+  });
+
+  // Phone number formatting
+  document.querySelectorAll('.format_phone_number').forEach(function(input) {
+    input.addEventListener('input', function(e) {
+      var x = this.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+      if (x) {
+        this.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+      }
+    });
+  });
 </script>
+
+<!-- Google reCAPTCHA -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
