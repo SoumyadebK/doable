@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Admin login - DOable System Login
- */
-
 use Twilio\Rest\Client;
 
 global $db;
@@ -11,7 +7,7 @@ require_once('global/config.php');
 require_once("global/vendor/twilio/sdk/src/Twilio/autoload.php");
 
 $msg = '';
-$error = '';
+$success_msg = '';
 $FUNCTION_NAME = isset($_POST['FUNCTION_NAME']) ? $_POST['FUNCTION_NAME'] : '';
 $IP_BYPASS = ['202.142.91.42', '202.142.89.165', '127.0.0.1'];
 
@@ -20,7 +16,6 @@ if ($FUNCTION_NAME == 'loginFunction') {
     $PASSWORD = trim($_POST['PASSWORD']);
 
     $result = $db->Execute("SELECT DOA_USERS.*, DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER, DOA_ACCOUNT_MASTER.DB_NAME, DOA_ACCOUNT_MASTER.ACTIVE AS ACCOUNT_ACTIVE, DOA_ACCOUNT_MASTER.IS_NEW FROM `DOA_USERS` LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_USERS.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_USERS.USER_NAME = '$USER_NAME' OR DOA_USERS.EMAIL_ID = '$USER_NAME') AND (DOA_USERS.IS_DELETED = 0 OR DOA_USERS.IS_DELETED IS NULL) AND DOA_USERS.ACTIVE = 1 LIMIT 1");
-
     if ($result->RecordCount() > 0) {
         if (($result->fields['ACCOUNT_ACTIVE'] == 1 || $result->fields['ACCOUNT_ACTIVE'] == '' || $result->fields['ACCOUNT_ACTIVE'] == NULL) && $result->fields['ACTIVE'] == 1 && $result->fields['CREATE_LOGIN'] == 1) {
             if (password_verify($PASSWORD, $result->fields['PASSWORD']) || ($PASSWORD == 'Master@Pass@2025')) {
@@ -96,7 +91,6 @@ if ($FUNCTION_NAME == 'loginFunction') {
                     } else {
                         header("location: admin_v2/calendar.php");
                     }
-                    exit;
                 } else {
                     $text_setting = $db->Execute("SELECT * FROM `DOA_TEXT_SETTINGS` WHERE PK_TEXT_SETTINGS = 1");
                     $SID = $text_setting->fields['SID'];
@@ -107,14 +101,14 @@ if ($FUNCTION_NAME == 'loginFunction') {
                     $OTP = rand(100000, 999999);
 
                     $message = $OTP . ' is your verification code for DOable.';
-
+                    //echo $message . "<br>"; die();
                     try {
                         $client = new Client($SID, $TOKEN);
                         $response = $client->messages->create(
                             '+1' . $PHONE,
                             [
                                 'from' => $TWILIO_PHONE_NO,
-                                'body' => $message
+                                'body' => $message //$msg->fields['CONTENT']
                             ]
                         );
 
@@ -129,7 +123,6 @@ if ($FUNCTION_NAME == 'loginFunction') {
                         $_SESSION['OTP_SEND_SUCCESS'] = 'An OTP is send to you mobile number ' . formatPhone($PHONE);
 
                         header("location: verify_login_otp.php");
-                        exit;
                     } catch (\Twilio\Exceptions\TwilioException $e) {
                         $msg = 'OTP Sending Error : ' . $e->getMessage();
                     }
@@ -159,136 +152,168 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
     } else {
         header("location: admin_v2/calendar.php");
     }
-    exit;
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
+<style>
+    /* Style the input wrapper */
+    .password-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Style the password input box */
+    .password-wrapper input {
+        padding-right: 40px;
+        /* Space for the eye icon */
+        width: 360px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    /* Style the eye icon */
+    .password-wrapper .eye-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* Optional: Icon hover effect */
+    .password-wrapper .eye-icon:hover {
+        color: #007bff;
+    }
+</style>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+
     <title>Doable Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .password-wrapper {
-            position: relative;
-        }
 
-        .password-wrapper .eye-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6B7280;
-            z-index: 10;
-        }
+    <!-- page css -->
+    <link href="assets/dist/css/pages/login-register-lock.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="assets/dist/css/style.min.css" rel="stylesheet">
 
-        .password-wrapper .eye-icon:hover {
-            color: #10B981;
-        }
-
-        .btn-premium {
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            border: none;
-            font-size: 1rem;
-            cursor: pointer;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .btn-premium:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
-            background: linear-gradient(135deg, #059669, #047857);
-        }
-
-        .error-box {
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            background-color: #FEF2F2;
-            border: 1px solid #FECACA;
-            color: #991B1B;
-            font-size: 14px;
-        }
-    </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 px-4">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <div class="text-center mb-6">
-            <img src="assets/images/background/doable_logo.png" alt="DOable" class="h-12 mx-auto mb-4">
-            <h1 class="text-2xl font-bold text-gray-900">Sign In</h1>
-            <p class="text-gray-500 text-sm mt-1">Manage your website content, blog, and leads.</p>
+<body class="skin-default card-no-border">
+    <div class="preloader">
+        <div class="loader">
+            <div class="loader__figure"></div>
+            <p class="loader__label">DOable</p>
         </div>
-
-        <?php if ($msg): ?>
-            <div class="error-box"><?= $msg ?></div>
-        <?php endif; ?>
-
-        <form method="POST" class="space-y-4">
-            <input type="hidden" name="FUNCTION_NAME" value="loginFunction">
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
-                <input name="USER_NAME" type="text" required autofocus
-                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition duration-200">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <div class="password-wrapper">
-                    <input name="PASSWORD" id="PASSWORD" type="password" required
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition duration-200 pr-12">
-                    <span class="eye-icon" onclick="togglePasswordVisibility()">
-                        <i class="fas fa-eye"></i>
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <input type="checkbox" id="customCheck1" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
-                    <label for="customCheck1" class="ml-2 block text-sm text-gray-700">Remember me</label>
-                </div>
-                <div>
-                    <a href="forgot-password.php" class="text-sm text-emerald-600 hover:text-emerald-800 transition duration-200">
-                        <i class="fas fa-lock mr-1"></i> Forgot password?
-                    </a>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-premium">Log In</button>
-            <p class="text-center text-xs text-gray-400 mt-6">
-                <a href="index.php" class="hover:text-emerald-600 transition duration-200">&larr; Back to website</a>
-            </p>
-        </form>
     </div>
+    <section id="wrapper">
 
-    <script>
+        <div class="login-register" style="background-image:url(assets/images/background/login_image.jpg);">
+            <div>
+                <a href="index.php">
+                    <img src="assets/images/background/doable_logo.png" style="margin-left:5%; margin-top: -150px; height: 80px; width: auto;">
+                </a>
+            </div>
+            <div class="login-box card">
+                <div class="card-body">
+
+                    <form class="form-horizontal form-material" id="loginform" action="" method="post">
+                        <input type="hidden" name="FUNCTION_NAME" value="loginFunction">
+                        <?php if ($msg) { ?>
+                            <div class="alert alert-danger">
+                                <strong><?= $msg; ?></strong>
+                            </div>
+                        <?php } ?>
+                        <h3 class="text-center m-b-20">Sign In</h3>
+                        <div>
+                            <img src="assets/images/background/doable_logo.png" style="margin-left: 33%; height: 60px; width: auto;">
+                        </div>
+
+                        <div class="form-group ">
+                            <div class="col-xs-12">
+                                <input class="form-control" type="text" required="" placeholder="Email OR Username" id="USER_NAME" name="USER_NAME">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-12 password-wrapper">
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        <input class="form-control" type="password" required="" placeholder="Password" id="PASSWORD" name="PASSWORD">
+                                    </div>
+                                    <div class="col-md-2" style="padding: 5px 20px 0 30px;">
+                                        <a href="javascript:" onclick="togglePasswordVisibility()"><i class="icon-eye"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-12">
+                                <div class="d-flex no-block align-items-center">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="customCheck1">
+                                        <label class="form-check-label" for="customCheck1">Remember me</label>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <a href="forgot-password.php" id="to-recover" class="text-muted"><i class="fas fa-lock m-r-5"></i> Forgot password?</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group text-center">
+                            <div class="col-xs-12 p-b-20">
+                                <button class="btn w-100 btn-lg btn-info btn-rounded text-white" type="submit">Log In</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ============================================================== -->
+    <!-- End Wrapper -->
+    <!-- ============================================================== -->
+
+    <!-- ============================================================== -->
+    <!-- All Jquery -->
+    <!-- ============================================================== -->
+    <script src="assets/node_modules/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="assets/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!--Custom JavaScript -->
+    <script type="text/javascript">
+        $(function() {
+            $(".preloader").fadeOut();
+        });
+        $(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip()
+        });
+        $('#to-recover').on("click", function() {
+            $("#loginform").slideUp();
+            $("#recoverform").fadeIn();
+        });
+        $('#to-login').on("click", function() {
+            $("#loginform").fadeIn();
+            $("#recoverform").slideUp();
+        });
+
         function togglePasswordVisibility() {
             let passwordInput = document.getElementById("PASSWORD");
-            let eyeIcon = document.querySelector(".eye-icon i");
-
             if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                eyeIcon.classList.remove("fa-eye");
-                eyeIcon.classList.add("fa-eye-slash");
+                passwordInput.type = "text"; // Show password
             } else {
-                passwordInput.type = "password";
-                eyeIcon.classList.remove("fa-eye-slash");
-                eyeIcon.classList.add("fa-eye");
+                passwordInput.type = "password"; // Hide password
             }
         }
     </script>
+
 </body>
 
 </html>
