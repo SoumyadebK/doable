@@ -73,23 +73,23 @@ if ($location_operational_hour->RecordCount() > 0) {
 <div class="overlay"></div>
 <div class="side-drawer" id="sideDrawer">
     <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">Create New Appointment</h6>
+        <h6 class="mb-0" id="create_appointment_form_title">Create New Appointment</h6>
         <span class="close-btn" id="closeDrawer">&times;</span>
     </div>
 
     <!-- Tabs Nav -->
     <ul class="nav nav-tabs align-items-center" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Appointment" type="button" onclick="$('#FORM_NAME').val('create_appointment_form');">Appointment</button>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#Appointment" type="button" onclick="$('#FORM_NAME').val('create_appointment_form'); $('#create_appointment_form_title').text('Create New Appointment');">Appointment</button>
         </li>
         <li class="nav-item group_class_tab" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Group" type="button" onclick="$('#FORM_NAME').val('create_group_class_form')">Group Class</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Group" type="button" onclick="$('#FORM_NAME').val('create_group_class_form'); $('#create_appointment_form_title').text('Create New Group Class');">Group Class</button>
         </li>
         <li class="nav-item to_do_tab" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#To-Do" type="button" onclick="$('#FORM_NAME').val('create_to_do_form')">To Do</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#To-Do" type="button" onclick="$('#FORM_NAME').val('create_to_do_form'); $('#create_appointment_form_title').text('Create New To Do');">To Do</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Record" type="button" onclick="$('#FORM_NAME').val('create_record_only_form')">Record Only</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#Record" type="button" onclick="$('#FORM_NAME').val('create_record_only_form'); $('#create_appointment_form_title').text('Create New Record Only');">Record Only</button>
         </li>
     </ul>
 
@@ -773,13 +773,13 @@ if ($location_operational_hour->RecordCount() > 0) {
                         <div class="col-8 col-md-8">
                             <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                                 <input type="text" name="TO_DO_DATE" id="TO_DO_DATE" class="form-control datepicker-normal" style="min-width: 80px;" required>
-                                <span class="f14">at</span>
-                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" required>
-                                <span class="f14">to</span>
-                                <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" required>
+                                <span class="f14 to_do_timing">at</span>
+                                <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control to_do_timing" required>
+                                <span class="f14 to_do_timing">to</span>
+                                <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control to_do_timing" required>
                             </div>
                             <label class="custom-checkbox float-start mt-2 mb-2">
-                                <input type="checkbox" id="TO_DO_ALL_DAY" name="ALL_DAY" value="1">
+                                <input type="checkbox" id="TO_DO_ALL_DAY" name="ALL_DAY" value="1" onclick="changeToDoTiming(this)">
                                 <span class="checkmark"></span>
                                 All Day
                             </label>
@@ -1527,5 +1527,18 @@ if ($location_operational_hour->RecordCount() > 0) {
         var mins = piece[0] * 60 + +piece[1] + +minsToAdd;
 
         return D(mins % (24 * 60) / 60 | 0) + ':' + D(mins % 60);
+    }
+
+
+    function changeToDoTiming(param) {
+        if ($(param).is(':checked')) {
+            $('#create_to_do_form .to_do_timing').hide();
+            $('#create_to_do_form #TO_DO_START_TIME').prop('required', false);
+            $('#create_to_do_form #TO_DO_END_TIME').prop('required', false);
+        } else {
+            $('#create_to_do_form .to_do_timing').show();
+            $('#create_to_do_form #TO_DO_START_TIME').prop('required', true);
+            $('#create_to_do_form #TO_DO_END_TIME').prop('required', true);
+        }
     }
 </script>
