@@ -78,8 +78,13 @@ if ($TOTAL_APPOINTMENT_TO_CREATE > 0) {
                 $SPECIAL_APPOINTMENT_DATA['TITLE'] = $_POST['TITLE'];
                 $SPECIAL_APPOINTMENT_DATA['DATE'] = $SPECIAL_APPOINTMENT_DATE_ARRAY[$i];
                 $SPECIAL_APPOINTMENT_DATA['ALL_DAY'] = (isset($_POST['ALL_DAY'])) ? 1 : 0;
-                $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
-                $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+                if ($SPECIAL_APPOINTMENT_DATA['ALL_DAY'] == 0) {
+                    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = date('H:i:s', strtotime($_POST['START_TIME']));
+                    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i:s', strtotime($_POST['END_TIME']));
+                } else {
+                    $SPECIAL_APPOINTMENT_DATA['START_TIME'] = '00:00';
+                    $SPECIAL_APPOINTMENT_DATA['END_TIME'] = '23:59';
+                }
                 $SPECIAL_APPOINTMENT_DATA['PK_SCHEDULING_CODE'] = $_POST['PK_SCHEDULING_CODE'];
                 $SPECIAL_APPOINTMENT_DATA['DESCRIPTION'] = $_POST['DESCRIPTION'];
                 $SPECIAL_APPOINTMENT_DATA['ACTIVE'] = 1;

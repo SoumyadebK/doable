@@ -378,7 +378,7 @@ if ($TYPE == 'appointment') {
                 </div>
             </div>
             <div class="profilebtn-area ms-auto">
-                <a title="Edit" href="javascript:;" class="edit-btn" onclick="editSpecialAppointment(<?= $PK_SPECIAL_APPOINTMENT ?> 'special_appointment')">
+                <a title="Edit" href="javascript:;" class="edit-btn" onclick="loadViewAppointmentModal(<?= $PK_SPECIAL_APPOINTMENT ?>, 'special_appointment')">
                     <i class="fa fa-edit" aria-hidden="true"></i>
                 </a>
                 <a title="Delete" href="javascript:" onclick="deleteAppointment(<?= $PK_SPECIAL_APPOINTMENT ?>, 'special_appointment');" class="delete-btn">

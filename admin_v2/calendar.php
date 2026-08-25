@@ -782,7 +782,7 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
     <div class="overlay2"></div>
     <div class="side-drawer" id="sideDrawer2" style="display: flex; flex-direction: column;">
         <div class="drawer-header text-end border-bottom px-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Appointment Details</h6>
+            <h6 class="mb-0" id="edit_appointment_form_title">Appointment Details</h6>
             <span class="close-btn" id="closeDrawer2">&times;</span>
         </div>
         <div class="modal-body p-3" id="edit_appointment_div" style="flex: 1; overflow-y: auto;">
@@ -1750,6 +1750,15 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
         function loadViewAppointmentModal(appointmentId, TYPE) {
             if (TYPE != 'not_available') {
                 $('#sideDrawer2, .overlay2').addClass('active');
+
+                if (TYPE == 'group_class') {
+                    $('#edit_appointment_form_title').text('Edit Group Class');
+                } else if (TYPE == 'special_appointment') {
+                    $('#edit_appointment_form_title').text('Edit To-Do');
+                } else if (TYPE == 'appointment') {
+                    $('#edit_appointment_form_title').text('Edit Appointment');
+                }
+
                 $.ajax({
                     url: "partials/view_appointment_modal.php",
                     type: "POST",

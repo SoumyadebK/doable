@@ -1125,6 +1125,7 @@ if ($TYPE == 'appointment') {
     $DATE = date("m/d/Y", strtotime($special_appointment_data->fields['DATE']));
     $START_TIME = date("h:i A", strtotime($special_appointment_data->fields['START_TIME']));
     $END_TIME = date("h:i A", strtotime($special_appointment_data->fields['END_TIME']));
+    $ALL_DAY = $special_appointment_data->fields['ALL_DAY'];
     $DESCRIPTION = $special_appointment_data->fields['DESCRIPTION'];
     $PK_APPOINTMENT_STATUS = $special_appointment_data->fields['PK_APPOINTMENT_STATUS'];
 
@@ -1240,7 +1241,7 @@ if ($TYPE == 'appointment') {
             <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?= $PK_APPOINTMENT_STATUS ?>">
             <div class="col-8 col-md-8">
                 <div class="form-group" id="scheduling_code_select">
-                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
+                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS">
                         <option value="1">Select Status</option>
                         <?php
                         $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
@@ -1267,11 +1268,17 @@ if ($TYPE == 'appointment') {
             <div class="col-8 col-md-8">
                 <div class="form-group d-flex gap-2 align-items-center" id="datetime">
                     <input type="text" class="form-control datepicker-normal" name="APPOINTMENT_DATE" id="APPOINTMENT_DATE" placeholder="MM/DD/YYYY" value="<?= $DATE ?>" style="min-width: 80px;" required>
-                    <span class="f14">at</span>
-                    <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control" value="<?= $START_TIME ?>" required>
-                    <span class="f14">to</span>
-                    <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control" value="<?= $END_TIME ?>" required>
+                    <span class="f14 to_do_timing_edit" style="display: <?= ($ALL_DAY == 1) ? 'none' : 'block' ?>">at</span>
+                    <input type="text" id="TO_DO_START_TIME" name="START_TIME" class="form-control to_do_timing_edit" value="<?= $START_TIME ?>" style="display: <?= ($ALL_DAY == 1) ? 'none' : 'block' ?>" required>
+                    <span class="f14 to_do_timing_edit" style="display: <?= ($ALL_DAY == 1) ? 'none' : 'block' ?>">to</span>
+                    <input type="text" id="TO_DO_END_TIME" name="END_TIME" class="form-control to_do_timing_edit" value="<?= $END_TIME ?>" style="display: <?= ($ALL_DAY == 1) ? 'none' : 'block' ?>">
                 </div>
+
+                <label class="custom-checkbox float-start mt-2 mb-2">
+                    <input type="checkbox" id="TO_DO_ALL_DAY" name="ALL_DAY" value="1" onclick="changeToDoTimingEdit(this)" <?= ($ALL_DAY == 1) ? 'checked' : '' ?>>
+                    <span class="checkmark"></span>
+                    All Day
+                </label>
             </div>
         </div>
 
@@ -1417,5 +1424,13 @@ if ($TYPE == 'appointment') {
         }
 
         console.log(start_time_array.sort(), end_time_array.sort());
+    }
+
+    function changeToDoTimingEdit(param) {
+        if ($(param).is(':checked')) {
+            $('.to_do_timing_edit').hide();
+        } else {
+            $('.to_do_timing_edit').show();
+        }
     }
 </script>

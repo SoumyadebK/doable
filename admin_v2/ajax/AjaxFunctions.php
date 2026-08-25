@@ -2922,8 +2922,17 @@ function modifyAppointment($RESPONSE_DATA)
     } elseif ('special_appointment' === $RESPONSE_DATA['TYPE']) {
         $SPECIAL_APPOINTMENT_DATA['PK_SPECIAL_APPOINTMENT'] = $RESPONSE_DATA['PK_ID'];
         $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
-        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
-        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = $END_TIME;
+
+        $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $RESPONSE_DATA['PK_ID']);
+
+        if ($special_appointment_details->fields['ALL_DAY'] == 0) {
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = $END_TIME;
+        } else {
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = '00:00';
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = '23:59';
+        }
+
         db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT = " . $RESPONSE_DATA['PK_ID']);
     }
     if ($RESPONSE_DATA['TYPE'] === "appointment" && $RESPONSE_DATA['SERVICE_PROVIDER_ID'] > 0) {
@@ -3058,11 +3067,20 @@ function copyAppointment($RESPONSE_DATA)
         $SPECIAL_APPOINTMENT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
         $SPECIAL_APPOINTMENT_DATA['CREATED_ON'] = date("Y-m-d H:i");
 
-        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
-        $duration = $scheduling_code->fields['DURATION'];
+        if ($special_appointment_details->fields['ALL_DAY'] == 0) {
+            $SPECIAL_APPOINTMENT_DATA['ALL_DAY'] = 0;
 
-        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
-        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+            $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+            $duration = $scheduling_code->fields['DURATION'];
+
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+        } else {
+            $SPECIAL_APPOINTMENT_DATA['ALL_DAY'] = 1;
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = '00:00';
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = '23:59';
+        }
+
 
         db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'insert');
         $PK_SPECIAL_APPOINTMENT = $db_account->insert_ID();
@@ -3073,12 +3091,20 @@ function copyAppointment($RESPONSE_DATA)
     } elseif ($OPERATION === 'move' && $TYPE === "special_appointment") {
         $special_appointment_details = $db_account->Execute("SELECT * FROM `DOA_SPECIAL_APPOINTMENT` WHERE `PK_SPECIAL_APPOINTMENT` = " . $PK_ID);
 
-        $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
-        $duration = $scheduling_code->fields['DURATION'];
-
         $SPECIAL_APPOINTMENT_DATA['DATE'] = $DATE;
-        $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
-        $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+
+        if ($special_appointment_details->fields['ALL_DAY'] == 0) {
+            $SPECIAL_APPOINTMENT_DATA['ALL_DAY'] = 0;
+            $scheduling_code = $db_account->Execute("SELECT `DURATION` FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = " . $special_appointment_details->fields['PK_SCHEDULING_CODE']);
+            $duration = $scheduling_code->fields['DURATION'];
+
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = $START_TIME;
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = date('H:i', strtotime($START_TIME) + (60 * $duration));
+        } else {
+            $SPECIAL_APPOINTMENT_DATA['ALL_DAY'] = 1;
+            $SPECIAL_APPOINTMENT_DATA['START_TIME'] = '00:00';
+            $SPECIAL_APPOINTMENT_DATA['END_TIME'] = '23:59';
+        }
 
         if ($PK_ID > 0) {
             db_perform_account('DOA_SPECIAL_APPOINTMENT', $SPECIAL_APPOINTMENT_DATA, 'update', " PK_SPECIAL_APPOINTMENT = " . $PK_ID);
