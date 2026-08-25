@@ -147,7 +147,7 @@ if (!empty($_GET['NAME'])) {
                                         </div>
                                         <div class="col-4">
                                             <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
-                                            <?php if ($AMI_ENABLE == 1) { ?>
+                                            <?php if ($AMI_ENABLE == 1 && in_array($_SESSION['PK_ACCOUNT_MASTER'], [1010,])) { ?>
                                                 <input type="submit" name="export" value="Export" class="btn btn-info" style="background-color: #39B54A !important;">
                                             <?php } ?>
                                             <input type="submit" name="generate_pdf" value="Generate PDF" class="btn btn-info" style="background-color: #39B54A !important;">

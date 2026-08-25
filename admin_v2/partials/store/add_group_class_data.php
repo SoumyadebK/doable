@@ -62,7 +62,14 @@ if ($REPEAT == 'NOT_REPEAT') {
     $FREQUENCY = 'month';
     $END_DATE = isset($_POST['END_ON_GROUP_CLASS_DATE']) ? date('Y-m-d', strtotime($_POST['END_ON_GROUP_CLASS_DATE'])) : date('Y-m-d', strtotime('+ ' . $LENGTH . ' ' . $FREQUENCY, strtotime($STARTING_ON)));
 
-    if ($REPEAT == 'Custom') {
+    if ($REPEAT == 'Daily') {
+        $APPOINTMENT_START_DATE = date('Y-m-d', strtotime($STARTING_ON));
+        $APPOINTMENT_END_DATE = date('Y-m-d', strtotime($_POST['DAILY_END_DATE']));
+        while ($APPOINTMENT_START_DATE <= $APPOINTMENT_END_DATE) {
+            $GROUP_CLASS_DATE_ARRAY[] = $APPOINTMENT_START_DATE;
+            $APPOINTMENT_START_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_START_DATE)));
+        }
+    } elseif ($REPEAT == 'Custom') {
         if (!empty($_POST['OCCURRENCE'])) {
             $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
             if ($_POST['OCCURRENCE'] == 'WEEKLY') {

@@ -393,7 +393,7 @@ if (!empty($_POST)) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-3">
+                                                <!-- <div class="col-3">
                                                     <div class="form-group">
                                                         <label class="col-md-12">Arthur Murray Franchise ?</label>
                                                         <div class="col-md-12">
@@ -401,7 +401,7 @@ if (!empty($_POST)) {
                                                             <label><input type="radio" name="FRANCHISE" id="FRANCHISE" value="0" <?php if ($FRANCHISE == 0) echo 'checked="checked"'; ?> onclick="showArthurMurraySetup(this);" />&nbsp;No</label>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> -->
 
                                                 <div class="col-6">
                                                     <div class="form-group">
@@ -832,7 +832,7 @@ if (!empty($_POST)) {
                                                 </div>
                                             </div>
 
-                                            <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
+                                            <!-- <div class="row arthur_murray_setup" id="arthur_murray_setup" style="display: <?= ($FRANCHISE == '1') ? '' : 'none' ?>; margin-top: 30px;">
                                                 <b class="btn btn-light" style="margin-bottom: 20px;">Arthur Murray API Setup</b>
                                                 <div class="col-4">
                                                     <div class="form-group">
@@ -846,13 +846,7 @@ if (!empty($_POST)) {
                                                         <input type="text" class="form-control" name="AM_PASSWORD" value="<?= $AM_PASSWORD ?>">
                                                     </div>
                                                 </div>
-                                                <!--<div class="col-4">
-                                                    <div class="form-group">
-                                                        <label class="form-label">Refresh Token</label>
-                                                        <input type="text" class="form-control" name="AM_REFRESH_TOKEN" value="<?php /*=$AM_REFRESH_TOKEN*/ ?>">
-                                                    </div>
-                                                </div>-->
-                                            </div>
+                                            </div> -->
 
                                             <?php if (!empty($_GET['id'])) { ?>
                                                 <div class="row" style="margin-bottom: 15px;">

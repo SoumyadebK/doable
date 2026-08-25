@@ -4508,6 +4508,14 @@ function deleteFamilyMemberData($RESPONSE_DATA)
     $db_account->Execute("DELETE FROM `DOA_CUSTOMER_DETAILS` WHERE `PK_CUSTOMER_DETAILS` = '$PK_CUSTOMER_DETAILS'");
 }
 
+function deleteSchedulingCodeData($RESPONSE_DATA)
+{
+    global $db_account;
+
+    $PK_SCHEDULING_CODE = $RESPONSE_DATA['PK_SCHEDULING_CODE'];
+    $db_account->Execute("DELETE FROM `DOA_SCHEDULING_CODE` WHERE `PK_SCHEDULING_CODE` = '$PK_SCHEDULING_CODE'");
+}
+
 function markMiscComplete($RESPONSE_DATA)
 {
     global $db;

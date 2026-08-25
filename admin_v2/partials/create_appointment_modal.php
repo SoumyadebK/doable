@@ -253,6 +253,17 @@ if ($location_operational_hour->RecordCount() > 0) {
                                 </select>
                             </div>
 
+                            <div class="end-date-option d-none mt-2">
+                                <div class="repeat-box">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label>Ends Date:</label>
+                                            <input type="text" name="DAILY_END_DATE" class="form-control DAILY_END_DATE" placeholder="MM/DD/YYYY">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="day-end-option d-none mt-2">
                                 <div class="repeat-box">
                                     <div class="row">
@@ -519,6 +530,17 @@ if ($location_operational_hour->RecordCount() > 0) {
                                     <option value="NOT_REPEAT" selected>Does not repeat</option>
                                     <option value="Custom">Custom...</option>
                                 </select>
+                            </div>
+
+                            <div class="end-date-option d-none mt-2">
+                                <div class="repeat-box">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label>Ends Date:</label>
+                                            <input type="text" name="DAILY_END_DATE" class="form-control DAILY_END_DATE" placeholder="MM/DD/YYYY">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="day-end-option d-none mt-2">
@@ -806,6 +828,17 @@ if ($location_operational_hour->RecordCount() > 0) {
                                         <option value="Weekly">Weekly</option>
                                         <option value="Custom">Custom...</option>
                                     </select>
+                                </div>
+
+                                <div class="end-date-option d-none mt-2">
+                                    <div class="repeat-box">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <label>Ends Date:</label>
+                                                <input type="text" name="DAILY_END_DATE" class="form-control DAILY_END_DATE" placeholder="MM/DD/YYYY">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="day-end-option d-none mt-2">
@@ -1334,8 +1367,24 @@ if ($location_operational_hour->RecordCount() > 0) {
     function repeatSchedule(param) {
         $(param).closest('.tab-pane').find('.custom-date-time-format').addClass('d-none');
         $(param).closest('.tab-pane').find('.day-end-option').addClass("d-none");
+        $(param).closest('.tab-pane').find('.end-date-option').addClass("d-none");
+        $(param).closest('.tab-pane').find('.DAILY_END_DATE').prop('required', false);
 
-        if ($(param).val() == 'Custom') {
+        if ($(param).val() == 'Daily') {
+            $(param).closest('.tab-pane').find('.end-date-option').removeClass("d-none");
+            $(param).closest('.tab-pane').find('.DAILY_END_DATE').prop('required', true);
+            var startDate = $(param).closest('.tab-pane').find('.datepicker-normal').datepicker('getDate');
+            $(param).closest('.tab-pane').find('.DAILY_END_DATE').datepicker({
+                dateFormat: 'mm/dd/yy',
+                changeMonth: true,
+                changeYear: true,
+                numberOfMonths: 1,
+                beforeShow: function() {
+                    var minDate = $(param).closest('.tab-pane').find('.datepicker-normal').datepicker('getDate');
+                    $(this).datepicker('option', 'minDate', minDate);
+                }
+            });
+        } else if ($(param).val() == 'Custom') {
             $(param).closest('.tab-pane').find('.custom-date-time-format').removeClass("d-none");
         } else if ($(param).val() == 'Weekly') {
             $(param).closest('.tab-pane').find('.day-end-option').removeClass("d-none");

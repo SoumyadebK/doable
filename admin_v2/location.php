@@ -2045,7 +2045,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
 
                                                     <!-- Arthur Murray API -->
                                                     <?php if ($AMI_ENABLE == 1): ?>
-                                                        <div id="arthur_murray_setup" style="grid-column: 1 / -1; display: <?= ($FRANCHISE == '1') ? 'block' : 'none' ?>;">
+                                                        <!-- <div id="arthur_murray_setup" style="grid-column: 1 / -1; display: <?= ($FRANCHISE == '1') ? 'block' : 'none' ?>;">
                                                             <div class="section-header">
                                                                 <i class="fas fa-cog"></i>
                                                                 <span>Arthur Murray API Setup</span>
@@ -2060,7 +2060,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                     <input type="password" class="form-control-modern" name="AM_PASSWORD" value="<?= htmlspecialchars($AM_PASSWORD) ?>">
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div> -->
                                                     <?php endif; ?>
 
                                                     <!-- Active Status -->
