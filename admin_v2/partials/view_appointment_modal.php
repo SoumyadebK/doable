@@ -1241,7 +1241,7 @@ if ($TYPE == 'appointment') {
             <input type="hidden" name="PK_APPOINTMENT_STATUS_OLD" value="<?= $PK_APPOINTMENT_STATUS ?>">
             <div class="col-8 col-md-8">
                 <div class="form-group" id="scheduling_code_select">
-                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS" <?= ($PK_APPOINTMENT_STATUS == 2) ? 'disabled' : '' ?>>
+                    <select class="form-control" name="PK_APPOINTMENT_STATUS_NEW" id="PK_APPOINTMENT_STATUS">
                         <option value="1">Select Status</option>
                         <?php
                         $row = $db->Execute("SELECT * FROM `DOA_APPOINTMENT_STATUS` WHERE `ACTIVE` = 1");
