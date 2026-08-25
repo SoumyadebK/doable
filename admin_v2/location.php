@@ -1522,6 +1522,11 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        input[type="password"] {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+            letter-spacing: 2px;
+        }
     </style>
     </style>
 </head>
@@ -1976,7 +1981,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Access Token</label>
-                                                                    <input type="text" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
+                                                                    <input type="password" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
                                                                 </div>
                                                             </div>
 
@@ -2004,7 +2009,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Private Token</label>
-                                                                    <input type="text" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Public Token</label>
