@@ -23,8 +23,8 @@ $year = date('Y');
           <li><a href="<?= $base ?>/index.php#pricing" class="hover:text-emerald-400 transition-colors">Pricing</a></li>
           <li><a href="<?= $base ?>/blog.php" class="hover:text-emerald-400 transition-colors">Blog</a></li>
           <li><a href="<?= e($enrollUrl) ?>" <?= $enrollExternal ? ' target="_blank" rel="noopener"' : '' ?> class="hover:text-emerald-400 transition-colors">Enroll</a></li>
-          <li><a href="<?= $base ?>/privacy.php" class="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
-          <li><a href="<?= $base ?>/terms.php" class="hover:text-emerald-400 transition-colors">Terms of Use</a></li>
+          <li><a href="privacy_policy.php" class="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
+          <li><a href="terms_of_use.php" class="hover:text-emerald-400 transition-colors">Terms of Use</a></li>
         </ul>
       </div>
     </div>

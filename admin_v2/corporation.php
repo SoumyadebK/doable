@@ -924,6 +924,11 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
     input[type="password"]+button[type="button"] {
         pointer-events: auto;
     }
+
+    input[type="password"] {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+        letter-spacing: 2px;
+    }
 </style>
 
 <body class="skin-default-dark fixed-layout">
@@ -1077,7 +1082,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Access Token</label>
-                                                                    <input type="text" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
+                                                                    <input type="password" class="form-control-modern" name="ACCESS_TOKEN" value="<?= htmlspecialchars($ACCESS_TOKEN) ?>">
                                                                 </div>
                                                             </div>
 
@@ -1089,11 +1094,11 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Transaction Key</label>
-                                                                    <input type="text" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Authorize Client Key</label>
-                                                                    <input type="text" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="AUTHORIZE_CLIENT_KEY" value="<?= htmlspecialchars($AUTHORIZE_CLIENT_KEY) ?>">
                                                                 </div>
                                                             </div>
 
@@ -1105,7 +1110,7 @@ if (!empty($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'savecredit_ca
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Private Token</label>
-                                                                    <input type="text" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="API_KEY" value="<?= htmlspecialchars($API_KEY) ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Public Token</label>
