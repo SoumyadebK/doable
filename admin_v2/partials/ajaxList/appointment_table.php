@@ -157,6 +157,7 @@ while (!$appointments->EOF) {
     $standing_id = $appointments->fields['STANDING_ID'];
     $standing_type = ($standing_id > 0) ? $standing_id : 'normal';
     $title = $appointments->fields['ENROLLMENT_NAME'] ? $appointments->fields['ENROLLMENT_NAME'] : $appointments->fields['SERVICE_NAME'];
+    $date = date('m/d/Y', strtotime($appointments->fields['APPOINTMENT_DATE']));
     $start_time = date('h:i A', strtotime($appointments->fields['START_TIME']));
     $end_time = date('h:i A', strtotime($appointments->fields['END_TIME']));
     $status = $appointments->fields['APPOINTMENT_STATUS'];
@@ -210,29 +211,33 @@ while (!$appointments->EOF) {
                 </td>
             <?php endif; ?>
         <?php } else { ?>
-        <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $standing_id ?>, <?= $appointment_id ?>)" style="cursor: pointer;">
+        <tr class="header" onclick="showStandingAppointmentDetails(this, <?= $standing_id ?>, <?= $appointment_id ?>)" style="cursor: pointer; \">
             <td></td>
         <?php } ?>
 
 
-        <td>
+        <td onclick="event.stopPropagation();">
             <?php
-            if ($CUSTOMER_NAME) {
-                if ($status != 'Completed') { ?>
-                    <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_id ?>"></label>
-                <?php
-                }
-            } else {
-                if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
-                    <a href="javascript:" onclick="ConfirmDelete(<?= $appointment_id ?>, '<?= $standing_type ?>');"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <?php }
+            if ($status != 'Completed') { ?>
+                <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER select-all-standing" value="<?= $appointment_id ?>"></label>
+            <?php
             } ?>
         </td>
 
         <td style="vertical-align: middle;">
-            <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
-            <?= $CUSTOMER_NAME ?>
+            <?php
+            if ($CUSTOMER_NAME) { ?>
+                <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
+                <?= $CUSTOMER_NAME ?>
+            <?php } else { ?>
+                <span class="text-muted">Group Class</span>
+            <?php }
+            if ($standing_id > 0) { ?>
+                <span style="color: #39b54a; font-weight: 600;">(S)</span>
+            <?php } ?>
+
         </td>
+        <td style="vertical-align: middle;"><?= $date ?></td>
         <td style="vertical-align: middle;"><?= $start_time . ' – ' . $end_time; ?></td>
         <td style="vertical-align: middle;">
             <span class="status not-started" style="background-color: <?= $status_color ?>20 !important; color: <?= $status_color ?> !important;">

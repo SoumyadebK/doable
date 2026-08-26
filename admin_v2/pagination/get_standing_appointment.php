@@ -110,9 +110,7 @@ while (!$appointment_data->EOF) {
 
         <!-- Checkbox Column -->
         <td>
-            <a href="javascript:" onclick="ConfirmDelete(<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>, 'normal');">
-                <i class="fa fa-trash"></i>
-            </a>
+            <label><input type="checkbox" name="PK_APPOINTMENT_MASTER[]" class="PK_APPOINTMENT_MASTER" value="<?= $appointment_data->fields['PK_APPOINTMENT_MASTER'] ?>"></label>
         </td>
 
         <!-- Customer Name Column -->
@@ -120,6 +118,9 @@ while (!$appointment_data->EOF) {
             <span class="avatarname" style="color: #fff; background-color: <?= $customer_color ?>;"><?= $customer_initial; ?></span>
             <?= $CUSTOMER_NAME ?>
         </td>
+
+        <!-- Date Column -->
+        <td style="vertical-align: middle;"><?= date('m/d/Y', strtotime($appointment_date)) ?></td>
 
         <!-- Time Column -->
         <td style="vertical-align: middle;"><?= $start_time . ' – ' . $end_time; ?></td>

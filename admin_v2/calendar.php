@@ -2900,6 +2900,33 @@ if ($interval->fields['TIME_SLOT_INTERVAL'] == "00:00:00") {
             $('#save_followup_message_form #MESSAGE').focus();
         }
 
+        function markAsArchived(PK_AUTOMATION_LOG) {
+            closePopover();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You want to mark this message as archived?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, archive it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'markAsArchived',
+                            PK_AUTOMATION_LOG: PK_AUTOMATION_LOG
+                        },
+                        success: function(data) {
+                            calendar.refetchEvents();
+                        }
+                    });
+                }
+            });
+        }
+
         $(document).on('submit', '#save_followup_message_form', function(event) {
             event.preventDefault();
             let form_data = new FormData($('#save_followup_message_form')[0]);

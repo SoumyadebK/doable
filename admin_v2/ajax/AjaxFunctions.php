@@ -2130,6 +2130,20 @@ function markAllAppointmentCompleted($RESPONSE_DATA)
     echo 1;
 }
 
+function deleteAllSelectedAppointment($RESPONSE_DATA): void
+{
+    global $db_account;
+    $PK_APPOINTMENT_MASTER_ARRAY = $RESPONSE_DATA['PK_APPOINTMENT_MASTER'];
+    for ($i = 0; $i < count($PK_APPOINTMENT_MASTER_ARRAY); $i++) {
+        $PK_APPOINTMENT_MASTER = $PK_APPOINTMENT_MASTER_ARRAY[$i];
+        $appointment_data = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+        $PK_ENROLLMENT_MASTER = $appointment_data->fields['PK_ENROLLMENT_MASTER'];
+        $db_account->Execute("DELETE FROM `DOA_APPOINTMENT_MASTER` WHERE `PK_APPOINTMENT_MASTER` = " . $PK_APPOINTMENT_MASTER);
+        markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+    }
+    echo 1;
+}
+
 function viewSamplePdf($RESPONSE_DATA)
 {
     $files = glob('../../uploads/sample_enrollment_pdf/*'); // get all file names
@@ -4567,6 +4581,17 @@ function addToInternalNote($RESPONSE_DATA)
     $COMMENT_DATA['CREATED_BY']  = $_SESSION['PK_USER'];
     db_perform_account('DOA_COMMENT', $COMMENT_DATA, 'insert');
 
+    $update_data['IS_ARCHIVE'] = 1;
+    db_perform_account('DOA_AUTOMATION_LOG', $update_data, 'update', " PK_AUTOMATION_LOG = '$PK_AUTOMATION_LOG'");
+
+    echo 1;
+}
+
+function markAsArchived($RESPONSE_DATA)
+{
+    global $db;
+    global $db_account;
+    $PK_AUTOMATION_LOG = $RESPONSE_DATA['PK_AUTOMATION_LOG'];
     $update_data['IS_ARCHIVE'] = 1;
     db_perform_account('DOA_AUTOMATION_LOG', $update_data, 'update', " PK_AUTOMATION_LOG = '$PK_AUTOMATION_LOG'");
 

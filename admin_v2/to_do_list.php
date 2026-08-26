@@ -661,8 +661,7 @@ $page_first_result = ($page - 1) * $results_per_page;
                                             } elseif (stripos($status_text, 'complete') !== false || stripos($status_text, 'done') !== false) {
                                                 $status_class = 'status-complete';
                                                 $dot_class = 'dot-complete';
-                                            }
-                                ?>
+                                            } ?>
                                             <tr>
                                                 <td class="date-sidebar">
                                                     <div class="date-day"><?= substr($day_name, 0, 3) ?></div>

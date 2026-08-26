@@ -21,6 +21,13 @@ if ($REPEAT == 'Daily') {
         $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_START_DATE;
         $APPOINTMENT_START_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_START_DATE)));
     }
+
+    $special_appointment_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_SPECIAL_APPOINTMENT` ORDER BY STANDING_ID DESC LIMIT 1");
+    if ($special_appointment_data->RecordCount() > 0) {
+        $standing_id = $special_appointment_data->fields['STANDING_ID'] + 1;
+    } else {
+        $standing_id = 1;
+    }
 } elseif ($REPEAT == 'Custom') {
     if (!empty($_POST['OCCURRENCE'])) {
         $APPOINTMENT_DATE = date('Y-m-d', strtotime($STARTING_ON));
@@ -64,6 +71,13 @@ if ($REPEAT == 'Daily') {
             $SPECIAL_APPOINTMENT_DATE_ARRAY[] = $APPOINTMENT_DATE;
         }
         $APPOINTMENT_DATE = date('Y-m-d', strtotime('+1 day ', strtotime($APPOINTMENT_DATE)));
+    }
+
+    $special_appointment_data = $db_account->Execute("SELECT STANDING_ID FROM `DOA_SPECIAL_APPOINTMENT` ORDER BY STANDING_ID DESC LIMIT 1");
+    if ($special_appointment_data->RecordCount() > 0) {
+        $standing_id = $special_appointment_data->fields['STANDING_ID'] + 1;
+    } else {
+        $standing_id = 1;
     }
 } else {
     $SPECIAL_APPOINTMENT_DATE_ARRAY[] = date('Y-m-d', strtotime($_POST['TO_DO_DATE']));

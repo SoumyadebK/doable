@@ -56,6 +56,10 @@ while (!$followup_data->EOF) {
                     if ($followup_data->fields['TYPE'] != 'leads') {
                         if (in_array($_SESSION['PK_ROLES'], [2, 3, 11]) || ($SERVICE_PROVIDER_ID == $_SESSION['PK_USER'])) { ?>
                             <a href="javascript:;" onclick=addToInternalNote(<?= $PK_AUTOMATION_LOG ?>) title="Add to Internal Note"><i class="fa fa-file-text" style="color: blue; margin-left: 20px; font-size: 14px;"></i></a>
+                        <?php }
+                    } else {
+                        if (in_array($_SESSION['PK_ROLES'], [2, 3, 11]) || ($SERVICE_PROVIDER_ID == $_SESSION['PK_USER'])) { ?>
+                            <a href="javascript:;" onclick=markAsArchived(<?= $PK_AUTOMATION_LOG ?>) title="Mark as Archived"><i class="fa fa-archive" style="color: #f009; margin-left: 20px; font-size: 14px;"></i></a>
                     <?php }
                     } ?>
                 </span>

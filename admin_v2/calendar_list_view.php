@@ -793,6 +793,9 @@ if (isset($_GET['standing'])) {
         <div class="calendar-header mb-2">
             <?php if (in_array('Operations Edit', $PERMISSION_ARRAY)) { ?>
                 <div><button type="button" class="btn-new" onclick="markAllComplete()" title="Mark as Completed"><i class="fa fa-check-circle" aria-hidden="true"></i> Completed</button></div>
+            <?php }
+            if (in_array('Operations Edit', $PERMISSION_ARRAY)) {  ?>
+                <div><button type="button" class="btn-new" onclick="deleteAllSelectedAppointment()" title="Delete Selected" style="background-color: red; color: white;"><i class="fa fa-trash" aria-hidden="true" style="color: white;"></i> Delete</button></div>
             <?php } ?>
         </div>
         <div class="page-wrapper" style="padding-top: 0px !important;">
@@ -806,6 +809,15 @@ if (isset($_GET['standing'])) {
                                 <th>
                                     <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
                                         <span class="fw-semibold">Customer Name</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                            <path d="M11 7h-6l3-4z" />
+                                            <path d="M5 9h6l-3 4z" />
+                                        </svg>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <span class="fw-semibold">Date</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                             <path d="M11 7h-6l3-4z" />
                                             <path d="M5 9h6l-3 4z" />
@@ -1503,6 +1515,15 @@ if (isset($_GET['standing'])) {
             }
         }
 
+        $(document).on('change', '.select-all-standing', function() {
+            let $headerRow = $(this).closest('tr.header');
+            let isChecked = $(this).is(':checked');
+
+            $headerRow.nextUntil('tr.header', 'tr.added_standing')
+                .find('.PK_APPOINTMENT_MASTER')
+                .prop('checked', isChecked);
+        });
+
 
         function ConfirmDelete(PK_APPOINTMENT_MASTER, type) {
             Swal.fire({
@@ -1568,20 +1589,63 @@ if (isset($_GET['standing'])) {
         }
 
         function markAllComplete() {
-            let PK_APPOINTMENT_MASTER = [];
-            $(".PK_APPOINTMENT_MASTER:checked").each(function() {
-                PK_APPOINTMENT_MASTER.push($(this).val());
-            });
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You want to mark all appointments as completed?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, mark all as completed!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let PK_APPOINTMENT_MASTER = [];
+                    $(".PK_APPOINTMENT_MASTER:checked").each(function() {
+                        PK_APPOINTMENT_MASTER.push($(this).val());
+                    });
 
-            $.ajax({
-                url: "ajax/AjaxFunctions.php",
-                type: 'POST',
-                data: {
-                    FUNCTION_NAME: 'markAllAppointmentCompleted',
-                    PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
-                },
-                success: function(data) {
-                    window.location = "calendar_list_view.php?<?= isset($_GET['standing']) ? 'standing=1' : '' ?>";
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'markAllAppointmentCompleted',
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                        },
+                        success: function(data) {
+                            window.location = "calendar_list_view.php?<?= isset($_GET['standing']) ? 'standing=1' : '' ?>";
+                        }
+                    });
+                }
+            });
+        }
+
+        function deleteAllSelectedAppointment() {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You want to delete all selected appointments?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let PK_APPOINTMENT_MASTER = [];
+                    $(".PK_APPOINTMENT_MASTER:checked").each(function() {
+                        PK_APPOINTMENT_MASTER.push($(this).val());
+                    });
+
+                    $.ajax({
+                        url: "ajax/AjaxFunctions.php",
+                        type: 'POST',
+                        data: {
+                            FUNCTION_NAME: 'deleteAllSelectedAppointment',
+                            PK_APPOINTMENT_MASTER: PK_APPOINTMENT_MASTER
+                        },
+                        success: function(data) {
+                            window.location = "calendar_list_view.php?<?= isset($_GET['standing']) ? 'standing=1' : '' ?>";
+                        }
+                    });
                 }
             });
         }
