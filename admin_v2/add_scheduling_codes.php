@@ -30,6 +30,7 @@ if (!empty($_POST)) {
     $SCHEDULING_DATA['SCHEDULING_NAME'] = $_POST['SCHEDULING_NAME'];
     $SCHEDULING_DATA['PK_LOCATION'] = $_POST['PK_LOCATION'];
     $SCHEDULING_DATA['TO_DOS'] = $_POST['TO_DOS'] ? 1 : 0;
+    $SCHEDULING_DATA['FOR_RECORD_ONLY'] = $_POST['FOR_RECORD_ONLY'] ? 1 : 0;
     $SCHEDULING_DATA['COLOR_CODE'] = $_POST['COLOR_CODE'];
     $SCHEDULING_DATA['DURATION'] = $_POST['DURATION'];
     $SCHEDULING_DATA['UNIT'] = $_POST['UNIT'];
@@ -59,6 +60,7 @@ if (empty($_GET['id'])) {
     $PK_SCHEDULING_EVENT    = '';
     $PK_EVENT_ACTION        = '';
     $TO_DOS                 = '';
+    $FOR_RECORD_ONLY        = '';
     $COLOR_CODE             = '#39B54A';
     $DURATION               = '';
     $SORT_ORDER             = '';
@@ -76,6 +78,7 @@ if (empty($_GET['id'])) {
     $PK_SCHEDULING_EVENT  = $res->fields['PK_SCHEDULING_EVENT'];
     $PK_EVENT_ACTION      = $res->fields['PK_EVENT_ACTION'];
     $TO_DOS               = $res->fields['TO_DOS'];
+    $FOR_RECORD_ONLY      = $res->fields['FOR_RECORD_ONLY'];
     $COLOR_CODE           = $res->fields['COLOR_CODE'];
     $DURATION             = $res->fields['DURATION'];
     $SORT_ORDER           = $res->fields['SORT_ORDER'];
@@ -672,7 +675,7 @@ if ($help->RecordCount() > 0) {
                                                 </div>
 
                                                 <!-- Location -->
-                                                <div class="form-group-modern">
+                                                <div class="form-group-modern full-width">
                                                     <label class="form-label">Location <span class="required">*</span></label>
                                                     <select class="form-control-modern PK_LOCATION" name="PK_LOCATION" required>
                                                         <option value="">Select Location</option>
@@ -687,13 +690,22 @@ if ($help->RecordCount() > 0) {
                                                 </div>
 
                                                 <!-- To Dos (Full Width) -->
-                                                <div class="form-group-modern full-width">
+                                                <div class="form-group-modern">
                                                     <label class="form-label">To Dos</label>
                                                     <label class="checkbox-group-modern">
                                                         <input type="checkbox" id="TO_DOS" name="TO_DOS" <?= ($TO_DOS == 1) ? 'checked' : '' ?>>
                                                         <span>Enable To-Do List for this scheduling code</span>
                                                     </label>
                                                     <div class="form-helper">Check to enable to-do items for this scheduling code</div>
+                                                </div>
+
+                                                <div class="form-group-modern">
+                                                    <label class="form-label">For Record Only</label>
+                                                    <label class="checkbox-group-modern">
+                                                        <input type="checkbox" id="FOR_RECORD_ONLY" name="FOR_RECORD_ONLY" <?= ($FOR_RECORD_ONLY == 1) ? 'checked' : '' ?>>
+                                                        <span>Enable For Record Only List for this scheduling code</span>
+                                                    </label>
+                                                    <div class="form-helper">Check to enable For Record Only items for this scheduling code</div>
                                                 </div>
 
                                                 <!-- Color Code -->
