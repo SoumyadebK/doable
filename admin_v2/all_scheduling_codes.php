@@ -62,6 +62,7 @@ $query = "SELECT DISTINCT DOA_SCHEDULING_CODE.PK_SCHEDULING_CODE,
           DOA_SCHEDULING_CODE.UNIT, 
           DOA_SCHEDULING_CODE.SORT_ORDER,
           DOA_SCHEDULING_CODE.TO_DOS,
+          DOA_SCHEDULING_CODE.FOR_RECORD_ONLY,
           DOA_SCHEDULING_CODE.ACTIVE,
           DOA_LOCATION.LOCATION_NAME
           FROM DOA_SCHEDULING_CODE 
@@ -276,6 +277,7 @@ $scheduling_codes = $db_account->Execute($query);
                                     <th style="text-align: center;">Duration</th>
                                     <th style="text-align: center;">Color</th>
                                     <th style="text-align: center;">To Dos</th>
+                                    <th style="text-align: center;">For Record Only</th>
                                     <th style="text-align: center;">Sort Order</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="width: 60px;"></th>
@@ -296,6 +298,7 @@ $scheduling_codes = $db_account->Execute($query);
                                         $unit = $scheduling_codes->fields['UNIT'] ?? '';
                                         $sort_order = $scheduling_codes->fields['SORT_ORDER'] ?? '—';
                                         $to_dos = isset($scheduling_codes->fields['TO_DOS']) && $scheduling_codes->fields['TO_DOS'] == 1;
+                                        $for_record_only = isset($scheduling_codes->fields['FOR_RECORD_ONLY']) && $scheduling_codes->fields['FOR_RECORD_ONLY'] == 1;
                                         $is_active = isset($scheduling_codes->fields['ACTIVE']) && $scheduling_codes->fields['ACTIVE'] == 1;
 
                                         $duration_display = ($duration != '—' && $duration != '') ? $duration . ' min'  : '—';
@@ -356,6 +359,12 @@ $scheduling_codes = $db_account->Execute($query);
                                                     <span class="text-muted small">—</span>
                                                 <?php endif; ?>
                                             </td>
+                                            <td class="text-center">
+                                                <?php if ($for_record_only): ?>
+                                                    <span class="badge-todo"><i class="bi bi-check2-circle"></i></span>
+                                                <?php else: ?>
+                                                    <span class="text-muted small">—</span>
+                                                <?php endif; ?>
                                             <td class="text-center">
                                                 <span class="text-muted small fw-medium"><?= htmlspecialchars($sort_order) ?></span>
                                             </td>
