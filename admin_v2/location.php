@@ -1523,6 +1523,26 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
             cursor: not-allowed;
         }
 
+        /* Password field enhancements */
+        input[type="password"] {
+            padding-right: 40px !important;
+        }
+
+        input[type="password"]+button {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+        }
+
+        input[type="password"]:focus+button {
+            color: var(--primary-color) !important;
+        }
+
+        /* Ensure the password toggle button doesn't interfere with form submission */
+        input[type="password"]+button[type="button"] {
+            pointer-events: auto;
+        }
+
         input[type="password"] {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
             letter-spacing: 2px;
@@ -1993,7 +2013,7 @@ if (isset($_POST['FUNCTION_NAME']) && $_POST['FUNCTION_NAME'] == 'saveFAQSetting
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Transaction Key</label>
-                                                                    <input type="text" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
+                                                                    <input type="password" class="form-control-modern" name="TRANSACTION_KEY" value="<?= htmlspecialchars($TRANSACTION_KEY) ?>">
                                                                 </div>
                                                                 <div class="form-group-modern">
                                                                     <label class="form-label">Authorize Client Key</label>
