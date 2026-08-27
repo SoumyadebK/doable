@@ -1198,15 +1198,20 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                     </div>
 
                                     <!-- Add this after the NON-UNIT SALES ENROLLMENT DETAILS section -->
-                                    <!-- Add this after the NON-UNIT SALES ENROLLMENT DETAILS section -->
                                     <div class="table-responsive mt-4">
                                         <label style="width:100%; text-align: center; font-weight: bold; background-color: #f8f9fa; padding: 10px;">ENROLLMENT AUDIT - DETAILED BREAKDOWN BY TYPE</label>
 
                                         <?php
-                                        // Helper function to get enrollment details matching main report queries
+                                        /**
+                                         * Helper function to get enrollment details matching the main report
+                                         * - Units queries use DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0
+                                         * - Sales queries DO NOT use DOA_ENROLLMENT_BILLING
+                                         * - Both use DOA_SERVICE_CODE.IS_GROUP = 0
+                                         */
                                         function getEnrollmentDetailsAudit($db_account, $type_id, $date_condition, $location_id, $include_billing = true)
                                         {
-                                            // Match the main report's unit queries - they don't always use billing table
+                                            // For units: include billing with TOTAL_AMOUNT > 0
+                                            // For sales: exclude billing
                                             $billing_join = $include_billing ? "LEFT JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER" : "";
                                             $billing_where = $include_billing ? "AND eb.TOTAL_AMOUNT > 0" : "";
 
@@ -1217,18 +1222,17 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                 em.ENROLLMENT_NAME,
                 em.ENROLLMENT_DATE,
                 em.PK_ENROLLMENT_TYPE,
-                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT,
-                SUM(es.NUMBER_OF_SESSION) AS TOTAL_UNITS
-            FROM DOA_ENROLLMENT_MASTER em
-            INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                SUM(es.NUMBER_OF_SESSION) AS TOTAL_UNITS,
+                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
+            FROM DOA_ENROLLMENT_SERVICE es
             LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
             " . $billing_join . "
             WHERE em.PK_LOCATION IN (" . $location_id . ")
+            AND sc.IS_GROUP = 0
             AND em.PK_ENROLLMENT_TYPE = " . $type_id . "
             AND em.ENROLLMENT_DATE BETWEEN " . $date_condition . "
             " . $billing_where . "
-            AND sc.IS_GROUP = 0
-            AND em.ENROLLMENT_ID NOT LIKE '%MISC%'
             GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
             ORDER BY em.ENROLLMENT_DATE DESC
         ");
@@ -1259,7 +1263,10 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                             ];
                                         }
 
-                                        // Helper function to get MISC enrollment details (using MISC_ID like main report)
+                                        /**
+                                         * Helper function to get MISC enrollment details - matches main report
+                                         * Main report uses MISC_ID LIKE '%MISC%' for misc section
+                                         */
                                         function getMiscEnrollmentDetailsAudit($db_account, $date_condition, $location_id)
                                         {
                                             $details = $db_account->Execute("
@@ -1269,15 +1276,15 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                 em.ENROLLMENT_NAME,
                 em.ENROLLMENT_DATE,
                 em.PK_ENROLLMENT_TYPE,
-                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT,
-                SUM(es.NUMBER_OF_SESSION) AS TOTAL_UNITS
-            FROM DOA_ENROLLMENT_MASTER em
-            INNER JOIN DOA_ENROLLMENT_SERVICE es ON em.PK_ENROLLMENT_MASTER = es.PK_ENROLLMENT_MASTER
+                SUM(es.NUMBER_OF_SESSION) AS TOTAL_UNITS,
+                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT
+            FROM DOA_ENROLLMENT_SERVICE es
             LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
             WHERE em.PK_LOCATION IN (" . $location_id . ")
-            AND em.ENROLLMENT_DATE BETWEEN " . $date_condition . "
-            AND em.MISC_ID LIKE '%MISC%'
             AND sc.IS_GROUP = 0
+            AND em.MISC_ID LIKE '%MISC%'
+            AND em.ENROLLMENT_DATE BETWEEN " . $date_condition . "
             GROUP BY em.PK_ENROLLMENT_MASTER, em.ENROLLMENT_DATE
             ORDER BY em.ENROLLMENT_DATE DESC
         ");
@@ -1308,179 +1315,249 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                             ];
                                         }
 
-                                        // Get data for each enrollment type - matching main report queries
-                                        // For Pre-Original (Type 5) - matches $weekly_pre_original_units query
-                                        $pre_original_data = getEnrollmentDetailsAudit($db_account, 5, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        // Get data for each enrollment type
+                                        // UNITS queries use billing (include_billing = true) - matches main report's units queries
+                                        // SALES queries DON'T use billing (include_billing = false) - matches main report's sales queries
 
-                                        // For Original (Type 2) - matches $weekly_original_units query
-                                        $original_data = getEnrollmentDetailsAudit($db_account, 2, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        // For UNITS display - with billing filter (matches main report units queries)
+                                        $pre_original_units_data = getEnrollmentDetailsAudit($db_account, 5, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], true);
+                                        $original_units_data = getEnrollmentDetailsAudit($db_account, 2, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], true);
+                                        $extension_units_data = getEnrollmentDetailsAudit($db_account, 9, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], true);
+                                        $renewal_units_data = getEnrollmentDetailsAudit($db_account, 13, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], true);
 
-                                        // For Extension (Type 9) - matches $weekly_extension_units query
-                                        $extension_data = getEnrollmentDetailsAudit($db_account, 9, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        // For SALES display - without billing filter (matches main report sales queries)
+                                        $pre_original_sales_data = getEnrollmentDetailsAudit($db_account, 5, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        $original_sales_data = getEnrollmentDetailsAudit($db_account, 2, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        $extension_sales_data = getEnrollmentDetailsAudit($db_account, 9, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
+                                        $renewal_sales_data = getEnrollmentDetailsAudit($db_account, 13, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
 
-                                        // For 4+ Enrollment (Type 13) - matches $weekly_renewal_units query
-                                        $renewal_data = getEnrollmentDetailsAudit($db_account, 13, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID'], false);
-
-                                        // Get MISC data using MISC_ID LIKE '%MISC%' - matches main report
+                                        // Get MISC data using MISC_ID LIKE '%MISC%'
                                         $misc_data = getMiscEnrollmentDetailsAudit($db_account, $weekly_date_condition, $_SESSION['DEFAULT_LOCATION_ID']);
                                         ?>
 
-                                        <!-- 1st Enrollment (Pre-Original) -->
+                                        <!-- 1st Enrollment (Pre-Original) - Type 5 -->
                                         <div style="margin-top: 20px; padding: 10px; background-color: #e3f2fd; border-left: 4px solid #1976d2; border-radius: 4px;">
                                             <h6 style="font-weight: bold; margin: 0 0 5px 0;">
                                                 <i class="bi bi-file-text"></i> 1st Enrollment (Pre-Original) - Type 5
-                                                <span style="font-weight: normal; font-size: 14px; color: #555;">
-                                                    (Total: <?= $pre_original_data['count'] ?> enrollment<?= $pre_original_data['count'] != 1 ? 's' : '' ?> |
-                                                    Units: <?= number_format($pre_original_data['total_units'], 2) ?> |
-                                                    Sales: $<?= number_format($pre_original_data['total_amount'], 2) ?>)
+                                                <span style="font-weight: normal; font-size: 14px; color: #1976d2;">
+                                                    (Count: <?= $pre_original_units_data['count'] ?>)
                                                 </span>
                                             </h6>
-                                            <?php if (count($pre_original_data['enrollments']) > 0) { ?>
-                                                <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
-                                                    <thead style="background-color: #bbdefb;">
-                                                        <tr>
-                                                            <th style="width: 15%; text-align: center;">Enrollment ID</th>
-                                                            <th style="width: 35%; text-align: center;">Enrollment Name</th>
-                                                            <th style="width: 20%; text-align: center;">Date</th>
-                                                            <th style="width: 15%; text-align: center;">Units</th>
-                                                            <th style="width: 15%; text-align: center;">Amount</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($pre_original_data['enrollments'] as $enrollment) { ?>
+                                            <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
+                                                <thead style="background-color: #bbdefb;">
+                                                    <tr>
+                                                        <th style="width: 20%; text-align: center;">Enrollment ID</th>
+                                                        <th style="width: 35%; text-align: center;">Enrollment Name</th>
+                                                        <th style="width: 20%; text-align: center;">Date</th>
+                                                        <th style="width: 15%; text-align: center;">Units</th>
+                                                        <th style="width: 15%; text-align: center;">Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    // Get unique enrollments from units data
+                                                    $enrollments = [];
+                                                    foreach ($pre_original_units_data['enrollments'] as $e) {
+                                                        $enrollments[$e['pk_enrollment']] = $e;
+                                                    }
+                                                    // Add sales data
+                                                    foreach ($pre_original_sales_data['enrollments'] as $e) {
+                                                        if (isset($enrollments[$e['pk_enrollment']])) {
+                                                            $enrollments[$e['pk_enrollment']]['sales_amount'] = $e['amount'];
+                                                        }
+                                                    }
+                                                    if (count($enrollments) > 0) {
+                                                        foreach ($enrollments as $enrollment) { ?>
                                                             <tr>
                                                                 <td style="text-align: center;">#<?= $enrollment['id'] ?></td>
                                                                 <td style="text-align: left;"><?= htmlspecialchars($enrollment['name']) ?></td>
                                                                 <td style="text-align: center;"><?= date('m/d/Y', strtotime($enrollment['date'])) ?></td>
                                                                 <td style="text-align: center;"><?= number_format($enrollment['units'], 2) ?></td>
-                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format($enrollment['amount'], 2) ?></td>
+                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format(isset($enrollment['sales_amount']) ? $enrollment['sales_amount'] : $enrollment['amount'], 2) ?></td>
                                                             </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
-                                            <?php } else { ?>
-                                                <p style="margin: 5px 0 0 0; color: #666; font-style: italic;">No enrollments found for this period.</p>
-                                            <?php } ?>
+                                                        <?php }
+                                                    } else { ?>
+                                                        <tr>
+                                                            <td colspan="5" style="text-align: center; color: #666; font-style: italic;">No enrollments found for this period.</td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                                <tfoot style="background-color: #e3f2fd; font-weight: bold;">
+                                                    <tr>
+                                                        <td colspan="3" style="text-align: right;">TOTALS:</td>
+                                                        <td style="text-align: center;"><?= number_format($pre_original_units_data['total_units'], 2) ?></td>
+                                                        <td style="text-align: center;">$<?= number_format($pre_original_sales_data['total_amount'], 2) ?></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
                                         </div>
 
-                                        <!-- 2nd Enrollment (Original) -->
+                                        <!-- 2nd Enrollment (Original) - Type 2 -->
                                         <div style="margin-top: 15px; padding: 10px; background-color: #e8f5e9; border-left: 4px solid #388e3c; border-radius: 4px;">
                                             <h6 style="font-weight: bold; margin: 0 0 5px 0;">
                                                 <i class="bi bi-file-text"></i> 2nd Enrollment (Original) - Type 2
-                                                <span style="font-weight: normal; font-size: 14px; color: #555;">
-                                                    (Total: <?= $original_data['count'] ?> enrollment<?= $original_data['count'] != 1 ? 's' : '' ?> |
-                                                    Units: <?= number_format($original_data['total_units'], 2) ?> |
-                                                    Sales: $<?= number_format($original_data['total_amount'], 2) ?>)
+                                                <span style="font-weight: normal; font-size: 14px; color: #388e3c;">
+                                                    (Count: <?= $original_units_data['count'] ?>)
                                                 </span>
                                             </h6>
-                                            <?php if (count($original_data['enrollments']) > 0) { ?>
-                                                <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
-                                                    <thead style="background-color: #c8e6c9;">
-                                                        <tr>
-                                                            <th style="width: 15%; text-align: center;">Enrollment ID</th>
-                                                            <th style="width: 35%; text-align: center;">Enrollment Name</th>
-                                                            <th style="width: 20%; text-align: center;">Date</th>
-                                                            <th style="width: 15%; text-align: center;">Units</th>
-                                                            <th style="width: 15%; text-align: center;">Amount</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($original_data['enrollments'] as $enrollment) { ?>
+                                            <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
+                                                <thead style="background-color: #c8e6c9;">
+                                                    <tr>
+                                                        <th style="width: 20%; text-align: center;">Enrollment ID</th>
+                                                        <th style="width: 35%; text-align: center;">Enrollment Name</th>
+                                                        <th style="width: 20%; text-align: center;">Date</th>
+                                                        <th style="width: 15%; text-align: center;">Units</th>
+                                                        <th style="width: 15%; text-align: center;">Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $enrollments = [];
+                                                    foreach ($original_units_data['enrollments'] as $e) {
+                                                        $enrollments[$e['pk_enrollment']] = $e;
+                                                    }
+                                                    foreach ($original_sales_data['enrollments'] as $e) {
+                                                        if (isset($enrollments[$e['pk_enrollment']])) {
+                                                            $enrollments[$e['pk_enrollment']]['sales_amount'] = $e['amount'];
+                                                        }
+                                                    }
+                                                    if (count($enrollments) > 0) {
+                                                        foreach ($enrollments as $enrollment) { ?>
                                                             <tr>
                                                                 <td style="text-align: center;">#<?= $enrollment['id'] ?></td>
                                                                 <td style="text-align: left;"><?= htmlspecialchars($enrollment['name']) ?></td>
                                                                 <td style="text-align: center;"><?= date('m/d/Y', strtotime($enrollment['date'])) ?></td>
                                                                 <td style="text-align: center;"><?= number_format($enrollment['units'], 2) ?></td>
-                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format($enrollment['amount'], 2) ?></td>
+                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format(isset($enrollment['sales_amount']) ? $enrollment['sales_amount'] : $enrollment['amount'], 2) ?></td>
                                                             </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
-                                            <?php } else { ?>
-                                                <p style="margin: 5px 0 0 0; color: #666; font-style: italic;">No enrollments found for this period.</p>
-                                            <?php } ?>
+                                                        <?php }
+                                                    } else { ?>
+                                                        <tr>
+                                                            <td colspan="5" style="text-align: center; color: #666; font-style: italic;">No enrollments found for this period.</td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                                <tfoot style="background-color: #e8f5e9; font-weight: bold;">
+                                                    <tr>
+                                                        <td colspan="3" style="text-align: right;">TOTALS:</td>
+                                                        <td style="text-align: center;"><?= number_format($original_units_data['total_units'], 2) ?></td>
+                                                        <td style="text-align: center;">$<?= number_format($original_sales_data['total_amount'], 2) ?></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
                                         </div>
 
-                                        <!-- 3rd Enrollment (Extension) -->
+                                        <!-- 3rd Enrollment (Extension) - Type 9 -->
                                         <div style="margin-top: 15px; padding: 10px; background-color: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;">
                                             <h6 style="font-weight: bold; margin: 0 0 5px 0;">
                                                 <i class="bi bi-file-text"></i> 3rd Enrollment (Extension) - Type 9
-                                                <span style="font-weight: normal; font-size: 14px; color: #555;">
-                                                    (Total: <?= $extension_data['count'] ?> enrollment<?= $extension_data['count'] != 1 ? 's' : '' ?> |
-                                                    Units: <?= number_format($extension_data['total_units'], 2) ?> |
-                                                    Sales: $<?= number_format($extension_data['total_amount'], 2) ?>)
+                                                <span style="font-weight: normal; font-size: 14px; color: #f57c00;">
+                                                    (Count: <?= $extension_units_data['count'] ?>)
                                                 </span>
                                             </h6>
-                                            <?php if (count($extension_data['enrollments']) > 0) { ?>
-                                                <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
-                                                    <thead style="background-color: #ffe0b2;">
-                                                        <tr>
-                                                            <th style="width: 15%; text-align: center;">Enrollment ID</th>
-                                                            <th style="width: 35%; text-align: center;">Enrollment Name</th>
-                                                            <th style="width: 20%; text-align: center;">Date</th>
-                                                            <th style="width: 15%; text-align: center;">Units</th>
-                                                            <th style="width: 15%; text-align: center;">Amount</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($extension_data['enrollments'] as $enrollment) { ?>
+                                            <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
+                                                <thead style="background-color: #ffe0b2;">
+                                                    <tr>
+                                                        <th style="width: 20%; text-align: center;">Enrollment ID</th>
+                                                        <th style="width: 35%; text-align: center;">Enrollment Name</th>
+                                                        <th style="width: 20%; text-align: center;">Date</th>
+                                                        <th style="width: 15%; text-align: center;">Units</th>
+                                                        <th style="width: 15%; text-align: center;">Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $enrollments = [];
+                                                    foreach ($extension_units_data['enrollments'] as $e) {
+                                                        $enrollments[$e['pk_enrollment']] = $e;
+                                                    }
+                                                    foreach ($extension_sales_data['enrollments'] as $e) {
+                                                        if (isset($enrollments[$e['pk_enrollment']])) {
+                                                            $enrollments[$e['pk_enrollment']]['sales_amount'] = $e['amount'];
+                                                        }
+                                                    }
+                                                    if (count($enrollments) > 0) {
+                                                        foreach ($enrollments as $enrollment) { ?>
                                                             <tr>
                                                                 <td style="text-align: center;">#<?= $enrollment['id'] ?></td>
                                                                 <td style="text-align: left;"><?= htmlspecialchars($enrollment['name']) ?></td>
                                                                 <td style="text-align: center;"><?= date('m/d/Y', strtotime($enrollment['date'])) ?></td>
                                                                 <td style="text-align: center;"><?= number_format($enrollment['units'], 2) ?></td>
-                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format($enrollment['amount'], 2) ?></td>
+                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format(isset($enrollment['sales_amount']) ? $enrollment['sales_amount'] : $enrollment['amount'], 2) ?></td>
                                                             </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
-                                            <?php } else { ?>
-                                                <p style="margin: 5px 0 0 0; color: #666; font-style: italic;">No enrollments found for this period.</p>
-                                            <?php } ?>
+                                                        <?php }
+                                                    } else { ?>
+                                                        <tr>
+                                                            <td colspan="5" style="text-align: center; color: #666; font-style: italic;">No enrollments found for this period.</td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                                <tfoot style="background-color: #fff3e0; font-weight: bold;">
+                                                    <tr>
+                                                        <td colspan="3" style="text-align: right;">TOTALS:</td>
+                                                        <td style="text-align: center;"><?= number_format($extension_units_data['total_units'], 2) ?></td>
+                                                        <td style="text-align: center;">$<?= number_format($extension_sales_data['total_amount'], 2) ?></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
                                         </div>
 
-                                        <!-- 4+ Enrollment (Renewal) - Excludes MISC -->
+                                        <!-- 4+ Enrollment (Renewal) - Type 13 -->
                                         <div style="margin-top: 15px; padding: 10px; background-color: #fce4ec; border-left: 4px solid #c62828; border-radius: 4px;">
                                             <h6 style="font-weight: bold; margin: 0 0 5px 0;">
                                                 <i class="bi bi-file-text"></i> 4+ Enrollment (Renewal) - Type 13
-                                                <span style="font-weight: normal; font-size: 14px; color: #d32f2f;">
-                                                    (EXCLUDES MISC Records)
-                                                </span>
-                                                <span style="font-weight: normal; font-size: 14px; color: #555;">
-                                                    (Total: <?= $renewal_data['count'] ?> enrollment<?= $renewal_data['count'] != 1 ? 's' : '' ?> |
-                                                    Units: <?= number_format($renewal_data['total_units'], 2) ?> |
-                                                    Sales: $<?= number_format($renewal_data['total_amount'], 2) ?>)
+                                                <span style="font-weight: normal; font-size: 14px; color: #c62828;">
+                                                    (Count: <?= $renewal_units_data['count'] ?>)
                                                 </span>
                                             </h6>
-                                            <?php if (count($renewal_data['enrollments']) > 0) { ?>
-                                                <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
-                                                    <thead style="background-color: #f8bbd0;">
-                                                        <tr>
-                                                            <th style="width: 15%; text-align: center;">Enrollment ID</th>
-                                                            <th style="width: 35%; text-align: center;">Enrollment Name</th>
-                                                            <th style="width: 20%; text-align: center;">Date</th>
-                                                            <th style="width: 15%; text-align: center;">Units</th>
-                                                            <th style="width: 15%; text-align: center;">Amount</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($renewal_data['enrollments'] as $enrollment) { ?>
+                                            <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
+                                                <thead style="background-color: #f8bbd0;">
+                                                    <tr>
+                                                        <th style="width: 20%; text-align: center;">Enrollment ID</th>
+                                                        <th style="width: 35%; text-align: center;">Enrollment Name</th>
+                                                        <th style="width: 20%; text-align: center;">Date</th>
+                                                        <th style="width: 15%; text-align: center;">Units</th>
+                                                        <th style="width: 15%; text-align: center;">Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $enrollments = [];
+                                                    foreach ($renewal_units_data['enrollments'] as $e) {
+                                                        $enrollments[$e['pk_enrollment']] = $e;
+                                                    }
+                                                    foreach ($renewal_sales_data['enrollments'] as $e) {
+                                                        if (isset($enrollments[$e['pk_enrollment']])) {
+                                                            $enrollments[$e['pk_enrollment']]['sales_amount'] = $e['amount'];
+                                                        }
+                                                    }
+                                                    if (count($enrollments) > 0) {
+                                                        foreach ($enrollments as $enrollment) { ?>
                                                             <tr>
                                                                 <td style="text-align: center;">#<?= $enrollment['id'] ?></td>
                                                                 <td style="text-align: left;"><?= htmlspecialchars($enrollment['name']) ?></td>
                                                                 <td style="text-align: center;"><?= date('m/d/Y', strtotime($enrollment['date'])) ?></td>
                                                                 <td style="text-align: center;"><?= number_format($enrollment['units'], 2) ?></td>
-                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format($enrollment['amount'], 2) ?></td>
+                                                                <td style="text-align: center; font-weight: bold;">$<?= number_format(isset($enrollment['sales_amount']) ? $enrollment['sales_amount'] : $enrollment['amount'], 2) ?></td>
                                                             </tr>
-                                                        <?php } ?>
-                                                    </tbody>
-                                                </table>
-                                            <?php } else { ?>
-                                                <p style="margin: 5px 0 0 0; color: #666; font-style: italic;">No enrollments found for this period.</p>
-                                            <?php } ?>
+                                                        <?php }
+                                                    } else { ?>
+                                                        <tr>
+                                                            <td colspan="5" style="text-align: center; color: #666; font-style: italic;">No enrollments found for this period.</td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                                <tfoot style="background-color: #fce4ec; font-weight: bold;">
+                                                    <tr>
+                                                        <td colspan="3" style="text-align: right;">TOTALS:</td>
+                                                        <td style="text-align: center;"><?= number_format($renewal_units_data['total_units'], 2) ?></td>
+                                                        <td style="text-align: center;">$<?= number_format($renewal_sales_data['total_amount'], 2) ?></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
                                         </div>
 
-                                        <!-- Miscellaneous - Using MISC_ID LIKE '%MISC%' (matches main report) -->
+                                        <!-- Miscellaneous -->
                                         <div style="margin-top: 15px; padding: 10px; background-color: #f3e5f5; border-left: 4px solid #6a1b9a; border-radius: 4px;">
                                             <h6 style="font-weight: bold; margin: 0 0 5px 0;">
                                                 <i class="bi bi-file-text"></i> Miscellaneous
@@ -1488,20 +1565,18 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                     (MISC_ID LIKE '%MISC%')
                                                 </span>
                                                 <span style="font-weight: normal; font-size: 14px; color: #555;">
-                                                    (Total: <?= $misc_data['count'] ?> enrollment<?= $misc_data['count'] != 1 ? 's' : '' ?> |
-                                                    Units: <?= number_format($misc_data['total_units'], 2) ?> |
-                                                    Sales: $<?= number_format($misc_data['total_amount'], 2) ?>)
+                                                    (Count: <?= $misc_data['count'] ?> | Units: <?= number_format($misc_data['total_units'], 2) ?> | Sales: $<?= number_format($misc_data['total_amount'], 2) ?>)
                                                 </span>
                                             </h6>
                                             <?php if (count($misc_data['enrollments']) > 0) { ?>
                                                 <table class="table table-bordered table-sm" style="margin: 5px 0 0 0;">
                                                     <thead style="background-color: #e1bee7;">
                                                         <tr>
-                                                            <th style="width: 15%; text-align: center;">Enrollment ID</th>
+                                                            <th style="width: 20%; text-align: center;">Enrollment ID</th>
                                                             <th style="width: 35%; text-align: center;">Enrollment Name</th>
                                                             <th style="width: 20%; text-align: center;">Date</th>
                                                             <th style="width: 15%; text-align: center;">Units</th>
-                                                            <th style="width: 15%; text-align: center;">Amount</th>
+                                                            <th style="width: 15%; text-align: center;">Sales</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -1515,32 +1590,44 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
                                                             </tr>
                                                         <?php } ?>
                                                     </tbody>
+                                                    <tfoot style="background-color: #f3e5f5; font-weight: bold;">
+                                                        <tr>
+                                                            <td colspan="3" style="text-align: right;">TOTALS:</td>
+                                                            <td style="text-align: center;"><?= number_format($misc_data['total_units'], 2) ?></td>
+                                                            <td style="text-align: center;">$<?= number_format($misc_data['total_amount'], 2) ?></td>
+                                                        </tr>
+                                                    </tfoot>
                                                 </table>
                                             <?php } else { ?>
                                                 <p style="margin: 5px 0 0 0; color: #666; font-style: italic;">No miscellaneous enrollments found for this period.</p>
                                             <?php } ?>
                                         </div>
 
-                                        <!-- Summary Audit Note -->
-                                        <div style="margin-top: 20px; padding: 12px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
-                                            <strong style="color: #856404;">📋 Enrollment Type Mapping Summary:</strong>
-                                            <table class="table table-sm table-borderless" style="margin: 5px 0 0 0; width: auto;">
-                                                <tr>
-                                                    <td><span style="display: inline-block; width: 15px; height: 15px; background-color: #1976d2; border-radius: 3px;"></span> Type 5 = 1st Enrollment (Pre-Original)</td>
-                                                    <td><span style="display: inline-block; width: 15px; height: 15px; background-color: #388e3c; border-radius: 3px;"></span> Type 2 = 2nd Enrollment (Original)</td>
-                                                    <td><span style="display: inline-block; width: 15px; height: 15px; background-color: #f57c00; border-radius: 3px;"></span> Type 9 = 3rd Enrollment (Extension)</td>
-                                                    <td><span style="display: inline-block; width: 15px; height: 15px; background-color: #c62828; border-radius: 3px;"></span> Type 13 = 4+ Enrollment (Renewal) <strong style="color: #d32f2f;">(EXCLUDES MISC)</strong></td>
-                                                    <td><span style="display: inline-block; width: 15px; height: 15px; background-color: #6a1b9a; border-radius: 3px;"></span> <strong>MISC_ID LIKE '%MISC%'</strong> = Miscellaneous</td>
-                                                </tr>
-                                            </table>
-                                            <small style="color: #856404; display: block; margin-top: 5px;">
-                                                ⚠️ <strong>Verify:</strong>
-                                                <br>• The audit queries now match the main report's unit queries exactly (no billing table filter, only IS_GROUP = 0).
-                                                <br>• The 4+ Enrollment section excludes MISC records (ENROLLMENT_ID NOT LIKE '%MISC%').
-                                                <br>• All MISC records are identified by <strong>MISC_ID LIKE '%MISC%'</strong> (matches the main report).
-                                                <br>• Units and amounts should now match the main report's Unit Sales Tracking section.
-                                            </small>
+                                        <!-- GRAND TOTAL -->
+                                        <div style="margin-top: 15px; padding: 10px; background-color: #e0e0e0; border-left: 4px solid #333; border-radius: 4px;">
+                                            <h6 style="font-weight: bold; margin: 0 0 5px 0; text-align: center;">
+                                                <i class="bi bi-calculator"></i> GRAND TOTAL - All Enrollments
+                                                <span style="font-weight: normal; font-size: 14px; color: #333;">
+                                                    (Count: <?= $pre_original_units_data['count'] + $original_units_data['count'] + $extension_units_data['count'] + $renewal_units_data['count'] + $misc_data['count'] ?> |
+                                                    Units: <?= number_format($pre_original_units_data['total_units'] + $original_units_data['total_units'] + $extension_units_data['total_units'] + $renewal_units_data['total_units'] + $misc_data['total_units'], 2) ?> |
+                                                    Sales: $<?= number_format($pre_original_sales_data['total_amount'] + $original_sales_data['total_amount'] + $extension_sales_data['total_amount'] + $renewal_sales_data['total_amount'] + $misc_data['total_amount'], 2) ?>)
+                                                </span>
+                                            </h6>
                                         </div>
+
+                                        <!-- Summary Audit Note -->
+                                        <!-- <div style="margin-top: 20px; padding: 12px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
+                                            <strong style="color: #856404;">📋 Query Logic Summary:</strong>
+                                            <ul style="margin: 5px 0 0 20px; color: #856404;">
+                                                <li><strong>Units Queries:</strong> Use <code>DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0</code> + <code>DOA_SERVICE_CODE.IS_GROUP = 0</code></li>
+                                                <li><strong>Sales Queries:</strong> Use <code>DOA_SERVICE_CODE.IS_GROUP = 0</code> (NO billing filter)</li>
+                                                <li><strong>Miscellaneous:</strong> Use <code>MISC_ID LIKE '%MISC%'</code> + <code>DOA_SERVICE_CODE.IS_GROUP = 0</code></li>
+                                                <li><strong>Enrollment Type Mapping:</strong> Type 5 = 1st, Type 2 = 2nd, Type 9 = 3rd, Type 13 = 4+</li>
+                                            </ul>
+                                            <small style="color: #856404; display: block; margin-top: 5px;">
+                                                ⚠️ <strong>Verify:</strong> Units and sales totals should now match the main report's Unit Sales Tracking section.
+                                            </small>
+                                        </div> -->
                                     </div>
 
                                 </div>
