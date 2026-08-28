@@ -59,6 +59,7 @@
                                 <a class="dropdown-item" href="../super_admin/manage_help_category.php">Help Category</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help_sub_category.php">Help Subcategory</a>
                                 <a class="dropdown-item" href="../super_admin/manage_help.php">Help</a>
+                                <a class="dropdown-item" href="../super_admin/all_blog.php">Blogs</a>
                             </div>
                         </li>
                         <li class="nav-item dropdown">
@@ -111,7 +112,7 @@
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_status.php">Status</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/billing.php">Billing</a></li>
                             </ul>
-                        <?php } elseif ($address == "all_alert_messages.php" || $address == "all_email_triggers.php" || $address == "all_template_categories.php" || $address == "all_header_texts.php" || $address == "manage_help_page.php" || $address == "manage_help_category.php" || $address == "manage_help_sub_category.php" || $address == "manage_help.php") { ?>
+                        <?php } elseif ($address == "all_alert_messages.php" || $address == "all_email_triggers.php" || $address == "all_template_categories.php" || $address == "all_header_texts.php" || $address == "manage_help_page.php" || $address == "manage_help_category.php" || $address == "manage_help_sub_category.php" || $address == "manage_help.php" || $address == "all_blog.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_alert_messages.php">Alert Messages</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/all_email_triggers.php">Email Triggers</a></li>
@@ -121,6 +122,7 @@
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help_category.php">Help Category</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help_sub_category.php">Help Subcategory</a></li>
                                 <li class="nav-item"><a class="nav-link" href="../super_admin/manage_help.php">Help</a></li>
+                                <li class="nav-item"><a class="nav-link" href="../super_admin/all_blog.php">Blog</a></li>
                             </ul>
                         <?php } elseif ($address == "all_chat_section.php") { ?>
                             <ul class="nav nav-tabs justify-content-center">

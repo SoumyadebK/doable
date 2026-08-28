@@ -72,7 +72,7 @@ include __DIR__ . '/v2/includes/header.php';
                 <span class="text-gray-400">&middot; <?= e($blog_data->fields['AUTHOR_NAME']) ?></span>
             </div>
             <h1 class="text-premium-heading text-3xl md:text-4xl font-extrabold mb-6"><?= e($blog_data->fields['TITLE']) ?></h1>
-            <?php if (!empty($blog_data->fields['FEATURED_IMAGE_URL'])): ?>
+            <?php if (file_exists($blog_data->fields['FEATURED_IMAGE_URL'])): ?>
                 <div class="aspect-video rounded-2xl overflow-hidden bg-gray-100 mb-8 relative">
                     <img src="<?= e($blog_data->fields['FEATURED_IMAGE_URL']) ?>" alt="<?= e($blog_data->fields['TITLE']) ?>" class="absolute inset-0 w-full h-full object-cover">
                 </div>

@@ -27,7 +27,7 @@ include __DIR__ . '/v2/includes/header.php';
                 <?php while (!$blog_data->EOF): ?>
                     <a href="<?= $base ?>/blog-post.php?slug=<?= urlencode($blog_data->fields['SLUG']) ?>" class="group block">
                         <div class="aspect-video bg-gradient-to-br from-emerald-100 to-teal-100 relative overflow-hidden">
-                            <?php if (!empty($blog_data->fields['FEATURED_IMAGE_URL'])): ?>
+                            <?php if (file_exists($blog_data->fields['FEATURED_IMAGE_URL'])): ?>
                                 <img src="<?= e($blog_data->fields['FEATURED_IMAGE_URL']) ?>" alt="<?= e($blog_data->fields['TITLE']) ?>" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             <?php else: ?>
                                 <div class="absolute inset-0 flex items-center justify-center text-5xl">&#9998;</div>
