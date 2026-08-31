@@ -307,20 +307,47 @@ $plan = $pric['plans'][0] ?? null;
         <button id="billing-annual" class="px-5 py-2 rounded-full text-sm font-semibold text-gray-600 transition-all">Annual <span class="text-emerald-600">(save ~17%)</span></button>
       </div>
     </div>
+    <!-- Limited-time launch offer -->
+    <div class="reveal max-w-2xl mx-auto mb-10">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white text-center shadow-lg p-6 md:p-8">
+        <div class="absolute inset-0 bg-black/10"></div>
+        <div class="relative">
+          <span class="inline-block px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold tracking-wide uppercase mb-3">Limited-Time Offer</span>
+          <h3 class="text-2xl md:text-3xl font-extrabold mb-2">50% Off for 12 Months</h3>
+          <p class="text-white/90 text-base md:text-lg">
+            New clients who come on board before <strong>September 30, 2026</strong> get
+            <strong>half off monthly tuition for the first twelve months.</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="max-w-md mx-auto">
       <?php foreach ($pric['plans'] as $p): ?>
         <div class="reveal card-premium p-8 border-2 border-emerald-500 relative">
           <?php if (!empty($p['popular'])): ?>
             <span class="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1 rounded-full bg-emerald-600 text-white">MOST POPULAR</span>
           <?php endif; ?>
+          <?php
+          $halfMonthly = (float)$p['priceMonthly'] / 2;
+          $halfAnnual  = (float)$p['priceAnnual']  / 2;
+          $fmtPrice = function ($n) {
+            return (floor($n) == $n) ? number_format($n, 0) : number_format($n, 2);
+          };
+          ?>
           <h3 class="text-2xl font-bold text-gray-900 mb-1"><?= e($p['name']) ?></h3>
           <p class="text-gray-600 mb-6"><?= e($p['description']) ?></p>
-          <div class="mb-2">
-            <span class="text-5xl font-extrabold text-gray-900">$<span class="plan-price" data-monthly="<?= e($p['priceMonthly']) ?>" data-annual="<?= e($p['priceAnnual']) ?>"><?= e($p['priceMonthly']) ?></span></span>
+          <div class="flex items-center gap-3 mb-1">
+            <span class="text-2xl font-semibold text-gray-400 line-through">$<span class="plan-orig" data-monthly="<?= e($p['priceMonthly']) ?>" data-annual="<?= e($p['priceAnnual']) ?>"><?= e($p['priceMonthly']) ?></span></span>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">50% OFF</span>
+          </div>
+          <div class="mb-1">
+            <span class="text-5xl font-extrabold text-gray-900">$<span class="plan-price" data-monthly="<?= e($fmtPrice($halfMonthly)) ?>" data-annual="<?= e($fmtPrice($halfAnnual)) ?>"><?= e($fmtPrice($halfMonthly)) ?></span></span>
             <span class="text-gray-500">/month</span>
           </div>
-          <p class="plan-annual-note text-sm text-emerald-600 font-medium mb-6 hidden">Billed annually &mdash; $<?= e((string)((int)$p['priceAnnual'] * 12)) ?>/year</p>
-          <p class="plan-monthly-note text-sm text-gray-500 mb-6"><?= e($pric['trialBanner']) ?></p>
+          <p class="text-sm text-emerald-600 font-semibold mb-4">for your first 12 months &mdash; new clients before Sept 30, 2026</p>
+          <p class="plan-annual-note text-sm text-gray-500 font-medium mb-6 hidden">Then $<?= e($p['priceAnnual']) ?>/month, billed annually</p>
+          <p class="plan-monthly-note text-sm text-gray-500 mb-6">Then $<?= e($p['priceMonthly']) ?>/month &middot; <?= e($pric['trialBanner']) ?></p>
           <a href="#contact" class="btn-premium w-full text-center mb-6">Start 30-Day Free Trial</a>
           <ul class="space-y-3">
             <?php foreach ($p['features'] as $f): ?>
