@@ -22,7 +22,7 @@ $url = constant('ami_api_url') . '/api/v1/reports';
 
 $data_past_year = [
     'type' => $report_type,
-    'week_year' => date('Y') - 1,
+    'week_year' => date('Y'),
 ];
 $post_data_past_year = callArturMurrayApiGet($url, $data_past_year, $authorization);
 $return_data_past_year = json_decode($post_data_past_year, true);

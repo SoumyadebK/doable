@@ -73,6 +73,7 @@ $PAYMENT_QUERY = "SELECT
                     CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
                     CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE,
                     DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
                     DOA_ENROLLMENT_MASTER.PK_LOCATION,
                     DOA_ENROLLMENT_MASTER.PK_PACKAGE
@@ -186,6 +187,7 @@ $REFUND_QUERY = "SELECT
                     CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
                     CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE,
                     DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
                     DOA_ENROLLMENT_MASTER.PK_LOCATION
 
@@ -315,14 +317,14 @@ if ($type === 'export') {
                 $sale_code = 'MISC';
             } else {
                 $package_name = null;
-                switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
-                    case 1:
+                switch ($payment_data->fields['PK_ENROLLMENT_TYPE']) {
+                    case 5:
                         $sale_code = 'PORI';
                         break;
                     case 2:
                         $sale_code = 'ORI';
                         break;
-                    case 3:
+                    case 9:
                         $sale_code = 'EXT';
                         break;
 
@@ -791,14 +793,14 @@ if (!empty($_GET['WEEK_NUMBER'])) {
                                                             } elseif ($SERVICE_CLASS == 5) {
                                                                 echo $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
                                                             } else {
-                                                                switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
-                                                                    case 1:
+                                                                switch ($payment_data->fields['PK_ENROLLMENT_TYPE']) {
+                                                                    case 5:
                                                                         echo '1/PORI';
                                                                         break;
                                                                     case 2:
                                                                         echo '2/ORI';
                                                                         break;
-                                                                    case 3:
+                                                                    case 9:
                                                                         echo '3/EXT';
                                                                         break;
 
