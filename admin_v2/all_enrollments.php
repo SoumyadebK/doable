@@ -15,69 +15,123 @@ $LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
 
 $title = "All Enrollments";
 
+// ==============================================
+// Get filter parameters - DEFINE ALL VARIABLES
+// ==============================================
+$search_text = isset($_GET['search_text']) ? trim($_GET['search_text']) : '';
+$status_filter = isset($_GET['STATUS']) ? trim($_GET['STATUS']) : 'A';
+$choose_date = isset($_GET['CHOOSE_DATE']) && $_GET['CHOOSE_DATE'] != '' ? date('Y-m-d', strtotime($_GET['CHOOSE_DATE'])) : '';
+$date_from = isset($_GET['DATE_FROM']) && $_GET['DATE_FROM'] != '' ? date('Y-m-d', strtotime($_GET['DATE_FROM'])) : '';
+$date_to = isset($_GET['DATE_TO']) && $_GET['DATE_TO'] != '' ? date('Y-m-d', strtotime($_GET['DATE_TO'])) : '';
+
+// Capture ALL filter parameters from URL
+$filter_params = [
+    'search_text' => isset($_GET['search_text']) ? trim($_GET['search_text']) : '',
+    'STATUS' => isset($_GET['STATUS']) ? trim($_GET['STATUS']) : 'A',
+    'CHOOSE_DATE' => isset($_GET['CHOOSE_DATE']) ? trim($_GET['CHOOSE_DATE']) : '',
+    'DATE_FROM' => isset($_GET['DATE_FROM']) ? trim($_GET['DATE_FROM']) : '',
+    'DATE_TO' => isset($_GET['DATE_TO']) ? trim($_GET['DATE_TO']) : '',
+    'sort_by' => isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'newest'
+];
+
+foreach ($filter_params as $key => $value) {
+    $$key = $value;
+}
+
+// Build search condition - FIXED PHONE SEARCH
+$search_condition = '';
+if ($search_text != '') {
+    $search_escaped = addslashes($search_text);
+    $search_numeric = preg_replace('/\D/', '', $search_text);
+
+    if (strlen($search_numeric) >= 3) {
+        $search_condition = " AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%$search_escaped%' 
+                         OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%$search_escaped%' 
+                         OR DOA_USERS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_USERS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR REPLACE(REPLACE(REPLACE(REPLACE(DOA_USERS.PHONE, '(', ''), ')', ''), '-', ''), ' ', '') LIKE '%$search_numeric%'
+                         OR DOA_USERS.EMAIL_ID LIKE '%$search_escaped%')";
+    } else {
+        $search_condition = " AND (DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%$search_escaped%' 
+                         OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%$search_escaped%' 
+                         OR DOA_USERS.FIRST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_USERS.LAST_NAME LIKE '%$search_escaped%' 
+                         OR DOA_USERS.PHONE LIKE '%$search_escaped%' 
+                         OR DOA_USERS.EMAIL_ID LIKE '%$search_escaped%')";
+    }
+}
+
+// Build status condition
+$status_condition = '';
+if ($status_filter == 'A') {
+    $status_condition = " AND DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'CA') ";
+} elseif ($status_filter == 'I') {
+    $status_condition = " AND DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') ";
+} else {
+    $status_condition = " AND DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'CA') ";
+}
+
+// Build date condition
+$date_condition = '';
+if ($choose_date != '') {
+    $date_condition = " AND DATE(DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE) = '$choose_date'";
+} elseif ($date_from != '' && $date_to != '') {
+    $date_condition = " AND DATE(DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE) BETWEEN '$date_from' AND '$date_to'";
+} elseif ($date_from != '') {
+    $date_condition = " AND DATE(DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE) >= '$date_from'";
+} elseif ($date_to != '') {
+    $date_condition = " AND DATE(DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE) <= '$date_to'";
+}
+
+// Sorting
+$sort_by = isset($_GET['sort_by']) ? trim($_GET['sort_by']) : 'newest';
+
+$sort_options = [
+    'name_asc' => ['field' => 'CONCAT(DOA_USERS.FIRST_NAME, " ", DOA_USERS.LAST_NAME)', 'order' => 'ASC', 'label' => 'Name (A-Z)'],
+    'name_desc' => ['field' => 'CONCAT(DOA_USERS.FIRST_NAME, " ", DOA_USERS.LAST_NAME)', 'order' => 'DESC', 'label' => 'Name (Z-A)'],
+    'newest' => ['field' => 'DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE', 'order' => 'DESC', 'label' => 'Newest First'],
+    'oldest' => ['field' => 'DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE', 'order' => 'ASC', 'label' => 'Oldest First'],
+    'enrollment_id_asc' => ['field' => 'DOA_ENROLLMENT_MASTER.ENROLLMENT_ID', 'order' => 'ASC', 'label' => 'Enrollment ID (A-Z)'],
+    'enrollment_id_desc' => ['field' => 'DOA_ENROLLMENT_MASTER.ENROLLMENT_ID', 'order' => 'DESC', 'label' => 'Enrollment ID (Z-A)'],
+    'amount_asc' => ['field' => 'DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT', 'order' => 'ASC', 'label' => 'Amount (Low-High)'],
+    'amount_desc' => ['field' => 'DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT', 'order' => 'DESC', 'label' => 'Amount (High-Low)']
+];
+
+$sort_field = 'DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER';
+$sort_direction = 'DESC';
+
+if (isset($sort_options[$sort_by])) {
+    $sort_field = $sort_options[$sort_by]['field'];
+    $sort_direction = $sort_options[$sort_by]['order'];
+} else {
+    $sort_field = 'DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE';
+    $sort_direction = 'DESC';
+}
+
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
     header("location:../login.php");
     exit;
 }
 
-/* $PK_ENROLLMENT_MASTER_ARRAY = [];
-$not_billed_enrollment = $db_account->Execute("SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_MASTER WHERE NOT EXISTS(SELECT PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER )");
-if ($not_billed_enrollment->RecordCount() > 0) {
-    while (!$not_billed_enrollment->EOF) {
-        $PK_ENROLLMENT_MASTER_ARRAY[] = $not_billed_enrollment->fields['PK_ENROLLMENT_MASTER'];
-        addEnrollmentLogData($not_billed_enrollment->fields['PK_ENROLLMENT_MASTER'], 'Deleted', 'Enrollment deleted from All Enrollment');
-        $not_billed_enrollment->MoveNext();
-    }
+// Build the WHERE clause
+$where_clause = " WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                  AND DOA_USERS.ACTIVE = 1 
+                  AND DOA_USERS.IS_DELETED = 0 
+                  " . $status_condition . " 
+                  " . $search_condition . " 
+                  " . $date_condition;
 
-    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_MASTER` WHERE `PK_ENROLLMENT_MASTER` IN (" . implode(',', $PK_ENROLLMENT_MASTER_ARRAY) . ")");
-    $db_account->Execute("DELETE FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` IN (" . implode(',', $PK_ENROLLMENT_MASTER_ARRAY) . ")");
-} */
+// Get total count
+$count_query = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER)) AS TOTAL_RECORDS 
+                                     FROM DOA_ENROLLMENT_MASTER 
+                                     INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+                                     INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
+                                     LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                                     LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER 
+                                     LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                                     " . $where_clause);
 
-
-
-$START_DATE = ' ';
-$END_DATE = ' ';
-$ORDER_BY = ' DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER DESC ';
-if (!empty($_GET['FROM_DATE'])) {
-    $START_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE >= '" . date('Y-m-d', strtotime($_GET['FROM_DATE'])) . "'";
-    $ORDER_BY = ' DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ASC ';
-}
-if (!empty($_GET['END_DATE'])) {
-    $END_DATE = " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE <= '" . date('Y-m-d', strtotime($_GET['END_DATE'])) . "'";
-    $ORDER_BY = ' DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE DESC ';
-}
-
-$search_text = '';
-$search = $START_DATE . $END_DATE . ' ';
-if (!empty($_GET['search_text'])) {
-    $search_text = trim($_GET['search_text']);
-    $search_text_esc = addslashes($search_text);
-    $search .= $START_DATE . $END_DATE . " AND (DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER LIKE '%" . $search_text_esc . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME LIKE '%" . $search_text_esc . "%' OR DOA_ENROLLMENT_MASTER.ENROLLMENT_ID LIKE '%" . $search_text_esc . "%' OR CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) LIKE '%" . $search_text_esc . "%' OR DOA_USERS.FIRST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text_esc . "%' OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text_esc . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text_esc . "%') ";
-}
-
-$STATUS = empty($_GET['STATUS']) ? 'A' : $_GET['STATUS'];
-if ($STATUS == 'A') {
-    $search .= " AND DOA_ENROLLMENT_MASTER.STATUS IN ('A', 'CA') ";
-} elseif ($STATUS == 'I') {
-    $search .= " AND DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') ";
-}
-
-
-// if (isset($_GET['search_text']) || isset($_GET['FROM_DATE']) || isset($_GET['END_DATE'])) {
-//     $FROM_DATE = date('Y-m-d', strtotime($_GET['FROM_DATE']));
-//     $END_DATE = date('Y-m-d', strtotime($_GET['END_DATE']));
-//     $search_text = $_GET['search_text'];
-//     $search = " AND (DOA_USERS.FIRST_NAME LIKE '%" . $search_text . "%' OR DOA_USERS.LAST_NAME LIKE '%" . $search_text . "%'OR DOA_USERS.EMAIL_ID LIKE '%" . $search_text . "%' OR DOA_USERS.PHONE LIKE '%" . $search_text . "%')" . " AND DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE BETWEEN '$FROM_DATE' AND '$END_DATE'";
-// } else {
-//     $FROM_DATE = ' ';
-//     $END_DATE = ' ';
-//     $search_text = ' ';
-//     $search = ' ';
-// }
-
-$query = $db_account->Execute("SELECT COUNT(DISTINCT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER)) AS TOTAL_RECORDS FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search);
-
-$number_of_result = ($query->RecordCount() > 0) ? $query->fields['TOTAL_RECORDS'] : 1;
+$number_of_result = ($count_query->RecordCount() > 0) ? $count_query->fields['TOTAL_RECORDS'] : 1;
 $number_of_page = ceil($number_of_result / $results_per_page);
 
 if (!isset($_GET['page'])) {
@@ -88,19 +142,52 @@ if (!isset($_GET['page'])) {
 
 $page_first_result = ($page - 1) * $results_per_page;
 
+// Main query
+$enrollment_query = "SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, 
+                     DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, 
+                     DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, 
+                     DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, 
+                     DOA_ENROLLMENT_MASTER.MISC_TYPE, 
+                     DOA_ENROLLMENT_MASTER.MISC_ID, 
+                     DOA_ENROLLMENT_MASTER.ACTIVE, 
+                     DOA_ENROLLMENT_MASTER.STATUS, 
+                     DOA_ENROLLMENT_MASTER.PK_USER_MASTER, 
+                     DOA_USERS.PK_USER, 
+                     DOA_USERS.FIRST_NAME, 
+                     DOA_USERS.LAST_NAME, 
+                     DOA_USERS.EMAIL_ID, 
+                     DOA_USERS.PHONE, 
+                     DOA_LOCATION.LOCATION_NAME, 
+                     DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, 
+                     DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, 
+                     DOA_USER_MASTER.PK_USER_MASTER, 
+                     DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT 
+                     FROM DOA_ENROLLMENT_MASTER 
+                     INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER 
+                     INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER 
+                     LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION 
+                     LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER 
+                     LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                     " . $where_clause . " 
+                     ORDER BY $sort_field $sort_direction 
+                     LIMIT " . $page_first_result . ',' . $results_per_page;
+
+$enrollment_data = $db_account->Execute($enrollment_query);
+
+// POST handling (keep original)
 if (isset($_POST['SUBMIT'])) {
     $PK_ENROLLMENT_MASTER = $_POST['PK_ENROLLMENT_MASTER'];
     $PK_PAYMENT_TYPE_REFUND = ($_POST['PK_PAYMENT_TYPE_REFUND']) ?? 0;
-    $enrollment_data = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
-    if (empty($enrollment_data->fields['ENROLLMENT_NAME'])) {
+    $enrollment_data_post = $db_account->Execute("SELECT ENROLLMENT_NAME, ENROLLMENT_ID, PK_ENROLLMENT_BILLING FROM DOA_ENROLLMENT_MASTER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
+    if (empty($enrollment_data_post->fields['ENROLLMENT_NAME'])) {
         $enrollment_name = '';
     } else {
-        $enrollment_name = $enrollment_data->fields['ENROLLMENT_NAME'] . " - ";
+        $enrollment_name = $enrollment_data_post->fields['ENROLLMENT_NAME'] . " - ";
     }
-    if (empty($enrollment_data->fields['ENROLLMENT_ID'])) {
-        $enrollment_id = $enrollment_data->fields['MISC_ID'];
+    if (empty($enrollment_data_post->fields['ENROLLMENT_ID'])) {
+        $enrollment_id = $enrollment_data_post->fields['MISC_ID'];
     } else {
-        $enrollment_id = $enrollment_data->fields['ENROLLMENT_ID'];
+        $enrollment_id = $enrollment_data_post->fields['ENROLLMENT_ID'];
     }
     $TOTAL_POSITIVE_BALANCE = $_POST['TOTAL_POSITIVE_BALANCE'];
     $TOTAL_NEGATIVE_BALANCE = $_POST['TOTAL_NEGATIVE_BALANCE'];
@@ -160,15 +247,6 @@ if (isset($_POST['SUBMIT'])) {
     $ENR_BILLING_UPDATE['TOTAL_AMOUNT'] = $ENR_BILLING_UPDATE['BALANCE_PAYABLE'] = $TOTAL_ACTUAL_AMOUNT;
     db_perform_account('DOA_ENROLLMENT_BILLING', $ENR_BILLING_UPDATE, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
 
-    /*if ($_POST['USE_AVAILABLE_CREDIT'] == 1) {
-        $TOTAL_POSITIVE_BALANCE += $TOTAL_NEGATIVE_BALANCE;
-        $TOTAL_NEGATIVE_BALANCE = $TOTAL_POSITIVE_BALANCE;
-        for ($i = 0; $i < count($_POST['PK_ENROLLMENT_SERVICE']); $i++) {
-            $ENR_SERVICE_UPDATE['TOTAL_AMOUNT_PAID'] = $_POST['TOTAL_AMOUNT_PAID'][$i];
-            db_perform_account('DOA_ENROLLMENT_SERVICE', $ENR_SERVICE_UPDATE, 'update'," PK_ENROLLMENT_SERVICE = ".$_POST['PK_ENROLLMENT_SERVICE'][$i]);
-        }
-    }*/
-
     db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_SERVICE', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
     db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
@@ -177,7 +255,7 @@ if (isset($_POST['SUBMIT'])) {
         $LEDGER_DATA_BILLING['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Balance Owed' : 'Billing';
         $LEDGER_DATA_BILLING['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA_BILLING['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA_BILLING['PK_ENROLLMENT_BILLING'] = $enrollment_data_post->fields['PK_ENROLLMENT_BILLING'];
         $LEDGER_DATA_BILLING['PAID_AMOUNT'] = 0.00;
         $LEDGER_DATA_BILLING['IS_PAID'] = 0;
         $LEDGER_DATA_BILLING['STATUS'] = 'A';
@@ -190,7 +268,7 @@ if (isset($_POST['SUBMIT'])) {
         $LEDGER_DATA['TRANSACTION_TYPE'] = (($TOTAL_POSITIVE_BALANCE == 0) ? 'Cancelled' : (($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund'));
         $LEDGER_DATA['ENROLLMENT_LEDGER_PARENT'] = -1;
         $LEDGER_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+        $LEDGER_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data_post->fields['PK_ENROLLMENT_BILLING'];
         $LEDGER_DATA['PAID_AMOUNT'] = 0.00;
         $LEDGER_DATA['IS_PAID'] = ($_POST['SUBMIT'] === 'Submit') ? 1 : 2;
         $LEDGER_DATA['DUE_DATE'] = date('Y-m-d');
@@ -203,32 +281,6 @@ if (isset($_POST['SUBMIT'])) {
 
     $PK_USER_MASTER = $_POST['PK_USER_MASTER'];
     if ($TOTAL_POSITIVE_BALANCE >= 0) {
-        /*$wallet_data = $db_account->Execute("SELECT * FROM DOA_CUSTOMER_WALLET WHERE PK_USER_MASTER = '$PK_USER_MASTER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");
-        if ($wallet_data->RecordCount() > 0) {
-            $INSERT_DATA['CURRENT_BALANCE'] = $wallet_data->fields['CURRENT_BALANCE'] + $BALANCE;
-        } else {
-            $INSERT_DATA['CURRENT_BALANCE'] = $TOTAL_POSITIVE_BALANCE;
-        }
-        $INSERT_DATA['PK_USER_MASTER'] = $PK_USER_MASTER;
-        $INSERT_DATA['CREDIT'] = $TOTAL_POSITIVE_BALANCE;
-        $INSERT_DATA['DESCRIPTION'] = "Balance credited for cancellation of enrollment ".$enrollment_name.$enrollment_data->fields['ENROLLMENT_ID'];
-        $INSERT_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
-        $INSERT_DATA['CREATED_ON'] = date("Y-m-d H:i");
-        db_perform_account('DOA_CUSTOMER_WALLET', $INSERT_DATA, 'insert');*/
-
-        /*$LEDGER_DATA_REFUND['TRANSACTION_TYPE'] = ($_POST['SUBMIT'] == 'Cancel and Store Info only') ? 'Refund Credit Available' : 'Refund';
-        $LEDGER_DATA_REFUND['ENROLLMENT_LEDGER_PARENT'] = -1;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-        $LEDGER_DATA_REFUND['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
-        $LEDGER_DATA_REFUND['PAID_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['IS_PAID'] = ($LEDGER_DATA_REFUND['TRANSACTION_TYPE'] === 'Refund') ? 1 : 2;
-        $LEDGER_DATA_REFUND['DUE_DATE'] = date('Y-m-d');
-        $LEDGER_DATA_REFUND['BILLED_AMOUNT'] = 0.00;
-        $LEDGER_DATA_REFUND['BALANCE'] = $TOTAL_POSITIVE_BALANCE;
-        $LEDGER_DATA_REFUND['STATUS'] = $UPDATE_DATA['STATUS'];
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_DATA_REFUND, 'insert');
-        $PK_ENROLLMENT_LEDGER = $db_account->insert_ID();*/
-
         if ($_POST['SUBMIT'] === 'Submit') {
             $RECEIPT_NUMBER = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
@@ -297,7 +349,7 @@ if (isset($_POST['SUBMIT'])) {
 
             if ($TOTAL_POSITIVE_BALANCE > 0) {
                 $PAYMENT_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
-                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
+                $PAYMENT_DATA['PK_ENROLLMENT_BILLING'] = $enrollment_data_post->fields['PK_ENROLLMENT_BILLING'];
                 $PAYMENT_DATA['PK_PAYMENT_TYPE'] = $PK_PAYMENT_TYPE_REFUND;
                 $PAYMENT_DATA['AMOUNT'] = $TOTAL_POSITIVE_BALANCE;
                 $PAYMENT_DATA['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
@@ -319,18 +371,6 @@ if (isset($_POST['SUBMIT'])) {
     markEnrollmentComplete($PK_ENROLLMENT_MASTER);
     header('location:all_enrollments.php');
 }
-
-/*if(!empty($_GET['id']) && !empty($_GET['status'])) {
-    if ($_GET['status'] == 'active') {
-        $PK_ENROLLMENT_MASTER = $_GET['id'];
-        $UPDATE_DATA['STATUS'] = 'A';
-        db_perform_account('DOA_APPOINTMENT_MASTER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_MASTER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        db_perform_account('DOA_ENROLLMENT_LEDGER', $UPDATE_DATA, 'update'," PK_ENROLLMENT_MASTER =  '$PK_ENROLLMENT_MASTER'");
-        header('location:all_enrollments.php');
-    }
-}*/
-
 ?>
 
 <!DOCTYPE html>
@@ -339,9 +379,116 @@ if (isset($_POST['SUBMIT'])) {
 <?php include 'layout/header.php'; ?>
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 
+<style>
+    .sortable-header {
+        cursor: pointer;
+        transition: color 0.2s;
+        background: transparent;
+        border: none;
+        padding: 0;
+        color: #6c757d;
+    }
+
+    .sortable-header:hover {
+        color: #333 !important;
+    }
+
+    .sortable-header.asc svg {
+        transform: rotate(180deg);
+    }
+
+    .sortable-header.desc svg {
+        transform: rotate(0deg);
+    }
+
+    .sortable-header svg {
+        transition: transform 0.2s ease;
+        display: inline-block;
+        margin-left: 4px;
+    }
+
+    .sortable-header.asc .fw-semibold,
+    .sortable-header.desc .fw-semibold {
+        color: #333;
+        font-weight: 700 !important;
+    }
+
+    .date-range-group {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        background: white;
+        border-radius: 50px;
+        padding: 4px 12px;
+        border: 1px solid #dee2e6;
+        height: 37px;
+    }
+
+    .date-range-group input {
+        border: none;
+        padding: 4px 0;
+        width: 85px;
+        font-size: 0.8rem;
+        outline: none;
+        background: transparent;
+    }
+
+    .date-range-group span {
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin: 0 2px;
+    }
+
+    .date-range-group .fa-calendar {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .sort-dropdown-btn {
+        height: 37px;
+        border: 1px solid #dee2e6;
+        background: #fff;
+        border-radius: 50px;
+        padding: 0 16px;
+        font-size: 14px;
+        color: #444;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .sort-dropdown-btn:hover {
+        background: #f8f9fa;
+    }
+
+    .reset-btn {
+        height: 37px;
+        border: 1px solid #dee2e6;
+        background: #fff;
+        border-radius: 50px;
+        padding: 0 16px;
+        font-size: 14px;
+        color: #444;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .reset-btn:hover {
+        background: #f8f9fa;
+    }
+
+    .filter-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+</style>
+
 <body class="skin-default-dark fixed-layout">
-    <?php //require_once('../includes/loader.php'); 
-    ?>
     <div id="main-wrapper">
         <div class="page-wrapper" style="padding-top: 0px !important;">
             <div class="container-fluid mt-4">
@@ -364,53 +511,85 @@ if (isset($_POST['SUBMIT'])) {
                         </button>
                     </div>
 
-
                     <!-- Filters -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <form method="get" class="d-flex align-items-center" style="gap: 8px;">
-                            <div class="input-group">
-                                <input type="text" name="search_text" class="form-control search-box" placeholder="Search..." value="<?= htmlspecialchars($search_text) ?>" style="border-radius: 50px 0px 0px 50px; width: 280px;">
-                                <button type="submit" class="btn-new" style="padding: 8px 16px !important; font-size: 16px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 10px;">
+                        <!-- Search -->
+                        <form method="get" class="d-flex align-items-center" style="gap: 8px; flex-wrap: wrap;">
+                            <div class="input-group" style="width: 280px;">
+                                <input type="text" name="search_text" id="search_text" class="form-control search-box" placeholder="Search..." value="<?= htmlspecialchars($search_text) ?>" style="border-radius: 50px 0px 0px 50px;">
+                                <button type="submit" class="btn-new" style="padding: 8px 16px !important; font-size: 16px; border-radius: 0px 50px 50px 0px;">
                                     <i class="fa fa-search"></i>
                                 </button>
                             </div>
-                            <input type="hidden" name="status" value="<?= htmlspecialchars($status_check) ?>">
+                            <input type="hidden" name="STATUS" value="<?= htmlspecialchars($status_filter) ?>">
+                            <input type="hidden" name="sort_by" value="<?= htmlspecialchars($sort_by) ?>">
                         </form>
 
+                        <div class="filter-wrapper">
+                            <!-- Date Range Filter -->
+                            <div class="date-range-group">
+                                <i class="fa fa-calendar"></i>
+                                <input type="text" id="DATE_FROM" class="datepicker-normal" placeholder="From" value="<?= htmlspecialchars($_GET['DATE_FROM'] ?? '') ?>" autocomplete="off">
+                                <span>–</span>
+                                <input type="text" id="DATE_TO" class="datepicker-normal" placeholder="To" value="<?= htmlspecialchars($_GET['DATE_TO'] ?? '') ?>" autocomplete="off">
+                                <?php if (!empty($date_from) || !empty($date_to)): ?>
+                                    <button type="button" id="clearDateRange" class="btn btn-link p-0 ms-0" style="color: #dc3545; font-size: 0.9rem; text-decoration: none; padding: 0 4px;">✕</button>
+                                <?php endif; ?>
+                            </div>
 
-                        <div class="view-toggle m-r-15" style="height: 37px; margin-left: auto; margin-right: 12px;">
-                            <button class="view-btn-icon <?= ($STATUS == 'A') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php'">
-                                Active
-                            </button>
-                            <button class="view-btn-icon <?= ($STATUS == 'I') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php?STATUS=I'">
-                                Archived
-                            </button>
-                        </div>
+                            <!-- Sort Dropdown -->
+                            <div class="dropdown d-inline-block">
+                                <button class="sort-dropdown-btn dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-sort-amount-desc"></i> Sort By
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                    <li><a class="dropdown-item <?= ($sort_by == 'newest') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="newest">📅 Newest First</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'oldest') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="oldest">📅 Oldest First</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'name_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="name_asc">👤 Name (A-Z)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'name_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="name_desc">👤 Name (Z-A)</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'enrollment_id_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="enrollment_id_asc">🔢 ID (A-Z)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'enrollment_id_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="enrollment_id_desc">🔢 ID (Z-A)</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'amount_asc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="amount_asc">💰 Amount (Low-High)</a></li>
+                                    <li><a class="dropdown-item <?= ($sort_by == 'amount_desc') ? 'active bg-success text-white' : '' ?>" href="#" data-sort="amount_desc">💰 Amount (High-Low)</a></li>
+                                </ul>
+                            </div>
 
-                        <div class="view-toggle m-r-10" style="height: 37px; margin-right: 12px;">
-                            <button class="view-btn-icon">
-                                <i class="fa fa-filter"></i> Filter
+                            <!-- Reset Button -->
+                            <button class="reset-btn" onclick="resetFilters()">
+                                <i class="fa fa-refresh"></i> Reset
                             </button>
-                        </div>
-                        <div class="view-toggle" style="height: 37px;">
-                            <button class="view-btn-icon">
-                                <i class="fa fa-sort-amount-desc"></i> Sort By
-                            </button>
+
+                            <!-- Status Toggle -->
+                            <div class="view-toggle m-r-15" style="height: 37px;">
+                                <button class="view-btn-icon <?= ($status_filter == 'A') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php?STATUS=A<?= (!empty($_GET['search_text']) ? '&search_text=' . $_GET['search_text'] : '') . (!empty($_GET['DATE_FROM']) ? '&DATE_FROM=' . $_GET['DATE_FROM'] : '') . (!empty($_GET['DATE_TO']) ? '&DATE_TO=' . $_GET['DATE_TO'] : '') . '&sort_by=' . $sort_by ?>'">
+                                    Active
+                                </button>
+                                <button class="view-btn-icon <?= ($status_filter == 'I') ? 'active' : '' ?>" onclick="window.location.href='all_enrollments.php?STATUS=I<?= (!empty($_GET['search_text']) ? '&search_text=' . $_GET['search_text'] : '') . (!empty($_GET['DATE_FROM']) ? '&DATE_FROM=' . $_GET['DATE_FROM'] : '') . (!empty($_GET['DATE_TO']) ? '&DATE_TO=' . $_GET['DATE_TO'] : '') . '&sort_by=' . $sort_by ?>'">
+                                    Archived
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-
-
-                    <p class="text-muted f12"><?= $number_of_result ?> <?= ($STATUS == 'I') ? 'archived' : 'active' ?> enrollments</p>
+                    <p class="text-muted f12"><?= $number_of_result ?> <?= ($status_filter == 'I') ? 'archived' : 'active' ?> enrollments</p>
 
                     <!-- Table -->
                     <div class="table-responsive schedule-wrapper">
-                        <table class="table align-middle schedule-table mb-0">
+                        <table class="table align-middle schedule-table mb-0" id="enrollmentTable">
                             <thead class="table-light">
                                 <tr>
                                     <th><input type="checkbox"></th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="1" data-type="name">
                                             <span class="fw-semibold">Customer Name / Email</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -419,7 +598,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="2" data-type="number">
                                             <span class="fw-semibold">Unique ID</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -428,7 +607,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="3" data-type="string">
                                             <span class="fw-semibold">Enrollment ID</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -437,7 +616,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="4" data-type="string">
                                             <span class="fw-semibold">Enrollment Name</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -446,7 +625,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="5" data-type="date" data-date="true">
                                             <span class="fw-semibold">Date</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -455,7 +634,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="6" data-type="string">
                                             <span class="fw-semibold">Phone</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -464,7 +643,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="7" data-type="string">
                                             <span class="fw-semibold">Service Provider</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -473,7 +652,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="8" data-type="string">
                                             <span class="fw-semibold">Status</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -482,7 +661,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="bg-transparent p-0 border-0 theme-text-light">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="9" data-type="currency">
                                             <span class="fw-semibold">Total Amount</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -497,7 +676,6 @@ if (isset($_POST['SUBMIT'])) {
                             <tbody>
                                 <?php
                                 $i = $page_first_result + 1;
-                                $enrollment_data = $db_account->Execute("SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_MASTER.MISC_TYPE, DOA_ENROLLMENT_MASTER.MISC_ID, DOA_ENROLLMENT_MASTER.ACTIVE, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_USERS.PK_USER, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_PAID, DOA_ENROLLMENT_BALANCE.TOTAL_BALANCE_USED, DOA_USER_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT FROM DOA_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION LEFT JOIN DOA_ENROLLMENT_BALANCE ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BALANCE.PK_ENROLLMENT_MASTER LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") AND DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 " . $search . " ORDER BY " . $ORDER_BY . " LIMIT " . $page_first_result . ',' . $results_per_page);
                                 while (!$enrollment_data->EOF) {
                                     $name = $enrollment_data->fields['ENROLLMENT_NAME'];
                                     if ($enrollment_data->fields['MISC_TYPE']) {
@@ -529,10 +707,7 @@ if (isset($_POST['SUBMIT'])) {
                                     $totalResults = count($resultsArray);
                                     $concatenatedResults = "";
                                     foreach ($resultsArray as $key => $result) {
-                                        // Append the current result to the concatenated string
                                         $concatenatedResults .= $result;
-
-                                        // If it's not the last result, append a comma
                                         if ($key < $totalResults - 1) {
                                             $concatenatedResults .= ", ";
                                         }
@@ -622,21 +797,21 @@ if (isset($_POST['SUBMIT'])) {
                             <div class="pagination outer">
                                 <ul>
                                     <?php if ($page > 1) { ?>
-                                        <li><a href="all_enrollments.php?page=1<?= ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&laquo;</a></li>
-                                        <li><a href="all_enrollments.php?page=<?= ($page - 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&lsaquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=1<?= ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by ?>">&laquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=<?= ($page - 1) . ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by ?>">&lsaquo;</a></li>
                                     <?php }
                                     for ($page_count = 1; $page_count <= $number_of_page; $page_count++) {
                                         if ($page_count == $page || $page_count == ($page + 1) || $page_count == ($page - 1) || $page_count == $number_of_page) {
-                                            echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                            echo '<li><a class="' . (($page_count == $page) ? "active" : "") . '" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by . '">' . $page_count . ' </a></li>';
                                         } elseif ($page_count == ($number_of_page - 1)) {
                                             echo '<li><a href="javascript:;" onclick="showHiddenPageNumber(this);" style="border: none; margin: 0; padding: 8px;">...</a></li>';
                                         } else {
-                                            echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) . '">' . $page_count . ' </a></li>';
+                                            echo '<li><a class="hidden" href="all_enrollments.php?page=' . $page_count . ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by . '">' . $page_count . ' </a></li>';
                                         }
                                     }
                                     if ($page < $number_of_page) { ?>
-                                        <li><a href="all_enrollments.php?page=<?= ($page + 1) . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&rsaquo;</a></li>
-                                        <li><a href="all_enrollments.php?page=<?= $number_of_page . ((empty($_GET['FROM_DATE'])) ? '' : '&FROM_DATE=' . $_GET['FROM_DATE']) . ((empty($_GET['END_DATE'])) ? '' : '&END_DATE=' . $_GET['END_DATE']) . (($search_text == '') ? '' : '&search_text=' . $search_text) ?>">&raquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=<?= ($page + 1) . ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by ?>">&rsaquo;</a></li>
+                                        <li><a href="all_enrollments.php?page=<?= $number_of_page . ((empty($_GET['DATE_FROM'])) ? '' : '&DATE_FROM=' . $_GET['DATE_FROM']) . ((empty($_GET['DATE_TO'])) ? '' : '&DATE_TO=' . $_GET['DATE_TO']) . ((empty($_GET['search_text'])) ? '' : '&search_text=' . $search_text) . '&STATUS=' . $status_filter . '&sort_by=' . $sort_by ?>">&raquo;</a></li>
                                     <?php } ?>
                                 </ul>
                             </div>
@@ -651,14 +826,12 @@ if (isset($_POST['SUBMIT'])) {
                 </div>
             </div>
         </div>
-
-
     </div>
 
+    <!-- Cancel Enrollment Modal -->
     <div class="modal fade" id="enrollment_cancel_modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <form class="p-20" action="" method="post">
-
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4><b>Cancel Enrollment</b></h4>
@@ -667,7 +840,6 @@ if (isset($_POST['SUBMIT'])) {
                     <div class="modal-body">
                         <div class="card">
                             <div class="card-body">
-
                                 <div id="step_1">
                                     <input type="hidden" name="PK_ENROLLMENT_MASTER" class="PK_ENROLLMENT_MASTER">
                                     <input type="hidden" name="PK_USER_MASTER" class="PK_USER_MASTER">
@@ -703,7 +875,6 @@ if (isset($_POST['SUBMIT'])) {
                                             </div>
                                             <div class="col-md-2">
                                                 <label><input type="radio" name="USE_AVAILABLE_CREDIT" value="1" checked />&nbsp;Yes</label>&nbsp;&nbsp;
-                                                <!--<label><input type="radio" name="USE_AVAILABLE_CREDIT" value="0"/>&nbsp;No</label>-->
                                             </div>
                                         </div>
                                     </div>
@@ -712,9 +883,7 @@ if (isset($_POST['SUBMIT'])) {
                                 </div>
 
                                 <div id="step_3" style="display: none;">
-                                    <div id="enrollment_service_details">
-
-                                    </div>
+                                    <div id="enrollment_service_details"></div>
                                     <div class="form-group negative_balance_div" style="display: none;">
                                         <label class="form-label">How you want to your pay?</label>
                                         <div class="col-md-8">
@@ -780,24 +949,137 @@ if (isset($_POST['SUBMIT'])) {
 
                                     <a href="javascript:" class="btn btn-info waves-effect waves-light text-white" onclick="$('#step_3').hide();$('#step_2').show();">Go Back</a>
                                 </div>
-
                             </div>
                         </div>
                     </div>
-                    <!--<div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-info waves-effect waves-light m-r-10 text-white" style="float: right;">Submit</button>
-                </div>-->
                 </div>
             </form>
         </div>
     </div>
 
     <?php require_once('../includes/footer.php'); ?>
-
     <?php include 'partials/create_enrollment_modal.php'; ?>
 
     <script>
+        $(document).ready(function() {
+            // Initialize datepickers
+            $('.datepicker-normal').datepicker({
+                dateFormat: 'mm/dd/yy'
+            });
+
+            // Search with delay
+            let searchTimeout;
+            $('#search_text').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(submitFilters, 500);
+            });
+
+            // Date filters - auto submit on change
+            $('#DATE_FROM, #DATE_TO').on('change', function() {
+                submitFilters();
+            });
+
+            // Clear date range
+            $('#clearDateRange').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#DATE_FROM, #DATE_TO').val('');
+                submitFilters();
+            });
+
+            // Sort dropdown items
+            $(document).on('click', '.dropdown-item[data-sort]', function(e) {
+                e.preventDefault();
+                let sortValue = $(this).data('sort');
+                let searchText = $('#search_text').val() || '';
+                let status = '<?= $status_filter ?>';
+                let dateFrom = $('#DATE_FROM').val() || '';
+                let dateTo = $('#DATE_TO').val() || '';
+
+                let url = window.location.pathname + '?';
+                let params = [];
+                if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+                if (status) params.push('STATUS=' + encodeURIComponent(status));
+                if (dateFrom) params.push('DATE_FROM=' + encodeURIComponent(dateFrom));
+                if (dateTo) params.push('DATE_TO=' + encodeURIComponent(dateTo));
+                if (sortValue) params.push('sort_by=' + encodeURIComponent(sortValue));
+                url += params.join('&');
+                window.location.href = url;
+            });
+
+            // Table column sorting
+            $(".sortable-header").on("click", function(e) {
+                e.preventDefault();
+
+                var table = $(this).closest("table");
+                var tbody = table.find("tbody");
+                var rows = tbody.find("tr").toArray();
+                var index = $(this).data("index");
+                var type = $(this).data("type") || "string";
+                var isDate = $(this).data("date") || false;
+
+                var isAsc = $(this).hasClass("asc");
+
+                table.find(".sortable-header").removeClass("asc desc");
+                $(this).addClass(isAsc ? "desc" : "asc");
+
+                rows.sort(function(a, b) {
+                    var A = $(a).children("td").eq(index).text().trim();
+                    var B = $(b).children("td").eq(index).text().trim();
+
+                    if (isDate || type === "date") {
+                        var dateA = new Date(A);
+                        var dateB = new Date(B);
+                        if (isNaN(dateA)) dateA = new Date(0);
+                        if (isNaN(dateB)) dateB = new Date(0);
+                        A = dateA;
+                        B = dateB;
+                    } else if (type === "number" || type === "currency") {
+                        A = parseFloat(A.replace(/[^0-9.\-]/g, "")) || 0;
+                        B = parseFloat(B.replace(/[^0-9.\-]/g, "")) || 0;
+                    } else if (type === "name") {
+                        var nameA = A.toLowerCase().split(' ');
+                        var nameB = B.toLowerCase().split(' ');
+                        A = nameA[0] || '';
+                        B = nameB[0] || '';
+                    } else {
+                        A = A.toLowerCase();
+                        B = B.toLowerCase();
+                    }
+
+                    if (A < B) return isAsc ? -1 : 1;
+                    if (A > B) return isAsc ? 1 : -1;
+                    return 0;
+                });
+
+                $.each(rows, function(i, row) {
+                    tbody.append(row);
+                });
+            });
+        });
+
+        function submitFilters() {
+            let searchText = $('#search_text').val() || '';
+            let status = '<?= $status_filter ?>';
+            let dateFrom = $('#DATE_FROM').val() || '';
+            let dateTo = $('#DATE_TO').val() || '';
+            let sortBy = '<?= $sort_by ?>';
+
+            let url = window.location.pathname + '?';
+            let params = [];
+            if (searchText) params.push('search_text=' + encodeURIComponent(searchText));
+            if (status) params.push('STATUS=' + encodeURIComponent(status));
+            if (dateFrom) params.push('DATE_FROM=' + encodeURIComponent(dateFrom));
+            if (dateTo) params.push('DATE_TO=' + encodeURIComponent(dateTo));
+            if (sortBy) params.push('sort_by=' + encodeURIComponent(sortBy));
+            url += params.join('&');
+            window.location.href = url;
+        }
+
+        function resetFilters() {
+            window.location.href = window.location.pathname + '?STATUS=A&sort_by=newest';
+        }
+
         function createEnrollment() {
             if (<?= count($LOCATION_ARRAY) ?> === 1) {
                 $('#sideDrawer4, .overlay4').addClass('active');
@@ -805,12 +1087,6 @@ if (isset($_POST['SUBMIT'])) {
                 swal("Select One Location!", "Only one location can be selected on top of the page in order to create an enrollment.", "error");
             }
         }
-
-        $('.customer_select').SumoSelect({
-            placeholder: 'Select Customer',
-            search: true,
-            searchText: 'Search...'
-        });
 
         function ConfirmDelete(PK_ENROLLMENT_MASTER) {
             Swal.fire({
@@ -833,75 +1109,11 @@ if (isset($_POST['SUBMIT'])) {
                         success: function(data) {
                             let currentURL = window.location.href;
                             let extractedPart = currentURL.substring(currentURL.lastIndexOf("/") + 1);
-                            console.log(extractedPart);
                             window.location.href = extractedPart;
                         }
                     });
                 }
             });
-        }
-
-        $(document).ready(function() {
-            $("#FROM_DATE").datepicker({
-                numberOfMonths: 1,
-                onSelect: function(selected) {
-                    $("#END_DATE").datepicker("option", "minDate", selected);
-                    $("#FROM_DATE, #END_DATE").trigger("change");
-                }
-            });
-            $("#END_DATE").datepicker({
-                numberOfMonths: 1,
-                onSelect: function(selected) {
-                    $("#FROM_DATE").datepicker("option", "maxDate", selected)
-                }
-            });
-        });
-
-        $(document).ready(function() {
-            $(".sortable").on("click", function() {
-                var table = $(this).closest("table");
-                var tbody = table.find("tbody");
-                var rows = tbody.find("tr").toArray();
-                var index = $(this).index();
-                var asc = !$(this).hasClass("asc");
-                var isDate = $(this).is("[data-date]");
-                var type = $(this).data("type");
-
-                // Remove old sorting indicators
-                table.find(".sortable").removeClass("asc desc");
-                $(this).addClass(asc ? "asc" : "desc");
-
-                rows.sort(function(a, b) {
-                    var A = $(a).children("td").eq(index).text().trim();
-                    var B = $(b).children("td").eq(index).text().trim();
-
-                    // Handle data type
-                    if (isDate) {
-                        A = new Date(A);
-                        B = new Date(B);
-                    } else if (type === "number") {
-                        A = parseFloat(A.replace(/[^0-9.\-]/g, "")) || 0;
-                        B = parseFloat(B.replace(/[^0-9.\-]/g, "")) || 0;
-                    } else {
-                        A = A.toLowerCase();
-                        B = B.toLowerCase();
-                    }
-
-                    if (A < B) return asc ? -1 : 1;
-                    if (A > B) return asc ? 1 : -1;
-                    return 0;
-                });
-
-                // Append sorted rows
-                $.each(rows, function(i, row) {
-                    tbody.append(row);
-                });
-            });
-        });
-
-        function editpage(id) {
-            //alert(i);
-            window.location.href = "enrollment.php?id=" + id;
         }
 
         function cancelEnrollment(PK_ENROLLMENT_MASTER, PK_USER_MASTER) {
@@ -961,46 +1173,6 @@ if (isset($_POST['SUBMIT'])) {
                 }
             });
         }
-
-        /*function checkCancelStatus(){
-            let CANCEL_FUTURE_APPOINTMENT = $('input[name="CANCEL_FUTURE_APPOINTMENT"]:checked').val();
-            let total_credit_balance = $('.CREDIT_BALANCE').val();
-            let total_credit_balance_session_created = $('.CREDIT_BALANCE_SESSION_CREATED').val();
-
-            if (CANCEL_FUTURE_APPOINTMENT == 1) {
-                if (total_credit_balance == 0) {
-                    $('.credit_balance_div').slideUp();
-                    $('.negative_balance_div').slideUp();
-                } else {
-                    if (total_credit_balance > 0) {
-                        $('.credit_balance_div').slideDown();
-                        $('.negative_balance_div').slideUp();
-                        $('.ACTUAL_CREDIT_BALANCE').val(total_credit_balance);
-                        $('#total_credit_balance').text(parseFloat(total_credit_balance).toFixed(2));
-                    } else {
-                        $('.credit_balance_div').slideUp();
-                        $('.negative_balance_div').slideDown();
-                        $('#total_negative_balance').text(Math.abs(parseFloat(total_credit_balance).toFixed(2)));
-                    }
-                }
-            } else {
-                if (total_credit_balance_session_created == 0) {
-                    $('.credit_balance_div').slideUp();
-                    $('.negative_balance_div').slideUp();
-                } else {
-                    if (total_credit_balance_session_created > 0) {
-                        $('.credit_balance_div').slideDown();
-                        $('.negative_balance_div').slideUp();
-                        $('.ACTUAL_CREDIT_BALANCE').val(total_credit_balance_session_created);
-                        $('#total_credit_balance').text(parseFloat(total_credit_balance_session_created).toFixed(2));
-                    } else {
-                        $('.credit_balance_div').slideUp();
-                        $('.negative_balance_div').slideDown();
-                        $('#total_negative_balance').text(Math.abs(parseFloat(total_credit_balance_session_created).toFixed(2)));
-                    }
-                }
-            }
-        }*/
     </script>
 </body>
 
