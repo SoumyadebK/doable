@@ -13,14 +13,16 @@ if (!empty($_GET['NAME'])) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $report_name = $_GET['NAME'];
-    $WEEK_NUMBER = explode(' ', $_GET['WEEK_NUMBER'])[2];
+    $WEEK_NUMBER = isset($_GET['WEEK_NUMBER']) ? explode(' ', $_GET['WEEK_NUMBER'])[2] : date('W');
     $START_DATE = $_GET['start_date'];
     $END_DATE = $_GET['end_date'];
 
     if ($generate_pdf === 1) {
         header('location:generate_report_pdf.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        exit;
     } elseif ($generate_excel === 1) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
+        exit;
     } else {
         if ($_GET['NAME'] == 'payments_made_report') {
             header('location:payments_made_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
@@ -32,7 +34,14 @@ if (!empty($_GET['NAME'])) {
             header('location:staff_performance_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
         } elseif ($_GET['NAME'] == 'summary_of_staff_member_report') {
             header('location:summary_of_staff_member_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'enrollment_payment_details_report') {
+            header('location:enrollment_payment_details_report.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'sales_made_report_v1') {
+            header('location:sales_made_report_v1.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
+        } elseif ($_GET['NAME'] == 'sales_made_report_v2') {
+            header('location:sales_made_report_v2.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=' . $type);
         }
+        exit;
     }
 }
 
@@ -56,7 +65,6 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 <style>
-    /* Custom styles for the header */
     a {
         color: #690C24;
         text-decoration: none;
@@ -102,6 +110,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                                                 <select class="form-control" required name="NAME" id="NAME" <?= ($AMI_ENABLE == 1) ? 'onchange = "showReportLog(this);"' : '' ?>>
                                                     <option value="">Select Report</option>
                                                     <option value="payments_made_report">PAYMENTS MADE REPORT</option>
+                                                    <option value="sales_made_report_v1">SALES MADE REPORT (1-3rd)</option>
+                                                    <option value="sales_made_report_v2">SALES MADE REPORT (4+ and MISC)</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -146,6 +156,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
 </body>
 
 </html>
+
 <script>
     $(".week-picker").datepicker({
         showWeek: true,
