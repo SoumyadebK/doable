@@ -17,6 +17,16 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete') {
     header("location:all_blog.php");
     exit;
 }
+
+function getFirstTagContent($html)
+{
+    // Method 1: Using regex (faster for simple cases)
+    if (preg_match('/<([^>\s]+)[^>]*>(.*?)<\/\1>/s', $html, $matches)) {
+        return $matches[2];
+    }
+
+    return null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,10 +63,11 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete') {
                                     <table id="myTable" class="table table-striped border">
                                         <thead>
                                             <tr>
-                                                <th width="15%">Title</th>
+                                                <th width="20%">Title</th>
                                                 <th width="15%">Slug</th>
-                                                <th width="40%">Content</th>
+                                                <th width="25%">Content</th>
                                                 <th width="10%">Status</th>
+                                                <th width="10%">Comments</th>
                                                 <th width="10%">Created On</th>
                                                 <th width="10%">Actions</th>
                                             </tr>
@@ -70,7 +81,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete') {
                                                 <tr>
                                                     <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);"><?= $row->fields['TITLE'] ?></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);"><?= $row->fields['SLUG'] ?></td>
-                                                    <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);"><?= $row->fields['CONTENT'] ?></td>
+                                                    <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);"><b style="font-weight: bold; font-size: 16px;"><?= getFirstTagContent($row->fields['CONTENT']) ?></b></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);">
                                                         <?php if ($row->fields['STATUS'] == 1) { ?>
                                                             <span class="badge bg-success">Draft</span>
@@ -80,6 +91,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete') {
                                                             <span class="badge bg-danger">Archived</span>
                                                         <?php } ?>
                                                     </td>
+                                                    <td><a href="all_comment.php?id=<?= $row->fields['PK_BLOG'] ?>" title="Comments">Comments</a></td>
                                                     <td onclick="editpage(<?= $row->fields['PK_BLOG'] ?>);"><?= $row->fields['CREATED_ON'] ?></td>
                                                     <td>
                                                         <a href="add_blog.php?id=<?= $row->fields['PK_BLOG'] ?>" title="Edit"><i class="ti-pencil" style="font-size: 20px;"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
