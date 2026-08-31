@@ -65,6 +65,7 @@ while (!$all_location->EOF) {
 
         $enrollment_data = $db1->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY = 1 AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND (DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Payment Plans' OR DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Flexible Payments') AND DOA_ENROLLMENT_LEDGER.DUE_DATE = '" . date('Y-m-d') . "' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0");
         while (!$enrollment_data->EOF) {
+            $IS_PAID = 0;
             $PAYMENT_STATUS = 'Failed';
             $PAYMENT_INFO_JSON = '';
             $PK_USER_MASTER = $enrollment_data->fields['PK_USER_MASTER'];
@@ -85,7 +86,38 @@ while (!$all_location->EOF) {
 
                 $LAST4 = '';
                 try {
-                    $stripe = new StripeClient($SECRET_KEY);
+                    $message_string .= "Processing Stripe payment for " . $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'] . "<br>";
+
+                    $ch = curl_init('https://api.stripe.com/v1/payment_intents');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                        'customer' => $CUSTOMER_PAYMENT_ID,
+                        'payment_method' => $PAYMENT_METHOD_ID,
+                        'amount' => $AMOUNT_TO_PAY * 100,
+                        'currency' => 'usd',
+                        'confirm' => 'true', // Auto-confirm charge
+                        'off_session' => 'true', // Charge without user interaction
+                        'statement_descriptor' => 'Receipt# ' . $RECEIPT_NUMBER_ORIGINAL,
+                        'metadata[invoice_num]' => $RECEIPT_NUMBER_ORIGINAL,
+                        'metadata[customer_name]' => $user_master->fields['FIRST_NAME'] . " " . $user_master->fields['LAST_NAME'],
+                    ]));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Authorization: Bearer ' . $SECRET_KEY,
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+                    $payment_res = json_decode($response);
+
+                    if ($payment_res->charges->data[0]->paid == 1) {
+                        $CHARGE_ID = $payment_res->charges->data[0]->id;
+                        $LAST4 = $payment_res->charges->data[0]->payment_method_details->card->last4;
+                        $IS_PAID = 1;
+                    }
+
+                    /* $stripe = new StripeClient($SECRET_KEY);
                     Stripe::setApiKey($SECRET_KEY);
 
                     $stripe->customers->update($CUSTOMER_PAYMENT_ID, ['default_source' => $PAYMENT_METHOD_ID]);
@@ -99,9 +131,57 @@ while (!$all_location->EOF) {
                         "statement_descriptor" => "Receipt# " . $RECEIPT_NUMBER_ORIGINAL,
                     ));
 
-                    $LAST4 = $charge->payment_method_details->card->last4;
+                    $LAST4 = $charge->payment_method_details->card->last4; */
                 } catch (\Stripe\Exception\CardException $e) {
                     // Card declined or related issue
+                    $PAYMENT_STATUS = 'Card Declined';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\RateLimitException $e) {
+                    // Too many requests
+                    $PAYMENT_STATUS = 'Too Many Requests';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    // Invalid parameters
+                    $PAYMENT_STATUS = 'Invalid Request';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\AuthenticationException $e) {
+                    // Authentication error
+                    $PAYMENT_STATUS = 'Authentication Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\ApiConnectionException $e) {
+                    // Network communication error
+                    $PAYMENT_STATUS = 'Network Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (\Stripe\Exception\ApiErrorException $e) {
+                    // General API error
+                    $PAYMENT_STATUS = 'API Error';
+                    $PAYMENT_INFO = $e->getMessage();
+
+                    $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                    $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                    $message_string .= json_encode($RETURN_DATA);
+                } catch (Exception $e) {
+                    // Non-Stripe exceptions
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = $e->getMessage();
 
@@ -110,9 +190,10 @@ while (!$all_location->EOF) {
                     $message_string .= json_encode($RETURN_DATA);
                 }
 
-                if (isset($charge) && $charge->paid == 1) {
+
+                if ($IS_PAID == 1) {
                     $PAYMENT_STATUS = 'Success';
-                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $charge->id, 'LAST4' => $LAST4];
+                    $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $CHARGE_ID, 'LAST4' => $LAST4];
                     $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                 } else {
                     $PAYMENT_STATUS = 'Failed';

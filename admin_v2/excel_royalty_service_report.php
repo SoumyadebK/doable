@@ -35,6 +35,7 @@ $PAYMENT_QUERY = "SELECT
                     CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME, 
                     CLOSER.LAST_NAME AS CLOSER_LAST_NAME, 
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER, 
+                    DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE,
                     DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER, 
                     DOA_ENROLLMENT_MASTER.PK_LOCATION 
                 FROM DOA_ENROLLMENT_PAYMENT 
@@ -70,6 +71,7 @@ $REFUND_QUERY = "SELECT
                         CLOSER.FIRST_NAME AS CLOSER_FIRST_NAME,
                         CLOSER.LAST_NAME AS CLOSER_LAST_NAME,
                         DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                        DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_TYPE,
                         DOA_ENROLLMENT_MASTER.CUSTOMER_ENROLLMENT_NUMBER,
                         DOA_ENROLLMENT_MASTER.PK_LOCATION
                     FROM
@@ -381,14 +383,14 @@ while (!$payment_data->EOF) {
     if ($SERVICE_CLASS == 5) {
         $first_payment = $payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER'] . '/MISC';
     } else {
-        switch ($payment_data->fields['CUSTOMER_ENROLLMENT_NUMBER']) {
-            case 1:
+        switch ($payment_data->fields['PK_ENROLLMENT_TYPE']) {
+            case 5:
                 $first_payment = '1/PORI';
                 break;
             case 2:
                 $first_payment = '2/ORI';
                 break;
-            case 3:
+            case 9:
                 $first_payment = '3/EXT';
                 break;
 

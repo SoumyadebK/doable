@@ -253,7 +253,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
                 </div>
                 <div class="col-8 col-md-8">
                     <div class="form-group d-flex gap-2 align-items-center" id="salesby">
-                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER">
                             <option value="" selected disabled>-- Select --</option>
                         </select>
                         <div class="position-relative">
@@ -1032,7 +1032,7 @@ if ($current_address != 'customer.php') {
 
     function addMoreServiceProviders() {
         $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;">
-                                                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER[]" id="SERVICE_PROVIDER">
+                                                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER">
                                                             <option value="" selected disabled>-- Select --</option>
                                                         </select>
                                                         <div class="position-relative">

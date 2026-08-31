@@ -400,11 +400,15 @@ function saveEnrollmentData($RESPONSE_DATA)
         }
 
         $ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE'] = (isset($RESPONSE_DATA['PK_ENROLLMENT_TYPE']) && $RESPONSE_DATA['PK_ENROLLMENT_TYPE'] > 0) ? $RESPONSE_DATA['PK_ENROLLMENT_TYPE'] : $PK_ENROLLMENT_TYPE;
-        $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER'] . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
-        if ($customer_enrollment_number->RecordCount() > 0) {
-            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
+        if ($ENROLLMENT_MASTER_DATA['PK_ENROLLMENT_TYPE'] == 16) {
+            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 0;
         } else {
-            $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
+            $customer_enrollment_number = $db_account->Execute("SELECT CUSTOMER_ENROLLMENT_NUMBER FROM `DOA_ENROLLMENT_MASTER` WHERE PK_ENROLLMENT_TYPE != 16 AND PK_USER_MASTER = " . $RESPONSE_DATA['PK_USER_MASTER'] . " ORDER BY PK_ENROLLMENT_MASTER DESC LIMIT 1");
+            if ($customer_enrollment_number->RecordCount() > 0) {
+                $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = $customer_enrollment_number->fields['CUSTOMER_ENROLLMENT_NUMBER'] + 1;
+            } else {
+                $ENROLLMENT_MASTER_DATA['CUSTOMER_ENROLLMENT_NUMBER'] = 1;
+            }
         }
 
         $ENROLLMENT_MASTER_DATA['IS_SALE'] = 'Y';
