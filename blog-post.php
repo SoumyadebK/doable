@@ -17,7 +17,7 @@ if (!empty($_POST['COMMENT'])) {
     $insert_date['COMMENTER_EMAIL'] = trim($_POST['COMMENTER_EMAIL'] ?? '');
     $insert_date['COMMENT'] = trim($_POST['COMMENT'] ?? '');
     $insert_date['PK_BLOG'] = $blog_data->fields['PK_BLOG'];
-    $insert_date['STATUS'] = 1; // Pending approval
+    $insert_date['STATUS'] = 0; // Pending approval
     $insert_date['ACTIVE'] = 1; // Approved
     $insert_date['CREATED_ON'] = date('Y-m-d H:i:s');
 
