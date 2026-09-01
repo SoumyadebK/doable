@@ -26,23 +26,28 @@ use net\authorize\api\controller as AnetController;
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$message_string = '';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 global $db;
 $all_location = $db->Execute("SELECT DOA_LOCATION.*, DOA_ACCOUNT_MASTER.DB_NAME FROM DOA_LOCATION LEFT JOIN DOA_ACCOUNT_MASTER ON DOA_LOCATION.PK_ACCOUNT_MASTER = DOA_ACCOUNT_MASTER.PK_ACCOUNT_MASTER WHERE (DOA_LOCATION.PAYMENT_GATEWAY_TYPE IS NOT NULL AND DOA_LOCATION.PAYMENT_GATEWAY_TYPE != '') AND DOA_ACCOUNT_MASTER.ACTIVE = 1 AND DOA_LOCATION.ACTIVE = 1");
 while (!$all_location->EOF) {
+    $message_string = '';
     $message_string .= "Processing Location: " . $all_location->fields['LOCATION_NAME'] . "<br>";
     $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
     try {
+        require_once('global/common_functions_account.php');
         $DB_NAME = $all_location->fields['DB_NAME'];
-        $db1 = new queryFactory();
+        $db_account = new queryFactory();
         if ($_SERVER['HTTP_HOST'] == 'localhost') {
-            $conn1 = $db1->connect('localhost', 'root', '', $DB_NAME);
+            $conn1 = $db_account->connect('localhost', 'root', '', $DB_NAME);
             $http_path = 'http://localhost/doable/';
         } else {
-            $conn1 = $db1->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
+            $conn1 = $db_account->connect('localhost', 'root', 'b54eawxj5h8ev', $DB_NAME);
             $http_path = 'https://doable.net/';
         }
-        if ($db1->error_number) {
+        if ($db_account->error_number) {
             die("Connection Error");
         }
 
@@ -63,7 +68,7 @@ while (!$all_location->EOF) {
         $AUTHORIZE_TRANSACTION_KEY = $all_location->fields['TRANSACTION_KEY'];
         $AUTHORIZE_CLIENT_KEY = $all_location->fields['AUTHORIZE_CLIENT_KEY'];
 
-        $enrollment_data = $db1->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY = 1 AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND (DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Payment Plans' OR DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Flexible Payments') AND DOA_ENROLLMENT_LEDGER.DUE_DATE = '" . date('Y-m-d') . "' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0");
+        $enrollment_data = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER RIGHT JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER WHERE DOA_ENROLLMENT_MASTER.STATUS = 'A' AND DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY = 1 AND DOA_ENROLLMENT_MASTER.PK_LOCATION = '$PK_LOCATION' AND (DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Payment Plans' OR DOA_ENROLLMENT_BILLING.PAYMENT_METHOD = 'Flexible Payments') AND DOA_ENROLLMENT_LEDGER.DUE_DATE = '" . date('Y-m-d') . "' AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0");
         while (!$enrollment_data->EOF) {
             $IS_PAID = 0;
             $PAYMENT_STATUS = 'Failed';
@@ -76,12 +81,20 @@ while (!$all_location->EOF) {
             $PK_ENROLLMENT_BILLING = $enrollment_data->fields['PK_ENROLLMENT_BILLING'];
             $PK_ENROLLMENT_LEDGER = $enrollment_data->fields['PK_ENROLLMENT_LEDGER'];
 
-            $RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($PK_ENROLLMENT_MASTER);
+            $RECEIPT_CHARACTER = $all_location->fields['RECEIPT_CHARACTER'];
+
+            $receipt = $db_account->Execute("SELECT COUNT(RECEIPT_NUMBER) AS TOTAL_RECEIPT FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1");
+            $TOTAL_RECEIPT = $receipt->fields['TOTAL_RECEIPT'];
+            $RECEIPT_NUMBER_ORIGINAL =  (($RECEIPT_CHARACTER == null) ? ($TOTAL_RECEIPT + 1) : $RECEIPT_CHARACTER . '-' . ($TOTAL_RECEIPT + 1));
+
+            $message_string .= "Receipt Number: " . $RECEIPT_NUMBER_ORIGINAL . "<br>";
+
+            //$RECEIPT_NUMBER_ORIGINAL = generateReceiptNumber($PK_ENROLLMENT_MASTER);
 
             $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE FROM `DOA_USERS` LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$PK_USER_MASTER'");
 
             if ($PAYMENT_GATEWAY == 'Stripe') {
-                $customer_payment_info = $db1->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER = " . $user_master->fields['PK_USER']);
                 $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
 
                 $LAST4 = '';
@@ -110,6 +123,8 @@ while (!$all_location->EOF) {
                     $response = curl_exec($ch);
                     curl_close($ch);
                     $payment_res = json_decode($response);
+
+                    //echo "Payment Response: <pre>" . print_r($payment_res, true) . "</pre>";
 
                     if ($payment_res->charges->data[0]->paid == 1) {
                         $CHARGE_ID = $payment_res->charges->data[0]->id;
@@ -190,11 +205,12 @@ while (!$all_location->EOF) {
                     $message_string .= json_encode($RETURN_DATA);
                 }
 
-
                 if ($IS_PAID == 1) {
                     $PAYMENT_STATUS = 'Success';
                     $PAYMENT_INFO_ARRAY = ['CHARGE_ID' => $CHARGE_ID, 'LAST4' => $LAST4];
                     $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
+                    $message_string .= "Payment Status: Success<br>";
+                    $message_string .= "Payment Info: " . $PAYMENT_INFO_JSON . "<br>";
                 } else {
                     $PAYMENT_STATUS = 'Failed';
                     $PAYMENT_INFO = 'Payment failed';
@@ -204,7 +220,7 @@ while (!$all_location->EOF) {
                     $message_string .= json_encode($RETURN_DATA);
                 }
             } elseif ($PAYMENT_GATEWAY == 'Square') {
-                $customer_payment_info = $db1->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Square' AND PK_USER = " . $user_master->fields['PK_USER']);
                 $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
 
                 if ($GATEWAY_MODE == 'live') {
@@ -256,7 +272,7 @@ while (!$all_location->EOF) {
                     $message_string .= json_encode($RETURN_DATA);
                 }
             } elseif ($PAYMENT_GATEWAY == 'Authorized.net') {
-                $customer_payment_info = $db1->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
                 $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
 
                 $currency = "USD";
@@ -340,7 +356,7 @@ while (!$all_location->EOF) {
             }
 
             if ($PAYMENT_STATUS == 'Success') {
-                $enrollmentServiceData = $db1->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
+                $enrollmentServiceData = $db_account->Execute("SELECT * FROM `DOA_ENROLLMENT_SERVICE` WHERE `PK_ENROLLMENT_MASTER` = " . $PK_ENROLLMENT_MASTER);
                 $ACTUAL_AMOUNT = $enrollment_data->fields['TOTAL_AMOUNT'];
                 while (!$enrollmentServiceData->EOF) {
                     if ($enrollmentServiceData->fields['FINAL_AMOUNT'] > 0 && $ACTUAL_AMOUNT > 0) {
@@ -350,13 +366,21 @@ while (!$all_location->EOF) {
                         $ENROLLMENT_SERVICE_UPDATE_DATA['TOTAL_AMOUNT_PAID'] = $enrollmentServiceData->fields['TOTAL_AMOUNT_PAID'] + $serviceAmount;
                         db_perform_account('DOA_ENROLLMENT_SERVICE', $ENROLLMENT_SERVICE_UPDATE_DATA, 'update', " PK_ENROLLMENT_SERVICE = " . $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
 
-                        markAppointmentPaid($enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE']);
+                        $PK_ENROLLMENT_SERVICE = $enrollmentServiceData->fields['PK_ENROLLMENT_SERVICE'];
+
+                        $serviceCodeData = $db_account->Execute("SELECT PK_ENROLLMENT_SERVICE, NUMBER_OF_SESSION, TOTAL_AMOUNT_PAID, PRICE_PER_SESSION FROM DOA_ENROLLMENT_SERVICE WHERE PK_ENROLLMENT_SERVICE = " . $PK_ENROLLMENT_SERVICE);
+                        if ($serviceCodeData->RecordCount() > 0) {
+                            $paid_session = ($serviceCodeData->fields['PRICE_PER_SESSION'] > 0) ? ceil($serviceCodeData->fields['TOTAL_AMOUNT_PAID'] / $serviceCodeData->fields['PRICE_PER_SESSION']) : $serviceCodeData->fields['NUMBER_OF_SESSION'];
+                            if ($paid_session >= 1) {
+                                $db_account->Execute("UPDATE `DOA_APPOINTMENT_MASTER` SET `IS_PAID` = '1' WHERE APPOINTMENT_TYPE = 'NORMAL' AND PK_ENROLLMENT_SERVICE = '$PK_ENROLLMENT_SERVICE' AND PK_APPOINTMENT_STATUS NOT IN (3, 4, 6) ORDER BY DATE ASC, START_TIME ASC LIMIT $paid_session");
+                            }
+                        }
                     }
 
                     $enrollmentServiceData->MoveNext();
                 }
 
-                $sp_percent_data = $db1->Execute("SELECT SERVICE_PROVIDER_ID, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
+                $sp_percent_data = $db_account->Execute("SELECT SERVICE_PROVIDER_ID, SERVICE_PROVIDER_PERCENTAGE FROM DOA_ENROLLMENT_SERVICE_PROVIDER WHERE PK_ENROLLMENT_MASTER=" . $PK_ENROLLMENT_MASTER);
                 while (!$sp_percent_data->EOF) {
                     $PERCENTAGE_DATA['PK_ENROLLMENT_MASTER'] = $PK_ENROLLMENT_MASTER;
                     $PERCENTAGE_DATA['SERVICE_PROVIDER_ID'] = $sp_percent_data->fields['SERVICE_PROVIDER_ID'];
@@ -388,7 +412,7 @@ while (!$all_location->EOF) {
                 $LEDGER_UPDATE_DATA['IS_PAID'] = 1;
                 db_perform_account('DOA_ENROLLMENT_LEDGER', $LEDGER_UPDATE_DATA, 'update', " PK_ENROLLMENT_LEDGER =  '$PK_ENROLLMENT_LEDGER'");
 
-                markEnrollmentComplete($PK_ENROLLMENT_MASTER);
+                //markEnrollmentComplete($PK_ENROLLMENT_MASTER);
             }
 
             $message_string .= $PAYMENT_INFO_JSON;
@@ -401,6 +425,8 @@ while (!$all_location->EOF) {
     }
 
     $message_string .= "<br>---------------------------------<br>";
+
+    echo $message_string;
 
     $info_log['info'] = $message_string;
     $info_log['created_at'] = date('Y-m-d H:i:s');

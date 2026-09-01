@@ -76,6 +76,13 @@ if (!empty($_GET['id'])) {
         header("location:all_customers.php");
         exit;
     }
+
+    $USER_ACCOUNT_MASTER = $res->fields['PK_ACCOUNT_MASTER'];
+    if ($USER_ACCOUNT_MASTER != $PK_ACCOUNT_MASTER) {
+        header("location:all_customers.php");
+        exit;
+    }
+
     $USER_NAME = $res->fields['USER_NAME'];
     $FIRST_NAME = $res->fields['FIRST_NAME'];
     $LAST_NAME = $res->fields['LAST_NAME'];
@@ -131,9 +138,6 @@ if (!empty($_GET['master_id']) && $primary_location <= 0) {
         $PRIMARY_LOCATION_NAME = $selected_primary_location->fields['LOCATION_NAME'];
     }
 }
-
-
-$PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
 $payment_gateway_data = getPaymentGatewayData();
 

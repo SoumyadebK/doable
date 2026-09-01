@@ -1184,6 +1184,18 @@ function generateReceiptNumber($PK_ENROLLMENT_MASTER = null)
     return (($RECEIPT_CHARACTER == null) ? ($TOTAL_RECEIPT + 1) : $RECEIPT_CHARACTER . '-' . ($TOTAL_RECEIPT + 1)); */
 }
 
+function generateReceiptNumberByLocation($PK_LOCATION = null)
+{
+    global $db;
+    global $db_account;
+    $receipt_data = $db->Execute("SELECT `RECEIPT_CHARACTER` FROM `DOA_LOCATION` WHERE `PK_LOCATION` = " . $PK_LOCATION);
+    $RECEIPT_CHARACTER = $receipt_data->fields['RECEIPT_CHARACTER'];
+
+    $receipt = $db_account->Execute("SELECT COUNT(RECEIPT_NUMBER) AS TOTAL_RECEIPT FROM DOA_ENROLLMENT_PAYMENT WHERE IS_ORIGINAL_RECEIPT = 1");
+    $TOTAL_RECEIPT = $receipt->fields['TOTAL_RECEIPT'];
+    return (($RECEIPT_CHARACTER == null) ? ($TOTAL_RECEIPT + 1) : $RECEIPT_CHARACTER . '-' . ($TOTAL_RECEIPT + 1));
+}
+
 function getPkLocation()
 {
     $DEFAULT_LOCATION_ID = explode(',', $_SESSION['DEFAULT_LOCATION_ID']);
