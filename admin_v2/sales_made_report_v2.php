@@ -625,20 +625,24 @@ if ($type === 'export') {
                                         } ?>
 
                                         <!-- Grand Total -->
+                                        <!-- Grand Total -->
                                         <div style="margin-top: 25px; padding: 15px 20px; background-color: #cce5ff; border: 2px solid #004085; border-radius: 5px;">
                                             <table class="table table-bordered" style="margin: 0; background: transparent;">
                                                 <tr class="grand-total" style="background: transparent;">
-                                                    <td style="width: 50%; text-align: right; border: none; font-size: 18px;">
-                                                        GRAND TOTAL:
+                                                    <td style="width: 30%; text-align: right; border: none; font-size: 18px; font-weight: bold;">
+                                                        GRAND TOTALS:
                                                     </td>
-                                                    <td style="width: 15%; text-align: center; border: none; font-size: 16px;">
-                                                        <?= $grand_payment_count ?> payments
+                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px;">
+                                                        <div style="font-weight: bold; color: #333;">Total Payments</div>
+                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;"><?= $grand_payment_count ?></div>
                                                     </td>
-                                                    <td style="width: 15%; text-align: center; border: none; font-size: 16px; color: #004085;">
-                                                        $<?= number_format($grand_payment_total, 2) ?>
+                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px;">
+                                                        <div style="font-weight: bold; color: #333;">Total Sales Amount</div>
+                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;">$<?= number_format($grand_total_amount, 2) ?></div>
                                                     </td>
-                                                    <td style="width: 20%; text-align: right; border: none; font-size: 18px; color: #004085;">
-                                                        $<?= number_format($grand_total_amount, 2) ?>
+                                                    <td style="width: 24%; text-align: center; border: none; font-size: 15px;">
+                                                        <div style="font-weight: bold; color: #333;">Total Payments Amount</div>
+                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;">$<?= number_format($grand_payment_total, 2) ?></div>
                                                     </td>
                                                 </tr>
                                             </table>
