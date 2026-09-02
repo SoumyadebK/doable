@@ -161,6 +161,11 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
     }
     exit;
 }
+
+$seo_title = 'Log In | DOable';
+$seo_desc  = 'Log in to your DOable account.';
+$seo_path  = '/login.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -168,7 +173,8 @@ if (!empty($_SESSION['PK_ACCOUNT_MASTER']) && !empty($_SESSION['PK_ROLES'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doable Login</title>
+    <?php include 'v2/includes/seo-head.php'; ?>
+    <link rel="icon" href="v2/assets/images/doable_favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>

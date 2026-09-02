@@ -6,6 +6,10 @@ $page = 'privacy';
 $page_title = 'Privacy Policy | ' . SITE_NAME;
 $base = base_path();
 
+$seo_title = 'Privacy Policy | DOable';
+$seo_desc  = 'How DOable collects, uses and protects your information.';
+$seo_path  = '/privacy_policy.php';
+
 include __DIR__ . '/v2/includes/header.php';
 ?>
 

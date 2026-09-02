@@ -30,14 +30,8 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-  <title><?= e($page_title) ?></title>
-  <meta name="description" content="<?= e($content['general']['footerTagline']) ?>">
-  <link rel="icon" type="image/x-icon" href="v2/assets/images/doable_favicon.png">
-=======
   <?php include __DIR__ . '/seo-head.php'; ?>
-  <link rel="icon" href="<?= $base ?>/assets/images/doable-logo.png">
->>>>>>> a2a2dcd5ebd9d913d0b51ca75497d0439f0d75b8
+  <link rel="icon" href="v2/assets/images/doable_favicon.png">
 
   <!-- Tailwind (Play CDN). For production your programmer can compile Tailwind
          to a static CSS file and remove this line — see README.md. -->
