@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  sitemap.xml for doable.net
+  Place this file in the website root so it is reachable at https://doable.net/sitemap.xml
+  IMPORTANT: whenever you publish a new blog post, add a matching <url> block for it
+  (or use the auto-updating sitemap.php version included in this package instead).
+  Update the <lastmod> dates to the real dates when you edit a page.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://doable.net/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://doable.net/blog.php</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://doable.net/privacy_policy.php</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://doable.net/terms_of_use.php</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Blog posts -->
+  <url>
+    <loc>https://doable.net/blog-post.php?slug=5-signs-your-dance-studio-needs-a-crm</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://doable.net/blog-post.php?slug=digital-enrollment-agreements-a-must-have-for-studios</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://doable.net/blog-post.php?slug=how-independent-studios-can-compete-with-franchises</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://doable.net/blog-post.php?slug=the-true-cost-of-lost-leads-for-dance-studios</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://doable.net/blog-post.php?slug=why-your-dance-studio-website-needs-an-ai-chatbot</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

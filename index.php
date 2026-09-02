@@ -16,6 +16,10 @@ if (file_exists(__DIR__ . '/../global/config.php')) {
     }
 }
 
+$seo_title = 'DOable — Business Software for Studios & Class-Based Businesses';
+$seo_desc  = 'All-in-one scheduling, billing, CRM and marketing for dance studios, martial arts schools, gyms and class-based businesses. Start a 30-day free trial.';
+$seo_path  = '/';
+
 require_once __DIR__ . '/v2/includes/functions.php';
 
 // ===== Contact Form Processing =====

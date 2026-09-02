@@ -138,7 +138,7 @@ if ($FUNCTION_NAME == 'loginFunction') {
                 $msg = "Invalid Password";
             }
         } else {
-            $msg = "User is Inactive";
+            $msg = "Your account is inactive. Please contact your administrator.";
         }
     } else {
         $msg = "Invalid Email OR Username";

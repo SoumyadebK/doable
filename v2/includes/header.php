@@ -30,8 +30,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= e($page_title) ?></title>
-  <meta name="description" content="<?= e($content['general']['footerTagline']) ?>">
+  <?php include __DIR__ . '/seo-head.php'; ?>
   <link rel="icon" href="<?= $base ?>/assets/images/doable-logo.png">
 
   <!-- Tailwind (Play CDN). For production your programmer can compile Tailwind
