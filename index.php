@@ -307,6 +307,22 @@ $plan = $pric['plans'][0] ?? null;
                 <button id="billing-annual" class="px-5 py-2 rounded-full text-sm font-semibold text-gray-600 transition-all">Annual <span class="text-emerald-600">(save ~17%)</span></button>
             </div>
         </div>
+
+        <!-- Limited-time launch offer -->
+        <div class="reveal max-w-2xl mx-auto mb-10">
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white text-center shadow-lg p-6 md:p-8">
+                <div class="absolute inset-0 bg-black/10"></div>
+                <div class="relative">
+                    <span class="inline-block px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold tracking-wide uppercase mb-3">Limited-Time Offer</span>
+                    <h3 class="text-2xl md:text-3xl font-extrabold mb-2">50% Off for 12 Months</h3>
+                    <p class="text-white/90 text-base md:text-lg">
+                        New clients who come on board before <strong>September 30, 2026</strong> get
+                        <strong>half off monthly tuition for the first twelve months.</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="max-w-md mx-auto">
             <?php foreach ($pric['plans'] as $p): ?>
                 <div class="reveal card-premium p-8 border-2 border-emerald-500 relative">
