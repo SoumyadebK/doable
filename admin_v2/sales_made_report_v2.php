@@ -19,7 +19,7 @@ if (isset($_GET['WEEK_NUMBER']) && empty($type)) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
     $view = isset($_GET['view']) ? 1 : 0;
-    $report_name = 'sales_made_report_v2'; // Set the report name for redirection
+    $report_name = 'sales_made_report_v2';
 
     $week_parts = explode(' ', $_GET['WEEK_NUMBER']);
     $WEEK_NUMBER = end($week_parts);
@@ -38,13 +38,12 @@ if (isset($_GET['WEEK_NUMBER']) && empty($type)) {
     }
 }
 
-// Get dates - now safely without redirect loop
+// Get dates
 if (!empty($_GET['start_date']) && !empty($_GET['end_date'])) {
     $from_date = date('Y-m-d', strtotime($_GET['start_date']));
     $to_date = date('Y-m-d', strtotime($_GET['end_date']));
     $week_number = isset($_GET['week_number']) ? $_GET['week_number'] : date('W', strtotime($from_date));
 } else {
-    // Default dates if not provided
     $from_date = date('Y-m-d', strtotime('last sunday'));
     $to_date = date('Y-m-d', strtotime('next saturday'));
     $week_number = date('W');
@@ -52,7 +51,8 @@ if (!empty($_GET['start_date']) && !empty($_GET['end_date'])) {
 
 $YEAR = date('Y', strtotime($from_date));
 
-// Date conditions for queries
+// Date conditions
+$weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $enrollment_date_condition = " AND em.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $payment_date_condition = " AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
@@ -125,41 +125,66 @@ function getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condit
     return $payments;
 }
 
-// Function to get enrollments by type with payment details
+// Function to get enrollments by type - EXACTLY matching Summary Report's sales query
 function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_id, $payment_date_condition, $is_misc = false)
 {
     $enrollments = [];
 
-    // Build the WHERE clause based on whether it's MISC or regular
+    // Build the query based on whether it's MISC or regular (4+)
     if ($is_misc) {
-        $misc_condition = "AND em.MISC_ID LIKE '%MISC%'";
+        // MISC query - matches Summary Report's misc sales query
+        $query = "
+            SELECT 
+                em.PK_ENROLLMENT_MASTER,
+                em.ENROLLMENT_ID,
+                em.ENROLLMENT_NAME,
+                em.ENROLLMENT_DATE,
+                em.ENROLLMENT_BY_ID,
+                em.PK_USER_MASTER,
+                em.MISC_ID,
+                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT,
+                CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS CLIENT_NAME,
+                CONCAT(ub.FIRST_NAME, ' ', ub.LAST_NAME) AS CLOSER_NAME
+            FROM DOA_ENROLLMENT_SERVICE es
+            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USER_MASTER um ON em.PK_USER_MASTER = um.PK_USER_MASTER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS u ON um.PK_USER = u.PK_USER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS ub ON em.ENROLLMENT_BY_ID = ub.PK_USER
+            WHERE em.PK_LOCATION IN (" . $location_id . ")
+                AND em.MISC_ID LIKE '%MISC%'
+                " . $date_condition . "
+            GROUP BY em.PK_ENROLLMENT_MASTER
+            ORDER BY em.ENROLLMENT_DATE DESC
+        ";
     } else {
-        $misc_condition = "AND (em.MISC_ID NOT LIKE '%MISC%' OR em.MISC_ID IS NULL)";
+        // 4+ Enrollment (Type 13) - matches Summary Report's renewal sales query
+        $query = "
+            SELECT 
+                em.PK_ENROLLMENT_MASTER,
+                em.ENROLLMENT_ID,
+                em.ENROLLMENT_NAME,
+                em.ENROLLMENT_DATE,
+                em.ENROLLMENT_BY_ID,
+                em.PK_USER_MASTER,
+                SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT,
+                CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS CLIENT_NAME,
+                CONCAT(ub.FIRST_NAME, ' ', ub.LAST_NAME) AS CLOSER_NAME
+            FROM DOA_ENROLLMENT_SERVICE es
+            LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+            LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USER_MASTER um ON em.PK_USER_MASTER = um.PK_USER_MASTER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS u ON um.PK_USER = u.PK_USER
+            LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS ub ON em.ENROLLMENT_BY_ID = ub.PK_USER
+            WHERE em.PK_LOCATION IN (" . $location_id . ")
+                AND em.PK_ENROLLMENT_TYPE = " . $type_id . "
+               AND em.ENROLLMENT_ID NOT LIKE '%MISC%'
+                AND sc.IS_GROUP = 0
+                " . $date_condition . "
+            GROUP BY em.PK_ENROLLMENT_MASTER
+            ORDER BY em.ENROLLMENT_DATE DESC
+        ";
     }
-
-    $query = "
-        SELECT 
-            em.PK_ENROLLMENT_MASTER,
-            em.ENROLLMENT_ID,
-            em.ENROLLMENT_NAME,
-            em.ENROLLMENT_DATE,
-            em.ENROLLMENT_BY_ID,
-            em.PK_USER_MASTER,
-            em.MISC_ID,
-            eb.TOTAL_AMOUNT,
-            CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS CLIENT_NAME,
-            CONCAT(ub.FIRST_NAME, ' ', ub.LAST_NAME) AS CLOSER_NAME
-        FROM DOA_ENROLLMENT_MASTER em
-        LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USER_MASTER um ON em.PK_USER_MASTER = um.PK_USER_MASTER
-        LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS u ON um.PK_USER = u.PK_USER
-        LEFT JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
-        LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS ub ON em.ENROLLMENT_BY_ID = ub.PK_USER
-        WHERE em.PK_LOCATION IN (" . $location_id . ")
-            AND em.PK_ENROLLMENT_TYPE = " . $type_id . "
-            " . $misc_condition . "
-            " . $date_condition . "
-        ORDER BY em.ENROLLMENT_DATE DESC
-    ";
 
     $result = $db_account->Execute($query);
 
@@ -204,7 +229,6 @@ if ($type === 'export') {
             WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
             AND DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
 
-        // Only 4+ Enrollment and MISC
         $enrollment_types = [
             13 => ['label' => '4+ Enrollment', 'is_misc' => false],
             16 => ['label' => 'MISC', 'is_misc' => true]
@@ -229,11 +253,9 @@ if ($type === 'export') {
                 $payment_date_condition,
                 $type_info['is_misc']
             );
-
             $export_data['enrollments'][$type_info['label']] = $enrollments;
         }
 
-        // Send to API
         $url = constant('ami_api_url') . '/api/v1/reports/enrollment-payment-details';
         $post_data = callArturMurrayApi($url, $export_data, $authorization, 'POST');
         $response = json_decode($post_data);
@@ -423,7 +445,6 @@ if ($type === 'export') {
                         echo '<div class="alert alert-danger alert-dismissible" role="alert">' . $error_message . '</div>';
                     }
                 } else {
-                    // Only 4+ Enrollment (Type 13) and MISC (Type 16)
                     $enrollment_types = [
                         13 => ['label' => '4+ Enrollment', 'color' => '#fce4ec', 'border' => '#c62828', 'bg' => '#f8bbd0', 'is_misc' => false],
                         16 => ['label' => 'MISC', 'color' => '#f3e5f5', 'border' => '#6a1b9a', 'bg' => '#e1bee7', 'is_misc' => true]
@@ -446,7 +467,6 @@ if ($type === 'export') {
                         $all_enrollments[$type_id] = $enrollments;
                     }
 
-                    // Check if there's any data to display
                     $has_data = false;
                     foreach ($all_enrollments as $enrollments) {
                         if (!empty($enrollments)) {
@@ -504,7 +524,8 @@ if ($type === 'export') {
                                                     <span style="font-weight: normal; font-size: 14px; color: #555;">
                                                         (<?= count($enrollments) ?> enrollments |
                                                         <?= $section_payment_count ?> payments |
-                                                        $<?= number_format($section_payment_total, 2) ?>)
+                                                        Sales: $<?= number_format($section_total_amount, 2) ?> |
+                                                        Payments: $<?= number_format($section_payment_total, 2) ?>)
                                                     </span>
                                                 </h5>
                                             </div>
@@ -531,7 +552,6 @@ if ($type === 'export') {
                                                                 $enrollment_payment_total += $payment['total_amount'];
                                                             }
                                                         ?>
-                                                            <!-- Enrollment Header Row -->
                                                             <tr class="enrollment-row" style="background-color: <?= $type_info['color'] ?>;">
                                                                 <td style="text-align: center; font-weight: bold;">
                                                                     #<?= $enrollment['enrollment_id'] ?>
@@ -564,7 +584,6 @@ if ($type === 'export') {
                                                                 </td>
                                                             </tr>
 
-                                                            <!-- Payment Rows -->
                                                             <?php if (!empty($enrollment['payments'])) { ?>
                                                                 <?php foreach ($enrollment['payments'] as $payment) { ?>
                                                                     <tr class="payment-row">
@@ -603,7 +622,6 @@ if ($type === 'export') {
                                                             <?php } ?>
                                                         <?php } ?>
 
-                                                        <!-- Section Sub-total -->
                                                         <tr class="sub-total">
                                                             <td colspan="5" style="text-align: right; font-weight: bold;">
                                                                 <?= $type_info['label'] ?> Sub-total:
@@ -624,7 +642,6 @@ if ($type === 'export') {
                                             $grand_payment_count += $section_payment_count;
                                         } ?>
 
-                                        <!-- Grand Total -->
                                         <!-- Grand Total -->
                                         <div style="margin-top: 25px; padding: 15px 20px; background-color: #cce5ff; border: 2px solid #004085; border-radius: 5px;">
                                             <table class="table table-bordered" style="margin: 0; background: transparent;">
@@ -665,14 +682,12 @@ if ($type === 'export') {
 
 <script>
     $(document).ready(function() {
-        // Initialize datepickers
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
             autoclose: true,
             todayHighlight: true
         });
 
-        // Form validation
         $('#reportForm').on('submit', function(e) {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
@@ -692,7 +707,6 @@ if ($type === 'export') {
                 return false;
             }
 
-            // Convert dates to YYYY-MM-DD format for hidden fields
             function formatDate(dateStr) {
                 var parts = dateStr.split('/');
                 return parts[2] + '-' + ('0' + parts[0]).slice(-2) + '-' + ('0' + parts[1]).slice(-2);
@@ -701,7 +715,6 @@ if ($type === 'export') {
             $('#start_date').val(formatDate(startDate));
             $('#end_date').val(formatDate(endDate));
 
-            // Calculate week number from start date
             var start = new Date(startDate);
             var weekNumber = $.datepicker.iso8601Week(start);
             $('#week_number').val(weekNumber);
@@ -709,7 +722,6 @@ if ($type === 'export') {
             return true;
         });
 
-        // When buttons are clicked, ensure hidden fields are set
         $('input[name="view"], input[name="generate_pdf"], input[name="generate_excel"]').on('click', function() {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
