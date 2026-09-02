@@ -130,6 +130,7 @@ $PAYMENT_QUERY = "SELECT
                     '' AS CLOSER_FIRST_NAME,
                     '' AS CLOSER_LAST_NAME,
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS PK_ENROLLMENT_TYPE,
                     '' AS CUSTOMER_ENROLLMENT_NUMBER,
                     NULL AS PK_LOCATION,
                     NULL AS PK_PACKAGE
@@ -230,6 +231,7 @@ $REFUND_QUERY = "SELECT
                     '' AS CLOSER_FIRST_NAME,
                     '' AS CLOSER_LAST_NAME,
                     DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER,
+                    '' AS PK_ENROLLMENT_TYPE,
                     '' AS CUSTOMER_ENROLLMENT_NUMBER,
                     NULL AS PK_LOCATION
 
