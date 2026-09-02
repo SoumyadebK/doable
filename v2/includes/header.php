@@ -32,7 +32,7 @@ function nav_anchor(bool $onHome, string $base, string $anchor): string
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($page_title) ?></title>
   <meta name="description" content="<?= e($content['general']['footerTagline']) ?>">
-  <link rel="icon" href="<?= $base ?>/assets/images/doable-logo.png">
+  <link rel="icon" href="v2/assets/images/doable-logo.png">
 
   <!-- Tailwind (Play CDN). For production your programmer can compile Tailwind
          to a static CSS file and remove this line — see README.md. -->

@@ -14,7 +14,7 @@ if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSIO
 // Get the current parameters
 $type = isset($_GET['type']) ? $_GET['type'] : '';
 
-// Handle redirects from business_reports.php - ONLY if coming from there
+// Handle redirects from business_reports.php
 if (isset($_GET['WEEK_NUMBER']) && empty($type)) {
     $generate_pdf = isset($_GET['generate_pdf']) ? 1 : 0;
     $generate_excel = isset($_GET['generate_excel']) ? 1 : 0;
@@ -33,19 +33,17 @@ if (isset($_GET['WEEK_NUMBER']) && empty($type)) {
         header('location:excel_' . $report_name . '.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&report_type=' . $report_name);
         exit;
     } elseif ($view === 1) {
-        // Redirect to the same page with type=view
         header('location:sales_made_report_v1.php?week_number=' . $WEEK_NUMBER . '&start_date=' . $START_DATE . '&end_date=' . $END_DATE . '&type=view');
         exit;
     }
 }
 
-// Get dates - now safely without redirect loop
+// Get dates
 if (!empty($_GET['start_date']) && !empty($_GET['end_date'])) {
     $from_date = date('Y-m-d', strtotime($_GET['start_date']));
     $to_date = date('Y-m-d', strtotime($_GET['end_date']));
     $week_number = isset($_GET['week_number']) ? $_GET['week_number'] : date('W', strtotime($from_date));
 } else {
-    // Default dates if not provided
     $from_date = date('Y-m-d', strtotime('last sunday'));
     $to_date = date('Y-m-d', strtotime('next saturday'));
     $week_number = date('W');
@@ -53,7 +51,8 @@ if (!empty($_GET['start_date']) && !empty($_GET['end_date'])) {
 
 $YEAR = date('Y', strtotime($from_date));
 
-// Date conditions for queries
+// Date conditions
+$weekly_date_condition = "'" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $enrollment_date_condition = " AND em.ENROLLMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 $payment_date_condition = " AND DOA_ENROLLMENT_PAYMENT.PAYMENT_DATE BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'";
 
@@ -126,7 +125,7 @@ function getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condit
     return $payments;
 }
 
-// Function to get enrollments by type with payment details
+// Function to get enrollments by type - SIMPLIFIED to match Summary Report
 function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_id, $payment_date_condition)
 {
     $enrollments = [];
@@ -139,18 +138,21 @@ function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_
             em.ENROLLMENT_DATE,
             em.ENROLLMENT_BY_ID,
             em.PK_USER_MASTER,
-            eb.TOTAL_AMOUNT,
+            SUM(es.FINAL_AMOUNT) AS TOTAL_AMOUNT,
             CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) AS CLIENT_NAME,
             CONCAT(ub.FIRST_NAME, ' ', ub.LAST_NAME) AS CLOSER_NAME
-        FROM DOA_ENROLLMENT_MASTER em
+        FROM DOA_ENROLLMENT_SERVICE es
+        LEFT JOIN DOA_SERVICE_CODE sc ON es.PK_SERVICE_CODE = sc.PK_SERVICE_CODE
+        LEFT JOIN DOA_ENROLLMENT_MASTER em ON es.PK_ENROLLMENT_MASTER = em.PK_ENROLLMENT_MASTER
         LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USER_MASTER um ON em.PK_USER_MASTER = um.PK_USER_MASTER
         LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS u ON um.PK_USER = u.PK_USER
-        LEFT JOIN DOA_ENROLLMENT_BILLING eb ON em.PK_ENROLLMENT_MASTER = eb.PK_ENROLLMENT_MASTER
         LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS ub ON em.ENROLLMENT_BY_ID = ub.PK_USER
         WHERE em.PK_LOCATION IN (" . $location_id . ")
             AND em.PK_ENROLLMENT_TYPE = " . $type_id . "
-            AND (em.MISC_ID NOT LIKE '%MISC%' OR em.MISC_ID IS NULL)
+            AND em.ENROLLMENT_ID NOT LIKE '%MISC%'
+            AND sc.IS_GROUP = 0
             " . $date_condition . "
+        GROUP BY em.PK_ENROLLMENT_MASTER
         ORDER BY em.ENROLLMENT_DATE DESC
     ";
 
@@ -160,6 +162,7 @@ function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_
         $enrollment_id = $result->fields['PK_ENROLLMENT_MASTER'];
         $payments = getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condition);
 
+        // USE THE TOTAL_AMOUNT FROM THE QUERY - NO SECONDARY QUERY
         $enrollments[] = [
             'id' => $result->fields['PK_ENROLLMENT_MASTER'],
             'enrollment_id' => $result->fields['ENROLLMENT_ID'],
@@ -190,7 +193,6 @@ if ($type === 'export') {
             WHERE DOA_USER_LOCATION.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
             AND DOA_USERS.PK_USER = '$_SESSION[PK_USER]'");
 
-        // Get all enrollment types
         $enrollment_types = [
             5 => '1st Enrollment',
             2 => '2nd Enrollment',
@@ -215,11 +217,9 @@ if ($type === 'export') {
                 $_SESSION['DEFAULT_LOCATION_ID'],
                 $payment_date_condition
             );
-
             $export_data['enrollments'][$type_name] = $enrollments;
         }
 
-        // Send to API
         $url = constant('ami_api_url') . '/api/v1/reports/enrollment-payment-details';
         $post_data = callArturMurrayApi($url, $export_data, $authorization, 'POST');
         $response = json_decode($post_data);
@@ -398,6 +398,183 @@ if ($type === 'export') {
                         9 => ['label' => '3rd Enrollment', 'color' => '#fff3e0', 'border' => '#f57c00', 'bg' => '#ffe0b2']
                     ];
 
+                    // QUERIES TO MATCH SUMMARY REPORT EXACTLY
+
+                    // SALES AMOUNT QUERIES (NO IS_SALE = 'Y') - Matching Summary Report
+                    $weekly_pre_original_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 5 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_original_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 2 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_extension_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 9 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_renewal_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 13 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // SOLD COUNT QUERIES (WITH IS_SALE = 'Y' and TOTAL_AMOUNT > 0) - Matching Summary Report
+                    $weekly_pre_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
+                        FROM `DOA_ENROLLMENT_MASTER` 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND IS_SALE = 'Y' 
+                        AND PK_ENROLLMENT_TYPE = 5 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
+                        FROM `DOA_ENROLLMENT_MASTER` 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND IS_SALE = 'Y' 
+                        AND PK_ENROLLMENT_TYPE = 2 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_extension_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
+                        FROM `DOA_ENROLLMENT_MASTER` 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND IS_SALE = 'Y' 
+                        AND PK_ENROLLMENT_TYPE = 9 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_renewal_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
+                        FROM `DOA_ENROLLMENT_MASTER` 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND IS_SALE = 'Y' 
+                        AND PK_ENROLLMENT_TYPE = 13 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // 1st Enrollment - Tried (Type 5)
+                    $weekly_pre_original_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
+    FROM `DOA_ENROLLMENT_MASTER` 
+    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
+    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+    AND IS_SALE = 'Y' 
+    AND PK_ENROLLMENT_TYPE = 5 
+    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // 2nd Enrollment - Tried (Type 5 - same as 1st!)
+                    $weekly_original_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
+    FROM `DOA_ENROLLMENT_MASTER` 
+    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
+    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+    AND IS_SALE = 'Y' 
+    AND PK_ENROLLMENT_TYPE = 5 
+    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // 3rd Enrollment - Tried (Type 2)
+                    $weekly_extension_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
+    FROM `DOA_ENROLLMENT_MASTER` 
+    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
+    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+    AND IS_SALE = 'Y' 
+    AND PK_ENROLLMENT_TYPE = 2 
+    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // 4+ Enrollment - Tried (Type 9)
+                    $weekly_renewal_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
+    FROM `DOA_ENROLLMENT_MASTER` 
+    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
+    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+    AND IS_SALE = 'Y' 
+    AND PK_ENROLLMENT_TYPE = 9 
+    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    // UNITS QUERIES (WITH TOTAL_AMOUNT > 0 and IS_GROUP = 0) - Matching Summary Report
+                    $weekly_pre_original_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 5 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_original_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 2 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_extension_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 9 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
+                    $weekly_renewal_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
+                        FROM `DOA_ENROLLMENT_SERVICE` 
+                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
+                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
+                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
+                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
+                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
+                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
+                        AND PK_ENROLLMENT_TYPE = 13 
+                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
+                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
+
                     $all_enrollments = [];
                     $grand_total_amount = 0;
                     $grand_payment_total = 0;
@@ -414,7 +591,6 @@ if ($type === 'export') {
                         $all_enrollments[$type_id] = $enrollments;
                     }
 
-                    // Check if there's any data to display
                     $has_data = false;
                     foreach ($all_enrollments as $enrollments) {
                         if (!empty($enrollments)) {
@@ -472,7 +648,8 @@ if ($type === 'export') {
                                                     <span style="font-weight: normal; font-size: 14px; color: #555;">
                                                         (<?= count($enrollments) ?> enrollments |
                                                         <?= $section_payment_count ?> payments |
-                                                        $<?= number_format($section_payment_total, 2) ?>)
+                                                        Sales: $<?= number_format($section_total_amount, 2) ?> |
+                                                        Payments: $<?= number_format($section_payment_total, 2) ?>)
                                                     </span>
                                                 </h5>
                                             </div>
@@ -499,7 +676,6 @@ if ($type === 'export') {
                                                                 $enrollment_payment_total += $payment['total_amount'];
                                                             }
                                                         ?>
-                                                            <!-- Enrollment Header Row -->
                                                             <tr class="enrollment-row" style="background-color: <?= $type_info['color'] ?>;">
                                                                 <td style="text-align: center; font-weight: bold;">
                                                                     #<?= $enrollment['enrollment_id'] ?>
@@ -529,7 +705,6 @@ if ($type === 'export') {
                                                                 </td>
                                                             </tr>
 
-                                                            <!-- Payment Rows -->
                                                             <?php if (!empty($enrollment['payments'])) { ?>
                                                                 <?php foreach ($enrollment['payments'] as $payment) { ?>
                                                                     <tr class="payment-row">
@@ -568,7 +743,6 @@ if ($type === 'export') {
                                                             <?php } ?>
                                                         <?php } ?>
 
-                                                        <!-- Section Sub-total -->
                                                         <tr class="sub-total">
                                                             <td colspan="5" style="text-align: right; font-weight: bold;">
                                                                 <?= $type_info['label'] ?> Sub-total:
@@ -593,14 +767,20 @@ if ($type === 'export') {
                                         <div style="margin-top: 25px; padding: 15px 20px; background-color: #cce5ff; border: 2px solid #004085; border-radius: 5px;">
                                             <table class="table table-bordered" style="margin: 0; background: transparent;">
                                                 <tr class="grand-total" style="background: transparent;">
-                                                    <td style="width: 60%; text-align: right; border: none; font-size: 18px;">
-                                                        GRAND TOTAL:
+                                                    <td style="width: 40%; text-align: right; border: none; font-size: 18px;">
+                                                        GRAND TOTALS:
                                                     </td>
                                                     <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
-                                                        <?= $grand_payment_count ?> payments
+                                                        <div style="font-weight: bold;">Total Payments</div>
+                                                        <div style="font-size: 18px; color: #004085;"><?= $grand_payment_count ?></div>
                                                     </td>
-                                                    <td style="width: 20%; text-align: right; border: none; font-size: 18px; color: #004085;">
-                                                        $<?= number_format($grand_total_amount, 2) ?>
+                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
+                                                        <div style="font-weight: bold;">Total Sales</div>
+                                                        <div style="font-size: 18px; color: #004085;">$<?= number_format($grand_total_amount, 2) ?></div>
+                                                    </td>
+                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
+                                                        <div style="font-weight: bold;">Total Payments Amount</div>
+                                                        <div style="font-size: 18px; color: #004085;">$<?= number_format($grand_payment_total, 2) ?></div>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -623,14 +803,12 @@ if ($type === 'export') {
 
 <script>
     $(document).ready(function() {
-        // Initialize datepickers
         $('.datepicker-normal').datepicker({
             format: 'mm/dd/yyyy',
             autoclose: true,
             todayHighlight: true
         });
 
-        // Form validation
         $('#reportForm').on('submit', function(e) {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
@@ -650,7 +828,6 @@ if ($type === 'export') {
                 return false;
             }
 
-            // Convert dates to YYYY-MM-DD format for hidden fields
             function formatDate(dateStr) {
                 var parts = dateStr.split('/');
                 return parts[2] + '-' + ('0' + parts[0]).slice(-2) + '-' + ('0' + parts[1]).slice(-2);
@@ -659,7 +836,6 @@ if ($type === 'export') {
             $('#start_date').val(formatDate(startDate));
             $('#end_date').val(formatDate(endDate));
 
-            // Calculate week number from start date
             var start = new Date(startDate);
             var weekNumber = $.datepicker.iso8601Week(start);
             $('#week_number').val(weekNumber);
@@ -667,7 +843,6 @@ if ($type === 'export') {
             return true;
         });
 
-        // When buttons are clicked, ensure hidden fields are set
         $('input[name="view"], input[name="generate_pdf"], input[name="generate_excel"]').on('click', function() {
             var startDate = $('#START_DATE').val();
             var endDate = $('#END_DATE').val();
