@@ -1,4 +1,5 @@
 <?php
+
 /**
  * seo-head.php  —  Drop-in SEO tags for every page on doable.net
  * ---------------------------------------------------------------------------
@@ -42,7 +43,9 @@ $__image  = isset($seo_image) && $seo_image !== '' ? $seo_image : '/v2/assets/im
 $__imgAbs = (strpos($__image, 'http') === 0) ? $__image : $__base . $__image;
 $__type   = isset($seo_type) ? $seo_type : 'website';
 
-$e = function ($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); };
+$e = function ($s) {
+  return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+};
 ?>
 <title><?= $e($__title) ?></title>
 <meta name="description" content="<?= $e($__desc) ?>">
@@ -71,42 +74,43 @@ $e = function ($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); };
 
 <!-- Structured data: Organization + WebSite + SoftwareApplication -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "<?= $__base ?>/#organization",
-      "name": "DOable",
-      "url": "<?= $__base ?>/",
-      "logo": "<?= $__base ?>/v2/assets/images/doable-logo.png",
-      "description": "Business management software for private and class-based businesses.",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "email": "demo@doable.net",
-        "contactType": "sales"
+  {
+    "@context": "https://schema.org",
+    "@graph": [{
+        "@type": "Organization",
+        "@id": "<?= $__base ?>/#organization",
+        "name": "DOable",
+        "url": "<?= $__base ?>/",
+        "logo": "<?= $__base ?>/v2/assets/images/doable-logo.png",
+        "description": "Business management software for private and class-based businesses.",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "demo@doable.net",
+          "contactType": "sales"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "<?= $__base ?>/#website",
+        "url": "<?= $__base ?>/",
+        "name": "DOable",
+        "publisher": {
+          "@id": "<?= $__base ?>/#organization"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "DOable",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "<?= $__base ?>/",
+        "description": "All-in-one scheduling, billing, CRM and marketing software for dance studios, martial arts schools, gyms and class-based businesses.",
+        "offers": {
+          "@type": "Offer",
+          "price": "299",
+          "priceCurrency": "USD"
+        }
       }
-    },
-    {
-      "@type": "WebSite",
-      "@id": "<?= $__base ?>/#website",
-      "url": "<?= $__base ?>/",
-      "name": "DOable",
-      "publisher": { "@id": "<?= $__base ?>/#organization" }
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "DOable",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "url": "<?= $__base ?>/",
-      "description": "All-in-one scheduling, billing, CRM and marketing software for dance studios, martial arts schools, gyms and class-based businesses.",
-      "offers": {
-        "@type": "Offer",
-        "price": "299",
-        "priceCurrency": "USD"
-      }
-    }
-  ]
-}
+    ]
+  }
 </script>

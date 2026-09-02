@@ -1,0 +1,57 @@
+# ===========================================================================
+#  SEO + performance rules for doable.net  (Apache)
+# ---------------------------------------------------------------------------
+#  HOW TO USE: paste these blocks into the .htaccess file in your website root.
+#  If you already have an .htaccess with a "RewriteEngine On" line, do NOT add a
+#  second one — just add the rules under it. Test the site right after saving;
+#  if anything breaks, remove the block you just added and tell your host.
+# ===========================================================================
+
+RewriteEngine On
+
+# --- 1+2 combined) Force https AND non-www in a single redirect -------------
+RewriteCond %{HTTP_HOST} ^www\.doable\.net$ [NC,OR]
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://doable.net%{REQUEST_URI} [R=301,L]
+
+# --- 3) Serve the auto-updating sitemap.php at /sitemap.xml -----------------
+#     (ONLY if you use sitemap.php. If you use the static sitemap.xml, DELETE
+#      the next line so the real file is served.)
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+
+# --- 4) GZIP / compression (much smaller, faster pages) --------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+
+# --- 5) Browser caching for static files (returning visitors load faster) --
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png        "access plus 1 month"
+  ExpiresByType image/jpeg       "access plus 1 month"
+  ExpiresByType image/webp       "access plus 1 month"
+  ExpiresByType image/svg+xml    "access plus 1 month"
+  ExpiresByType image/x-icon     "access plus 1 year"
+  ExpiresByType text/css         "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+  ExpiresByType font/woff2       "access plus 1 year"
+</IfModule>
+
+
+# --- 6) Security / SEO friendly headers -------------------------------------
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  # Long-term HTTPS enforcement (only enable once you are sure HTTPS is stable)
+  # Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# NOTE ON CACHING PAGES: the site currently sends "no-store, no-cache" on every
+# response (that comes from PHP, not .htaccess — look for a header() call or
+# session_cache_limiter() in your PHP bootstrap). Static files are handled by the
+# rules above; you generally do NOT need no-cache on the marketing pages.

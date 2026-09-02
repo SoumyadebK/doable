@@ -35,7 +35,16 @@ function slugToText($slug)
     $text = ucwords($text);
     return $text;
 }
+
+$seo_title = slugToText($slug) . ' | DOable';
+$seo_desc  = $blog_data->fields['EXCERPT'];          // or a trimmed version of the post body
+$seo_path  = '/blog-post.php?slug=' . $slug;
+$seo_type  = 'article';
+
 include __DIR__ . '/v2/includes/header.php';
+
+$post = $blog_data->fields;
+include __DIR__ . '/blog-post-structured-data.php';
 ?>
 
 <style>

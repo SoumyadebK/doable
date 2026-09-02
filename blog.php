@@ -6,6 +6,10 @@ $page = 'blog';
 $page_title = 'Blog | ' . SITE_NAME;
 $base = base_path();
 
+$seo_title = 'Blog — Tips for Running a Studio | DOable';
+$seo_desc  = 'Practical advice on scheduling, enrollment, billing and marketing for dance studios, martial arts schools and class-based businesses.';
+$seo_path  = '/blog.php';
+
 include __DIR__ . '/v2/includes/header.php';
 ?>
 <section class="gradient-mesh pt-32 pb-16 px-4 sm:px-6 lg:px-8">

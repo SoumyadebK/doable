@@ -6,6 +6,10 @@ $page = 'terms';
 $page_title = 'Terms of Use | ' . SITE_NAME;
 $base = base_path();
 
+$seo_title = 'Terms of Use | DOable';
+$seo_desc  = 'The terms and conditions for using DOable software and services.';
+$seo_path  = '/terms_of_use.php';
+
 include __DIR__ . '/v2/includes/header.php';
 ?>
 
