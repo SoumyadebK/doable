@@ -125,7 +125,7 @@ function getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condit
     return $payments;
 }
 
-// Function to get enrollments by type - SIMPLIFIED to match Summary Report
+// Function to get enrollments by type
 function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_id, $payment_date_condition)
 {
     $enrollments = [];
@@ -162,7 +162,6 @@ function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_
         $enrollment_id = $result->fields['PK_ENROLLMENT_MASTER'];
         $payments = getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condition);
 
-        // USE THE TOTAL_AMOUNT FROM THE QUERY - NO SECONDARY QUERY
         $enrollments[] = [
             'id' => $result->fields['PK_ENROLLMENT_MASTER'],
             'enrollment_id' => $result->fields['ENROLLMENT_ID'],
@@ -285,15 +284,35 @@ if ($type === 'export') {
         color: #690C24;
     }
 
-    .enrollment-row {
-        background-color: #f5f5f5;
+    /* ENROLLMENT ROW - GRAY */
+    .enrollment-row-gray {
+        background-color: #d3d3d3 !important;
     }
 
-    .payment-row {
-        background-color: #ffffff;
+    .enrollment-row-gray td {
+        background-color: #d3d3d3 !important;
+        color: #000000 !important;
+        border-color: #b0b0b0;
+        font-weight: normal;
     }
 
-    .payment-row td {
+    /* PAYMENT ROW - WHITE */
+    .payment-row-white {
+        background-color: #ffffff !important;
+    }
+
+    .payment-row-white td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #dee2e6;
+        font-weight: normal;
+    }
+
+    .enrollment-row-gray td {
+        padding: 8px;
+    }
+
+    .payment-row-white td {
         padding: 5px 10px !important;
         font-size: 13px;
     }
@@ -309,15 +328,18 @@ if ($type === 'export') {
         font-weight: bold;
     }
 
+    .sub-total td {
+        color: #000000 !important;
+    }
+
     .grand-total {
         background-color: #cce5ff;
         font-weight: bold;
         font-size: 16px;
     }
 
-    .text-muted-sm {
-        font-size: 12px;
-        color: #6c757d;
+    .grand-total td {
+        color: #000000 !important;
     }
 
     .badge-payment {
@@ -326,6 +348,41 @@ if ($type === 'export') {
         padding: 2px 8px;
         border-radius: 12px;
         font-size: 11px;
+    }
+
+    .payment-arrow {
+        color: #000000;
+        font-size: 14px;
+        padding-left: 20px;
+    }
+
+    .payment-icon {
+        color: #000000;
+        margin-right: 5px;
+    }
+
+    .receipt-amount {
+        font-weight: 500;
+        color: #000000 !important;
+    }
+
+    .no-payments {
+        color: #000000 !important;
+        font-style: italic;
+        font-size: 13px;
+    }
+
+    /* Override any colored text */
+    .enrollment-row-gray td,
+    .payment-row-white td,
+    .sub-total td,
+    .grand-total td {
+        color: #000000 !important;
+    }
+
+    .enrollment-row-gray .badge-payment,
+    .payment-row-white .badge-payment {
+        color: #ffffff !important;
     }
 </style>
 
@@ -397,183 +454,6 @@ if ($type === 'export') {
                         2 => ['label' => '2nd Enrollment', 'color' => '#e8f5e9', 'border' => '#388e3c', 'bg' => '#c8e6c9'],
                         9 => ['label' => '3rd Enrollment', 'color' => '#fff3e0', 'border' => '#f57c00', 'bg' => '#ffe0b2']
                     ];
-
-                    // QUERIES TO MATCH SUMMARY REPORT EXACTLY
-
-                    // SALES AMOUNT QUERIES (NO IS_SALE = 'Y') - Matching Summary Report
-                    $weekly_pre_original_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 5 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_original_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 2 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_extension_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 9 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_renewal_sales = $db_account->Execute("SELECT SUM(FINAL_AMOUNT) AS SALES 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 13 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // SOLD COUNT QUERIES (WITH IS_SALE = 'Y' and TOTAL_AMOUNT > 0) - Matching Summary Report
-                    $weekly_pre_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
-                        FROM `DOA_ENROLLMENT_MASTER` 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND IS_SALE = 'Y' 
-                        AND PK_ENROLLMENT_TYPE = 5 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_original_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
-                        FROM `DOA_ENROLLMENT_MASTER` 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND IS_SALE = 'Y' 
-                        AND PK_ENROLLMENT_TYPE = 2 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_extension_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
-                        FROM `DOA_ENROLLMENT_MASTER` 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND IS_SALE = 'Y' 
-                        AND PK_ENROLLMENT_TYPE = 9 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_renewal_sold = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS SOLD 
-                        FROM `DOA_ENROLLMENT_MASTER` 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND IS_SALE = 'Y' 
-                        AND PK_ENROLLMENT_TYPE = 13 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // 1st Enrollment - Tried (Type 5)
-                    $weekly_pre_original_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
-    FROM `DOA_ENROLLMENT_MASTER` 
-    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
-    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-    AND IS_SALE = 'Y' 
-    AND PK_ENROLLMENT_TYPE = 5 
-    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // 2nd Enrollment - Tried (Type 5 - same as 1st!)
-                    $weekly_original_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
-    FROM `DOA_ENROLLMENT_MASTER` 
-    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
-    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-    AND IS_SALE = 'Y' 
-    AND PK_ENROLLMENT_TYPE = 5 
-    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // 3rd Enrollment - Tried (Type 2)
-                    $weekly_extension_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
-    FROM `DOA_ENROLLMENT_MASTER` 
-    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
-    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-    AND IS_SALE = 'Y' 
-    AND PK_ENROLLMENT_TYPE = 2 
-    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // 4+ Enrollment - Tried (Type 9)
-                    $weekly_renewal_tried = $db_account->Execute("SELECT COUNT(DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER) AS TRIED 
-    FROM `DOA_ENROLLMENT_MASTER` 
-    LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-    WHERE DOA_ENROLLMENT_MASTER.STATUS IN ('C', 'CO') 
-    AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-    AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-    AND IS_SALE = 'Y' 
-    AND PK_ENROLLMENT_TYPE = 9 
-    AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    // UNITS QUERIES (WITH TOTAL_AMOUNT > 0 and IS_GROUP = 0) - Matching Summary Report
-                    $weekly_pre_original_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 5 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_original_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 2 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_extension_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 9 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
-
-                    $weekly_renewal_units = $db_account->Execute("SELECT SUM(NUMBER_OF_SESSION) AS UNITS 
-                        FROM `DOA_ENROLLMENT_SERVICE` 
-                        LEFT JOIN DOA_SERVICE_CODE ON DOA_ENROLLMENT_SERVICE.PK_SERVICE_CODE = DOA_SERVICE_CODE.PK_SERVICE_CODE 
-                        LEFT JOIN DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_SERVICE.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER 
-                        LEFT JOIN DOA_ENROLLMENT_BILLING ON DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_MASTER 
-                        WHERE DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") 
-                        AND DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT > 0 
-                        AND DOA_SERVICE_CODE.IS_GROUP = 0 
-                        AND PK_ENROLLMENT_TYPE = 13 
-                        AND ENROLLMENT_ID NOT LIKE '%MISC%' 
-                        AND ENROLLMENT_DATE BETWEEN $weekly_date_condition");
 
                     $all_enrollments = [];
                     $grand_total_amount = 0;
@@ -668,90 +548,104 @@ if ($type === 'export') {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <?php foreach ($enrollments as $enrollment) {
+                                                        <?php
+                                                        $row_counter = 0;
+                                                        foreach ($enrollments as $enrollment) {
                                                             $enrollment_total = $enrollment['total_amount'] ?? 0;
                                                             $payment_count = count($enrollment['payments']);
                                                             $enrollment_payment_total = 0;
                                                             foreach ($enrollment['payments'] as $payment) {
                                                                 $enrollment_payment_total += $payment['total_amount'];
                                                             }
+
+                                                            // Determine if this enrollment row should be gray
+                                                            $row_class = ($row_counter % 2 == 0) ? 'enrollment-row-gray' : 'enrollment-row-gray';
+                                                            $payment_row_class = 'payment-row-white';
                                                         ?>
-                                                            <tr class="enrollment-row" style="background-color: <?= $type_info['color'] ?>;">
-                                                                <td style="text-align: center; font-weight: bold;">
+                                                            <!-- ENROLLMENT ROW - GRAY -->
+                                                            <tr class="enrollment-row-gray">
+                                                                <td style="text-align: center; font-weight: bold; color: #000000 !important;">
                                                                     #<?= $enrollment['enrollment_id'] ?>
                                                                 </td>
-                                                                <td style="text-align: left;">
+                                                                <td style="text-align: left; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['name'] ?? 'N/A') ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= date('m/d/Y', strtotime($enrollment['date'])) ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['client'] ?? '-') ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['closer'] ?? '-') ?>
                                                                 </td>
-                                                                <td style="text-align: right; font-weight: bold;">
+                                                                <td style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                     $<?= number_format($enrollment_total, 2) ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <span class="badge-payment">
                                                                         <?= $payment_count ?> payments
-                                                                    </span>
-                                                                    <span style="font-size: 12px; color: #555; display: block;">
-                                                                        $<?= number_format($enrollment_payment_total, 2) ?>
                                                                     </span>
                                                                 </td>
                                                             </tr>
 
+                                                            <!-- PAYMENT ROWS - WHITE -->
                                                             <?php if (!empty($enrollment['payments'])) { ?>
                                                                 <?php foreach ($enrollment['payments'] as $payment) { ?>
-                                                                    <tr class="payment-row">
-                                                                        <td style="text-align: center; padding-left: 30px !important; color: #6c757d; font-size: 12px;">
-                                                                            <i class="bi bi-arrow-right-short"></i>
+                                                                    <tr class="payment-row-white">
+                                                                        <td style="text-align: center; padding-left: 30px !important; color: #000000 !important; font-size: 12px;">
+                                                                            <i class="bi bi-arrow-right-short payment-arrow"></i>
                                                                         </td>
-                                                                        <td style="text-align: left; color: #6c757d; font-size: 13px;">
+                                                                        <td style="text-align: left; color: #000000 !important; font-size: 13px;">
                                                                             <i class="bi bi-credit-card payment-icon"></i> Payment
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 13px;">
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
                                                                             <?= date('m/d/Y', strtotime($payment['date'])) ?>
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 13px;">
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
                                                                             <?= $payment['receipt_number'] ? '#' . $payment['receipt_number'] : '-' ?>
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 12px; color: #555;">
+                                                                        <td style="text-align: center; font-size: 12px; color: #000000 !important;">
                                                                             <?= $payment['payment_type'] ?? $payment['type'] ?? 'Unknown' ?>
                                                                         </td>
-                                                                        <td style="text-align: right; font-size: 13px; font-weight: 500;">
+                                                                        <td style="text-align: right; font-size: 13px; font-weight: 500; color: #000000 !important;">
                                                                             $<?= number_format($payment['total_amount'], 2) ?>
                                                                             <?php if ($payment['tip'] > 0) { ?>
-                                                                                <span class="text-muted-sm" style="display: block; font-weight: normal;">
+                                                                                <span style="display: block; font-weight: normal; color: #000000 !important; font-size: 11px;">
                                                                                     (Tip: $<?= number_format($payment['tip'], 2) ?>)
                                                                                 </span>
                                                                             <?php } ?>
                                                                         </td>
-                                                                        <td style="text-align: center;"></td>
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
+                                                                            <span style="display: block; font-size: 12px; color: #000000 !important;">
+                                                                                $<?= number_format($payment['total_amount'], 2) ?>
+                                                                            </span>
+                                                                        </td>
                                                                     </tr>
                                                                 <?php } ?>
                                                             <?php } else { ?>
-                                                                <tr class="payment-row">
-                                                                    <td colspan="7" style="text-align: center; color: #999; font-style: italic; padding: 8px;">
+                                                                <tr class="payment-row-white">
+                                                                    <td colspan="7" style="text-align: center; color: #000000 !important; font-style: italic; padding: 8px;" class="no-payments">
                                                                         <i class="bi bi-info-circle"></i> No payments recorded for this enrollment
                                                                     </td>
                                                                 </tr>
                                                             <?php } ?>
-                                                        <?php } ?>
+                                                        <?php
+                                                            $row_counter++;
+                                                        } ?>
 
+                                                        <!-- Sub-total Row -->
                                                         <tr class="sub-total">
-                                                            <td colspan="5" style="text-align: right; font-weight: bold;">
+                                                            <td colspan="5" style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                 <?= $type_info['label'] ?> Sub-total:
                                                             </td>
-                                                            <td style="text-align: right; font-weight: bold;">
+                                                            <td style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                 $<?= number_format($section_total_amount, 2) ?>
                                                             </td>
-                                                            <td style="text-align: center; font-weight: bold;">
-                                                                <?= $section_payment_count ?> payments
+                                                            <td style="text-align: right; color: #000000 !important;">
+                                                                <span style="display: block; font-size: 12px; font-weight: bold; color: #000000 !important;">
+                                                                    $<?= number_format($section_payment_total, 2) ?> (<?= $section_payment_count ?> payments)
+                                                                </span>
                                                             </td>
                                                         </tr>
                                                     </tbody>
@@ -767,20 +661,20 @@ if ($type === 'export') {
                                         <div style="margin-top: 25px; padding: 15px 20px; background-color: #cce5ff; border: 2px solid #004085; border-radius: 5px;">
                                             <table class="table table-bordered" style="margin: 0; background: transparent;">
                                                 <tr class="grand-total" style="background: transparent;">
-                                                    <td style="width: 40%; text-align: right; border: none; font-size: 18px;">
+                                                    <td style="width: 40%; text-align: right; border: none; font-size: 18px; color: #000000 !important;">
                                                         GRAND TOTALS:
                                                     </td>
-                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
+                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px; color: #000000 !important;">
                                                         <div style="font-weight: bold;">Total Payments</div>
-                                                        <div style="font-size: 18px; color: #004085;"><?= $grand_payment_count ?></div>
+                                                        <div style="font-size: 18px; color: #000000 !important;"><?= $grand_payment_count ?></div>
                                                     </td>
-                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
+                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px; color: #000000 !important;">
                                                         <div style="font-weight: bold;">Total Sales</div>
-                                                        <div style="font-size: 18px; color: #004085;">$<?= number_format($grand_total_amount, 2) ?></div>
+                                                        <div style="font-size: 18px; color: #000000 !important;">$<?= number_format($grand_total_amount, 2) ?></div>
                                                     </td>
-                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px;">
+                                                    <td style="width: 20%; text-align: center; border: none; font-size: 16px; color: #000000 !important;">
                                                         <div style="font-weight: bold;">Total Payments Amount</div>
-                                                        <div style="font-size: 18px; color: #004085;">$<?= number_format($grand_payment_total, 2) ?></div>
+                                                        <div style="font-size: 18px; color: #000000 !important;">$<?= number_format($grand_payment_total, 2) ?></div>
                                                     </td>
                                                 </tr>
                                             </table>

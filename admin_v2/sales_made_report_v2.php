@@ -178,7 +178,7 @@ function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_
             LEFT JOIN " . $GLOBALS['master_database'] . ".DOA_USERS ub ON em.ENROLLMENT_BY_ID = ub.PK_USER
             WHERE em.PK_LOCATION IN (" . $location_id . ")
                 AND em.PK_ENROLLMENT_TYPE = " . $type_id . "
-               AND em.ENROLLMENT_ID NOT LIKE '%MISC%'
+                AND em.ENROLLMENT_ID NOT LIKE '%MISC%'
                 AND sc.IS_GROUP = 0
                 " . $date_condition . "
             GROUP BY em.PK_ENROLLMENT_MASTER
@@ -192,21 +192,30 @@ function getEnrollmentsByType($db_account, $type_id, $date_condition, $location_
         $enrollment_id = $result->fields['PK_ENROLLMENT_MASTER'];
         $payments = getEnrollmentPayments($db_account, $enrollment_id, $payment_date_condition);
 
+        // For MISC, use MISC_ID as the display ID, otherwise use ENROLLMENT_ID
+        if ($is_misc) {
+            $display_id = $result->fields['MISC_ID'] ? $result->fields['MISC_ID'] : 'MISC-' . $result->fields['PK_ENROLLMENT_MASTER'];
+        } else {
+            $display_id = $result->fields['ENROLLMENT_ID'];
+        }
+
         // Build enrollment display name
         $display_name = $result->fields['ENROLLMENT_NAME'];
-        if ($is_misc) {
-            $display_name = $result->fields['ENROLLMENT_NAME'] . ' (' . $result->fields['MISC_ID'] . ')';
+        if ($is_misc && !empty($result->fields['MISC_ID'])) {
+            // For MISC, the name already contains the MISC ID in parentheses
+            $display_name = $result->fields['ENROLLMENT_NAME'];
         }
 
         $enrollments[] = [
             'id' => $result->fields['PK_ENROLLMENT_MASTER'],
-            'enrollment_id' => $result->fields['ENROLLMENT_ID'],
+            'enrollment_id' => $display_id,
             'name' => $display_name,
             'date' => $result->fields['ENROLLMENT_DATE'],
             'client' => $result->fields['CLIENT_NAME'],
             'closer' => $result->fields['CLOSER_NAME'],
             'total_amount' => $result->fields['TOTAL_AMOUNT'] ?? 0,
             'misc_id' => $result->fields['MISC_ID'],
+            'is_misc' => $is_misc,
             'payments' => $payments
         ];
         $result->MoveNext();
@@ -321,15 +330,35 @@ if ($type === 'export') {
         color: #690C24;
     }
 
-    .enrollment-row {
-        background-color: #f5f5f5;
+    /* ENROLLMENT ROW - GRAY */
+    .enrollment-row-gray {
+        background-color: #d3d3d3 !important;
     }
 
-    .payment-row {
-        background-color: #ffffff;
+    .enrollment-row-gray td {
+        background-color: #d3d3d3 !important;
+        color: #000000 !important;
+        border-color: #b0b0b0;
+        font-weight: normal;
     }
 
-    .payment-row td {
+    /* PAYMENT ROW - WHITE */
+    .payment-row-white {
+        background-color: #ffffff !important;
+    }
+
+    .payment-row-white td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #dee2e6;
+        font-weight: normal;
+    }
+
+    .enrollment-row-gray td {
+        padding: 8px;
+    }
+
+    .payment-row-white td {
         padding: 5px 10px !important;
         font-size: 13px;
     }
@@ -345,15 +374,18 @@ if ($type === 'export') {
         font-weight: bold;
     }
 
+    .sub-total td {
+        color: #000000 !important;
+    }
+
     .grand-total {
         background-color: #cce5ff;
         font-weight: bold;
         font-size: 16px;
     }
 
-    .text-muted-sm {
-        font-size: 12px;
-        color: #6c757d;
+    .grand-total td {
+        color: #000000 !important;
     }
 
     .badge-payment {
@@ -364,22 +396,39 @@ if ($type === 'export') {
         font-size: 11px;
     }
 
-    .misc-badge {
-        background-color: #6f42c1;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 10px;
-        margin-left: 5px;
+    .payment-arrow {
+        color: #000000;
+        font-size: 14px;
+        padding-left: 20px;
     }
 
-    .renewal-badge {
-        background-color: #c62828;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 10px;
-        margin-left: 5px;
+    .payment-icon {
+        color: #000000;
+        margin-right: 5px;
+    }
+
+    .receipt-amount {
+        font-weight: 500;
+        color: #000000 !important;
+    }
+
+    .no-payments {
+        color: #000000 !important;
+        font-style: italic;
+        font-size: 13px;
+    }
+
+    /* Override any colored text */
+    .enrollment-row-gray td,
+    .payment-row-white td,
+    .sub-total td,
+    .grand-total td {
+        color: #000000 !important;
+    }
+
+    .enrollment-row-gray .badge-payment,
+    .payment-row-white .badge-payment {
+        color: #ffffff !important;
     }
 </style>
 
@@ -544,93 +593,109 @@ if ($type === 'export') {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <?php foreach ($enrollments as $enrollment) {
+                                                        <?php
+                                                        $row_counter = 0;
+                                                        foreach ($enrollments as $enrollment) {
                                                             $enrollment_total = $enrollment['total_amount'] ?? 0;
                                                             $payment_count = count($enrollment['payments']);
                                                             $enrollment_payment_total = 0;
                                                             foreach ($enrollment['payments'] as $payment) {
                                                                 $enrollment_payment_total += $payment['total_amount'];
                                                             }
+
+                                                            // Determine row class
+                                                            $row_class = 'enrollment-row-gray';
+                                                            $payment_row_class = 'payment-row-white';
                                                         ?>
-                                                            <tr class="enrollment-row" style="background-color: <?= $type_info['color'] ?>;">
-                                                                <td style="text-align: center; font-weight: bold;">
-                                                                    #<?= $enrollment['enrollment_id'] ?>
-                                                                    <?php if (!empty($enrollment['misc_id']) && strpos($enrollment['misc_id'], 'MISC') !== false) { ?>
-                                                                        <span class="misc-badge" style="font-size: 9px;">MISC</span>
+                                                            <!-- ENROLLMENT ROW - GRAY -->
+                                                            <tr class="enrollment-row-gray">
+                                                                <td style="text-align: center; font-weight: bold; color: #000000 !important;">
+                                                                    <?php if ($enrollment['is_misc']) { ?>
+                                                                        <!-- For MISC, show the MISC ID -->
+                                                                        <?= htmlspecialchars($enrollment['enrollment_id']) ?>
+                                                                    <?php } else { ?>
+                                                                        #<?= htmlspecialchars($enrollment['enrollment_id']) ?>
                                                                     <?php } ?>
                                                                 </td>
-                                                                <td style="text-align: left;">
+                                                                <td style="text-align: left; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['name'] ?? 'N/A') ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= date('m/d/Y', strtotime($enrollment['date'])) ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['client'] ?? '-') ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <?= htmlspecialchars($enrollment['closer'] ?? '-') ?>
                                                                 </td>
-                                                                <td style="text-align: right; font-weight: bold;">
+                                                                <td style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                     $<?= number_format($enrollment_total, 2) ?>
                                                                 </td>
-                                                                <td style="text-align: center;">
+                                                                <td style="text-align: center; color: #000000 !important;">
                                                                     <span class="badge-payment">
                                                                         <?= $payment_count ?> payments
-                                                                    </span>
-                                                                    <span style="font-size: 12px; color: #555; display: block;">
-                                                                        $<?= number_format($enrollment_payment_total, 2) ?>
                                                                     </span>
                                                                 </td>
                                                             </tr>
 
+                                                            <!-- PAYMENT ROWS - WHITE -->
                                                             <?php if (!empty($enrollment['payments'])) { ?>
                                                                 <?php foreach ($enrollment['payments'] as $payment) { ?>
-                                                                    <tr class="payment-row">
-                                                                        <td style="text-align: center; padding-left: 30px !important; color: #6c757d; font-size: 12px;">
-                                                                            <i class="bi bi-arrow-right-short"></i>
+                                                                    <tr class="payment-row-white">
+                                                                        <td style="text-align: center; padding-left: 30px !important; color: #000000 !important; font-size: 12px;">
+                                                                            <i class="bi bi-arrow-right-short payment-arrow"></i>
                                                                         </td>
-                                                                        <td style="text-align: left; color: #6c757d; font-size: 13px;">
+                                                                        <td style="text-align: left; color: #000000 !important; font-size: 13px;">
                                                                             <i class="bi bi-credit-card payment-icon"></i> Payment
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 13px;">
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
                                                                             <?= date('m/d/Y', strtotime($payment['date'])) ?>
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 13px;">
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
                                                                             <?= $payment['receipt_number'] ? '#' . $payment['receipt_number'] : '-' ?>
                                                                         </td>
-                                                                        <td style="text-align: center; font-size: 12px; color: #555;">
+                                                                        <td style="text-align: center; font-size: 12px; color: #000000 !important;">
                                                                             <?= $payment['payment_type'] ?? $payment['type'] ?? 'Unknown' ?>
                                                                         </td>
-                                                                        <td style="text-align: right; font-size: 13px; font-weight: 500;">
+                                                                        <td style="text-align: right; font-size: 13px; font-weight: 500; color: #000000 !important;">
                                                                             $<?= number_format($payment['total_amount'], 2) ?>
                                                                             <?php if ($payment['tip'] > 0) { ?>
-                                                                                <span class="text-muted-sm" style="display: block; font-weight: normal;">
+                                                                                <span style="display: block; font-weight: normal; color: #000000 !important; font-size: 11px;">
                                                                                     (Tip: $<?= number_format($payment['tip'], 2) ?>)
                                                                                 </span>
                                                                             <?php } ?>
                                                                         </td>
-                                                                        <td style="text-align: center;"></td>
+                                                                        <td style="text-align: center; font-size: 13px; color: #000000 !important;">
+                                                                            <span style="display: block; font-size: 12px; color: #000000 !important;">
+                                                                                $<?= number_format($payment['total_amount'], 2) ?>
+                                                                            </span>
+                                                                        </td>
                                                                     </tr>
                                                                 <?php } ?>
                                                             <?php } else { ?>
-                                                                <tr class="payment-row">
-                                                                    <td colspan="7" style="text-align: center; color: #999; font-style: italic; padding: 8px;">
+                                                                <tr class="payment-row-white">
+                                                                    <td colspan="7" style="text-align: center; color: #000000 !important; font-style: italic; padding: 8px;" class="no-payments">
                                                                         <i class="bi bi-info-circle"></i> No payments recorded for this enrollment
                                                                     </td>
                                                                 </tr>
                                                             <?php } ?>
-                                                        <?php } ?>
+                                                        <?php
+                                                            $row_counter++;
+                                                        } ?>
 
+                                                        <!-- Sub-total Row -->
                                                         <tr class="sub-total">
-                                                            <td colspan="5" style="text-align: right; font-weight: bold;">
+                                                            <td colspan="5" style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                 <?= $type_info['label'] ?> Sub-total:
                                                             </td>
-                                                            <td style="text-align: right; font-weight: bold;">
+                                                            <td style="text-align: right; font-weight: bold; color: #000000 !important;">
                                                                 $<?= number_format($section_total_amount, 2) ?>
                                                             </td>
-                                                            <td style="text-align: center; font-weight: bold;">
-                                                                <?= $section_payment_count ?> payments
+                                                            <td style="text-align: right; font-weight: bold; color: #000000 !important;">
+                                                                <span style="display: block; font-size: 12px; font-weight: bold; color: #000000 !important;">
+                                                                    $<?= number_format($section_payment_total, 2) ?> (<?= $section_payment_count ?> payments)
+                                                                </span>
                                                             </td>
                                                         </tr>
                                                     </tbody>
@@ -646,20 +711,20 @@ if ($type === 'export') {
                                         <div style="margin-top: 25px; padding: 15px 20px; background-color: #cce5ff; border: 2px solid #004085; border-radius: 5px;">
                                             <table class="table table-bordered" style="margin: 0; background: transparent;">
                                                 <tr class="grand-total" style="background: transparent;">
-                                                    <td style="width: 30%; text-align: right; border: none; font-size: 18px; font-weight: bold;">
+                                                    <td style="width: 30%; text-align: right; border: none; font-size: 18px; color: #000000 !important; font-weight: bold;">
                                                         GRAND TOTALS:
                                                     </td>
-                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px;">
-                                                        <div style="font-weight: bold; color: #333;">Total Payments</div>
-                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;"><?= $grand_payment_count ?></div>
+                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px; color: #000000 !important;">
+                                                        <div style="font-weight: bold; color: #000000 !important;">Total Payments</div>
+                                                        <div style="font-size: 20px; color: #000000 !important; font-weight: bold;"><?= $grand_payment_count ?></div>
                                                     </td>
-                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px;">
-                                                        <div style="font-weight: bold; color: #333;">Total Sales Amount</div>
-                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;">$<?= number_format($grand_total_amount, 2) ?></div>
+                                                    <td style="width: 23%; text-align: center; border: none; font-size: 15px; color: #000000 !important;">
+                                                        <div style="font-weight: bold; color: #000000 !important;">Total Sales Amount</div>
+                                                        <div style="font-size: 20px; color: #000000 !important; font-weight: bold;">$<?= number_format($grand_total_amount, 2) ?></div>
                                                     </td>
-                                                    <td style="width: 24%; text-align: center; border: none; font-size: 15px;">
-                                                        <div style="font-weight: bold; color: #333;">Total Payments Amount</div>
-                                                        <div style="font-size: 20px; color: #004085; font-weight: bold;">$<?= number_format($grand_payment_total, 2) ?></div>
+                                                    <td style="width: 24%; text-align: center; border: none; font-size: 15px; color: #000000 !important;">
+                                                        <div style="font-weight: bold; color: #000000 !important;">Total Payments Amount</div>
+                                                        <div style="font-size: 20px; color: #000000 !important; font-weight: bold;">$<?= number_format($grand_payment_total, 2) ?></div>
                                                     </td>
                                                 </tr>
                                             </table>
