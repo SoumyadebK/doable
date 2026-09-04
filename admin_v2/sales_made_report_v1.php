@@ -609,12 +609,12 @@ if ($type === 'export') {
                                                                             <?= $payment['payment_type'] ?? $payment['type'] ?? 'Unknown' ?>
                                                                         </td>
                                                                         <td style="text-align: right; font-size: 13px; font-weight: 500; color: #000000 !important;">
-                                                                            $<?= number_format($payment['total_amount'], 2) ?>
+                                                                            <!-- $<?= number_format($payment['total_amount'], 2) ?>
                                                                             <?php if ($payment['tip'] > 0) { ?>
                                                                                 <span style="display: block; font-weight: normal; color: #000000 !important; font-size: 11px;">
                                                                                     (Tip: $<?= number_format($payment['tip'], 2) ?>)
                                                                                 </span>
-                                                                            <?php } ?>
+                                                                            <?php } ?> -->
                                                                         </td>
                                                                         <td style="text-align: center; font-size: 13px; color: #000000 !important;">
                                                                             <span style="display: block; font-size: 12px; color: #000000 !important;">

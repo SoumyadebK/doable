@@ -951,7 +951,7 @@ if ($PK_USER_MASTER > 0) {
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
-                                                    <div class="label">Preferred Location</div>
+                                                    <div class="label">Second Location</div>
                                                     <div class="value">
                                                         <?php
                                                         $selected_location = [];
