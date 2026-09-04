@@ -21,6 +21,7 @@ $location_date = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND N
 while (!$location_date->EOF) {
     $message_string .= "Processing Location Billing: " . $location_date->fields['LOCATION_NAME'] . "<br>";
     $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
+    $LOCATION_DATA_UPDATE['NEXT_RENEWAL_DATE'] = date('Y-m-d');
     try {
         $payment_gateway_data = $db->Execute("SELECT * FROM `DOA_PAYMENT_GATEWAY_SETTINGS`");
 
@@ -130,6 +131,7 @@ while (!$location_date->EOF) {
 
     FINALIZE_PAYMENT:
     db_perform('DOA_LOCATION', $LOCATION_DATA_UPDATE, 'update', "PK_LOCATION = '" . $location_date->fields['PK_LOCATION'] . "'");
+
     $PAYMENT_DETAILS['PK_LOCATION'] = $location_date->fields['PK_LOCATION'];
     $PAYMENT_DETAILS['PK_CORPORATION'] = $location_date->fields['PK_CORPORATION'];
     $PAYMENT_DETAILS['PAYMENT_FROM'] = $PAYMENT_FROM;
@@ -148,7 +150,6 @@ while (!$location_date->EOF) {
     $info_log['info'] = $message_string;
     $info_log['created_at'] = date('Y-m-d H:i:s');
     db_perform('cron_running_log', $info_log, 'insert');
-
 
     $location_date->MoveNext();
 }

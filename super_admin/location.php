@@ -272,7 +272,7 @@ if ($location_data->RecordCount() > 0) {
                                                             <div class="form-group">
                                                                 <label class="col-md-12">Next Renewal Date</label>
                                                                 <div class="col-md-12">
-                                                                    <input type="text" class="form-control datepicker-normal" name="NEXT_RENEWAL_DATE" id="NEXT_RENEWAL_DATE" value="<?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? (($START_DATE == '') ? '' : (($RENEWAL_INTERVAL == 'monthly') ? date('m/d/Y', strtotime('+1 month', strtotime($START_DATE))) : date('m/d/Y', strtotime('+1 year', strtotime($START_DATE))))) : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>">
+                                                                    <input type="text" class="form-control datepicker-normal" name="NEXT_RENEWAL_DATE" id="NEXT_RENEWAL_DATE" value="<?= (($NEXT_RENEWAL_DATE == '0000-00-00') ? '' : date('m/d/Y', strtotime($NEXT_RENEWAL_DATE))) ?>">
                                                                 </div>
                                                             </div>
                                                         </div>

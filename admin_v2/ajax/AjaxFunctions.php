@@ -1503,6 +1503,7 @@ function saveLocationData($RESPONSE_DATA)
             $LOCATION_DATA['ACTIVE'] = 1;
             $LOCATION_DATA['CREATED_BY'] = $_SESSION['PK_USER'];
             $LOCATION_DATA['CREATED_ON'] = date("Y-m-d H:i");
+            $LOCATION_DATA['NEXT_RENEWAL_DATE'] = date('Y-m-d', strtotime('+1 month', strtotime($LOCATION_DATA['CREATED_ON'])));
 
             db_perform('DOA_LOCATION', $LOCATION_DATA, 'insert');
             $PK_LOCATION = $db->insert_ID();
