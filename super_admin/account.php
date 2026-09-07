@@ -569,6 +569,7 @@ while (!$account_payment_info->EOF) {
                                                         <th>City</th>
                                                         <th>Phone</th>
                                                         <th>Email</th>
+                                                        <th>Next Renewal Date</th>
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
@@ -585,6 +586,7 @@ while (!$account_payment_info->EOF) {
                                                             <td><?= $row->fields['CITY'] ?></td>
                                                             <td><?= $row->fields['PHONE'] ?></td>
                                                             <td><?= $row->fields['EMAIL'] ?></td>
+                                                            <td><?= ($row->fields['NEXT_RENEWAL_DATE'] == '0000-00-00') ? 'Not set' : date('m/d/Y', strtotime($row->fields['NEXT_RENEWAL_DATE'])) ?></td>
                                                             <td>
                                                                 <a onclick="showUserListByLocation(<?= $row->fields['PK_LOCATION'] ?>)"><i class="ti-user"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                                 <?php if ($row->fields['ACTIVE'] == 1) { ?>
