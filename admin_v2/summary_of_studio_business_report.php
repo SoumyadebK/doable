@@ -1668,8 +1668,8 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
             $('#weekly_start_date').val(urlStart);
         }
 
-        // 2) Form submission handler
-        $('#reportForm').on('submit', function(e) {
+        // 2) Form submission handler - FIXED for Safari
+        $('#reportForm input[type="submit"]').on('click', function(e) {
             e.preventDefault();
 
             // Get the week picker value
@@ -1689,25 +1689,29 @@ WHERE dam.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ")
             $('#weekly_start_date').val(startDateValue);
             $('#NAME').val('summary_of_studio_business_report');
 
-            // Create the form data
-            var formData = $(this).serialize();
+            // Get which button was clicked
+            var clickedButton = $(this).attr('name');
+            var action = $(this).val();
 
-            // Check which button was clicked
-            var clickedButton = $(document.activeElement).attr('name');
+            // Build base URL
+            var baseUrl = '<?php echo $_SERVER['PHP_SELF']; ?>';
+            var params = {
+                'WEEK_NUMBER': encodeURIComponent(weekValue),
+                'start_date': encodeURIComponent(startDateValue),
+                'NAME': 'summary_of_studio_business_report'
+            };
 
             if (clickedButton === 'generate_pdf') {
-                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
-                    '&start_date=' + encodeURIComponent(startDateValue) +
-                    '&NAME=summary_of_studio_business_report&generate_pdf=1';
+                params['generate_pdf'] = 1;
             } else if (clickedButton === 'generate_excel') {
-                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
-                    '&start_date=' + encodeURIComponent(startDateValue) +
-                    '&NAME=summary_of_studio_business_report&generate_excel=1';
+                params['generate_excel'] = 1;
             } else if (clickedButton === 'view') {
-                window.location.href = '<?php echo $_SERVER['PHP_SELF']; ?>?WEEK_NUMBER=' + encodeURIComponent(weekValue) +
-                    '&start_date=' + encodeURIComponent(startDateValue) +
-                    '&NAME=summary_of_studio_business_report&view=1';
+                params['view'] = 1;
             }
+
+            // Build query string
+            var queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+            window.location.href = baseUrl + '?' + queryString;
 
             return false;
         });
