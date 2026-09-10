@@ -1,4 +1,5 @@
 <?php
+require_once("../../global/stripe-php-master/init.php");
 
 use Dompdf\Dompdf;
 use Mpdf\Mpdf;
@@ -762,9 +763,9 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
-
-
-    $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $RESPONSE_DATA['AUTO_PAY_PAYMENT_METHOD_ID'];
+    if ($ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] == 1) {
+        $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = getCustomerDefaultCard($enrollment_service_data->fields['PK_USER_MASTER']);
+    }
 
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
@@ -774,6 +775,52 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $return_data['PK_ENROLLMENT_BILLING'] = $PK_ENROLLMENT_BILLING;
     $return_data['PK_ENROLLMENT_LEDGER'] = $PK_ENROLLMENT_LEDGER;
     echo json_encode($return_data);
+}
+
+function getCustomerDefaultCard($PK_USER_MASTER)
+{
+    global $db_account;
+    global $master_database;
+    $payment_gateway_data = getPaymentGatewayData();
+
+    $PAYMENT_GATEWAY = $payment_gateway_data->fields['PAYMENT_GATEWAY_TYPE'];
+    $GATEWAY_MODE  = $payment_gateway_data->fields['GATEWAY_MODE'];
+
+    $SECRET_KEY = $payment_gateway_data->fields['SECRET_KEY'];
+    $PUBLISHABLE_KEY = $payment_gateway_data->fields['PUBLISHABLE_KEY'];
+
+    $SQUARE_ACCESS_TOKEN = $payment_gateway_data->fields['ACCESS_TOKEN'];
+    $SQUARE_APP_ID = $payment_gateway_data->fields['APP_ID'];
+    $SQUARE_LOCATION_ID = $payment_gateway_data->fields['LOCATION_ID'];
+
+    $AUTHORIZE_LOGIN_ID         = $payment_gateway_data->fields['LOGIN_ID']; //"4Y5pCy8Qr";
+    $AUTHORIZE_TRANSACTION_KEY     = $payment_gateway_data->fields['TRANSACTION_KEY']; //"4ke43FW8z3287HV5";
+    $AUTHORIZE_CLIENT_KEY         = $payment_gateway_data->fields['AUTHORIZE_CLIENT_KEY']; //"8ZkyJnT87uFztUz56B4PfgCe7yffEZA4TR5dv8ALjqk5u9mr6d8Nmt8KHyp8s9Ay";
+
+    $MERCHANT_ID            = $payment_gateway_data->fields['MERCHANT_ID'];
+    $API_KEY                = $payment_gateway_data->fields['API_KEY'];
+    $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
+
+    $default_card = '';
+
+    if ($PAYMENT_GATEWAY == "Stripe") {
+        $customer_payment_info = $db_account->Execute("SELECT DOA_CUSTOMER_PAYMENT_INFO.CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_USER_MASTER.PK_USER = DOA_CUSTOMER_PAYMENT_INFO.PK_USER WHERE PAYMENT_TYPE = 'Stripe' AND PK_USER_MASTER = '$PK_USER_MASTER'");
+        if ($SECRET_KEY != '' && $customer_payment_info->RecordCount() > 0) {
+            $stripe = new \Stripe\StripeClient($SECRET_KEY);
+            $CUSTOMER_PAYMENT_ID = $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'];
+
+            $all_cards = $stripe->customers->allSources(
+                $CUSTOMER_PAYMENT_ID,
+                ['object' => 'card']
+            );
+
+            foreach ($all_cards->data as $card_details) {
+                $default_card = $card_details->id;
+            }
+        }
+    }
+
+    return $default_card;
 }
 
 function changeEnrollmentAutoPay($RESPONSE_DATA)
