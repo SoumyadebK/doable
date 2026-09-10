@@ -192,7 +192,7 @@ while (!$enrollment_data->EOF) {
                                     <?php } else { ?>
                                         <label class="form-check-label autopay-label" onclick="addEnrollmentAutoPay(<?= $PK_ENROLLMENT_MASTER ?>);"> Auto Pay
                                         <?php } ?>
-                                        <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1) ? 'checked' : '' ?>>
+                                        <input class="form-check-input me-2" type="checkbox" role="switch" <?= ($enrollment_data->fields['ACTIVE_AUTO_PAY'] == 1 && trim($enrollment_data->fields['PAYMENT_METHOD_ID'])) ? 'checked' : '' ?>>
                                         </label>
                             </div>
                         </div>

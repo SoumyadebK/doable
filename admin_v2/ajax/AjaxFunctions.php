@@ -762,7 +762,10 @@ function saveEnrollmentBillingData($RESPONSE_DATA)
     $html_template = str_replace('{BILLED_AMOUNT}', $BILLED_AMOUNT, $html_template);
     $ENROLLMENT_MASTER_DATA['AGREEMENT_PDF_LINK'] = generatePdf($html_template, $RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
     $ENROLLMENT_MASTER_DATA['ACTIVE_AUTO_PAY'] = $RESPONSE_DATA['ACTIVE_AUTO_PAY'];
+
+
     $ENROLLMENT_MASTER_DATA['PAYMENT_METHOD_ID'] = $RESPONSE_DATA['AUTO_PAY_PAYMENT_METHOD_ID'];
+
     db_perform_account('DOA_ENROLLMENT_MASTER', $ENROLLMENT_MASTER_DATA, 'update', " PK_ENROLLMENT_MASTER =  '$RESPONSE_DATA[PK_ENROLLMENT_MASTER]'");
 
     markAdhocAppointmentNormal($RESPONSE_DATA['PK_ENROLLMENT_MASTER']);
@@ -3824,6 +3827,7 @@ function checkCustomerDuplicates($RESPONSE_DATA)
     $phone = isset($RESPONSE_DATA['PHONE']) ? $RESPONSE_DATA['PHONE'] : '';
     $email = isset($RESPONSE_DATA['EMAIL']) ? $RESPONSE_DATA['EMAIL'] : '';
     $customerId = isset($RESPONSE_DATA['CUSTOMER_ID']) ? $RESPONSE_DATA['CUSTOMER_ID'] : '';
+    $PK_ACCOUNT_MASTER = $_SESSION['PK_ACCOUNT_MASTER'];
 
     $response = ['status' => 'success'];
 
@@ -3836,7 +3840,7 @@ function checkCustomerDuplicates($RESPONSE_DATA)
         $phoneCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME, PHONE, EMAIL_ID 
                                     FROM DOA_USERS 
                                     WHERE REPLACE(REPLACE(REPLACE(REPLACE(PHONE, '(', ''), ')', ''), '-', ''), ' ', '') LIKE '%$cleanPhone%' 
-                                    AND IS_DELETED = 0");
+                                    AND IS_DELETED = 0 AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
 
         if ($phoneCheck->RecordCount() > 0) {
             $response['status'] = 'error';
@@ -3851,7 +3855,7 @@ function checkCustomerDuplicates($RESPONSE_DATA)
         $emailCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME, EMAIL_ID, PHONE 
                                     FROM DOA_USERS 
                                     WHERE EMAIL_ID = '$email' 
-                                    AND IS_DELETED = 0");
+                                    AND IS_DELETED = 0 AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
 
         if ($emailCheck->RecordCount() > 0) {
             $response['status'] = 'error';
@@ -3866,7 +3870,7 @@ function checkCustomerDuplicates($RESPONSE_DATA)
         $customerIdCheck = $db->Execute("SELECT PK_USER, FIRST_NAME, LAST_NAME 
                                          FROM DOA_USERS 
                                          WHERE USER_ID = '$customerId' 
-                                         AND IS_DELETED = 0");
+                                         AND IS_DELETED = 0 AND PK_ACCOUNT_MASTER = '$PK_ACCOUNT_MASTER'");
 
         if ($customerIdCheck->RecordCount() > 0) {
             $response['status'] = 'error';

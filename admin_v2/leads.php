@@ -67,7 +67,11 @@ if (!empty($_POST)) {
         $PK_LEADS = $_GET['id'];
     }
 
-    if (!empty($PK_LEADS) && !empty($_POST['DATE'])) {
+    if (empty($_POST['DATE'])) {
+        $_POST['DATE'] = date("m/d/Y");
+    }
+
+    if (!empty($PK_LEADS)) {
         $LEAD_DATE = array(
             'PK_LEADS' => $PK_LEADS,
             'PK_LEAD_STATUS' => $_POST['PK_LEAD_STATUS'],

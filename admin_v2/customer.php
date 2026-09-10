@@ -2819,7 +2819,7 @@ if ($PK_USER_MASTER > 0) {
                         icon: "success",
                         timer: 2000,
                     }).then((result) => {
-                        //window.location.href = 'customer.php?id=' + PK_USER + '&master_id=' + PK_USER_MASTER + '&tab=enrollment';
+                        window.location.reload();
                     });
                 } else {
                     Swal.fire({
