@@ -97,6 +97,31 @@ if (!empty($_GET['NAME'])) {
         }
         exit;
     }
+    // Handle due_date_payment_schedule_report
+    else if ($reportName == 'due_date_payment_schedule_report') {
+        $DUE_DATE = isset($_GET['DUE_DATE']) ? sanitizeInput($_GET['DUE_DATE']) : '';
+
+        // Validate input
+        if (empty($DUE_DATE)) {
+            $_SESSION['error_message'] = 'Please select a date.';
+            header('location: ' . $_SERVER['PHP_SELF']);
+            exit;
+        }
+
+        // Validate date format
+        if (!validateDate($DUE_DATE)) {
+            $_SESSION['error_message'] = 'Invalid date format. Please use MM/DD/YYYY.';
+            header('location: ' . $_SERVER['PHP_SELF']);
+            exit;
+        }
+
+        if ($generate_excel === 1) {
+            header('location:excel_' . $reportName . '.php?due_date=' . urlencode($DUE_DATE) . '&report_type=' . $reportName);
+        } else {
+            header('location:due_date_payment_schedule_report.php?due_date=' . urlencode($DUE_DATE) . '&type=' . $type);
+        }
+        exit;
+    }
 }
 
 // Display error message if exists
@@ -188,6 +213,7 @@ if (isset($_SESSION['error_message'])) {
                                                     <option value="nfa_active_customers_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'nfa_active_customers_report') ? 'selected' : '' ?>>NFA ACTIVE CUSTOMERS REPORT</option>
                                                     <option value="nfa_active_no_enrollments_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'nfa_active_no_enrollments_report') ? 'selected' : '' ?>>NFA ACTIVE NO ENROLLMENTS REPORT</option>
                                                     <option value="customer_summary_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'customer_summary_report') ? 'selected' : '' ?>>CUSTOMER SUMMARY REPORT</option>
+                                                    <option value="due_date_payment_schedule_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'due_date_payment_schedule_report') ? 'selected' : '' ?>>DUE DATE PAYMENT SCHEDULE</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -237,6 +263,14 @@ if (isset($_SESSION['error_message'])) {
                                             </div>
                                         </div>
 
+                                        <!-- Fields for Due Date Payment Schedule Report -->
+                                        <div class="col-2 due_date" style="display: none;">
+                                            <div class="form-group">
+                                                <label class="field-label">Select Date <span class="required-star">*</span></label>
+                                                <input type="text" id="DUE_DATE" name="DUE_DATE" class="form-control datepicker-normal" placeholder="Select Date" value="<?= !empty($_GET['DUE_DATE']) ? htmlspecialchars($_GET['DUE_DATE']) : '' ?>">
+                                            </div>
+                                        </div>
+
                                         <div class="col-4" style="padding-top: 28px;">
                                             <?php if (in_array('Reports Create', $PERMISSION_ARRAY)) { ?>
                                                 <input type="submit" name="view" value="View" class="btn btn-info" style="background-color: #39B54A !important;">
@@ -276,6 +310,7 @@ if (isset($_SESSION['error_message'])) {
             $('#APPOINTMENT_TYPE').prop('required', false);
             $('#FROM_DATE').prop('required', false);
             $('#TO_DATE').prop('required', false);
+            $('#DUE_DATE').prop('required', false);
 
             // Hide all conditional fields
             $('.selected_date').hide();
@@ -283,6 +318,7 @@ if (isset($_SESSION['error_message'])) {
             $('.appointment_type').hide();
             $('.from_date').hide();
             $('.to_date').hide();
+            $('.due_date').hide();
 
             // Show fields based on selected report
             if (selectedReport === 'active_account_balance_report') {
@@ -298,6 +334,9 @@ if (isset($_SESSION['error_message'])) {
                 $('.to_date').show();
                 $('#FROM_DATE').prop('required', true);
                 $('#TO_DATE').prop('required', true);
+            } else if (selectedReport === 'due_date_payment_schedule_report') {
+                $('.due_date').show();
+                $('#DUE_DATE').prop('required', true);
             }
         }
 
@@ -353,6 +392,19 @@ if (isset($_SESSION['error_message'])) {
                 if (!appointmentType) {
                     errorMessage = 'Please select an appointment type.';
                     isValid = false;
+                }
+            } else if (selectedReport === 'due_date_payment_schedule_report') {
+                let dueDate = $('#DUE_DATE').val();
+                if (!dueDate) {
+                    errorMessage = 'Please select a date.';
+                    isValid = false;
+                } else {
+                    // Validate date format
+                    let dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+                    if (!dateRegex.test(dueDate)) {
+                        errorMessage = 'Invalid date format. Please use MM/DD/YYYY.';
+                        isValid = false;
+                    }
                 }
             } else if (!selectedReport) {
                 errorMessage = 'Please select a report.';
