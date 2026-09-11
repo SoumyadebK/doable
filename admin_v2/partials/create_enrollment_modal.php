@@ -573,7 +573,45 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 
 
-<!--Payment Model-->
+
+<!-- Signature Modal -->
+<div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="bi bi-pencil"></i> Add Signature</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="after_signature" value="0">
+                <canvas id="signature-pad" width="710" height="200"></canvas>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button id="clear" class="btn btn-secondary">Clear</button>
+                    <button id="save_signature" class="btn btn-primary">Sign Agreement</button>
+                    <button id="cancel_signature" class="btn btn-secondary cancel" onclick="signAgreementLater();">Sign Later</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    #signature-pad {
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        width: 100%;
+        height: 200px;
+        touch-action: none;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="../assets/sumoselect/jquery.sumoselect.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script> -->
+
 <?php
 $url_array = explode("/", $mail_url['path']);
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
@@ -589,7 +627,6 @@ if ($current_address != 'customer.php') {
 <script src='https://unpkg.com/popper.js/dist/umd/popper.min.js'></script>
 <script src='https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js'></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
 <script>
     $('#closeDrawer4, .overlay4').click(function() {
         $('#sideDrawer4, .overlay4').removeClass('active');
@@ -765,7 +802,6 @@ if ($current_address != 'customer.php') {
         });
     });*/
 </script>
-
 <script>
     let PK_ENROLLMENT_MASTER = 0;
 
@@ -780,9 +816,11 @@ if ($current_address != 'customer.php') {
     });
 
     $('.datepicker-future').datepicker({
+
         dateFormat: 'mm/dd/yy',
         beforeShow: function(input, inst) {
             var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+
             if (selectedDate) {
                 var nextDay = new Date(selectedDate.getTime());
                 nextDay.setDate(nextDay.getDate() + 1);
@@ -800,21 +838,27 @@ if ($current_address != 'customer.php') {
         let PK_USER_MASTER = $(param).val();
         $('.CUSTOMER_ID').val(PK_USER_MASTER);
         $('#enrollment_form #PK_LOCATION').val(location_id);
+
         //alert(location_id);
         $.ajax({
+
             url: "ajax/get_locations.php",
             type: "POST",
             data: {
                 PK_USER: PK_USER,
                 LOCATION_ID: location_id
-            },
+            }
+
+            ,
             async: false,
             cache: false,
             success: function(result) {
+
                 //$('#PK_LOCATION').empty().append(result);
                 if (PK_ENROLLMENT_MASTER == 0) {
                     showEnrollmentInstructor();
                 }
+
                 showEnrollmentBy();
                 getEnrollmentCount();
             }
@@ -823,16 +867,21 @@ if ($current_address != 'customer.php') {
 
     function showEnrollmentBy() {
         let location_id = $('#enrollment_form #PK_LOCATION').val();
+
         $.ajax({
+
             url: "ajax/get_enrollment_by.php",
             type: "POST",
             data: {
                 LOCATION_ID: location_id
-            },
+            }
+
+            ,
             async: false,
             cache: false,
             success: function(result) {
                 $('#enrollment_form #ENROLLMENT_BY_ID').empty().append(result);
+
                 if (PK_ENROLLMENT_MASTER > 0) {
                     $('#enrollment_form #ENROLLMENT_BY_ID').val(ENROLLMENT_BY_ID);
                 }
@@ -842,12 +891,16 @@ if ($current_address != 'customer.php') {
 
     function showEnrollmentInstructor() {
         let location_id = $('#enrollment_form #PK_LOCATION').val();
+
         $.ajax({
+
             url: "ajax/get_instructor.php",
             type: "POST",
             data: {
                 LOCATION_ID: location_id
-            },
+            }
+
+            ,
             async: false,
             cache: false,
             success: function(result) {
@@ -860,15 +913,19 @@ if ($current_address != 'customer.php') {
         let PK_ENROLLMENT_MASTER = 0;
         let PK_USER_MASTER = $('#enrollment_form #PK_USER_MASTER').val();
         let PK_LOCATION = $('#enrollment_form #PK_LOCATION').val();
+
         if (PK_USER_MASTER > 0 && PK_LOCATION > 0 && PK_ENROLLMENT_MASTER == 0) {
             $.ajax({
+
                 url: "ajax/AjaxFunctions.php",
                 type: "POST",
                 data: {
                     PK_USER_MASTER: PK_USER_MASTER,
                     PK_LOCATION: PK_LOCATION,
                     FUNCTION_NAME: 'getEnrollmentCount'
-                },
+                }
+
+                ,
                 async: false,
                 cache: false,
                 success: function(result) {
@@ -896,6 +953,7 @@ if ($current_address != 'customer.php') {
     function toggleDiscount(checkbox) {
         const discountTypeSelect = checkbox.closest('.d-flex').nextElementSibling.querySelector('select');
         const discountValueInput = checkbox.closest('.d-flex').nextElementSibling.querySelector('input');
+
         if (checkbox.checked) {
             discountTypeSelect.removeAttribute('disabled');
             discountValueInput.removeAttribute('disabled');
@@ -915,6 +973,7 @@ if ($current_address != 'customer.php') {
 
             // Recalculate total
             let total = 0;
+
             $('.FINAL_AMOUNT').each(function() {
                 total += parseFloat($(this).val()) || 0;
             });
@@ -929,6 +988,7 @@ if ($current_address != 'customer.php') {
 
     function addMoreServices() {
         let charge_type = $('.charge_type:checked').val();
+
         if (charge_type === 'Membership') {
             var value = "XX";
             var type = "readonly";
@@ -939,106 +999,17 @@ if ($current_address != 'customer.php') {
             var total = "readonly";
         }
 
-        $('#append_service_div').append(`<div class="service_code_area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_${service_counter}">
-                                            <div class="datetime-item d-flex mb-2">
-                                                <div class="align-self-center">
-                                                    Service
-                                                </div>
-                                                <div class="d-flex gap-2 ms-auto align-items-start">
-                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm delete-package-service" data-service-id="${service_counter}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529">
-                                                            <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                            <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                            <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0"></path>
-                                                            <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0"></path>
-                                                        </svg>
-                                                    </button>
-                                                    <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" data-bs-target="#package${service_counter}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529">
-                                                            <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero"></path>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="align-self-center mb-2">
-                                                <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this);" required>
-                                                    <option value="">Select</option>
-                                                    <?php
-                                                    $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
-                                                    while (!$row->EOF) { ?>
-                                                        <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" data-price="<?= $row->fields['PRICE'] ?>"><?= $row->fields['SERVICE_NAME'] ?></option>
-                                                    <?php $row->MoveNext();
-                                                    } ?>
-                                                </select>
-                                            </div>
-
-                                            <div id="package${service_counter}" class="collapse show">
-                                                <!-- Sessions -->
-                                                <div class="d-inline-flex gap-1">
-                                                    <div class="session-item">
-                                                        <label class="small text-muted">No. of sessions</label>
-                                                        <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" required>
-                                                    </div>
-                                                    <div class="session-item">
-                                                        <label class="small text-muted">Price / session</label>
-                                                        <div class="session-item position-relative">
-                                                            <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;" required>
-                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
-                                                        <label class="small text-muted">Total</label>
-                                                        <input type="hidden" class="TOTAL" name="TOTAL[]" value="0.00">
-                                                        <div class="f10 pt-2"><span class="TOTAL_TEXT">$0.00</span></div>
-                                                    </div>
-                                                </div>
-                                                <hr class="my-2">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <label class="f12 text-muted">Discount</label>
-                                                    <div class="form-check form-switch p-0 mb-0" style="min-height: auto;">
-                                                        <input class="form-check-input" type="checkbox" name="HAS_DISCOUNT[]" onchange="toggleDiscount(this)">
-                                                    </div>
-                                                </div>
-                                                <div class="d-inline-flex gap-1">
-                                                    <div class="session-item">
-                                                        <label class="small text-muted">Type</label>
-                                                        <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" disabled onchange="calculateServiceTotal(this)">
-                                                            <option value="">Select</option>
-                                                            <option value="1">Fixed</option>
-                                                            <option value="2">Percent</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="session-item">
-                                                        <label class="small text-muted">Value</label>
-                                                        <div class="session-item position-relative">
-                                                            <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" disabled onkeyup="calculateServiceTotal(this)">
-                                                            <span class="position-absolute" style="top: 7px; left: 10px;">$</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="session-item" style="min-width: 45px; text-align: right;">
-                                                        <label class="small text-muted">Total</label>
-                                                        <div class="f10 pt-2 FINAL_AMOUNT_TEXT">$0.00</div>
-                                                        <input type="hidden" class="FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="0.00">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`);
+        $('#append_service_div').append(`<div class="service_code_area f12 bg-light p-2 border rounded-2 mb-2" id="package_wrapper_${service_counter}" > <div class="datetime-item d-flex mb-2" > <div class="align-self-center" > Service </div> <div class="d-flex gap-2 ms-auto align-items-start" > <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm delete-package-service" data-service-id="${service_counter}" > <svg xmlns="http://www.w3.org/2000/svg" viewBox="-85 -19 617 617.33331" width="14px" height="14px" fill="#212529" > <path d="m219.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0" ></path> <path d="m299.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0" ></path> <path d="m139.121094 319.375c-6.894532.019531-12.480469 5.605469-12.5 12.5v152.5c0 6.90625 5.601562 12.5 12.5 12.5 6.902344 0 12.5-5.59375 12.5-12.5v-152.5c-.019532-6.894531-5.601563-12.480469-12.5-12.5zm0 0" ></path> <path d="m386.121094 64h-71.496094v-36.375c-.007812-15.257812-12.375-27.62109375-27.628906-27.625h-135.746094c-15.257812.00390625-27.621094 12.367188-27.628906 27.625v36.5h-71.496094c-27.515625.007812-51.003906 19.863281-55.582031 46.992188-4.582031 27.128906 11.09375 53.601562 37.078125 62.632812-.246094.894531-.371094 1.820312-.375 2.75v339.75c.015625 34.511719 27.988281 62.484375 62.5 62.5h246.875c34.511718-.015625 62.492187-27.988281 62.5-62.5v-339.75c.011718-.929688-.117188-1.855469-.375-2.75 26.019531-9.0625 41.6875-35.585938 37.078125-62.75s-28.152344-47.023438-55.703125-47zm-237.371094-36.375c.003906-1.449219 1.175781-2.617188 2.621094-2.625h135.753906c1.445312.007812 2.617188 1.175781 2.621094 2.625v36.5h-140.996094zm193.75 526.125h-246.753906c-20.683594-.058594-37.4375-16.816406-37.5-37.5v-339.375h321.875v339.375c-.117188 20.707031-16.914063 37.453125-37.621094 37.5zm43.621094-401.875h-333.996094c-17.332031 0-31.378906-14.046875-31.378906-31.375s14.046875-31.375 31.378906-31.375h333.996094c17.332031 0 31.378906 14.046875 31.378906 31.375s-14.046875 31.375-31.378906 31.375zm0 0" ></path> </svg> </button> <button type="button" class="bg-white theme-text-light border-0 rounded-circle avatar-sm btncollapse" data-bs-toggle="collapse" data-bs-target="#package${service_counter}" > <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28444 28444" width="14px" height="14px" fill="#212529" > <path d="m26891 9213-12669 12669-12669-12669 1768-1767 10901 10901 10902-10901z" fill-rule="nonzero" ></path> </svg> </button> </div> </div> <div class="align-self-center mb-2" > <select class="form-control PK_SERVICE_MASTER" name="PK_SERVICE_MASTER[]" onchange="selectThisServiceCode(this);" required> <option value="" >Select</option> <?php
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $row = $db_account->Execute("SELECT DISTINCT DOA_SERVICE_MASTER.PK_SERVICE_MASTER, DOA_SERVICE_MASTER.SERVICE_NAME, DOA_SERVICE_MASTER.DESCRIPTION, DOA_SERVICE_MASTER.ACTIVE, DOA_SERVICE_CODE.PRICE FROM `DOA_SERVICE_MASTER` INNER JOIN DOA_SERVICE_CODE ON DOA_SERVICE_MASTER.PK_SERVICE_MASTER = DOA_SERVICE_CODE.PK_SERVICE_MASTER WHERE DOA_SERVICE_MASTER.PK_LOCATION IN (" . $DEFAULT_LOCATION_ID . ") AND IS_DELETED = 0");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            while (!$row->EOF) { ?> <option value="<?php echo $row->fields['PK_SERVICE_MASTER']; ?>" data-price="<?= $row->fields['PRICE'] ?>" ><?= $row->fields['SERVICE_NAME'] ?></option> <?php $row->MoveNext();
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            } ?> </select> </div> <div id="package${service_counter}" class="collapse show" > <div class="d-inline-flex gap-1" > <div class="session-item" > <label class="small text-muted" >No. of sessions</label> <input type="number" class="form-control form-control-sm text-center NUMBER_OF_SESSION" name="NUMBER_OF_SESSION[]" onkeyup="calculateServiceTotal(this)" required> </div> <div class="session-item" > <label class="small text-muted" >Price / session</label> <div class="session-item position-relative" > <input type="text" class="form-control form-control-sm PRICE_PER_SESSION" name="PRICE_PER_SESSION[]" onkeyup="calculateServiceTotal(this)" style="padding-left: 20px;" required> <span class="position-absolute" style="top: 7px; left: 10px;" >$</span> </div> </div> <div class="session-item" style="min-width: 45px; text-align: right;" > <label class="small text-muted" >Total</label> <input type="hidden" class="TOTAL" name="TOTAL[]" value="0.00" > <div class="f10 pt-2" ><span class="TOTAL_TEXT" >$0.00</span></div> </div> </div> <hr class="my-2" > <div class="d-flex justify-content-between align-items-center mb-2" > <label class="f12 text-muted" >Discount</label> <div class="form-check form-switch p-0 mb-0" style="min-height: auto;" > <input class="form-check-input" type="checkbox" name="HAS_DISCOUNT[]" onchange="toggleDiscount(this)" > </div> </div> <div class="d-inline-flex gap-1" > <div class="session-item" > <label class="small text-muted" >Type</label> <select class="form-select form-select-sm DISCOUNT_TYPE" style="min-width: 90px;" name="DISCOUNT_TYPE[]" value="${value}" disabled onchange="calculateServiceTotal(this)" > <option value="" >Select</option> <option value="1" >Fixed</option> <option value="2" >Percent</option> </select> </div> <div class="session-item" > <label class="small text-muted" >Value</label> <div class="session-item position-relative" > <input type="text" class="form-control form-control-sm DISCOUNT" name="DISCOUNT[]" style="padding-left: 20px;" value="${value}" disabled onkeyup="calculateServiceTotal(this)" > <span class="position-absolute" style="top: 7px; left: 10px;" >$</span> </div> </div> <div class="session-item" style="min-width: 45px; text-align: right;" > <label class="small text-muted" >Total</label> <div class="f10 pt-2 FINAL_AMOUNT_TEXT" >$0.00</div> <input type="hidden" class="FINAL_AMOUNT" name="FINAL_AMOUNT[]" value="0.00" > </div> </div> </div> </div>`);
 
         service_counter++;
         updateServiceAvailability();
     }
 
     function addMoreServiceProviders() {
-        $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;">
-                                                        <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER">
-                                                            <option value="" selected disabled>-- Select --</option>
-                                                        </select>
-                                                        <div class="position-relative">
-                                                            <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]">
-                                                        </div>
-                                                    </div>`);
+        $('#append_service_provider_div').append(`<div class="form-group d-flex gap-2 align-items-center" id="salesby" style="margin-top: 1%;" > <select class="form-control form-select SERVICE_PROVIDER" name="SERVICE_PROVIDER_ID[]" id="SERVICE_PROVIDER" > <option value="" selected disabled>-- Select --</option> </select> <div class="position-relative" > <input type="text" class="form-control SERVICE_PROVIDER_PERCENTAGE" placeholder="Enter %" style="max-width: 120px;" name="SERVICE_PROVIDER_PERCENTAGE[]" > </div> </div>`);
         showEnrollmentInstructor();
     }
 
@@ -1050,6 +1021,7 @@ if ($current_address != 'customer.php') {
         $(param).closest('.form-group').remove();
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let total_flexible_payment = 0;
+
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
             total_flexible_payment += parseFloat($(this).val());
         });
@@ -1060,8 +1032,10 @@ if ($current_address != 'customer.php') {
     function updateServiceAvailability() {
         // Get all selected service IDs
         let selectedServices = [];
+
         $('.PK_SERVICE_MASTER').each(function() {
             let val = $(this).val();
+
             if (val && val !== 'Select') {
                 selectedServices.push(val);
             }
@@ -1077,6 +1051,7 @@ if ($current_address != 'customer.php') {
 
             // Disable options that are selected in other selects
             selectedServices.forEach(function(serviceId) {
+
                 // Don't disable the option if it's the current select's value
                 if (serviceId !== currentValue) {
                     currentSelect.find('option[value="' + serviceId + '"]').prop('disabled', true);
@@ -1093,6 +1068,7 @@ if ($current_address != 'customer.php') {
         let price = $(param).find(':selected').data('price');
 
         let charge_type = $('.charge_type:checked').val();
+
         if (charge_type === 'Membership') {
             $(param).closest('.service_code_area').find('.SERVICE_DETAILS').val(service_details);
             $(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val("XX");
@@ -1107,12 +1083,16 @@ if ($current_address != 'customer.php') {
 
     function selectThisService(param) {
         let PK_SERVICE_MASTER = $(param).val();
+
         $.ajax({
+
             url: "ajax/get_service_codes.php",
             type: "POST",
             data: {
                 PK_SERVICE_MASTER: PK_SERVICE_MASTER
-            },
+            }
+
+            ,
             async: false,
             cache: false,
             success: function(result) {
@@ -1125,13 +1105,17 @@ if ($current_address != 'customer.php') {
     function selectThisPackage(param) {
         let PK_PACKAGE = $(param).val();
         let EXPIRY_DATE = $(param).find(':selected').data('expiry_date');
+
         if (PK_PACKAGE) {
             $.ajax({
+
                 url: "ajax/get_packages.php",
                 type: "POST",
                 data: {
                     PK_PACKAGE: PK_PACKAGE
-                },
+                }
+
+                ,
                 async: false,
                 cache: false,
                 success: function(result) {
@@ -1143,6 +1127,7 @@ if ($current_address != 'customer.php') {
 
                     // Calculate total amount from FINAL_AMOUNT hidden inputs
                     let TOTAL_AMOUNT = 0;
+
                     $('#append_service_div .FINAL_AMOUNT').each(function() {
                         TOTAL_AMOUNT += parseFloat($(this).val()) || 0;
                     });
@@ -1227,9 +1212,11 @@ if ($current_address != 'customer.php') {
         let TOTAL = 0;
 
         if (charge_type === 'Membership') {
-            TOTAL = ($(param).closest('.service_code_area').find('.TOTAL').val() == '') ? 0 : $(param).closest('.service_code_area').find('.TOTAL').val();
+            TOTAL = ($(param).closest('.service_code_area').find('.TOTAL').val() == '') ? 0 : $(
+                param).closest('.service_code_area').find('.TOTAL').val();
         } else {
-            let number_of_session = ($(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val();
+            let number_of_session = ($(param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val() == '') ? 0 : $(
+                param).closest('.service_code_area').find('.NUMBER_OF_SESSION').val();
             let service_price = ($(param).closest('.service_code_area').find('.PRICE_PER_SESSION').val()) ?? 0;
             TOTAL = parseFloat(number_of_session) * parseFloat(service_price);
             $(param).closest('.service_code_area').find('.TOTAL').val(parseFloat(TOTAL).toFixed(2));
@@ -1239,6 +1226,7 @@ if ($current_address != 'customer.php') {
         let DISCOUNT = ($(param).closest('.service_code_area').find('.DISCOUNT').val()) ?? 0;
         let DISCOUNT_TYPE = ($(param).closest('.service_code_area').find('.DISCOUNT_TYPE').val()) ?? 0;
         let FINAL_AMOUNT = parseFloat(TOTAL);
+
         if (DISCOUNT_TYPE == 1) {
             FINAL_AMOUNT = parseFloat(TOTAL - DISCOUNT);
         } else {
@@ -1246,10 +1234,12 @@ if ($current_address != 'customer.php') {
                 FINAL_AMOUNT = parseFloat(TOTAL - (TOTAL * (DISCOUNT / 100)));
             }
         }
+
         $(param).closest('.service_code_area').find('.FINAL_AMOUNT').val(FINAL_AMOUNT.toFixed(2));
         $(param).closest('.service_code_area').find('.FINAL_AMOUNT_TEXT').text('$' + FINAL_AMOUNT.toFixed(2));
 
         let TOTAL_AMOUNT = 0;
+
         $(param).closest('#enrollment_form').find('.FINAL_AMOUNT').each(function() {
             TOTAL_AMOUNT += parseFloat($(this).val());
         });
@@ -1265,22 +1255,20 @@ if ($current_address != 'customer.php') {
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
         let total_flexible_payment = 0;
+
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
             total_flexible_payment += parseFloat($(this).val());
         });
+
         if ((total_flexible_payment + down_payment) < total_bill) {
-            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2" style="margin-left: 16px;">
-                                                    <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;"><i class="fa fa-trash"></i></a>
-                                                    <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;">
-                                                    <div class="position-relative">
-                                                        <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;">
-                                                        <span class="position-absolute f12" style="top: 13px; left: 10px;">$</span>
-                                                    </div>
-                                                </div>`);
+            $('#next_payment_dates_div').append(`<div class="form-group d-flex gap-2 mb-2" style="margin-left: 16px;" > <a href="javascript:;" onclick="removeThisAmount(this);" style="color: red; font-size: 20px; margin-top:4px;" ><i class="fa fa-trash" ></i></a> <input type="text" name="FLEXIBLE_PAYMENT_DATE[]" class="form-control datepicker-future FLEXIBLE_PAYMENT_DATE" placeholder="Select date" required onkeydown="return false;" > <div class="position-relative" > <input type="text" name="FLEXIBLE_PAYMENT_AMOUNT[]" class="form-control FLEXIBLE_PAYMENT_AMOUNT" onkeyup="calculateBalancePayable(this);" style="padding-left: 20px;" > <span class="position-absolute f12" style="top: 13px; left: 10px;" >$</span> </div> </div>`);
+
             $('.datepicker-future').datepicker({
+
                 dateFormat: 'mm/dd/yy',
                 beforeShow: function(input, inst) {
                     var selectedDate = $('#BILLING_DATE').datepicker('getDate');
+
                     if (selectedDate) {
                         var nextDay = new Date(selectedDate.getTime());
                         nextDay.setDate(nextDay.getDate() + 1);
@@ -1303,12 +1291,15 @@ if ($current_address != 'customer.php') {
         if (PK_PACKAGE || service_area > 0) {
             let service_provider = $('#SERVICE_PROVIDER').val();
             let is_confirm = $('#is_confirm').val();
+
             if (service_provider == '' && is_confirm == 0) {
                 $('#confirm_modal').modal('show');
             } else {
                 $('#confirm_modal').modal('hide');
                 let form_data = $('#enrollment_form').serialize();
+
                 $.ajax({
+
                     url: "ajax/AjaxFunctions.php",
                     type: 'POST',
                     data: form_data,
@@ -1331,13 +1322,17 @@ if ($current_address != 'customer.php') {
 
     function goToPaymentTab() {
         let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+
         if (PK_ENROLLMENT_MASTER) {
             $.ajax({
+
                 url: "ajax/show_payment_tab.php",
                 type: 'POST',
                 data: {
                     PK_ENROLLMENT_MASTER: PK_ENROLLMENT_MASTER
-                },
+                }
+
+                ,
                 success: function(data) {
                     $('#payment_tab_div').html(data);
                     $('#AMOUNT_SHOW').val($('.TOTAL_AMOUNT').val());
@@ -1352,6 +1347,7 @@ if ($current_address != 'customer.php') {
 
     function goToLedgerTab() {
         let PK_ENROLLMENT_MASTER = $('.PK_ENROLLMENT_MASTER').val();
+
         if (!PK_ENROLLMENT_MASTER) {
             alert('Please fill up the enrollment form first');
             $('#enrollment_link')[0].click();
@@ -1375,6 +1371,7 @@ if ($current_address != 'customer.php') {
         $('#BILLING_DATE').prop('required', false);
         $('#auto-pay-div').slideUp();
         $('.FLEXIBLE_PAYMENT_AMOUNT').val(0);
+
         //$('#IS_ONE_TIME_PAY').val(0);
         if ($(this).val() == 'One Time') {
             $('#one_time_div').slideDown();
@@ -1391,11 +1388,13 @@ if ($current_address != 'customer.php') {
             $('#PAYMENT_BILLING_DATE').val($('#BILLING_DATE').val());
             //$('#enrollment_payment_modal').modal('show');
         }
+
         if ($(this).val() == 'Payment Plans') {
             $('#FIRST_DUE_DATE').prop('required', true);
             $('#payment_plans_div').slideDown();
             $('#auto-pay-div').slideDown();
         }
+
         if ($(this).val() == 'Flexible Payments') {
             $('#flexible_plans_div').slideDown();
             $('.FLEXIBLE_PAYMENT_DATE').prop('required', true);
@@ -1425,13 +1424,17 @@ if ($current_address != 'customer.php') {
 
     function getSavedCreditCardListAutoPay() {
         let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+
         $.ajax({
+
             url: "ajax/get_credit_card_list.php",
             type: 'POST',
             data: {
                 PK_USER_MASTER: PK_USER_MASTER,
                 call_from: 'enrollment_auto_pay'
-            },
+            }
+
+            ,
             success: function(data) {
                 $('#saved_credit_card_list').slideDown().html(data);
                 addCreditCardAutoPay();
@@ -1462,14 +1465,18 @@ if ($current_address != 'customer.php') {
     function addCreditCardAutoPay() {
         let PK_USER = $('#PK_USER_MASTER').find(':selected').data('pk_user');
         let PK_USER_MASTER = $('#PK_USER_MASTER').find(':selected').data('customer_id');
+
         $.ajax({
+
             url: "includes/save_credit_card.php",
             type: 'POST',
             data: {
                 PK_USER: PK_USER,
                 PK_USER_MASTER: PK_USER_MASTER,
                 call_from: 'enrollment_auto_pay'
-            },
+            }
+
+            ,
             success: function(data) {
                 $('#add_credit_card_div').slideDown().html(data);
                 addCreditCard();
@@ -1480,6 +1487,7 @@ if ($current_address != 'customer.php') {
     function calculateBalancePayable() {
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let total_flexible_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
+
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
             total_flexible_payment += parseFloat(($(this).val()) ? $(this).val() : 0);
         });
@@ -1498,6 +1506,7 @@ if ($current_address != 'customer.php') {
         let entered_amount = $(param).val();
         let number_of_payment = balance_payable / entered_amount;
         $('#NUMBER_OF_PAYMENT').val(number_of_payment);
+
         if (Number.isInteger(number_of_payment)) {
             $('#number_of_payment_error').hide();
         } else {
@@ -1512,17 +1521,21 @@ if ($current_address != 'customer.php') {
         let total_bill = parseFloat(($('#total_bill').val()) ? $('#total_bill').val() : 0);
         let down_payment = parseFloat(($('#DOWN_PAYMENT').val()) ? $('#DOWN_PAYMENT').val() : 0);
         let total_flexible_payment = 0;
+
         $('.FLEXIBLE_PAYMENT_AMOUNT').each(function() {
             total_flexible_payment += parseFloat($(this).val());
         });
         total_flexible_payment = isNaN(total_flexible_payment) ? 0 : total_flexible_payment;
+
         if ((total_flexible_payment + down_payment) <= total_bill) {
             let balance_payable = parseFloat(($('#BALANCE_PAYABLE').val()) ? $('#BALANCE_PAYABLE').val() : 0);
             let payment_method = $('.PAYMENT_METHOD:checked').val();
+
             if (payment_method == 'Flexible Payments' && balance_payable > 0) {
                 swal("Balance Payable!", "Remaining Balance Payable must be fully allocated between Next Payment Dates.", "error");
             } else {
                 let number_of_payment = $('#NUMBER_OF_PAYMENT').val();
+
                 if (Number.isInteger(Number(number_of_payment))) {
                     if ((payment_method === 'One Time') && (balance_payable <= 0)) {
                         Swal.fire({
@@ -1533,6 +1546,7 @@ if ($current_address != 'customer.php') {
                             confirmButtonColor: "#3085d6",
                             cancelButtonColor: "#d33",
                             confirmButtonText: "Yes, create it!"
+
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 submitBillingForm();
@@ -1542,6 +1556,7 @@ if ($current_address != 'customer.php') {
                         if (payment_method == 'Flexible Payments' || payment_method == 'Payment Plans') {
                             let ACTIVE_AUTO_PAY = $('.ACTIVE_AUTO_PAY:checked').val();
                             let AUTO_PAY_PAYMENT_METHOD_ID = $('#AUTO_PAY_PAYMENT_METHOD_ID').val();
+
                             if (ACTIVE_AUTO_PAY == '1' && AUTO_PAY_PAYMENT_METHOD_ID == '') {
                                 Swal.fire({
                                     title: "Are you sure?",
@@ -1551,6 +1566,7 @@ if ($current_address != 'customer.php') {
                                     confirmButtonColor: "#3085d6",
                                     cancelButtonColor: "#d33",
                                     confirmButtonText: "Yes, proceed!"
+
                                 }).then((result) => {
                                     if (result.isConfirmed) {
                                         $('#ACTIVE_AUTO_PAY_NO').prop('checked', true);
@@ -1576,7 +1592,9 @@ if ($current_address != 'customer.php') {
 
     function submitBillingForm() {
         let form_data = $('#billing_form').serialize();
+
         $.ajax({
+
             url: "ajax/AjaxFunctions.php",
             type: 'POST',
             data: form_data,
@@ -1611,9 +1629,13 @@ if ($current_address != 'customer.php') {
                             }
                         }
                     }
-                    $('#enrollment_payment_modal').modal('show');
+
+                    $('#after_signature').val(1);
+                    $('#signature_modal').modal('show');
                 } else {
-                    window.location.reload();
+                    $('#after_signature').val(0);
+                    $('#signature_modal').modal('show');
+                    //window.location.reload();
                     $('#sideDrawer6, .overlay6').addClass('active');
                     /* let header = '<?= $header ?>';
                     if (header) {
@@ -1643,12 +1665,12 @@ if ($current_address != 'customer.php') {
 
     function openReceipt(PK_ENROLLMENT_MASTER, RECEIPT_NUMBER) {
         let RECEIPT_NUMBER_ARRAY = RECEIPT_NUMBER.split(',');
+
         for (let i = 0; i < RECEIPT_NUMBER_ARRAY.length; i++) {
             window.open('generate_receipt_pdf.php?master_id=' + PK_ENROLLMENT_MASTER + ' &receipt=' + RECEIPT_NUMBER_ARRAY[i], ' _blank');
         }
     }
 </script>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const paymentMethods = document.querySelectorAll('.PAYMENT_METHOD');
@@ -1659,11 +1681,13 @@ if ($current_address != 'customer.php') {
             method.addEventListener('change', function() {
                 if (this.value === 'Payment Plans') {
                     paymentPlanFields.style.display = 'block';
+
                     installmentInputs.forEach(input => {
                         input.required = true;
                     });
                 } else {
                     paymentPlanFields.style.display = 'none';
+
                     installmentInputs.forEach(input => {
                         input.required = false;
                         input.value = ''; // Clear values when not needed
@@ -1674,11 +1698,76 @@ if ($current_address != 'customer.php') {
 
         // Initialize on page load
         const selectedMethod = document.querySelector('.PAYMENT_METHOD:checked');
+
         if (selectedMethod && selectedMethod.value === 'Payment Plans') {
             paymentPlanFields.style.display = 'block';
+
             installmentInputs.forEach(input => {
                 input.required = true;
             });
         }
     });
+
+
+
+
+
+
+
+    // ========== SIGNATURE PAD ==========
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas);
+
+    document.getElementById('clear').addEventListener('click', () => {
+        signaturePad.clear();
+    });
+
+    document.getElementById('save_signature').addEventListener('click', () => {
+        if (signaturePad.isEmpty()) {
+            alert("Please provide signature");
+            return;
+        }
+
+        const dataURL = signaturePad.toDataURL();
+
+        fetch('save_signature.php', {
+
+            method: 'POST',
+            body: JSON.stringify({
+                PK_ENROLLMENT_MASTER: $('.PK_ENROLLMENT_MASTER').val(),
+                image: dataURL
+
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+
+        }).then(response => response.json()).then(data => {
+            if (data.status === 'success') {
+                let after_signature = $('#after_signature').val();
+                if (after_signature == 1) {
+                    $('#signature_modal').modal('hide');
+                    $('#enrollment_payment_modal').modal('show');
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert('Failed to sign PDF');
+            }
+
+        }).catch(error => {
+            console.error(error);
+            alert('Something went wrong');
+        });
+    });
+
+    function signAgreementLater() {
+        let after_signature = $('#after_signature').val();
+        if (after_signature == 1) {
+            $('#signature_modal').modal('hide');
+            $('#enrollment_payment_modal').modal('show');
+        } else {
+            window.location.reload();
+        }
+    }
 </script>

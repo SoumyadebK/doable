@@ -15,10 +15,10 @@ use Square\SquareClient;
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$message_string = '';
 global $db;
 $location_date = $db->Execute("SELECT * FROM DOA_LOCATION WHERE ACTIVE = 1 AND NEXT_RENEWAL_DATE = '" . date('Y-m-d') . "'");
 while (!$location_date->EOF) {
+    $message_string = '';
     $message_string .= "Processing Location Billing: " . $location_date->fields['LOCATION_NAME'] . "<br>";
     $message_string .= "Date: " . date('Y-m-d H:i:s') . "<br>";
     $LOCATION_DATA_UPDATE['NEXT_RENEWAL_DATE'] = date('Y-m-d');
@@ -146,6 +146,8 @@ while (!$location_date->EOF) {
     $message_string .= json_encode($RETURN_DATA);
 
     $message_string .= "<br>---------------------------------<br>";
+
+    echo $message_string;
 
     $info_log['info'] = $message_string;
     $info_log['created_at'] = date('Y-m-d H:i:s');

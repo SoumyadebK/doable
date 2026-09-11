@@ -38,8 +38,8 @@ for ($i = 1; $i <= $pageCount; $i++) {
     $pdf->useTemplate($template);
 
     // Add signature on first page (adjust position)
-    if ($i == 1) {
-        $pdf->Image($http_path . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', 90, 215, 60); // X, Y, Width
+    if ($i == 2) {
+        $pdf->Image($http_path . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', 85, 70, 60); // X, Y, Width
     }
 }
 

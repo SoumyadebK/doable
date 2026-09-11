@@ -97,15 +97,15 @@ $sort_options = [
     'amount_desc' => ['field' => 'DOA_ENROLLMENT_BILLING.TOTAL_AMOUNT', 'order' => 'DESC', 'label' => 'Amount (High-Low)']
 ];
 
-$sort_field = 'DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER';
-$sort_direction = 'DESC';
+$sort_field = ' DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER ';
+$sort_direction = ' DESC ';
 
 if (isset($sort_options[$sort_by])) {
     $sort_field = $sort_options[$sort_by]['field'];
     $sort_direction = $sort_options[$sort_by]['order'];
 } else {
-    $sort_field = 'DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE';
-    $sort_direction = 'DESC';
+    $sort_field = ' DOA_ENROLLMENT_MASTER.ENROLLMENT_DATE ';
+    $sort_direction = ' DESC ';
 }
 
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
