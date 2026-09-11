@@ -213,7 +213,7 @@ if (isset($_SESSION['error_message'])) {
                                                     <option value="nfa_active_customers_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'nfa_active_customers_report') ? 'selected' : '' ?>>NFA ACTIVE CUSTOMERS REPORT</option>
                                                     <option value="nfa_active_no_enrollments_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'nfa_active_no_enrollments_report') ? 'selected' : '' ?>>NFA ACTIVE NO ENROLLMENTS REPORT</option>
                                                     <option value="customer_summary_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'customer_summary_report') ? 'selected' : '' ?>>CUSTOMER SUMMARY REPORT</option>
-                                                    <option value="due_date_payment_schedule_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'due_date_payment_schedule_report') ? 'selected' : '' ?>>DUE DATE PAYMENT SCHEDULE</option>
+                                                    <!-- <option value="due_date_payment_schedule_report" <?= (isset($_GET['NAME']) && $_GET['NAME'] == 'due_date_payment_schedule_report') ? 'selected' : '' ?>>DUE DATE PAYMENT SCHEDULE</option> -->
                                                 </select>
                                             </div>
                                         </div>

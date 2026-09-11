@@ -93,8 +93,9 @@ function getPaymentStatus($due_date, $selected_date)
 
 // Fetch all payment due records
 $payment_rows = [];
-$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, DOA_ENROLLMENT_LEDGER.AMOUNT_REMAIN, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_LEDGER.DUE_DATE, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE ASC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
+$row = $db_account->Execute("SELECT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER, DOA_ENROLLMENT_MASTER.STATUS, DOA_ENROLLMENT_MASTER.PK_USER_MASTER, DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_LEDGER, DOA_ENROLLMENT_LEDGER.BILLED_AMOUNT, DOA_ENROLLMENT_LEDGER.AMOUNT_REMAIN, DOA_ENROLLMENT_MASTER.ENROLLMENT_NAME, DOA_ENROLLMENT_MASTER.ENROLLMENT_ID, DOA_ENROLLMENT_LEDGER.DUE_DATE, DOA_ENROLLMENT_MASTER.ACTIVE_AUTO_PAY, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CLIENT FROM DOA_ENROLLMENT_MASTER INNER JOIN DOA_ENROLLMENT_LEDGER ON DOA_ENROLLMENT_LEDGER.PK_ENROLLMENT_MASTER=DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER INNER JOIN $master_database.DOA_USER_MASTER AS DOA_USER_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER=DOA_USER_MASTER.PK_USER_MASTER INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_USER_MASTER.PK_USER=DOA_USERS.PK_USER WHERE DOA_USERS.ACTIVE = 1 AND DOA_USERS.IS_DELETED = 0 AND DOA_ENROLLMENT_MASTER.STATUS NOT IN ('C', 'CA') AND DOA_ENROLLMENT_LEDGER.IS_PAID = 0 AND DOA_ENROLLMENT_MASTER.PK_LOCATION IN (" . $_SESSION['DEFAULT_LOCATION_ID'] . ") " . $due_date . " ORDER BY DOA_ENROLLMENT_LEDGER.DUE_DATE ASC, DOA_ENROLLMENT_MASTER.PK_USER_MASTER ASC");
 while (!$row->EOF) {
+    $AUTO_PAY = $row->fields['ACTIVE_AUTO_PAY'];
     $AMOUNT_TO_PAY = ($row->fields['AMOUNT_REMAIN'] > 0) ? $row->fields['AMOUNT_REMAIN'] : $row->fields['BILLED_AMOUNT'];
     $customer = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USER_MASTER.PK_USER_MASTER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME, DOA_USERS.EMAIL_ID FROM DOA_USERS LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER WHERE PK_USER_MASTER = " . $row->fields['PK_USER_MASTER']);
     $selected_user_id = $customer->fields['PK_USER'];
@@ -114,7 +115,8 @@ while (!$row->EOF) {
         'due_date' => $row->fields['DUE_DATE'],
         'due_date_formatted' => date('m-d-Y', strtotime($row->fields['DUE_DATE'])),
         'amount' => $AMOUNT_TO_PAY,
-        'status' => getPaymentStatus($row->fields['DUE_DATE'], $selected_date)
+        'status' => getPaymentStatus($row->fields['DUE_DATE'], $selected_date),
+        'auto_pay' => $AUTO_PAY
     ];
     $row->MoveNext();
 }
@@ -138,6 +140,21 @@ $total_payments = count($payment_rows);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <style>
+        .auto-pay-on {
+            color: #198754;
+            font-weight: 700;
+        }
+
+        .auto-pay-off {
+            color: #dc3545;
+            font-weight: 700;
+        }
+
+        .auto-pay-on i,
+        .auto-pay-off i {
+            font-size: 1.05em;
+        }
+
         /* Custom styles for the header */
         a {
             color: #690C24;
@@ -366,8 +383,26 @@ $total_payments = count($payment_rows);
                     <p class="text-muted mb-0"><?= htmlspecialchars($concatenatedResults) ?> | As of <?= date('m/d/Y', strtotime($selected_date)) ?></p>
                 </div>
             </div>
-            <div>
-                <a href="payment_due_report.php" class="btn btn-success border-0 rounded-pill px-3"><i class="bi bi-arrow-left"></i> Back</a>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Date Selector -->
+                <div class="input-group" style="width: 190px;">
+                    <span class="input-group-text bg-white border-end-0" id="headerDateIcon" style="cursor:pointer; border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
+                        <i class="bi bi-calendar3"></i>
+                    </span>
+                    <input type="text"
+                        id="headerDatePicker"
+                        class="form-control border-start-0"
+                        style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; cursor: pointer;"
+                        placeholder="Select Date"
+                        value="<?= date('m/d/Y', strtotime($selected_date)) ?>"
+                        readonly>
+                </div>
+
+                <!-- Back Button -->
+                <a href="payment_due_report.php" class="btn btn-success border-0 rounded-pill px-3">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
             </div>
         </div>
 
@@ -403,11 +438,12 @@ $total_payments = count($payment_rows);
                         <tr>
 
                             <th>Customer Name / Email</th>
-                            <th>Enrollment</th>
-                            <th>Due Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="text-align:center">Enrollment</th>
+                            <th style="text-align:center">Due Date</th>
+                            <th style="text-align:right">Amount</th>
+                            <th style="text-align:center">Status</th>
+                            <th style="text-align:center">Auto Pay</th>
+                            <th style="text-align:center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -429,14 +465,21 @@ $total_payments = count($payment_rows);
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td style="text-align:center">
                                     <?= htmlspecialchars($row['enrollment_name']) ?>
                                     <span class="text-muted">(<?= htmlspecialchars($row['enrollment_id']) ?>)</span>
                                 </td>
-                                <td class="date-cell" data-date="<?= $row['due_date'] ?>"><?= $row['due_date_formatted'] ?></td>
-                                <td class="fw-medium">$<?= number_format($row['amount'], 2) ?></td>
-                                <td><span class="badge-status <?= $row['status']['class'] ?>"><?= $row['status']['label'] ?></span></td>
-                                <td>
+                                <td class="date-cell" data-date="<?= $row['due_date'] ?>" style="text-align:center"><?= $row['due_date_formatted'] ?></td>
+                                <td class="fw-medium" style="text-align:right">$<?= number_format($row['amount'], 2) ?></td>
+                                <td style="text-align:center"><span class="badge-status <?= $row['status']['class'] ?>"><?= $row['status']['label'] ?></span></td>
+                                <td data-order="<?= $row['auto_pay'] ?>" style="text-align:center">
+                                    <?php if ($row['auto_pay'] == 1): ?>
+                                        <span class="auto-pay-on"><i class="fa fa-check-circle"></i> ON</span>
+                                    <?php else: ?>
+                                        <span class="auto-pay-off"><i class="fa fa-times-circle"></i> OFF</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="text-align:center">
                                     <button class="btn btn-action me-2 status-pill payNowBtn"
                                         onclick="payNow(<?= $row['pk_enrollment_master'] ?>, <?= $row['pk_enrollment_ledger'] ?>, <?= $row['amount'] ?>, '<?= $row['enrollment_id'] ?>', <?= $row['selected_customer_id'] ?>);">
                                         Pay Now
@@ -475,6 +518,26 @@ $total_payments = count($payment_rows);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Header date picker — reloads page with new selected_date
+        $('#headerDatePicker').datepicker({
+            dateFormat: 'mm/dd/yy',
+            defaultDate: new Date('<?= $selected_date ?>'),
+            onSelect: function(dateText) {
+                const parts = dateText.split('/');
+                const formattedDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('selected_date', formattedDate);
+                urlParams.set('type', 'view');
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
+            }
+        });
+
+        // Make the icon + input both open the calendar
+        $('#headerDatePicker, #headerDateIcon').on('click', function() {
+            $('#headerDatePicker').datepicker('show');
+        });
+
         // Client-side pagination, filtering, and search
         let allRows = [];
         let currentPage = 1;
@@ -565,52 +628,46 @@ $total_payments = count($payment_rows);
         }
 
         // Event handlers for pagination
+        // ONE listener on the container, works forever — even after innerHTML rebuilds
         function bindPaginationEvents() {
-            document.querySelectorAll('.pagination-first').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
+            const container = document.getElementById('paginationControls');
+            if (!container || container.dataset.bound === '1') return;
+            container.dataset.bound = '1';
+
+            container.addEventListener('click', function(e) {
+                const btn = e.target.closest('a.page-link-custom, button.page-link-custom');
+                if (!btn) return;
+                e.preventDefault();
+
+                const totalPages = Math.ceil(getFilteredRows().length / rowsPerPage) || 1;
+
+                if (btn.classList.contains('pagination-first')) {
                     if (currentPage !== 1) {
                         currentPage = 1;
                         updateDisplay();
                     }
-                });
-            });
-            document.querySelectorAll('.pagination-prev').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
+                } else if (btn.classList.contains('pagination-prev')) {
                     if (currentPage > 1) {
                         currentPage--;
                         updateDisplay();
                     }
-                });
-            });
-            document.querySelectorAll('.pagination-next').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const totalPages = Math.ceil(getFilteredRows().length / rowsPerPage);
+                } else if (btn.classList.contains('pagination-next')) {
                     if (currentPage < totalPages) {
                         currentPage++;
                         updateDisplay();
                     }
-                });
-            });
-            document.querySelectorAll('.pagination-last').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const totalPages = Math.ceil(getFilteredRows().length / rowsPerPage);
-                    currentPage = totalPages;
-                    updateDisplay();
-                });
-            });
-            document.querySelectorAll('.pagination-page').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const page = parseInt(btn.getAttribute('data-page'));
-                    if (!isNaN(page)) {
+                } else if (btn.classList.contains('pagination-last')) {
+                    if (currentPage !== totalPages) {
+                        currentPage = totalPages;
+                        updateDisplay();
+                    }
+                } else if (btn.classList.contains('pagination-page')) {
+                    const page = parseInt(btn.getAttribute('data-page'), 10);
+                    if (!isNaN(page) && page !== currentPage) {
                         currentPage = page;
                         updateDisplay();
                     }
-                });
+                }
             });
         }
 
