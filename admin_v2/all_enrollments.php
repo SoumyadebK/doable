@@ -151,7 +151,8 @@ $enrollment_query = "SELECT DISTINCT DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER,
                      DOA_ENROLLMENT_MASTER.MISC_ID, 
                      DOA_ENROLLMENT_MASTER.ACTIVE, 
                      DOA_ENROLLMENT_MASTER.STATUS, 
-                     DOA_ENROLLMENT_MASTER.PK_USER_MASTER, 
+                     DOA_ENROLLMENT_MASTER.PK_USER_MASTER,
+                     DOA_ENROLLMENT_MASTER.IS_SIGNED,
                      DOA_USERS.PK_USER, 
                      DOA_USERS.FIRST_NAME, 
                      DOA_USERS.LAST_NAME, 
@@ -732,7 +733,12 @@ if (isset($_POST['SUBMIT'])) {
                                             </div>
                                         </td>
                                         <td><?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?></td>
-                                        <td><a href="../admin_v2/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a></td>
+                                        <td>
+                                            <a href="../admin_v2/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a>
+                                            <?php if ($enrollment_data->fields['IS_SIGNED'] == 1) { ?>
+                                                <i class="fa fa-check-circle" style="font-size: 15px; color: green; margin-left: 5px;"></i>
+                                            <?php } ?>
+                                        </td>
                                         <td><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
                                         <td><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></td>
                                         <td><?= $enrollment_data->fields['PHONE'] ?></td>

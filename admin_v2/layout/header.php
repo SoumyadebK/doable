@@ -195,6 +195,14 @@ if (count($LOCATIONS) == 1) {
         right: -8px;
         line-height: normal;
     }
+
+    #signature-pad {
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        width: 100%;
+        height: auto;
+        touch-action: none;
+    }
 </style>
 <header class="app-topbar">
     <div class="container-fluid topbar-menu">

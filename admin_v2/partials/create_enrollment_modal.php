@@ -576,7 +576,7 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
 
 <!-- Signature Modal -->
 <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="max-width: 740px;">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title"><i class="bi bi-pencil"></i> Add Signature</h4>
@@ -594,17 +594,6 @@ $PUBLIC_API_KEY         = $payment_gateway_data->fields['PUBLIC_API_KEY'];
         </div>
     </div>
 </div>
-
-
-<style>
-    #signature-pad {
-        border: 2px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        width: 100%;
-        height: 200px;
-        touch-action: none;
-    }
-</style>
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

@@ -9,6 +9,13 @@
 
 RewriteEngine On
 
+# Block these folders completely
+RewriteRule ^(global|vendor)/ - [F,L]
+
+# For uploads: block if NOT a direct file request (i.e. block folder browsing only)
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(uploads|admin|admin_v2|admin_v2_backup|api|customer|service_provider|super_admin|assets|includes)/ - [F,L]
+
 # --- 1+2 combined) Force https AND non-www in a single redirect -------------
 RewriteCond %{HTTP_HOST} ^www\.doable\.net$ [NC,OR]
 RewriteCond %{HTTPS} off

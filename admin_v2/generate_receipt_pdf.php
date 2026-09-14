@@ -78,7 +78,8 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
             }
         } else {
             $enrollment_billing_data = $db_account->Execute("SELECT DOA_ENROLLMENT_BILLING.BILLING_REF, DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER FROM DOA_ENROLLMENT_BILLING INNER JOIN DOA_ENROLLMENT_PAYMENT ON DOA_ENROLLMENT_BILLING.PK_ENROLLMENT_BILLING = DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_BILLING WHERE DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND DOA_ENROLLMENT_PAYMENT.RECEIPT_NUMBER = '$RECEIPT_NUMBER' LIMIT 1");
-            $BILLING_REF = $enrollment_billing_data->fields['BILLING_REF'];
+            $BILLING_REF = ($enrollment_billing_data->RecordCount() > 0) ? $enrollment_billing_data->fields['BILLING_REF'] : '';
+            $enrollment_payment = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER'");
 
             $user_data = $db->Execute("SELECT DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.ADDRESS, DOA_USERS.CITY, DOA_STATES.STATE_NAME, DOA_USERS.ZIP, DOA_LOCATION.LOCATION_NAME, DOA_LOCATION.ADDRESS, DOA_LOCATION.PHONE, DOA_LOCATION.ZIP_CODE, DOA_CORPORATION.CORPORATION_NAME FROM DOA_USERS INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER = DOA_USER_MASTER.PK_USER LEFT JOIN DOA_STATES ON DOA_STATES.PK_STATES=DOA_USERS.PK_STATES LEFT JOIN DOA_LOCATION ON DOA_USER_MASTER.PRIMARY_LOCATION_ID=DOA_LOCATION.PK_LOCATION LEFT JOIN DOA_CORPORATION ON DOA_LOCATION.PK_CORPORATION=DOA_CORPORATION.PK_CORPORATION LEFT JOIN $account_database.DOA_ENROLLMENT_MASTER AS DOA_ENROLLMENT_MASTER ON DOA_ENROLLMENT_MASTER.PK_USER_MASTER = DOA_USER_MASTER.PK_USER_MASTER WHERE DOA_ENROLLMENT_MASTER.PK_ENROLLMENT_MASTER = " . $PK_ENROLLMENT_MASTER);
 
@@ -93,13 +94,9 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
             $PHONE = $user_data->fields['PHONE'];
         }
 
-        if ($PK_ENROLLMENT_MASTER > 0) {
-            $enrollment_payment = $db_account->Execute("SELECT DOA_ENROLLMENT_PAYMENT.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE, DOA_ENROLLMENT_TIP.TIP_PERCENTAGE, DOA_ENROLLMENT_TIP.TIP_AMOUNT FROM DOA_ENROLLMENT_PAYMENT LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_ENROLLMENT_PAYMENT.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE LEFT JOIN DOA_ENROLLMENT_TIP ON DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_PAYMENT = DOA_ENROLLMENT_TIP.PK_ENROLLMENT_PAYMENT WHERE DOA_ENROLLMENT_PAYMENT.PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER' AND DOA_ENROLLMENT_PAYMENT.IS_ORIGINAL_RECEIPT = 1 AND RECEIPT_NUMBER = '$RECEIPT_NUMBER' GROUP BY PK_ENROLLMENT_MASTER");
-        }
-
         $DETAILS_AMOUNT = '';
-        $TIP_PERCENTAGE = '';
-        $TIP_AMOUNT = '';
+        $TIP_PERCENTAGE = '0%';
+        $TIP_AMOUNT = '$0.00';
         $PAYMENT_DETAILS = '';
         $TOTAL_AMOUNT = 0;
         $PAYMENT_METHOD = '';
@@ -125,11 +122,19 @@ $business_details = $db->Execute("SELECT * FROM DOA_ACCOUNT_MASTER WHERE PK_ACCO
 
                 $PAYMENT_METHOD = $enrollment_payment->fields['PAYMENT_TYPE'];
                 $DETAILS_AMOUNT .= '$' . number_format($enrollment_payment->fields['AMOUNT'], 2) . '<br>';
-                $TIP_PERCENTAGE = (isset($enrollment_payment->fields['TIP_PERCENTAGE']) && $enrollment_payment->fields['TIP_PERCENTAGE'] > 0) ? number_format($enrollment_payment->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
-                $TIP_AMOUNT = (isset($enrollment_payment->fields['TIP_AMOUNT'])) ? '$' . number_format($enrollment_payment->fields['TIP_AMOUNT'], 2) : '$0.00';
-                $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'] + floatval(str_replace('$', '', $TIP_AMOUNT));
+                $TOTAL_AMOUNT += $enrollment_payment->fields['AMOUNT'];
                 $PAYMENT_DATE = date('m-d-Y', strtotime($enrollment_payment->fields['PAYMENT_DATE']));
                 $enrollment_payment->MoveNext();
+            }
+
+            $enrollment_tip = $db_account->Execute("SELECT * FROM DOA_ENROLLMENT_TIP WHERE PK_ENROLLMENT_PAYMENT = " . $enrollment_payment->fields['PK_ENROLLMENT_PAYMENT']);
+            if ($enrollment_tip->RecordCount() > 0) {
+                while (!$enrollment_tip->EOF) {
+                    $TIP_PERCENTAGE = (isset($enrollment_tip->fields['TIP_PERCENTAGE']) && $enrollment_tip->fields['TIP_PERCENTAGE'] > 0) ? number_format($enrollment_tip->fields['TIP_PERCENTAGE'], 2) . '%' : '0%';
+                    $TIP_AMOUNT = (isset($enrollment_tip->fields['TIP_AMOUNT'])) ? '$' . number_format($enrollment_tip->fields['TIP_AMOUNT'], 2) : '$0.00';
+                    $TOTAL_AMOUNT += floatval(str_replace('$', '', $TIP_AMOUNT));
+                    $enrollment_tip->MoveNext();
+                }
             }
         } else {
             $wallet_data = $db_account->Execute("SELECT DOA_CUSTOMER_WALLET.*, DOA_PAYMENT_TYPE.PAYMENT_TYPE FROM DOA_CUSTOMER_WALLET LEFT JOIN $master_database.DOA_PAYMENT_TYPE AS DOA_PAYMENT_TYPE ON DOA_CUSTOMER_WALLET.PK_PAYMENT_TYPE = DOA_PAYMENT_TYPE.PK_PAYMENT_TYPE WHERE RECEIPT_NUMBER = '$RECEIPT_NUMBER' ORDER BY PK_CUSTOMER_WALLET DESC LIMIT 1");

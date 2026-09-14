@@ -15,8 +15,20 @@ $data = json_decode(file_get_contents("php://input"), true);
 $image = $data['image'];
 $PK_ENROLLMENT_MASTER = $data['PK_ENROLLMENT_MASTER'];
 
-$enrollment_data = $db_account->Execute("SELECT AGREEMENT_PDF_LINK FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
-$AGREEMENT_PDF_LINK = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
+$update_history_data = $db_account->Execute("SELECT * FROM DOA_UPDATE_HISTORY WHERE CLASS = 'enrollment_signature' AND PRIMARY_KEY = '$PK_ENROLLMENT_MASTER' ORDER BY EDITED_ON ASC LIMIT 1");
+if ($update_history_data->RecordCount() > 0) {
+    $ORIGINAL_AGREEMENT = $update_history_data->fields['FROM_VALUE'];
+} else {
+    $enrollment_data = $db_account->Execute("SELECT AGREEMENT_PDF_LINK FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+    $ORIGINAL_AGREEMENT = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
+}
+
+$last_update_data = $db_account->Execute("SELECT * FROM DOA_UPDATE_HISTORY WHERE CLASS = 'enrollment_signature' AND PRIMARY_KEY = '$PK_ENROLLMENT_MASTER' ORDER BY EDITED_ON DESC LIMIT 1");
+if ($last_update_data->RecordCount() > 0) {
+    $LAST_UPDATED_AGREEMENT = $last_update_data->fields['TO_VALUE'];
+} else {
+    $LAST_UPDATED_AGREEMENT = $ORIGINAL_AGREEMENT;
+}
 
 // Convert base64 to image
 $image = str_replace('data:image/png;base64,', '', $image);
@@ -30,7 +42,7 @@ file_put_contents('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '
 
 // Load existing PDF
 $pdf = new FPDI();
-$pageCount = $pdf->setSourceFile("../" . $upload_path . "/enrollment_pdf/" . $AGREEMENT_PDF_LINK);
+$pageCount = $pdf->setSourceFile("../" . $upload_path . "/enrollment_pdf/" . $ORIGINAL_AGREEMENT);
 
 for ($i = 1; $i <= $pageCount; $i++) {
     $template = $pdf->importPage($i);
@@ -48,6 +60,16 @@ $file_name = "enrollment_pdf_" . time() . ".pdf";
 $pdf->Output("F", '../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $file_name);
 
 $updated_file_name = $LOCATION_CODE . '/' . $file_name;
-$db_account->Execute("UPDATE DOA_ENROLLMENT_MASTER SET AGREEMENT_PDF_LINK = '$updated_file_name' WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+$db_account->Execute("UPDATE DOA_ENROLLMENT_MASTER SET AGREEMENT_PDF_LINK = '$updated_file_name', IS_SIGNED = 1 WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+
+
+$UPDATE_HISTORY_DATA['CLASS'] = 'enrollment_signature';
+$UPDATE_HISTORY_DATA['PRIMARY_KEY'] = $PK_ENROLLMENT_MASTER;
+$UPDATE_HISTORY_DATA['FIELD_NAME'] = 'AGREEMENT';
+$UPDATE_HISTORY_DATA['FROM_VALUE'] = $LAST_UPDATED_AGREEMENT;
+$UPDATE_HISTORY_DATA['TO_VALUE'] = $updated_file_name;
+$UPDATE_HISTORY_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
+$UPDATE_HISTORY_DATA['EDITED_ON'] = date("Y-m-d H:i");
+db_perform_account('DOA_UPDATE_HISTORY', $UPDATE_HISTORY_DATA, 'insert');
 
 echo json_encode(["status" => "success"]);

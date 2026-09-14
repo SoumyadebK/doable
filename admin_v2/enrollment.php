@@ -915,14 +915,6 @@ $enrollment_type = 'Enrollment';
         box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1) !important;
     }
 
-    #signature-pad {
-        border: 2px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        width: 100%;
-        height: 200px;
-        touch-action: none;
-    }
-
     .tab-content {
         display: none;
     }
@@ -1782,16 +1774,22 @@ $enrollment_type = 'Enrollment';
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                $row = $db->Execute("SELECT $account_database.DOA_UPDATE_HISTORY.*, $master_database.DOA_USERS.FIRST_NAME, $master_database.DOA_USERS.LAST_NAME FROM $account_database.DOA_UPDATE_HISTORY INNER JOIN $master_database.DOA_USERS ON $account_database.DOA_UPDATE_HISTORY.EDITED_BY = $master_database.DOA_USERS.PK_USER WHERE $account_database.DOA_UPDATE_HISTORY.CLASS = 'enrollment' AND $account_database.DOA_UPDATE_HISTORY.PRIMARY_KEY = " . $_GET['id'] . " ORDER BY $account_database.DOA_UPDATE_HISTORY.PK_UPDATE_HISTORY DESC");
-                                                while (!$row->EOF) { ?>
+                                                $update_history_data = $db_account->Execute("SELECT DOA_UPDATE_HISTORY.*, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME FROM DOA_UPDATE_HISTORY INNER JOIN $master_database.DOA_USERS AS DOA_USERS ON DOA_UPDATE_HISTORY.EDITED_BY = DOA_USERS.PK_USER WHERE DOA_UPDATE_HISTORY.CLASS LIKE 'enrollment_%' AND DOA_UPDATE_HISTORY.PRIMARY_KEY = " . $_GET['id'] . " ORDER BY DOA_UPDATE_HISTORY.EDITED_ON DESC");
+                                                while (!$update_history_data->EOF) { ?>
                                                     <tr>
-                                                        <td><?= htmlspecialchars($row->fields['FIELD_NAME']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['FROM_VALUE']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['TO_VALUE']) ?></td>
-                                                        <td><?= htmlspecialchars($row->fields['FIRST_NAME'] . " " . $row->fields['LAST_NAME']) ?></td>
-                                                        <td><?= $row->fields['EDITED_ON'] ?></td>
+                                                        <td><?= ucwords(str_replace('_', ' ', strtolower($update_history_data->fields['FIELD_NAME']))) ?></td>
+                                                        <?php if ($update_history_data->fields['FIELD_NAME'] == 'AGREEMENT') { ?>
+                                                            <td><a href="../<?= $upload_path ?>/enrollment_pdf/<?= $update_history_data->fields['FROM_VALUE'] ?>" target="_blank">View PDF</a></td>
+                                                            <td><a href="../<?= $upload_path ?>/enrollment_pdf/<?= $update_history_data->fields['TO_VALUE'] ?>" target="_blank">View PDF</a></td>
+                                                        <?php } else { ?>
+                                                            <td><?= htmlspecialchars($update_history_data->fields['FROM_VALUE']) ?></td>
+                                                            <td><?= htmlspecialchars($update_history_data->fields['TO_VALUE']) ?></td>
+                                                        <?php } ?>
+
+                                                        <td><?= htmlspecialchars($update_history_data->fields['FIRST_NAME'] . " " . $update_history_data->fields['LAST_NAME']) ?></td>
+                                                        <td><?= date('m/d/Y h:i A', strtotime($update_history_data->fields['EDITED_ON'])) ?></td>
                                                     </tr>
-                                                <?php $row->MoveNext();
+                                                <?php $update_history_data->MoveNext();
                                                 } ?>
                                             </tbody>
                                         </table>
@@ -1841,7 +1839,7 @@ $enrollment_type = 'Enrollment';
 
     <!-- Signature Modal -->
     <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog" style="max-width: 740px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title"><i class="bi bi-pencil"></i> Add Signature</h4>
