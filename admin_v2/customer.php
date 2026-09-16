@@ -1248,7 +1248,7 @@ if ($PK_USER_MASTER > 0) {
                                                                     <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
                                                                 </div>
                                                                 <div>
-                                                                    <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $res->fields['AGREEMENT_PDF_LINK'] ?>" target="_blank">
+                                                                    <a href="enrollment_agreement.php?id=<?= $res->fields['PK_ENROLLMENT_MASTER'] ?>" target="_blank">
                                                                         <div class="fw-semibold mb-0" style="font-size: 0.9rem;"><?= $res->fields['ENROLLMENT_ID'] ?> (View Agreement)</div>
                                                                     </a>
                                                                 </div>

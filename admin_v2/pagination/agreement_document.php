@@ -16,7 +16,7 @@ while (!$res->EOF) {
     if ($res->fields['AGREEMENT_PDF_LINK'] != NULL && $res->fields['AGREEMENT_PDF_LINK'] != '') { ?>
         <div style="margin-top: 5px">
             <?php if (file_exists($file_path)) { ?>
-                <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="../<?= $upload_path ?>/enrollment_pdf/<?= $res->fields['AGREEMENT_PDF_LINK'] ?>" target="_blank"> View Agreement</a><br>
+                <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="enrollment_agreement.php?id=<?= $res->fields['PK_ENROLLMENT_MASTER'] ?>" target="_blank">View Agreement</a><br>
             <?php } else { ?>
                 <?= $res->fields['ENROLLMENT_ID'] ?> - <a href="javascript:"> (Not Available)</a><br>
             <?php } ?>

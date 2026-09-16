@@ -626,7 +626,16 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="5" data-type="date" data-date="true">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="5" data-type="boolean">
+                                            <span class="fw-semibold">Is Signed</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
+                                                <path d="M11 7h-6l3-4z" />
+                                                <path d="M5 9h6l-3 4z" />
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="6" data-type="date" data-date="true">
                                             <span class="fw-semibold">Date</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -635,7 +644,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="6" data-type="string">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="7" data-type="string">
                                             <span class="fw-semibold">Phone</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -644,7 +653,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="7" data-type="string">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="8" data-type="string">
                                             <span class="fw-semibold">Service Provider</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -653,7 +662,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="8" data-type="string">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="9" data-type="string">
                                             <span class="fw-semibold">Status</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -662,7 +671,7 @@ if (isset($_POST['SUBMIT'])) {
                                         </button>
                                     </th>
                                     <th>
-                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="9" data-type="currency">
+                                        <button type="button" class="sortable-header bg-transparent p-0 border-0 theme-text-light" data-index="10" data-type="currency">
                                             <span class="fw-semibold">Total Amount</span>
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 16 16" width="14px" height="14px" fill="CurrentColor">
                                                 <path d="M11 7h-6l3-4z" />
@@ -735,11 +744,15 @@ if (isset($_POST['SUBMIT'])) {
                                         <td><?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?></td>
                                         <td>
                                             <a href="../admin_v2/enrollment.php?id=<?= $enrollment_data->fields['PK_ENROLLMENT_MASTER'] ?>"><?= $id ?></a>
-                                            <?php if ($enrollment_data->fields['IS_SIGNED'] == 1) { ?>
-                                                <i class="fa fa-check-circle" style="font-size: 15px; color: green; margin-left: 5px;"></i>
-                                            <?php } ?>
                                         </td>
                                         <td><?= $enrollment_name . implode(', ', $serviceCode) ?></td>
+                                        <td>
+                                            <?php if ($enrollment_data->fields['IS_SIGNED'] == 1) { ?>
+                                                <span class="badge-service" style="margin-left: 12px; background-color: #cffce4; color: #39b54a; padding: 2px 6px; border-radius: 50px; font-size: 11px;">Yes</span>
+                                            <?php } else { ?>
+                                                <span class="badge-service" style="margin-left: 12px; background-color: #ffebee; color: #f44336; padding: 2px 6px; border-radius: 50px; font-size: 11px;">No</span>
+                                            <?php } ?>
+                                        </td>
                                         <td><?= date('m/d/Y', strtotime($enrollment_data->fields['ENROLLMENT_DATE'])) ?></td>
                                         <td><?= $enrollment_data->fields['PHONE'] ?></td>
                                         <td style="vertical-align: middle;">
@@ -1048,6 +1061,10 @@ if (isset($_POST['SUBMIT'])) {
                         var nameB = B.toLowerCase().split(' ');
                         A = nameA[0] || '';
                         B = nameB[0] || '';
+                    } else if (type === "boolean") {
+                        // Treat "Yes" as 1, everything else ("No", empty, etc.) as 0
+                        A = A.toLowerCase() === "yes" ? 1 : 0;
+                        B = B.toLowerCase() === "yes" ? 1 : 0;
                     } else {
                         A = A.toLowerCase();
                         B = B.toLowerCase();

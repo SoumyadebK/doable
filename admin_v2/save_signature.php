@@ -15,11 +15,17 @@ $data = json_decode(file_get_contents("php://input"), true);
 $image = $data['image'];
 $PK_ENROLLMENT_MASTER = $data['PK_ENROLLMENT_MASTER'];
 
+$enrollment_data = $db_account->Execute("SELECT AGREEMENT_PDF_LINK, IS_SIGNED FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
+
+if ($enrollment_data->fields['IS_SIGNED'] == 1) {
+    echo json_encode(["status" => "failed"]);
+    exit;
+}
+
 $update_history_data = $db_account->Execute("SELECT * FROM DOA_UPDATE_HISTORY WHERE CLASS = 'enrollment_signature' AND PRIMARY_KEY = '$PK_ENROLLMENT_MASTER' ORDER BY EDITED_ON ASC LIMIT 1");
 if ($update_history_data->RecordCount() > 0) {
     $ORIGINAL_AGREEMENT = $update_history_data->fields['FROM_VALUE'];
 } else {
-    $enrollment_data = $db_account->Execute("SELECT AGREEMENT_PDF_LINK FROM DOA_ENROLLMENT_MASTER WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
     $ORIGINAL_AGREEMENT = $enrollment_data->fields['AGREEMENT_PDF_LINK'];
 }
 
@@ -38,7 +44,10 @@ $imageData = base64_decode($image);
 $enrollment_location = $db_account->Execute("SELECT DOA_LOCATION.LOCATION_CODE FROM DOA_ENROLLMENT_MASTER LEFT JOIN $master_database.DOA_LOCATION AS DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_ENROLLMENT_MASTER.PK_LOCATION WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
 $LOCATION_CODE = $enrollment_location->fields['LOCATION_CODE'];
 
-file_put_contents('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', $imageData);
+$signatureToken = generateSecureToken(16);
+$signatureFileName = $signatureToken . '_signature.png';
+
+file_put_contents('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $signatureFileName, $imageData);
 
 // Load existing PDF
 $pdf = new FPDI();
@@ -51,15 +60,15 @@ for ($i = 1; $i <= $pageCount; $i++) {
 
     // Add signature on first page (adjust position)
     if ($i == 2) {
-        $pdf->Image($http_path . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $PK_ENROLLMENT_MASTER . '_signature.png', 85, 70, 60); // X, Y, Width
+        $pdf->Image('../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $signatureFileName, 85, 70, 60); // X, Y, Width
     }
 }
 
 // Save signed PDF
-$file_name = "enrollment_pdf_" . time() . ".pdf";
-$pdf->Output("F", '../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $file_name);
+$agreement_file_name = "enrollment_pdf_" . generateSecureToken(16) . ".pdf";
+$pdf->Output("F", '../' . $upload_path . '/enrollment_pdf/' . $LOCATION_CODE . '/' . $agreement_file_name);
 
-$updated_file_name = $LOCATION_CODE . '/' . $file_name;
+$updated_file_name = $LOCATION_CODE . '/' . $agreement_file_name;
 $db_account->Execute("UPDATE DOA_ENROLLMENT_MASTER SET AGREEMENT_PDF_LINK = '$updated_file_name', IS_SIGNED = 1 WHERE PK_ENROLLMENT_MASTER = '$PK_ENROLLMENT_MASTER'");
 
 

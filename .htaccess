@@ -10,17 +10,13 @@
 RewriteEngine On
 
 # Block these folders completely
-RewriteRule ^(global|vendor)/ - [F,L]
+RewriteRule ^(global|vendor|uploads)/ - [F,L]
 
-# For uploads: block if NOT a direct file request (i.e. block folder browsing only)
+# Block if NOT a direct file request (i.e. block folder browsing only)
 RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^(uploads|admin|admin_v2|admin_v2_backup|api|customer|service_provider|super_admin|assets|includes)/ - [F,L]
+RewriteRule ^(admin|admin_v2|admin_v2_backup|api|customer|service_provider|super_admin|assets|includes)/ - [F,L]
 
-# --- 1+2 combined) Force https AND non-www in a single redirect -------------
-RewriteCond %{HTTP_HOST} ^www\.doable\.net$ [NC,OR]
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^ https://doable.net%{REQUEST_URI} [R=301,L]
+
 
 # --- 3) Serve the auto-updating sitemap.php at /sitemap.xml -----------------
 #     (ONLY if you use sitemap.php. If you use the static sitemap.xml, DELETE

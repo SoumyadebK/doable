@@ -1571,3 +1571,8 @@ function getLocationSmtpSetting($PK_LOCATION)
         'SMTP_PASSWORD' => $location_data->fields['SMTP_PASSWORD']
     ];
 }
+
+function generateSecureToken($length = 32)
+{
+    return bin2hex(random_bytes($length));
+}

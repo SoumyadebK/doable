@@ -5,6 +5,11 @@ global $db_account;
 global $master_database;
 global $account_database;
 
+if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4])) {
+    header("location:../login.php");
+    exit;
+}
+
 $PK_ENROLLMENT_MASTER = $_GET['master_id'] ?: 0;
 $RECEIPT_NUMBER = $_GET['receipt'] ?: 0;
 $BILLING_REF = '';

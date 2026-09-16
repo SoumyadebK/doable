@@ -34,6 +34,7 @@ $FINAL_AMOUNT = '';
 $PK_AGREEMENT_TYPE = '';
 $PK_DOCUMENT_LIBRARY = 1;
 $AGREEMENT_PDF_LINK = '';
+$IS_SIGNED = 0;
 $ENROLLMENT_BY_ID = $_SESSION['PK_USER'];
 $ENROLLMENT_BY_PERCENTAGE = '';
 $MEMO = '';
@@ -94,6 +95,7 @@ if (!empty($_GET['id'])) {
     $PK_AGREEMENT_TYPE = $res->fields['PK_AGREEMENT_TYPE'];
     $PK_DOCUMENT_LIBRARY = is_null($res->fields['PK_DOCUMENT_LIBRARY']) ? 1 : $res->fields['PK_DOCUMENT_LIBRARY'];
     $AGREEMENT_PDF_LINK = $res->fields['AGREEMENT_PDF_LINK'];
+    $IS_SIGNED = $res->fields['IS_SIGNED'];
     $ENROLLMENT_BY_ID = $res->fields['ENROLLMENT_BY_ID'];
     $ENROLLMENT_BY_PERCENTAGE = $res->fields['ENROLLMENT_BY_PERCENTAGE'];
     $MEMO = $res->fields['MEMO'];
@@ -1800,12 +1802,14 @@ $enrollment_type = 'Enrollment';
                             <!-- ===== AGREEMENT TAB ===== -->
                             <?php if (!empty($_GET['id']) && $AGREEMENT_PDF_LINK != '' && $AGREEMENT_PDF_LINK != null) { ?>
                                 <div class="tab-content tab-content-5">
-                                    <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
-                                        <button id="openSign" class="btn-modern btn-modern-primary" onclick="$('#signature_modal').modal('show');">
-                                            <i class="bi bi-pencil"></i> Sign Agreement
-                                        </button>
-                                    </div>
-                                    <iframe src="../<?= $upload_path ?>/enrollment_pdf/<?= $AGREEMENT_PDF_LINK ?>" width="100%" height="600px" style="border: 1px solid var(--gray-200); border-radius: var(--radius-sm);"></iframe>
+                                    <?php if ($IS_SIGNED == 0) { ?>
+                                        <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
+                                            <button id="openSign" class="btn-modern btn-modern-primary" onclick="$('#signature_modal').modal('show');">
+                                                <i class="bi bi-pencil"></i> Sign Agreement
+                                            </button>
+                                        </div>
+                                    <?php } ?>
+                                    <iframe src="enrollment_agreement.php?id=<?= $PK_ENROLLMENT_MASTER ?>" width="100%" height="600px" style="border: 1px solid var(--gray-200); border-radius: var(--radius-sm);"></iframe>
                                 </div>
                             <?php } ?>
 
@@ -1837,24 +1841,26 @@ $enrollment_type = 'Enrollment';
         </div>
     </div>
 
-    <!-- Signature Modal -->
-    <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog" style="max-width: 740px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title"><i class="bi bi-pencil"></i> Add Signature</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <canvas id="signature-pad" width="710" height="200"></canvas>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                        <button id="clear" class="btn-modern btn-modern-secondary btn-modern-sm">Clear</button>
-                        <button id="save" class="btn-modern btn-modern-primary btn-modern-sm">Sign Agreement</button>
+    <?php if ($IS_SIGNED == 0) { ?>
+        <!-- Signature Modal -->
+        <div class="modal fade" id="signature_modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" style="max-width: 740px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="bi bi-pencil"></i> Add Signature</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <canvas id="signature-pad" width="710" height="200"></canvas>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                            <button id="clear" class="btn-modern btn-modern-secondary btn-modern-sm">Clear</button>
+                            <button id="save" class="btn-modern btn-modern-primary btn-modern-sm">Sign Agreement</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    <?php } ?>
 
     <!-- Credit Card Modal -->
     <div class="modal fade" id="credit_card_modal" tabindex="-1" aria-hidden="true">
