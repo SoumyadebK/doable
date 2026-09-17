@@ -6,6 +6,9 @@ global $master_database;
 
 $title = "PAYMENT DUE REPORT";
 
+$DEFAULT_LOCATION_ID = $_SESSION['DEFAULT_LOCATION_ID'];
+$LOCATION_ARRAY = explode(',', $DEFAULT_LOCATION_ID);
+
 if ($_SESSION['PK_USER'] == 0 || $_SESSION['PK_USER'] == '' || in_array($_SESSION['PK_ROLES'], [1, 4, 5])) {
     header("location:../login.php");
     exit;
@@ -126,19 +129,14 @@ $total_payments = count($payment_rows);
 <!DOCTYPE html>
 <html lang="en">
 <?php include 'layout/header_script.php'; ?>
-<?php require_once('../includes/header.php'); ?>
 <?php include 'layout/header.php'; ?>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.css">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- jQuery UI Datepicker -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <style>
         .auto-pay-on {
             color: #198754;
@@ -369,6 +367,30 @@ $total_payments = count($payment_rows);
             padding: 4px 8px;
             font-size: 0.85rem;
         }
+
+        .SumoSelect .CaptionCont {
+            border: 1px solid #dcdcdc;
+            height: 40px;
+            border-radius: 5px;
+        }
+
+        .SumoSelect .CaptionCont span.placeholder {
+            color: #fff;
+        }
+
+        .SumoSelect .CaptionCont span {
+            margin-top: 3px;
+        }
+
+        .SumoSelect {
+            width: 100%;
+        }
+
+        .sumo_SERVICE_PROVIDER_ID .CaptionCont {
+            border: 1px solid #dcdcdc;
+            height: 35px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
@@ -513,10 +535,11 @@ $total_payments = count($payment_rows);
         </div>
     </div>
 
-    <!--Payment Model-->
-    <?php include('includes/enrollment_payment.php'); ?>
+    <?php require_once('../includes/footer.php'); ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!--Payment Model-->
+    <?php include('includes/enrollment_payment_v2.php'); ?>
+
     <script>
         // Header date picker — reloads page with new selected_date
         $('#headerDatePicker').datepicker({
