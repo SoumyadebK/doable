@@ -1,5 +1,10 @@
 <?php
+
+use Twilio\Rest\Client;
+
 require_once('../global/config.php');
+require_once("../global/vendor/twilio/sdk/src/Twilio/autoload.php");
+require_once('../global/phpmailer/class.phpmailer.php');
 
 if (empty($_GET['id']))
     $title = "Add Campaign";
@@ -167,17 +172,211 @@ if (!empty($_POST)) {
             $CAMPAIGN_DATA['EDITED_ON']  = '0000-00-00 00:00:00';
             db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'insert');
             $new_id = $db_account->Insert_ID();   // ADOdb returns the last inserted ID
+            triggerCampaign($new_id);
             header("location:all_marketings.php?saved=" . intval($new_id) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
             exit;
         } else {
             $CAMPAIGN_DATA['EDITED_BY'] = $_SESSION['PK_USER'];
             $CAMPAIGN_DATA['EDITED_ON'] = date("Y-m-d H:i:s");
             db_perform_account('DOA_MARKET_CAMPAIGN', $CAMPAIGN_DATA, 'update', " PK_MARKET_CAMPAIGN = " . intval($_GET['id']));
+            triggerCampaign($_GET['id']);
             header("location:all_marketings.php?saved=" . intval($_GET['id']) . "&saved_name=" . urlencode($CAMPAIGN_DATA['CAMPAIGN_NAME']));
             exit;
         }
     }
 }
+
+function triggerCampaign($PK_MARKET_CAMPAIGN)
+{
+    global $db;
+    global $db_account;
+    global $account_database;
+    $campaign_res = $db_account->Execute("SELECT * FROM DOA_MARKET_CAMPAIGN WHERE PK_MARKET_CAMPAIGN = " . intval($PK_MARKET_CAMPAIGN));
+    if ($campaign_res->RecordCount() > 0) {
+        $PK_LOCATION = $campaign_res->fields['PK_LOCATION'];
+        $CAMPAIGN_NAME = $campaign_res->fields['CAMPAIGN_NAME'];
+        $SUBJECT = $campaign_res->fields['SUBJECT'];
+        $CONTENT = $campaign_res->fields['CONTENT'];
+
+        $REMINDER_TYPE = $campaign_res->fields['REMINDER_TYPE'];
+        $REMINDER_TYPES = explode(',', $REMINDER_TYPE);
+
+        $OPERATION = $campaign_res->fields['OPERATION'];
+        $OPERATIONS = explode(',', $OPERATION);
+
+        if (in_array('inactive_customers', $OPERATIONS) || in_array('active_customers', $OPERATIONS)) {
+            $STATUS_CONDITION = ' ';
+            if (in_array('inactive_customers', $OPERATIONS) && !in_array('active_customers', $OPERATIONS)) {
+                $STATUS_CONDITION = ' AND DOA_USERS.ACTIVE = 0';
+            } elseif (!in_array('inactive_customers', $OPERATIONS) && in_array('active_customers', $OPERATIONS)) {
+                $STATUS_CONDITION = ' AND DOA_USERS.ACTIVE = 1';
+            }
+            $all_active_inactive_customers = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME FROM `DOA_USERS` INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) $STATUS_CONDITION AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = $PK_LOCATION");
+            while (!$all_active_inactive_customers->EOF) {
+                $CUSTOMER_NAME = $all_active_inactive_customers->fields['CUSTOMER_NAME'];
+                $EMAIL_ID = $all_active_inactive_customers->fields['EMAIL_ID'];
+                $PHONE = $all_active_inactive_customers->fields['PHONE'];
+                $LOCATION_NAME = $all_active_inactive_customers->fields['LOCATION_NAME'];
+
+                $saved_message = $CONTENT;
+
+                $replacements = [
+                    '<span class="variable-badge" contenteditable="false">Student Name</span>' => $CUSTOMER_NAME,
+                    '<span class="variable-badge" contenteditable="false">Campaign Name</span>' => $CAMPAIGN_NAME,
+                    '<span class="variable-badge" contenteditable="false">Location</span>' => $LOCATION_NAME,
+                ];
+
+                $MESSAGE = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
+
+                if (in_array('email', $REMINDER_TYPES)) {
+                    sendEmail($PK_LOCATION, $MESSAGE, $EMAIL_ID, $LOCATION_NAME, $SUBJECT);
+                }
+                if (in_array('text', $REMINDER_TYPES)) {
+                    sendTextMessage($PK_LOCATION, $MESSAGE, $PHONE);
+                }
+
+                $all_active_inactive_customers->MoveNext();
+            }
+        }
+        if (in_array('tags', $OPERATIONS)) {
+            $TAGS = $campaign_res->fields['TAGS'];
+            $all_tags_customer = $db->Execute("SELECT DISTINCT DOA_USERS.PK_USER, CONCAT(DOA_USERS.FIRST_NAME, ' ', DOA_USERS.LAST_NAME) AS CUSTOMER_NAME, DOA_USERS.EMAIL_ID, DOA_USERS.PHONE, DOA_LOCATION.LOCATION_NAME FROM `DOA_USERS` INNER JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER LEFT JOIN $account_database.DOA_USER_TAG AS DOA_USER_TAG ON DOA_USER_MASTER.PK_USER_MASTER = DOA_USER_TAG.PK_USER_MASTER LEFT JOIN DOA_LOCATION ON DOA_LOCATION.PK_LOCATION = DOA_USER_MASTER.PRIMARY_LOCATION_ID WHERE (DOA_USERS.IS_DELETED = 0 || DOA_USERS.IS_DELETED IS NULL) AND DOA_USER_TAG.PK_TAG IN ($TAGS) AND DOA_USER_MASTER.PRIMARY_LOCATION_ID = $PK_LOCATION");
+            while (!$all_tags_customer->EOF) {
+                $CUSTOMER_NAME = $all_tags_customer->fields['CUSTOMER_NAME'];
+                $EMAIL_ID = $all_tags_customer->fields['EMAIL_ID'];
+                $PHONE = $all_tags_customer->fields['PHONE'];
+                $LOCATION_NAME = $all_tags_customer->fields['LOCATION_NAME'];
+
+                $saved_message = $CONTENT;
+
+                $replacements = [
+                    '<span class="variable-badge" contenteditable="false">Student Name</span>' => $CUSTOMER_NAME,
+                    '<span class="variable-badge" contenteditable="false">Campaign Name</span>' => $CAMPAIGN_NAME,
+                    '<span class="variable-badge" contenteditable="false">Location</span>' => $LOCATION_NAME,
+                ];
+
+                $MESSAGE = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
+
+                if (in_array('email', $REMINDER_TYPES)) {
+                    sendEmail($PK_LOCATION, $MESSAGE, $EMAIL_ID, $LOCATION_NAME, $SUBJECT);
+                }
+                if (in_array('text', $REMINDER_TYPES)) {
+                    sendTextMessage($PK_LOCATION, $MESSAGE, $PHONE);
+                }
+
+                $all_tags_customer->MoveNext();
+            }
+        }
+        if (in_array('leads', $OPERATIONS)) {
+            $PK_LEAD_STATUS = $campaign_res->fields['LEADS'];
+            $all_leads = $db->Execute("SELECT DISTINCT 
+                                        DOA_LEADS.PK_LEADS, 
+                                        CONCAT(DOA_LEADS.FIRST_NAME, ' ', DOA_LEADS.LAST_NAME) AS CUSTOMER_NAME, 
+                                        DOA_LEADS.PHONE, 
+                                        DOA_LEADS.EMAIL_ID, 
+                                        DOA_LOCATION.LOCATION_NAME
+                                    FROM `DOA_LEADS` 
+                                    INNER JOIN DOA_LOCATION 
+                                        ON DOA_LOCATION.PK_LOCATION = DOA_LEADS.PK_LOCATION 
+                                    LEFT JOIN DOA_LEAD_STATUS AS LS 
+                                        ON DOA_LEADS.PK_LEAD_STATUS = LS.PK_LEAD_STATUS 
+                                    WHERE DOA_LEADS.PK_LEAD_STATUS IN ($PK_LEAD_STATUS)
+                                        AND DOA_LEADS.PK_LOCATION = $PK_LOCATION
+                                        AND DOA_LEADS.ACTIVE = 1");
+            while (!$all_leads->EOF) {
+                $CUSTOMER_NAME = $all_leads->fields['CUSTOMER_NAME'];
+                $EMAIL_ID = $all_leads->fields['EMAIL_ID'];
+                $PHONE = $all_leads->fields['PHONE'];
+                $LOCATION_NAME = $all_leads->fields['LOCATION_NAME'];
+
+                $saved_message = $CONTENT;
+
+                $replacements = [
+                    '<span class="variable-badge" contenteditable="false">Student Name</span>' => $CUSTOMER_NAME,
+                    '<span class="variable-badge" contenteditable="false">Campaign Name</span>' => $CAMPAIGN_NAME,
+                    '<span class="variable-badge" contenteditable="false">Location</span>' => $LOCATION_NAME,
+                ];
+
+                $MESSAGE = str_replace(array_keys($replacements), array_values($replacements), $saved_message);
+
+                if (in_array('email', $REMINDER_TYPES)) {
+                    sendEmail($PK_LOCATION, $MESSAGE, $EMAIL_ID, $LOCATION_NAME, $SUBJECT);
+                }
+                if (in_array('text', $REMINDER_TYPES)) {
+                    sendTextMessage($PK_LOCATION, $MESSAGE, $PHONE);
+                }
+
+                $all_leads->MoveNext();
+            }
+        }
+    }
+}
+
+function sendEmail($PK_LOCATION, $MESSAGE, $EMAIL_ID, $LOCATION_NAME, $SUBJECT)
+{
+    $locationSmtpSetting = getLocationSmtpSetting($PK_LOCATION);
+
+    $hostname = $locationSmtpSetting['SMTP_HOST'];
+    $port = $locationSmtpSetting['SMTP_PORT'];
+    $userName = $locationSmtpSetting['SMTP_USERNAME'];
+    $SendingPwd = $locationSmtpSetting['SMTP_PASSWORD'];
+
+    $To = $EMAIL_ID;
+
+    $mail = new PHPMailer();
+    $mail->IsSMTP();
+    $mail->SMTPDebug = 0;
+    $mail->Debugoutput = 'html';
+    $mail->IsHTML(true);
+    $mail->Host = $hostname;
+    $mail->Port = $port;
+    $mail->SMTPSecure = ($port == 465) ? 'ssl' : 'tls';
+    $mail->SMTPAuth = true;
+    $mail->Username = $userName;
+    $mail->Password = $SendingPwd;
+    $mail->setFrom($userName, $LOCATION_NAME);
+    $mail->addAddress($To, $LOCATION_NAME);  //Set who the message is to be sent to.
+    //Set the subject line
+    $mail->Subject = $SUBJECT;
+
+    // Tell PHPMailer this is an HTML email
+    $mail->IsHTML(true);
+
+    $mail->Body = $MESSAGE;
+
+    // Plain-text fallback for non-HTML email clients
+    $mail->AltBody = $MESSAGE;
+
+    try {
+        if (!$mail->send()) {
+            echo 'Mailer Error: ' . $mail->ErrorInfo;
+        } else {
+            echo 'Email sent successfully';
+        }
+    } catch (phpmailerException $e) {
+        echo 'Mailer Error: ' . $e->getMessage();
+    }
+}
+
+function sendTextMessage($PK_LOCATION, $MESSAGE, $PHONE)
+{
+    [$SID, $TOKEN, $TWILIO_PHONE_NO] = getTwilioSettingData($PK_LOCATION);
+
+    try {
+        $client = new Client($SID, $TOKEN);
+        $response = $client->messages->create(
+            '+1' . $PHONE,
+            [
+                'from' => $TWILIO_PHONE_NO,
+                'body' => $MESSAGE //$msg->fields['CONTENT']
+            ]
+        );
+    } catch (\Twilio\Exceptions\TwilioException $e) {
+        echo 'Error : ' . $e->getMessage() . "<br>";
+    }
+}
+
+
 
 if (empty($_GET['id'])) {
     $TEMPLATE_NAME = '';
@@ -1207,14 +1406,14 @@ if (empty($_GET['id'])) {
                                                 <div class="d-flex flex-wrap gap-1">
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Student Name" <?= $location_access_denied ? 'disabled' : '' ?>>Student Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Location" <?= $location_access_denied ? 'disabled' : '' ?>>Location</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name" <?= $location_access_denied ? 'disabled' : '' ?>>Service Provider Name</button>
+                                                    <!-- <button type="button" class="btn btn-variable-token var-btn" data-var="Service Provider Name" <?= $location_access_denied ? 'disabled' : '' ?>>Service Provider Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Corporation Name" <?= $location_access_denied ? 'disabled' : '' ?>>Corporation Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Student ID" <?= $location_access_denied ? 'disabled' : '' ?>>Student ID</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Course Name" <?= $location_access_denied ? 'disabled' : '' ?>>Course Name</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Date" <?= $location_access_denied ? 'disabled' : '' ?>>Date</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Time" <?= $location_access_denied ? 'disabled' : '' ?>>Time</button>
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Instructor Name" <?= $location_access_denied ? 'disabled' : '' ?>>Instructor Name</button>
-                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name" <?= $location_access_denied ? 'disabled' : '' ?>>Class Name</button>
+                                                    <button type="button" class="btn btn-variable-token var-btn" data-var="Class Name" <?= $location_access_denied ? 'disabled' : '' ?>>Class Name</button> -->
                                                     <button type="button" class="btn btn-variable-token var-btn" data-var="Campaign Name" <?= $location_access_denied ? 'disabled' : '' ?>>Campaign Name</button>
                                                 </div>
                                             </div>
