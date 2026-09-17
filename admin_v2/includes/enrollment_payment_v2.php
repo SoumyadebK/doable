@@ -173,7 +173,7 @@
                             <div class="row mb-3" id="card_list">
                             </div>
                             <div class="payment_type_div" id="credit_card_payment" style="display: none;">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Name (As it appears on your card)</label>
@@ -183,7 +183,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Email (For receiving payment confirmation mail)</label>
@@ -193,12 +193,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label class="form-label">Card Number</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="CARD_NUMBER" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
+                                                <input type="text" id="CARD_NUMBER" placeholder="Card Number" class="form-control format-card">
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +208,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Month</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_MONTH" id="EXPIRATION_MONTH" class="form-control">
+                                                <select id="EXPIRATION_MONTH" class="form-control">
                                                     <?php
                                                     for ($i = 1; $i <= 12; $i++) { ?>
                                                         <option value="<?= $i ?>"><?= $i ?></option>
@@ -221,7 +221,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Expiration Year</label>
                                             <div class="col-md-12">
-                                                <select name="EXPIRATION_YEAR" id="EXPIRATION_YEAR" class="form-control">
+                                                <select id="EXPIRATION_YEAR" class="form-control">
                                                     <?php
                                                     $year = (int)date('Y');
                                                     for ($i = $year; $i <= $year + 25; $i++) { ?>
@@ -235,13 +235,21 @@
                                         <div class="form-group">
                                             <label class="form-label">Security Code</label>
                                             <div class="col-md-12">
-                                                <input type="text" name="SECURITY_CODE" id="SECURITY_CODE" class="form-control">
+                                                <input type="text" id="SECURITY_CODE" class="form-control">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <input type="hidden" name="dataDescriptor" id="dataDescriptor">
+                                        <input type="hidden" name="dataValue" id="dataValue">
+                                        <p id="anet-card-errors" role="alert" style="color:#fa755a;"></p>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
                                     <div class="col-12">
                                         <div class="form-group d-flex align-items-center mt-3 ms-2">
                                             <input type="checkbox" id="SAVE_FOR_FUTURE" name="SAVE_FOR_FUTURE" class="me-2">
@@ -570,6 +578,67 @@
     </script>
 <?php } ?>
 
+
+
+
+<?php if ($PAYMENT_GATEWAY == 'Authorized.net') {
+    $ACCEPT_JS_URL = ($GATEWAY_MODE == 'live')
+        ? 'https://js.authorize.net/v1/Accept.js'
+        : 'https://jstest.authorize.net/v1/Accept.js';
+?>
+    <script src="<?= $ACCEPT_JS_URL ?>"></script>
+    <script type="text/javascript">
+        var authNetAuthData = {
+            apiLoginID: '<?= $AUTHORIZE_LOGIN_ID ?>',
+            clientKey: '<?= $AUTHORIZE_CLIENT_KEY ?>'
+        };
+
+        function authNetPaymentFunction(type) {
+            // Fields are already in the DOM (no mount step like Stripe/Clover),
+            // just make sure the input mask is applied — you already do this
+            // in selectPaymentType(), so nothing else is required here.
+        }
+
+        // Wrapped in a Promise so it slots into the same await-based flow
+        // you're already using for Square/Clover.
+        function addAuthNetTokenOnForm() {
+            return new Promise(function(resolve) {
+                var cardNumber = $('#CARD_NUMBER').val().replace(/\s/g, '');
+                var cardData = {
+                    cardNumber: cardNumber,
+                    month: $('#EXPIRATION_MONTH').val(),
+                    year: $('#EXPIRATION_YEAR').val(),
+                    cardCode: $('#SECURITY_CODE').val()
+                };
+
+                var secureData = {
+                    authData: authNetAuthData,
+                    cardData: cardData
+                };
+
+                Accept.dispatchData(secureData, function(response) {
+                    var displayError = document.getElementById('anet-card-errors');
+
+                    if (response.messages.resultCode === 'Error') {
+                        var msg = response.messages.message[0].text;
+                        displayError.textContent = msg;
+                        resolve(false);
+                        return;
+                    }
+
+                    displayError.textContent = '';
+                    $('#dataDescriptor').val(response.opaqueData.dataDescriptor);
+                    $('#dataValue').val(response.opaqueData.dataValue);
+                    resolve(true);
+                });
+            });
+        }
+    </script>
+<?php } ?>
+
+
+
+
 <?php if ($PAYMENT_GATEWAY == 'Clover') { ?>
     <script src="https://checkout.clover.com/sdk.js"></script>
     <script>
@@ -644,6 +713,19 @@
                             addSquareTokenOnForm();
                             sleep(3000).then(() => {
                                 submitEnrollmentPaymentForm();
+                            });
+                        } else {
+                            submitEnrollmentPaymentForm();
+                        }
+                    } else if (PAYMENT_GATEWAY == 'Authorized.net') {
+                        let PAYMENT_METHOD_ID = $('#PAYMENT_METHOD_ID').val();
+                        if (PAYMENT_METHOD_ID == '') {
+                            addAuthNetTokenOnForm().then(function(success) {
+                                if (success) {
+                                    submitEnrollmentPaymentForm();
+                                } else {
+                                    $('#enr-payment-btn').prop('disabled', false);
+                                }
                             });
                         } else {
                             submitEnrollmentPaymentForm();

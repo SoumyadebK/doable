@@ -431,7 +431,8 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 }
             } elseif ($_POST['PAYMENT_GATEWAY'] == 'Authorized.net') {
                 $user_master = $db->Execute("SELECT DOA_USERS.PK_USER, DOA_USERS.EMAIL_ID, DOA_USERS.FIRST_NAME, DOA_USERS.LAST_NAME, DOA_USERS.PHONE, DOA_USERS.ADDRESS, DOA_USERS.ADDRESS_1, DOA_USERS.CITY, DOA_COUNTRY.COUNTRY_CODE, DOA_STATES.STATE_CODE, DOA_USERS.ZIP FROM `DOA_USERS` LEFT JOIN DOA_COUNTRY ON DOA_USERS.PK_COUNTRY = DOA_COUNTRY.PK_COUNTRY LEFT JOIN DOA_STATES ON DOA_USERS.PK_STATES = DOA_STATES.PK_STATES LEFT JOIN DOA_USER_MASTER ON DOA_USERS.PK_USER=DOA_USER_MASTER.PK_USER WHERE DOA_USER_MASTER.PK_USER_MASTER = '$_POST[PK_USER_MASTER]'");
-                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $user_master->fields['PK_USER']);
+                $PK_USER = $user_master->fields['PK_USER'];
+                $customer_payment_info = $db_account->Execute("SELECT CUSTOMER_PAYMENT_ID FROM DOA_CUSTOMER_PAYMENT_INFO WHERE PAYMENT_TYPE = 'Authorized.net' AND PK_USER = " . $PK_USER);
 
                 // Product Details
                 $itemName = "Receipt# " . $RECEIPT_NUMBER_ORIGINAL;
@@ -454,25 +455,29 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                     $paymentProfile->setPaymentProfileId($_POST['PAYMENT_METHOD_ID']);
                     $profileToCharge->setPaymentProfile($paymentProfile);
                 } else {
-                    // Retrieve card and user info from the submitted form data
+                    // Card data no longer arrives raw — Accept.js has already tokenized it
+                    // client-side. We only ever receive dataDescriptor / dataValue now.
+                    if (empty($_POST['dataDescriptor']) || empty($_POST['dataValue'])) {
+                        $PAYMENT_STATUS = 'Failed';
+                        $PAYMENT_INFO = "Missing payment nonce. Please re-enter your card details.";
+
+                        $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
+                        $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
+                        echo json_encode($RETURN_DATA);
+                        die();
+                    }
+
                     $name = $_POST['NAME'];
                     $email = $_POST['EMAIL'];
-                    $card_number = preg_replace('/\s+/', '', $_POST['CARD_NUMBER']);
-                    $card_exp_month = $_POST['EXPIRATION_MONTH'];
-                    $card_exp_year = $_POST['EXPIRATION_YEAR'];
-                    $card_exp_year_month = $card_exp_year . '-' . sprintf('%02d', $card_exp_month);
-                    $card_cvc = $_POST['SECURITY_CODE'];
 
-                    // Create the payment data for a credit card
-                    $creditCard = new AnetAPI\CreditCardType();
-                    $creditCard->setCardNumber($card_number);
-                    $creditCard->setExpirationDate($card_exp_year_month);
-                    $creditCard->setCardCode($card_cvc);
+                    // Build the payment data from the Accept.js opaque nonce instead of raw card fields
+                    $opaqueData = new AnetAPI\OpaqueDataType();
+                    $opaqueData->setDataDescriptor($_POST['dataDescriptor']);
+                    $opaqueData->setDataValue($_POST['dataValue']);
 
                     // Add the payment data to a paymentType object
                     $paymentOne = new AnetAPI\PaymentType();
-                    $paymentOne->setCreditCard($creditCard);
-
+                    $paymentOne->setOpaqueData($opaqueData);
 
                     if (isset($_POST['SAVE_FOR_FUTURE'])) {
                         // Create Payment Profile
@@ -489,10 +494,10 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                             $createPaymentProfileRequest->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
                             $createPaymentProfileRequest->setPaymentProfile($paymentProfile);
 
-                            /* if ($GATEWAY_MODE == 'live')
-                            $createPaymentProfileRequest->setValidationMode("liveMode");
-                        else */
-                            $createPaymentProfileRequest->setValidationMode("testMode"); // Use 'liveMode' in production
+                            if ($GATEWAY_MODE == 'live')
+                                $createPaymentProfileRequest->setValidationMode("liveMode");
+                            else
+                                $createPaymentProfileRequest->setValidationMode("none"); // Use 'liveMode' in production
 
                             $controller = new AnetController\CreateCustomerPaymentProfileController($createPaymentProfileRequest);
 
@@ -537,10 +542,10 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                             $createProfileRequest->setMerchantAuthentication($merchantAuthentication);
                             $createProfileRequest->setProfile($customerProfile);
 
-                            /* if ($GATEWAY_MODE == 'live')
-                            $createProfileRequest->setValidationMode("liveMode");
-                        else */
-                            $createProfileRequest->setValidationMode("testMode");
+                            if ($GATEWAY_MODE == 'live')
+                                $createProfileRequest->setValidationMode("liveMode");
+                            else
+                                $createProfileRequest->setValidationMode("none");
 
                             $controller = new AnetController\CreateCustomerProfileController($createProfileRequest);
 
@@ -554,7 +559,7 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                                 $PAYMENT_PROFILE_ID = $response->getCustomerPaymentProfileIdList()[0];
 
                                 // Save the customer profile ID in the database
-                                $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $user_master->fields['PK_USER'];
+                                $CUSTOMER_PAYMENT_DETAILS['PK_USER'] = $PK_USER;
                                 $CUSTOMER_PAYMENT_DETAILS['CUSTOMER_PAYMENT_ID'] = $CUSTOMER_PAYMENT_ID;
                                 $CUSTOMER_PAYMENT_DETAILS['PAYMENT_TYPE'] = 'Authorized.net';
                                 $CUSTOMER_PAYMENT_DETAILS['CREATED_ON'] = date("Y-m-d H:i");
@@ -571,6 +576,12 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         }
                         $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
                         $profileToCharge->setCustomerProfileId($CUSTOMER_PAYMENT_ID);
+
+                        // Attach the specific payment profile just created/used — without this,
+                        // Authorize.Net falls back to a "default" profile that doesn't exist yet.
+                        $chargePaymentProfile = new AnetAPI\PaymentProfileType();
+                        $chargePaymentProfile->setPaymentProfileId($PAYMENT_PROFILE_ID);
+                        $profileToCharge->setPaymentProfile($chargePaymentProfile);
                     }
                 }
 
@@ -585,6 +596,8 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                 $transactionRequestType->setOrder($order);
 
                 if (!empty($_POST['PAYMENT_METHOD_ID'])) {
+                    $transactionRequestType->setProfile($profileToCharge);
+                } elseif (isset($_POST['SAVE_FOR_FUTURE'])) {
                     $transactionRequestType->setProfile($profileToCharge);
                 } else {
                     $transactionRequestType->setPayment($paymentOne);
@@ -612,7 +625,24 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                             $PAYMENT_INFO_JSON = json_encode($PAYMENT_INFO_ARRAY);
                         } else {
                             $PAYMENT_STATUS = 'Failed';
-                            $PAYMENT_INFO = $tresponse->getErrors()[0]->getErrorCode();
+
+                            if ($tresponse != null && $tresponse->getErrors() != null) {
+                                $errorCode = $tresponse->getErrors()[0]->getErrorCode();
+                                $errorText = $tresponse->getErrors()[0]->getErrorText();
+                                $PAYMENT_INFO = "Error {$errorCode}: {$errorText}";
+                            } elseif ($response->getTransactionResponse() != null) {
+                                $PAYMENT_INFO = "Response code: " . $response->getTransactionResponse()->getResponseCode();
+                            } else {
+                                $PAYMENT_INFO = "Transaction Failed - no detailed error returned";
+                            }
+
+                            error_log('ANet Failure: ' . json_encode([
+                                'result_code' => $response->getMessages()->getResultCode(),
+                                'tresponse_errors' => $tresponse != null && $tresponse->getErrors() != null
+                                    ? $tresponse->getErrors()[0]->getErrorText() : null,
+                                'profile_id' => $customer_payment_info->fields['CUSTOMER_PAYMENT_ID'] ?? null,
+                                'payment_profile_id' => $_POST['PAYMENT_METHOD_ID'] ?? null,
+                            ]));
 
                             $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                             $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
@@ -621,7 +651,12 @@ if (!empty($_POST) && $_POST['FUNCTION_NAME'] == 'confirmEnrollmentPayment') {
                         }
                     } else {
                         $PAYMENT_STATUS = 'Failed';
-                        $PAYMENT_INFO = "Transaction Failed";
+
+                        if ($response != null && $response->getMessages() != null && $response->getMessages()->getMessage() != null) {
+                            $PAYMENT_INFO = $response->getMessages()->getMessage()[0]->getText();
+                        } else {
+                            $PAYMENT_INFO = "Transaction Failed - No response from payment gateway";
+                        }
 
                         $RETURN_DATA['STATUS'] = $PAYMENT_STATUS;
                         $RETURN_DATA['PAYMENT_INFO'] = $PAYMENT_INFO;
